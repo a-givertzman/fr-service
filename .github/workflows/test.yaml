@@ -34,5 +34,5 @@ jobs:
       # - run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
       # - run: cargo build --release
       - name: Unit tests
-        run: clear && cargo test -- --test-threads=1
+        run: cargo test -- --test-threads=1 --show-output
   
