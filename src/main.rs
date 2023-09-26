@@ -13,16 +13,15 @@ use crate::core::state::switch_state::{
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 enum ProcessState {
-    off,
-    start,
-    progress,
-    stop,
+    Off,
+    Start,
+    Progress,
+    Stop,
 }
 
 #[cfg(test)]
 // #[path = "./tests"]
 mod tests;
-// impl Eq for State
 
 
 fn main() {
@@ -39,50 +38,50 @@ fn main() {
     //     State::progress => todo!(),
     //     State::stop => todo!(),
     // }
-    let initial = ProcessState::off;
+    let initial = ProcessState::Off;
     let switches = vec![
         Switch{
-            state: ProcessState::off,
+            state: ProcessState::Off,
             conditions: vec![
                 SwitchCondition {
                     condition: Box::new(|value| {value >= 5}),
-                    target: ProcessState::start,        
+                    target: ProcessState::Start,        
                 },
             ],
         },
         Switch{
-            state: ProcessState::stop,
+            state: ProcessState::Stop,
             conditions: vec![
                 SwitchCondition {
                     condition: Box::new(|value| {value >= 5}),
-                    target: ProcessState::start,
+                    target: ProcessState::Start,
                 },
                 SwitchCondition {
                     condition: Box::new(|value| {value < 5}),
-                    target: ProcessState::off,
+                    target: ProcessState::Off,
                 },
             ],
         },
         Switch{
-            state: ProcessState::start,
+            state: ProcessState::Start,
             conditions: vec![
                 SwitchCondition {
                     condition: Box::new(|value| {value >= 5}),
-                    target: ProcessState::progress,        
+                    target: ProcessState::Progress,        
                 },
                 SwitchCondition {
                     condition: Box::new(|value| {value < 5}),
-                    target: ProcessState::stop,
+                    target: ProcessState::Stop,
                 },
             ],
 
         },
         Switch{
-            state: ProcessState::progress,
+            state: ProcessState::Progress,
             conditions: vec![
                 SwitchCondition {
                     condition: Box::new(|value| {value < 5}),
-                    target: ProcessState::stop,
+                    target: ProcessState::Stop,
                 },
             ],
 
