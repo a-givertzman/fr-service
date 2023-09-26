@@ -209,7 +209,6 @@ fn test_stot_step_back() {
         (1, ProcessState::Off),
         (1, ProcessState::Off),
     ];
-    // let sequence = vec![0,0,1,1,2,2,5,0,6,0,6,7,7,7,6,6,6,5,2,7,2,1,1];
     for (value, targetState) in testData {
         switchState.add(value);
         let state = switchState.state();
