@@ -206,7 +206,7 @@ fn test_stot_step_back() {
         (2, ProcessState::Stop),
         (7, ProcessState::Start),
         (2, ProcessState::Stop),
-        (1, ProcessState::Off),
+        (1, ProcessState::Start),
         (1, ProcessState::Off),
     ];
     // let sequence = vec![0,0,1,1,2,2,5,0,6,0,6,7,7,7,6,6,6,5,2,7,2,1,1];
