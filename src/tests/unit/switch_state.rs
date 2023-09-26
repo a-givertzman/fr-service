@@ -1,5 +1,4 @@
 #![allow(non_snake_case)]
-#![allow(non_snake_case, non_upper_case_globals)]
 #[cfg(test)]
 use std::env;
 use std::sync::Once;
