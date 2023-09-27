@@ -14,6 +14,18 @@ enum ProcessState {
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
 
+// static INIT: Once = Once::new();
+
+// fn init() {
+//     INIT.call_once(|| {
+//             env::set_var("RUST_LOG", "debug");  // off / error / warn / info / debug / trace
+//             // env::set_var("RUST_BACKTRACE", "1");
+//             env::set_var("RUST_BACKTRACE", "full");
+//             env_logger::init();
+//         }
+//     )
+// }
+
 
 ///
 /// returns tuple(

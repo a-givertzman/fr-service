@@ -1,24 +1,9 @@
-use std::{fmt::Debug, cell::{Cell, RefCell}, rc::Rc};
+#![allow(non_snake_case)]
 
 use log::debug;
+use std::{cell::RefCell, rc::Rc};
 
-
-// pub enum FnType<T> {
-//     Count(FnCount<T>)
-// }
-pub trait FnInput<TIn> {
-    fn add(&mut self, value: TIn);
-}
-
-// #[derive(Sized)]
-pub trait FnOutput<TOut> {
-    fn out(&mut self) -> TOut;
-    // fn print(&self);
-}
-
-
-
-
+use super::fn_::FnOutput;
 
 ///
 /// Counts number of raised fronts of boolean input
@@ -52,30 +37,3 @@ impl FnOutput<u128> for FnCount<u128> {
     }
 }
 
-
-#[derive(Clone, Debug)]
-pub struct FnIn<TIn> {
-    // input: Box<dyn FnOutput<bool>>,
-    value: TIn,
-}
-impl<TIn: Clone> FnIn<TIn> {
-    pub fn new(initial: TIn) -> Self {
-        Self { value: initial.clone() }
-    }
-}
-impl<TIn: Debug> FnInput<TIn> for FnIn<TIn> {
-    ///
-    fn add(&mut self, value: TIn) {
-        self.value = value;
-        debug!("FnIn.add | value: {:?}", self.value);
-    }
-}
-
-impl<TIn: Clone + Debug> FnOutput<TIn> for FnIn<TIn> {
-    ///
-    fn out(&mut self) -> TIn {
-        debug!("FnIn.out | value: {:?}", self.value);
-        let value = self.value.clone();
-        value
-    }
-}

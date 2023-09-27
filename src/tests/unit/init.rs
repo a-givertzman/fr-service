@@ -11,8 +11,7 @@ pub fn tryInit() {
             // env::set_var("RUST_BACKTRACE", "1");
             env::set_var("RUST_BACKTRACE", "full");
             let mut builder = Builder::new();
-            builder.try_init();
-            // env_logger::init();
+            builder.try_init().unwrap();
         }
     )
 }
