@@ -112,41 +112,43 @@ fn test_multiple_int() {
     }        
 }
 
-// #[test]
-// fn test_multy() {
-//     tryInit();
-//     info!("test_single");
+#[test]
+fn test_multiple_float() {
+    tryInit();
+    info!("test_single");
 
-//     // let (initial, switches) = initEach();
-//     let setpoint = 4.0;
-//     let input = Rc::new(RefCell::new(FnIn::new(0.0)));
-//     let mut fnTrip = FnTripGe::new(
-//         false, 
-//         input.clone(),
-//         setpoint,
-//     );
-//     let testData = vec![
-//         (0.0, false),
-//         (1.0, false),
-//         (2.0, false),
-//         (3.0, false),
-//         (4.0, false),
-//         (5.0, false),
-//         (6.0, false),
-//         (5.0, false),
-//         (4.0, false),
-//         (3.0, false),
-//         (2.0, false),
-//         (1.0, false),
-//         (0.0, false),
-//         (0.0, false),
-//     ];
-//     for (value, targetState) in testData {
-//         input.borrow_mut().add(value);
-//         // debug!("input: {:?}", &input);
-//         let state = fnTrip.out();
-//         // debug!("input: {:?}", &mut input);
-//         debug!("value: {:?}   |   state: {:?}", value, state);
-//         assert_eq!(state, targetState);
-//     }        
-// }
+    // let (initial, switches) = initEach();
+    let setpoint = 4.0;
+    let input = Rc::new(RefCell::new(FnIn::new(0.0)));
+    let mut fnTrip = FnTripGe::new(
+        false, 
+        input.clone(),
+        setpoint,
+    );
+    let testData = vec![
+        (0.0, false),
+        (1.0, false),
+        (2.0, false),
+        (4.0, true),
+        (3.0, false),
+        (5.0, true),
+        (6.0, true),
+        (3.0, false),
+        (2.0, false),
+        (3.0, false),
+        (4.0, true),
+        (4.0, true),
+        (3.0, false),
+        (2.0, false),
+        (1.0, false),
+        (0.0, false),
+    ];
+    for (value, targetState) in testData {
+        input.borrow_mut().add(value);
+        // debug!("input: {:?}", &input);
+        let state = fnTrip.out();
+        // debug!("input: {:?}", &mut input);
+        debug!("value: {:?}   |   state: {:?}", value, state);
+        assert_eq!(state, targetState);
+    }        
+}

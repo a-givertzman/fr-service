@@ -36,4 +36,3 @@ impl FnOutput<u128> for FnCount<u128> {
         self.count
     }
 }
-

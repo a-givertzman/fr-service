@@ -15,7 +15,7 @@ pub struct FnTripGe<TIn> {
     trip: bool,
 }
 
-impl<TIn: num::Num> FnTripGe<TIn> {
+impl<TIn> FnTripGe<TIn> {
     pub fn new(initial: bool, input: Rc<RefCell<dyn FnOutput<TIn>>>, setpoint: TIn) -> Self {
         Self { 
             input,
@@ -27,7 +27,7 @@ impl<TIn: num::Num> FnTripGe<TIn> {
 }
 
 
-impl<TIn: Ord + Debug> FnOutput<bool> for FnTripGe<TIn> {
+impl<T: PartialOrd + Debug> FnOutput<bool> for FnTripGe<T> {
     ///
     fn out(&mut self) -> bool {
         // debug!("FnTrip.out | input: {:?}", self.input.print());
@@ -45,3 +45,41 @@ impl<TIn: Ord + Debug> FnOutput<bool> for FnTripGe<TIn> {
         self.trip
     }
 }
+
+
+// impl<Integer> FnOutput<bool> for FnTripGe<Integer> {
+//     ///
+//     fn out(&mut self) -> bool {
+//         // debug!("FnTrip.out | input: {:?}", self.input.print());
+//         let value = self.input.borrow_mut().out();
+//         debug!("FnTrip.out | input.out: {:?}", &value);
+//         if self.trip {
+//             if value < self.setpoint {
+//                 self.trip = false;
+//             }
+//         } else {
+//             if value >= self.setpoint {
+//                 self.trip = true;
+//             }
+//         }
+//         self.trip
+//     }
+// }
+// impl<Float> FnOutput<bool> for FnTripGe<Float> {
+//     ///
+//     fn out(&mut self) -> bool {
+//         // debug!("FnTrip.out | input: {:?}", self.input.print());
+//         let value = self.input.borrow_mut().out();
+//         debug!("FnTrip.out | input.out: {:?}", &value);
+//         if self.trip {
+//             if value < self.setpoint {
+//                 self.trip = false;
+//             }
+//         } else {
+//             if value >= self.setpoint {
+//                 self.trip = true;
+//             }
+//         }
+//         self.trip
+//     }
+// }
