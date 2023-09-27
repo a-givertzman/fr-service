@@ -1,3 +1,4 @@
 pub mod fn_;
 pub mod fn_in;
-pub mod nested_function;
+pub mod fn_count;
+pub mod fn_trip;

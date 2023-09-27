@@ -4,7 +4,7 @@ use std::{rc::Rc, cell::RefCell};
 use log::{debug, info};
 use crate::{
     tests::unit::init::tryInit,
-    core::nested_function::{nested_function::FnCount, fn_in::FnIn, fn_::FnInput, fn_::FnOutput}, 
+    core::nested_function::{fn_count::FnCount, fn_in::FnIn, fn_::FnInput, fn_::FnOutput}, 
 };
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
