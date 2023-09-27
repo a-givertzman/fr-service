@@ -1,9 +1,8 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
-use std::env;
-use std::{sync::Once, rc::Rc, cell::RefCell};
+use std::{rc::Rc, cell::RefCell};
 use log::{debug, info};
-use crate::core::nested_function::nested_function::{FnCount, FnIn, FnInput, FnOutput};
+use crate::{core::nested_function::nested_function::{FnCount, FnIn, FnInput, FnOutput}, tests::unit::init::tryInit};
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 enum ProcessState {
@@ -16,17 +15,17 @@ enum ProcessState {
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
 
-static INIT: Once = Once::new();
+// static INIT: Once = Once::new();
 
-fn init() {
-    INIT.call_once(|| {
-            env::set_var("RUST_LOG", "debug");  // off / error / warn / info / debug / trace
-            // env::set_var("RUST_BACKTRACE", "1");
-            env::set_var("RUST_BACKTRACE", "full");
-            env_logger::init();
-        }
-    )
-}
+// fn init() {
+//     INIT.call_once(|| {
+//             env::set_var("RUST_LOG", "debug");  // off / error / warn / info / debug / trace
+//             // env::set_var("RUST_BACKTRACE", "1");
+//             env::set_var("RUST_BACKTRACE", "full");
+//             env_logger::init();
+//         }
+//     )
+// }
 
 
 ///
@@ -40,7 +39,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_single() {
-    init();
+    tryInit();
     info!("test_single");
 
     // let (initial, switches) = initEach();
