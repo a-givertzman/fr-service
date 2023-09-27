@@ -1,9 +1,9 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
 use std::env;
-use std::sync::Once;
+use std::{sync::Once, rc::Rc, cell::RefCell};
 use log::{debug, info};
-use crate::core::nested_function::nested_function::NestedFunction;
+use crate::core::nested_function::nested_function::{FnCount, FnIn, FnInput, FnOutput};
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 enum ProcessState {
@@ -44,36 +44,32 @@ fn test_single() {
     info!("test_single");
 
     // let (initial, switches) = initEach();
-
-    let mut function: NestedFunction = NestedFunction{};
+    let input = Rc::new(RefCell::new(FnIn::new(false)));
+    let mut fnCount = FnCount::new(
+        0, 
+        input.clone(),
+    );
     let testData = vec![
-        (0, ProcessState::Off),
-        (0, ProcessState::Off),
-        (1, ProcessState::Off),
-        (1, ProcessState::Off),
-        (2, ProcessState::Off),
-        (2, ProcessState::Off),
-        (5, ProcessState::Start),
-        (5, ProcessState::Progress),
-        (6, ProcessState::Progress),
-        (6, ProcessState::Progress),
-        (6, ProcessState::Progress),
-        (7, ProcessState::Progress),
-        (7, ProcessState::Progress),
-        (7, ProcessState::Progress),
-        (6, ProcessState::Progress),
-        (6, ProcessState::Progress),
-        (6, ProcessState::Progress),
-        (5, ProcessState::Progress),
-        (5, ProcessState::Progress),
-        (2, ProcessState::Stop),
-        (2, ProcessState::Off),
-        (1, ProcessState::Off),
-        (1, ProcessState::Off),
+        (false, 0),
+        (false, 0),
+        (true, 1),
+        (false, 1),
+        (false, 1),
+        (true, 2),
+        (false, 2),
+        (true, 3),
+        (false, 3),
+        (false, 3),
+        (true, 4),
+        (true, 4),
+        (false, 4),
+        (false, 4),
     ];
     for (value, targetState) in testData {
-        function.add(value);
-        let state = function.state();
+        input.borrow_mut().add(value);
+        // debug!("input: {:?}", &input);
+        let state = fnCount.out();
+        // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
         assert_eq!(state, targetState);
     }        
