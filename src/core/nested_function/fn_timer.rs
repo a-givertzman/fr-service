@@ -1,38 +1,110 @@
 #![allow(non_snake_case)]
 
 use log::debug;
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, rc::Rc, time::Instant};
+
+use crate::core::state::switch_state::{SwitchState, Switch, SwitchCondition};
 
 use super::fn_::FnOutput;
 
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+enum FnTimerState {
+    Off,
+    Start,
+    Progress,
+    Stop,
+}
 ///
 /// Counts number of raised fronts of boolean input
-pub struct FnTimer<TIn> {
+pub struct FnTimer {
     input: Rc<RefCell<dyn FnOutput<bool>>>,
-    inputValue: bool,
-    count: TIn,
+    state: SwitchState<FnTimerState, bool>,
+    total: f64,
+    start: Instant,
 }
 
-impl<TIn> FnTimer<TIn> {
-    pub fn new(initial: TIn, input: Rc<RefCell<dyn FnOutput<bool>>>) -> Self {
+impl FnTimer {
+    pub fn new(initial: impl Into<f64>, input: Rc<RefCell<dyn FnOutput<bool>>>) -> Self {
+        let switches = vec![
+            Switch{
+                state: FnTimerState::Off,
+                conditions: vec![
+                    SwitchCondition {
+                        condition: Box::new(|value| {value}),
+                        target: FnTimerState::Start,
+                    },
+                ],
+            },
+            Switch{
+                state: FnTimerState::Start,
+                conditions: vec![
+                    SwitchCondition {
+                        condition: Box::new(|value| {value}),
+                        target: FnTimerState::Start,
+                    },
+                    SwitchCondition {
+                        condition: Box::new(|value| {!value}),
+                        target: FnTimerState::Stop,
+                    },
+                ],
+            },
+            Switch{
+                state: FnTimerState::Progress,
+                conditions: vec![
+                    // SwitchCondition {
+                    //     condition: Box::new(|value| {value}),
+                    //     target: FnTimerState::Progress,
+                    // },
+                    SwitchCondition {
+                        condition: Box::new(|value| {!value}),
+                        target: FnTimerState::Stop,
+                    },
+                ],
+            },
+            Switch{
+                state: FnTimerState::Stop,
+                conditions: vec![
+                    SwitchCondition {
+                        condition: Box::new(|value| {value}),
+                        target: FnTimerState::Start,
+                    },
+                    SwitchCondition {
+                        condition: Box::new(|value| {!value}),
+                        target: FnTimerState::Off,
+                    },
+                ],
+            },
+        ];
         Self { 
             input,
-            inputValue: false,
-            count: initial ,
+            state: SwitchState::new(FnTimerState::Off, switches),
+            total: initial.into(),
+            start: Instant::now(),
         }
     }
 }
 
-impl FnOutput<u128> for FnTimer<u128> {
+impl FnOutput<f64> for FnTimer {
     ///
-    fn out(&mut self) -> u128 {
+    fn out(&mut self) -> f64 {
         // debug!("FnTimer.out | input: {:?}", self.input.print());
         let value = self.input.borrow_mut().out();
-        debug!("FnTimer.out | input.out: {:?}", &value);
-        if (!self.inputValue) && value {
-            self.count += 1;
-        }
-        self.inputValue = value;
-        self.count
+        self.state.add(value);
+        let state = self.state.state();
+        debug!("FnTimer.out | input.out: {:?}   |   state: {:?}", &value, &state);
+        match state {
+            FnTimerState::Off => {},
+            FnTimerState::Start => {
+                self.start = Instant::now();
+            },
+            FnTimerState::Progress => {
+                self.total = self.start.elapsed().as_secs_f64();
+            },
+            FnTimerState::Stop => {
+                self.total = self.start.elapsed().as_secs_f64();
+            },
+        };
+        self.total
     }
 }

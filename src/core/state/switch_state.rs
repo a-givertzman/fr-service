@@ -8,7 +8,7 @@ pub struct Switch<TState, TInput> {
     pub conditions: Vec<SwitchCondition<TState, TInput>>,
 }
 
-impl<T: Debug, U> Debug for Switch<T, U> {
+impl<TState: Debug, TInput> Debug for Switch<TState, TInput> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Switch")
         .field("state", &self.state)
@@ -17,25 +17,25 @@ impl<T: Debug, U> Debug for Switch<T, U> {
     }
 }
 
-pub struct SwitchCondition<T, U> {
-    pub condition: Box<dyn Fn(U) -> bool>,
-    pub target: T,
+pub struct SwitchCondition<TState, TInput> {
+    pub condition: Box<dyn Fn(TInput) -> bool>,
+    pub target: TState,
 }
 
-impl<T: Debug, U> Debug for SwitchCondition<T, U> {
+impl<TState: Debug, TInput> Debug for SwitchCondition<TState, TInput> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("SwitchCondition")
         .field("target", &self.target)
         .finish()
     }
 }
-pub struct SwitchState<T, U> {
-    switches: HashMap<T, Switch<T, U>>,
-    state: T,
+pub struct SwitchState<TState, TInput> {
+    switches: HashMap<TState, Switch<TState, TInput>>,
+    state: TState,
 }
 
-impl<T: Debug + Eq + Hash + Clone, U: Clone> SwitchState<T, U> {
-    pub fn new(initial: T, switches: Vec<Switch<T, U>>) -> Self {
+impl<TState: Debug + Eq + Hash + Clone, TInput: Clone> SwitchState<TState, TInput> {
+    pub fn new(initial: TState, switches: Vec<Switch<TState, TInput>>) -> Self {
         let mut switchesSet = HashMap::new();
         for switch in switches {
             // let key = format!("{:?}", switch.state);
@@ -48,7 +48,7 @@ impl<T: Debug + Eq + Hash + Clone, U: Clone> SwitchState<T, U> {
         }
     }
     ///
-    pub fn add(& mut self, value: U) {
+    pub fn add(& mut self, value: TInput) {
         let key = self.state.clone(); 
         let switchRef = &self.switches[&key];
         // let switch: Switch<T, U> = switchRef.clone().to_owned();
@@ -60,7 +60,7 @@ impl<T: Debug + Eq + Hash + Clone, U: Clone> SwitchState<T, U> {
         };
     }
     ///
-    pub fn state(&self) -> T {
+    pub fn state(&self) -> TState {
         self.state.clone()
     }
 }
