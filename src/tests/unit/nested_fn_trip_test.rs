@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+use std::sync::Once;
 #[cfg(test)]
 use std::{rc::Rc, cell::RefCell};
 use log::{debug, info};
@@ -10,27 +11,24 @@ use crate::{
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
 
-// static INIT: Once = Once::new();
+static INIT: Once = Once::new();
 
-// fn initOnce() {
-//     INIT.call_once(|| {
-//             env::set_var("RUST_LOG", "debug");  // off / error / warn / info / debug / trace
-//             // env::set_var("RUST_BACKTRACE", "1");
-//             env::set_var("RUST_BACKTRACE", "full");
-//             env_logger::init();
-//         }
-//     )
-// }
+///
+/// once called initialisation
+fn initOnce() {
+    INIT.call_once(|| {
+            // implement your initialisation code to be called only once for current test file
+        }
+    )
+}
 
 
 ///
-/// returns tuple(
-///     - initialState: ProcessState
-///     - switches: Vec<Switch<ProcessState, u8>>
-/// )
-// fn initEach() -> () {
+/// returns:
+///  - ...
+fn initEach() -> () {
 
-// }
+}
 
 #[test]
 fn test_int() {

@@ -7,7 +7,7 @@ static INIT: Once = Once::new();
 
 pub struct TestSession {}
 
-pub impl TestSession {
+impl TestSession {
     pub fn init() {
         INIT.call_once(|| {
                 env::set_var("RUST_LOG", "debug");  // off / error / warn / info / debug / trace

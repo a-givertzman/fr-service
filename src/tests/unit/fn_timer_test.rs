@@ -79,7 +79,7 @@ fn test_multy() {
 
     // let (initial, switches) = initEach();
     let input = Rc::new(RefCell::new(FnIn::new(false)));
-    let mut fnCount = FnCount::new(
+    let mut fnCount = FnTimer::new(
         0, 
         input.clone(),
     );
