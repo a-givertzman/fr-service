@@ -1,11 +1,11 @@
 #![allow(non_snake_case)]
 use std::sync::Once;
 #[cfg(test)]
-use log::{debug, info};
 use std::{rc::Rc, cell::RefCell};
+use log::{debug, info};
 use crate::{
     tests::unit::init::TestSession,
-    core::nested_function::{fn_count::FnCount, fn_in::FnIn, fn_::FnInput, fn_::FnOutput}, 
+    core::nested_function::{fn_timer::FnTimer, fn_in::FnIn, fn_::FnInput, fn_::FnOutput}, 
 };
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -39,7 +39,7 @@ fn test_single() {
 
     // let (initial, switches) = initEach();
     let input = Rc::new(RefCell::new(FnIn::new(false)));
-    let mut fnCount = FnCount::new(
+    let mut fnTimer = FnTimer::new(
         0, 
         input.clone(),
     );
@@ -62,7 +62,7 @@ fn test_single() {
     for (value, targetState) in testData {
         input.borrow_mut().add(value);
         // debug!("input: {:?}", &input);
-        let state = fnCount.out();
+        let state = fnTimer.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
         assert_eq!(state, targetState);
@@ -73,6 +73,8 @@ fn test_single() {
 #[test]
 fn test_multy() {
     TestSession::init();
+    initOnce();
+    initEach();
     info!("test_single");
 
     // let (initial, switches) = initEach();

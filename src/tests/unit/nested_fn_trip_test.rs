@@ -3,7 +3,7 @@
 use std::{rc::Rc, cell::RefCell};
 use log::{debug, info};
 use crate::{
-    tests::unit::init::tryInit,
+    tests::unit::init::TestSession,
     core::nested_function::{fn_trip::FnTripGe, fn_in::FnIn, fn_::FnInput, fn_::FnOutput, fn_count::FnCount}, 
 };
 
@@ -34,7 +34,9 @@ use crate::{
 
 #[test]
 fn test_int() {
-    tryInit();
+    TestSession::init();
+    initOnce();
+    initEach();
     info!("test_single");
 
     // let (initial, switches) = initEach();
