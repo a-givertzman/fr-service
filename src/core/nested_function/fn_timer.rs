@@ -20,8 +20,9 @@ enum FnTimerState {
 pub struct FnTimer {
     input: Rc<RefCell<dyn FnOutput<bool>>>,
     state: SwitchState<FnTimerState, bool>,
-    total: f64,
-    start: Instant,
+    sessionElapsed: f64,
+    totalElapsed: f64,
+    start: Option<Instant>,
 }
 
 impl FnTimer {
@@ -79,8 +80,9 @@ impl FnTimer {
         Self { 
             input,
             state: SwitchState::new(FnTimerState::Off, switches),
-            total: initial.into(),
-            start: Instant::now(),
+            sessionElapsed: 0.0,
+            totalElapsed: initial.into(),
+            start: None,
         }
     }
 }
@@ -96,15 +98,16 @@ impl FnOutput<f64> for FnTimer {
         match state {
             FnTimerState::Off => {},
             FnTimerState::Start => {
-                self.start = Instant::now();
+                self.start = Some(Instant::now());
             },
             FnTimerState::Progress => {
-                self.total = self.start.elapsed().as_secs_f64();
+                self.sessionElapsed = self.start.unwrap().elapsed().as_secs_f64();
             },
             FnTimerState::Stop => {
-                self.total = self.start.elapsed().as_secs_f64();
+                self.totalElapsed += self.start.unwrap().elapsed().as_secs_f64();
+                self.start = None
             },
         };
-        self.total
+        self.totalElapsed + self.sessionElapsed
     }
 }
