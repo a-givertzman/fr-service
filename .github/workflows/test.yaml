@@ -10,7 +10,7 @@ env:
 
 jobs:
   build_and_test:
-    name: Rust project - latest
+    name: Testing
     runs-on: ubuntu-latest
     # strategy:
     #   matrix:
