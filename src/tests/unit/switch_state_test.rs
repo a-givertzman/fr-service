@@ -1,9 +1,7 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
-use std::env;
-use std::sync::Once;
 use log::{debug, info};
-use crate::core::state::switch_state::{Switch, SwitchCondition, SwitchState};
+use crate::{core::state::switch_state::{Switch, SwitchCondition, SwitchState}, tests::unit::init::tryInit};
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 enum ProcessState {
@@ -16,17 +14,17 @@ enum ProcessState {
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
 
-static INIT: Once = Once::new();
+// static INIT: Once = Once::new();
 
-fn init() {
-    INIT.call_once(|| {
-            env::set_var("RUST_LOG", "debug");  // off / error / warn / info / debug / trace
-            // env::set_var("RUST_BACKTRACE", "1");
-            env::set_var("RUST_BACKTRACE", "full");
-            env_logger::init();
-        }
-    )
-}
+// fn init() {
+//     INIT.call_once(|| {
+//             env::set_var("RUST_LOG", "debug");  // off / error / warn / info / debug / trace
+//             // env::set_var("RUST_BACKTRACE", "1");
+//             env::set_var("RUST_BACKTRACE", "full");
+//             env_logger::init();
+//         }
+//     )
+// }
 
 
 ///
@@ -90,7 +88,7 @@ fn initEach() -> (ProcessState, Vec<Switch<ProcessState, i8>>) {
 
 #[test]
 fn test_single() {
-    init();
+    tryInit();
     info!("test_single");
 
     let (initial, switches) = initEach();
@@ -133,7 +131,7 @@ fn test_single() {
 
 #[test]
 fn test_start_step_back() {
-    init();
+    tryInit();
     info!("test_start_step_back");
 
     let (initial, switches) = initEach();
@@ -176,7 +174,7 @@ fn test_start_step_back() {
 
 #[test]
 fn test_stot_step_back() {
-    init();
+    tryInit();
     info!("test_stot_step_back");
 
     let (initial, switches) = initEach();
