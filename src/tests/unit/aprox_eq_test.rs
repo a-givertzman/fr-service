@@ -3,7 +3,7 @@ use std::sync::Once;
 #[cfg(test)]
 use log::{debug, info};
 use crate::{
-    tests::unit::init::TestSession,
+    tests::unit::init::{TestSession, LogLevel},
     core::aprox_eq::aprox_eq::AproxEq, 
 };
 
@@ -31,7 +31,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_f32() {
-    TestSession::init();
+    TestSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_f32");
@@ -57,7 +57,7 @@ fn test_f32() {
 
 #[test]
 fn test_f64() {
-    TestSession::init();
+    TestSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_f64");

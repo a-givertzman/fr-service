@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 
+use log::debug;
 use std::{collections::HashMap, fmt::Debug, hash::Hash};
 
-// #[derive(Sync)]
 pub struct Switch<TState, TInput> {
     pub state: TState,
     pub conditions: Vec<SwitchCondition<TState, TInput>>,
@@ -30,8 +30,9 @@ impl<TState: Debug, TInput> Debug for SwitchCondition<TState, TInput> {
     }
 }
 pub struct SwitchState<TState, TInput> {
-    switches: HashMap<TState, Switch<TState, TInput>>,
+    initial: TState,
     state: TState,
+    switches: HashMap<TState, Switch<TState, TInput>>,
 }
 
 impl<TState: Debug + Eq + Hash + Clone, TInput: Clone> SwitchState<TState, TInput> {
@@ -41,10 +42,11 @@ impl<TState: Debug + Eq + Hash + Clone, TInput: Clone> SwitchState<TState, TInpu
             // let key = format!("{:?}", switch.state);
             switchesSet.insert(switch.state.clone(), switch);
         }
-        println!("SwitchState{{switches: {:?}}}", &switchesSet);
+        debug!("SwitchState{{switches: {:?}}}", &switchesSet);
         Self { 
-            switches: switchesSet,
+            initial: initial.clone(),
             state: initial,
+            switches: switchesSet,
         }
     }
     ///
@@ -62,5 +64,10 @@ impl<TState: Debug + Eq + Hash + Clone, TInput: Clone> SwitchState<TState, TInpu
     ///
     pub fn state(&self) -> TState {
         self.state.clone()
+    }
+    ///
+    /// resets current state to initial
+    pub fn reset(&mut self) {
+        self.state = self.initial.clone();
     }
 }

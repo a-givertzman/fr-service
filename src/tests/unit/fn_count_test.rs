@@ -4,7 +4,7 @@ use std::sync::Once;
 use log::{debug, info};
 use std::{rc::Rc, cell::RefCell};
 use crate::{
-    tests::unit::init::TestSession,
+    tests::unit::init::{TestSession, LogLevel},
     core::nested_function::{fn_count::FnCount, fn_in::FnIn, fn_::FnInput, fn_::FnOutput, fn_reset::FnReset}, 
 };
 
@@ -32,7 +32,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_single() {
-    TestSession::init();
+    TestSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_single");
@@ -72,7 +72,7 @@ fn test_single() {
 
 #[test]
 fn test_multiple() {
-    TestSession::init();
+    TestSession::init(LogLevel::Debug);
     info!("test_multiple");
 
     // let (initial, switches) = initEach();
@@ -109,7 +109,7 @@ fn test_multiple() {
 
 #[test]
 fn test_multiple_reset() {
-    TestSession::init();
+    TestSession::init(LogLevel::Debug);
     info!("test_single");
 
     // let (initial, switches) = initEach();

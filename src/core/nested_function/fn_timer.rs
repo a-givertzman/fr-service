@@ -1,11 +1,11 @@
 #![allow(non_snake_case)]
 
-use log::debug;
+use log::trace;
 use std::{cell::RefCell, rc::Rc, time::Instant};
 
 use crate::core::state::switch_state::{SwitchState, Switch, SwitchCondition};
 
-use super::fn_::FnOutput;
+use super::{fn_::FnOutput, fn_reset::FnReset};
 
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
@@ -25,13 +25,15 @@ pub struct FnTimer {
     input: Rc<RefCell<dyn FnOutput<bool>>>,
     state: SwitchState<FnTimerState, bool>,
     sessionElapsed: f64,
+    initial: f64,
     totalElapsed: f64,
     start: Option<Instant>,
 }
 
+///
 impl FnTimer {
     #[allow(dead_code)]
-    pub fn new(initial: impl Into<f64>, input: Rc<RefCell<dyn FnOutput<bool>>>, repeat: bool) -> Self {
+    pub fn new(initial: impl Into<f64> + Clone, input: Rc<RefCell<dyn FnOutput<bool>>>, repeat: bool) -> Self {
         let switches = vec![
             Switch{
                 state: FnTimerState::Off,
@@ -90,12 +92,14 @@ impl FnTimer {
             input,
             state: SwitchState::new(FnTimerState::Off, switches),
             sessionElapsed: 0.0,
+            initial: initial.clone().into(),
             totalElapsed: initial.into(),
             start: None,
         }
     }
 }
 
+///
 impl FnOutput<f64> for FnTimer {
     ///
     fn out(&mut self) -> f64 {
@@ -103,7 +107,7 @@ impl FnOutput<f64> for FnTimer {
         let value = self.input.borrow_mut().out();
         self.state.add(value);
         let state = self.state.state();
-        debug!("FnTimer.out | input.out: {:?}   |   state: {:?}", &value, &state);
+        trace!("FnTimer.out | input.out: {:?}   |   state: {:?}", &value, &state);
         match state {
             FnTimerState::Off => {},
             FnTimerState::Start => {
@@ -127,5 +131,15 @@ impl FnOutput<f64> for FnTimer {
             },
         };
         self.totalElapsed + self.sessionElapsed
+    }
+}
+
+///
+impl FnReset for FnTimer {
+    fn reset(&mut self) {
+        self.start = None;
+        self.totalElapsed = self.initial.into();
+        self.state.reset();
+        self.input.borrow_mut().reset();
     }
 }
