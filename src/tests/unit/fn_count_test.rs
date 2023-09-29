@@ -4,8 +4,8 @@ use std::sync::Once;
 use log::{debug, info};
 use std::{rc::Rc, cell::RefCell};
 use crate::{
-    tests::unit::init::TestSession,
-    core::nested_function::{fn_count::FnCount, fn_in::FnIn, fn_::FnInput, fn_::FnOutput}, 
+    tests::unit::init::{TestSession, LogLevel},
+    core::nested_function::{fn_count::FnCount, fn_in::FnIn, fn_::FnInput, fn_::FnOutput, fn_reset::FnReset}, 
 };
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -32,7 +32,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_single() {
-    TestSession::init();
+    TestSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_single");
@@ -71,9 +71,9 @@ fn test_single() {
 
 
 #[test]
-fn test_multy() {
-    TestSession::init();
-    info!("test_single");
+fn test_multiple() {
+    TestSession::init(LogLevel::Debug);
+    info!("test_multiple");
 
     // let (initial, switches) = initEach();
     let input = Rc::new(RefCell::new(FnIn::new(false)));
@@ -98,6 +98,46 @@ fn test_multy() {
         (false, 4),
     ];
     for (value, targetState) in testData {
+        input.borrow_mut().add(value);
+        // debug!("input: {:?}", &input);
+        let state = fnCount.out();
+        // debug!("input: {:?}", &mut input);
+        debug!("value: {:?}   |   state: {:?}", value, state);
+        assert_eq!(state, targetState);
+    }        
+}
+
+#[test]
+fn test_multiple_reset() {
+    TestSession::init(LogLevel::Debug);
+    info!("test_single");
+
+    // let (initial, switches) = initEach();
+    let input = Rc::new(RefCell::new(FnIn::new(false)));
+    let mut fnCount = FnCount::new(
+        0, 
+        input.clone(),
+    );
+    let testData = vec![
+        (false, 0, false),
+        (false, 0, false),
+        (true, 1, false),
+        (false, 1, false),
+        (false, 1, false),
+        (true, 2, false),
+        (false, 0, true),
+        (true, 1, false),
+        (false, 1, false),
+        (false, 1, false),
+        (true, 2, false),
+        (true, 2, false),
+        (false, 0, true),
+        (false, 0, false),
+    ];
+    for (value, targetState, reset) in testData {
+        if reset {
+            fnCount.reset();
+        }
         input.borrow_mut().add(value);
         // debug!("input: {:?}", &input);
         let state = fnCount.out();

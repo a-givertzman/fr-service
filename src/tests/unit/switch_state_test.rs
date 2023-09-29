@@ -4,7 +4,7 @@ use std::sync::Once;
 #[cfg(test)]
 use log::{debug, info};
 use crate::{
-    tests::unit::init::TestSession,
+    tests::unit::init::{TestSession, LogLevel},
     core::state::switch_state::{Switch, SwitchCondition, SwitchState}
 };
 
@@ -91,7 +91,7 @@ fn initEach() -> (ProcessState, Vec<Switch<ProcessState, i8>>) {
 
 #[test]
 fn test_single() {
-    TestSession::init();
+    TestSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_single");
@@ -136,7 +136,7 @@ fn test_single() {
 
 #[test]
 fn test_start_step_back() {
-    TestSession::init();
+    TestSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_start_step_back");
@@ -181,7 +181,7 @@ fn test_start_step_back() {
 
 #[test]
 fn test_stot_step_back() {
-    TestSession::init();
+    TestSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_stot_step_back");

@@ -1,9 +1,9 @@
 #![allow(non_snake_case)]
 
-use log::debug;
+use log::trace;
 use std::fmt::Debug;
 
-use super::fn_::{FnInput, FnOutput};
+use super::{fn_::{FnInput, FnOutput}, fn_reset::FnReset};
 
 #[derive(Clone, Debug)]
 pub struct FnIn<TIn> {
@@ -16,19 +16,26 @@ impl<TIn: Clone> FnIn<TIn> {
         Self { value: initial.clone() }
     }
 }
-impl<TIn: Debug> FnInput<TIn> for FnIn<TIn> {
+impl<TIn: Debug + Clone + Default> FnInput<TIn> for FnIn<TIn> {
     ///
     fn add(&mut self, value: TIn) {
         self.value = value;
-        debug!("FnIn.add | value: {:?}", self.value);
+        trace!("FnIn.add | value: {:?}", self.value);
     }
 }
 
-impl<TIn: Clone + Debug> FnOutput<TIn> for FnIn<TIn> {
+impl<TIn: Clone + Debug + Default> FnOutput<TIn> for FnIn<TIn> {
     ///
     fn out(&mut self) -> TIn {
-        debug!("FnIn.out | value: {:?}", self.value);
+        trace!("FnIn.out | value: {:?}", self.value);
         let value = self.value.clone();
         value
+    }
+}
+
+impl<TIn: Clone + Debug + Default> FnReset for FnIn<TIn> {
+    fn reset(&mut self) {
+        self.value = Default::default();
+        trace!("FnIn.reset | value: {:?}", self.value);
     }
 }

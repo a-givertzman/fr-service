@@ -4,7 +4,7 @@ use std::{sync::Once, time::{Instant, Duration}, thread};
 use std::{rc::Rc, cell::RefCell};
 use log::{debug, info};
 use crate::{
-    tests::unit::init::TestSession,
+    tests::unit::init::{TestSession, LogLevel},
     core::{nested_function::{fn_timer::FnTimer, fn_in::FnIn, fn_::FnInput, fn_::FnOutput}, aprox_eq::aprox_eq::AproxEq}, 
 };
 
@@ -33,7 +33,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_elapsed_repeat_false() {
-    TestSession::init();
+    TestSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_elapsed_repeat_none");
@@ -83,7 +83,7 @@ fn test_elapsed_repeat_false() {
 
 #[test]
 fn test_total_elapsed_repeat() {
-    TestSession::init();
+    TestSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_total_elapsed");
@@ -132,7 +132,7 @@ fn test_total_elapsed_repeat() {
 
 #[test]
 fn test_initial_repeat() {
-    TestSession::init();
+    TestSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_initial_repeat");
