@@ -14,6 +14,7 @@ pub struct FnCount<TIn> {
 }
 
 impl<TIn> FnCount<TIn> {
+    #[allow(dead_code)]
     pub fn new(initial: TIn, input: Rc<RefCell<dyn FnOutput<bool>>>) -> Self {
         Self { 
             input,

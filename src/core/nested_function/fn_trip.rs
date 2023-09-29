@@ -16,6 +16,7 @@ pub struct FnTripGe<TIn> {
 }
 
 impl<TIn> FnTripGe<TIn> {
+    #[allow(dead_code)]
     pub fn new(initial: bool, input: Rc<RefCell<dyn FnOutput<TIn>>>, setpoint: TIn) -> Self {
         Self { 
             input,

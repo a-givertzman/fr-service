@@ -11,6 +11,7 @@ pub struct FnIn<TIn> {
     value: TIn,
 }
 impl<TIn: Clone> FnIn<TIn> {
+    #[allow(dead_code)]
     pub fn new(initial: TIn) -> Self {
         Self { value: initial.clone() }
     }

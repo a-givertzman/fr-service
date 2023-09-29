@@ -9,14 +9,18 @@ use super::fn_::FnOutput;
 
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[allow(dead_code)]
 enum FnTimerState {
     Off,
     Start,
     Progress,
     Stop,
+    Done,
 }
 ///
-/// Counts number of raised fronts of boolean input
+/// Counts elapsed time from raised onput to dropped
+/// - if repeat = true, then elapsed is total secods of 
+/// multiple periods
 pub struct FnTimer {
     input: Rc<RefCell<dyn FnOutput<bool>>>,
     state: SwitchState<FnTimerState, bool>,
@@ -26,7 +30,8 @@ pub struct FnTimer {
 }
 
 impl FnTimer {
-    pub fn new(initial: impl Into<f64>, input: Rc<RefCell<dyn FnOutput<bool>>>) -> Self {
+    #[allow(dead_code)]
+    pub fn new(initial: impl Into<f64>, input: Rc<RefCell<dyn FnOutput<bool>>>, repeat: bool) -> Self {
         let switches = vec![
             Switch{
                 state: FnTimerState::Off,
@@ -72,9 +77,13 @@ impl FnTimer {
                     },
                     SwitchCondition {
                         condition: Box::new(|value| {!value}),
-                        target: FnTimerState::Off,
+                        target: if repeat {FnTimerState::Off} else {FnTimerState::Done},
                     },
                 ],
+            },
+            Switch{
+                state: FnTimerState::Done,
+                conditions: vec![],
             },
         ];
         Self { 
@@ -105,7 +114,16 @@ impl FnOutput<f64> for FnTimer {
             },
             FnTimerState::Stop => {
                 self.totalElapsed += self.start.unwrap().elapsed().as_secs_f64();
-                self.start = None
+                self.start = None;
+            },
+            FnTimerState::Done => {
+                match self.start {
+                    Some(start) => {
+                        self.totalElapsed = start.elapsed().as_secs_f64();
+                        self.start = None;
+                    },
+                    None => {},
+                }
             },
         };
         self.totalElapsed + self.sessionElapsed
