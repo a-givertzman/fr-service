@@ -3,3 +3,4 @@ pub mod fn_in;
 pub mod fn_count;
 pub mod fn_trip;
 pub mod fn_timer;
+pub mod fn_reset;
