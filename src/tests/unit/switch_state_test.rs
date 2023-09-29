@@ -1,7 +1,12 @@
 #![allow(non_snake_case)]
+use std::sync::Once;
+
 #[cfg(test)]
 use log::{debug, info};
-use crate::{core::state::switch_state::{Switch, SwitchCondition, SwitchState}, tests::unit::init::tryInit};
+use crate::{
+    tests::unit::init::{TestSession, LogLevel},
+    core::state::switch_state::{Switch, SwitchCondition, SwitchState}
+};
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 enum ProcessState {
@@ -14,18 +19,16 @@ enum ProcessState {
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
 
-// static INIT: Once = Once::new();
+static INIT: Once = Once::new();
 
-// fn init() {
-//     INIT.call_once(|| {
-//             env::set_var("RUST_LOG", "debug");  // off / error / warn / info / debug / trace
-//             // env::set_var("RUST_BACKTRACE", "1");
-//             env::set_var("RUST_BACKTRACE", "full");
-//             env_logger::init();
-//         }
-//     )
-// }
-
+///
+/// once called initialisation
+fn initOnce() {
+    INIT.call_once(|| {
+            // implement your initialisation code to be called only once for current test file
+        }
+    )
+}
 
 ///
 /// returns tuple(
@@ -88,7 +91,9 @@ fn initEach() -> (ProcessState, Vec<Switch<ProcessState, i8>>) {
 
 #[test]
 fn test_single() {
-    tryInit();
+    TestSession::init(LogLevel::Debug);
+    initOnce();
+    initEach();
     info!("test_single");
 
     let (initial, switches) = initEach();
@@ -131,7 +136,9 @@ fn test_single() {
 
 #[test]
 fn test_start_step_back() {
-    tryInit();
+    TestSession::init(LogLevel::Debug);
+    initOnce();
+    initEach();
     info!("test_start_step_back");
 
     let (initial, switches) = initEach();
@@ -174,7 +181,9 @@ fn test_start_step_back() {
 
 #[test]
 fn test_stot_step_back() {
-    tryInit();
+    TestSession::init(LogLevel::Debug);
+    initOnce();
+    initEach();
     info!("test_stot_step_back");
 
     let (initial, switches) = initEach();
