@@ -36,7 +36,6 @@ fn test_single() {
     initOnce();
     initEach();
     info!("test_single");
-
     // let (initial, switches) = initEach();
     let input = Rc::new(RefCell::new(FnIn::new(false)));
     let mut fnCount = FnCount::new(
@@ -74,7 +73,6 @@ fn test_single() {
 fn test_multiple() {
     TestSession::init(LogLevel::Debug);
     info!("test_multiple");
-
     // let (initial, switches) = initEach();
     let input = Rc::new(RefCell::new(FnIn::new(false)));
     let mut fnCount = FnCount::new(
@@ -110,8 +108,7 @@ fn test_multiple() {
 #[test]
 fn test_multiple_reset() {
     TestSession::init(LogLevel::Debug);
-    info!("test_single");
-
+    info!("test_multiple_reset");
     // let (initial, switches) = initEach();
     let input = Rc::new(RefCell::new(FnIn::new(false)));
     let mut fnCount = FnCount::new(

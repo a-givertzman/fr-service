@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use log::trace;
+use log::{trace, debug};
 use std::{cell::RefCell, rc::Rc, time::Instant};
 
 use crate::core::state::switch_state::{SwitchState, Switch, SwitchCondition};
@@ -49,7 +49,7 @@ impl FnTimer {
                 conditions: vec![
                     SwitchCondition {
                         condition: Box::new(|value| {value}),
-                        target: FnTimerState::Start,
+                        target: FnTimerState::Progress,
                     },
                     SwitchCondition {
                         condition: Box::new(|value| {!value}),
@@ -60,10 +60,6 @@ impl FnTimer {
             Switch{
                 state: FnTimerState::Progress,
                 conditions: vec![
-                    // SwitchCondition {
-                    //     condition: Box::new(|value| {value}),
-                    //     target: FnTimerState::Progress,
-                    // },
                     SwitchCondition {
                         condition: Box::new(|value| {!value}),
                         target: FnTimerState::Stop,
@@ -107,7 +103,7 @@ impl FnOutput<f64> for FnTimer {
         let value = self.input.borrow_mut().out();
         self.state.add(value);
         let state = self.state.state();
-        trace!("FnTimer.out | input.out: {:?}   |   state: {:?}", &value, &state);
+        debug!("FnTimer.out | input.out: {:?}   |   state: {:?}", &value, &state);
         match state {
             FnTimerState::Off => {},
             FnTimerState::Start => {
@@ -117,13 +113,15 @@ impl FnOutput<f64> for FnTimer {
                 self.sessionElapsed = self.start.unwrap().elapsed().as_secs_f64();
             },
             FnTimerState::Stop => {
+                self.sessionElapsed = 0.0;
                 self.totalElapsed += self.start.unwrap().elapsed().as_secs_f64();
                 self.start = None;
             },
             FnTimerState::Done => {
+                self.sessionElapsed = 0.0;
                 match self.start {
                     Some(start) => {
-                        self.totalElapsed = start.elapsed().as_secs_f64();
+                        self.totalElapsed += start.elapsed().as_secs_f64();
                         self.start = None;
                     },
                     None => {},
@@ -138,6 +136,7 @@ impl FnOutput<f64> for FnTimer {
 impl FnReset for FnTimer {
     fn reset(&mut self) {
         self.start = None;
+        self.sessionElapsed = 0.0;
         self.totalElapsed = self.initial.into();
         self.state.reset();
         self.input.borrow_mut().reset();
