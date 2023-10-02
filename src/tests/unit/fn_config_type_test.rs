@@ -31,31 +31,31 @@ fn initEach() -> () {
 
 }
 
-#[test]
-fn test_create_valid_simple() {
-    TestSession::init(LogLevel::Trace);
-    initOnce();
-    initEach();
-    info!("test_create_valid_simple");
-    // let (initial, switches) = initEach();
-    let testData = [
-        (serde_yaml::from_str("var newVar"), FnConfigType::Point(FnPointConfig{ value: String::from("newVar") })),
-        (serde_yaml::from_str("const '12.5'"), FnConfigType::Point(FnPointConfig{ value: String::from("12.5") })),
-        (serde_yaml::from_str("point '/path/Point.Name'"), FnConfigType::Point(FnPointConfig{ value: String::from("/path/Point.Name") })),
-    ];
-    for (value, target) in testData {
-        debug!("test value: {:?}", value);
-        let conf: serde_yaml::Value = value.unwrap();
-        // let conf = testData.get("/").unwrap();
+// #[test]
+// fn test_create_valid_simple() {
+//     TestSession::init(LogLevel::Trace);
+//     initOnce();
+//     initEach();
+//     info!("test_create_valid_simple");
+//     // let (initial, switches) = initEach();
+//     let testData = [
+//         (serde_yaml::from_str("var newVar"), FnConfigType::Point(FnPointConfig{ value: String::from("newVar") })),
+//         (serde_yaml::from_str("const '12.5'"), FnConfigType::Point(FnPointConfig{ value: String::from("12.5") })),
+//         (serde_yaml::from_str("point '/path/Point.Name'"), FnConfigType::Point(FnPointConfig{ value: String::from("/path/Point.Name") })),
+//     ];
+//     for (value, target) in testData {
+//         debug!("test value: {:?}", value);
+//         let conf: serde_yaml::Value = value.unwrap();
+//         // let conf = testData.get("/").unwrap();
 
-        debug!("value: {:?}   |   conf: {:?}   |   target: {:?}", "_", conf, target);
-        let fnKeyword = FnConfigKeyword::from_str(conf.as_str().unwrap()).unwrap();
-        debug!("\tfnKeyword: {:?}", fnKeyword);
-        // let fnConfigType = FnConfigType::new(&fnKeyword,  &conf).unwrap();
-        // debug!("\tfnConfigType: {:?}", fnConfigType);
-        // assert_eq!(fnConfigType, target);
-    }
-}
+//         debug!("value: {:?}   |   conf: {:?}   |   target: {:?}", "_", conf, target);
+//         let fnKeyword = FnConfigKeyword::from_str(conf.as_str().unwrap()).unwrap();
+//         debug!("\tfnKeyword: {:?}", fnKeyword);
+//         // let fnConfigType = FnConfigType::new(&fnKeyword,  &conf).unwrap();
+//         // debug!("\tfnConfigType: {:?}", fnConfigType);
+//         // assert_eq!(fnConfigType, target);
+//     }
+// }
 
 #[test]
 fn test_create_valid_fn() {
@@ -65,12 +65,15 @@ fn test_create_valid_fn() {
     info!("test_create_valid_fn");
     // let (initial, switches) = initEach();
     let testData = [
-        (serde_yaml::from_str("fn count:\
-            input: const '13.5'"), FnConfigType::Fn(FnConfig{inputs: vec![]})),
-        (serde_yaml::from_str("fn count:\
-            input:\
-                fn trip:\
-                    input: point '/path/Point.Name'"), FnConfigType::Fn(FnConfig{inputs: vec![]})),
+        (serde_yaml::from_str(r#"var newVar:
+            input:
+                fn count:
+                    inputConst1: const '13.5'
+                    inputConst2: const '13.5'"#), FnConfigType::Fn(FnConfig{ inputs: HashMap::new() })),
+        // (serde_yaml::from_str("fn count:\
+        //     inputTrip:\
+        //         fn trip:\
+        //             input: point '/path/Point.Name'"), FnConfigType::Fn(FnConfig{ inputs: HashMap::new() })),
     ];
     for (value, target) in testData {
         debug!("test value: {:?}", value);

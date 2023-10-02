@@ -5,7 +5,7 @@ use std::{fs, collections::HashMap, str::FromStr};
 
 #[derive(Debug)]
 pub struct FnConfig {
-    pub inputs: Vec<FnConfigType>,
+    pub inputs: HashMap<String, FnConfigType>,
 }
 impl FnConfig {
     ///
@@ -15,31 +15,39 @@ impl FnConfig {
             
         // }
         trace!("FnConfig.new | conf: {:?}", conf);
-        let mut res: Vec<FnConfigType> = vec![];
+        let mut res = HashMap::new();
         if conf.is_string() {
+            trace!("FnConfig.new | IS STRING");
             let fnConfig: String = serde_yaml::from_value(conf.clone()).unwrap();
             let fnKeyword = FnConfigKeyword::from_str(fnConfig.as_str()).unwrap();
-            let fnConfType = match fnKeyword {
-                FnConfigKeyword::Var(name) => FnConfigType::Var(FnVarConfig { value: fnConfig }),
-                FnConfigKeyword::Const(name) => FnConfigType::Const(FnConstConfig { value: fnConfig }),
-                FnConfigKeyword::Point(name) => FnConfigType::Point(FnPointConfig { value: fnConfig }),
+            let (key, fnConfType) = match fnKeyword {
+                FnConfigKeyword::Const(name) => ( name, FnConfigType::Const(FnConstConfig { value: fnConfig }) ),
+                FnConfigKeyword::Point(name) => ( name, FnConfigType::Point(FnPointConfig { value: fnConfig }) ),
                 _ => panic!("Unknown config: {:?}", conf),
             };
-            res.push(fnConfType);
+            trace!("FnConfig.new | key: '{}'    |   conf: {:?}", key, fnConfType);
+            res.insert(key, fnConfType);
         } else {
+            trace!("FnConfig.new | IS MAP");
             let fnConfig: HashMap<String, serde_yaml::Value> = serde_yaml::from_value(conf.clone()).unwrap();
             for (key, fnConfig) in fnConfig {
                 trace!("FnConfig.new | key: '{}'    |   conf: {:?}", key, fnConfig);
-                let fnKeyword = FnConfigKeyword::from_str(key.as_str()).unwrap();
-                trace!("FnConfig.new | fnKeyword: {:?}", fnKeyword);
-                let fnConfType = match fnKeyword {
-                    FnConfigKeyword::Var(name) => FnConfigType::Var(FnVarConfig { value: fnConfig.as_str().unwrap().into() }),
-                    FnConfigKeyword::Const(name) => FnConfigType::Const(FnConstConfig { value: fnConfig.as_str().unwrap().into() }),
-                    FnConfigKeyword::Point(name) => FnConfigType::Point(FnPointConfig { value: fnConfig.as_str().unwrap().into() }),
-                    FnConfigKeyword::Fn(name) => FnConfigType::Fn(FnConfig::new(&fnConfig)),
-                    _ => panic!("Unknown config: {:?}", conf),
+                match FnConfigKeyword::from_str(key.as_str()) {
+                    Ok(fnKeyword) => {
+                        trace!("FnConfig.new | fnKeyword: {:?}", fnKeyword);
+                        let (_, fnConfType) = match fnKeyword {
+                            FnConfigKeyword::Var(name) => ( name, FnConfigType::Var(FnVarConfig { value: FnConfig::new(&fnConfig) }) ),
+                            // FnConfigKeyword::Const(name) => ( name, FnConfigType::Const(FnConstConfig { value: fnConfig.as_str().unwrap().into() }) ),
+                            // FnConfigKeyword::Point(name) => ( name, FnConfigType::Point(FnPointConfig { value: fnConfig.as_str().unwrap().into() }) ),
+                            FnConfigKeyword::Fn(name) => ( name, FnConfigType::Fn(FnConfig::new(&fnConfig)) ),
+                            _ => panic!("Unknown config: {:?}", conf),
+                        };
+                        res.insert(key, fnConfType);
+                    },
+                    Err(_) => {
+                        res.insert(key, FnConfigType::Fn(FnConfig::new(&fnConfig)));
+                    },
                 };
-                res.push(fnConfType);
             }
         };
         trace!("FnConfig.new | result: {:?}", res);
@@ -67,7 +75,7 @@ impl FnConfig {
                 }
                 // FnConfig::
                 FnConfig {
-                    inputs: vec![],
+                    inputs: HashMap::new(),
                 }                
             },
             Err(err) => {
@@ -79,7 +87,7 @@ impl FnConfig {
 
 #[derive(Debug)]
 pub struct FnVarConfig {
-    pub value: String,
+    pub value: FnConfig,
 }
 
 #[derive(Debug)]
