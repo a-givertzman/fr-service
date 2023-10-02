@@ -39,30 +39,10 @@ fn test_create_valid_simple() {
     info!("test_create_valid_simple");
     // let (initial, switches) = initEach();
     let testData = [
-        (serde_yaml::from_str("var newVar"), FnConfigType::Point(FnPointConfig{})),
-        (serde_yaml::from_str("const '12.5'"), FnConfigType::Point(FnPointConfig{})),
-        (serde_yaml::from_str("point '/path/Point.Name'"), FnConfigType::Point(FnPointConfig{})),
+        (serde_yaml::from_str("var newVar"), FnConfigType::Point(FnPointConfig{ value: String::from("newVar") })),
+        (serde_yaml::from_str("const '12.5'"), FnConfigType::Point(FnPointConfig{ value: String::from("12.5") })),
+        (serde_yaml::from_str("point '/path/Point.Name'"), FnConfigType::Point(FnPointConfig{ value: String::from("/path/Point.Name") })),
     ];
-    // let testData = serde_yaml::from_str(" \
-    //     \"fn count\",
-    //         "input", \"/path/Point.Name\"
-    //     ("point '/path/Point.Name'", HashMap::new()),
-    // ]");
-    // let testData = HashMap::from([
-    //     ("fn count", HashMap::from([
-    //         "input", "/path/Point.Name"
-    //     ])),
-    //     ("point '/path/Point.Name'", HashMap::new()),
-    // ]);
-    // let m = vec![
-    //     ("fn name", FnConfigType::Fn(FnConfig { inputs: vec![] })),
-    //     ("fn  name", FnConfigType::Fn(FnConfig { inputs: vec![] })),
-    //     ("fn   name", FnConfigType::Fn(FnConfig { inputs: vec![] })),
-    //     ("fn\tname", FnConfigType::Fn(FnConfig { inputs: vec![] })),
-    //     ("var name", FnConfigType::Var(FnVarConfig{})),
-    //     ("const name", FnConfigType::Const(FnConstConfig{value: String::new()})),
-    //     ("point name", FnConfigType::Point(FnPointConfig{})),
-    // ];
     for (value, target) in testData {
         debug!("test value: {:?}", value);
         let conf: serde_yaml::Value = value.unwrap();
@@ -85,32 +65,13 @@ fn test_create_valid_fn() {
     info!("test_create_valid_fn");
     // let (initial, switches) = initEach();
     let testData = [
-        // (serde_yaml::from_str("var newVar"), FnConfigType::Point(FnPointConfig{})),
-        // (serde_yaml::from_str("const '12.5'"), FnConfigType::Point(FnPointConfig{})),
-        // (serde_yaml::from_str("point '/path/Point.Name'"), FnConfigType::Point(FnPointConfig{})),
         (serde_yaml::from_str("fn count:\
             input: const '13.5'"), FnConfigType::Fn(FnConfig{inputs: vec![]})),
+        (serde_yaml::from_str("fn count:\
+            input:\
+                fn trip:\
+                    input: point '/path/Point.Name'"), FnConfigType::Fn(FnConfig{inputs: vec![]})),
     ];
-    // let testData = serde_yaml::from_str(" \
-    //     \"fn count\",
-    //         "input", \"/path/Point.Name\"
-    //     ("point '/path/Point.Name'", HashMap::new()),
-    // ]");
-    // let testData = HashMap::from([
-    //     ("fn count", HashMap::from([
-    //         "input", "/path/Point.Name"
-    //     ])),
-    //     ("point '/path/Point.Name'", HashMap::new()),
-    // ]);
-    // let m = vec![
-    //     ("fn name", FnConfigType::Fn(FnConfig { inputs: vec![] })),
-    //     ("fn  name", FnConfigType::Fn(FnConfig { inputs: vec![] })),
-    //     ("fn   name", FnConfigType::Fn(FnConfig { inputs: vec![] })),
-    //     ("fn\tname", FnConfigType::Fn(FnConfig { inputs: vec![] })),
-    //     ("var name", FnConfigType::Var(FnVarConfig{})),
-    //     ("const name", FnConfigType::Const(FnConstConfig{value: String::new()})),
-    //     ("point name", FnConfigType::Point(FnPointConfig{})),
-    // ];
     for (value, target) in testData {
         debug!("test value: {:?}", value);
         let conf: serde_yaml::Value = value.unwrap();
