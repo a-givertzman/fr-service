@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
-use std::sync::Once;
 #[cfg(test)]
 use log::{debug, info};
-use std::{rc::Rc, cell::RefCell};
+use std::{sync::Once, rc::Rc, cell::RefCell};
+
 use crate::{
     tests::unit::init::{TestSession, LogLevel},
     core::nested_function::{fn_count::FnCount, fn_in::FnIn, fn_::FnInput, fn_::FnOutput, fn_reset::FnReset}, 

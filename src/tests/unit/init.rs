@@ -1,5 +1,4 @@
-use std::env;
-use std::sync::Once;
+use std::{env, sync::Once};
 
 static INIT: Once = Once::new();
 

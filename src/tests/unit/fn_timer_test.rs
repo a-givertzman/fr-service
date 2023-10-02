@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
-use std::{sync::Once, time::{Instant, Duration}, thread};
 #[cfg(test)]
-use std::{rc::Rc, cell::RefCell};
 use log::{debug, info};
+use std::{sync::Once, time::{Instant, Duration}, thread,rc::Rc, cell::RefCell};
+
 use crate::{
     tests::unit::init::{TestSession, LogLevel},
     core::{nested_function::{fn_timer::FnTimer, fn_in::FnIn, fn_::FnInput, fn_::FnOutput, fn_reset::FnReset}, aprox_eq::aprox_eq::AproxEq}, 

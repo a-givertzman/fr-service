@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
-use std::sync::Once;
-
 #[cfg(test)]
 use log::{debug, info};
+use std::sync::Once;
+
 use crate::{
     tests::unit::init::{TestSession, LogLevel},
     core::state::switch_state::{Switch, SwitchCondition, SwitchState}

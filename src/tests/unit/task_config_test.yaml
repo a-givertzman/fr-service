@@ -1,7 +1,7 @@
-# let VarName1:
-#     input:
-#         fn functionName:
-#             input: point '/path/Point.Name/'
+let VarName1:
+    input:
+        fn functionName:
+            input: point '/path/Point.Name/'
 
 let VarName2:
     input: 
