@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
-use log::{trace, debug, info};
+use log::{debug, info};
 use std::{sync::Once, str::FromStr};
 
 use crate::{

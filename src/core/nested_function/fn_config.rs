@@ -104,6 +104,7 @@ impl FnConfig {
     }
     ///
     /// reads config from path
+    #[allow(dead_code)]
     pub fn read(path: &str) -> FnConfig {
         match fs::read_to_string(&path) {
             Ok(yamlString) => {

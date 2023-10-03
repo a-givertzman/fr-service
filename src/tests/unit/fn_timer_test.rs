@@ -61,7 +61,7 @@ fn test_elapsed_repeat_false() {
         (false, 4),
     ];
     let mut start: Option<Instant> = None;
-    let mut target: f64 = 0.0;
+    let mut target: f64;
     let mut elapsed: f64 = 0.0;
     let mut elapsedTotal: f64 = 0.0;
     let mut done = false;
@@ -122,7 +122,7 @@ fn test_total_elapsed_repeat() {
         (false, 4),
     ];
     let mut start: Option<Instant> = None;
-    let mut target: f64 = 0.0;
+    let mut target: f64;
     let mut elapsed: f64 = 0.0;
     let mut elapsedTotal: f64 = 0.0;
     for (value, _) in testData {
@@ -182,7 +182,7 @@ fn test_total_elapsed_repeat_reset() {
     let mut start: Option<Instant> = None;
     let mut elapsedTotal: f64 = 0.0;
     let mut elapsedSession: f64 = 0.0;
-    let mut target = elapsedTotal + elapsedSession;
+    let mut target;
     for (value, _, reset) in testData {
         if reset {
             start = None;

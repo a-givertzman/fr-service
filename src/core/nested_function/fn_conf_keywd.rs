@@ -22,14 +22,14 @@ pub enum FnConfKeywd {
 }
 
 impl FnConfKeywd {
-    pub fn input(&self) -> String {
-        match self {
-            FnConfKeywd::Fn(v) => v.input.clone(),
-            FnConfKeywd::Var(v) => v.input.clone(),
-            FnConfKeywd::Const(v) => v.input.clone(),
-            FnConfKeywd::Point(v) => v.input.clone(),
-        }
-    }
+    // pub fn input(&self) -> String {
+    //     match self {
+    //         FnConfKeywd::Fn(v) => v.input.clone(),
+    //         FnConfKeywd::Var(v) => v.input.clone(),
+    //         FnConfKeywd::Const(v) => v.input.clone(),
+    //         FnConfKeywd::Point(v) => v.input.clone(),
+    //     }
+    // }
     pub fn name(&self) -> String {
         match self {
             FnConfKeywd::Fn(v) => v.name.clone(),

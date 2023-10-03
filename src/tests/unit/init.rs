@@ -24,7 +24,7 @@ impl TestSession {
                 LogLevel::Info => "info",
                 LogLevel::Debug => "debug",
                 LogLevel::Trace => "trace",
-                _ => "debug",
+                // _ => "debug",
             };
             env::set_var("RUST_LOG", logLevel);  // off / error / warn / info / debug / trace
             // env::set_var("RUST_BACKTRACE", "1");
