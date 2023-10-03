@@ -245,7 +245,7 @@ fn test_initial_repeat() {
         (false, 4),
     ];
     let mut start: Option<Instant> = None;
-    let mut target: f64 = 0.0;
+    let mut target: f64;
     let mut elapsed: f64 = 0.0;
     let mut elapsedTotal: f64 = initial;
     for (value, _) in testData {
