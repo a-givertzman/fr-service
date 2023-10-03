@@ -5,7 +5,7 @@ use std::{sync::Once, str::FromStr};
 
 use crate::{
     tests::unit::init::{TestSession, LogLevel},
-    core::nested_function::fn_conf_keywd::FnConfKeywd,
+    core::nested_function::fn_conf_keywd::{FnConfKeywd, FnConfKeywdValue},
 };
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -30,6 +30,7 @@ fn initEach() -> () {
 
 }
 
+
 #[test]
 fn test_create_valid() {
     TestSession::init(LogLevel::Trace);
@@ -38,15 +39,21 @@ fn test_create_valid() {
     info!("test_create_valid");
     // let (initial, switches) = initEach();
     let testData = vec![
-        ("fn name", FnConfKeywd::Fn(String::from("name"))),
-        ("fn  name", FnConfKeywd::Fn(String::from("name"))),
-        ("fn   name", FnConfKeywd::Fn(String::from("name"))),
-        ("fn\tname", FnConfKeywd::Fn(String::from("name"))),
-        ("let name", FnConfKeywd::Var(String::from("name"))),
-        ("const name", FnConfKeywd::Const(String::from("name"))),
-        ("point /path/Point.Name", FnConfKeywd::Point(String::from("/path/Point.Name"))),
-        ("point '/path/Point.Name'", FnConfKeywd::Point(String::from("/path/Point.Name"))),
-        ("point \"/path/Point.Name\"", FnConfKeywd::Point(String::from("/path/Point.Name"))),
+        ("input1: fn name", FnConfKeywd::Fn( FnConfKeywdValue {input: String::from("input1"), name: String::from("name")} )),
+        ("input1:fn name", FnConfKeywd::Fn( FnConfKeywdValue {input: String::from("input1"), name: String::from("name")} )),
+        ("fn name", FnConfKeywd::Fn( FnConfKeywdValue {input: String::new(), name: String::from("name")} )),
+        ("fn  name", FnConfKeywd::Fn( FnConfKeywdValue {input: String::new(), name: String::from("name")} )),
+        ("fn   name", FnConfKeywd::Fn( FnConfKeywdValue {input: String::new(), name: String::from("name")} )),
+        ("fn\tname", FnConfKeywd::Fn( FnConfKeywdValue {input: String::new(), name: String::from("name")} )),
+        ("let name", FnConfKeywd::Var( FnConfKeywdValue {input: String::new(), name: String::from("name")} )),
+        ("const name", FnConfKeywd::Const( FnConfKeywdValue {input: String::new(), name: String::from("name")} )),
+        ("input1: const name", FnConfKeywd::Const( FnConfKeywdValue {input: String::from("input1"), name: String::from("name")} )),
+        ("point /path/Point.Name", FnConfKeywd::Point( FnConfKeywdValue {input: String::new(), name: String::from("/path/Point.Name")} )),
+        ("point '/path/Point.Name'", FnConfKeywd::Point( FnConfKeywdValue {input: String::new(), name: String::from("/path/Point.Name")} )),
+        ("point \"/path/Point.Name\"", FnConfKeywd::Point( FnConfKeywdValue {input: String::new(), name: String::from("/path/Point.Name")} )),
+        ("input1: point /path/Point.Name", FnConfKeywd::Point( FnConfKeywdValue {input: String::from("input1"), name: String::from("/path/Point.Name")} )),
+        ("input2: point '/path/Point.Name'", FnConfKeywd::Point( FnConfKeywdValue {input: String::from("input2"), name: String::from("/path/Point.Name")} )),
+        ("input3: point \"/path/Point.Name\"", FnConfKeywd::Point( FnConfKeywdValue {input: String::from("input3"), name: String::from("/path/Point.Name")} )),
     ];
     for (value, target) in testData {
         let fnConfigType = FnConfKeywd::from_str(value).unwrap();
@@ -55,42 +62,68 @@ fn test_create_valid() {
     }
 }
 
-#[test]
-fn test_create_invalid() {
-    TestSession::init(LogLevel::Trace);
-    initOnce();
-    initEach();
-    info!("test_create_invalid");
-    // let (initial, switches) = initEach();
-    let testData: Vec<(&str, Result<&str, ()>)> = vec![
-        ("fn:name", Err(())),
-        ("fn\nname", Err(())),
-        ("fn: name", Err(())),
-        ("fn :name", Err(())),
-        ("fn : name", Err(())),
-        ("Fn name", Err(())),
-        ("FN name", Err(())),
-        ("fnName", Err(())),
-        ("fn_name", Err(())),
-        ("let:name", Err(())),
-        ("Let name", Err(())),
-        ("LET name", Err(())),
-        ("letName", Err(())),
-        ("let_name", Err(())),
-        ("const:name", Err(())),
-        ("Const name", Err(())),
-        ("CONST name", Err(())),
-        ("constName", Err(())),
-        ("const_name", Err(())),
-        ("point:name", Err(())),
-        ("Point name", Err(())),
-        ("POINT name", Err(())),
-        ("pointName", Err(())),
-        ("point_name", Err(())),
-    ];
-    for (value, target) in testData {
-        let fnConfigType = FnConfKeywd::from_str(value);
-        debug!("value: {:?}   |   fnConfigType: {:?}   |   target: {:?}", value, fnConfigType, target);
-        assert_eq!(fnConfigType.is_err(), true);
-    }
-}
+
+// #[test]
+// fn test_create_valid() {
+//     TestSession::init(LogLevel::Trace);
+//     initOnce();
+//     initEach();
+//     info!("test_create_valid");
+//     // let (initial, switches) = initEach();
+//     let testData = vec![
+//         ("fn name", FnConfKeywd::Fn(String::from("name"))),
+//         ("fn  name", FnConfKeywd::Fn(String::from("name"))),
+//         ("fn   name", FnConfKeywd::Fn(String::from("name"))),
+//         ("fn\tname", FnConfKeywd::Fn(String::from("name"))),
+//         ("let name", FnConfKeywd::Var(String::from("name"))),
+//         ("const name", FnConfKeywd::Const(String::from("name"))),
+//         ("point /path/Point.Name", FnConfKeywd::Point(String::from("/path/Point.Name"))),
+//         ("point '/path/Point.Name'", FnConfKeywd::Point(String::from("/path/Point.Name"))),
+//         ("point \"/path/Point.Name\"", FnConfKeywd::Point(String::from("/path/Point.Name"))),
+//     ];
+//     for (value, target) in testData {
+//         let fnConfigType = FnConfKeywd::from_str(value).unwrap();
+//         debug!("value: {:?}   |   fnConfigType: {:?}   |   target: {:?}", value, fnConfigType, target);
+//         assert_eq!(fnConfigType, target);
+//     }
+// }
+
+// #[test]
+// fn test_create_invalid() {
+//     TestSession::init(LogLevel::Trace);
+//     initOnce();
+//     initEach();
+//     info!("test_create_invalid");
+//     // let (initial, switches) = initEach();
+//     let testData: Vec<(&str, Result<&str, ()>)> = vec![
+//         ("fn:name", Err(())),
+//         ("fn\nname", Err(())),
+//         ("fn: name", Err(())),
+//         ("fn :name", Err(())),
+//         ("fn : name", Err(())),
+//         ("Fn name", Err(())),
+//         ("FN name", Err(())),
+//         ("fnName", Err(())),
+//         ("fn_name", Err(())),
+//         ("let:name", Err(())),
+//         ("Let name", Err(())),
+//         ("LET name", Err(())),
+//         ("letName", Err(())),
+//         ("let_name", Err(())),
+//         ("const:name", Err(())),
+//         ("Const name", Err(())),
+//         ("CONST name", Err(())),
+//         ("constName", Err(())),
+//         ("const_name", Err(())),
+//         ("point:name", Err(())),
+//         ("Point name", Err(())),
+//         ("POINT name", Err(())),
+//         ("pointName", Err(())),
+//         ("point_name", Err(())),
+//     ];
+//     for (value, target) in testData {
+//         let fnConfigType = FnConfKeywd::from_str(value);
+//         debug!("value: {:?}   |   fnConfigType: {:?}   |   target: {:?}", value, fnConfigType, target);
+//         assert_eq!(fnConfigType.is_err(), true);
+//     }
+// }

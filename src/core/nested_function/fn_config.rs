@@ -25,9 +25,28 @@ impl FnConfig {
         let mut inputs = HashMap::new();
         if conf.is_string() {
             trace!("FnConfig.new | IS STRING");
-        //     let fnConfStr: String = serde_yaml::from_value(conf.clone()).unwrap();
-        //     let fnKeyword = FnConfKeywd::from_str(fnConfStr.as_str()).unwrap();
-        //     trace!("FnConfig.new | key: '{}'   |   fnKeyword: {:?}   |   fnConfStr: {:?}", "---", fnKeyword, fnConfStr);
+            let fnConfStr: String = serde_yaml::from_value(conf.clone()).unwrap();
+            let fnKeyword = FnConfKeywd::from_str(fnConfStr.as_str()).unwrap();
+            trace!("FnConfig.new | key: '{}'   |   fnKeyword: {:?}   |   fnConfStr: {:?}", "---", fnKeyword, fnConfStr);
+            let (fnTypeV, fnNameV, fnConf) = match fnKeyword {
+                FnConfKeywd::Const(name) => {
+                    (FnConfigType::Const, name.clone(), FnConfig { fnType: Some(FnConfigType::Const), name: name.name, inputs: HashMap::new() })
+                },
+                FnConfKeywd::Point(name) => {
+                    (FnConfigType::Point, name.clone(), FnConfig { fnType: Some(FnConfigType::Point), name: name.name, inputs: HashMap::new() })
+                },
+                // FnConfKeywd::Var(name) => {
+                //     (FnConfigType::Var, name, FnConfig::new(&conf))
+                // },
+                // FnConfKeywd::Fn(name) => {
+                //     (FnConfigType::Fn, name, FnConfig::new(&conf))
+                // },
+
+                _ => panic!("FnConfig.parseInput | Unknown config: {:?}", conf),
+            };
+            fnType = Some(fnTypeV);
+            fnName = fnNameV.name;
+            inputs.insert(fnNameV.input, fnConf);
         } else {
             trace!("FnConfig.new | IS MAP");
             let fnConfMap: HashMap<String, serde_yaml::Value> = serde_yaml::from_value(conf.clone()).unwrap();
@@ -77,7 +96,7 @@ impl FnConfig {
             _ => panic!("Unknown config: {:?}", conf),
         };
         let inputs = Self::parseInputs(conf);
-        (fnType, fnName, inputs)
+        (fnType, fnName.name, inputs)
     }
     fn parseInputs(conf: &serde_yaml::Value) -> Vec<(String, FnConfig)> {
         trace!("FnConfig.parseInput | ENTER");
