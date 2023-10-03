@@ -1,6 +1,4 @@
-use log::{error, trace, debug};
-use regex::Regex;
-use serde::{Serialize, Deserialize};
+use log::trace;
 use std::{fs, collections::HashMap, str::FromStr};
 
 use crate::core::nested_function::fn_conf_keywd::FnConfKeywd;
@@ -34,15 +32,7 @@ impl FnConfig {
             let fnConfStr: String = serde_yaml::from_value(conf.clone()).unwrap();
             let fnKeyword = FnConfKeywd::from_str(fnConfStr.as_str()).unwrap();
             trace!("FnConfig.new | key: '{}'   |   fnKeyword: {:?}   |   fnConfStr: {:?}", "---", fnKeyword, fnConfStr);
-            match fnKeyword {
-                FnConfKeywd::Const(name) => {
-                    FnConfig { fnType: FnConfigType::Const, name: name.name, inputs: HashMap::new() }
-                },
-                FnConfKeywd::Point(name) => {
-                    FnConfig { fnType: FnConfigType::Point, name: name.name, inputs: HashMap::new() }
-                },
-                _ => panic!("FnConfig.parseInput | Unknown config: {:?}", conf),
-            }
+            FnConfig { fnType: fnKeyword.type_(), name: fnKeyword.name(), inputs: HashMap::new() }
         } else {
             trace!("FnConfig.new | IS MAP");
             let mut fnType: FnConfigType = FnConfigType::Unknown;
@@ -55,19 +45,14 @@ impl FnConfig {
                     Ok(fnKeyword) => {
                         trace!("FnConfig.new | IS KEYWD");
                         trace!("FnConfig.new | key: '{}'   |   fnKeyword: {:?}   |   inputfnConfMap: {:?}", key, fnKeyword, &inputfnConfMap);
-                        let (fnTypeV, fnNameV, inputConfs) = Self::parseFn(fnKeyword, &inputfnConfMap);
-                        fnType = fnTypeV;
-                        fnName = fnNameV;
-                        for (inputName, inputConf) in inputConfs {
+                        fnType = fnKeyword.type_();
+                        fnName = fnKeyword.name();
+                        for (inputName, inputConf) in Self::parseInputs(&inputfnConfMap) {
                             inputs.insert(inputName, inputConf);
                         }
                     },
                     Err(err) => {
                         panic!("FnConfig.new | NO KEYWD\n\tkey: {}  conf: {:?}\n\t error: {}", key, inputfnConfMap, err);
-                        // trace!("FnConfig.new | key: '{}'   |   fnKeyword: {:?}   |   inputfnConfMap: {:?}", key, "---", &inputfnConfMap);
-                        // let (inputName, inputfnConf) = Self::parseInput(&inputfnConfMap);
-                        // trace!("FnConfig.new | inputName: '{}'", inputName);
-                        // inputs.insert(key, inputfnConf);
                     },
                 };
             }
@@ -95,20 +80,11 @@ impl FnConfig {
     /// ```yaml
     /// point '/path...'
     /// ```
-    fn parseFn(fnKeyword: FnConfKeywd, conf: &serde_yaml::Value) -> (FnConfigType, String, Vec<(String, FnConfig)>) {
-        trace!("FnConfig.parseFn | ENTER");
-        let (fnType, fnName) = match fnKeyword {
-            FnConfKeywd::Var(name) => {
-                (FnConfigType::Var, name)
-            },
-            FnConfKeywd::Fn(name) => {
-                (FnConfigType::Fn, name)
-            },
-            _ => panic!("Unknown config: {:?}", conf),
-        };
-        let inputs = Self::parseInputs(conf);
-        (fnType, fnName.name, inputs)
-    }
+    // fn parseFn(fnKeyword: FnConfKeywd, conf: &serde_yaml::Value) -> (FnConfigType, String, Vec<(String, FnConfig)>) {
+    //     trace!("FnConfig.parseFn | ENTER");
+    //     let inputs = Self::parseInputs(conf);
+    //     (fnKeyword.type_(), fnKeyword.name(), inputs)
+    // }
     ///
     /// parsing input sintax like:
     /// - input1:

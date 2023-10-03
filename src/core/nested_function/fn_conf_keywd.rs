@@ -1,8 +1,9 @@
 use std::str::FromStr;
 
-use log::debug;
 use regex::Regex;
 use serde::Deserialize;
+
+use super::fn_config::FnConfigType;
 
 
 #[derive(Debug, Deserialize, PartialEq, Clone)]
@@ -18,6 +19,33 @@ pub enum FnConfKeywd {
     Var(FnConfKeywdValue),
     Const(FnConfKeywdValue),
     Point(FnConfKeywdValue),
+}
+
+impl FnConfKeywd {
+    pub fn input(&self) -> String {
+        match self {
+            FnConfKeywd::Fn(v) => v.input.clone(),
+            FnConfKeywd::Var(v) => v.input.clone(),
+            FnConfKeywd::Const(v) => v.input.clone(),
+            FnConfKeywd::Point(v) => v.input.clone(),
+        }
+    }
+    pub fn name(&self) -> String {
+        match self {
+            FnConfKeywd::Fn(v) => v.name.clone(),
+            FnConfKeywd::Var(v) => v.name.clone(),
+            FnConfKeywd::Const(v) => v.name.clone(),
+            FnConfKeywd::Point(v) => v.name.clone(),
+        }
+    }
+    pub fn type_(&self) -> FnConfigType {
+        match self {
+            FnConfKeywd::Fn(_) => FnConfigType::Fn,
+            FnConfKeywd::Var(_) => FnConfigType::Var,
+            FnConfKeywd::Const(_) => FnConfigType::Const,
+            FnConfKeywd::Point(_) => FnConfigType::Point,
+        }
+    }
 }
 
 impl FromStr for FnConfKeywd {
