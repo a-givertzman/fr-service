@@ -6,7 +6,7 @@ use std::{sync::Once, env, str::FromStr, collections::HashMap};
 
 use crate::{
     tests::unit::init::{TestSession, LogLevel},
-    core::nested_function::fn_config::{FnConfig, FnConfigType, FnVarConfig, FnConstConfig, FnPointConfig, FnConfigKeyword},
+    core::nested_function::fn_config::{FnConfig, FnConfigType, FnVarConfig, FnConstConfig, FnPointConfig},
 };
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -65,11 +65,11 @@ fn test_create_valid_fn() {
     info!("test_create_valid_fn");
     // let (initial, switches) = initEach();
     let testData = [
-        (serde_yaml::from_str(r#"var newVar:
+        (serde_yaml::from_str(r#"let newVar:
             input:
                 fn count:
                     inputConst1: const '13.5'
-                    inputConst2: const '13.5'"#), FnConfigType::Fn(FnConfig{ inputs: HashMap::new() })),
+                    inputConst2: const '13.5'"#), FnConfig{ fnType: None, name: "".to_string(), inputs: HashMap::new() }),
         // (serde_yaml::from_str("fn count:\
         //     inputTrip:\
         //         fn trip:\

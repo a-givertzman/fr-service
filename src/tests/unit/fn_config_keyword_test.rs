@@ -1,12 +1,11 @@
 #![allow(non_snake_case)]
-use log::debug;
 #[cfg(test)]
-use log::{trace, info};
-use std::{sync::Once, env, str::FromStr};
+use log::{trace, debug, info};
+use std::{sync::Once, str::FromStr};
 
 use crate::{
     tests::unit::init::{TestSession, LogLevel},
-    core::nested_function::fn_config::{FnConfig, FnConfigKeyword},
+    core::nested_function::fn_conf_keywd::FnConfKeywd,
 };
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -39,18 +38,18 @@ fn test_create_valid() {
     info!("test_create_valid");
     // let (initial, switches) = initEach();
     let testData = vec![
-        ("fn name", FnConfigKeyword::Fn(String::from("name"))),
-        ("fn  name", FnConfigKeyword::Fn(String::from("name"))),
-        ("fn   name", FnConfigKeyword::Fn(String::from("name"))),
-        ("fn\tname", FnConfigKeyword::Fn(String::from("name"))),
-        ("var name", FnConfigKeyword::Var(String::from("name"))),
-        ("const name", FnConfigKeyword::Const(String::from("name"))),
-        ("point /path/Point.Name", FnConfigKeyword::Point(String::from("/path/Point.Name"))),
-        ("point '/path/Point.Name'", FnConfigKeyword::Point(String::from("/path/Point.Name"))),
-        ("point \"/path/Point.Name\"", FnConfigKeyword::Point(String::from("/path/Point.Name"))),
+        ("fn name", FnConfKeywd::Fn(String::from("name"))),
+        ("fn  name", FnConfKeywd::Fn(String::from("name"))),
+        ("fn   name", FnConfKeywd::Fn(String::from("name"))),
+        ("fn\tname", FnConfKeywd::Fn(String::from("name"))),
+        ("let name", FnConfKeywd::Var(String::from("name"))),
+        ("const name", FnConfKeywd::Const(String::from("name"))),
+        ("point /path/Point.Name", FnConfKeywd::Point(String::from("/path/Point.Name"))),
+        ("point '/path/Point.Name'", FnConfKeywd::Point(String::from("/path/Point.Name"))),
+        ("point \"/path/Point.Name\"", FnConfKeywd::Point(String::from("/path/Point.Name"))),
     ];
     for (value, target) in testData {
-        let fnConfigType = FnConfigKeyword::from_str(value).unwrap();
+        let fnConfigType = FnConfKeywd::from_str(value).unwrap();
         debug!("value: {:?}   |   fnConfigType: {:?}   |   target: {:?}", value, fnConfigType, target);
         assert_eq!(fnConfigType, target);
     }
@@ -73,11 +72,11 @@ fn test_create_invalid() {
         ("FN name", Err(())),
         ("fnName", Err(())),
         ("fn_name", Err(())),
-        ("var:name", Err(())),
-        ("Var name", Err(())),
-        ("VAR name", Err(())),
-        ("varName", Err(())),
-        ("var_name", Err(())),
+        ("let:name", Err(())),
+        ("Let name", Err(())),
+        ("LET name", Err(())),
+        ("letName", Err(())),
+        ("let_name", Err(())),
         ("const:name", Err(())),
         ("Const name", Err(())),
         ("CONST name", Err(())),
@@ -90,7 +89,7 @@ fn test_create_invalid() {
         ("point_name", Err(())),
     ];
     for (value, target) in testData {
-        let fnConfigType = FnConfigKeyword::from_str(value);
+        let fnConfigType = FnConfKeywd::from_str(value);
         debug!("value: {:?}   |   fnConfigType: {:?}   |   target: {:?}", value, fnConfigType, target);
         assert_eq!(fnConfigType.is_err(), true);
     }

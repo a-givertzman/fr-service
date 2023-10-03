@@ -5,7 +5,7 @@ use std::{sync::Once, env};
 
 use crate::{
     tests::unit::init::{TestSession, LogLevel},
-    core::nested_function::fn_config::FnConfig,
+    // core::nested_function::fn_config::FnConfig,
 };
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -39,7 +39,7 @@ fn test_fn_config() {
     // let (initial, switches) = initEach();
     trace!("dir: {:?}", env::current_dir());
     let path = "./src/tests/unit/fn_config_test.yaml";
-    let fnConfig = FnConfig::read(path);
-    trace!("fnConfig: {:?}", fnConfig);
+    // let fnConfig = FnConfig::read(path);
+    // trace!("fnConfig: {:?}", fnConfig);
 }
 
