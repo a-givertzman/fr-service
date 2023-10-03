@@ -63,31 +63,6 @@ fn test_fn_config_read_valid() {
                 ]) 
             }),
     ]) };
-
-    // FnConfig { 
-    //     fnType: Var, name: "VarName2", inputs: {
-    //         "input": FnConfig { 
-    //             fnType: Fn, name: "functionName", inputs: {
-    //                 "initial": FnConfig { 
-    //                     fnType: Const, name: "VarName1", inputs: {} 
-    //                 }, 
-    //                 "input": FnConfig { 
-    //                     fnType: Fn, name: "functionName", inputs: {
-    //                         "input": FnConfig { 
-    //                             fnType: Fn, name: "functionName", inputs: {
-    //                                 "input": FnConfig { 
-    //                                     fnType: Point, name: "/path/Point.Name/", inputs: {} 
-    //                                 }
-    //                             } 
-    //                         }, 
-    //                         "input2": FnConfig { fnType: Point, name: "/path/Point.Name/", inputs: {} }, 
-    //                         "input1": FnConfig { fnType: Const, name: "someValue", inputs: {} }
-    //                     } 
-    //                 }
-    //             } 
-    //         }
-    //     } 
-    // }
     
     // let (initial, switches) = initEach();
     trace!("dir: {:?}", env::current_dir());

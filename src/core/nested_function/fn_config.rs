@@ -123,20 +123,20 @@ impl FnConfig {
     }
 }
 
-#[derive(Debug)]
-pub struct FnVarConfig {
-    pub value: FnConfig,
-}
+// #[derive(Debug)]
+// pub struct FnVarConfig {
+//     pub value: FnConfig,
+// }
 
-#[derive(Debug)]
-pub struct FnConstConfig {
-    pub value: String,
-}
+// #[derive(Debug)]
+// pub struct FnConstConfig {
+//     pub value: String,
+// }
 
-#[derive(Debug)]
-pub struct FnPointConfig {
-    pub value: String,
-}
+// #[derive(Debug)]
+// pub struct FnPointConfig {
+//     pub value: String,
+// }
 
 
 ///
