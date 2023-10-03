@@ -101,25 +101,17 @@ impl FnConfig {
                 },
                 _ => panic!("FnConfig.parseInput | Unknown config: {:?}", conf),
             };
-            (fnName, fnConf)
+            vec![(fnName, fnConf)]
 
         } else {
             trace!("FnConfig.new | IS MAP");
-            let inputs = vec![];
+            let mut inputs = vec![];
             let inputsConfMap: HashMap<String, serde_yaml::Value> = serde_yaml::from_value(conf.clone()).unwrap();
             for (inputName, inputConfMap) in inputsConfMap {
-
-            }
-            match fnConfMap.iter().next() {
-                Some((key, value)) => {
-                    // inName = key.to_string();
-                    trace!("FnConfig.parseInput | key: '{}'   |   fnKeyword: {:?}", &key, &value);
-                    (key.to_string(), FnConfig::new(value))
-                },
-                None => {
-                    panic!("FnConfig.parseInput | NO CONF in: {:?}", conf);
-                },
-            }
+                let inputConf = FnConfig::new(&inputConfMap);
+                inputs.push((inputName, inputConf));
+            };
+            inputs
         }
     }
     ///
