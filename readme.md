@@ -71,27 +71,34 @@ flowchart TD;
 #### Configuration fo the tasks, metrics, functions
 
 ```yaml
-task operating cycle:
-    metrics:
-        metric MetricName1:
-            default: 0      # начальное значение
-            input: 
-                var VarName1:
-                    fn count:
-                        input: 
-                            - /line1/ied1/db1/Dev1.State
-        metric MetricName2:
-            default: 0      # начальное значение
-            input: 
-                var VarName2:
-                    fn timer:
-                        initial: VarName1
-                        input:
-                            fn or:
-                                input: 
-                                    - /line1/ied1/db1/Dev2.State
-                                    - /line1/ied1/db1/Dev3.State
-                                    - /line1/ied1/db1/Dev4.State
+tasks:
+    task OperatingCycle:
+        metrics:
+            metric MetricName1:
+                default: 0      # начальное значение
+                input: 
+                    var VarName1:
+                        fn count:
+                            input: 
+                                - /line1/ied1/db1/Dev1.State
+            metric MetricName2:
+                default: 0      # начальное значение
+                input: 
+                    var VarName2:
+                        fn timer:
+                            initial: VarName1
+                            input:
+                                fn or:
+                                    input: 
+                                        - /line1/ied1/db1/Dev2.State
+                                        - /line1/ied1/db1/Dev3.State
+                                        - /line1/ied1/db1/Dev4.State
+    task FaultDetection:
+        metrics:
+            metric MetricName1:
+                ...
+            metric MetricName2:
+                ...
 ```
 
 Given configuration creates following classes
