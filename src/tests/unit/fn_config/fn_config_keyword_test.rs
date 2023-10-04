@@ -3,10 +3,7 @@
 use log::{debug, info};
 use std::{sync::Once, str::FromStr};
 
-use crate::{
-    tests::unit::init::{TestSession, LogLevel},
-    core::nested_function::fn_conf_keywd::{FnConfKeywd, FnConfKeywdValue},
-};
+use crate::core::{nested_function::fn_conf_keywd::{FnConfKeywd, FnConfKeywdValue}, debug::debug_session::{DebugSession, LogLevel}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -33,7 +30,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_create_valid() {
-    TestSession::init(LogLevel::Trace);
+    DebugSession::init(LogLevel::Trace);
     initOnce();
     initEach();
     info!("test_create_valid");

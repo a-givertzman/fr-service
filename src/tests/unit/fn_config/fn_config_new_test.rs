@@ -4,10 +4,7 @@ use log::debug;
 use log::info;
 use std::{sync::Once, collections::HashMap};
 
-use crate::{
-    tests::unit::init::{TestSession, LogLevel},
-    core::nested_function::fn_config::{FnConfig, FnConfigType},
-};
+use crate::core::{nested_function::{fn_config::FnConfig, fn_config_type::FnConfigType}, debug::debug_session::{DebugSession, LogLevel}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -33,7 +30,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_fn_config_new_valid() {
-    TestSession::init(LogLevel::Trace);
+    DebugSession::init(LogLevel::Trace);
     initOnce();
     initEach();
     info!("test_fn_config_new_valid");
@@ -92,7 +89,8 @@ fn test_fn_config_new_valid() {
         debug!("value: {:?}   |   conf: {:?}   |   target: {:?}", "_", conf, target);
         // let fnKeyword = FnConfigKeyword::from_str(conf.as_str().unwrap()).unwrap();
         // debug!("\tfnKeyword: {:?}", fnKeyword);
-        let fnConfig = FnConfig::new(&conf);
+        let mut vars = vec![];
+        let fnConfig = FnConfig::new(&conf, &mut vars);
         debug!("\tfnConfig: {:?}", fnConfig);
         assert_eq!(fnConfig, target);
     }

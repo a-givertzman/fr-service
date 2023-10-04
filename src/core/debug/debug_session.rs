@@ -12,9 +12,9 @@ pub enum LogLevel {
     Trace,
 }
 
-pub struct TestSession {}
+pub struct DebugSession {}
 
-impl TestSession {
+impl DebugSession {
     pub fn init(logLevel: LogLevel) {
         INIT.call_once(|| {
             let logLevel = match logLevel {

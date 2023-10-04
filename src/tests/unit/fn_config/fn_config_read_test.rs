@@ -3,10 +3,7 @@
 use log::{trace, info};
 use std::{sync::Once, env, collections::HashMap};
 
-use crate::{
-    tests::unit::init::{TestSession, LogLevel},
-    core::nested_function::fn_config::{FnConfig, FnConfigType},
-};
+use crate::core::{nested_function::{fn_config::FnConfig, fn_config_type::FnConfigType}, debug::debug_session::{DebugSession, LogLevel}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -32,7 +29,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_fn_config_read_valid() {
-    TestSession::init(LogLevel::Trace);
+    DebugSession::init(LogLevel::Trace);
     initOnce();
     initEach();
     info!("test_fn_config_read_valid");

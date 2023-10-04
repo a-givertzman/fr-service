@@ -3,6 +3,7 @@ use std::{fs, collections::HashMap, str::FromStr};
 
 use crate::core::nested_function::fn_conf_keywd::FnConfKeywd;
 
+use super::fn_config_type::FnConfigType;
 
 #[derive(Debug, PartialEq)]
 pub struct FnConfig {
@@ -40,8 +41,10 @@ impl FnConfig {
                             let confStr = conf.as_str().unwrap().to_string();
                             if vars.contains(&confStr) {
                                 debug!("FnConfig.new | kewword '{:?}' - found in variables", &conf);
-                            }        
-                            // panic!("Error parsing config: {:?}\n\terror: {:?}", conf, err)
+                                FnConfig { fnType: FnConfigType::Var, name: confStr, inputs: HashMap::new() }
+                            } else {
+                                panic!("Error parsing config: {:?}\n\terror: {:?}", conf, err)
+                            }
                         },
                     }
                 },
@@ -159,15 +162,3 @@ impl FnConfig {
 // pub struct FnPointConfig {
 //     pub value: String,
 // }
-
-
-///
-/// Config of type of the Function
-#[derive(Debug, PartialEq)]
-pub enum FnConfigType {
-    Fn,
-    Var,
-    Const,
-    Point,
-    Unknown,
-}

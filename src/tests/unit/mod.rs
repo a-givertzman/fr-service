@@ -1,4 +1,3 @@
-pub mod init;
 pub mod switch_state_test;
 pub mod fn_in_test;
 pub mod fn_count_test;

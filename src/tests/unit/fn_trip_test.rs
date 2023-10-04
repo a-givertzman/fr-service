@@ -3,10 +3,7 @@
 use log::{debug, info};
 use std::{sync::Once, rc::Rc, cell::RefCell};
 
-use crate::{
-    tests::unit::init::{TestSession, LogLevel},
-    core::nested_function::{fn_trip::FnTripGe, fn_in::FnIn, fn_::FnInput, fn_::FnOutput}, 
-};
+use crate::core::{nested_function::{fn_trip::FnTripGe, fn_in::FnIn, fn_::FnInput, fn_::FnOutput, }, debug::debug_session::{DebugSession, LogLevel}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -33,7 +30,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_single_int() {
-    TestSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_single");
@@ -74,7 +71,7 @@ fn test_single_int() {
 
 #[test]
 fn test_multiple_int() {
-    TestSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_single");
@@ -117,7 +114,7 @@ fn test_multiple_int() {
 
 #[test]
 fn test_multiple_float() {
-    TestSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_single");

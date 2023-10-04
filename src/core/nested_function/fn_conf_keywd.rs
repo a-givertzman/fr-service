@@ -3,8 +3,7 @@ use std::str::FromStr;
 use regex::Regex;
 use serde::Deserialize;
 
-use super::fn_config::FnConfigType;
-
+use super::fn_config_type::FnConfigType;
 
 #[derive(Debug, Deserialize, PartialEq, Clone)]
 pub struct FnConfKeywdValue {

@@ -9,7 +9,7 @@ use std::{env, collections::HashMap};
 
 use log::{info, debug};
 
-use crate::core::nested_function::fn_config::{FnConfig, FnConfigType};
+use crate::core::nested_function::{fn_config::FnConfig, fn_config_type::FnConfigType};
 
 
 

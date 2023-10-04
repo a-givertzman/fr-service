@@ -3,10 +3,7 @@
 use log::{debug, info};
 use std::{sync::Once, rc::Rc, cell::RefCell};
 
-use crate::{
-    tests::unit::init::{TestSession, LogLevel},
-    core::nested_function::{fn_in::FnIn, fn_::FnInput, fn_::FnOutput}, 
-};
+use crate::core::{nested_function::{fn_in::FnIn, fn_::FnInput, fn_::FnOutput}, debug::debug_session::{DebugSession, LogLevel}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -33,7 +30,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_int() {
-    TestSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_int");
@@ -66,7 +63,7 @@ fn test_int() {
 
 #[test]
 fn test_bool() {
-    TestSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_bool");
@@ -101,7 +98,7 @@ fn test_bool() {
 
 #[test]
 fn test_float() {
-    TestSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_float");
@@ -137,7 +134,7 @@ fn test_float() {
 
 #[test]
 fn test_string() {
-    TestSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_string");
