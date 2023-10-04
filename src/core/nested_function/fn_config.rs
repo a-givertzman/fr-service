@@ -39,6 +39,7 @@ impl FnConfig {
                         },
                         Err(err) => {
                             let confStr = conf.as_str().unwrap().to_string();
+                            debug!("FnConfig.new | try to find var '{:?}' in defined: {:?}", &confStr, &vars);
                             if vars.contains(&confStr) {
                                 debug!("FnConfig.new | kewword '{:?}' - found in variables", &conf);
                                 FnConfig { fnType: FnConfigType::Var, name: confStr, inputs: HashMap::new() }
@@ -66,6 +67,10 @@ impl FnConfig {
                         trace!("FnConfig.new | key: '{}'   |   fnKeyword: {:?}   |   inputfnConfMap: {:?}", key, fnKeyword, &inputfnConfMap);
                         fnType = fnKeyword.type_();
                         fnName = fnKeyword.name();
+                        if fnType == FnConfigType::Var {
+                            debug!("FnConfig.new | VAR created: {:?}", fnName);
+                            vars.push(fnName.clone())
+                        }
                         for (inputName, inputConf) in Self::parseInputs(&inputfnConfMap, vars) {
                             inputs.insert(inputName, inputConf);
                         }
@@ -74,10 +79,6 @@ impl FnConfig {
                         panic!("FnConfig.new | NO KEYWD\n\tkey: {}  conf: {:?}\n\t error: {}", key, inputfnConfMap, err);
                     },
                 };
-            }
-            if fnType == FnConfigType::Var {
-                debug!("FnConfig.new | VAR created: {:?}", fnName);
-                vars.push(fnName.clone())
             }
             trace!("FnConfig.new | fnType: {:?} \t|\t fnName: {:?} \t|\t inputs: {:?}", &fnType, fnName, inputs);
             FnConfig {fnType, name: fnName, inputs}

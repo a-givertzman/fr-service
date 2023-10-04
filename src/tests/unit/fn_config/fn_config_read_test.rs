@@ -38,7 +38,7 @@ fn test_fn_config_read_valid() {
             ("input".to_string(), FnConfig { 
                 fnType: FnConfigType::Fn, name: "functionName".to_string(), inputs: HashMap::from([
                     ("initial".to_string(), FnConfig { 
-                        fnType: FnConfigType::Const, name: "VarName1".to_string(), inputs: HashMap::new() 
+                        fnType: FnConfigType::Var, name: "VarName2".to_string(), inputs: HashMap::new() 
                     }),
                     ("input".to_string(), FnConfig { 
                         fnType: FnConfigType::Fn, name: "functionName".to_string(), inputs: HashMap::from([

@@ -6,7 +6,7 @@
 let VarName2:
     input: 
         fn functionName:
-            initial: const 'VarName1'
+            initial: VarName2
             input: 
                 fn functionName:
                     input1: const someValue
