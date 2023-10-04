@@ -1,5 +1,8 @@
 # Fault Recorder Service
 
+- receavs data points from the CMA server
+- storees number of configured metrics into the database
+
 #### Storeing following information into the API Server
 
 - operating cycle
@@ -68,17 +71,16 @@ flowchart TD;
 #### Configuration fo the tasks, metrics, functions
 
 ```yaml
-Task:
-    name: operating cycle
+task operating cycle:
     metrics:
-        MetricName1:
+        metric MetricName1:
             default: 0      # начальное значение
             input: 
                 var VarName1:
                     fn count:
                         input: 
                             - /line1/ied1/db1/Dev1.State
-        MetricName2:
+        metric MetricName2:
             default: 0      # начальное значение
             input: 
                 var VarName2:
