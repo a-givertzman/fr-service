@@ -76,6 +76,13 @@ server:
     protocol:               // CMA-Json / CMA-Byte
     addres: 127.0.0.1:8882  // Self local addres
     cycle: 100 ms           // operating cycle time of the module
+    queues:
+        queue dataCacheQueue:
+            max-length: 10000
+        queue operatingCycleQueue:
+            max-length: 10000
+        queue faultDetectionQueue:
+            max-length: 10000
 client API:
     addres: 127.0.0.1:8080  // Self local addres
     cycle: 100 ms           // operating cycle time of the module
@@ -87,6 +94,7 @@ client CMA:
 tasks:
     task OperatingCycle:
         cycle: 500 ms       // operating cycle time of the task
+        outputQueue: operatingCycleQueue
         metrics:
             metric MetricName1:
                 initial: 0      # начальное значение
@@ -109,6 +117,7 @@ tasks:
                                         - /line1/ied1/db1/Dev4.State
     task FaultDetection:
         cycle: 100 ms       // operating cycle time of the module
+        outputQueue: operatingCycleQueue
         metrics:
             metric MetricName1:
                 ...
