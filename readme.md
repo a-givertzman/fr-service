@@ -32,23 +32,24 @@ flowchart TD;
    db <--> api;
    api<--->|json|task1;
    api<-->|json|task2;
-   server  <--> dataCache;
-   clients <---> |point| server;
-   dataCache <--> task1;
-   dataCache <--> task2;
-   dataCache <--> task3;
-   task1 <--> | | operatingCycleMetrics1;
-   task1 <--> | | operatingCycleMetrics2;
-   task2 <--> faultDetectionMetrics1
-   task2 <--> faultDetectionMetrics2
-   task3 <--> additionalMetrics1
-   task3 <--> additionalMetrics2
-   additionalMetrics1 <--> additionalfunctions1
-   additionalMetrics2 <--> additionalfunctions2
-   faultDetectionMetrics1 <--> faultDetectionFunctions1
-   faultDetectionMetrics2 <--> faultDetectionFunctions2
-   operatingCycleMetrics1 <--> operatingCycleFunctions1
-   operatingCycleMetrics2 <--> operatingCycleFunctions2
+
+   clients <---> |"json{point}"| server;
+   server  <--> |point| dataCache;
+   dataCache <--> |point| task1;
+   dataCache <--> |point| task2;
+   dataCache <--> |point| task3;
+   task1 <--> |sql| operatingCycleMetrics1;
+   task1 <--> |sql| operatingCycleMetrics2;
+   task2 <--> |sql| faultDetectionMetrics1
+   task2 <--> |sql| faultDetectionMetrics2
+   task3 <--> |sql| additionalMetrics1
+   task3 <--> |sql| additionalMetrics2
+   additionalMetrics1 <--> |value| additionalfunctions1
+   additionalMetrics2 <--> |value| additionalfunctions2
+   faultDetectionMetrics1 <--> |value| faultDetectionFunctions1
+   faultDetectionMetrics2 <--> |value| faultDetectionFunctions2
+   operatingCycleMetrics1 <--> |value| operatingCycleFunctions1
+   operatingCycleMetrics2 <--> |value| operatingCycleFunctions2
 ```
 
 math task functions configuration:
