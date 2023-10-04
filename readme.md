@@ -75,6 +75,7 @@ server:
     net: TCP            // TCP/UDP
     protocol:           // CMA-Json / CMA-Byte
     addres: 127.0.0.1   // Self local addres
+    cycle: 100 ms
 tasks:
     task OperatingCycle:
         cycle: 500 ms
