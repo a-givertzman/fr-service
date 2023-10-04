@@ -9,13 +9,13 @@
 ```mermaid
 flowchart TD;
    clients[Client];
-   server[TCP / UDP Server];
+   server[TCP / UDP<br>Server];
    dataCache((Data Cache));
-   api((API Server));
+   api((API Server</p>));
    db[(Database)];
-   task1[Operating Cycle Task];
-   task2[Fault Detection Task];
-   task3[Additional Task];
+   task1[Operating Cycle<br>Task];
+   task2[Fault Detection<br>Task];
+   task3[Additional<br>Task];
    faultDetectionMetrics1[Metrics]
    faultDetectionMetrics2[Metrics]
    operatingCycleMetrics1[Metrics];
