@@ -1,11 +1,24 @@
-# Fault Recorder Service 
+# Fault Recorder Service
 
-#### Storeing following information into the API Server:
+#### Storeing following information into the API Server
+
 - operating cycle
-- operating cycle metrics
-- process metrics
+  - start timestamp
+  - stop timestamp
+  - alarm class
+  - avarage load
+  - max load
 
-#### Function diagram:
+- operating cycle metrics
+  - list of all metrics...
+  - to be added...
+
+- process metrics
+  - process values
+  - faults values
+
+#### Function diagram
+
 ```mermaid
 flowchart TD;
    clients[Client];
@@ -53,6 +66,7 @@ flowchart TD;
 ```
 
 math task functions configuration:
+
 ```yaml
 let VarName1:
    input: fn functionName:
@@ -93,6 +107,7 @@ MetricName2
 ```
 
 Given configuration creates following classes
+
 ```JS
 inputs = {
     '/line1/ied1/db1/Dev1.State': FnInput{}
