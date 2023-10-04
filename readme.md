@@ -8,23 +8,47 @@
 #### Function diagram:
 ```mermaid
 flowchart TD;
-   client([ApiRequest]);
+   clients[Client];
+   server[TCP / UDP Server];
+   dataCache((Data Cache));
    api((API Server));
-   field_datas[FieldDatas];
    db[(Database)];
-   general_info[GeneralInfoPage];
-   work_cycle_points[WorkCyclePoints];
-   work_cycles[WorkCyclesPage];
-   failures[FailuresPage];
-   tensosensor_calibration[TensosensorCalibrationPage];
-   api <--> db;
-   client<-->|json|api;
-   field_datas  <--> client;
-   general_info <--> |"List[FieldData]"| field_datas;
-   client --> work_cycle_points;
-   work_cycle_points --> |"List[WorkCyclePoint]"| work_cycles;
-   client --> failures;
-   client --> tensosensor_calibration;
+   task1[Operating Cycle Task];
+   task2[Fault Detection Task];
+   task3[Additional Task];
+   faultDetectionMetrics1[Metrics]
+   faultDetectionMetrics2[Metrics]
+   operatingCycleMetrics1[Metrics];
+   operatingCycleMetrics2[Metrics];
+   additionalMetrics1[Metrics];
+   additionalMetrics2[Metrics];
+   faultDetectionFunctions1[Functions]
+   faultDetectionFunctions2[Functions]
+   operatingCycleFunctions1[Functions];
+   operatingCycleFunctions2[Functions];
+   additionalfunctions1[Functions];
+   additionalfunctions2[Functions];
+
+   db <--> api;
+   api<--->|json|task1;
+   api<-->|json|task2;
+   server  <--> dataCache;
+   clients <---> |point| server;
+   dataCache <--> task1;
+   dataCache <--> task2;
+   dataCache <--> task3;
+   task1 <--> | | operatingCycleMetrics1;
+   task1 <--> | | operatingCycleMetrics2;
+   task2 <--> faultDetectionMetrics1
+   task2 <--> faultDetectionMetrics2
+   task3 <--> additionalMetrics1
+   task3 <--> additionalMetrics2
+   additionalMetrics1 <--> additionalfunctions1
+   additionalMetrics2 <--> additionalfunctions2
+   faultDetectionMetrics1 <--> faultDetectionFunctions1
+   faultDetectionMetrics2 <--> faultDetectionFunctions2
+   operatingCycleMetrics1 <--> operatingCycleFunctions1
+   operatingCycleMetrics2 <--> operatingCycleFunctions2
 ```
 
 math task functions configuration:
