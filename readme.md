@@ -76,21 +76,26 @@ server:
     protocol:               // CMA-Json / CMA-Byte
     addres: 127.0.0.1:8882  // Self local addres
     cycle: 100 ms           // operating cycle time of the module
-    queues:
+    in:
         queue dataCacheQueue:
             max-length: 10000
-        queue operatingCycleQueue:
-            max-length: 10000
-        queue faultDetectionQueue:
-            max-length: 10000
+    out:
 client API:
     addres: 127.0.0.1:8080  // Self local addres
     cycle: 100 ms           // operating cycle time of the module
     auth:                   // some auth credentials
+    in:
+        queue operatingCycleQueue:
+            max-length: 10000
+        queue faultDetectionQueue:
+            max-length: 10000
+    out:
 client CMA:
     addres: 127.0.0.1:8881  // Self local addres
     cycle: 100 ms           // operating cycle time of the module
     auth:                   // some auth credentials
+    in:
+    out:
 tasks:
     task OperatingCycle:
         cycle: 500 ms       // operating cycle time of the task
