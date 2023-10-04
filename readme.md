@@ -72,13 +72,21 @@ flowchart TD;
 
 ```yaml
 server:
-    net: TCP            // TCP/UDP
-    protocol:           // CMA-Json / CMA-Byte
-    addres: 127.0.0.1   // Self local addres
-    cycle: 100 ms
+    net: TCP                // TCP/UDP
+    protocol:               // CMA-Json / CMA-Byte
+    addres: 127.0.0.1:8882  // Self local addres
+    cycle: 100 ms           // operating cycle time of the module
+client API:
+    addres: 127.0.0.1:8080  // Self local addres
+    cycle: 100 ms           // operating cycle time of the module
+    auth:                   // some auth credentials
+client CMA:
+    addres: 127.0.0.1:8881  // Self local addres
+    cycle: 100 ms           // operating cycle time of the module
+    auth:                   // some auth credentials
 tasks:
     task OperatingCycle:
-        cycle: 500 ms
+        cycle: 500 ms       // operating cycle time of the task
         metrics:
             metric MetricName1:
                 initial: 0      # начальное значение
@@ -100,7 +108,7 @@ tasks:
                                         - /line1/ied1/db1/Dev3.State
                                         - /line1/ied1/db1/Dev4.State
     task FaultDetection:
-        cycle: 100 ms
+        cycle: 100 ms       // operating cycle time of the module
         metrics:
             metric MetricName1:
                 ...
