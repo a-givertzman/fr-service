@@ -65,45 +65,31 @@ flowchart TD;
    operatingCycleMetrics2 <--> |value| operatingCycleFunctions2
 ```
 
-math task functions configuration:
+#### Configuration fo the tasks, metrics, functions
 
 ```yaml
-let VarName1:
-   input: fn functionName:
-      initial: point '/path/Point.Name/'
-
-let VarName2:
-   input: fn functionName:
-      initial: VarName1
-      input: functionName:
-         input1: const someValue
-         input2: point '/path/Point.Name/'
-         input: fn functionName:
-            input: point '/path/Point.Name/'
-...
-```
-
-```yaml
-MetricName1
-    default: 0      # начальное значение
-    input: 
-        var VarName1:
-            fn count:
-                input: 
-                    - /line1/ied1/db1/Dev1.State
-
-MetricName2
-    default: 0      # начальное значение
-    input: 
-        var VarName2:
-            fn timer:
-                initial: VarName1
-                input:
-                    fn or:
+Task:
+    name: operating cycle
+    metrics:
+        MetricName1:
+            default: 0      # начальное значение
+            input: 
+                var VarName1:
+                    fn count:
                         input: 
-                            - /line1/ied1/db1/Dev2.State
-                            - /line1/ied1/db1/Dev3.State
-                            - /line1/ied1/db1/Dev4.State
+                            - /line1/ied1/db1/Dev1.State
+        MetricName2:
+            default: 0      # начальное значение
+            input: 
+                var VarName2:
+                    fn timer:
+                        initial: VarName1
+                        input:
+                            fn or:
+                                input: 
+                                    - /line1/ied1/db1/Dev2.State
+                                    - /line1/ied1/db1/Dev3.State
+                                    - /line1/ied1/db1/Dev4.State
 ```
 
 Given configuration creates following classes
