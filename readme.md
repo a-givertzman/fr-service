@@ -1,7 +1,7 @@
 # Fault Recorder Service
 
-- receavs data points from the CMA server
-- storees number of configured metrics into the database
+- receives data points from the CMA server
+- stores number of configured metrics into the database
 
 #### Storeing following information into the API Server
 
