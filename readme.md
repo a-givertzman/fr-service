@@ -71,18 +71,23 @@ flowchart TD;
 #### Configuration fo the tasks, metrics, functions
 
 ```yaml
+server:
+    net: TCP            // TCP/UDP
+    protocol:           // CMA-Json / CMA-Byte
+    addres: 127.0.0.1   // Self local addres
 tasks:
     task OperatingCycle:
+        cycle: 500 ms
         metrics:
             metric MetricName1:
-                default: 0      # начальное значение
+                initial: 0      # начальное значение
                 input: 
                     var VarName1:
                         fn count:
                             input: 
                                 - /line1/ied1/db1/Dev1.State
             metric MetricName2:
-                default: 0      # начальное значение
+                initial: 0      # начальное значение
                 input: 
                     var VarName2:
                         fn timer:
@@ -94,6 +99,7 @@ tasks:
                                         - /line1/ied1/db1/Dev3.State
                                         - /line1/ied1/db1/Dev4.State
     task FaultDetection:
+        cycle: 100 ms
         metrics:
             metric MetricName1:
                 ...
