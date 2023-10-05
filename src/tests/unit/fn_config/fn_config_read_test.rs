@@ -59,7 +59,8 @@ fn test_fn_config_read_valid() {
                     }),
                 ]) 
             }),
-    ]) };
+        ]) 
+    };
     
     // let (initial, switches) = initEach();
     trace!("dir: {:?}", env::current_dir());
