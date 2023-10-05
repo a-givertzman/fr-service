@@ -81,6 +81,54 @@ flowchart TD;
 #### Configuration fo the tasks, metrics, functions
 
 ```yaml
+client API:
+    addres: 127.0.0.1:8080  // Self local addres
+    cycle: 100 ms           // operating cycle time of the module
+    auth:                   // some auth credentials
+    in:
+        queue operatingCycleQueue:
+            max-length: 10000
+        queue faultDetectionQueue:
+            max-length: 10000
+    out:
+        queue:
+            task OperatingCycle:
+                cycle: 500 ms       // operating cycle time of the task
+                outputQueue: operatingCycleQueue
+                metrics:
+                    metric MetricName1:
+                        initial: 0      # начальное значение
+                        input: 
+                            var VarName1:
+                                fn count:
+                                    input: 
+                                        - /line1/ied1/db1/Dev1.State
+                    metric MetricName2:
+                        initial: 0      # начальное значение
+                        input: 
+                            var VarName2:
+                                fn timer:
+                                    initial: VarName1
+                                    input:
+                                        fn or:
+                                            input: 
+                                                - /line1/ied1/db1/Dev2.State
+                                                - /line1/ied1/db1/Dev3.State
+                                                - /line1/ied1/db1/Dev4.State
+        queue:
+            task FaultDetection:
+                cycle: 100 ms       // operating cycle time of the module
+                outputQueue: operatingCycleQueue
+                metrics:
+                    metric MetricName1:
+                        ...
+                    metric MetricName2:
+                        ...
+```
+
+#### Complit configuration example
+
+```yaml
 server:
     net: TCP                // TCP/UDP
     protocol:               // CMA-Json / CMA-Byte
