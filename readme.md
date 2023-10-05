@@ -24,51 +24,58 @@
 
 ```mermaid
 flowchart TD;
-   clients[Client];
-   server[TCP / UDP<br>Server];
-   dataCache((Data Cache));
 
-   api((API Server</p>));
-   db[(Database)];
+    subgraph CMA
+        cmaServer[CMA Server]
+    end
 
-   cmaServer[CMA Server]
-   task1[Operating Cycle<br>Task];
-   task2[Fault Detection<br>Task];
-   task3[Additional<br>Task];
-   faultDetectionMetrics1[Metrics]
-   faultDetectionMetrics2[Metrics]
-   operatingCycleMetrics1[Metrics];
-   operatingCycleMetrics2[Metrics];
-   additionalMetrics1[Metrics];
-   additionalMetrics2[Metrics];
-   faultDetectionFunctions1[Functions]
-   faultDetectionFunctions2[Functions]
-   operatingCycleFunctions1[Functions];
-   operatingCycleFunctions2[Functions];
-   additionalfunctions1[Functions];
-   additionalfunctions2[Functions];
+    subgraph Database
+        api((API Server</p>));
+        db[(Database)];
+    end
 
-   db <--> api;
-   api<--->|json|task1;
-   api<-->|json|task2;
+    subgraph FaultRecorder
+        cmaClient[CMA Client]
+        dataCache((" Data Cache"));
+        task1[Operating Cycle<br>Task];
+        task2[Fault Detection<br>Task];
+        task3[Additional<br>Task];
+        faultDetectionMetrics1[Metrics]
+        faultDetectionMetrics2[Metrics]
+        operatingCycleMetrics1[Metrics];
+        operatingCycleMetrics2[Metrics];
+        additionalMetrics1[Metrics];
+        additionalMetrics2[Metrics];
+        faultDetectionFunctions1[Functions]
+        faultDetectionFunctions2[Functions]
+        operatingCycleFunctions1[Functions];
+        operatingCycleFunctions2[Functions];
+        additionalfunctions1[Functions];
+        additionalfunctions2[Functions];
+    end
 
-   clients <---> |"json{point}"| server;
-   server  <--> |point| dataCache;
-   dataCache <--> |point| task1;
-   dataCache <--> |point| task2;
-   dataCache <--> |point| task3;
-   task1 <--> |sql| operatingCycleMetrics1;
-   task1 <--> |sql| operatingCycleMetrics2;
-   task2 <--> |sql| faultDetectionMetrics1
-   task2 <--> |sql| faultDetectionMetrics2
-   task3 <--> |sql| additionalMetrics1
-   task3 <--> |sql| additionalMetrics2
-   additionalMetrics1 <--> |value| additionalfunctions1
-   additionalMetrics2 <--> |value| additionalfunctions2
-   faultDetectionMetrics1 <--> |value| faultDetectionFunctions1
-   faultDetectionMetrics2 <--> |value| faultDetectionFunctions2
-   operatingCycleMetrics1 <--> |value| operatingCycleFunctions1
-   operatingCycleMetrics2 <--> |value| operatingCycleFunctions2
+    db <--> api;
+    api<--->|json|task1;
+    api<-->|json|task2;
+
+    cmaServer --> cmaClient
+    cmaClient --> dataCache
+
+    dataCache <--> |point| task1;
+    dataCache <--> |point| task2;
+    dataCache <--> |point| task3;
+    task1 <--> |sql| operatingCycleMetrics1;
+    task1 <--> |sql| operatingCycleMetrics2;
+    task2 <--> |sql| faultDetectionMetrics1
+    task2 <--> |sql| faultDetectionMetrics2
+    task3 <--> |sql| additionalMetrics1
+    task3 <--> |sql| additionalMetrics2
+    additionalMetrics1 <--> |value| additionalfunctions1
+    additionalMetrics2 <--> |value| additionalfunctions2
+    faultDetectionMetrics1 <--> |value| faultDetectionFunctions1
+    faultDetectionMetrics2 <--> |value| faultDetectionFunctions2
+    operatingCycleMetrics1 <--> |value| operatingCycleFunctions1
+    operatingCycleMetrics2 <--> |value| operatingCycleFunctions2
 ```
 
 #### Configuration fo the tasks, metrics, functions
