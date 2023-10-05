@@ -1,12 +1,9 @@
 #![allow(non_snake_case)]
-use std::sync::Once;
-
 #[cfg(test)]
 use log::{debug, info};
-use crate::{
-    tests::unit::init::{TestSession, LogLevel},
-    core::state::switch_state::{Switch, SwitchCondition, SwitchState}
-};
+use std::sync::Once;
+
+use crate::core::{state::switch_state::{Switch, SwitchCondition, SwitchState}, debug::debug_session::{DebugSession, LogLevel}};
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 enum ProcessState {
@@ -91,7 +88,7 @@ fn initEach() -> (ProcessState, Vec<Switch<ProcessState, i8>>) {
 
 #[test]
 fn test_single() {
-    TestSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_single");
@@ -136,7 +133,7 @@ fn test_single() {
 
 #[test]
 fn test_start_step_back() {
-    TestSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_start_step_back");
@@ -181,7 +178,7 @@ fn test_start_step_back() {
 
 #[test]
 fn test_stot_step_back() {
-    TestSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_stot_step_back");

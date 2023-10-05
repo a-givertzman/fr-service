@@ -1,12 +1,9 @@
 #![allow(non_snake_case)]
-use std::sync::Once;
 #[cfg(test)]
 use log::{debug, info};
-use std::{rc::Rc, cell::RefCell};
-use crate::{
-    tests::unit::init::{TestSession, LogLevel},
-    core::nested_function::{fn_count::FnCount, fn_in::FnIn, fn_::FnInput, fn_::FnOutput, fn_reset::FnReset}, 
-};
+use std::{sync::Once, rc::Rc, cell::RefCell};
+
+use crate::core::{nested_function::{fn_count::FnCount, fn_in::FnIn, fn_::FnInput, fn_::FnOutput, fn_reset::FnReset}, debug::debug_session::{DebugSession, LogLevel}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -32,7 +29,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_single() {
-    TestSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_single");
@@ -71,7 +68,7 @@ fn test_single() {
 
 #[test]
 fn test_multiple() {
-    TestSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug);
     info!("test_multiple");
     // let (initial, switches) = initEach();
     let input = Rc::new(RefCell::new(FnIn::new(false)));
@@ -107,7 +104,7 @@ fn test_multiple() {
 
 #[test]
 fn test_multiple_reset() {
-    TestSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug);
     info!("test_multiple_reset");
     // let (initial, switches) = initEach();
     let input = Rc::new(RefCell::new(FnIn::new(false)));

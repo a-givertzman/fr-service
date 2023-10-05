@@ -1,12 +1,9 @@
 #![allow(non_snake_case)]
-use std::{sync::Once, time::{Instant, Duration}, thread};
 #[cfg(test)]
-use std::{rc::Rc, cell::RefCell};
 use log::{debug, info};
-use crate::{
-    tests::unit::init::{TestSession, LogLevel},
-    core::{nested_function::{fn_timer::FnTimer, fn_in::FnIn, fn_::FnInput, fn_::FnOutput, fn_reset::FnReset}, aprox_eq::aprox_eq::AproxEq}, 
-};
+use std::{sync::Once, time::{Instant, Duration}, thread,rc::Rc, cell::RefCell};
+
+use crate::core::{nested_function::{fn_timer::FnTimer, fn_in::FnIn, fn_::FnInput, fn_::FnOutput, fn_reset::FnReset}, aprox_eq::aprox_eq::AproxEq, debug::debug_session::{DebugSession, LogLevel}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -33,7 +30,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_elapsed_repeat_false() {
-    TestSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_elapsed_repeat_false");
@@ -61,7 +58,7 @@ fn test_elapsed_repeat_false() {
         (false, 4),
     ];
     let mut start: Option<Instant> = None;
-    let mut target: f64 = 0.0;
+    let mut target: f64;
     let mut elapsed: f64 = 0.0;
     let mut elapsedTotal: f64 = 0.0;
     let mut done = false;
@@ -95,7 +92,7 @@ fn test_elapsed_repeat_false() {
 
 #[test]
 fn test_total_elapsed_repeat() {
-    TestSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_total_elapsed_repeat");
@@ -122,7 +119,7 @@ fn test_total_elapsed_repeat() {
         (false, 4),
     ];
     let mut start: Option<Instant> = None;
-    let mut target: f64 = 0.0;
+    let mut target: f64;
     let mut elapsed: f64 = 0.0;
     let mut elapsedTotal: f64 = 0.0;
     for (value, _) in testData {
@@ -152,7 +149,7 @@ fn test_total_elapsed_repeat() {
 
 #[test]
 fn test_total_elapsed_repeat_reset() {
-    TestSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_total_elapsed_repeat_reset");
@@ -182,7 +179,7 @@ fn test_total_elapsed_repeat_reset() {
     let mut start: Option<Instant> = None;
     let mut elapsedTotal: f64 = 0.0;
     let mut elapsedSession: f64 = 0.0;
-    let mut target = elapsedTotal + elapsedSession;
+    let mut target;
     for (value, _, reset) in testData {
         if reset {
             start = None;
@@ -217,7 +214,7 @@ fn test_total_elapsed_repeat_reset() {
 
 #[test]
 fn test_initial_repeat() {
-    TestSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_initial_repeat");
@@ -245,7 +242,7 @@ fn test_initial_repeat() {
         (false, 4),
     ];
     let mut start: Option<Instant> = None;
-    let mut target: f64 = 0.0;
+    let mut target: f64;
     let mut elapsed: f64 = 0.0;
     let mut elapsedTotal: f64 = initial;
     for (value, _) in testData {

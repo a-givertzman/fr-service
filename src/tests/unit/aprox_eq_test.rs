@@ -1,11 +1,9 @@
 #![allow(non_snake_case)]
-use std::sync::Once;
 #[cfg(test)]
 use log::{debug, info};
-use crate::{
-    tests::unit::init::{TestSession, LogLevel},
-    core::aprox_eq::aprox_eq::AproxEq, 
-};
+use std::sync::Once;
+
+use crate::core::{aprox_eq::aprox_eq::AproxEq, debug::debug_session::{DebugSession, LogLevel}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -31,7 +29,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_f32() {
-    TestSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_f32");
@@ -57,7 +55,7 @@ fn test_f32() {
 
 #[test]
 fn test_f64() {
-    TestSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_f64");

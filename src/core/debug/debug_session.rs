@@ -1,5 +1,4 @@
-use std::env;
-use std::sync::Once;
+use std::{env, sync::Once};
 
 static INIT: Once = Once::new();
 
@@ -13,9 +12,9 @@ pub enum LogLevel {
     Trace,
 }
 
-pub struct TestSession {}
+pub struct DebugSession {}
 
-impl TestSession {
+impl DebugSession {
     pub fn init(logLevel: LogLevel) {
         INIT.call_once(|| {
             let logLevel = match logLevel {
@@ -25,7 +24,7 @@ impl TestSession {
                 LogLevel::Info => "info",
                 LogLevel::Debug => "debug",
                 LogLevel::Trace => "trace",
-                _ => "debug",
+                // _ => "debug",
             };
             env::set_var("RUST_LOG", logLevel);  // off / error / warn / info / debug / trace
             // env::set_var("RUST_BACKTRACE", "1");

@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use log::{trace, debug};
+use log::debug;
 use std::{cell::RefCell, rc::Rc, time::Instant};
 
 use crate::core::state::switch_state::{SwitchState, Switch, SwitchCondition};
