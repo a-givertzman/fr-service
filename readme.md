@@ -127,7 +127,10 @@ client API:
 ```
 
 #### Complit configuration example
+
 <details>
+    <summary>#### Complit configuration example</summary>
+
 ```yaml
 server:
     net: TCP                // TCP/UDP
@@ -188,6 +191,7 @@ tasks:
             metric MetricName2:
                 ...
 ```
+
 </details>
 Given configuration creates following classes
 
