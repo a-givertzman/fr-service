@@ -81,17 +81,23 @@ flowchart TD;
 #### Configuration fo the tasks, metrics, functions
 
 ```yaml
+client CMA:
+    addres: 127.0.0.1:8881  // Self local addres
+    cycle: 100 ms           // operating cycle time of the module
+    auth:                   // some auth credentials
+    in: null
+    out:
+        queue operatingCycleQueue:
+            max-length: 10000
+        queue faultDetectionQueue:
+            max-length: 10000
+
 client API:
     addres: 127.0.0.1:8080  // Self local addres
     cycle: 100 ms           // operating cycle time of the module
     auth:                   // some auth credentials
     in:
-        queue operatingCycleQueue:
-            max-length: 10000
-        queue faultDetectionQueue:
-            max-length: 10000
-    out:
-        queue:
+        queue1:
             task OperatingCycle:
                 cycle: 500 ms       // operating cycle time of the task
                 outputQueue: operatingCycleQueue
@@ -115,7 +121,7 @@ client API:
                                                 - /line1/ied1/db1/Dev2.State
                                                 - /line1/ied1/db1/Dev3.State
                                                 - /line1/ied1/db1/Dev4.State
-        queue:
+        queue2:
             task FaultDetection:
                 cycle: 100 ms       // operating cycle time of the module
                 outputQueue: operatingCycleQueue
@@ -124,6 +130,7 @@ client API:
                         ...
                     metric MetricName2:
                         ...
+    out: null
 ```
 
 #### Complit configuration example
