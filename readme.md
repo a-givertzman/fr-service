@@ -27,8 +27,11 @@ flowchart TD;
    clients[Client];
    server[TCP / UDP<br>Server];
    dataCache((Data Cache));
+
    api((API Server</p>));
    db[(Database)];
+
+   cmaServer[CMA Server]
    task1[Operating Cycle<br>Task];
    task2[Fault Detection<br>Task];
    task3[Additional<br>Task];
@@ -90,12 +93,13 @@ client API:
         queue faultDetectionQueue:
             max-length: 10000
     out:
-client CMA:
-    addres: 127.0.0.1:8881  // Self local addres
-    cycle: 100 ms           // operating cycle time of the module
-    auth:                   // some auth credentials
-    in:
-    out:
+data-cache:
+    client CMA:
+        addres: 127.0.0.1:8881  // Self local addres
+        cycle: 100 ms           // operating cycle time of the module
+        auth:                   // some auth credentials
+        in:
+        out:
 tasks:
     task OperatingCycle:
         cycle: 500 ms       // operating cycle time of the task
