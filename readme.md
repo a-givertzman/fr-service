@@ -126,7 +126,9 @@ client API:
                         ...
 ```
 
-#### Complit configuration example <details>
+#### Complit configuration example
+
+<details>
 
 ```yaml
 server:
