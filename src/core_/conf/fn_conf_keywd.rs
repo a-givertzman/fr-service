@@ -56,8 +56,6 @@ impl FromStr for FnConfKeywd {
     type Err = String;
     fn from_str(input: &str) -> Result<FnConfKeywd, String> {
         trace!("FnConfKeywd.from_str | input: {}", input);
-        // let re = r#"\s*([a-z]+)[^\S\r\n]+['""]{0,1}([^'":\n\s]+)['"]{0,1}"#;
-        // let re = r#"^\s*((\w+):)*\s*([a-z]+)[^\S\r\n]+['""]{0,1}([^'":\n\s]+)['"]{0,1}"#;
         let re = r#"[ \t]*(?:(\w+)[ \t]+)*(?:(let|fn|const|point|metric|task)+[ \t]+)(?:['"]*([\w/.]+)['"]*)"#;
         match Regex::new(re).unwrap().captures(input) {
             Some(caps) => {

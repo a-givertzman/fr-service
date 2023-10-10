@@ -17,13 +17,15 @@ pub struct ConfTree {
 }
 impl ConfTree {
     ///
-    /// 
+    /// creates iterotor on the serde_yaml::Value mapping
     pub fn new(conf: serde_yaml::Value) -> Self {
         Self {
             key: String::new(),
             conf,
         }
     }
+    ///
+    /// 
     fn newSub(key: String, conf: serde_yaml::Value) -> Self {
         Self {
             key: key,
@@ -39,7 +41,7 @@ impl ConfTree {
         }
     }
     ///
-    /// 
+    /// returns count of sub nodes
     pub fn count(&self) -> usize {
         match self.subNodes() {
             Some(subNodes) => subNodes.count(),
@@ -62,5 +64,18 @@ impl ConfTree {
         } else {
             None
         }
-    }    
+    }
+    ///
+    /// returns tree node by it's key if exists
+    pub fn get(&self, key: &str) -> Option<ConfTree> {
+        match self.conf.as_mapping().unwrap().get(key) {
+            Some(value) => {
+                Some(ConfTree {
+                    key: key.to_string(),
+                    conf: value.clone(),
+                })
+            },
+            None => None,
+        }
+    }
 }

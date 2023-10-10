@@ -13,7 +13,7 @@ use super::fn_config_type::FnConfigType;
 /// let VarName2:
 ///     input fn functionName:
 ///         initial: VarName1
-///         input functionName:
+///         input fn functionName:
 ///             input1: const someValue
 ///             input2: point '/path/Point.Name/'
 ///             input fn functionName:
@@ -32,12 +32,12 @@ impl FnConfig {
     /// let VarName2:
     ///     input fn functionName:
     ///         initial: VarName1
-    ///         input functionName:
+    ///         input fn functionName:
     ///             input1: const someValue
     ///             input2: point '/path/Point.Name/'
     ///             input fn functionName:
     ///                 input: point '/path/Point.Name/'```
-    pub fn new(confTree: ConfTree, vars: &mut Vec<String>) -> FnConfig {
+    pub fn new(confTree: &ConfTree, vars: &mut Vec<String>) -> FnConfig {
         println!("\n");
         trace!("FnConfig.new | confTree: {:?}", confTree);
         // self conf from first sub node
@@ -139,10 +139,19 @@ impl FnConfig {
     ///
     /// creates config from serde_yaml::Value of following format:
     pub fn fromYamlValue(value: &serde_yaml::Value, vars: &mut Vec<String>) -> FnConfig {
-        Self::new(ConfTree::new(value.clone()), vars)
+        Self::new(&ConfTree::new(value.clone()), vars)
     }
     ///
-    /// reads config from path
+    /// reads yaml config from path
+    /// ```yaml
+    /// let VarName2:
+    ///     input fn functionName:
+    ///         initial: VarName1
+    ///         input fn functionName:
+    ///             input1: const someValue
+    ///             input2: point '/path/Point.Name/'
+    ///             input fn functionName:
+    ///                 input: point '/path/Point.Name/'```
     #[allow(dead_code)]
     pub fn read(path: &str) -> FnConfig {
         let mut vars = vec![];
