@@ -110,13 +110,13 @@ impl MetricConfig {
     ///
     /// reads config from path
     #[allow(dead_code)]
-    pub fn read(path: &str) -> FnConfig {
+    pub fn read(path: &str) -> MetricConfig {
         let mut vars = vec![];
         match fs::read_to_string(&path) {
             Ok(yamlString) => {
                 match serde_yaml::from_str(&yamlString) {
                     Ok(config) => {
-                        FnConfig::fromYamlValue(&config, &mut vars)
+                        MetricConfig::fromYamlValue(&config, &mut vars)
                     },
                     Err(err) => {
                         panic!("Error in config: {:?}\n\terror: {:?}", yamlString, err)

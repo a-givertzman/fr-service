@@ -3,7 +3,8 @@
 #         fn functionName:
 #             input: point '/path/Point.Name/'
 metric sqlSelectMetric:
-    initial: 0      # начальное значение
+    initial: "0"      # начальное значение
+    table: table_name
     sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
     inputs:
         input1:
