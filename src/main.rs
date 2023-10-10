@@ -1,54 +1,70 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
-// #[path = "./tests"]
 mod tests;
-
-mod core;
-
-use std::{env, collections::HashMap};
-
-use log::{info, debug};
-
-use crate::core::nested_function::{fn_config::FnConfig, fn_config_type::FnConfigType};
-
-
+mod core_;
+use log::debug;
+use core_::{debug::debug_session::DebugSession, conf::conf_tree::ConfTree};
 
 
 fn main() {
-    env::set_var("RUST_LOG", "debug");  // off / error / warn / info / debug / trace
-    // env::set_var("RUST_BACKTRACE", "1");
-    env::set_var("RUST_BACKTRACE", "full");
-    env_logger::init();
-
-    info!("test_create_valid_fn");
-    // let (initial, switches) = initEach();
+    DebugSession::init(core_::debug::debug_session::LogLevel::Debug);
     let testData = [
-        (serde_yaml::from_str(r#"
+        r#"
             let newVar1:
-                input1:
+                input1: const 177.3
+                input2: point '/Path/Point.Name/'
+                input3:
                     fn count:
                         inputConst1: const '13.5'
                         inputConst2: newVar1
-        "#), 
-        FnConfig{ fnType: FnConfigType::Const, name: "".to_string(), inputs: HashMap::new() }),
-                    // input2:
-                    //     fn count:
-                    //         inputConst1: const '13.5'
-                    //         inputConst2: const '13.5'
+        "#,
+        // serde_yaml::from_str(r#"
+        //     metric sqlSelectMetric:
+        //         initial: const 0
+        //         sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
+        //         inputs:
+        //             input1:
+        //                 let VarName2:
+        //                     input: 
+        //                         fn functionName:
+        //                             initial: VarName2
+        //                             input: 
+        //                                 fn functionName:
+        //                                     input1: const someValue
+        //                                     input2: point '/path/Point.Name/'
+        //                                     input: 
+        //                                         fn functionName:
+        //                                             input: point '/path/Point.Name/'        
+        // "#),
+        // r#"
+        // serviceCMA:
+        //     nodeType: API Client
+        //     address: 127.0.0.1:8899
+        //     cycle: 1000
+        // serviceAPI:
+        //     nodeType: API Client
+        //     address: 127.0.0.1:8899
+        //     cycle: 2000
+        // serviceTask:
+        //     cycle: 200
+        // "#,
     ];
-    for (value, target) in testData {
-        debug!("test value: {:?}", value);
-        let conf: serde_yaml::Value = value.unwrap();
-        // let conf = testData.get("/").unwrap();
+    let conf = serde_yaml::from_str(testData[0]).unwrap();
+    let confTree = ConfTree::new(conf);
+    inputs(&confTree);
+    // for nodes in  {
 
-        debug!("value: {:?}   |   conf: {:?}   |   target: {:?}", "_", conf, target);
-        // let fnKeyword = FnConfigKeyword::from_str(conf.as_str().unwrap()).unwrap();
-        // debug!("\tfnKeyword: {:?}", fnKeyword);
-        let mut vars = vec![];
-        let fnConfig = FnConfig::new(&conf, &mut vars);
-        debug!("\tfnConfig: {:?}", fnConfig);
-        debug!("\tvars: {:?}", vars);
-        // assert_eq!(fnConfigType, target);
-    }
+    // }
+}
 
+fn inputs(confTree: &ConfTree) {
+    match confTree.subNodes() {
+        Some(nodes) => {
+            for node in nodes {
+                debug!("key: {:?}\t|\tnode: {:?}", &node.key, &node.conf);
+                inputs(&node);
+            }
+        },
+        None => {},
+    };
 }

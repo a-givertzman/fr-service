@@ -3,7 +3,7 @@
 use log::trace;
 use std::{cell::RefCell, rc::Rc};
 
-use crate::core::state::switch_state::{SwitchState, Switch, SwitchCondition};
+use crate::core_::state::switch_state::{SwitchState, Switch, SwitchCondition};
 
 use super::{fn_::FnOutput, fn_reset::FnReset};
 

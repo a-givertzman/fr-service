@@ -3,7 +3,7 @@
 use log::{debug, info};
 use std::{sync::Once, time::{Instant, Duration}, thread,rc::Rc, cell::RefCell};
 
-use crate::core::{nested_function::{fn_timer::FnTimer, fn_in::FnIn, fn_::FnInput, fn_::FnOutput, fn_reset::FnReset}, aprox_eq::aprox_eq::AproxEq, debug::debug_session::{DebugSession, LogLevel}};
+use crate::core_::{nested_function::{fn_timer::FnTimer, fn_in::FnIn, fn_::FnInput, fn_::FnOutput, fn_reset::FnReset}, aprox_eq::aprox_eq::AproxEq, debug::debug_session::{DebugSession, LogLevel}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;

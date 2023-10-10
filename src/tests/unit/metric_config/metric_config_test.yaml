@@ -4,6 +4,7 @@
 #             input: point '/path/Point.Name/'
 metric sqlSelectMetric:
     initial: 0      # начальное значение
+    sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
     inputs:
         input1:
             let VarName2:

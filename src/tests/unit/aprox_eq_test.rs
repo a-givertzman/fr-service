@@ -3,7 +3,7 @@
 use log::{debug, info};
 use std::sync::Once;
 
-use crate::core::{aprox_eq::aprox_eq::AproxEq, debug::debug_session::{DebugSession, LogLevel}};
+use crate::core_::{aprox_eq::aprox_eq::AproxEq, debug::debug_session::{DebugSession, LogLevel}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
