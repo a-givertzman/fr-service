@@ -63,9 +63,10 @@ impl MetricConfig {
                                         MetricParams::Inputs(_) => {
                                             let node = ConfTree::new(conf.conf);
                                             for inputConf in node.subNodes().unwrap() {
+                                                trace!("MetricConfig.new | input conf: {:?}\t|\t{:?}", inputConf.key, inputConf.conf);
                                                 inputs.insert(
-                                                    conf.key.to_string(), 
-                                                    FnConfig::new(&inputConf, vars),
+                                                    inputConf.key.to_string(), 
+                                                    FnConfig::fromYamlValue(&inputConf.conf, vars),
                                                 );
                                             }
                                         },
