@@ -1,7 +1,7 @@
-use log::{trace, debug, warn, error};
+use log::{trace, debug, error};
 use std::{fs, collections::HashMap, str::FromStr};
 
-use crate::core_::{nested_function::fn_conf_keywd::FnConfKeywd, conf::conf_tree::ConfTree};
+use crate::core_::{conf::fn_conf_keywd::FnConfKeywd, conf::conf_tree::ConfTree};
 
 use super::fn_config_type::FnConfigType;
 
