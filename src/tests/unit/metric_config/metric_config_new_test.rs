@@ -50,6 +50,7 @@ fn test_fn_config_new_valid() {
         (
             r#"metric sqlSelectMetric:
                 initial: "0"      # начальное значение
+                table: table_name
                 sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
                 inputs:
                     input1:
@@ -67,12 +68,36 @@ fn test_fn_config_new_valid() {
                     input2:
                         const 1
             "#, 
-            FnConfig { fnType: FnConfigType::Var, name: "newVar".to_string(), inputs: HashMap::from([
-                ("input".to_string(), FnConfig { fnType: FnConfigType::Fn, name: "count".to_string(), inputs: HashMap::from([
-                    ("inputConst1".to_string(), FnConfig { fnType: FnConfigType::Const, name: "13.3".to_string(), inputs: HashMap::new() }),
-                    ("inputConst2".to_string(), FnConfig { fnType: FnConfigType::Const, name: "13.7".to_string(), inputs: HashMap::new() }),
-                ]) }),
-            ]) }
+            MetricConfig { 
+                name: String::from("metric sqlSelectMetric"), 
+                table: String::from("table_name"), 
+                sql: String::from("UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"), 
+                initial: String::from("0"), 
+                vars: vec![String::from("VarName2")],
+                inputs: HashMap::from([
+                    (String::from("input1"), FnConfig { 
+                        fnType: FnConfigType::Var, name: String::from("VarName2"), inputs: HashMap::from([
+                            (String::from("input"), FnConfig { 
+                                fnType: FnConfigType::Fn, name: String::from("functionName"), inputs: HashMap::from([
+                                    (String::from("initial"), FnConfig { fnType: FnConfigType::Var, name: String::from("VarName2"), inputs: HashMap::new() }),
+                                    (String::from("input"), FnConfig { 
+                                        fnType: FnConfigType::Fn, name: String::from("functionName"), inputs: HashMap::from([
+                                            (String::from("input1"), FnConfig { fnType: FnConfigType::Const, name: String::from("someValue"), inputs: HashMap::new() }),
+                                            (String::from("input2"), FnConfig { fnType: FnConfigType::Point, name: String::from("/path/Point.Name/"), inputs: HashMap::new() }), 
+                                            (String::from("input"), FnConfig { 
+                                                fnType: FnConfigType::Fn, name: String::from("functionName"), inputs: HashMap::from([
+                                                    (String::from("input"), FnConfig { fnType: FnConfigType::Point, name: String::from("/path/Point.Name/"), inputs: HashMap::new() }),
+                                                ])
+                                            }), 
+                                        ]) 
+                                    }),
+                                ]) 
+                            })
+                        ]) 
+                    }), 
+                    (String::from("input2"), FnConfig { fnType: FnConfigType::Const, name: String::from("1"), inputs: HashMap::new() })
+                ]), 
+            }
         ),
         // (
         //     serde_yaml::from_str(r#"let newVar:
@@ -107,6 +132,6 @@ fn test_fn_config_new_valid() {
         let mut vars = vec![];
         let fnConfig = MetricConfig::fromYamlValue(&conf, &mut vars);
         debug!("\tfnConfig: {:?}", fnConfig);
-        // assert_eq!(fnConfig, target);
+        assert_eq!(fnConfig, target);
     }
 }

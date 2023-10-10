@@ -11,8 +11,8 @@ pub struct MetricConfig {
     pub table: String,
     pub sql: String,
     pub inputs: HashMap<String, FnConfig>,
-    initial: String,
-    vars: Vec<String>,
+    pub initial: String,
+    pub(crate) vars: Vec<String>,
 }
 impl MetricConfig {
     ///
