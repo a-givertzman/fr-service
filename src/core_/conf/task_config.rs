@@ -22,7 +22,7 @@ enum TaskNode {
 ///             sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"
 ///             initial: 123.456
 ///             inputs:
-///                 input1: 
+///                 input1:
 ///                     fn functionName:
 ///                         ...
 ///                 input2:
@@ -44,7 +44,7 @@ impl TaskConfig {
     ///     sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"
     ///     initial: 123.456
     ///     inputs:
-    ///         input1: 
+    ///         input1:
     ///             fn functionName:
     ///                 ...
     ///         input2:
@@ -93,7 +93,7 @@ impl TaskConfig {
                                 },
                             };
                             selfNodes.insert(
-                                format!("{}-{}", selfNodeKeyword.name(), nodeIndex), 
+                                format!("{}-{}", selfNodeKeyword.name(), nodeIndex),
                                 nodeConf,
                             );
                         },
@@ -101,7 +101,7 @@ impl TaskConfig {
                             panic!("TaskConfig.new | Unknown task keyword in {:?}\n\tdetales: {:?}", &selfNodeConf.key, err);
                         },
                     };
-    
+
                     match selfConf.get("inputs") {
                         Some(inputsNode) => {
                             for inputConf in inputsNode.subNodes().unwrap() {
@@ -113,9 +113,6 @@ impl TaskConfig {
                         },
                     }
                 }
-
-
-
                 TaskConfig {
                     name: selfName,
                     cycle: selfCycle,
