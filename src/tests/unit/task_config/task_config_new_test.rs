@@ -106,6 +106,46 @@ fn test_fn_config_new_valid() {
                 ])
             }
         ),
+        (
+            r#"task task1:
+                cycle: 100
+                let VarName2:
+                    input fn functionName:
+                        initial: VarName2
+                        input fn functionName:
+                            input1: const someValue
+                            input2: point '/path/Point.Name/'
+                            input fn functionName:
+                                input: point '/path/Point.Name/'
+            "#, 
+            TaskConfig {
+                name: String::from("task1"),
+                cycle: 100,
+                vars: vec![String::from("VarName2")],
+                nodes: HashMap::from([                    
+                    (String::from("VarName2-1"), TaskNode::Fn(FnConfig { 
+                        fnType: FnConfigType::Var, name: String::from("VarName2"), inputs: HashMap::from([
+                            (String::from("input"), FnConfig { 
+                                fnType: FnConfigType::Fn, name: String::from("functionName"), inputs: HashMap::from([
+                                    (String::from("initial"), FnConfig { fnType: FnConfigType::Var, name: String::from("VarName2"), inputs: HashMap::new() }),
+                                    (String::from("input"), FnConfig { 
+                                        fnType: FnConfigType::Fn, name: String::from("functionName"), inputs: HashMap::from([
+                                            (String::from("input1"), FnConfig { fnType: FnConfigType::Const, name: String::from("someValue"), inputs: HashMap::new() }),
+                                            (String::from("input2"), FnConfig { fnType: FnConfigType::Point, name: String::from("/path/Point.Name/"), inputs: HashMap::new() }), 
+                                            (String::from("input"), FnConfig { 
+                                                fnType: FnConfigType::Fn, name: String::from("functionName"), inputs: HashMap::from([
+                                                    (String::from("input"), FnConfig { fnType: FnConfigType::Point, name: String::from("/path/Point.Name/"), inputs: HashMap::new() }),
+                                                ])
+                                            }), 
+                                        ]) 
+                                    }),
+                                ]) 
+                            })
+                        ]) 
+                    })), 
+                ])
+            }
+        ),        
     ];
     for (value, target) in testData {
         debug!("test value: {:?}", value);
