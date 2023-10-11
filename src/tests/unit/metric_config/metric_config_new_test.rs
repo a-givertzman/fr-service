@@ -69,7 +69,7 @@ fn test_fn_config_new_valid() {
                         const 1
             "#, 
             MetricConfig { 
-                name: String::from("metric sqlSelectMetric"), 
+                name: String::from("sqlSelectMetric"), 
                 table: String::from("table_name"), 
                 sql: String::from("UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"), 
                 initial: 0.123, 
@@ -99,28 +99,6 @@ fn test_fn_config_new_valid() {
                 ]), 
             }
         ),
-        // (
-        //     serde_yaml::from_str(r#"let newVar:
-        //         input1:
-        //             fn count:
-        //                 inputConst1: const '11.3'
-        //                 inputConst2: const '12.7'"
-        //         input2:
-        //             fn count:
-        //                 inputConst1: const '13.3'
-        //                 inputConst2: const '14.7'"#
-        //     ), 
-        //     FnConfig { fnType: FnConfigType::Var, name: "newVar".to_string(), inputs: HashMap::from([
-        //         ("input1".to_string(), FnConfig { fnType: FnConfigType::Fn, name: "count".to_string(), inputs: HashMap::from([
-        //             ("inputConst1".to_string(), FnConfig { fnType: FnConfigType::Const, name: "11.3".to_string(), inputs: HashMap::new() }),
-        //             ("inputConst2".to_string(), FnConfig { fnType: FnConfigType::Const, name: "12.7".to_string(), inputs: HashMap::new() }),
-        //         ]) }),
-        //         ("input2".to_string(), FnConfig { fnType: FnConfigType::Fn, name: "count".to_string(), inputs: HashMap::from([
-        //             ("inputConst1".to_string(), FnConfig { fnType: FnConfigType::Const, name: "13.3".to_string(), inputs: HashMap::new() }),
-        //             ("inputConst2".to_string(), FnConfig { fnType: FnConfigType::Const, name: "14.7".to_string(), inputs: HashMap::new() }),
-        //         ]) }),
-        //     ]) }
-        // ),
     ];
     for (value, target) in testData {
         debug!("test value: {:?}", value);

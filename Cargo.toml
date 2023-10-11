@@ -20,4 +20,4 @@ typetag = "^0.2"
 
 regex = "^1.9"
 
-strum = { version = "^0.25", features = ["derive"] }
+# strum = { version = "^0.25", features = ["derive"] }

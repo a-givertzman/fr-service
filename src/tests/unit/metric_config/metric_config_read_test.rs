@@ -34,7 +34,7 @@ fn test_fn_config_read_valid() {
     initEach();
     info!("test_fn_config_read_valid");
     let target = MetricConfig { 
-        name: String::from("metric sqlSelectMetric"), 
+        name: String::from("sqlSelectMetric"), 
         table: String::from("table_name"), 
         sql: String::from("UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"), 
         initial: 0.123, 

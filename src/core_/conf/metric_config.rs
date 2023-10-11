@@ -1,9 +1,7 @@
 use log::{trace, debug, error};
 use std::{fs, collections::HashMap, str::FromStr};
 
-use crate::core_::conf::{fn_config::FnConfig, conf_tree::ConfTree};
-
-use strum::{IntoEnumIterator, EnumIter};
+use crate::core_::conf::{fn_config::FnConfig, conf_tree::ConfTree, fn_conf_keywd::FnConfKeywd};
 
 ///
 /// creates config from serde_yaml::Value of following format:
@@ -55,6 +53,14 @@ impl MetricConfig {
             Some(selfConf) => {
                 debug!("FnConfig.new | MAPPING VALUE");
                 trace!("FnConfig.new | selfConf: {:?}", selfConf);
+                let selfName = match FnConfKeywd::from_str(&selfConf.key) {
+                    Ok(selfKeyword) => {
+                        selfKeyword.name()
+                    },
+                    Err(err) => {
+                        panic!("MetricConfig.new | Unknown metric name in {:?}\n\tdetales: {:?}", &selfConf.key, err)
+                    },
+                };
                 let mut inputs = HashMap::new();
                 match selfConf.get("inputs") {
                     Some(inputsNode) => {
@@ -71,7 +77,7 @@ impl MetricConfig {
                     },
                 }
                 MetricConfig {
-                    name: (&selfConf).key.clone(),
+                    name: selfName,
                     table: (&selfConf).asStr("table").unwrap().to_string(),
                     sql: (&selfConf).asStr("sql").unwrap().to_string(),
                     initial: (&selfConf).asF64("initial").unwrap(),
