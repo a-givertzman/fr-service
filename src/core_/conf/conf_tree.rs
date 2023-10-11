@@ -78,4 +78,56 @@ impl ConfTree {
             None => None,
         }
     }
+    ///
+    /// returns tree node value as bool by it's key if exists
+    pub fn asBool(&self, key: &str) -> Result<bool, String> {
+        match self.conf.as_mapping().unwrap().get(key) {
+            Some(value) => {
+                match value.as_bool() {
+                    Some(value) => {Ok(value)},
+                    None => Err(format!("error getting bool by key '{:?}' from node '{:?}'", &key, &self.conf)),
+                }
+            },
+            None => Err(format!("key '{:?}' not found in the node '{:?}'", &key, &self.conf)),
+        }
+    }
+    ///
+    /// returns tree node value as bool by it's key if exists
+    pub fn asI64(&self, key: &str) -> Result<i64, String> {
+        match self.conf.as_mapping().unwrap().get(key) {
+            Some(value) => {
+                match value.as_i64() {
+                    Some(value) => {Ok(value)},
+                    None => Err(format!("error getting int by key '{:?}' from node '{:?}'", &key, &self.conf)),
+                }
+            },
+            None => Err(format!("key '{:?}' not found in the node '{:?}'", &key, &self.conf)),
+        }
+    }
+    ///
+    /// returns tree node value as bool by it's key if exists
+    pub fn asf64(&self, key: &str) -> Result<f64, String> {
+        match self.conf.as_mapping().unwrap().get(key) {
+            Some(value) => {
+                match value.as_f64() {
+                    Some(value) => {Ok(value)},
+                    None => Err(format!("error getting float by key '{:?}' from node '{:?}'", &key, &self.conf)),
+                }
+            },
+            None => Err(format!("key '{:?}' not found in the node '{:?}'", &key, &self.conf)),
+        }
+    }
+    ///
+    /// returns tree node value as bool by it's key if exists
+    pub fn asStr(&self, key: &str) -> Result<&str, String> {
+        match self.conf.as_mapping().unwrap().get(key) {
+            Some(value) => {
+                match value.as_str() {
+                    Some(value) => {Ok(value)},
+                    None => Err(format!("error getting float by key '{:?}' from node '{:?}'", &key, &self.conf)),
+                }
+            },
+            None => Err(format!("key '{:?}' not found in the node '{:?}'", &key, &self.conf)),
+        }
+    }
 }

@@ -27,6 +27,15 @@ fn initEach() -> () {
 
 }
 
+
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+enum Node {
+    Map(HashMap<String, Node>),
+    End(ConfTree),
+}
+
+
 #[test]
 fn test_config_tree_valid() {
     DebugSession::init(LogLevel::Trace);
@@ -164,8 +173,61 @@ fn inputs(confTree: &ConfTree) -> Node {
     };
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-enum Node {
-    Map(HashMap<String, Node>),
-    End(ConfTree),
+
+enum TypedValue<'a> {
+    Bool(bool),
+    Int(i64),
+    Float(f64),
+    String(&'a str),
+}
+
+
+#[test]
+fn test_config_tree_as_type() {
+    DebugSession::init(LogLevel::Trace);
+    initOnce();
+    initEach();
+    info!("test_config_tree_valid");
+    // let (initial, switches) = initEach();
+    let testData: Vec<(&str, HashMap<&str, TypedValue>)> = vec![
+        (
+            r#"
+                boolTrue: true
+                boolFalse: false
+                int1: 177
+                int2: -177
+                float1: 177.3
+                float2: -177.3
+                string1: /Path/Point.Name/
+                string2: '/Path/Point.Name/'
+                string3: "/Path/Point.Name/"
+            "#,
+            HashMap::from([
+                ("boolTrue", TypedValue::Bool(true)),
+                ("boolFalse", TypedValue::Bool(false)),
+                ("int1", TypedValue::Int(177)),
+                ("int2", TypedValue::Int(-177)),
+                ("float1", TypedValue::Float(177.3)),
+                ("float2", TypedValue::Float(-177.3)),
+                ("string1", TypedValue::String("/Path/Point.Name/")),
+                ("string2", TypedValue::String("/Path/Point.Name/")),
+                ("string3", TypedValue::String("/Path/Point.Name/")),
+            ])
+        ),
+
+    ];
+    for (value, targets) in testData {
+        // debug!("test value: {:?}", value);
+        let conf: serde_yaml::Value = serde_yaml::from_str(value).unwrap();
+        debug!("test conf: {:?}", conf);
+        let confTree = ConfTree::new(conf);
+        for (key, target) in targets {
+            match target {
+                TypedValue::Bool(targetValue) => assert_eq!(confTree.asBool(key).unwrap(), targetValue),
+                TypedValue::Int(targetValue) => assert_eq!(confTree.asI64(key).unwrap(), targetValue),
+                TypedValue::Float(targetValue) => assert_eq!(confTree.asf64(key).unwrap(), targetValue),
+                TypedValue::String(targetValue) => assert_eq!(confTree.asStr(key).unwrap(), targetValue),
+            }
+        }
+    }
 }

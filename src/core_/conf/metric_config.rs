@@ -89,8 +89,8 @@ impl MetricConfig {
                 // let mut vars: Vec<String> = vec![];
     
                 MetricConfig {
-                    name: selfConf.key,
-                    table: table,
+                    name: (&selfConf).key.clone(),
+                    table: (&selfConf).asStr("table").unwrap().to_string(),
                     sql: sql,
                     inputs: inputs,
                     vars: vars.clone(),
