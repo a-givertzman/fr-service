@@ -10,8 +10,8 @@ pub struct MetricConfig {
     pub name: String,
     pub table: String,
     pub sql: String,
+    pub initial: f64,
     pub inputs: HashMap<String, FnConfig>,
-    pub initial: String,
     pub(crate) vars: Vec<String>,
 }
 impl MetricConfig {
@@ -40,61 +40,28 @@ impl MetricConfig {
             Some(selfConf) => {
                 debug!("FnConfig.new | MAPPING VALUE");
                 trace!("FnConfig.new | selfConf: {:?}", selfConf);
-                let mut table = String::new();
-                let mut sql = String::new();
-                let mut initial = String::new();
                 let mut inputs = HashMap::new();
-                match selfConf.subNodes() {
-                    Some(params) => {
-                        for conf in params {
-                            trace!("MetricConfig.new | param: {:?}\t|\t{:?}", conf.key, conf.conf);
-                            match MetricParams::from_str(&conf.key) {
-                                Ok(param) => {
-                                    match param {
-                                        MetricParams::Table(_) => {
-                                            table = conf.conf.as_str().unwrap().to_string();
-                                        },
-                                        MetricParams::Name(_) => {
-                                            // name = conf.conf.as_str().unwrap().to_string();
-                                        },
-                                        MetricParams::Sql(_) => {
-                                            sql = conf.conf.as_str().unwrap().to_string();
-                                        },
-                                        MetricParams::Inputs(_) => {
-                                            let node = ConfTree::new(conf.conf);
-                                            for inputConf in node.subNodes().unwrap() {
-                                                trace!("MetricConfig.new | input conf: {:?}\t|\t{:?}", inputConf.key, inputConf.conf);
-                                                inputs.insert(
-                                                    inputConf.key.to_string(), 
-                                                    FnConfig::fromYamlValue(&inputConf.conf, vars),
-                                                );
-                                            }
-                                        },
-                                        MetricParams::Initial(_) => {
-                                            initial = conf.conf.as_str().unwrap().to_string();
-                                        },
-                                    }
-                                },
-                                Err(err) => {
-                                    panic!("MetricConfig.new | {}", err)
-                                    // panic!("MetricConfig.new | Metric {:?} parameter missed: '{:?}'", confTree.key, paramName)
-                                },
-                            }
+                match selfConf.get("inputs") {
+                    Some(inputsNode) => {
+                        for inputConf in inputsNode.subNodes().unwrap() {
+                            trace!("MetricConfig.new | input conf: {:?}\t|\t{:?}", inputConf.key, inputConf.conf);
+                            inputs.insert(
+                                inputConf.key.to_string(), 
+                                FnConfig::fromYamlValue(&inputConf.conf, vars),
+                            );
                         }
                     },
                     None => {
-                        panic!("MetricConfig.new | Metric {:?} hasn't params, but must have: '{:?}'", selfConf.key, MetricParams::all())
+                        panic!("MetricConfig.new | Metric '{:?}' 'inputs' not found", &selfConf.key)
                     },
                 }
-                // let mut vars: Vec<String> = vec![];
-    
                 MetricConfig {
                     name: (&selfConf).key.clone(),
                     table: (&selfConf).asStr("table").unwrap().to_string(),
-                    sql: sql,
+                    sql: (&selfConf).asStr("sql").unwrap().to_string(),
+                    initial: (&selfConf).asF64("initial").unwrap(),
                     inputs: inputs,
                     vars: vars.clone(),
-                    initial: initial,
                 }
             },
             None => {

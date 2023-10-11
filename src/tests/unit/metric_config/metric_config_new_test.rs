@@ -49,7 +49,7 @@ fn test_fn_config_new_valid() {
         // ),
         (
             r#"metric sqlSelectMetric:
-                initial: "0"      # начальное значение
+                initial: 0.123      # начальное значение
                 table: table_name
                 sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
                 inputs:
@@ -72,7 +72,7 @@ fn test_fn_config_new_valid() {
                 name: String::from("metric sqlSelectMetric"), 
                 table: String::from("table_name"), 
                 sql: String::from("UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"), 
-                initial: String::from("0"), 
+                initial: 0.123, 
                 vars: vec![String::from("VarName2")],
                 inputs: HashMap::from([
                     (String::from("input1"), FnConfig { 

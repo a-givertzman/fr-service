@@ -85,10 +85,10 @@ impl ConfTree {
             Some(value) => {
                 match value.as_bool() {
                     Some(value) => {Ok(value)},
-                    None => Err(format!("error getting bool by key '{:?}' from node '{:?}'", &key, &self.conf)),
+                    None => Err(format!("error getting BOOL by key '{:?}' from node '{:?}'", &key, value)),
                 }
             },
-            None => Err(format!("key '{:?}' not found in the node '{:?}'", &key, &self.conf)),
+            None => Err(format!("Key '{:?}' not found in the node '{:?}'", &key, &self.conf)),
         }
     }
     ///
@@ -98,23 +98,23 @@ impl ConfTree {
             Some(value) => {
                 match value.as_i64() {
                     Some(value) => {Ok(value)},
-                    None => Err(format!("error getting int by key '{:?}' from node '{:?}'", &key, &self.conf)),
+                    None => Err(format!("error getting INT by key '{:?}' from node '{:?}'", &key, value)),
                 }
             },
-            None => Err(format!("key '{:?}' not found in the node '{:?}'", &key, &self.conf)),
+            None => Err(format!("Key '{:?}' not found in the node '{:?}'", &key, &self.conf)),
         }
     }
     ///
     /// returns tree node value as bool by it's key if exists
-    pub fn asf64(&self, key: &str) -> Result<f64, String> {
+    pub fn asF64(&self, key: &str) -> Result<f64, String> {
         match self.conf.as_mapping().unwrap().get(key) {
             Some(value) => {
                 match value.as_f64() {
                     Some(value) => {Ok(value)},
-                    None => Err(format!("error getting float by key '{:?}' from node '{:?}'", &key, &self.conf)),
+                    None => Err(format!("error getting FLOAT by key '{:?}' from node '{:?}'", &key, value)),
                 }
             },
-            None => Err(format!("key '{:?}' not found in the node '{:?}'", &key, &self.conf)),
+            None => Err(format!("Key '{:?}' not found in the node '{:?}'", &key, &self.conf)),
         }
     }
     ///
@@ -124,10 +124,10 @@ impl ConfTree {
             Some(value) => {
                 match value.as_str() {
                     Some(value) => {Ok(value)},
-                    None => Err(format!("error getting float by key '{:?}' from node '{:?}'", &key, &self.conf)),
+                    None => Err(format!("Error getting STRING by key '{:?}' from node '{:?}'", &key, value)),
                 }
             },
-            None => Err(format!("key '{:?}' not found in the node '{:?}'", &key, &self.conf)),
+            None => Err(format!("Key '{:?}' not found in the node '{:?}'", &key, &self.conf)),
         }
     }
 }

@@ -225,7 +225,7 @@ fn test_config_tree_as_type() {
             match target {
                 TypedValue::Bool(targetValue) => assert_eq!(confTree.asBool(key).unwrap(), targetValue),
                 TypedValue::Int(targetValue) => assert_eq!(confTree.asI64(key).unwrap(), targetValue),
-                TypedValue::Float(targetValue) => assert_eq!(confTree.asf64(key).unwrap(), targetValue),
+                TypedValue::Float(targetValue) => assert_eq!(confTree.asF64(key).unwrap(), targetValue),
                 TypedValue::String(targetValue) => assert_eq!(confTree.asStr(key).unwrap(), targetValue),
             }
         }
