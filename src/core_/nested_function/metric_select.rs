@@ -1,7 +1,6 @@
 #![allow(non_snake_case)]
 
 use log::trace;
-use serde::Deserialize;
 use std::{cell::RefCell, rc::Rc};
 
 use crate::core_::state::switch_state::{SwitchState, Switch, SwitchCondition};
