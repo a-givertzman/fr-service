@@ -105,17 +105,6 @@ impl TaskConfig {
                             panic!("TaskConfig.new | Unknown task keyword in {:?}\n\tdetales: {:?}", &selfNodeConf.key, err);
                         },
                     };
-
-                    match selfConf.get("inputs") {
-                        Some(inputsNode) => {
-                            for inputConf in inputsNode.subNodes().unwrap() {
-                                trace!("TaskConfig.new | input conf: {:?}\t|\t{:?}", inputConf.key, inputConf.conf);
-                            }
-                        },
-                        None => {
-                            panic!("TaskConfig.new | Metric '{:?}' 'inputs' not found", &selfConf.key)
-                        },
-                    }
                 }
                 TaskConfig {
                     name: selfName,

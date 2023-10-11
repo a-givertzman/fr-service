@@ -56,16 +56,13 @@ fn test_fn_config_new_valid() {
                     inputs:
                         input1:
                             let VarName2:
-                                input: 
-                                    fn functionName:
-                                        initial: VarName2
-                                        input: 
-                                            fn functionName:
-                                                input1: const someValue
-                                                input2: point '/path/Point.Name/'
-                                                input: 
-                                                    fn functionName:
-                                                        input: point '/path/Point.Name/'
+                                input fn functionName:
+                                    initial: VarName2
+                                    input fn functionName:
+                                        input1: const someValue
+                                        input2: point '/path/Point.Name/'
+                                        input fn functionName:
+                                            input: point '/path/Point.Name/'
                         input2:
                             const 1
             "#, 
@@ -74,7 +71,7 @@ fn test_fn_config_new_valid() {
                 cycle: 100,
                 vars: vec![String::from("VarName2")],
                 nodes: HashMap::from([                    
-                    (String::from("task1-1"), TaskNode::Metric(                    
+                    (String::from("sqlSelectMetric-1"), TaskNode::Metric(                    
                         MetricConfig { 
                             name: String::from("sqlSelectMetric"), 
                             table: String::from("table_name"), 
