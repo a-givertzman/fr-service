@@ -64,29 +64,58 @@ impl TaskConfig {
                 debug!("FnConfig.new | MAPPING VALUE");
                 trace!("FnConfig.new | selfConf: {:?}", selfConf);
                 let selfName = match FnConfKeywd::from_str(&selfConf.key) {
-                    Ok(selfKeyword) => {
-                        selfKeyword.name()
-                    },
-                    Err(err) => {
-                        panic!("TaskConfig.new | Unknown metric name in {:?}\n\tdetales: {:?}", &selfConf.key, err)
-                    },
+                    Ok(selfKeyword) => selfKeyword.name(),
+                    Err(err) => panic!("TaskConfig.new | Unknown metric name in {:?}\n\tdetales: {:?}", &selfConf.key, err),
                 };
                 let selfCycle = (&mut selfConf).remove("cycle").unwrap().as_i64().unwrap();
+
+                let mut nodeIndex = 0;
                 let mut selfNodes = HashMap::new();
-                match selfConf.get("inputs") {
-                    Some(inputsNode) => {
-                        for inputConf in inputsNode.subNodes().unwrap() {
-                            trace!("TaskConfig.new | input conf: {:?}\t|\t{:?}", inputConf.key, inputConf.conf);
+                for selfNodeConf in selfConf.subNodes().unwrap() {
+                    match FnConfKeywd::from_str(&selfNodeConf.key) {
+                        Ok(selfNodeKeyword) => {
+                            nodeIndex += 1;
+                            let nodeConf = match selfNodeKeyword {
+                                FnConfKeywd::Fn(_) => {
+                                    TaskNode::Fn(FnConfig::new(&selfNodeConf, &mut vars))
+                                },
+                                FnConfKeywd::Var(_) => {
+                                    TaskNode::Fn(FnConfig::fromYamlValue(&selfNodeConf.conf, &mut vars))
+                                },
+                                FnConfKeywd::Const(_) => {
+                                    TaskNode::Fn(FnConfig::fromYamlValue(&selfNodeConf.conf, &mut vars))
+                                },
+                                FnConfKeywd::Metric(_) => {
+                                    TaskNode::Metric(MetricConfig::fromYamlValue(&selfNodeConf.conf, &mut vars))
+                                },
+                                FnConfKeywd::Point(_) => {
+                                    panic!("TaskConfig.new | Unknown task keyword 'Point' in {:?}", &selfNodeConf.key)
+                                },
+                            };
                             selfNodes.insert(
-                                inputConf.key.to_string(), 
-                                TaskNode::Fn(FnConfig::fromYamlValue(&inputConf.conf, &mut vars)),
+                                format!("{}-{}", selfNodeKeyword.name(), nodeIndex), 
+                                nodeConf,
                             );
-                        }
-                    },
-                    None => {
-                        panic!("TaskConfig.new | Metric '{:?}' 'inputs' not found", &selfConf.key)
-                    },
+                        },
+                        Err(err) => {
+                            panic!("TaskConfig.new | Unknown task keyword in {:?}\n\tdetales: {:?}", &selfNodeConf.key, err);
+                        },
+                    };
+    
+                    match selfConf.get("inputs") {
+                        Some(inputsNode) => {
+                            for inputConf in inputsNode.subNodes().unwrap() {
+                                trace!("TaskConfig.new | input conf: {:?}\t|\t{:?}", inputConf.key, inputConf.conf);
+                            }
+                        },
+                        None => {
+                            panic!("TaskConfig.new | Metric '{:?}' 'inputs' not found", &selfConf.key)
+                        },
+                    }
                 }
+
+
+
                 TaskConfig {
                     name: selfName,
                     cycle: selfCycle,
