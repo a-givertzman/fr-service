@@ -31,10 +31,10 @@ impl DebugSession {
             env::set_var("RUST_BACKTRACE", "full");
             match env_logger::builder().is_test(true).try_init() {
                 Ok(_) => {
-                    println!("TestSession.init | Ok\n")
+                    println!("DebugSession.init | Ok\n")
                 },
                 Err(err) => {
-                    println!("TestSession.init | error: {:?}", err)
+                    println!("DebugSession.init | error: {:?}", err)
                 },
             };
         })

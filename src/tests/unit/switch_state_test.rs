@@ -3,7 +3,7 @@
 use log::{debug, info};
 use std::sync::Once;
 
-use crate::core::{state::switch_state::{Switch, SwitchCondition, SwitchState}, debug::debug_session::{DebugSession, LogLevel}};
+use crate::core_::{state::switch_state::{Switch, SwitchCondition, SwitchState}, debug::debug_session::{DebugSession, LogLevel}};
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 enum ProcessState {

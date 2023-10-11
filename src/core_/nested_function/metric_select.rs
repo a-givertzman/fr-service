@@ -3,14 +3,16 @@
 use log::trace;
 use std::{cell::RefCell, rc::Rc};
 
-use crate::core::state::switch_state::{SwitchState, Switch, SwitchCondition};
+use crate::core_::state::switch_state::{SwitchState, Switch, SwitchCondition};
 
 use super::{fn_::FnOutput, fn_reset::FnReset};
 
 
 ///
 /// Counts number of raised fronts of boolean input
-pub struct FnCount<TInput> where TInput: FnOutput<bool> {
+// #[derive(Debug, Deserialize)]
+
+pub struct MetricSelect<TInput> where TInput: FnOutput<bool> {
     // input: Rc<RefCell<(dyn FnCountInput)>>,
     input: Rc<RefCell<TInput>>,
     state: SwitchState<bool, bool>,
@@ -18,7 +20,7 @@ pub struct FnCount<TInput> where TInput: FnOutput<bool> {
     initial: u128,
 }
 
-impl<TInput: FnOutput<bool>> FnCount<TInput> {
+impl<TInput: FnOutput<bool>> MetricSelect<TInput> {
     #[allow(dead_code)]
     pub fn new(initial: u128, input: Rc<RefCell<TInput>>) -> Self {
         Self { 
@@ -48,14 +50,14 @@ impl<TInput: FnOutput<bool>> FnCount<TInput> {
     }
 }
 
-impl<TInput: FnOutput<bool> + FnReset> FnOutput<u128> for FnCount<TInput> {
+impl<TInput: FnOutput<bool> + FnReset> FnOutput<u128> for MetricSelect<TInput> {
     ///
     fn out(&mut self) -> u128 {
-        // debug!("FnCount.out | input: {:?}", self.input.print());
+        // debug!("MetricSelect.out | input: {:?}", self.input.print());
         let value = self.input.borrow_mut().out();
         self.state.add(value);
         let state = self.state.state();
-        trace!("FnCount.out | input.out: {:?}   | state: {:?}", &value, state);
+        trace!("MetricSelect.out | input.out: {:?}   | state: {:?}", &value, state);
         if state {
             self.count += 1;
         }
@@ -63,7 +65,7 @@ impl<TInput: FnOutput<bool> + FnReset> FnOutput<u128> for FnCount<TInput> {
     }
 }
 
-impl<TInput: FnOutput<bool> + FnReset> FnReset for FnCount<TInput> {
+impl<TInput: FnOutput<bool> + FnReset> FnReset for MetricSelect<TInput> {
     fn reset(&mut self) {
         self.count = self.initial;
         self.state.reset();

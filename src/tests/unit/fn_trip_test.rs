@@ -3,7 +3,7 @@
 use log::{debug, info};
 use std::{sync::Once, rc::Rc, cell::RefCell};
 
-use crate::core::{nested_function::{fn_trip::FnTripGe, fn_in::FnIn, fn_::FnInput, fn_::FnOutput, }, debug::debug_session::{DebugSession, LogLevel}};
+use crate::core_::{nested_function::{fn_trip::FnTripGe, fn_in::FnIn, fn_::FnInput, fn_::FnOutput, }, debug::debug_session::{DebugSession, LogLevel}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
