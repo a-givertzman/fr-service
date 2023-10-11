@@ -6,7 +6,6 @@ use crate::core_::{conf::fn_conf_keywd::FnConfKeywd, conf::conf_tree::ConfTree};
 use super::fn_config_type::FnConfigType;
 
 
-#[derive(Debug, PartialEq)]
 ///
 /// creates config read from yaml file of following format:
 /// ```yaml
@@ -18,6 +17,7 @@ use super::fn_config_type::FnConfigType;
 ///             input2: point '/path/Point.Name/'
 ///             input fn functionName:
 ///                 input: point '/path/Point.Name/'```
+#[derive(Debug, PartialEq)]
 pub struct FnConfig {
     pub fnType: FnConfigType,
     pub name: String,
