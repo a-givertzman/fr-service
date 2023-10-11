@@ -5,13 +5,27 @@ use crate::core_::conf::{fn_config::FnConfig, conf_tree::ConfTree};
 
 use strum::{IntoEnumIterator, EnumIter};
 
+///
+/// creates config from serde_yaml::Value of following format:
+/// ```yaml
+/// metric sqlUpdateMetric:
+///     table: "TableName"
+///     sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"
+///     initial: 123.456
+///     inputs:
+///         input1: 
+///             fn functionName:
+///                 ...
+///         input2:
+///             metric sqlSelectMetric:
+///                 ...
 #[derive(Debug, PartialEq)]
 pub struct MetricConfig {
-    pub name: String,
-    pub table: String,
-    pub sql: String,
-    pub initial: f64,
-    pub inputs: HashMap<String, FnConfig>,
+    pub(crate) name: String,
+    pub(crate) table: String,
+    pub(crate) sql: String,
+    pub(crate) initial: f64,
+    pub(crate) inputs: HashMap<String, FnConfig>,
     pub(crate) vars: Vec<String>,
 }
 impl MetricConfig {
@@ -21,6 +35,7 @@ impl MetricConfig {
     /// metric sqlUpdateMetric:
     ///     table: "TableName"
     ///     sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"
+    ///     initial: 123.456
     ///     inputs:
     ///         input1: 
     ///             fn functionName:
@@ -71,7 +86,7 @@ impl MetricConfig {
     }
     ///
     /// creates config from serde_yaml::Value of following format:
-    pub fn fromYamlValue(value: &serde_yaml::Value, vars: &mut Vec<String>) -> MetricConfig {
+    pub(crate) fn fromYamlValue(value: &serde_yaml::Value, vars: &mut Vec<String>) -> MetricConfig {
         Self::new(&ConfTree::new(value.clone()), vars)
     }
     ///
@@ -96,46 +111,4 @@ impl MetricConfig {
         }
     }
 
-}
-
-
-#[derive(Debug, EnumIter)]
-enum MetricParams {
-    Table(String),
-    Name(String),
-    Sql(String),
-    Inputs(String),
-    Initial(String),
-}
-
-impl MetricParams {
-    pub fn all() -> String {
-        let cc: Vec<String> = Self::iter().map(|v| v.name()).collect();
-        cc.join(", ")
-    }
-    pub fn name(&self) -> String {
-        match self {
-            MetricParams::Name(_) => "name".to_string(),
-            MetricParams::Table(_) => "table".to_string(),
-            MetricParams::Sql(_) => "sql".to_string(),
-            MetricParams::Inputs(_) => "inputs".to_string(),
-            MetricParams::Initial(_) => "initial".to_string(),
-        }
-    }
-}
-
-
-impl FromStr for MetricParams {
-    type Err = String;
-    fn from_str(input: &str) -> Result<MetricParams, String> {
-        trace!("MetricParams.from_str | input: {}", input);
-        match input {
-            "name"  => Ok( MetricParams::Name( input.to_string() )),
-            "table"  => Ok( MetricParams::Table( input.to_string() )),
-            "sql"  => Ok( MetricParams::Sql( input.to_string() )),
-            "inputs" => Ok( MetricParams::Inputs( input.to_string() )),
-            "initial" => Ok( MetricParams::Initial( input.to_string() )),
-            _      => Err(format!("Unknown metric parameter name '{}'", input)),
-        }
-    }
 }
