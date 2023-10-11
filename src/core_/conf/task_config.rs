@@ -1,7 +1,15 @@
 use log::{trace, debug, error};
 use std::{fs, collections::HashMap, str::FromStr};
 
-use crate::core_::conf::{fn_config::FnConfig, conf_tree::ConfTree, fn_conf_keywd::FnConfKeywd};
+use crate::core_::conf::{metric_config::MetricConfig, fn_config::FnConfig, conf_tree::ConfTree, fn_conf_keywd::FnConfKeywd};
+
+
+#[derive(Debug, PartialEq)]
+enum TaskNode {
+    Fn(FnConfig),
+    Metric(MetricConfig)
+}
+
 
 ///
 /// creates config from serde_yaml::Value of following format:
@@ -23,11 +31,9 @@ use crate::core_::conf::{fn_config::FnConfig, conf_tree::ConfTree, fn_conf_keywd
 #[derive(Debug, PartialEq)]
 pub struct TaskConfig {
     pub(crate) name: String,
-    pub(crate) table: String,
-    pub(crate) sql: String,
-    pub(crate) initial: f64,
-    pub(crate) inputs: HashMap<String, FnConfig>,
-    pub(crate) vars: Vec<String>,
+    pub(crate) cycle: i64,
+    nodes: HashMap<String, TaskNode>,
+    vars: Vec<String>,
 }
 impl TaskConfig {
     ///
@@ -44,7 +50,7 @@ impl TaskConfig {
     ///         input2:
     ///             metric sqlSelectMetric:
     ///                 ...
-    pub fn new(confTree: &ConfTree, vars: &mut Vec<String>) -> TaskConfig {
+    pub fn new(confTree: &mut ConfTree, vars: &mut Vec<String>) -> TaskConfig {
         println!("\n");
         trace!("TaskConfig.new | confTree: {:?}", confTree);
         // self conf from first sub node
@@ -53,7 +59,7 @@ impl TaskConfig {
             error!("TaskConfig.new | FnConf must have single item, additional items was ignored")
         };
         match confTree.next() {
-            Some(selfConf) => {
+            Some(mut selfConf) => {
                 debug!("FnConfig.new | MAPPING VALUE");
                 trace!("FnConfig.new | selfConf: {:?}", selfConf);
                 let selfName = match FnConfKeywd::from_str(&selfConf.key) {
@@ -64,14 +70,15 @@ impl TaskConfig {
                         panic!("TaskConfig.new | Unknown metric name in {:?}\n\tdetales: {:?}", &selfConf.key, err)
                     },
                 };
-                let mut inputs = HashMap::new();
+                let selfCycle = (&mut selfConf).remove("cycle").unwrap().as_i64().unwrap();
+                let mut selfNodes = HashMap::new();
                 match selfConf.get("inputs") {
                     Some(inputsNode) => {
                         for inputConf in inputsNode.subNodes().unwrap() {
                             trace!("TaskConfig.new | input conf: {:?}\t|\t{:?}", inputConf.key, inputConf.conf);
-                            inputs.insert(
+                            selfNodes.insert(
                                 inputConf.key.to_string(), 
-                                FnConfig::fromYamlValue(&inputConf.conf, vars),
+                                TaskNode::Fn(FnConfig::fromYamlValue(&inputConf.conf, vars)),
                             );
                         }
                     },
@@ -81,10 +88,8 @@ impl TaskConfig {
                 }
                 TaskConfig {
                     name: selfName,
-                    table: (&selfConf).asStr("table").unwrap().to_string(),
-                    sql: (&selfConf).asStr("sql").unwrap().to_string(),
-                    initial: (&selfConf).asF64("initial").unwrap(),
-                    inputs: inputs,
+                    cycle: selfCycle,
+                    nodes: selfNodes,
                     vars: vars.clone(),
                 }
             },
@@ -96,7 +101,7 @@ impl TaskConfig {
     ///
     /// creates config from serde_yaml::Value of following format:
     pub(crate) fn fromYamlValue(value: &serde_yaml::Value, vars: &mut Vec<String>) -> TaskConfig {
-        Self::new(&ConfTree::new(value.clone()), vars)
+        Self::new(&mut ConfTree::new(value.clone()), vars)
     }
     ///
     /// reads config from path
