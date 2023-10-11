@@ -38,7 +38,7 @@ fn test_fn_config_read_valid() {
         cycle: 100,
         vars: vec![String::from("VarName2")],
         nodes: HashMap::from([                    
-            (String::from("task1-1"), TaskNode::Metric(                    
+            (String::from("sqlSelectMetric-1"), TaskNode::Metric(                    
                 MetricConfig { 
                     name: String::from("sqlSelectMetric"), 
                     table: String::from("table_name"), 
@@ -75,7 +75,7 @@ fn test_fn_config_read_valid() {
     
     // let (initial, switches) = initEach();
     trace!("dir: {:?}", env::current_dir());
-    let path = "./src/tests/unit/metric_config/metric_config_test.yaml";
+    let path = "./src/tests/unit/task_config/task_config_test.yaml";
     let metricConfig = TaskConfig::read(path);
     trace!("fnConfig: {:?}", metricConfig);
     assert_eq!(metricConfig, target);
