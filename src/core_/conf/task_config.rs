@@ -50,7 +50,7 @@ impl TaskConfig {
     ///         input2:
     ///             metric sqlSelectMetric:
     ///                 ...
-    pub fn new(confTree: &mut ConfTree, vars: &mut Vec<String>) -> TaskConfig {
+    pub fn new(confTree: &mut ConfTree) -> TaskConfig {
         println!("\n");
         trace!("TaskConfig.new | confTree: {:?}", confTree);
         // self conf from first sub node
@@ -58,6 +58,7 @@ impl TaskConfig {
         if confTree.count() > 1 {
             error!("TaskConfig.new | FnConf must have single item, additional items was ignored")
         };
+        let mut vars = vec![];
         match confTree.next() {
             Some(mut selfConf) => {
                 debug!("FnConfig.new | MAPPING VALUE");
@@ -78,7 +79,7 @@ impl TaskConfig {
                             trace!("TaskConfig.new | input conf: {:?}\t|\t{:?}", inputConf.key, inputConf.conf);
                             selfNodes.insert(
                                 inputConf.key.to_string(), 
-                                TaskNode::Fn(FnConfig::fromYamlValue(&inputConf.conf, vars)),
+                                TaskNode::Fn(FnConfig::fromYamlValue(&inputConf.conf, &mut vars)),
                             );
                         }
                     },
@@ -90,7 +91,7 @@ impl TaskConfig {
                     name: selfName,
                     cycle: selfCycle,
                     nodes: selfNodes,
-                    vars: vars.clone(),
+                    vars: vars,
                 }
             },
             None => {
@@ -100,19 +101,18 @@ impl TaskConfig {
     }
     ///
     /// creates config from serde_yaml::Value of following format:
-    pub(crate) fn fromYamlValue(value: &serde_yaml::Value, vars: &mut Vec<String>) -> TaskConfig {
-        Self::new(&mut ConfTree::new(value.clone()), vars)
+    pub(crate) fn fromYamlValue(value: &serde_yaml::Value) -> TaskConfig {
+        Self::new(&mut ConfTree::new(value.clone()))
     }
     ///
     /// reads config from path
     #[allow(dead_code)]
     pub fn read(path: &str) -> TaskConfig {
-        let mut vars = vec![];
         match fs::read_to_string(&path) {
             Ok(yamlString) => {
                 match serde_yaml::from_str(&yamlString) {
                     Ok(config) => {
-                        TaskConfig::fromYamlValue(&config, &mut vars)
+                        TaskConfig::fromYamlValue(&config)
                     },
                     Err(err) => {
                         panic!("Error in config: {:?}\n\terror: {:?}", yamlString, err)
