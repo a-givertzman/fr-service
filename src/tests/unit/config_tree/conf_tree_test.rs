@@ -148,7 +148,8 @@ fn test_config_tree_valid() {
         let conf: serde_yaml::Value = serde_yaml::from_str(value).unwrap();
         debug!("test conf: {:?}", conf);
         // let conf = testData.get("/").unwrap();
-        let confTree = ConfTree::new(conf);
+        let confTree = ConfTree::newRoot(conf);
+        debug!("confTree: {:?}", confTree);
         let res = inputs(&confTree);
         debug!("result: {:?}", res);
         println!("\n");
@@ -220,7 +221,7 @@ fn test_config_tree_as_type() {
         // debug!("test value: {:?}", value);
         let conf: serde_yaml::Value = serde_yaml::from_str(value).unwrap();
         debug!("test conf: {:?}", conf);
-        let confTree = ConfTree::new(conf);
+        let confTree = ConfTree::newRoot(conf);
         for (key, target) in targets {
             match target {
                 TypedValue::Bool(targetValue) => assert_eq!(confTree.asBool(key).unwrap(), targetValue),

@@ -1,7 +1,6 @@
 #![allow(non_snake_case)]
-use log::debug;
 #[cfg(test)]
-use log::info;
+use log::{info, debug};
 use std::{sync::Once, collections::HashMap};
 
 use crate::core_::{conf::{fn_config::FnConfig, fn_config_type::FnConfigType, metric_config::MetricConfig}, debug::debug_session::{DebugSession, LogLevel}};
@@ -29,7 +28,7 @@ fn initEach() -> () {
 }
 
 #[test]
-fn test_fn_config_new_valid() {
+fn test_metric_config_new_valid() {
     DebugSession::init(LogLevel::Trace);
     initOnce();
     initEach();
@@ -55,16 +54,13 @@ fn test_fn_config_new_valid() {
                 inputs:
                     input1:
                         let VarName2:
-                            input: 
-                                fn functionName:
-                                    initial: VarName2
-                                    input: 
-                                        fn functionName:
-                                            input1: const someValue
-                                            input2: point '/path/Point.Name/'
-                                            input: 
-                                                fn functionName:
-                                                    input: point '/path/Point.Name/'
+                            input fn functionName:
+                                initial: VarName2
+                                input11 fn functionName:
+                                    input1: const someValue
+                                    input2: point '/path/Point.Name/'
+                                    input fn functionName:
+                                        input: point '/path/Point.Name/'
                     input2:
                         const 1
             "#, 
@@ -80,7 +76,7 @@ fn test_fn_config_new_valid() {
                             (String::from("input"), FnConfig { 
                                 fnType: FnConfigType::Fn, name: String::from("functionName"), inputs: HashMap::from([
                                     (String::from("initial"), FnConfig { fnType: FnConfigType::Var, name: String::from("VarName2"), inputs: HashMap::new() }),
-                                    (String::from("input"), FnConfig { 
+                                    (String::from("input11"), FnConfig { 
                                         fnType: FnConfigType::Fn, name: String::from("functionName"), inputs: HashMap::from([
                                             (String::from("input1"), FnConfig { fnType: FnConfigType::Const, name: String::from("someValue"), inputs: HashMap::new() }),
                                             (String::from("input2"), FnConfig { fnType: FnConfigType::Point, name: String::from("/path/Point.Name/"), inputs: HashMap::new() }), 

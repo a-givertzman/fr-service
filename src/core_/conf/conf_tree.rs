@@ -7,30 +7,33 @@
 //     Map(serde_yaml::Value),
 // }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
 ///
-/// iterate across all yaml config nodes
+/// ConfTree holds sede_yaml::Value and it key
+/// for root key = ""
+/// Allow to iterate across all yaml config nodes
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ConfTree {
     pub key: String,
     pub conf: serde_yaml::Value,
-    // iter: Option<impl Iterator<Item = ConfTree> + '_>,
 }
 impl ConfTree {
     ///
     /// creates iterotor on the serde_yaml::Value mapping
-    pub fn new(conf: serde_yaml::Value) -> Self {
+    pub fn newRoot(conf: serde_yaml::Value) -> Self {
         Self {
             key: String::new(),
             conf,
         }
     }
     ///
-    /// 
+    /// creates ConfTree instance holding the key and serde_yaml::Value
     fn newSub(key: String, conf: serde_yaml::Value) -> Self {
-        Self {
-            key: key,
-            conf,
-        }
+        Self {key, conf}
+    }
+    ///
+    /// returns true if holding mapping 
+    pub fn isMapping(&self) -> bool {
+        self.conf.is_mapping()
     }
     ///
     /// iterates across all sub nodes 
