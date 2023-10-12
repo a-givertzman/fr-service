@@ -6,7 +6,8 @@ use std::time::Duration;
 use log::{info, debug};
 
 use crate::core_::conf::task_config::TaskConfig;
-use crate::task::task_cycle::TaskCycle;
+use crate::task::{task_cycle::TaskCycle, task_stuff::TaskStuff};
+
 
 /// Task implements entity, which provides cyclically (by event) executing calculations
 ///  - executed in the cycle mode (current impl)
@@ -38,6 +39,8 @@ impl Task {
         let cycleInterval = self.cycle;
         let h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             let mut cycle = TaskCycle::new(Duration::from_millis(cycleInterval));
+
+            let stuff = TaskStuff::new();
             // info!("Task({}).run | prepared", name);
             'inner: loop {
                 cycle.start();
