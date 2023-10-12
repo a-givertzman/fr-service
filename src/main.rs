@@ -2,6 +2,7 @@
 #[cfg(test)]
 mod tests;
 mod core_;
+mod task;
 use log::debug;
 use core_::{debug::debug_session::DebugSession, conf::conf_tree::ConfTree};
 
