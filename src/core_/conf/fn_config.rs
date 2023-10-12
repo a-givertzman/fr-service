@@ -1,9 +1,15 @@
 use log::{trace, debug, error};
 use std::{fs, collections::HashMap, str::FromStr};
 
-use crate::core_::{conf::fn_conf_keywd::FnConfKeywd, conf::conf_tree::ConfTree};
+use crate::core_::{conf::conf_keywd::ConfKeywd, conf::conf_tree::ConfTree};
 
 use super::fn_config_type::FnConfigType;
+
+
+enum ValueType<'a> {
+    Single(&'a ConfTree),
+    Mapping(&'a ConfTree),
+}
 
 
 ///
@@ -45,64 +51,99 @@ impl FnConfig {
         if confTree.count() > 1 {
             error!("FnConfig.new | FnConf must have single item, additional items was ignored")
         };
-        match confTree.next() {
-            Some(selfConf) => {
-                debug!("FnConfig.new | MAPPING VALUE");
-                trace!("FnConfig.new | selfConf: {:?}", selfConf);
-                match FnConfKeywd::from_str(selfConf.key.as_str()) {
-                    Ok(selfKeyword) => {
-                        trace!("FnConfig.new | selfKeyword parsed: {:?}", selfKeyword);
-                        // parse sub nodes
-                        // let mut inputs = HashMap::new();
-                        trace!("FnConfig.new | build inputs...");
-                        if selfKeyword.type_() == FnConfigType::Var {
-                            vars.push(selfKeyword.name())
-                        }
-                        let inputs = Self::buildInputs(selfConf, vars);
-                        FnConfig {
-                            fnType: selfKeyword.type_(),
-                            name: selfKeyword.name(),
-                            inputs: inputs,
-                        }
-                    },
-                    Err(err) => {
-                        panic!("FnConfig.new | keyword '{:?}' parsing error: {:?}", selfConf, err)
-                        // trace!("FnConfig.new | input name detected: {:?}", selfConf.key);
-                    },
-                }
-            },
-            None => {
-                debug!("FnConfig.new | SINGLE VALUE");
-                match FnConfKeywd::from_str(confTree.conf.as_str().unwrap()) {
-                    // keyword parsed successefully
-                    //  - take input name and input Value / Fn from the keyword
-                    Ok(fnKeyword) => {
-                        FnConfig {
-                            fnType: fnKeyword.type_(),
-                            name: fnKeyword.name(),
-                            inputs: HashMap::new(),
-                        }
-                    },
-                    // no keyword 
-                    //  - current node just an input name
-                    //      - take input Value / Fn from first sub node,
-                    //          if additional sub nodes prtesent, hit warning: "input must have single Value/Fn"
-                    Err(_) => {
-                        let varName = confTree.conf.as_str().unwrap().to_string();
-                        if vars.contains(&varName) {
-                            debug!("FnConfig.new | Variable declared - ok: {:?}", confTree.conf);
-                            FnConfig { fnType: FnConfigType::Var, name: varName, inputs: HashMap::new() }
-                        } else {
-                            panic!("FnConfig.new | Variable not declared: {:?}", confTree.conf)
-                        }
+        if confTree.isMapping() {
+            debug!("FnConfig.new | MAPPING VALUE");
+            trace!("FnConfig.new | confTree: {:?}", confTree);
+            match ConfKeywd::from_str(confTree.key.as_str()) {
+                Ok(selfKeyword) => {
+                    trace!("FnConfig.new | selfKeyword parsed: {:?}", selfKeyword);
+                    // parse sub nodes
+                    // let mut inputs = HashMap::new();
+                    trace!("FnConfig.new | build inputs...");
+                    let fnName: String;
+                    let inputs: HashMap<String, FnConfig>;
+                    match selfKeyword.type_() {
+                        FnConfigType::Const => {
+                            fnName = if selfKeyword.name().is_empty() {
+                                confTree.conf.as_str().unwrap().to_string()
+                            } else {
+                                selfKeyword.name()
+                            };
+                            inputs = HashMap::new();
+                        },
+                        FnConfigType::Var => {
+                            vars.push(selfKeyword.name());
+                            fnName = selfKeyword.name();
+                            inputs = Self::buildInputs(confTree, vars);
+                        },
+                        _ => {
+                            fnName = selfKeyword.name();
+                            inputs = Self::buildInputs(confTree, vars);
+                        },
+                    }
+                    FnConfig {
+                        fnType: selfKeyword.type_(),
+                        name: fnName,
+                        inputs: inputs,
+                    }
+                },
+                // no keyword 
+                //  - current node just an input name
+                //      - take input Value / Fn from first sub node,
+                //          if additional sub nodes prtesent, hit warning: "input must have single Value/Fn"
+                Err(err) => {
+                    panic!("FnConfig.new | keyword '{:?}' parsing error: {:?}", confTree, err)
+                    // trace!("FnConfig.new | input name detected: {:?}", confTree.key);
+                },
+            }
+        } else {
+            debug!("FnConfig.new | SINGLE VALUE");
+            match ConfKeywd::from_str(confTree.conf.as_str().unwrap()) {
+                // keyword parsed successefully
+                //  - take input name and input Value / Fn from the keyword
+                Ok(fnKeyword) => {
+                    match fnKeyword {
+                        // ConfKeywd::Var(_) => {
+                            
+                        // },
+                        ConfKeywd::Const(_) => {
+                            FnConfig {
+                                fnType: fnKeyword.type_(),
+                                name: fnKeyword.name(),
+                                inputs: HashMap::new(),
+                            }
+
+                        },
+                        ConfKeywd::Point(_) => {
+                            FnConfig {
+                                fnType: fnKeyword.type_(),
+                                name: fnKeyword.name(),
+                                inputs: HashMap::new(),
+                            }
+
+                        },
+                        _ => {
+                            panic!("FnConfig.new | Unknown keyword: {:?}", confTree.conf)
+                        },
+                    }
+                },
+                // no keyword 
+                //  - current node just an varible name
+                Err(_) => {
+                    let varName = confTree.conf.as_str().unwrap().to_string();
+                    if vars.contains(&varName) {
+                        debug!("FnConfig.new | Variable declared - ok: {:?}", confTree.conf);
+                        FnConfig { fnType: FnConfigType::Var, name: varName, inputs: HashMap::new() }
+                    } else {
+                        panic!("FnConfig.new | Variable not declared: {:?}", confTree.conf)
                     }
                 }
-            },
+            }
         }
     }
     ///
     /// 
-    fn buildInputs(confTree: ConfTree, vars: &mut Vec<String>) ->HashMap<String, FnConfig> {
+    fn buildInputs(confTree: &ConfTree, vars: &mut Vec<String>) ->HashMap<String, FnConfig> {
         let mut inputs = HashMap::new();
         match confTree.subNodes() {
             // has inputs in mapping
@@ -110,28 +151,33 @@ impl FnConfig {
                 trace!("FnConfig.buildInputs | sub nodes - found");
                 for subNode in subNodes {
                     trace!("FnConfig.buildInputs | sub node: {:?}", subNode);
-                    match FnConfKeywd::from_str(subNode.key.as_str()) {
+                    match ConfKeywd::from_str(subNode.key.as_str()) {
                         Ok(keyword) => {
                             trace!("FnConfig.buildInputs | sub node KEYWORD parsed: {:?}", keyword);
                             if !keyword.input().is_empty() {
                                 inputs.insert(
                                     keyword.input(),
-                                    FnConfig {fnType: keyword.type_(), name: keyword.name(), inputs: Self::buildInputs(subNode, vars)},
+                                    FnConfig {fnType: keyword.type_(), name: keyword.name(), inputs: Self::buildInputs(&subNode, vars)},
                                 );
                             }
                         },
                         Err(_) => {
                             trace!("FnConfig.buildInputs | sub node NO KEYWORD");
                             inputs.insert(
-                                subNode.key, 
-                                FnConfig::fromYamlValue(&subNode.conf, vars),
+                                (&subNode).key.clone(), 
+                                FnConfig::new(&subNode, vars),
                             );
                         },
                     };
                 }
             },
             None => {
-                panic!("FnConfig.buildInputs | sub node not found in confTree: {:?}", confTree);
+                trace!("FnConfig.buildInputs | sub node not found, possible Const or Var");
+                inputs.insert(
+                    (&confTree).key.clone(), 
+                    FnConfig::new(&confTree, vars),
+                );
+                // panic!("FnConfig.buildInputs | sub node not found in confTree: {:?}", confTree);
             },
         }
         inputs
@@ -139,7 +185,7 @@ impl FnConfig {
     ///
     /// creates config from serde_yaml::Value of following format:
     pub fn fromYamlValue(value: &serde_yaml::Value, vars: &mut Vec<String>) -> FnConfig {
-        Self::new(&ConfTree::new(value.clone()), vars)
+        Self::new(&ConfTree::newRoot(value.clone()).next().unwrap(), vars)
     }
     ///
     /// reads yaml config from path
