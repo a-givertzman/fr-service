@@ -5,7 +5,8 @@ use std::time::Duration;
 
 use log::{info, debug};
 
-use crate::core_::conf::task_config::TaskConfig;
+use crate::core_::conf::fn_config_type::FnConfigType;
+use crate::core_::conf::task_config::{TaskConfig, TaskNode};
 use crate::task::{task_cycle::TaskCycle, task_stuff::TaskStuff};
 
 
@@ -24,6 +25,32 @@ impl Task {
     ///
     /// 
     pub fn new(cfg: TaskConfig) ->Self {
+        for (nodeName, nodeConf) in cfg.nodes {
+            match nodeConf {
+                TaskNode::Fn(fnConf) => {
+                    match fnConf.fnType {
+                        FnConfigType::Fn => {
+                            debug!("Task.new | fnConf: {:?}: {:?}", nodeName, fnConf)
+                        },
+                        FnConfigType::Var => {
+                            debug!("Task.new | varConf: {:?}: {:?}", nodeName, fnConf)
+                        },
+                        FnConfigType::Const => {
+                            debug!("Task.new | constConf: {:?}: {:?}", nodeName, fnConf)
+                        },
+                        FnConfigType::Point => {
+                            debug!("Task.new | pointConf: {:?}: {:?}", nodeName, fnConf)
+                        },
+                        FnConfigType::Metric => {
+                            debug!("Task.new | metricConf: {:?}: {:?}", nodeName, fnConf)
+                        },
+                    }
+                },
+                TaskNode::Metric(metricConf) => {
+                    debug!("Task.new | metricConf: {:?}: {:?}", nodeName, metricConf)
+                },
+            }
+        }
         Self {
             name: cfg.name,
             cycle: cfg.cycle,

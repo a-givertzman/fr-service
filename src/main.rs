@@ -19,14 +19,14 @@ fn main() {
     
     // let (initial, switches) = initEach();
     trace!("dir: {:?}", env::current_dir());
-    let path = "./src/tests/unit/task_config/task_config_test.yaml";
+    let path = "./src/tests/unit/task/task_config_test.yaml";
     let config = TaskConfig::read(path);
     trace!("config: {:?}", &config);
     let mut task = Task::new(config);
     trace!("task tuning...");
     task.run();
     trace!("task tuning - ok");
-    thread::sleep(Duration::from_secs_f32(5.0));
+    thread::sleep(Duration::from_secs_f32(0.5));
     trace!("task stopping...");
     task.exit();
     trace!("task stopping - ok");
