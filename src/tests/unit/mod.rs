@@ -20,3 +20,5 @@ pub mod fn_config;
 pub mod metric_config;
 
 pub mod task_config;
+
+pub mod task;

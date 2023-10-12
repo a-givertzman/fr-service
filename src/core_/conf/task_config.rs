@@ -31,7 +31,7 @@ pub(crate) enum TaskNode {
 #[derive(Debug, PartialEq)]
 pub struct TaskConfig {
     pub(crate) name: String,
-    pub(crate) cycle: i64,
+    pub(crate) cycle: u64,
     pub(crate) nodes: HashMap<String, TaskNode>,
     pub(crate) vars: Vec<String>,
 }
@@ -71,7 +71,7 @@ impl TaskConfig {
                     Ok(selfKeyword) => selfKeyword.name(),
                     Err(err) => panic!("TaskConfig.new | Unknown metric name in {:?}\n\tdetales: {:?}", &selfConf.key, err),
                 };
-                let selfCycle = (&mut selfConf).remove("cycle").unwrap().as_i64().unwrap();
+                let selfCycle = (&mut selfConf).remove("cycle").unwrap().as_u64().unwrap();
 
                 let mut nodeIndex = 0;
                 let mut selfNodes = HashMap::new();
