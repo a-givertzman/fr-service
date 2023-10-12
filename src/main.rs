@@ -3,11 +3,36 @@
 mod tests;
 mod core_;
 mod task;
-use log::debug;
+use std::{env, time::Duration, thread};
+
+use log::{debug, info, trace};
 use core_::{debug::debug_session::DebugSession, conf::conf_tree::ConfTree};
+
+use crate::{core_::{conf::task_config::TaskConfig, debug::debug_session::LogLevel}, task::task::Task};
+
+
 
 
 fn main() {
+    DebugSession::init(LogLevel::Debug);
+    info!("test_task");
+    
+    // let (initial, switches) = initEach();
+    trace!("dir: {:?}", env::current_dir());
+    let path = "./src/tests/unit/task_config/task_config_test.yaml";
+    let config = TaskConfig::read(path);
+    trace!("config: {:?}", &config);
+    let mut task = Task::new(config);
+    trace!("task tuning...");
+    task.run();
+    trace!("task tuning - ok");
+    thread::sleep(Duration::from_secs_f32(5.0));
+    trace!("task stopping...");
+    task.exit();
+    trace!("task stopping - ok");
+}
+
+fn main1() {
     DebugSession::init(core_::debug::debug_session::LogLevel::Debug);
     let testData = [
         r#"

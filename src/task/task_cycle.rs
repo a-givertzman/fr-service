@@ -13,6 +13,8 @@ pub struct TaskCycle {
 ///
 /// 
 impl TaskCycle {
+    ///
+    /// creates TaskCycle with Duration of interval
     pub fn new(interval: Duration) ->Self {
         Self {
             instant: Instant::now(),
@@ -32,5 +34,10 @@ impl TaskCycle {
             let remainder = self.interval - elapsed;
             thread::sleep(remainder);
         }
+    }
+    ///
+    /// returns current ellapsed time
+    pub fn elapsed(&mut self) ->Duration {
+        self.instant.elapsed()
     }
 }
