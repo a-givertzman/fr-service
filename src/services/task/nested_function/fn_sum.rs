@@ -28,7 +28,9 @@ impl FnIn for FnSum {
     }
 }
 impl FnOut for FnSum { 
-    fn out(&self) -> PointType {
+    //
+    //
+    fn out(&mut self) -> PointType {
         let value1 = self.input1.borrow().out();
         trace!("FnSum({}).out | value1: {:?}", self.id, &value1);
         let value2 = self.input2.borrow().out();
@@ -46,6 +48,11 @@ impl FnOut for FnSum {
         };
         trace!("FnSum({}).out | out: {:?}", self.id, &out);
         out
+    }
+    //
+    //
+    fn reset(&mut self) {
+        todo!()
     }
 }
 impl FnInOut for FnSum {}

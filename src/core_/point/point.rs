@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 use std::str::FromStr;
 
 use chrono::DateTime;
@@ -15,6 +17,33 @@ pub struct Point<T> {
     pub timestamp: DateTime<chrono::Utc>,
 }
 
+
+impl<T> Point<T> {
+    pub fn mewBool(name: &str, value: bool) -> Point<Bool> {
+        Point {
+            name: name.into(),
+            value: Bool(value),
+            status: 0,
+            timestamp: chrono::offset::Utc::now(),
+        }
+    }
+    pub fn mewInt(name: &str, value: i64) -> Point<i64> {
+        Point {
+            name: name.into(),
+            value: value,
+            status: 0,
+            timestamp: chrono::offset::Utc::now(),
+        }
+    }
+    pub fn mewFloat(name: &str, value: f64) -> Point<f64> {
+        Point {
+            name: name.into(),
+            value: value,
+            status: 0,
+            timestamp: chrono::offset::Utc::now(),
+        }
+    }
+}
 
 impl<T: std::ops::Add<Output = T> + Clone> std::ops::Add for Point<T> {
     type Output = Point<T>;

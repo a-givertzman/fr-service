@@ -35,12 +35,16 @@ impl FnIn for FnInput {
 ///
 /// 
 impl FnOut for FnInput {
-    fn out(&self) -> PointType {
+    //
+    fn out(&mut self) -> PointType {
         trace!("FnInput({}).out | value: {:?}", self.id, &self.point);
         self.point.clone()
+    }
+    //
+    fn reset(&mut self) {
+        todo!()
     }
 }
 ///
 /// 
-// impl<T: FnInOut> FnInOut for T {}
 impl FnInOut for FnInput {}
