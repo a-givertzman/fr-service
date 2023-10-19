@@ -10,5 +10,5 @@ pub mod fn_inputs;
 
 pub mod nested_fn;
 
-// pub mod metric_builder;
+pub mod metric_builder;
 pub mod metric_select;

@@ -1,6 +1,8 @@
 use log::debug;
 
-use crate::{core_::conf::metric_config::MetricConfig, services::task::{task::TaskNode, nested_function::metric_select::MetricSelect}};
+use crate::{core_::conf::metric_config::MetricConfig, services::task::{task::TaskNode, nested_function::{metric_select::MetricSelect, nested_fn::NestedFn}}};
+
+use super::fn_inputs::FnInputs;
 
 ///
 /// 
@@ -10,12 +12,16 @@ pub struct MetricBuilder {
 ///
 /// 
 impl MetricBuilder {
-    pub fn new(conf: MetricConfig) -> TaskNode {
+    pub fn new(conf: MetricConfig, inputs: &mut FnInputs) -> TaskNode {
         match conf.name.as_str() {
             "sqlSelectMetric" => {
-                debug!("MetricBuilder.new | fnConf: {:?}: {:?}", nodeName, fnConf);
+                debug!("MetricBuilder.new | fnConf: {:?}: {:?}", conf.name, conf);
+                let (inputName, inputConf) = conf.inputs.iter_mut().next().unwrap();
                 TaskNode::String(
-                    MetricSelect::new(initial, input)
+                    MetricSelect::new(
+                        conf.initial, 
+                        NestedFn::new(inputConf, initial, inputs),
+                    )
                 )
             },
             "sqlUpdateMetric" => {

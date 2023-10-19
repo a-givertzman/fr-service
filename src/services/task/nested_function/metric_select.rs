@@ -1,6 +1,5 @@
 #![allow(non_snake_case)]
 
-use log::trace;
 use std::{cell::RefCell, rc::Rc};
 
 use crate::core_::{conf::metric_config::MetricConfig, point::point::PointType};
