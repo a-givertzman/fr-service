@@ -3,7 +3,7 @@
 use log::{trace, info};
 use std::{sync::Once, env, collections::HashMap, thread, time::Duration};
 
-use crate::{core_::{conf::{fn_config::FnConfig, fn_config_type::FnConfigType, metric_config::MetricConfig, task_config::{TaskConfig, TaskNode}}, debug::debug_session::{DebugSession, LogLevel}}, task::task::Task};
+use crate::{core_::{conf::{fn_config::FnConfig, fn_config_type::FnConfigType, metric_config::MetricConfig, task_config::{TaskConfig, TaskConfNode}}, debug::debug_session::{DebugSession, LogLevel}}, task::task::Task};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;

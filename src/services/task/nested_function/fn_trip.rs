@@ -3,12 +3,10 @@
 use log::trace;
 use std::{cell::RefCell, rc::Rc, fmt::Debug};
 
-use super::{fn_::FnOutput, fn_reset::FnReset};
-
 
 ///
 /// Returns true on input grater then setpoint
-pub struct FnTripGe<TIn, TInput> where TInput: FnOutput<TIn> + FnReset {
+pub struct FnTripGe<TIn, TInput> where TInput: TraitFnOutput<TIn> + FnReset {
     // input: Rc<RefCell<dyn FnOutput<TIn>>>,
     input: Rc<RefCell<TInput>>,
     setpoint: TIn,
@@ -16,7 +14,7 @@ pub struct FnTripGe<TIn, TInput> where TInput: FnOutput<TIn> + FnReset {
     initial: bool,
 }
 
-impl<TIn, TInput: FnOutput<TIn> + FnReset> FnTripGe<TIn, TInput> {
+impl<TIn, TInput: TraitFnOutput<TIn> + FnReset> FnTripGe<TIn, TInput> {
     #[allow(dead_code)]
     pub fn new(initial: bool, input: Rc<RefCell<TInput>>, setpoint: TIn) -> Self {
         Self { 
@@ -29,7 +27,7 @@ impl<TIn, TInput: FnOutput<TIn> + FnReset> FnTripGe<TIn, TInput> {
 }
 
 
-impl<T: PartialOrd + Debug, TInput: FnOutput<T> + FnReset> FnOutput<bool> for FnTripGe<T, TInput> {
+impl<T: PartialOrd + Debug, TInput: TraitFnOutput<T> + FnReset> TraitFnOutput<bool> for FnTripGe<T, TInput> {
     ///
     fn out(&mut self) -> bool {
         // debug!("FnTrip.out | input: {:?}", self.input.print());
@@ -48,7 +46,7 @@ impl<T: PartialOrd + Debug, TInput: FnOutput<T> + FnReset> FnOutput<bool> for Fn
     }
 }
 
-impl<T, TInput: FnOutput<T> + FnReset> FnReset for FnTripGe<T, TInput> {
+impl<T, TInput: TraitFnOutput<T> + FnReset> FnReset for FnTripGe<T, TInput> {
     fn reset(&mut self) {
         self.trip = self.initial;
         self.input.borrow_mut().reset();

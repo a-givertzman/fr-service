@@ -5,7 +5,7 @@ use crate::core_::conf::{metric_config::MetricConfig, fn_config::FnConfig, conf_
 
 
 #[derive(Debug, PartialEq)]
-pub(crate) enum TaskNode {
+pub(crate) enum TaskConfNode {
     Fn(FnConfig),
     Metric(MetricConfig)
 }
@@ -32,7 +32,7 @@ pub(crate) enum TaskNode {
 pub struct TaskConfig {
     pub(crate) name: String,
     pub(crate) cycle: u64,
-    pub(crate) nodes: HashMap<String, TaskNode>,
+    pub(crate) nodes: HashMap<String, TaskConfNode>,
     pub(crate) vars: Vec<String>,
 }
 ///
@@ -81,16 +81,16 @@ impl TaskConfig {
                             nodeIndex += 1;
                             let nodeConf = match selfNodeKeyword {
                                 ConfKeywd::Fn(_) => {
-                                    TaskNode::Fn(FnConfig::new(&selfNodeConf, &mut vars))
+                                    TaskConfNode::Fn(FnConfig::new(&selfNodeConf, &mut vars))
                                 },
                                 ConfKeywd::Var(_) => {
-                                    TaskNode::Fn(FnConfig::new(&selfNodeConf, &mut vars))
+                                    TaskConfNode::Fn(FnConfig::new(&selfNodeConf, &mut vars))
                                 },
                                 ConfKeywd::Const(_) => {
-                                    TaskNode::Fn(FnConfig::new(&selfNodeConf, &mut vars))
+                                    TaskConfNode::Fn(FnConfig::new(&selfNodeConf, &mut vars))
                                 },
                                 ConfKeywd::Metric(_) => {
-                                    TaskNode::Metric(MetricConfig::new(&selfNodeConf, &mut vars))
+                                    TaskConfNode::Metric(MetricConfig::new(&selfNodeConf, &mut vars))
                                 },
                                 ConfKeywd::Point(_) => {
                                     panic!("TaskConfig.new | Unknown task keyword 'Point' in {:?}", &selfNodeConf.key)

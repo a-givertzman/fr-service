@@ -3,26 +3,27 @@
 use log::trace;
 use std::{cell::RefCell, rc::Rc};
 
-use crate::core_::state::switch_state::{SwitchState, Switch, SwitchCondition};
+use crate::core_::{state::switch_state::{SwitchState, Switch, SwitchCondition}, point::point::PointType};
 
-use super::{fn_::FnOutput, fn_reset::FnReset};
+use super::fn_::{FnInOut, FnOut, FnIn};
 
 
 ///
 /// Counts number of raised fronts of boolean input
-// #[derive(Debug, Deserialize)]
-
-pub struct MetricSelect<TInput> where TInput: FnOutput<bool> {
-    // input: Rc<RefCell<(dyn FnCountInput)>>,
-    input: Rc<RefCell<TInput>>,
+#[derive(Debug)]
+pub struct FnCount {
+    input: Rc<RefCell<Box<dyn FnInOut>>>,
     state: SwitchState<bool, bool>,
     count: u128,
     initial: u128,
 }
-
-impl<TInput: FnOutput<bool>> MetricSelect<TInput> {
+///
+/// 
+impl FnCount {
+    ///
+    /// Creates new instance of the FnCount
     #[allow(dead_code)]
-    pub fn new(initial: u128, input: Rc<RefCell<TInput>>) -> Self {
+    pub fn new(initial: u128, input: Rc<RefCell<Box<dyn FnInOut>>>) -> Self {
         Self { 
             input,
             state: SwitchState::new(
@@ -49,26 +50,35 @@ impl<TInput: FnOutput<bool>> MetricSelect<TInput> {
         }
     }
 }
-
-impl<TInput: FnOutput<bool> + FnReset> FnOutput<u128> for MetricSelect<TInput> {
+///
+/// 
+impl FnIn for FnCount {
+    fn add(&mut self, _: PointType) {
+        panic!("FnCount.add | method is not used")
+    }
+}
+///
+/// 
+impl FnOut for FnCount {
     ///
     fn out(&mut self) -> u128 {
-        // debug!("MetricSelect.out | input: {:?}", self.input.print());
-        let value = self.input.borrow_mut().out();
+        // trace!("FnCount.out | input: {:?}", self.input.print());
+        let point = self.input.borrow_mut().out().asBool();
+        let value = point.value.0;
         self.state.add(value);
         let state = self.state.state();
-        trace!("MetricSelect.out | input.out: {:?}   | state: {:?}", &value, state);
+        trace!("FnCount.out | input.out: {:?}   | state: {:?}", &value, state);
         if state {
             self.count += 1;
         }
         self.count
     }
-}
-
-impl<TInput: FnOutput<bool> + FnReset> FnReset for MetricSelect<TInput> {
     fn reset(&mut self) {
         self.count = self.initial;
         self.state.reset();
         self.input.borrow_mut().reset();
     }
 }
+///
+/// 
+impl FnInOut for FnCount {}

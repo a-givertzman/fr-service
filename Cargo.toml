@@ -21,3 +21,5 @@ typetag = "^0.2"
 regex = "^1.9"
 
 rand = "^0.8"
+
+chrono = "0.4"

@@ -3,7 +3,7 @@
 use log::{info, debug};
 use std::{sync::Once, collections::HashMap};
 
-use crate::core_::{conf::{fn_config::FnConfig, fn_config_type::FnConfigType, metric_config::MetricConfig, task_config::{TaskConfig, TaskNode}}, debug::debug_session::{DebugSession, LogLevel}};
+use crate::core_::{conf::{fn_config::FnConfig, fn_config_type::FnConfigType, metric_config::MetricConfig, task_config::{TaskConfig, TaskConfNode}}, debug::debug_session::{DebugSession, LogLevel}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -71,7 +71,7 @@ fn test_fn_config_new_valid() {
                 cycle: 100,
                 vars: vec![String::from("VarName2")],
                 nodes: HashMap::from([                    
-                    (String::from("sqlSelectMetric-1"), TaskNode::Metric(                    
+                    (String::from("sqlSelectMetric-1"), TaskConfNode::Metric(                    
                         MetricConfig { 
                             name: String::from("sqlSelectMetric"), 
                             table: String::from("table_name"), 
@@ -123,7 +123,7 @@ fn test_fn_config_new_valid() {
                 cycle: 100,
                 vars: vec![String::from("VarName2")],
                 nodes: HashMap::from([                    
-                    (String::from("VarName2-1"), TaskNode::Fn(FnConfig { 
+                    (String::from("VarName2-1"), TaskConfNode::Fn(FnConfig { 
                         fnType: FnConfigType::Var, name: String::from("VarName2"), inputs: HashMap::from([
                             (String::from("input"), FnConfig { 
                                 fnType: FnConfigType::Fn, name: String::from("functionName"), inputs: HashMap::from([

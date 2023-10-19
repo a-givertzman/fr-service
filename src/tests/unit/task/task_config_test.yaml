@@ -2,8 +2,15 @@
 #     input:
 #         fn functionName:
 #             input: point '/path/Point.Name/'
+
+# queue queueApi:
+#     max-length: 10000
+
 task task1:
     cycle: 100
+    apiQueue: queueApi
+    let Var1:
+        input point '/path/Point.Name/'
     metric sqlSelectMetric:
         initial: 0.123      # начальное значение
         table: table_name
@@ -20,3 +27,12 @@ task task1:
                                 input: point '/path/Point.Name/'
             input2:
                 const 1
+
+# service ApiClient:
+
+# service CmaClient:
+
+# service CmaServer:
+
+# service ExternalDevice:
+#     protocol: profinet

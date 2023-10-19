@@ -3,13 +3,13 @@
 use log::debug;
 use std::{cell::RefCell, rc::Rc, time::Instant};
 
-use crate::core_::state::switch_state::{SwitchState, Switch, SwitchCondition};
+use crate::core_::{state::switch_state::{SwitchState, Switch, SwitchCondition}, point::point::{PointType, Point}};
 
-use super::{fn_::FnOutput, fn_reset::FnReset};
+use super::fn_::{FnInOut, FnIn, FnOut};
 
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
-#[allow(dead_code)]
+// #[allow(dead_code)]
 enum FnTimerState {
     Off,
     Start,
@@ -18,11 +18,11 @@ enum FnTimerState {
     Done,
 }
 ///
-/// Counts elapsed time from raised onput to dropped
+/// Counts elapsed time from raised input (>0) to dropped (<=0)
 /// - if repeat = true, then elapsed is total secods of 
 /// multiple periods
 pub struct FnTimer {
-    input: Rc<RefCell<dyn FnOutput<bool>>>,
+    input: Rc<RefCell<Box<dyn FnInOut>>>,
     state: SwitchState<FnTimerState, bool>,
     sessionElapsed: f64,
     initial: f64,
@@ -33,7 +33,7 @@ pub struct FnTimer {
 ///
 impl FnTimer {
     #[allow(dead_code)]
-    pub fn new(initial: impl Into<f64> + Clone, input: Rc<RefCell<dyn FnOutput<bool>>>, repeat: bool) -> Self {
+    pub fn new(initial: impl Into<f64> + Clone, input: Rc<RefCell<dyn FnInOut<bool>>>, repeat: bool) -> Self {
         let switches = vec![
             Switch{
                 state: FnTimerState::Off,
@@ -94,13 +94,21 @@ impl FnTimer {
         }
     }
 }
-
 ///
-impl FnOutput<f64> for FnTimer {
+/// 
+impl FnIn for FnTimer {}
+///
+///
+impl FnOut for FnTimer {
     ///
-    fn out(&mut self) -> f64 {
-        // debug!("FnTimer.out | input: {:?}", self.input.print());
-        let value = self.input.borrow_mut().out();
+    fn out(&mut self) -> PointType {
+        // trace!("FnTimer.out | input: {:?}", self.input.print());
+        let point = self.input.borrow_mut().out();
+        let value = match point {
+            PointType::Bool(point) => point.value,
+            PointType::Int(point) => point.value > 0,
+            PointType::Float(point) => point.value > 0.0,
+        };
         self.state.add(value);
         let state = self.state.state();
         debug!("FnTimer.out | input.out: {:?}   |   state: {:?}", &value, &state);
@@ -128,12 +136,17 @@ impl FnOutput<f64> for FnTimer {
                 }
             },
         };
-        self.totalElapsed + self.sessionElapsed
+        PointType::Float(
+            Point {
+                name: String::from("FnTimer"),
+                value: self.totalElapsed + self.sessionElapsed,
+                status: point.status,
+                timestamp: point.timestamp,
+            }
+        )
     }
-}
-
-///
-impl FnReset for FnTimer {
+    ///
+    /// 
     fn reset(&mut self) {
         self.start = None;
         self.sessionElapsed = 0.0;
@@ -142,3 +155,6 @@ impl FnReset for FnTimer {
         self.input.borrow_mut().reset();
     }
 }
+///
+/// 
+impl FnInOut for FnTimer {}
