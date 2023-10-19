@@ -4,7 +4,7 @@ use crate::{
     core_::{conf::fn_config::FnConfig, point::point::PointType}
 };
 
-use super::{fn_inputs::FnInputs, fn_::FnInOut, fn_input::FnInput};
+use super::{fn_inputs::FnInputs, fn_::FnInOut, fn_input::FnInput, fn_sum::FnSum};
 
 ///
 /// Creates nested functions tree from it config
