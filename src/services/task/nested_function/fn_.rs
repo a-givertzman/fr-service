@@ -16,7 +16,7 @@ pub trait FnIn: std::fmt::Debug {
 /// - to get the calculated value on out side
 /// - to reset the state to the initial
 pub trait FnOut: std::fmt::Debug {
-    fn out(&self) -> PointType;
+    fn out(&mut self) -> PointType;
     fn reset(&mut self);
 }
 ///

@@ -1,10 +1,10 @@
 use std::str::FromStr;
 
 use log::trace;
-use regex::{Regex, RegexBuilder};
+use regex::RegexBuilder;
 use serde::Deserialize;
 
-use super::fn_config_type::FnConfigType;
+use super::fn_conf_kind::FnConfKind;
 
 #[derive(Debug, Deserialize, PartialEq, Clone)]
 pub struct FnConfKeywdValue {
@@ -41,13 +41,13 @@ impl ConfKeywd {
             ConfKeywd::Metric(v) => v.name.clone(),
         }
     }
-    pub fn type_(&self) -> FnConfigType {
+    pub fn type_(&self) -> FnConfKind {
         match self {
-            ConfKeywd::Fn(_) => FnConfigType::Fn,
-            ConfKeywd::Var(_) => FnConfigType::Var,
-            ConfKeywd::Const(_) => FnConfigType::Const,
-            ConfKeywd::Point(_) => FnConfigType::Point,
-            ConfKeywd::Metric(_) => FnConfigType::Metric,
+            ConfKeywd::Fn(_) => FnConfKind::Fn,
+            ConfKeywd::Var(_) => FnConfKind::Var,
+            ConfKeywd::Const(_) => FnConfKind::Const,
+            ConfKeywd::Point(_) => FnConfKind::Point,
+            ConfKeywd::Metric(_) => FnConfKind::Metric,
         }
     }
 }

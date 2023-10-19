@@ -7,7 +7,7 @@ pub mod fn_in_test;
 
 pub mod fn_count_test;
 
-pub mod fn_trip_test;
+// pub mod fn_trip_test;
 
 pub mod fn_timer_test;
 

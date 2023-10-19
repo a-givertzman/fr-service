@@ -21,7 +21,9 @@ enum FnTimerState {
 /// Counts elapsed time from raised input (>0) to dropped (<=0)
 /// - if repeat = true, then elapsed is total secods of 
 /// multiple periods
+#[derive(Debug)]
 pub struct FnTimer {
+    id: String,
     input: Rc<RefCell<Box<dyn FnInOut>>>,
     state: SwitchState<FnTimerState, bool>,
     sessionElapsed: f64,
@@ -29,11 +31,11 @@ pub struct FnTimer {
     totalElapsed: f64,
     start: Option<Instant>,
 }
-
 ///
+/// 
 impl FnTimer {
     #[allow(dead_code)]
-    pub fn new(initial: impl Into<f64> + Clone, input: Rc<RefCell<dyn FnInOut<bool>>>, repeat: bool) -> Self {
+    pub fn new(id: &str, initial: impl Into<f64> + Clone, input: Rc<RefCell<Box<dyn FnInOut>>>, repeat: bool) -> Self {
         let switches = vec![
             Switch{
                 state: FnTimerState::Off,
@@ -85,6 +87,7 @@ impl FnTimer {
             },
         ];
         Self { 
+            id: id.into(),
             input,
             state: SwitchState::new(FnTimerState::Off, switches),
             sessionElapsed: 0.0,
@@ -96,7 +99,11 @@ impl FnTimer {
 }
 ///
 /// 
-impl FnIn for FnTimer {}
+impl FnIn for FnTimer {
+    fn add(&mut self, _: PointType) {
+        panic!("FnTimer.add | method is not used")
+    }
+}
 ///
 ///
 impl FnOut for FnTimer {
@@ -105,7 +112,7 @@ impl FnOut for FnTimer {
         // trace!("FnTimer.out | input: {:?}", self.input.print());
         let point = self.input.borrow_mut().out();
         let value = match point {
-            PointType::Bool(point) => point.value,
+            PointType::Bool(point) => point.value.0,
             PointType::Int(point) => point.value > 0,
             PointType::Float(point) => point.value > 0.0,
         };
@@ -140,8 +147,8 @@ impl FnOut for FnTimer {
             Point {
                 name: String::from("FnTimer"),
                 value: self.totalElapsed + self.sessionElapsed,
-                status: point.status,
-                timestamp: point.timestamp,
+                status: point.status(),
+                timestamp: point.timestamp(),
             }
         )
     }

@@ -12,7 +12,17 @@ use super::fn_::{FnIn, FnOut, FnInOut};
 #[derive(Debug, Clone)]
 pub struct FnInput {
     pub id: String,
-    pub point: PointType,
+    point: PointType,
+}
+///
+/// 
+impl FnInput {
+    pub fn new(id: &str, initial: PointType) -> Self {
+        Self {
+            id: id.into(), 
+            point: initial 
+        }
+    }
 }
 ///
 /// 

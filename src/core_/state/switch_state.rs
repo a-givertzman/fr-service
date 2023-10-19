@@ -29,6 +29,7 @@ impl<TState: Debug, TInput> Debug for SwitchCondition<TState, TInput> {
         .finish()
     }
 }
+#[derive(Debug)]
 pub struct SwitchState<TState, TInput> {
     initial: TState,
     state: TState,

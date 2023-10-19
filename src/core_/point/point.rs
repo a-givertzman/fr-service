@@ -1,4 +1,8 @@
+use std::str::FromStr;
+
 use chrono::DateTime;
+use log::trace;
+use regex::RegexBuilder;
 
 use crate::core_::types::bool::Bool;
 
@@ -93,5 +97,47 @@ impl PointType {
             _ => panic!("PointType.asFloat | Invalid point type Float"),
         }
     }
+    pub fn status(&self) -> u8 {
+        match self {
+            PointType::Bool(point) => point.status,
+            PointType::Int(point) => point.status,
+            PointType::Float(point) => point.status,
+        }
+    }
+    pub fn timestamp(&self) -> DateTime<chrono::Utc> {
+        match self {
+            PointType::Bool(point) => point.timestamp,
+            PointType::Int(point) => point.timestamp,
+            PointType::Float(point) => point.timestamp,
+        }
+    }
 }
 
+impl FromStr for PointType {
+    type Err = String;
+    fn from_str(input: &str) -> Result<PointType, String> {
+        trace!("PointType.from_str | input: {}", input);
+        let re = r#"(bool|int|float){1}"#;
+        let re = RegexBuilder::new(re).multi_line(false).build().unwrap();
+        match re.captures(input) {
+            Some(caps) => {
+                match &caps.get(1) {
+                    Some(keyword) => {
+                        match keyword.as_str() {
+                            "bool"  => Ok( PointType::Bool(()) ),
+                            "int"  => Ok( PointType::Int(()) ),
+                            "float"  => Ok( PointType::Float(()) ),
+                            _      => Err(format!("Unknown keyword '{}'", input)),
+                        }
+                    },
+                    None => {
+                        Err(format!("Unknown keyword '{}'", input))
+                    },
+                }
+            },
+            None => {
+                Err(format!("Unknown keyword '{}'", input))
+            },
+        }
+    }
+}

@@ -3,7 +3,7 @@
 use log::trace;
 use std::{cell::RefCell, rc::Rc};
 
-use crate::core_::{state::switch_state::{SwitchState, Switch, SwitchCondition}, point::point::PointType};
+use crate::core_::{state::switch_state::{SwitchState, Switch, SwitchCondition}, point::point::{PointType, Point}};
 
 use super::fn_::{FnInOut, FnOut, FnIn};
 
@@ -14,8 +14,8 @@ use super::fn_::{FnInOut, FnOut, FnIn};
 pub struct FnCount {
     input: Rc<RefCell<Box<dyn FnInOut>>>,
     state: SwitchState<bool, bool>,
-    count: u128,
-    initial: u128,
+    count: i64,
+    initial: i64,
 }
 ///
 /// 
@@ -23,7 +23,7 @@ impl FnCount {
     ///
     /// Creates new instance of the FnCount
     #[allow(dead_code)]
-    pub fn new(initial: u128, input: Rc<RefCell<Box<dyn FnInOut>>>) -> Self {
+    pub fn new(initial: i64, input: Rc<RefCell<Box<dyn FnInOut>>>) -> Self {
         Self { 
             input,
             state: SwitchState::new(
@@ -61,17 +61,28 @@ impl FnIn for FnCount {
 /// 
 impl FnOut for FnCount {
     ///
-    fn out(&mut self) -> u128 {
+    fn out(&mut self) -> PointType {
         // trace!("FnCount.out | input: {:?}", self.input.print());
-        let point = self.input.borrow_mut().out().asBool();
-        let value = point.value.0;
+        let point = self.input.borrow_mut().out();
+        let value = match point {
+            PointType::Bool(point) => point.value.0,
+            PointType::Int(point) => point.value > 0,
+            PointType::Float(point) => point.value > 0.0,
+        };
         self.state.add(value);
         let state = self.state.state();
         trace!("FnCount.out | input.out: {:?}   | state: {:?}", &value, state);
         if state {
             self.count += 1;
         }
-        self.count
+        PointType::Int(
+            Point {
+                name: String::from("FnCount.out"),
+                value: self.count,
+                status: point.status(),
+                timestamp: point.timestamp(),
+            }
+        )
     }
     fn reset(&mut self) {
         self.count = self.initial;

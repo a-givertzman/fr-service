@@ -1,7 +1,7 @@
 ///
 /// The type of the Function config
 #[derive(Debug, Clone, PartialEq)]
-pub enum FnConfigType {
+pub enum FnConfKind {
     Fn,
     Var,
     Const,

@@ -1,6 +1,6 @@
 use log::debug;
 
-use crate::{core_::conf::metric_config::MetricConfig, services::task::{task::TaskNode, nested_function::{metric_select::MetricSelect, nested_fn::NestedFn}}};
+use crate::{core_::conf::metric_config::MetricConfig, services::task::{task::TaskNode, nested_function::{metric_select::{MetricSelect, FnMetric}, nested_fn::NestedFn}}};
 
 use super::fn_inputs::FnInputs;
 
@@ -19,8 +19,8 @@ impl MetricBuilder {
                 let (inputName, inputConf) = conf.inputs.iter_mut().next().unwrap();
                 TaskNode::String(
                     MetricSelect::new(
-                        conf.initial, 
-                        NestedFn::new(inputConf, initial, inputs),
+                        conf, 
+                        inputs
                     )
                 )
             },

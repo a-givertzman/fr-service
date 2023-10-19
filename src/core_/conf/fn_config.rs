@@ -1,9 +1,11 @@
+#![allow(non_snake_case)]
+
 use log::{trace, debug, error};
 use std::{fs, collections::HashMap, str::FromStr};
 
-use crate::core_::{conf::conf_keywd::ConfKeywd, conf::conf_tree::ConfTree};
+use crate::core_::{conf::conf_keywd::ConfKeywd, conf::conf_tree::ConfTree, point::point::PointType};
 
-use super::fn_config_type::FnConfigType;
+use super::fn_conf_kind::FnConfKind;
 
 
 enum ValueType<'a> {
@@ -25,9 +27,10 @@ enum ValueType<'a> {
 ///                 input: point '/path/Point.Name/'```
 #[derive(Debug, PartialEq)]
 pub struct FnConfig {
-    pub fnType: FnConfigType,
+    pub fnKind: FnConfKind,
     pub name: String,
     pub inputs: HashMap<String, FnConfig>,
+    pub pointType: Option<PointType>,
 }
 ///
 /// 
@@ -63,7 +66,7 @@ impl FnConfig {
                     let fnName: String;
                     let inputs: HashMap<String, FnConfig>;
                     match selfKeyword.type_() {
-                        FnConfigType::Const => {
+                        FnConfKind::Const => {
                             fnName = if selfKeyword.name().is_empty() {
                                 confTree.conf.as_str().unwrap().to_string()
                             } else {
@@ -71,7 +74,7 @@ impl FnConfig {
                             };
                             inputs = HashMap::new();
                         },
-                        FnConfigType::Var => {
+                        FnConfKind::Var => {
                             vars.push(selfKeyword.name());
                             fnName = selfKeyword.name();
                             inputs = Self::buildInputs(confTree, vars);
@@ -82,9 +85,10 @@ impl FnConfig {
                         },
                     }
                     FnConfig {
-                        fnType: selfKeyword.type_(),
+                        fnKind: selfKeyword.type_(),
                         name: fnName,
                         inputs: inputs,
+                        pointType: None,
                     }
                 },
                 // no keyword 
@@ -108,17 +112,30 @@ impl FnConfig {
                         // },
                         ConfKeywd::Const(_) => {
                             FnConfig {
-                                fnType: fnKeyword.type_(),
+                                fnKind: fnKeyword.type_(),
                                 name: fnKeyword.name(),
                                 inputs: HashMap::new(),
+                                pointType: None,
                             }
 
                         },
                         ConfKeywd::Point(_) => {
+                            let _type = match confTree.get("type") {
+                                Some(pointTypeConf) => {
+                                    match pointTypeConf.asStr("type") {
+                                        Ok(pointTypeName) => {
+                                            Some(PointType::from_str(pointTypeName))
+                                        },
+                                        Err(_) => None,
+                                    }
+                                },
+                                None => None,
+                            };
                             FnConfig {
-                                fnType: fnKeyword.type_(),
+                                fnKind: fnKeyword.type_(),
                                 name: fnKeyword.name(),
                                 inputs: HashMap::new(),
+                                pointType: _type,
                             }
 
                         },
@@ -133,7 +150,12 @@ impl FnConfig {
                     let varName = confTree.conf.as_str().unwrap().to_string();
                     if vars.contains(&varName) {
                         debug!("FnConfig.new | Variable declared - ok: {:?}", confTree.conf);
-                        FnConfig { fnType: FnConfigType::Var, name: varName, inputs: HashMap::new() }
+                        FnConfig { 
+                            fnKind: FnConfKind::Var, 
+                            name: varName, 
+                            inputs: HashMap::new(),
+                            pointType: None,
+                        }
                     } else {
                         panic!("FnConfig.new | Variable not declared: {:?}", confTree.conf)
                     }
@@ -157,7 +179,12 @@ impl FnConfig {
                             if !keyword.input().is_empty() {
                                 inputs.insert(
                                     keyword.input(),
-                                    FnConfig {fnType: keyword.type_(), name: keyword.name(), inputs: Self::buildInputs(&subNode, vars)},
+                                    FnConfig {
+                                        fnKind: keyword.type_(), 
+                                        name: keyword.name(), 
+                                        inputs: Self::buildInputs(&subNode, vars),
+                                        pointType: None,
+                                    },
                                 );
                             }
                         },

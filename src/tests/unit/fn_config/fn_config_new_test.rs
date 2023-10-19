@@ -3,7 +3,7 @@
 use log::{debug, info};
 use std::{sync::Once, collections::HashMap};
 
-use crate::core_::{conf::{fn_config::FnConfig, fn_config_type::FnConfigType}, debug::debug_session::{DebugSession, LogLevel}};
+use crate::core_::{conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind}, debug::debug_session::{DebugSession, LogLevel}, point::point::PointType};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -38,8 +38,8 @@ fn test_fn_config_new_valid() {
             r#"let newVar:
                 input: const '13.55'
             "#, 
-            FnConfig { fnType: FnConfigType::Var, name: "newVar".to_string(), inputs: HashMap::from([
-                ("input".to_string(), FnConfig { fnType: FnConfigType::Const, name: "13.55".to_string(), inputs: HashMap::new() }),
+            FnConfig { fnKind: FnConfKind::Var, name: "newVar".to_string(), pointType: None, inputs: HashMap::from([
+                ("input".to_string(), FnConfig { fnKind: FnConfKind::Const, name: "13.55".to_string(), pointType: None, inputs: HashMap::new() }),
             ]) }
         ),
         (
@@ -48,10 +48,10 @@ fn test_fn_config_new_valid() {
                     inputConst1: const '13.3'
                     inputConst2: const '13.7'
             "#, 
-            FnConfig { fnType: FnConfigType::Var, name: "newVar".to_string(), inputs: HashMap::from([
-                ("input".to_string(), FnConfig { fnType: FnConfigType::Fn, name: "count".to_string(), inputs: HashMap::from([
-                    ("inputConst1".to_string(), FnConfig { fnType: FnConfigType::Const, name: "13.3".to_string(), inputs: HashMap::new() }),
-                    ("inputConst2".to_string(), FnConfig { fnType: FnConfigType::Const, name: "13.7".to_string(), inputs: HashMap::new() }),
+            FnConfig { fnKind: FnConfKind::Var, name: "newVar".to_string(), pointType: None, inputs: HashMap::from([
+                ("input".to_string(), FnConfig { fnKind: FnConfKind::Fn, name: "count".to_string(), pointType: None, inputs: HashMap::from([
+                    ("inputConst1".to_string(), FnConfig { fnKind: FnConfKind::Const, name: "13.3".to_string(), pointType: None, inputs: HashMap::new() }),
+                    ("inputConst2".to_string(), FnConfig { fnKind: FnConfKind::Const, name: "13.7".to_string(), pointType: None, inputs: HashMap::new() }),
                 ]) }),
             ]) }
         ),
@@ -64,14 +64,14 @@ fn test_fn_config_new_valid() {
                     inputConst1: const '13.3'
                     inputConst2: const '14.7'
             "#, 
-            FnConfig { fnType: FnConfigType::Var, name: "newVar".to_string(), inputs: HashMap::from([
-                ("input1".to_string(), FnConfig { fnType: FnConfigType::Fn, name: "count".to_string(), inputs: HashMap::from([
-                    ("inputConst1".to_string(), FnConfig { fnType: FnConfigType::Const, name: "11.3".to_string(), inputs: HashMap::new() }),
-                    ("inputConst2".to_string(), FnConfig { fnType: FnConfigType::Const, name: "12.7".to_string(), inputs: HashMap::new() }),
+            FnConfig { fnKind: FnConfKind::Var, name: "newVar".to_string(), pointType: None, inputs: HashMap::from([
+                ("input1".to_string(), FnConfig { fnKind: FnConfKind::Fn, name: "count".to_string(), pointType: None, inputs: HashMap::from([
+                    ("inputConst1".to_string(), FnConfig { fnKind: FnConfKind::Const, name: "11.3".to_string(), pointType: None, inputs: HashMap::new() }),
+                    ("inputConst2".to_string(), FnConfig { fnKind: FnConfKind::Const, name: "12.7".to_string(), pointType: None, inputs: HashMap::new() }),
                 ]) }),
-                ("input2".to_string(), FnConfig { fnType: FnConfigType::Fn, name: "count".to_string(), inputs: HashMap::from([
-                    ("inputConst1".to_string(), FnConfig { fnType: FnConfigType::Const, name: "13.3".to_string(), inputs: HashMap::new() }),
-                    ("inputConst2".to_string(), FnConfig { fnType: FnConfigType::Const, name: "14.7".to_string(), inputs: HashMap::new() }),
+                ("input2".to_string(), FnConfig { fnKind: FnConfKind::Fn, name: "count".to_string(), pointType: None, inputs: HashMap::from([
+                    ("inputConst1".to_string(), FnConfig { fnKind: FnConfKind::Const, name: "13.3".to_string(), pointType: None, inputs: HashMap::new() }),
+                    ("inputConst2".to_string(), FnConfig { fnKind: FnConfKind::Const, name: "14.7".to_string(), pointType: None, inputs: HashMap::new() }),
                 ]) }),
             ]) }
         ),
@@ -85,15 +85,15 @@ fn test_fn_config_new_valid() {
                         input3 fn functionName3:
                                 input: point '/path/Point.Name/'
             "#,
-            FnConfig { fnType: FnConfigType::Var, name: "VarName2".to_string(), inputs: HashMap::from([
-                ("input".to_string(), FnConfig { fnType: FnConfigType::Fn, name: "functionName1".to_string(), inputs: HashMap::from([
-                    ("initial".to_string(), FnConfig { fnType: FnConfigType::Var, name: "VarName2".to_string(), inputs: HashMap::new() }),
-                    ("input".to_string(), FnConfig { fnType: FnConfigType::Fn, name: "functionName2".to_string(), inputs: HashMap::from([
-                        ("input1".to_string(), FnConfig { fnType: FnConfigType::Const, name: "someValue".to_string(), inputs: HashMap::new() }),
-                        ("input2".to_string(), FnConfig { fnType: FnConfigType::Point, name: "/path/Point.Name/".to_string(), inputs: HashMap::new() }),
+            FnConfig { fnKind: FnConfKind::Var, name: "VarName2".to_string(), pointType: None, inputs: HashMap::from([
+                ("input".to_string(), FnConfig { fnKind: FnConfKind::Fn, name: "functionName1".to_string(), pointType: None, inputs: HashMap::from([
+                    ("initial".to_string(), FnConfig { fnKind: FnConfKind::Var, name: "VarName2".to_string(), pointType: None, inputs: HashMap::new() }),
+                    ("input".to_string(), FnConfig { fnKind: FnConfKind::Fn, name: "functionName2".to_string(), pointType: None, inputs: HashMap::from([
+                        ("input1".to_string(), FnConfig { fnKind: FnConfKind::Const, name: "someValue".to_string(), pointType: None, inputs: HashMap::new() }),
+                        ("input2".to_string(), FnConfig { fnKind: FnConfKind::Point, name: "/path/Point.Name/".to_string(), pointType: Some(PointType::Bool(())), inputs: HashMap::new() }),
 
-                        ("input3".to_string(), FnConfig { fnType: FnConfigType::Fn, name: "functionName3".to_string(), inputs: HashMap::from([
-                            ("input".to_string(), FnConfig { fnType: FnConfigType::Point, name: "/path/Point.Name/".to_string(), inputs: HashMap::new() }),
+                        ("input3".to_string(), FnConfig { fnKind: FnConfKind::Fn, name: "functionName3".to_string(), pointType: None, inputs: HashMap::from([
+                            ("input".to_string(), FnConfig { fnKind: FnConfKind::Point, name: "/path/Point.Name/".to_string(), pointType: Some(PointType::Bool(())), inputs: HashMap::new() }),
                         ]) }),
                     ])}),
                 ]) }),

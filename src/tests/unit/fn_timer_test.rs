@@ -3,7 +3,7 @@
 use log::{debug, info};
 use std::{sync::Once, time::{Instant, Duration}, thread,rc::Rc, cell::RefCell};
 
-use crate::core_::{nested_function::{fn_timer::FnTimer, fn_in::FnIn, fn_::FnInput, fn_::FnOutput, fn_reset::FnReset}, aprox_eq::aprox_eq::AproxEq, debug::debug_session::{DebugSession, LogLevel}};
+use crate::{core_::{aprox_eq::aprox_eq::AproxEq, debug::debug_session::{DebugSession, LogLevel}}, services::task::nested_function::{fn_::FnIn, fn_timer::FnTimer}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -36,7 +36,8 @@ fn test_elapsed_repeat_false() {
     info!("test_elapsed_repeat_false");
     let input = Rc::new(RefCell::new(FnIn::new(false)));
     let mut fnTimer = FnTimer::new(
-        0, 
+        "id", 
+        0,
         input.clone(),
         false,
     );
@@ -98,7 +99,8 @@ fn test_total_elapsed_repeat() {
     info!("test_total_elapsed_repeat");
     let input = Rc::new(RefCell::new(FnIn::new(false)));
     let mut fnTimer = FnTimer::new(
-        0, 
+        "id", 
+        0,
         input.clone(),
         true,
     );
@@ -155,6 +157,7 @@ fn test_total_elapsed_repeat_reset() {
     info!("test_total_elapsed_repeat_reset");
     let input = Rc::new(RefCell::new(FnIn::new(false)));
     let mut fnTimer = FnTimer::new(
+        "id",
         0, 
         input.clone(),
         true,
@@ -221,6 +224,7 @@ fn test_initial_repeat() {
     let initial = 123.1234;
     let input = Rc::new(RefCell::new(FnIn::new(false)));
     let mut fnTimer = FnTimer::new(
+        "id",
         initial, 
         input.clone(),
         true,

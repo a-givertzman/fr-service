@@ -1,23 +1,28 @@
+#![allow(non_snake_case)]
+
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
 use log::{info, debug};
 
-use crate::core_::conf::fn_config_type::FnConfigType;
+use crate::core_::conf::fn_conf_kind::FnConfKind;
 use crate::core_::conf::task_config::{TaskConfig, TaskConfNode};
-use crate::core_::nested_function::fn_::FnOutput;
-use crate::core_::nested_function::fn_builder::FnBuilder;
-use crate::core_::nested_function::metric_builder::MetricBuilder;
-use crate::task::{task_cycle::TaskCycle, task_stuff::TaskStuff};
+use crate::services::task::nested_function::metric_builder::MetricBuilder;
+use crate::services::task::nested_function::nested_fn::NestedFn;
+use crate::services::task::task_cycle::TaskCycle;
+use crate::services::task::task_stuff::TaskStuff;
+
+use super::nested_function::fn_::FnOut;
+use super::nested_function::fn_inputs::FnInputs;
 
 pub enum TaskNode {
-    Bool(Arc<dyn FnOutput<bool>>),
-    I64(Arc<dyn FnOutput<i64>>),
-    F64(Arc<dyn FnOutput<f64>>),
-    String(Arc<dyn FnOutput<String>>),
+    Bool(Arc<dyn FnOut>),
+    I64(Arc<dyn FnOut>),
+    F64(Arc<dyn FnOut>),
+    String(Arc<dyn FnOut>),
 }
 
 /// Task implements entity, which provides cyclically (by event) executing calculations
@@ -37,24 +42,25 @@ impl Task {
     /// 
     pub fn new(cfg: TaskConfig) ->Self {
         let mut nodes = HashMap::new();
+        let mut inputs = FnInputs::new();
         for (nodeName, nodeConf) in cfg.nodes {
             match nodeConf {
                 TaskConfNode::Fn(fnConf) => {
-                    match fnConf.fnType {
-                        FnConfigType::Metric => {
+                    match fnConf.fnKind {
+                        FnConfKind::Metric => {
                             debug!("Task.new | metricConf: {:?}: {:?}", nodeName, fnConf);
                         },
-                        FnConfigType::Fn => {
+                        FnConfKind::Fn => {
                             debug!("Task.new | fnConf: {:?}: {:?}", nodeName, fnConf);
-                            FnBuilder::new(fnConf)
+                            NestedFn::new(&mut fnConf, &mut inputs)
                         },
-                        FnConfigType::Var => {
+                        FnConfKind::Var => {
                             debug!("Task.new | varConf: {:?}: {:?}", nodeName, fnConf);
                         },
-                        FnConfigType::Const => {
+                        FnConfKind::Const => {
                             panic!("Task.new | Const is not supported in the root of the Task, config: {:?}: {:?}", nodeName, nodeConf);
                         },
-                        FnConfigType::Point => {
+                        FnConfKind::Point => {
                             panic!("Task.new | Point is not supported in the root of the Task, config: {:?}: {:?}", nodeName, nodeConf);
                         },
                     }
@@ -62,7 +68,7 @@ impl Task {
                 TaskConfNode::Metric(metricConf) => {
                     nodes.insert(
                         nodeName,
-                        MetricBuilder::new(metricConf),
+                        MetricBuilder::new(metricConf, &mut inputs),
                     );
                     debug!("Task.new | metricConf: {:?}: {:?}", nodeName, metricConf)
                 },
@@ -72,6 +78,7 @@ impl Task {
             name: cfg.name,
             cycle: cfg.cycle,
             exit: Arc::new(AtomicBool::new(false)),
+            nodes: nodes,
         }
     }
     ///

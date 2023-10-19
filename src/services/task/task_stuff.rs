@@ -1,14 +1,15 @@
-use std::{collections::HashMap, sync::{Arc, Mutex}};
+use std::collections::HashMap;
 
-use crate::core_::nested_function::fn_::FnInput;
+use super::nested_function::fn_::FnInOut;
 
 
-pub enum FnInputBox {
-    Bool(Arc<Mutex<dyn FnInput<bool>>>),
-    U64(Arc<Mutex<dyn FnInput<u64>>>),
-    I64(Arc<Mutex<dyn FnInput<i64>>>),
-    F64(Arc<Mutex<dyn FnInput<f64>>>),
-}
+
+// pub enum FnInputBox {
+//     Bool(Arc<Mutex<dyn FnInput<bool>>>),
+//     U64(Arc<Mutex<dyn FnInput<u64>>>),
+//     I64(Arc<Mutex<dyn FnInput<i64>>>),
+//     F64(Arc<Mutex<dyn FnInput<f64>>>),
+// }
 
 /// TaskShame / TaskProgram / TaskPlan / TaskStuff / TaskNodes - holds the entities of the Task in the following structure:
 ///   ```
@@ -30,7 +31,7 @@ pub enum FnInputBox {
 ///   }
 ///   ```
 pub struct TaskStuff {
-    inputs: HashMap<String, FnInputBox>
+    inputs: HashMap<String, Box<dyn FnInOut>>
 }
 ///
 /// 

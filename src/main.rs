@@ -1,3 +1,5 @@
+#[cfg(test)]
+mod tests;
 mod core_;
 mod services;
 
@@ -53,17 +55,17 @@ impl<S> Out<S::Target> for Ikea<S, f64, bool>
 }
 
 fn main() {
-    let ikea = Ikea{ 
-        value: true,
-        inner: vec![
-            Inner{input: 4.4, out: true, _marker: PhantomData::<f64>}
-        ], 
-        _marker: (PhantomData::<f64>, PhantomData::<bool>), 
-    };
-    let out = ikea.out();
-    let r = &ikea.inner[0];
+    // let ikea = Ikea{ 
+    //     value: true,
+    //     inner: vec![
+    //         // Inner{input: 4.4, out: true, _marker: PhantomData::<f64>}
+    //     ], 
+    //     _marker: (PhantomData::<f64>, PhantomData::<bool>), 
+    // };
+    // let out = ikea.out();
+    // let r = &ikea.inner[0];
     // let ii = *r.special();
-    println!("special: {:?}", r);
+    // println!("special: {:?}", r);
     // println!("special: {:?}", r.special());
     // println!("special: {:?}", r.target());
 }
@@ -77,6 +79,6 @@ struct Inner<T, Q>
     pub out: Q,
     _marker: PhantomData<Q>
 }
-impl<T, Q> SpecializationTest<Q> for Inner<T, Q> {
-    type Target = Q;
-}
+// impl<T, Q> SpecializationTest<Q> for Inner<T, Q> {
+//     type Target = Q;
+// }
