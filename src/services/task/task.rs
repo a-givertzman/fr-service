@@ -17,12 +17,13 @@ use crate::services::task::task_stuff::TaskStuff;
 
 use super::nested_function::fn_::FnOut;
 use super::nested_function::fn_inputs::FnInputs;
+use super::nested_function::metric_select::FnMetric;
 
 pub enum TaskNode {
-    Bool(Arc<dyn FnOut>),
-    I64(Arc<dyn FnOut>),
-    F64(Arc<dyn FnOut>),
-    String(Arc<dyn FnOut>),
+    Bool(Arc<dyn FnMetric>),
+    I64(Arc<dyn FnMetric>),
+    F64(Arc<dyn FnMetric>),
+    String(Arc<dyn FnMetric>),
 }
 
 /// Task implements entity, which provides cyclically (by event) executing calculations
@@ -43,7 +44,7 @@ impl Task {
     pub fn new(cfg: TaskConfig) ->Self {
         let mut nodes = HashMap::new();
         let mut inputs = FnInputs::new();
-        for (nodeName, nodeConf) in cfg.nodes {
+        for (nodeName, mut nodeConf) in cfg.nodes {
             match nodeConf {
                 TaskConfNode::Fn(fnConf) => {
                     match fnConf.fnKind {
@@ -52,7 +53,7 @@ impl Task {
                         },
                         FnConfKind::Fn => {
                             debug!("Task.new | fnConf: {:?}: {:?}", nodeName, fnConf);
-                            NestedFn::new(&mut fnConf, &mut inputs)
+                            // NestedFn::new(&mut fnConf, &mut inputs)
                         },
                         FnConfKind::Var => {
                             debug!("Task.new | varConf: {:?}: {:?}", nodeName, fnConf);
@@ -65,10 +66,10 @@ impl Task {
                         },
                     }
                 },
-                TaskConfNode::Metric(metricConf) => {
+                TaskConfNode::Metric(mut metricConf) => {
                     nodes.insert(
                         nodeName,
-                        MetricBuilder::new(metricConf, &mut inputs),
+                        MetricBuilder::new(&mut metricConf, &mut inputs),
                     );
                     debug!("Task.new | metricConf: {:?}: {:?}", nodeName, metricConf)
                 },

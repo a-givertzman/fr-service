@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use log::debug;
 
 use crate::{core_::conf::metric_config::MetricConfig, services::task::{task::TaskNode, nested_function::{metric_select::{MetricSelect, FnMetric}, nested_fn::NestedFn}}};
@@ -12,15 +14,16 @@ pub struct MetricBuilder {
 ///
 /// 
 impl MetricBuilder {
-    pub fn new(conf: MetricConfig, inputs: &mut FnInputs) -> TaskNode {
+    pub fn new(conf: &mut MetricConfig, inputs: &mut FnInputs) -> TaskNode {
         match conf.name.as_str() {
             "sqlSelectMetric" => {
                 debug!("MetricBuilder.new | fnConf: {:?}: {:?}", conf.name, conf);
-                let (inputName, inputConf) = conf.inputs.iter_mut().next().unwrap();
                 TaskNode::String(
-                    MetricSelect::new(
-                        conf, 
-                        inputs
+                    Arc::new(
+                        MetricSelect::new(
+                            conf, 
+                            inputs
+                        )
                     )
                 )
             },

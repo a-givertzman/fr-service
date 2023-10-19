@@ -10,7 +10,7 @@ use super::{fn_::FnInOut, fn_inputs::FnInputs, nested_fn::NestedFn};
 pub trait FnMetric {
     ///
     /// Creates new MetricXyz instance deppending on config
-    fn new(conf: &mut MetricConfig, inputs: &mut FnInputs) -> Self;
+    // fn new(conf: &mut MetricConfig, inputs: &mut FnInputs) -> Self;
     ///
     /// returns output string containing sql
     fn out(&self) -> String;
@@ -32,13 +32,14 @@ pub struct MetricSelect {
     table: String,
     sql: String,
 }
-
-impl FnMetric for MetricSelect {
+///
+/// 
+impl MetricSelect {
     //
     //
-    fn new(conf: &mut MetricConfig, inputs: &mut FnInputs) -> MetricSelect {
-        let 
-        let func = NestedFn::new(conf, inputs);
+    pub fn new(conf: &mut MetricConfig, inputs: &mut FnInputs) -> MetricSelect {
+        let (inputName, inputConf) = conf.inputs.iter_mut().next().unwrap();
+        let func = NestedFn::new(inputConf, inputs);
         MetricSelect {
             id: conf.name,
             input: func,
@@ -47,6 +48,23 @@ impl FnMetric for MetricSelect {
             sql: conf.sql,
         }
     }
+}
+///
+/// 
+impl FnMetric for MetricSelect {
+    //
+    //
+    // fn new(conf: &mut MetricConfig, inputs: &mut FnInputs) -> MetricSelect {
+    //     let 
+    //     let func = NestedFn::new(conf, inputs);
+    //     MetricSelect {
+    //         id: conf.name,
+    //         input: func,
+    //         initial: conf.initial,
+    //         table: conf.table,
+    //         sql: conf.sql,
+    //     }
+    // }
     //
     //
     fn out(&self) -> String {
