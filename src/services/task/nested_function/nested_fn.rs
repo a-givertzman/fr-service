@@ -17,7 +17,7 @@ impl NestedFn {
     }
     ///
     /// 
-    fn function(conf: &mut Conf, initial: PointType, inputName: String, inputs: &mut FnInputs) -> Rc<RefCell<Box<dyn FnInOut>>> {
+    fn function(conf: &mut FnConfig, initial: PointType, inputName: String, inputs: &mut FnInputs) -> Rc<RefCell<Box<dyn FnInOut>>> {
         match conf.name().as_str() {
             "input" => {
                 println!("input function {:?}...", inputName);
