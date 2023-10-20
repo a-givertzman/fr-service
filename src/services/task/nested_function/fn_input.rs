@@ -13,6 +13,7 @@ use super::fn_::{FnIn, FnOut, FnInOut};
 pub struct FnInput {
     pub id: String,
     point: PointType,
+    initial: PointType,
 }
 ///
 /// 
@@ -20,7 +21,8 @@ impl FnInput {
     pub fn new(id: &str, initial: PointType) -> Self {
         Self {
             id: id.into(), 
-            point: initial 
+            point: initial.clone(), 
+            initial
         }
     }
 }
@@ -42,7 +44,7 @@ impl FnOut for FnInput {
     }
     //
     fn reset(&mut self) {
-        todo!()
+        self.point = self.initial.clone();
     }
 }
 ///

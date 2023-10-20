@@ -45,7 +45,7 @@ fn test_single() {
     DebugSession::init(LogLevel::Debug);
     initOnce();
     info!("test_single");
-    let mut input = initEach(PointType::Bool(Point::newBool("bool", false)));
+    let input = initEach(PointType::Bool(Point::newBool("bool", false)));
     let mut fnCount = FnCount::new(
         0, 
         input.clone(),
@@ -73,8 +73,7 @@ fn test_single() {
         let state = fnCount.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        let targetState = PointType::Int(Point::newInt("tesr", targetState));
-        assert_eq!(state, targetState);
+        assert_eq!(state.asInt().value, targetState);
     }        
 }
 // 
@@ -84,8 +83,7 @@ fn test_multiple() {
     DebugSession::init(LogLevel::Debug);
     initOnce();
     info!("test_multiple");
-    // let (initial, switches) = initEach();
-    let mut input = initEach(PointType::Bool(Point::newBool("bool", false)));
+    let input = initEach(PointType::Bool(Point::newBool("bool", false)));
     let mut fnCount = FnCount::new(
         0, 
         input.clone(),
@@ -113,8 +111,7 @@ fn test_multiple() {
         let state = fnCount.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        let targetState = PointType::Int(Point::newInt("tesr", targetState));
-        assert_eq!(state, targetState);
+        assert_eq!(state.asInt().value, targetState);
     }        
 }
 
@@ -123,7 +120,7 @@ fn test_multiple_reset() {
     DebugSession::init(LogLevel::Debug);
     initOnce();
     info!("test_multiple_reset");
-    let mut input = initEach(PointType::Bool(Point::newBool("bool", false)));
+    let input = initEach(PointType::Bool(Point::newBool("bool", false)));
     let mut fnCount = FnCount::new(
         0, 
         input.clone(),
@@ -154,7 +151,6 @@ fn test_multiple_reset() {
         let state = fnCount.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        let targetState = PointType::Int(Point::newInt("tesr", targetState));
-        assert_eq!(state, targetState);
+        assert_eq!(state.asInt().value, targetState);
     }        
 }

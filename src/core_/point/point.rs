@@ -103,3 +103,22 @@ impl<T: std::ops::BitOr<Output = T>> std::ops::BitOr for Point<T> {
         }        
     }
 }
+
+
+impl<T: std::cmp::PartialOrd> std::cmp::PartialOrd for Point<T> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        match self.name.partial_cmp(&other.name) {
+            Some(core::cmp::Ordering::Equal) => {}
+            ord => return ord,
+        }
+        match self.value.partial_cmp(&other.value) {
+            Some(core::cmp::Ordering::Equal) => {}
+            ord => return ord,
+        }
+        match self.status.partial_cmp(&other.status) {
+            Some(core::cmp::Ordering::Equal) => {}
+            ord => return ord,
+        }
+        self.timestamp.partial_cmp(&other.timestamp)
+    }
+}

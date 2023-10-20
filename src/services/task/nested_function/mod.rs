@@ -3,7 +3,7 @@ pub mod fn_;
 pub mod fn_sum;
 pub mod fn_input;
 pub mod fn_count;
-// pub mod fn_trip;
+pub mod fn_trip;
 pub mod fn_timer;
 
 pub mod fn_inputs;
