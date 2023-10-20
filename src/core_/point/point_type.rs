@@ -39,7 +39,7 @@ impl PointType {
     pub fn asInt(&self) -> Point<i64> {
         match self {
             PointType::Int(point) => point.clone(),
-            _ => panic!("PointType.asInt | Invalid point type Int"),
+            _ => panic!("PointType.asInt | Invalid point type Int, point: {:?}", &self.name()),
         }
     }
     pub fn asFloat(&self) -> Point<f64> {

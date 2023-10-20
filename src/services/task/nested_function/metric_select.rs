@@ -72,19 +72,19 @@ impl FnOut for MetricSelect {
             },
             PointType::Int(point) => {
                 PointType::String(Point::newString(
-                    "asBool", 
+                    "asInt", 
                     format!("insert into {} values(id, value, timestamp) ({},{},{})", self.table, self.id, point.value, point.timestamp)
                 ))
             },
             PointType::Float(point) => {
                 PointType::String(Point::newString(
-                    "asBool", 
+                    "asFloat", 
                     format!("insert into {} values(id, value, timestamp) ({},{},{})", self.table, self.id, point.value, point.timestamp)
                 ))
             },
             PointType::String(point) => {
                 PointType::String(Point::newString(
-                    "asBool", 
+                    "asString", 
                     format!("insert into {} values(id, value, timestamp) ({},{},{})", self.table, self.id, point.value, point.timestamp)
                 ))
             },

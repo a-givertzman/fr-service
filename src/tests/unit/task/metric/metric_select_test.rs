@@ -55,32 +55,35 @@ fn test_single() {
     );
     debug!("taskStuff: {:?}", taskStuff);
     let testData = vec![
-        (1, "Point.name1", 4),
-        (1, "Point.name", 4),
-        (1, "Point.name", 4),
-        (1, "Point.name", 4),
-        (0, "Point.name", 0),
-        (1, "Point.name", 0),
-        (2, "Point.name", 1),
-        (3, "Point.name", 1),
-        (4, "Point.name", 1),
-        (5, "Point.name", 2),
-        (6, "Point.name", 2),
-        (7, "Point.name", 3),
-        (8, "Point.name", 3),
-        (9, "Point.name", 3),
+        (1, "Point.Name", 3),
+        (1, "Point.Name", 3),
+        (1, "Point.Name", 3),
+        (1, "Point.Name", 3),
+        (0, "Point.Name", 2),
+        (1, "Point.Name", 3),
+        (2, "Point.Name", 4),
+        (3, "Point.Name", 5),
+        (4, "Point.Name", 6),
+        (5, "Point.Name", 7),
+        (6, "Point.Name", 8),
+        (7, "Point.Name", 9),
+        (8, "Point.Name", 10),
+        (9, "Point.Name", 11),
     ];
-    for (value, name, targetState) in testData {
+    for (value, name, targetValue) in testData {
         let point = PointType::Int(Point::newInt(name, value));
-        let inputName = point.name();
+        let inputName = &point.name();
         match taskStuff.getInput(&inputName) {
             Some(input) => {
-                input.borrow_mut().add(point);
+                input.borrow_mut().add(point.clone());
                 // debug!("input: {:?}", &input);
                 let state = fnCount.out();
                 // debug!("input: {:?}", &mut input);
-                debug!("value: {:?}   |   state: {:?}", value, state);
-                // assert_eq!(state.asInt().value, targetState);
+                debug!("value: {:?}   |   state: {:?}", point.asInt().value, state.asString().value);
+                assert_eq!(
+                    state.asString().value, 
+                    format!("insert into SelectMetric_test_table_name values(id, value, timestamp) (sqlSelectMetric,{},{})", targetValue, point.timestamp())
+                );
             },
             None => {
                 warn!("input {:?} - not found in the current taskStuff", &inputName)

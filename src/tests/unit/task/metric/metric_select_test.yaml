@@ -4,7 +4,7 @@
 #             input: point '/path/Point.Name/'
 metric sqlSelectMetric:
     initial: 0.123      # начальное значение
-    table: table_name
+    table: SelectMetric_test_table_name
     sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
     inputs:
         input1:
@@ -12,5 +12,5 @@ metric sqlSelectMetric:
                 input fn sum:
                     input1 fn sum:
                         input1: const int 1
-                        input2: point int '/path/Point.Name/'
-                    input2: const float 1.1
+                        input2: point int '/path/Point.Name'
+                    input2: const int 1
