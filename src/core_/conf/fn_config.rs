@@ -120,23 +120,6 @@ impl FnConfig {
 
                         },
                         ConfKeywd::Point(_) => {
-                            let _type = match confTree.get("type") {
-                                Some(pointTypeConf) => {
-                                    match pointTypeConf.asStr("type") {
-                                        Ok(pointTypeName) => {
-                                            match PointType::from_str(pointTypeName) {
-                                                Ok(pointType) => Some(pointType),
-                                                Err(err) => {
-                                                    warn!("FnConfig.new | Error parsing point type: {:?}", err);
-                                                    None
-                                                },
-                                            }
-                                        },
-                                        Err(_) => None,
-                                    }
-                                },
-                                None => None,
-                            };
                             FnConfig {
                                 fnKind: fnKeyword.kind(),
                                 name: fnKeyword.data(),

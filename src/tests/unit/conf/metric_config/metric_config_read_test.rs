@@ -5,7 +5,7 @@ use std::{sync::Once, env, collections::HashMap};
 
 use crate::core_::{
     debug::debug_session::{DebugSession, LogLevel}, 
-    conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, metric_config::MetricConfig}, 
+    conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, conf_keywd::FnConfPointType, metric_config::MetricConfig}, 
     point::{point_type::PointType, point::Point},
 };
 
@@ -45,17 +45,17 @@ fn test_fn_config_read_valid() {
         vars: vec![String::from("VarName2")],
         inputs: HashMap::from([
             (String::from("input1"), FnConfig { 
-                fnKind: FnConfKind::Var, name: String::from("VarName2"), pointType: None, inputs: HashMap::from([
+                fnKind: FnConfKind::Var, name: String::from("VarName2"), pointType: FnConfPointType::Unknown, inputs: HashMap::from([
                     (String::from("input"), FnConfig { 
-                        fnKind: FnConfKind::Fn, name: String::from("functionName"), pointType: None, inputs: HashMap::from([
-                            (String::from("initial"), FnConfig { fnKind: FnConfKind::Var, name: String::from("VarName2"), pointType: None, inputs: HashMap::new() }),
+                        fnKind: FnConfKind::Fn, name: String::from("functionName"), pointType: FnConfPointType::Unknown, inputs: HashMap::from([
+                            (String::from("initial"), FnConfig { fnKind: FnConfKind::Var, name: String::from("VarName2"), pointType: FnConfPointType::Unknown, inputs: HashMap::new() }),
                             (String::from("input"), FnConfig { 
-                                fnKind: FnConfKind::Fn, name: String::from("functionName"), pointType: None, inputs: HashMap::from([
-                                    (String::from("input1"), FnConfig { fnKind: FnConfKind::Const, name: String::from("someValue"), pointType: None, inputs: HashMap::new() }),
-                                    (String::from("input2"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), pointType: Some(PointType::Bool(Point::newBool("bool", false))), inputs: HashMap::new() }), 
+                                fnKind: FnConfKind::Fn, name: String::from("functionName"), pointType: FnConfPointType::Unknown, inputs: HashMap::from([
+                                    (String::from("input1"), FnConfig { fnKind: FnConfKind::Const, name: String::from("someValue"), pointType: FnConfPointType::Unknown, inputs: HashMap::new() }),
+                                    (String::from("input2"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), pointType: FnConfPointType::Bool, inputs: HashMap::new() }), 
                                     (String::from("input"), FnConfig { 
-                                        fnKind: FnConfKind::Fn, name: String::from("functionName"), pointType: None, inputs: HashMap::from([
-                                            (String::from("input"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), pointType: Some(PointType::Bool(Point::newBool("bool", false))), inputs: HashMap::new() }),
+                                        fnKind: FnConfKind::Fn, name: String::from("functionName"), pointType: FnConfPointType::Unknown, inputs: HashMap::from([
+                                            (String::from("input"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), pointType: FnConfPointType::Bool, inputs: HashMap::new() }),
                                         ])
                                     }), 
                                 ]) 
@@ -64,7 +64,7 @@ fn test_fn_config_read_valid() {
                     })
                 ]) 
             }), 
-            (String::from("input2"), FnConfig { fnKind: FnConfKind::Const, name: String::from("1"), pointType: None, inputs: HashMap::new() })
+            (String::from("input2"), FnConfig { fnKind: FnConfKind::Const, name: String::from("1"), pointType: FnConfPointType::Unknown, inputs: HashMap::new() })
         ]), 
     };
     
