@@ -27,6 +27,8 @@ impl FnIn for FnSum {
         panic!("FnSum.add | method is not used")
     }
 }
+///
+/// 
 impl FnOut for FnSum { 
     //
     //
@@ -56,6 +58,8 @@ impl FnOut for FnSum {
         todo!()
     }
 }
+///
+/// 
 impl FnInOut for FnSum {}
 
 

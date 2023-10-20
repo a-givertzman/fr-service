@@ -2,7 +2,10 @@ use std::sync::Arc;
 
 use log::debug;
 
-use crate::{core_::conf::metric_config::MetricConfig, services::task::{task::TaskNode, nested_function::{metric_select::{MetricSelect, FnMetric}, nested_fn::NestedFn}}};
+use crate::{
+    core_::conf::metric_config::MetricConfig, 
+    services::task::{task::TaskNode, nested_function::metric_select::MetricSelect},
+};
 
 use super::fn_inputs::FnInputs;
 
@@ -18,7 +21,7 @@ impl MetricBuilder {
         match conf.name.as_str() {
             "sqlSelectMetric" => {
                 debug!("MetricBuilder.new | fnConf: {:?}: {:?}", conf.name, conf);
-                TaskNode::String(
+                TaskNode::Metric(
                     Arc::new(
                         MetricSelect::new(
                             conf, 

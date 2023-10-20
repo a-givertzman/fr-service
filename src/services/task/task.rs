@@ -14,14 +14,12 @@ use crate::services::task::nested_function::metric_builder::MetricBuilder;
 use crate::services::task::task_cycle::TaskCycle;
 use crate::services::task::task_stuff::TaskStuff;
 
+use super::nested_function::fn_::FnOut;
 use super::nested_function::fn_inputs::FnInputs;
-use super::nested_function::metric_select::FnMetric;
 
 pub enum TaskNode {
-    Bool(Arc<dyn FnMetric>),
-    I64(Arc<dyn FnMetric>),
-    F64(Arc<dyn FnMetric>),
-    String(Arc<dyn FnMetric>),
+    Var(Arc<dyn FnOut>),
+    Metric(Arc<dyn FnOut>),
 }
 
 /// Task implements entity, which provides cyclically (by event) executing calculations

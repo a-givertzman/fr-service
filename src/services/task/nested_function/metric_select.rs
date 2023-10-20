@@ -2,28 +2,28 @@
 
 use std::{cell::RefCell, rc::Rc};
 
-use crate::core_::{conf::metric_config::MetricConfig, point::point_type::PointType};
+use crate::core_::{conf::metric_config::MetricConfig, point::{point_type::PointType, point::Point}};
 
-use super::{fn_::FnInOut, fn_inputs::FnInputs, nested_fn::NestedFn};
+use super::{fn_::{FnInOut, FnOut, FnIn}, fn_inputs::FnInputs, nested_fn::NestedFn};
 
 
-pub trait FnMetric {
-    ///
-    /// Creates new MetricXyz instance deppending on config
-    // fn new(conf: &mut MetricConfig, inputs: &mut FnInputs) -> Self;
-    ///
-    /// returns output string containing sql
-    fn out(&self) -> String;
-    ///
-    /// 
-    fn reset(&mut self);
-}
+// pub trait FnMetric {
+//     ///
+//     /// Creates new MetricXyz instance deppending on config
+//     // fn new(conf: &mut MetricConfig, inputs: &mut FnInputs) -> Self;
+//     ///
+//     /// returns output string containing sql
+//     fn out(&self) -> String;
+//     ///
+//     /// 
+//     fn reset(&mut self);
+// }
 
 
 
 ///
 /// Counts number of raised fronts of boolean input
-// #[derive(Debug)]
+#[derive(Debug)]
 pub struct MetricSelect {
     // _marker: PhantomData<S>,
     id: String,
@@ -51,36 +51,42 @@ impl MetricSelect {
 }
 ///
 /// 
-impl FnMetric for MetricSelect {
+impl FnIn for MetricSelect {
+    fn add(&mut self, point: PointType) {
+        panic!("MetricSelect.add | method is not used")
+    }
+}
+///
+/// 
+impl FnOut for MetricSelect {
     //
     //
-    // fn new(conf: &mut MetricConfig, inputs: &mut FnInputs) -> MetricSelect {
-    //     let 
-    //     let func = NestedFn::new(conf, inputs);
-    //     MetricSelect {
-    //         id: conf.name,
-    //         input: func,
-    //         initial: conf.initial,
-    //         table: conf.table,
-    //         sql: conf.sql,
-    //     }
-    // }
-    //
-    //
-    fn out(&self) -> String {
+    fn out(&mut self) -> PointType {
         let pointType = self.input.borrow_mut().out();
         match pointType {
             PointType::Bool(point) => {
-                format!("insert into table values(id, value, timestamp) ({},{},{})", self.id, point.value, point.timestamp)
+                PointType::String(Point::newString(
+                    "asBool", 
+                    format!("insert into {} values(id, value, timestamp) ({},{},{})", self.table, self.id, point.value, point.timestamp)
+                ))
             },
             PointType::Int(point) => {
-                format!("insert into table values(id, value, timestamp) ({},{},{})", self.id, point.value, point.timestamp)
+                PointType::String(Point::newString(
+                    "asBool", 
+                    format!("insert into {} values(id, value, timestamp) ({},{},{})", self.table, self.id, point.value, point.timestamp)
+                ))
             },
             PointType::Float(point) => {
-                format!("insert into table values(id, value, timestamp) ({},{},{})", self.id, point.value, point.timestamp)
+                PointType::String(Point::newString(
+                    "asBool", 
+                    format!("insert into {} values(id, value, timestamp) ({},{},{})", self.table, self.id, point.value, point.timestamp)
+                ))
             },
             PointType::String(point) => {
-                format!("insert into table values(id, value, timestamp) ({},{},{})", self.id, point.value, point.timestamp)
+                PointType::String(Point::newString(
+                    "asBool", 
+                    format!("insert into {} values(id, value, timestamp) ({},{},{})", self.table, self.id, point.value, point.timestamp)
+                ))
             },
         }
     }
@@ -89,3 +95,6 @@ impl FnMetric for MetricSelect {
         todo!()
     }
 }
+///
+/// 
+impl FnInOut for MetricSelect {}

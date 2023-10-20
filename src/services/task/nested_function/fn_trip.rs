@@ -74,3 +74,6 @@ impl FnOut for FnTripGe {
         self.input.borrow_mut().reset();
     }
 }
+///
+/// 
+impl FnInOut for FnTripGe {}
