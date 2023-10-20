@@ -39,14 +39,14 @@ fn initEach(conf: &mut MetricConfig, inputs: &mut FnInputs) -> Rc<RefCell<Box<dy
     ))
 }
 
-const CONF_PATH: &str = "./src/tests/unit/task/metric/metric_select_test.yaml";
 
 #[test]
-fn test_single() {
+fn test_int() {
     DebugSession::init(LogLevel::Debug);
     initOnce();
-    info!("test_single");
-    let mut conf = MetricConfig::read(CONF_PATH);
+    info!("test_int");
+    let path = "./src/tests/unit/task/metric/metric_select_int_test.yaml";
+    let mut conf = MetricConfig::read(path);
     debug!("conf: {:?}", conf);
     let mut taskStuff = FnInputs::new();
     let mut fnCount = MetricSelect::new(
@@ -92,6 +92,58 @@ fn test_single() {
     }        
 }
 
+
+#[test]
+fn test_float() {
+    DebugSession::init(LogLevel::Debug);
+    initOnce();
+    info!("test_float");
+    let path = "./src/tests/unit/task/metric/metric_select_float_test.yaml";
+    let mut conf = MetricConfig::read(path);
+    debug!("conf: {:?}", conf);
+    let mut taskStuff = FnInputs::new();
+    let mut fnCount = MetricSelect::new(
+        &mut conf, 
+        &mut taskStuff,
+    );
+    debug!("taskStuff: {:?}", taskStuff);
+    let testData = vec![
+        (1.1, "Point.Name", 3.3),
+        (1.2, "Point.Name", 3.4),
+        (1.3, "Point.Name", 3.5),
+        (1.4, "Point.Name", 3.6),
+        (0.1, "Point.Name", 2.3),
+        (1.1, "Point.Name", 3.3),
+        (2.2, "Point.Name", 4.4),
+        (3.3, "Point.Name", 5.5),
+        (4.4, "Point.Name", 6.6),
+        (5.5, "Point.Name", 7.7),
+        (6.6, "Point.Name", 8.8),
+        (7.7, "Point.Name", 9.9),
+        (8.8, "Point.Name", 11.0),
+        (9.9, "Point.Name", 12.1),
+    ];
+    for (value, name, targetValue) in testData {
+        let point = PointType::Float(Point::newFloat(name, value));
+        let inputName = &point.name();
+        match taskStuff.getInput(&inputName) {
+            Some(input) => {
+                input.borrow_mut().add(point.clone());
+                // debug!("input: {:?}", &input);
+                let state = fnCount.out();
+                // debug!("input: {:?}", &mut input);
+                debug!("value: {:?}   |   state: {:?}", point.asFloat().value, state.asString().value);
+                assert_eq!(
+                    state.asString().value, 
+                    format!("insert into SelectMetric_test_table_name values(id, value, timestamp) (sqlSelectMetric,{:.3},{})", targetValue, point.timestamp())
+                );
+            },
+            None => {
+                warn!("input {:?} - not found in the current taskStuff", &inputName)
+            },
+        };
+    }        
+}
 
 
 
