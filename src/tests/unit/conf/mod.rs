@@ -1,3 +1,5 @@
+pub mod conf_keyword_test;
+
 pub mod config_tree;
 
 pub mod fn_config;
