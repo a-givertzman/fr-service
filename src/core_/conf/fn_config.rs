@@ -30,7 +30,7 @@ pub struct FnConfig {
     pub fnKind: FnConfKind,
     pub name: String,
     pub inputs: HashMap<String, FnConfig>,
-    pub pointType: FnConfPointType,
+    pub type_: FnConfPointType,
 }
 ///
 /// 
@@ -88,7 +88,7 @@ impl FnConfig {
                         fnKind: selfKeyword.kind(),
                         name: fnName,
                         inputs: inputs,
-                        pointType: selfKeyword.type_(),
+                        type_: selfKeyword.type_(),
                     }
                 },
                 // no keyword 
@@ -101,7 +101,7 @@ impl FnConfig {
                 },
             }
         } else {
-            debug!("FnConfig.new | SINGLE VALUE");
+            debug!("FnConfig.new | SINGLE VALUE\t{:?}", &confTree.conf);
             match ConfKeywd::from_str(confTree.conf.as_str().unwrap()) {
                 // keyword parsed successefully
                 //  - take input name and input Value / Fn from the keyword
@@ -115,7 +115,7 @@ impl FnConfig {
                                 fnKind: fnKeyword.kind(),
                                 name: fnKeyword.data(),
                                 inputs: HashMap::new(),
-                                pointType: fnKeyword.type_(),
+                                type_: fnKeyword.type_(),
                             }
 
                         },
@@ -124,7 +124,7 @@ impl FnConfig {
                                 fnKind: fnKeyword.kind(),
                                 name: fnKeyword.data(),
                                 inputs: HashMap::new(),
-                                pointType: fnKeyword.type_(),
+                                type_: fnKeyword.type_(),
                             }
 
                         },
@@ -143,7 +143,7 @@ impl FnConfig {
                             fnKind: FnConfKind::Var, 
                             name: varName, 
                             inputs: HashMap::new(),
-                            pointType: FnConfPointType::Unknown,
+                            type_: FnConfPointType::Unknown,
                         }
                     } else {
                         panic!("FnConfig.new | Variable not declared: {:?}", confTree.conf)
@@ -172,7 +172,7 @@ impl FnConfig {
                                         fnKind: keyword.kind(), 
                                         name: keyword.data(), 
                                         inputs: Self::buildInputs(&subNode, vars),
-                                        pointType: keyword.type_(),
+                                        type_: keyword.type_(),
                                     },
                                 );
                             }

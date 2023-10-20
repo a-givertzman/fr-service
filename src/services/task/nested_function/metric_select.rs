@@ -37,12 +37,12 @@ pub struct MetricSelect {
 impl MetricSelect {
     //
     //
-    pub fn new(conf: &mut MetricConfig, inputs: &mut FnInputs) -> MetricSelect {
+    pub fn new(conf: &mut MetricConfig, taskStuff: &mut FnInputs) -> MetricSelect {
         let (inputName, inputConf) = conf.inputs.iter_mut().next().unwrap();
-        let func = NestedFn::new(inputConf, inputs);
+        let input = NestedFn::new(inputConf, taskStuff);
         MetricSelect {
             id: conf.name.clone(),
-            input: func,
+            input: input,
             initial: conf.initial,
             table: conf.table.clone(),
             sql: conf.sql.clone(),

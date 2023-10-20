@@ -18,25 +18,36 @@ impl NestedFn {
     pub fn new(conf: &mut FnConfig, taskStuff: &mut FnInputs) -> Rc<RefCell<Box<dyn FnInOut>>> {
         Self::function("", conf, taskStuff)
     }
+    fn getFnInputConf<'a>(fnName: &str, name: &str, conf: &'a mut FnConfig) -> &'a mut FnConfig {
+        match conf.inputs.get_mut(name) {
+            Some(conf) => conf,
+            None => panic!("NestedFn.function | function {:?} must have {:?}", fnName, name),
+        }
+    }
     ///
     /// 
     fn function(inputName: &str, conf: &mut FnConfig, taskStuff: &mut FnInputs) -> Rc<RefCell<Box<dyn FnInOut>>> {
         match conf.fnKind {
             FnConfKind::Fn => {
-                match conf.name.as_str() {
+                println!("NestedFn.function | Fn {:?}: {:?}...", inputName, conf.name.clone());
+                let c = conf.name.clone();
+                let fnName= c.clone();
+                let fnName = fnName.as_str(); 
+                drop(c);
+                match fnName {
                     "sum" => {
-                        println!("NestedFn.function | function sum");
+                        println!("NestedFn.function | Fn sum detected");
                         let name = "input1";
-                        let conf = conf.inputs.get_mut(name).unwrap();
-                        let input1 = Self::function(name, conf, taskStuff);
-                        let name = "input1";
-                        let conf = conf.inputs.get_mut(name).unwrap();
-                        let input2 = Self::function(name, conf, taskStuff);
+                        let inputConf = Self::getFnInputConf(fnName, name, conf);
+                        let input1 = Self::function(name, inputConf, taskStuff);
+                        let name = "input2";
+                        let inputConf = Self::getFnInputConf(fnName, name, conf);
+                        let input2 = Self::function(name, inputConf, taskStuff);
                         let func = Self::fnSum(inputName, input1, input2);
                         func
                     }
                     "timer" => {
-                        println!("NestedFn.function | function timer");
+                        println!("NestedFn.function | Fn timer detected");
                         let name = "input1";
                         let conf = conf.inputs.get_mut(name).unwrap();
                         let input = Self::function(name, conf, taskStuff);
@@ -48,31 +59,45 @@ impl NestedFn {
             },
             FnConfKind::Var => {
                 let varName = conf.name.clone();
+                println!("NestedFn.function | Var: {:?}...", varName);
                 let (inputConfName, inputConf) = match conf.inputs.iter_mut().next() {
                     Some(inputConf) => inputConf,
                     None => panic!("NestedFn.function | Var {:?} must have exact one input", &varName),
                 };
                 let input = Self::function(&inputConfName, inputConf, taskStuff);
                 taskStuff.addVar(inputName, input.clone());
-                println!("NestedFn.function | function input: {:?}", input);
+                println!("NestedFn.function | Var: {:?}", input);
                 input
-                // panic!("NestedFn.function | Var not implemented yet")
             },
             FnConfKind::Const => {
-                panic!("NestedFn.function | Const not implemented yet")
-            },
-            FnConfKind::Point => {                
-                println!("NestedFn.function | function input: {:?}...", inputName);
-                let initial = match conf.pointType.clone() {
-                    FnConfPointType::Bool => PointType::Bool(Point::newBool("initial", false)),
-                    FnConfPointType::Int => PointType::Int(Point::newInt("initial", 0)),
-                    FnConfPointType::Float => PointType::Float(Point::newFloat("initial", 0.0)),
-                    FnConfPointType::String => PointType::String(Point::newString("initial", "")),
+                let value = conf.name.trim().to_lowercase();
+                println!("NestedFn.function | Const: {:?}...", value);
+                let initial = match conf.type_.clone() {
+                    FnConfPointType::Bool => PointType::Bool(Point::newBool("const", value.parse().unwrap())),
+                    FnConfPointType::Int => PointType::Int(Point::newInt("const", value.parse().unwrap())),
+                    FnConfPointType::Float => PointType::Float(Point::newFloat("const", value.parse().unwrap())),
+                    FnConfPointType::String => PointType::String(Point::newString("const", value)),
                     FnConfPointType::Unknown => panic!("NestedFn.function | Point type required"),
                 };
                 let input = Self::fnInput(inputName, initial);
                 taskStuff.addInput(inputName, input.clone());
-                println!("NestedFn.function | function input: {:?}", input);
+                println!("NestedFn.function | Const: {:?} - done", input);
+                input
+            },
+            FnConfKind::Point => {                
+                println!("NestedFn.function | Input (Point): {:?}...", inputName);
+                let initial = match conf.type_.clone() {
+                    FnConfPointType::Bool => PointType::Bool(Point::newBool("input initial", false)),
+                    FnConfPointType::Int => PointType::Int(Point::newInt("input initial", 0)),
+                    FnConfPointType::Float => PointType::Float(Point::newFloat("input initial", 0.0)),
+                    FnConfPointType::String => PointType::String(Point::newString("input initial", "")),
+                    FnConfPointType::Unknown => panic!("NestedFn.function | Point type required"),
+                };
+                let input = Self::fnInput(inputName, initial);
+                let pointName = conf.name.clone();
+                let inputName = pointName.split("/").last().unwrap(); 
+                taskStuff.addInput(inputName, input.clone());
+                println!("NestedFn.function | input (Point): {:?}", input);
                 input
             },
             FnConfKind::Metric => {

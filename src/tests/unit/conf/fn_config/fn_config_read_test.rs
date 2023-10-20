@@ -37,26 +37,26 @@ fn test_fn_config_read_valid() {
     initEach();
     info!("test_fn_config_read_valid");
     let target = FnConfig { 
-        fnKind: FnConfKind::Var, name: "VarName2".to_string(), pointType: FnConfPointType::Unknown, inputs: HashMap::from([
+        fnKind: FnConfKind::Var, name: "VarName2".to_string(), type_: FnConfPointType::Unknown, inputs: HashMap::from([
             ("input".to_string(), FnConfig { 
-                fnKind: FnConfKind::Fn, name: "functionName".to_string(), pointType: FnConfPointType::Unknown, inputs: HashMap::from([
+                fnKind: FnConfKind::Fn, name: "functionName".to_string(), type_: FnConfPointType::Unknown, inputs: HashMap::from([
                     ("initial".to_string(), FnConfig { 
-                        fnKind: FnConfKind::Var, name: "VarName2".to_string(), pointType: FnConfPointType::Unknown, inputs: HashMap::new() 
+                        fnKind: FnConfKind::Var, name: "VarName2".to_string(), type_: FnConfPointType::Unknown, inputs: HashMap::new() 
                     }),
                     ("input".to_string(), FnConfig { 
-                        fnKind: FnConfKind::Fn, name: "functionName".to_string(), pointType: FnConfPointType::Unknown, inputs: HashMap::from([
+                        fnKind: FnConfKind::Fn, name: "functionName".to_string(), type_: FnConfPointType::Unknown, inputs: HashMap::from([
                             ("input".to_string(), FnConfig { 
-                                fnKind: FnConfKind::Fn, name: "functionName".to_string(), pointType: FnConfPointType::Unknown, inputs: HashMap::from([
+                                fnKind: FnConfKind::Fn, name: "functionName".to_string(), type_: FnConfPointType::Unknown, inputs: HashMap::from([
                                     ("input".to_string(), FnConfig { 
-                                        fnKind: FnConfKind::Point, name: "/path/Point.Name/".to_string(), pointType: FnConfPointType::Bool, inputs: HashMap::from([]) 
+                                        fnKind: FnConfKind::Point, name: "/path/Point.Name/".to_string(), type_: FnConfPointType::Bool, inputs: HashMap::from([]) 
                                     }),
                                 ]) 
                             }),
                             ("input2".to_string(), FnConfig { 
-                                fnKind: FnConfKind::Point, name: "/path/Point.Name/".to_string(), pointType: FnConfPointType::Float, inputs: HashMap::from([]) 
+                                fnKind: FnConfKind::Point, name: "/path/Point.Name/".to_string(), type_: FnConfPointType::Float, inputs: HashMap::from([]) 
                             }),
                             ("input1".to_string(), FnConfig { 
-                                fnKind: FnConfKind::Const, name: "someValue".to_string(), pointType: FnConfPointType::Unknown, inputs: HashMap::from([]) 
+                                fnKind: FnConfKind::Const, name: "someValue".to_string(), type_: FnConfPointType::Unknown, inputs: HashMap::from([]) 
                             }),
                         ]) 
                     }),

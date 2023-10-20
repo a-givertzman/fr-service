@@ -1,5 +1,7 @@
 use std::{collections::HashMap, rc::Rc, cell::RefCell};
 
+use log::trace;
+
 use super::fn_::FnInOut;
 
 
@@ -22,7 +24,8 @@ impl FnInputs {
     }
     ///
     /// Adding new input refeerence
-    pub fn addInput(&mut self, name: impl Into<String>, input: Rc<RefCell<Box<dyn FnInOut>>>) {
+    pub fn addInput(&mut self, name: impl Into<String> + std::fmt::Debug, input: Rc<RefCell<Box<dyn FnInOut>>>) {
+        trace!("TaskStuff.addInput | new input {:?}: {:?}", &name, input);
         self.inputs.insert(name.into(), input);
     }
     ///
