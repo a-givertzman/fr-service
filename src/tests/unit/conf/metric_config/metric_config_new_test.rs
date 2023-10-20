@@ -62,9 +62,9 @@ fn test_metric_config_new_valid() {
                                 initial: VarName2
                                 input11 fn functionName:
                                     input1: const someValue
-                                    input2: point '/path/Point.Name/'
+                                    input2: point int '/path/Point.Name/'
                                     input fn functionName:
-                                        input: point '/path/Point.Name/'
+                                        input: point bool '/path/Point.Name/'
                     input2:
                         const 1
             "#, 
@@ -83,7 +83,7 @@ fn test_metric_config_new_valid() {
                                     (String::from("input11"), FnConfig { 
                                         fnKind: FnConfKind::Fn, name: String::from("functionName"), pointType: FnConfPointType::Unknown, inputs: HashMap::from([
                                             (String::from("input1"), FnConfig { fnKind: FnConfKind::Const, name: String::from("someValue"), pointType: FnConfPointType::Unknown, inputs: HashMap::new() }),
-                                            (String::from("input2"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), pointType: FnConfPointType::Bool, inputs: HashMap::new() }), 
+                                            (String::from("input2"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), pointType: FnConfPointType::Int, inputs: HashMap::new() }), 
                                             (String::from("input"), FnConfig { 
                                                 fnKind: FnConfKind::Fn, name: String::from("functionName"), pointType: FnConfPointType::Unknown, inputs: HashMap::from([
                                                     (String::from("input"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), pointType: FnConfPointType::Bool, inputs: HashMap::new() }),

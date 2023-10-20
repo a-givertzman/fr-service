@@ -53,7 +53,7 @@ fn test_fn_config_read_valid() {
                                 ]) 
                             }),
                             ("input2".to_string(), FnConfig { 
-                                fnKind: FnConfKind::Point, name: "/path/Point.Name/".to_string(), pointType: FnConfPointType::Bool, inputs: HashMap::from([]) 
+                                fnKind: FnConfKind::Point, name: "/path/Point.Name/".to_string(), pointType: FnConfPointType::Float, inputs: HashMap::from([]) 
                             }),
                             ("input1".to_string(), FnConfig { 
                                 fnKind: FnConfKind::Const, name: "someValue".to_string(), pointType: FnConfPointType::Unknown, inputs: HashMap::from([]) 
@@ -67,7 +67,7 @@ fn test_fn_config_read_valid() {
     
     // let (initial, switches) = initEach();
     trace!("dir: {:?}", env::current_dir());
-    let path = "./src/tests/unit/fn_config/fn_config_test.yaml";
+    let path= "./src/tests/unit/conf/fn_config/fn_config_test.yaml";
     let fnConfig = FnConfig::read(path);
     trace!("fnConfig: {:?}", fnConfig);
     assert_eq!(fnConfig, target);

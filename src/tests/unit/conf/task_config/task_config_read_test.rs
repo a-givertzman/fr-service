@@ -35,7 +35,7 @@ fn test_fn_config_read_valid() {
     DebugSession::init(LogLevel::Trace);
     initOnce();
     initEach();
-    info!("test_fn_config_read_valid");
+    info!("test_task_config_read_valid");
     let target = TaskConfig {
         name: String::from("task1"),
         cycle: 100,
@@ -57,7 +57,7 @@ fn test_fn_config_read_valid() {
                                         (String::from("input"), FnConfig { 
                                             fnKind: FnConfKind::Fn, name: String::from("functionName"), pointType: FnConfPointType::Unknown, inputs: HashMap::from([
                                                 (String::from("input1"), FnConfig { fnKind: FnConfKind::Const, name: String::from("someValue"), pointType: FnConfPointType::Unknown, inputs: HashMap::new() }),
-                                                (String::from("input2"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), pointType: FnConfPointType::Bool, inputs: HashMap::new() }), 
+                                                (String::from("input2"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), pointType: FnConfPointType::Float, inputs: HashMap::new() }), 
                                                 (String::from("input"), FnConfig { 
                                                     fnKind: FnConfKind::Fn, name: String::from("functionName"), pointType: FnConfPointType::Unknown, inputs: HashMap::from([
                                                         (String::from("input"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), pointType: FnConfPointType::Bool, inputs: HashMap::new() }),
@@ -78,7 +78,7 @@ fn test_fn_config_read_valid() {
     
     // let (initial, switches) = initEach();
     trace!("dir: {:?}", env::current_dir());
-    let path = "./src/tests/unit/task_config/task_config_test.yaml";
+    let path = "./src/tests/unit/conf/task_config/task_config_test.yaml";
     let metricConfig = TaskConfig::read(path);
     trace!("fnConfig: {:?}", metricConfig);
     assert_eq!(metricConfig, target);

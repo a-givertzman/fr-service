@@ -64,8 +64,8 @@ fn test_fn_config_new_valid() {
                     inputConst1: const '11.3'
                     inputConst2: const '12.7'"
                 input2 fn count:
-                    inputConst1: const '13.3'
-                    inputConst2: const '14.7'
+                    inputConst1: const float '13.3'
+                    inputConst2: const int '147'
             "#, 
             FnConfig { fnKind: FnConfKind::Var, name: "newVar".to_string(), pointType: FnConfPointType::Unknown, inputs: HashMap::from([
                 ("input1".to_string(), FnConfig { fnKind: FnConfKind::Fn, name: "count".to_string(), pointType: FnConfPointType::Unknown, inputs: HashMap::from([
@@ -73,8 +73,8 @@ fn test_fn_config_new_valid() {
                     ("inputConst2".to_string(), FnConfig { fnKind: FnConfKind::Const, name: "12.7".to_string(), pointType: FnConfPointType::Unknown, inputs: HashMap::new() }),
                 ]) }),
                 ("input2".to_string(), FnConfig { fnKind: FnConfKind::Fn, name: "count".to_string(), pointType: FnConfPointType::Unknown, inputs: HashMap::from([
-                    ("inputConst1".to_string(), FnConfig { fnKind: FnConfKind::Const, name: "13.3".to_string(), pointType: FnConfPointType::Unknown, inputs: HashMap::new() }),
-                    ("inputConst2".to_string(), FnConfig { fnKind: FnConfKind::Const, name: "14.7".to_string(), pointType: FnConfPointType::Unknown, inputs: HashMap::new() }),
+                    ("inputConst1".to_string(), FnConfig { fnKind: FnConfKind::Const, name: "13.3".to_string(), pointType: FnConfPointType::Float, inputs: HashMap::new() }),
+                    ("inputConst2".to_string(), FnConfig { fnKind: FnConfKind::Const, name: "147".to_string(), pointType: FnConfPointType::Int, inputs: HashMap::new() }),
                 ]) }),
             ]) }
         ),
@@ -84,16 +84,16 @@ fn test_fn_config_new_valid() {
                     initial: VarName2
                     input fn functionName2:
                         input1: const someValue
-                        input2: point '/path/Point.Name/'
+                        input2: point int '/path/Point.Name/'
                         input3 fn functionName3:
-                                input: point '/path/Point.Name/'
+                                input: point bool '/path/Point.Name/'
             "#,
             FnConfig { fnKind: FnConfKind::Var, name: "VarName2".to_string(), pointType: FnConfPointType::Unknown, inputs: HashMap::from([
                 ("input".to_string(), FnConfig { fnKind: FnConfKind::Fn, name: "functionName1".to_string(), pointType: FnConfPointType::Unknown, inputs: HashMap::from([
                     ("initial".to_string(), FnConfig { fnKind: FnConfKind::Var, name: "VarName2".to_string(), pointType: FnConfPointType::Unknown, inputs: HashMap::new() }),
                     ("input".to_string(), FnConfig { fnKind: FnConfKind::Fn, name: "functionName2".to_string(), pointType: FnConfPointType::Unknown, inputs: HashMap::from([
                         ("input1".to_string(), FnConfig { fnKind: FnConfKind::Const, name: "someValue".to_string(), pointType: FnConfPointType::Unknown, inputs: HashMap::new() }),
-                        ("input2".to_string(), FnConfig { fnKind: FnConfKind::Point, name: "/path/Point.Name/".to_string(), pointType: FnConfPointType::Bool, inputs: HashMap::new() }),
+                        ("input2".to_string(), FnConfig { fnKind: FnConfKind::Point, name: "/path/Point.Name/".to_string(), pointType: FnConfPointType::Int, inputs: HashMap::new() }),
 
                         ("input3".to_string(), FnConfig { fnKind: FnConfKind::Fn, name: "functionName3".to_string(), pointType: FnConfPointType::Unknown, inputs: HashMap::from([
                             ("input".to_string(), FnConfig { fnKind: FnConfKind::Point, name: "/path/Point.Name/".to_string(), pointType: FnConfPointType::Bool, inputs: HashMap::new() }),
