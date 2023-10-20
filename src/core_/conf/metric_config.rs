@@ -56,7 +56,7 @@ impl MetricConfig {
                 trace!("MetricConfig.new | confTree: {:?}", confTree);
                 let selfName = match ConfKeywd::from_str(&confTree.key) {
                     Ok(selfKeyword) => {
-                        selfKeyword.name()
+                        selfKeyword.data()
                     },
                     Err(err) => {
                         panic!("MetricConfig.new | Unknown metric name in {:?}\n\tdetales: {:?}", &confTree.key, err)

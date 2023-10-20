@@ -70,7 +70,7 @@ impl TaskConfig {
                 debug!("TaskConfig.new | MAPPING VALUE");
                 trace!("TaskConfig.new | selfConf: {:?}", selfConf);
                 let selfName = match ConfKeywd::from_str(&selfConf.key) {
-                    Ok(selfKeyword) => selfKeyword.name(),
+                    Ok(selfKeyword) => selfKeyword.data(),
                     Err(err) => panic!("TaskConfig.new | Unknown metric name in {:?}\n\tdetales: {:?}", &selfConf.key, err),
                 };
                 let selfCycle = (&mut selfConf).remove("cycle").unwrap().as_u64().unwrap();
@@ -99,7 +99,7 @@ impl TaskConfig {
                                 },
                             };
                             selfNodes.insert(
-                                format!("{}-{}", selfNodeKeyword.name(), nodeIndex),
+                                format!("{}-{}", selfNodeKeyword.data(), nodeIndex),
                                 nodeConf,
                             );
                         },

@@ -5,7 +5,7 @@ use std::{fs, collections::HashMap, str::FromStr};
 
 use crate::core_::{conf::conf_keywd::ConfKeywd, conf::conf_tree::ConfTree, point::point_type::PointType};
 
-use super::fn_conf_kind::FnConfKind;
+use super::{fn_conf_kind::FnConfKind, conf_keywd::FnConfPointType};
 
 
 enum ValueType<'a> {
@@ -30,7 +30,7 @@ pub struct FnConfig {
     pub fnKind: FnConfKind,
     pub name: String,
     pub inputs: HashMap<String, FnConfig>,
-    pub pointType: Option<PointType>,
+    pub pointType: FnConfPointType,
 }
 ///
 /// 
@@ -65,30 +65,30 @@ impl FnConfig {
                     trace!("FnConfig.new | build inputs...");
                     let fnName: String;
                     let inputs: HashMap<String, FnConfig>;
-                    match selfKeyword.type_() {
+                    match selfKeyword.kind() {
                         FnConfKind::Const => {
-                            fnName = if selfKeyword.name().is_empty() {
+                            fnName = if selfKeyword.data().is_empty() {
                                 confTree.conf.as_str().unwrap().to_string()
                             } else {
-                                selfKeyword.name()
+                                selfKeyword.data()
                             };
                             inputs = HashMap::new();
                         },
                         FnConfKind::Var => {
-                            vars.push(selfKeyword.name());
-                            fnName = selfKeyword.name();
+                            vars.push(selfKeyword.data());
+                            fnName = selfKeyword.data();
                             inputs = Self::buildInputs(confTree, vars);
                         },
                         _ => {
-                            fnName = selfKeyword.name();
+                            fnName = selfKeyword.data();
                             inputs = Self::buildInputs(confTree, vars);
                         },
                     }
                     FnConfig {
-                        fnKind: selfKeyword.type_(),
+                        fnKind: selfKeyword.kind(),
                         name: fnName,
                         inputs: inputs,
-                        pointType: None,
+                        pointType: selfKeyword.type_(),
                     }
                 },
                 // no keyword 
@@ -112,10 +112,10 @@ impl FnConfig {
                         // },
                         ConfKeywd::Const(_) => {
                             FnConfig {
-                                fnKind: fnKeyword.type_(),
-                                name: fnKeyword.name(),
+                                fnKind: fnKeyword.kind(),
+                                name: fnKeyword.data(),
                                 inputs: HashMap::new(),
-                                pointType: None,
+                                pointType: fnKeyword.type_(),
                             }
 
                         },
@@ -138,10 +138,10 @@ impl FnConfig {
                                 None => None,
                             };
                             FnConfig {
-                                fnKind: fnKeyword.type_(),
-                                name: fnKeyword.name(),
+                                fnKind: fnKeyword.kind(),
+                                name: fnKeyword.data(),
                                 inputs: HashMap::new(),
-                                pointType: _type,
+                                pointType: fnKeyword.type_(),
                             }
 
                         },
@@ -160,7 +160,7 @@ impl FnConfig {
                             fnKind: FnConfKind::Var, 
                             name: varName, 
                             inputs: HashMap::new(),
-                            pointType: None,
+                            pointType: FnConfPointType::Unknown,
                         }
                     } else {
                         panic!("FnConfig.new | Variable not declared: {:?}", confTree.conf)
@@ -186,10 +186,10 @@ impl FnConfig {
                                 inputs.insert(
                                     keyword.input(),
                                     FnConfig {
-                                        fnKind: keyword.type_(), 
-                                        name: keyword.name(), 
+                                        fnKind: keyword.kind(), 
+                                        name: keyword.data(), 
                                         inputs: Self::buildInputs(&subNode, vars),
-                                        pointType: None,
+                                        pointType: keyword.type_(),
                                     },
                                 );
                             }

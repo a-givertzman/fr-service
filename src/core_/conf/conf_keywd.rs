@@ -1,16 +1,27 @@
 #![allow(non_snake_case)]
 
 use std::str::FromStr;
-use log::trace;
+use log::{trace, warn};
 use regex::RegexBuilder;
 use serde::Deserialize;
 
 use super::fn_conf_kind::FnConfKind;
 
+///
+/// Represents type of Point / Const in the configuration
+#[derive(Debug, Deserialize, PartialEq, Clone)]
+pub enum FnConfPointType {
+    Bool,
+    Int,
+    Float,
+    String,
+    Unknown,
+}
+
 #[derive(Debug, Deserialize, PartialEq, Clone)]
 pub struct FnConfKeywdValue {
     pub input: String,
-    pub type_: String,
+    pub type_: FnConfPointType,
     pub data: String,
 }
 
@@ -47,7 +58,25 @@ impl ConfKeywd {
             ConfKeywd::Metric(v) => v.input.clone(),
         }
     }
-    pub fn name(&self) -> String {
+    pub fn kind(&self) -> FnConfKind {
+        match self {
+            ConfKeywd::Fn(_) => FnConfKind::Fn,
+            ConfKeywd::Var(_) => FnConfKind::Var,
+            ConfKeywd::Const(_) => FnConfKind::Const,
+            ConfKeywd::Point(_) => FnConfKind::Point,
+            ConfKeywd::Metric(_) => FnConfKind::Metric,
+        }
+    }
+    pub fn type_(&self) -> FnConfPointType {
+        match self {
+            ConfKeywd::Fn(v) => v.type_.clone(),
+            ConfKeywd::Var(v) => v.type_.clone(),
+            ConfKeywd::Const(v) => v.type_.clone(),
+            ConfKeywd::Point(v) => v.type_.clone(),
+            ConfKeywd::Metric(v) => v.type_.clone(),
+        }
+    }
+    pub fn data(&self) -> String {
         match self {
             ConfKeywd::Fn(v) => v.data.clone(),
             ConfKeywd::Var(v) => v.data.clone(),
@@ -56,13 +85,13 @@ impl ConfKeywd {
             ConfKeywd::Metric(v) => v.data.clone(),
         }
     }
-    pub fn type_(&self) -> FnConfKind {
-        match self {
-            ConfKeywd::Fn(_) => FnConfKind::Fn,
-            ConfKeywd::Var(_) => FnConfKind::Var,
-            ConfKeywd::Const(_) => FnConfKind::Const,
-            ConfKeywd::Point(_) => FnConfKind::Point,
-            ConfKeywd::Metric(_) => FnConfKind::Metric,
+    fn matchType(typeName: &str) -> Result<FnConfPointType, String> {
+        match typeName {
+            "bool" => Ok(FnConfPointType::Bool),
+            "int" => Ok(FnConfPointType::Int),
+            "float" => Ok(FnConfPointType::Float),
+            "string" => Ok(FnConfPointType::String),
+            _ => Err(format!("Unknown keyword '{}'", typeName))
         }
     }
 }
@@ -86,8 +115,16 @@ impl FromStr for ConfKeywd {
                     None => String::new(),
                 };
                 let type_ = match &caps.get(groupType) {
-                    Some(arg) => arg.as_str().to_string(),
-                    None => String::new()
+                    Some(arg) => {
+                        match ConfKeywd::matchType(&arg.as_str().to_lowercase()) {
+                            Ok(type_) => type_,
+                            Err(err) => {
+                                warn!("ConfKeywd.from_str | Error reading type of keyword '{}'", &input);
+                                FnConfPointType::Unknown
+                            },
+                        }
+                    },
+                    None => FnConfPointType::Unknown,
                 };
                 let data = match &caps.get(groupData) {
                     Some(arg) => {
@@ -95,7 +132,7 @@ impl FromStr for ConfKeywd {
                     },
                     None => {
                         if input.is_empty() {                            
-                            Err(format!("Error reading data of keyword '{}'", input))
+                            Err(format!("Error reading data of keyword '{}'", &input))
                         } else {
                             Ok(String::new())
                         }
@@ -112,11 +149,11 @@ impl FromStr for ConfKeywd {
                                     "point" => Ok( ConfKeywd::Point( FnConfKeywdValue { input: input, type_: type_, data } )),
                                     "metric" => Ok( ConfKeywd::Metric( FnConfKeywdValue { input: input, type_: type_, data } )),
                                     "task" => Ok( ConfKeywd::Metric( FnConfKeywdValue { input: input, type_: type_, data } )),
-                                    _      => Err(format!("Unknown keyword '{}'", input)),
+                                    _      => Err(format!("Unknown keyword '{}'", &input)),
                                 }
                             },
                             None => {
-                                Err(format!("Unknown keyword '{}'", input))
+                                Err(format!("Unknown keyword '{}'", &input))
                             },
                         }
                     },
@@ -124,7 +161,7 @@ impl FromStr for ConfKeywd {
                 }
             },
             None => {
-                Err(format!("Unknown keyword '{}'", input))
+                Err(format!("Unknown keyword '{}'", &input))
             },
         }
     }

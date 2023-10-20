@@ -3,8 +3,8 @@
 use std::{rc::Rc, cell::RefCell};
 
 use crate::core_::{
-    point::point_type::PointType,
-    conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind}, 
+    point::{point_type::PointType, point::Point},
+    conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, conf_keywd::FnConfPointType}, 
 };
 
 use super::{fn_inputs::FnInputs, fn_::FnInOut, fn_input::FnInput, fn_sum::FnSum, fn_timer::FnTimer};
@@ -55,8 +55,11 @@ impl NestedFn {
             FnConfKind::Point => {                
                 println!("NestedFn.function | function input: {:?}...", inputName);
                 let initial = match conf.pointType.clone() {
-                    Some(pointType) => pointType,
-                    None => panic!("NestedFn.function | Point type required"),
+                    FnConfPointType::Bool => PointType::Bool(Point::newBool("initial", false)),
+                    FnConfPointType::Int => PointType::Int(Point::newInt("initial", 0)),
+                    FnConfPointType::Float => PointType::Float(Point::newFloat("initial", 0.0)),
+                    FnConfPointType::String => PointType::String(Point::newString("initial", "")),
+                    FnConfPointType::Unknown => panic!("NestedFn.function | Point type required"),
                 };
                 let input = Self::fnInput(inputName, initial);
                 inputs.add(inputName, input.clone());
