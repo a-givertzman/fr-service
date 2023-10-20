@@ -3,7 +3,7 @@
 use std::{rc::Rc, cell::RefCell};
 
 use crate::core_::{
-    point::point::PointType,
+    point::point_type::PointType,
     conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind}, 
 };
 

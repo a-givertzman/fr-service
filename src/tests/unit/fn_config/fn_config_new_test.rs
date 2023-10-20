@@ -3,7 +3,7 @@
 use log::{debug, info};
 use std::{sync::Once, collections::HashMap};
 
-use crate::core_::{conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind}, debug::debug_session::{DebugSession, LogLevel}, point::point::{PointType, Point}};
+use crate::core_::{conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind}, debug::debug_session::{DebugSession, LogLevel}, point::{point_type::PointType, point::Point}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;

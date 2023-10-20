@@ -5,7 +5,7 @@ use std::{rc::Rc, cell::RefCell};
 
 use log::{debug, trace};
 
-use crate::core_::point::point::PointType;
+use crate::core_::point::point_type::PointType;
 
 use super::fn_::{FnInOut, FnIn, FnOut};
 

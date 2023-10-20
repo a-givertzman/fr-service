@@ -2,7 +2,7 @@
 
 use std::{cell::RefCell, rc::Rc};
 
-use crate::core_::{conf::metric_config::MetricConfig, point::point::PointType};
+use crate::core_::{conf::metric_config::MetricConfig, point::point_type::PointType};
 
 use super::{fn_::FnInOut, fn_inputs::FnInputs, nested_fn::NestedFn};
 
