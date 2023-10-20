@@ -8,20 +8,27 @@ use super::fn_::FnInOut;
 /// A container for storing FnInput by name
 #[derive(Debug)]
 pub struct FnInputs {
-    refs: HashMap<String, Rc<RefCell<Box<dyn FnInOut>>>>,
+    inputs: HashMap<String, Rc<RefCell<Box<dyn FnInOut>>>>,
+    vars: HashMap<String, Rc<RefCell<Box<dyn FnInOut>>>>,
 }
 impl FnInputs {
     ///
     /// Creates new container for storing FnInput
     pub fn new() -> Self {
         Self {
-            refs: HashMap::new()
+            inputs: HashMap::new(),
+            vars: HashMap::new(),
         }
     }
     ///
     /// Adding new input refeerence
-    pub fn add(&mut self, name: impl Into<String>, input: Rc<RefCell<Box<dyn FnInOut>>>) {
-        self.refs.insert(name.into(), input);
+    pub fn addInput(&mut self, name: impl Into<String>, input: Rc<RefCell<Box<dyn FnInOut>>>) {
+        self.inputs.insert(name.into(), input);
+    }
+    ///
+    /// Adding new variable refeerence
+    pub fn addVar(&mut self, name: impl Into<String>, input: Rc<RefCell<Box<dyn FnInOut>>>) {
+        self.vars.insert(name.into(), input);
     }
     // ///
     // /// Adding new Bool input refeerence
@@ -40,8 +47,13 @@ impl FnInputs {
     // }
     ///
     /// Returns input by it's name
-    pub fn get(&self, name: &str) -> Option<&Rc<RefCell<Box<dyn FnInOut>>>> {
-        self.refs.get(name.into())
+    pub fn getInput(&self, name: &str) -> Option<&Rc<RefCell<Box<dyn FnInOut>>>> {
+        self.inputs.get(name.into())
+    }
+    ///
+    /// Returns variable by it's name
+    pub fn getVar(&self, name: &str) -> Option<&Rc<RefCell<Box<dyn FnInOut>>>> {
+        self.vars.get(name.into())
     }
     // ///
     // /// Returns input::Bool by it's name

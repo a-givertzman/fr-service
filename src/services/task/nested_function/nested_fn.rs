@@ -15,12 +15,12 @@ pub struct NestedFn {}
 impl NestedFn {
     ///
     /// Creates nested functions tree from it config
-    pub fn new(conf: &mut FnConfig, inputs: &mut FnInputs) -> Rc<RefCell<Box<dyn FnInOut>>> {
-        Self::function("", conf, inputs)
+    pub fn new(conf: &mut FnConfig, taskStuff: &mut FnInputs) -> Rc<RefCell<Box<dyn FnInOut>>> {
+        Self::function("", conf, taskStuff)
     }
     ///
     /// 
-    fn function(inputName: &str, conf: &mut FnConfig, inputs: &mut FnInputs) -> Rc<RefCell<Box<dyn FnInOut>>> {
+    fn function(inputName: &str, conf: &mut FnConfig, taskStuff: &mut FnInputs) -> Rc<RefCell<Box<dyn FnInOut>>> {
         match conf.fnKind {
             FnConfKind::Fn => {
                 match conf.name.as_str() {
@@ -28,10 +28,10 @@ impl NestedFn {
                         println!("NestedFn.function | function sum");
                         let name = "input1";
                         let conf = conf.inputs.get_mut(name).unwrap();
-                        let input1 = Self::function(name, conf, inputs);
+                        let input1 = Self::function(name, conf, taskStuff);
                         let name = "input1";
                         let conf = conf.inputs.get_mut(name).unwrap();
-                        let input2 = Self::function(name, conf, inputs);
+                        let input2 = Self::function(name, conf, taskStuff);
                         let func = Self::fnSum(inputName, input1, input2);
                         func
                     }
@@ -39,7 +39,7 @@ impl NestedFn {
                         println!("NestedFn.function | function timer");
                         let name = "input1";
                         let conf = conf.inputs.get_mut(name).unwrap();
-                        let input = Self::function(name, conf, inputs);
+                        let input = Self::function(name, conf, taskStuff);
                         let func = Self::fnTimer(inputName, 0.0, input, true);
                         func
                     },
@@ -47,7 +47,16 @@ impl NestedFn {
                 }
             },
             FnConfKind::Var => {
-                panic!("NestedFn.function | Var not implemented yet")
+                let varName = conf.name.clone();
+                let (inputConfName, inputConf) = match conf.inputs.iter_mut().next() {
+                    Some(inputConf) => inputConf,
+                    None => panic!("NestedFn.function | Var {:?} must have exact one input", &varName),
+                };
+                let input = Self::function(&inputConfName, inputConf, taskStuff);
+                taskStuff.addVar(inputName, input.clone());
+                println!("NestedFn.function | function input: {:?}", input);
+                input
+                // panic!("NestedFn.function | Var not implemented yet")
             },
             FnConfKind::Const => {
                 panic!("NestedFn.function | Const not implemented yet")
@@ -62,7 +71,7 @@ impl NestedFn {
                     FnConfPointType::Unknown => panic!("NestedFn.function | Point type required"),
                 };
                 let input = Self::fnInput(inputName, initial);
-                inputs.add(inputName, input.clone());
+                taskStuff.addInput(inputName, input.clone());
                 println!("NestedFn.function | function input: {:?}", input);
                 input
             },
