@@ -3,7 +3,7 @@
 use log::trace;
 use std::fmt::Debug;
 
-use crate::core_::point::point::PointType;
+use crate::core_::point::point_type::PointType;
 
 use super::fn_::{FnIn, FnOut, FnInOut};
 

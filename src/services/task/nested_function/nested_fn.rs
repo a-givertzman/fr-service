@@ -26,17 +26,20 @@ impl NestedFn {
                 match conf.name.as_str() {
                     "sum" => {
                         println!("NestedFn.function | function sum");
-                        let (name, mut conf) = conf.inputs.get_key_value("input1").unwrap();
-                        let input1 = Self::function(name, &mut conf, inputs);
-                        let (name, mut conf) = conf.inputs.get_key_value("input2").unwrap();
-                        let input2 = Self::function(name, &mut conf, inputs);
+                        let name = "input1";
+                        let conf = conf.inputs.get_mut(name).unwrap();
+                        let input1 = Self::function(name, conf, inputs);
+                        let name = "input1";
+                        let conf = conf.inputs.get_mut(name).unwrap();
+                        let input2 = Self::function(name, conf, inputs);
                         let func = Self::fnSum(inputName, input1, input2);
                         func
                     }
                     "timer" => {
                         println!("NestedFn.function | function timer");
-                        let (name, mut conf) = conf.inputs.get_key_value("input1").unwrap();
-                        let input = Self::function(name, &mut conf, inputs);
+                        let name = "input1";
+                        let conf = conf.inputs.get_mut(name).unwrap();
+                        let input = Self::function(name, conf, inputs);
                         let func = Self::fnTimer(inputName, 0.0, input, true);
                         func
                     },
@@ -51,7 +54,7 @@ impl NestedFn {
             },
             FnConfKind::Point => {                
                 println!("NestedFn.function | function input: {:?}...", inputName);
-                let initial = match conf.pointType {
+                let initial = match conf.pointType.clone() {
                     Some(pointType) => pointType,
                     None => panic!("NestedFn.function | Point type required"),
                 };

@@ -3,7 +3,7 @@
 use log::{trace, info};
 use std::{sync::Once, env, collections::HashMap};
 
-use crate::core_::{conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind}, debug::debug_session::{DebugSession, LogLevel}, point::point::PointType};
+use crate::core_::{conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind}, debug::debug_session::{DebugSession, LogLevel}, point::{point_type::PointType, point::Point}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -45,12 +45,12 @@ fn test_fn_config_read_valid() {
                             ("input".to_string(), FnConfig { 
                                 fnKind: FnConfKind::Fn, name: "functionName".to_string(), pointType: None, inputs: HashMap::from([
                                     ("input".to_string(), FnConfig { 
-                                        fnKind: FnConfKind::Point, name: "/path/Point.Name/".to_string(), pointType: Some(PointType::Bool(())), inputs: HashMap::from([]) 
+                                        fnKind: FnConfKind::Point, name: "/path/Point.Name/".to_string(), pointType: Some(PointType::Bool(Point::newBool("bool", false))), inputs: HashMap::from([]) 
                                     }),
                                 ]) 
                             }),
                             ("input2".to_string(), FnConfig { 
-                                fnKind: FnConfKind::Point, name: "/path/Point.Name/".to_string(), pointType: Some(PointType::Bool(())), inputs: HashMap::from([]) 
+                                fnKind: FnConfKind::Point, name: "/path/Point.Name/".to_string(), pointType: Some(PointType::Bool(Point::newBool("bool", false))), inputs: HashMap::from([]) 
                             }),
                             ("input1".to_string(), FnConfig { 
                                 fnKind: FnConfKind::Const, name: "someValue".to_string(), pointType: None, inputs: HashMap::from([]) 

@@ -1,9 +1,9 @@
 #![allow(non_snake_case)]
 
-use log::{trace, debug, error};
+use log::{trace, debug, error, warn};
 use std::{fs, collections::HashMap, str::FromStr};
 
-use crate::core_::{conf::conf_keywd::ConfKeywd, conf::conf_tree::ConfTree, point::point::PointType};
+use crate::core_::{conf::conf_keywd::ConfKeywd, conf::conf_tree::ConfTree, point::point_type::PointType};
 
 use super::fn_conf_kind::FnConfKind;
 
@@ -25,7 +25,7 @@ enum ValueType<'a> {
 ///             input2: point '/path/Point.Name/'
 ///             input fn functionName:
 ///                 input: point '/path/Point.Name/'```
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct FnConfig {
     pub fnKind: FnConfKind,
     pub name: String,
@@ -124,7 +124,13 @@ impl FnConfig {
                                 Some(pointTypeConf) => {
                                     match pointTypeConf.asStr("type") {
                                         Ok(pointTypeName) => {
-                                            Some(PointType::from_str(pointTypeName))
+                                            match PointType::from_str(pointTypeName) {
+                                                Ok(pointType) => Some(pointType),
+                                                Err(err) => {
+                                                    warn!("FnConfig.new | Error parsing point type: {:?}", err);
+                                                    None
+                                                },
+                                            }
                                         },
                                         Err(_) => None,
                                     }

@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Bool(pub bool);
 impl std::ops::Add for Bool {
     type Output = Bool;

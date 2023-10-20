@@ -17,7 +17,7 @@ use crate::core_::conf::{fn_config::FnConfig, conf_tree::ConfTree, conf_keywd::C
 ///         input2:
 ///             metric sqlSelectMetric:
 ///                 ...
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct MetricConfig {
     pub(crate) name: String,
     pub(crate) table: String,

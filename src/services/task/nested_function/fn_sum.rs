@@ -5,7 +5,7 @@ use std::{rc::Rc, cell::RefCell};
 
 use log::{debug, trace};
 
-use crate::core_::point::point_type::PointType;
+use crate::core_::{point::point_type::PointType, types::type_of::DebugTypeOf};
 
 use super::fn_::{FnInOut, FnIn, FnOut};
 
@@ -31,9 +31,9 @@ impl FnOut for FnSum {
     //
     //
     fn out(&mut self) -> PointType {
-        let value1 = self.input1.borrow().out();
+        let value1 = self.input1.borrow_mut().out();
         trace!("FnSum({}).out | value1: {:?}", self.id, &value1);
-        let value2 = self.input2.borrow().out();
+        let value2 = self.input2.borrow_mut().out();
         trace!("FnSum({}).out | value2: {:?}", self.id, &value2);
         let out = match value1 {
             PointType::Bool(value1) => {
@@ -45,6 +45,7 @@ impl FnOut for FnSum {
             PointType::Float(value1) => {
                 PointType::Float(value1 + value2.asFloat())
             },
+            _ => panic!("FnCount.out | {:?} type is not supported: {:?}", value1.typeOf(), value1),
         };
         trace!("FnSum({}).out | out: {:?}", self.id, &out);
         out

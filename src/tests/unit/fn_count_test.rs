@@ -3,7 +3,12 @@
 use log::{debug, info};
 use std::{sync::Once, rc::Rc, cell::RefCell};
 
-use crate::{core_::debug::debug_session::{DebugSession, LogLevel}, services::task::nested_function::{fn_::FnIn, fn_count::FnCount}};
+use crate::{
+    core_::{debug::debug_session::{DebugSession, LogLevel}, 
+    point::{point_type::PointType, point::Point}}, 
+    services::task::nested_function::{fn_::{FnInOut, FnOut}, 
+    fn_count::FnCount, fn_input::FnInput},
+};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -23,18 +28,24 @@ fn initOnce() {
 ///
 /// returns:
 ///  - ...
-fn initEach() -> () {
-
+fn initEach(initial: PointType) -> Rc<RefCell<Box<dyn FnInOut>>> {
+    fn boxFnInput(input: FnInput) -> Box<(dyn FnInOut)> {
+        Box::new(input)
+    }
+    Rc::new(RefCell::new(
+        boxFnInput(
+            FnInput::new("test", initial)
+        )
+    ))
 }
+
 
 #[test]
 fn test_single() {
     DebugSession::init(LogLevel::Debug);
     initOnce();
-    initEach();
     info!("test_single");
-    // let (initial, switches) = initEach();
-    let input = Rc::new(RefCell::new(FnIn::new(false)));
+    let mut input = initEach(PointType::Bool(Point::newBool("bool", false)));
     let mut fnCount = FnCount::new(
         0, 
         input.clone(),
@@ -56,22 +67,25 @@ fn test_single() {
         (false, 4),
     ];
     for (value, targetState) in testData {
-        input.borrow_mut().add(value);
+        let point = PointType::Bool(Point::newBool("test", value));
+        input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = fnCount.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
+        let targetState = PointType::Int(Point::newInt("tesr", targetState));
         assert_eq!(state, targetState);
     }        
 }
-
+// 
 
 #[test]
 fn test_multiple() {
     DebugSession::init(LogLevel::Debug);
+    initOnce();
     info!("test_multiple");
     // let (initial, switches) = initEach();
-    let input = Rc::new(RefCell::new(FnIn::new(false)));
+    let mut input = initEach(PointType::Bool(Point::newBool("bool", false)));
     let mut fnCount = FnCount::new(
         0, 
         input.clone(),
@@ -93,11 +107,13 @@ fn test_multiple() {
         (false, 4),
     ];
     for (value, targetState) in testData {
-        input.borrow_mut().add(value);
+        let point = PointType::Bool(Point::newBool("test", value));
+        input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = fnCount.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
+        let targetState = PointType::Int(Point::newInt("tesr", targetState));
         assert_eq!(state, targetState);
     }        
 }
@@ -105,9 +121,9 @@ fn test_multiple() {
 #[test]
 fn test_multiple_reset() {
     DebugSession::init(LogLevel::Debug);
+    initOnce();
     info!("test_multiple_reset");
-    // let (initial, switches) = initEach();
-    let input = Rc::new(RefCell::new(FnIn::new(false)));
+    let mut input = initEach(PointType::Bool(Point::newBool("bool", false)));
     let mut fnCount = FnCount::new(
         0, 
         input.clone(),
@@ -132,11 +148,13 @@ fn test_multiple_reset() {
         if reset {
             fnCount.reset();
         }
-        input.borrow_mut().add(value);
+        let point = PointType::Bool(Point::newBool("test", value));
+        input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = fnCount.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
+        let targetState = PointType::Int(Point::newInt("tesr", targetState));
         assert_eq!(state, targetState);
     }        
 }

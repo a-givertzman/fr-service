@@ -41,11 +41,11 @@ impl MetricSelect {
         let (inputName, inputConf) = conf.inputs.iter_mut().next().unwrap();
         let func = NestedFn::new(inputConf, inputs);
         MetricSelect {
-            id: conf.name,
+            id: conf.name.clone(),
             input: func,
             initial: conf.initial,
-            table: conf.table,
-            sql: conf.sql,
+            table: conf.table.clone(),
+            sql: conf.sql.clone(),
         }
     }
 }
@@ -68,7 +68,7 @@ impl FnMetric for MetricSelect {
     //
     //
     fn out(&self) -> String {
-        let pointType = self.input.borrow().out();
+        let pointType = self.input.borrow_mut().out();
         match pointType {
             PointType::Bool(point) => {
                 format!("insert into table values(id, value, timestamp) ({},{},{})", self.id, point.value, point.timestamp)
@@ -77,6 +77,9 @@ impl FnMetric for MetricSelect {
                 format!("insert into table values(id, value, timestamp) ({},{},{})", self.id, point.value, point.timestamp)
             },
             PointType::Float(point) => {
+                format!("insert into table values(id, value, timestamp) ({},{},{})", self.id, point.value, point.timestamp)
+            },
+            PointType::String(point) => {
                 format!("insert into table values(id, value, timestamp) ({},{},{})", self.id, point.value, point.timestamp)
             },
         }

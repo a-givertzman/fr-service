@@ -9,7 +9,7 @@ use regex::RegexBuilder;
 use crate::core_::types::bool::Bool;
 
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Point<T> {
     pub name: String,
     pub value: T,
@@ -43,6 +43,16 @@ impl Point<f64> {
         Point {
             name: name.into(),
             value: value,
+            status: 0,
+            timestamp: chrono::offset::Utc::now(),
+        }
+    }
+}
+impl Point<String> {
+    pub fn newString(name: &str, value: impl Into<String>) -> Point<String> {
+        Point {
+            name: name.into(),
+            value: value.into(),
             status: 0,
             timestamp: chrono::offset::Utc::now(),
         }

@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use std::thread;
+use std::{thread, clone};
 use std::time::Duration;
 
 use log::{info, debug};
@@ -11,11 +11,9 @@ use log::{info, debug};
 use crate::core_::conf::fn_conf_kind::FnConfKind;
 use crate::core_::conf::task_config::{TaskConfig, TaskConfNode};
 use crate::services::task::nested_function::metric_builder::MetricBuilder;
-use crate::services::task::nested_function::nested_fn::NestedFn;
 use crate::services::task::task_cycle::TaskCycle;
 use crate::services::task::task_stuff::TaskStuff;
 
-use super::nested_function::fn_::FnOut;
 use super::nested_function::fn_inputs::FnInputs;
 use super::nested_function::metric_select::FnMetric;
 
@@ -45,33 +43,33 @@ impl Task {
         let mut nodes = HashMap::new();
         let mut inputs = FnInputs::new();
         for (nodeName, mut nodeConf) in cfg.nodes {
-            match nodeConf {
+            match nodeConf.clone() {
                 TaskConfNode::Fn(fnConf) => {
                     match fnConf.fnKind {
                         FnConfKind::Metric => {
-                            debug!("Task.new | metricConf: {:?}: {:?}", nodeName, fnConf);
+                            debug!("Task.new | metricConf: {:?}: {:?}", nodeName, &fnConf);
                         },
                         FnConfKind::Fn => {
-                            debug!("Task.new | fnConf: {:?}: {:?}", nodeName, fnConf);
+                            debug!("Task.new | fnConf: {:?}: {:?}", nodeName, &fnConf);
                             // NestedFn::new(&mut fnConf, &mut inputs)
                         },
                         FnConfKind::Var => {
-                            debug!("Task.new | varConf: {:?}: {:?}", nodeName, fnConf);
+                            debug!("Task.new | varConf: {:?}: {:?}", nodeName, &fnConf);
                         },
                         FnConfKind::Const => {
-                            panic!("Task.new | Const is not supported in the root of the Task, config: {:?}: {:?}", nodeName, nodeConf);
+                            panic!("Task.new | Const is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
                         },
                         FnConfKind::Point => {
-                            panic!("Task.new | Point is not supported in the root of the Task, config: {:?}: {:?}", nodeName, nodeConf);
+                            panic!("Task.new | Point is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
                         },
                     }
                 },
                 TaskConfNode::Metric(mut metricConf) => {
                     nodes.insert(
-                        nodeName,
+                        nodeName.clone(),
                         MetricBuilder::new(&mut metricConf, &mut inputs),
                     );
-                    debug!("Task.new | metricConf: {:?}: {:?}", nodeName, metricConf)
+                    debug!("Task.new | metricConf: {:?}: {:?}", &nodeName, metricConf)
                 },
             }
         }

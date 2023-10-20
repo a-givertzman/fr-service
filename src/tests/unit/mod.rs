@@ -3,7 +3,7 @@ pub mod config_tree;
 
 pub mod switch_state_test;
 
-pub mod fn_in_test;
+pub mod fn_input_test;
 
 pub mod fn_count_test;
 

@@ -3,7 +3,11 @@
 use log::{debug, info};
 use std::{sync::Once, rc::Rc, cell::RefCell};
 
-use crate::{core_::debug::debug_session::{DebugSession, LogLevel}, services::task::nested_function::fn_::FnIn};
+use crate::{
+    core_::{debug::debug_session::{DebugSession, LogLevel}, 
+    point::{point_type::PointType, point::Point}}, 
+    services::task::nested_function::{fn_::{FnIn, FnOut, FnInOut}, fn_input::FnInput},
+};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -23,8 +27,15 @@ fn initOnce() {
 ///
 /// returns:
 ///  - ...
-fn initEach() -> () {
-
+fn initEach(initial: PointType) -> Rc<RefCell<Box<dyn FnInOut>>> {
+    fn boxFnInput(input: FnInput) -> Box<(dyn FnInOut)> {
+        Box::new(input)
+    }
+    Rc::new(RefCell::new(
+        boxFnInput(
+            FnInput::new("test", initial)
+        )
+    ))
 }
 
 
@@ -32,9 +43,8 @@ fn initEach() -> () {
 fn test_int() {
     DebugSession::init(LogLevel::Debug);
     initOnce();
-    initEach();
     info!("test_int");
-    let mut input = FnIn::new(0);
+    let mut input = initEach(PointType::Int(Point::newInt("int", 0)));
     let testData = vec![
         0,
         1,
@@ -52,12 +62,14 @@ fn test_int() {
         0,
     ];
     for value in testData {
-        input.add(value);
+        let point = PointType::Int(Point::newInt("test", value));
+        input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
-        let state = input.out();
+        let state = input.borrow_mut().out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state, value);
+        let targetState = PointType::Int(Point::newInt("tesr", value));
+        assert_eq!(state, targetState);
     }        
 }
 
@@ -65,9 +77,8 @@ fn test_int() {
 fn test_bool() {
     DebugSession::init(LogLevel::Debug);
     initOnce();
-    initEach();
     info!("test_bool");
-    let input = Rc::new(RefCell::new(FnIn::new(false)));
+    let mut input = initEach(PointType::Bool(Point::newBool("bool", false)));
     let testData = vec![
         false,
         false,
@@ -87,12 +98,14 @@ fn test_bool() {
         false,
     ];
     for value in testData {
-        input.borrow_mut().add(value);
+        let point = PointType::Bool(Point::newBool("test", value));
+        input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = input.borrow_mut().out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state, value);
+        let targetState = PointType::Bool(Point::newBool("tesr", value));
+        assert_eq!(state, targetState);
     }        
 }
 
@@ -100,9 +113,8 @@ fn test_bool() {
 fn test_float() {
     DebugSession::init(LogLevel::Debug);
     initOnce();
-    initEach();
     info!("test_float");
-    let input = Rc::new(RefCell::new(FnIn::new(0.0)));
+    let mut input = initEach(PointType::Float(Point::newFloat("float", 0.0)));
     let testData = vec![
         0.0,
         1.0,
@@ -122,12 +134,14 @@ fn test_float() {
         0.0,
     ];
     for value in testData {
-        input.borrow_mut().add(value);
+        let point = PointType::Float(Point::newFloat("test", value));
+        input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = input.borrow_mut().out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state, value);
+        let targetState = PointType::Float(Point::newFloat("tesr", value));
+        assert_eq!(state, targetState);
     }        
 }
 
@@ -136,9 +150,8 @@ fn test_float() {
 fn test_string() {
     DebugSession::init(LogLevel::Debug);
     initOnce();
-    initEach();
     info!("test_string");
-    let mut input = FnIn::new("0");
+    let mut input = initEach(PointType::String(Point::newString("string", "0")));
     let testData = vec![
         "0",
         "1",
@@ -156,11 +169,13 @@ fn test_string() {
         "0",
     ];
     for value in testData {
-        input.add(value);
+        let point = PointType::String(Point::newString("test", value));
+        input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
-        let state = input.out();
+        let state = input.borrow_mut().out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state, value);
+        let targetState = PointType::String(Point::newString("tesr", value));
+        assert_eq!(state, targetState);
     }        
 }

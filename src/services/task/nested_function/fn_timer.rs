@@ -3,7 +3,7 @@
 use log::debug;
 use std::{cell::RefCell, rc::Rc, time::Instant};
 
-use crate::core_::{state::switch_state::{SwitchState, Switch, SwitchCondition}, point::point::{PointType, Point}};
+use crate::core_::{state::switch_state::{SwitchState, Switch, SwitchCondition}, point::{point_type::PointType, point::Point}, types::type_of::DebugTypeOf};
 
 use super::fn_::{FnInOut, FnIn, FnOut};
 
@@ -111,10 +111,11 @@ impl FnOut for FnTimer {
     fn out(&mut self) -> PointType {
         // trace!("FnTimer.out | input: {:?}", self.input.print());
         let point = self.input.borrow_mut().out();
-        let value = match point {
+        let value = match &point {
             PointType::Bool(point) => point.value.0,
             PointType::Int(point) => point.value > 0,
             PointType::Float(point) => point.value > 0.0,
+            _ => panic!("FnCount.out | {:?} type is not supported: {:?}", point.typeOf(), point),
         };
         self.state.add(value);
         let state = self.state.state();

@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use crate::core_::point::point::PointType;
+use crate::core_::point::point_type::PointType;
 
 
 ///

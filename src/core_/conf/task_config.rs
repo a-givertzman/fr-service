@@ -1,10 +1,12 @@
+#![allow(non_snake_case)]
+
 use log::{trace, debug, error};
 use std::{fs, collections::HashMap, str::FromStr};
 
 use crate::core_::conf::{metric_config::MetricConfig, fn_config::FnConfig, conf_tree::ConfTree, conf_keywd::ConfKeywd};
 
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) enum TaskConfNode {
     Fn(FnConfig),
     Metric(MetricConfig)

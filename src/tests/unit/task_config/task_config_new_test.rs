@@ -3,7 +3,11 @@
 use log::{info, debug};
 use std::{sync::Once, collections::HashMap};
 
-use crate::core_::{conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, metric_config::MetricConfig, task_config::{TaskConfig, TaskConfNode}}, debug::debug_session::{DebugSession, LogLevel}, point::point::PointType};
+use crate::core_::{
+    debug::debug_session::{DebugSession, LogLevel}, 
+    point::{point_type::PointType, point::Point},
+    conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, metric_config::MetricConfig, task_config::{TaskConfig, TaskConfNode}}, 
+};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -87,10 +91,10 @@ fn test_fn_config_new_valid() {
                                                 (String::from("input"), FnConfig { 
                                                     fnKind: FnConfKind::Fn, name: String::from("functionName"), pointType: None, inputs: HashMap::from([
                                                         (String::from("input1"), FnConfig { fnKind: FnConfKind::Const, name: String::from("someValue"), pointType: None, inputs: HashMap::new() }),
-                                                        (String::from("input2"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), pointType: Some(PointType::Bool(())), inputs: HashMap::new() }), 
+                                                        (String::from("input2"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), pointType: Some(PointType::Bool(Point::newBool("bool", false))), inputs: HashMap::new() }), 
                                                         (String::from("input"), FnConfig { 
                                                             fnKind: FnConfKind::Fn, name: String::from("functionName"), pointType: None, inputs: HashMap::from([
-                                                                (String::from("input"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), pointType: Some(PointType::Bool(())), inputs: HashMap::new() }),
+                                                                (String::from("input"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), pointType: Some(PointType::Bool(Point::newBool("bool", false))), inputs: HashMap::new() }),
                                                             ])
                                                         }), 
                                                     ]) 
@@ -131,10 +135,10 @@ fn test_fn_config_new_valid() {
                                     (String::from("input"), FnConfig { 
                                         fnKind: FnConfKind::Fn, name: String::from("functionName"), pointType: None, inputs: HashMap::from([
                                             (String::from("input1"), FnConfig { fnKind: FnConfKind::Const, name: String::from("someValue"), pointType: None, inputs: HashMap::new() }),
-                                            (String::from("input2"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), pointType: Some(PointType::Bool(())), inputs: HashMap::new() }), 
+                                            (String::from("input2"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), pointType: Some(PointType::Bool(Point::newBool("bool", false))), inputs: HashMap::new() }), 
                                             (String::from("input"), FnConfig { 
                                                 fnKind: FnConfKind::Fn, name: String::from("functionName"), pointType: None, inputs: HashMap::from([
-                                                    (String::from("input"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), pointType: Some(PointType::Bool(())), inputs: HashMap::new() }),
+                                                    (String::from("input"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), pointType: Some(PointType::Bool(Point::newBool("bool", false))), inputs: HashMap::new() }),
                                                 ])
                                             }), 
                                         ]) 
