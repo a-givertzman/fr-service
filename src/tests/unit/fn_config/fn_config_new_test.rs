@@ -90,10 +90,10 @@ fn test_fn_config_new_valid() {
                     ("initial".to_string(), FnConfig { fnKind: FnConfKind::Var, name: "VarName2".to_string(), pointType: None, inputs: HashMap::new() }),
                     ("input".to_string(), FnConfig { fnKind: FnConfKind::Fn, name: "functionName2".to_string(), pointType: None, inputs: HashMap::from([
                         ("input1".to_string(), FnConfig { fnKind: FnConfKind::Const, name: "someValue".to_string(), pointType: None, inputs: HashMap::new() }),
-                        ("input2".to_string(), FnConfig { fnKind: FnConfKind::Point, name: "/path/Point.Name/".to_string(), pointType: Some(PointType::Bool(Point::mewBool("/path/Point.Name/", false))), inputs: HashMap::new() }),
+                        ("input2".to_string(), FnConfig { fnKind: FnConfKind::Point, name: "/path/Point.Name/".to_string(), pointType: Some(PointType::Bool(Point::newBool("/path/Point.Name/", false))), inputs: HashMap::new() }),
 
                         ("input3".to_string(), FnConfig { fnKind: FnConfKind::Fn, name: "functionName3".to_string(), pointType: None, inputs: HashMap::from([
-                            ("input".to_string(), FnConfig { fnKind: FnConfKind::Point, name: "/path/Point.Name/".to_string(), pointType: Some(PointType::Bool(Point::mewBool("/path/Point.Name/", false))), inputs: HashMap::new() }),
+                            ("input".to_string(), FnConfig { fnKind: FnConfKind::Point, name: "/path/Point.Name/".to_string(), pointType: Some(PointType::Bool(Point::newBool("/path/Point.Name/", false))), inputs: HashMap::new() }),
                         ]) }),
                     ])}),
                 ]) }),
