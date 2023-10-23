@@ -11,7 +11,7 @@ pub struct FnToApiQueue {
     id: String,
     input: Rc<RefCell<Box<dyn FnInOut>>>,
     sendQueue: Sender<String>,
-    state: PointType,
+    state: String,
 }
 ///
 /// 
@@ -25,7 +25,7 @@ impl FnToApiQueue {
             id: id.into(),
             input,
             sendQueue: send,
-            state: PointType::Bool(Point::newBool("initial state", false))
+            state: String::new(),
         }
     }
 }
@@ -43,21 +43,22 @@ impl FnOut for FnToApiQueue {
     //
     fn out(&mut self) -> PointType {
         let point = self.input.borrow_mut().out();
-        if point != self.state {
-            match point.clone() {
-                PointType::Bool(point) => {
-                    let value = point.value;
-                    error!("FnToApiQueue.out | String expected, but Bool value received: {}", value);
-                },
-                PointType::Int(point) => {
-                    let value = point.value;
-                    error!("FnToApiQueue.out | String expected, but Int value received: {}", value);
-                },
-                PointType::Float(point) => {
-                    let value = point.value;
-                    error!("FnToApiQueue.out | String expected, but Float value received: {}", value);
-                },
-                PointType::String(point) => {
+        match point.clone() {
+            PointType::Bool(point) => {
+                let value = point.value;
+                error!("FnToApiQueue.out | String expected, but Bool value received: {}", value);
+            },
+            PointType::Int(point) => {
+                let value = point.value;
+                error!("FnToApiQueue.out | String expected, but Int value received: {}", value);
+            },
+            PointType::Float(point) => {
+                let value = point.value;
+                error!("FnToApiQueue.out | String expected, but Float value received: {}", value);
+            },
+            PointType::String(point) => {
+                if point.value != self.state {
+                    self.state = point.value;
                     let sql = point.value;
                     trace!("FnToApiQueue.out | sql received: {}", &sql);
                     match self.sendQueue.send(sql.clone()) {
@@ -66,11 +67,10 @@ impl FnOut for FnToApiQueue {
                         },
                         Err(err) => {
                             error!("FnToApiQueue.out | Error sending to queue sql: {}\n\terror: {:?}", &sql, err);
-    
                         },
                     };
-                },
-            };
+                }
+            },
         };
         point
     }
