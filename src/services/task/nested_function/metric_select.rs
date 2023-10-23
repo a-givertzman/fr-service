@@ -2,23 +2,9 @@
 
 use std::{cell::RefCell, rc::Rc};
 
-use crate::core_::{conf::{metric_config::MetricConfig, fn_config::FnConfig}, point::{point_type::PointType, point::Point}};
+use crate::{core_::{conf::fn_config::FnConfig, point::{point_type::PointType, point::Point}}, services::task::task_stuff::TaskStuff};
 
-use super::{fn_::{FnInOut, FnOut, FnIn}, fn_inputs::FnInputs, nested_fn::NestedFn};
-
-
-// pub trait FnMetric {
-//     ///
-//     /// Creates new MetricXyz instance deppending on config
-//     // fn new(conf: &mut MetricConfig, inputs: &mut FnInputs) -> Self;
-//     ///
-//     /// returns output string containing sql
-//     fn out(&self) -> String;
-//     ///
-//     /// 
-//     fn reset(&mut self);
-// }
-
+use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn};
 
 
 ///
@@ -37,7 +23,7 @@ pub struct MetricSelect {
 impl MetricSelect {
     //
     //
-    pub fn new(conf: &mut FnConfig, taskStuff: &mut FnInputs) -> MetricSelect {
+    pub fn new(conf: &mut FnConfig, taskStuff: &mut TaskStuff) -> MetricSelect {
         let inputConf = conf.inputConf("input");
         let input = NestedFn::new(inputConf, taskStuff);
         MetricSelect {

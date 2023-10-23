@@ -4,6 +4,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
 use std::{thread, clone};
 use std::time::Duration;
@@ -17,11 +18,10 @@ use crate::core_::point::point_type::PointType;
 use crate::services::task::nested_function::metric_builder::MetricBuilder;
 use crate::services::task::nested_function::nested_fn::NestedFn;
 use crate::services::task::task_cycle::TaskCycle;
-use crate::services::task::task_stuff::TaskStuff;
 
 use super::nested_function::fn_::FnInOut;
-use super::nested_function::fn_inputs::FnInputs;
 use super::queue_send::QueueSend;
+use super::task_stuff::TaskStuff;
 
 // pub enum TaskNode {
 //     Var(Arc<dyn FnOut>),
@@ -36,7 +36,7 @@ pub struct Task {
     name: String,
     cycle: u64,
     conf: TaskConfig,
-    apiQueue: Box<dyn QueueSend<String>>,
+    apiQueue: Vec<Sender<String>>,
     exit: Arc<AtomicBool>,
     // nodes: Arc<Mutex<HashMap<String, Rc<RefCell<Box<dyn FnInOut>>>>>>,
 }
@@ -45,18 +45,18 @@ pub struct Task {
 impl Task {
     ///
     /// 
-    pub fn new(cfg: TaskConfig, apiQueue: Box<dyn QueueSend<String>>) ->Self {
+    pub fn new(cfg: TaskConfig, apiQueue: Sender<String>) ->Self {
         Self {
             name: cfg.name.clone(),
             cycle: cfg.cycle.clone(),
-            apiQueue: apiQueue,
+            apiQueue: vec![apiQueue],
             conf: cfg,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
     ///
     /// 
-    fn nodes(conf: TaskConfig, inputs: &mut FnInputs) -> HashMap<std::string::String, Rc<RefCell<Box<(dyn FnInOut)>>>> {
+    fn nodes(conf: TaskConfig, inputs: &mut TaskStuff) -> HashMap<std::string::String, Rc<RefCell<Box<(dyn FnInOut)>>>> {
         let mut nodeIndex = 0;
         let mut nodes = HashMap::new();
         for (_nodeName, mut nodeConf) in conf.nodes {
@@ -108,13 +108,14 @@ impl Task {
         let exit = self.exit.clone();
         let cycleInterval = self.cycle;
         let conf = self.conf.clone();
+        let mut queue = self.apiQueue.clone();
+        // queue.as_mut().send("value".to_string());
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             let mut cycle = TaskCycle::new(Duration::from_millis(cycleInterval));
-            
-            let mut taskStuff = FnInputs::new();
+            let mut taskStuff = TaskStuff::new();
             let nodes = Self::nodes(conf, &mut taskStuff);
             debug!("Task({}).run | taskStuff: {:?}", selfName, taskStuff);
-
+            
             let mut testValues = vec![0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0];
             // info!("Task({}).run | prepared", name);
             'inner: loop {

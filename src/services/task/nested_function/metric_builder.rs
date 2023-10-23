@@ -4,10 +4,10 @@ use log::debug;
 
 use crate::{
     core_::conf::fn_config::FnConfig, 
-    services::task::{nested_function::metric_select::MetricSelect},
+    services::task::{nested_function::metric_select::MetricSelect, task_stuff::TaskStuff},
 };
 
-use super::{fn_inputs::FnInputs, fn_::FnInOut};
+use super::fn_::FnInOut;
 
 ///
 /// 
@@ -17,7 +17,7 @@ pub struct MetricBuilder {
 ///
 /// 
 impl MetricBuilder {
-    pub fn new(conf: &mut FnConfig, taskStuff: &mut FnInputs) -> Rc<RefCell<Box<(dyn FnInOut)>>> {
+    pub fn new(conf: &mut FnConfig, taskStuff: &mut TaskStuff) -> Rc<RefCell<Box<(dyn FnInOut)>>> {
         match conf.name.as_str() {
             "sqlSelectMetric" => {
                 debug!("MetricBuilder.new | fnConf: {:?}: {:?}", conf.name, conf);

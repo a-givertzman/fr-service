@@ -47,8 +47,7 @@ fn test_task() {
 
     let (send, recv): (Sender<String>, Receiver<String>) = mpsc::channel();
 
-    let queue = Box::new(QueueSendMpscChannel::new(send));
-    let mut task = Task::new(config, queue);
+    let mut task = Task::new(config, send);
     trace!("task tuning...");
     task.run();
     trace!("task tuning - ok");
