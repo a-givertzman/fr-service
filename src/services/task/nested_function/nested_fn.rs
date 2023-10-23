@@ -85,7 +85,7 @@ impl NestedFn {
                 input
             },
             FnConfKind::Point => {                
-                println!("NestedFn.function | Input (Point): {:?}...", inputName);
+                println!("NestedFn.function | Input (Point): {:?} ({:?})...", inputName, conf.name);
                 let initial = match conf.type_.clone() {
                     FnConfPointType::Bool => PointType::Bool(Point::newBool("input initial", false)),
                     FnConfPointType::Int => PointType::Int(Point::newInt("input initial", 0)),
@@ -95,8 +95,7 @@ impl NestedFn {
                 };
                 let input = Self::fnInput(inputName, initial);
                 let pointName = conf.name.clone();
-                let inputName = pointName.split("/").last().unwrap(); 
-                taskStuff.addInput(inputName, input.clone());
+                taskStuff.addInput(pointName, input.clone());
                 println!("NestedFn.function | input (Point): {:?}", input);
                 input
             },

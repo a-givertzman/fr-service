@@ -10,7 +10,7 @@ task task1:
     cycle: 100
     api-queue: queueApi
     let Var1:
-        input: point int '/path/Point.Name/'
+        input: point float '/path/Point.Name'
     # fn toApiQueue:
     #     queue: queueApi
     #     input metric sqlSelectMetric:

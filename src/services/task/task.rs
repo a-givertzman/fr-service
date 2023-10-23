@@ -8,10 +8,12 @@ use std::sync::{Arc, Mutex};
 use std::{thread, clone};
 use std::time::Duration;
 
-use log::{info, debug};
+use log::{info, debug, warn};
 
 use crate::core_::conf::fn_conf_kind::FnConfKind;
 use crate::core_::conf::task_config::TaskConfig;
+use crate::core_::point::point::Point;
+use crate::core_::point::point_type::PointType;
 use crate::services::task::nested_function::metric_builder::MetricBuilder;
 use crate::services::task::nested_function::nested_fn::NestedFn;
 use crate::services::task::task_cycle::TaskCycle;
@@ -54,23 +56,22 @@ impl Task {
     }
     ///
     /// 
-    fn nodes(conf: TaskConfig) -> HashMap<std::string::String, Rc<RefCell<Box<(dyn FnInOut)>>>> {
+    fn nodes(conf: TaskConfig, inputs: &mut FnInputs) -> HashMap<std::string::String, Rc<RefCell<Box<(dyn FnInOut)>>>> {
         let mut nodes = HashMap::new();
-        let mut inputs = FnInputs::new();
         for (nodeName, mut nodeConf) in conf.nodes {
             debug!("Task.new | node: {:?}", nodeConf.name);
             match nodeConf.fnKind {
                 FnConfKind::Metric => {
                     nodes.insert(
                         nodeName.clone(),
-                        MetricBuilder::new(&mut nodeConf, &mut inputs),
+                        MetricBuilder::new(&mut nodeConf, inputs),
                     );
                     debug!("Task.new | metricConf: {:?}: {:?}", nodeName, &nodeConf);
                 },
                 FnConfKind::Fn => {
                     nodes.insert(
                         nodeName.clone(),
-                        MetricBuilder::new(&mut nodeConf, &mut inputs),
+                        MetricBuilder::new(&mut nodeConf, inputs),
                     );
                     debug!("Task.new | fnConf: {:?}: {:?}", nodeName, &nodeConf);
                     // NestedFn::new(&mut fnConf, &mut inputs)
@@ -78,7 +79,7 @@ impl Task {
                 FnConfKind::Var => {
                     nodes.insert(
                         nodeName.clone(),
-                        NestedFn::new(&mut nodeConf, &mut inputs),
+                        NestedFn::new(&mut nodeConf, inputs),
                     );
                     debug!("Task.new | varConf: {:?}: {:?}", nodeName, &nodeConf);
                 },
@@ -103,10 +104,14 @@ impl Task {
         let exit = self.exit.clone();
         let cycleInterval = self.cycle;
         let conf = self.conf.clone();
-        let h = thread::Builder::new().name("name".to_owned()).spawn(move || {
+        let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             let mut cycle = TaskCycle::new(Duration::from_millis(cycleInterval));
-            let nodes = Self::nodes(conf);
-            let stuff = TaskStuff::new();
+            
+            let mut taskStuff = FnInputs::new();
+            let nodes = Self::nodes(conf, &mut taskStuff);
+            debug!("Task({}).run | taskStuff: {:?}", name, taskStuff);
+
+            let mut testValues = vec![0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0];
             // info!("Task({}).run | prepared", name);
             'inner: loop {
                 cycle.start();
@@ -117,9 +122,27 @@ impl Task {
                 if exit.load(Ordering::Relaxed) {
                     break 'inner;
                 }
-                for (nodeName, node) in &nodes {
-                    node.borrow_mut().out();
-                }
+                match testValues.pop() {
+                    Some(value) => {
+                        let inputName = "/path/Point.Name";
+                        let point = PointType::Float(Point::newFloat(inputName, value));
+                        warn!("Task({}).run | input point: {:?}", name, point);
+                        match taskStuff.getInput(inputName) {
+                            Some(input) => {
+                                input.borrow_mut().add(point);
+                            },
+                            None => {
+                                warn!("Task({}).run | input {:?} - not fount", name, inputName);
+                            },
+                        };
+                        for (nodeName, node) in &nodes {
+                            node.borrow_mut().out();
+                        }
+                    },
+                    None => {
+                        warn!("Task({}).run | No more values", name);
+                    },
+                };
                 cycle.wait();
                 if exit.load(Ordering::Relaxed) {
                     break 'inner;
