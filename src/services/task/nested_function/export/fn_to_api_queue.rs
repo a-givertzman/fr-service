@@ -33,7 +33,7 @@ impl FnToApiQueue {
 /// 
 impl FnIn for FnToApiQueue {
     //
-    fn add(&mut self, point: PointType) {
+    fn add(&mut self, _: PointType) {
         panic!("FnToApiQueue.add | method is not used");
     }
 }
@@ -58,7 +58,7 @@ impl FnOut for FnToApiQueue {
             },
             PointType::String(point) => {
                 if point.value != self.state {
-                    self.state = point.value;
+                    self.state = point.value.clone();
                     let sql = point.value;
                     trace!("FnToApiQueue.out | sql received: {}", &sql);
                     match self.sendQueue.send(sql.clone()) {
