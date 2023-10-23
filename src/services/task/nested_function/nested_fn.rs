@@ -1,13 +1,13 @@
 #![allow(non_snake_case)]
 
-use std::{rc::Rc, cell::RefCell};
+use std::{rc::Rc, cell::RefCell, str::FromStr};
 
 use crate::core_::{
     point::{point_type::PointType, point::Point},
     conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, conf_keywd::FnConfPointType}, 
 };
 
-use super::{fn_inputs::FnInputs, fn_::FnInOut, fn_input::FnInput, fn_sum::FnAdd, fn_timer::FnTimer};
+use super::{fn_inputs::FnInputs, fn_::FnInOut, fn_input::FnInput, fn_add::FnAdd, fn_timer::FnTimer, functions::Functions, export::fn_to_api_queue::FnToApiQueue};
 
 ///
 /// Creates nested functions tree from it config
@@ -34,8 +34,8 @@ impl NestedFn {
                 let fnName= c.clone();
                 let fnName = fnName.as_str(); 
                 drop(c);
-                match fnName {
-                    "sum" => {
+                match Functions::from_str(fnName).unwrap() {
+                    Functions::Add => {
                         println!("NestedFn.function | Fn sum detected");
                         let name = "input1";
                         let inputConf = conf.inputConf(name);   // Self::getFnInputConf(name, fnName, conf);
@@ -43,20 +43,23 @@ impl NestedFn {
                         let name = "input2";
                         let inputConf = conf.inputConf(name);   // Self::getFnInputConf(name, fnName, conf);
                         let input2 = Self::function(name, inputConf, taskStuff);
-                        let func = Self::fnSum(inputName, input1, input2);
-                        func
+                        Self::fnSum(inputName, input1, input2)
                     }
-                    "timer" => {
+                    Functions::Timer => {
                         println!("NestedFn.function | Fn timer detected");
                         let name = "input1";
                         let conf = conf.inputs.get_mut(name).unwrap();
                         let input = Self::function(name, conf, taskStuff);
-                        let func = Self::fnTimer(inputName, 0.0, input, true);
-                        func
+                        Self::fnTimer(inputName, 0.0, input, true)
                     },
-                    "toApiQueue" => {
-
-                    }
+                    Functions::ToApiQueue => {
+                        println!("NestedFn.function | Fn toApiQueue detected");
+                        let name = "input";
+                        let inputConf = conf.inputConf(name);   // Self::getFnInputConf(name, fnName, conf);
+                        let input = Self::function(name, inputConf, taskStuff);
+                        Self::toApiQueue(inputName, input)
+                        // Self::toApiQueue(inputName, queue, input)
+                    },
                     _ => panic!("NestedFn.function | Unknown function name: {:?}", conf.name)
                 }
             },
@@ -114,6 +117,14 @@ impl NestedFn {
     ///
     /// 
     /// 
+    /// 
+    fn toApiQueue(id: impl Into<String>, input: Rc<RefCell<Box<dyn FnInOut>>>) -> Rc<RefCell<Box<(dyn FnInOut)>>> {
+        Rc::new(RefCell::new(
+            Box::new(
+                FnToApiQueue::new(id, input)
+            )
+        ))
+    }
     ///
     /// 
     fn boxFnInput(input: FnInput) -> Box<(dyn FnInOut)> {
@@ -141,11 +152,11 @@ impl NestedFn {
     ) -> Rc<RefCell<Box<dyn FnInOut>>> {
         Rc::new(RefCell::new(
             Self::boxFnSum(        
-                FnAdd {
-                    id: id.into(),
-                    input1: input1, 
-                    input2: input2, 
-                }
+                FnAdd::new(
+                    id,
+                    input1, 
+                    input2, 
+                )
             )
         ))
     }    

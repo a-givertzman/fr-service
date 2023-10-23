@@ -12,6 +12,7 @@ use super::fn_::{FnInOut, FnOut, FnIn};
 /// Counts number of raised fronts of boolean input
 #[derive(Debug)]
 pub struct FnCount {
+    id: String,
     input: Rc<RefCell<Box<dyn FnInOut>>>,
     state: SwitchState<bool, bool>,
     count: i64,
@@ -23,8 +24,9 @@ impl FnCount {
     ///
     /// Creates new instance of the FnCount
     #[allow(dead_code)]
-    pub fn new(initial: i64, input: Rc<RefCell<Box<dyn FnInOut>>>) -> Self {
+    pub fn new(id: impl Into<String>, initial: i64, input: Rc<RefCell<Box<dyn FnInOut>>>) -> Self {
         Self { 
+            id: id.into(),
             input,
             state: SwitchState::new(
                 false, 

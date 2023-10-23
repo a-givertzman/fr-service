@@ -47,6 +47,7 @@ fn test_single() {
     info!("test_single");
     let input = initEach(PointType::Bool(Point::newBool("bool", false)));
     let mut fnCount = FnCount::new(
+        "test",
         0, 
         input.clone(),
     );
@@ -85,6 +86,7 @@ fn test_multiple() {
     info!("test_multiple");
     let input = initEach(PointType::Bool(Point::newBool("bool", false)));
     let mut fnCount = FnCount::new(
+        "test",
         0, 
         input.clone(),
     );
@@ -122,6 +124,7 @@ fn test_multiple_reset() {
     info!("test_multiple_reset");
     let input = initEach(PointType::Bool(Point::newBool("bool", false)));
     let mut fnCount = FnCount::new(
+        "test",
         0, 
         input.clone(),
     );

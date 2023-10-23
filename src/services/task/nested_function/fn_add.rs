@@ -16,9 +16,23 @@ use super::fn_::{FnInOut, FnIn, FnOut};
 /// Function do Add of input1 and input2
 #[derive(Debug)]
 pub struct FnAdd {
-    pub id: String,
-    pub input1: Rc<RefCell<Box<dyn FnInOut>>>,
-    pub input2: Rc<RefCell<Box<dyn FnInOut>>>,
+    id: String,
+    input1: Rc<RefCell<Box<dyn FnInOut>>>,
+    input2: Rc<RefCell<Box<dyn FnInOut>>>,
+}
+///
+/// 
+impl FnAdd {
+    ///
+    /// Creates new instance of the FnCount
+    #[allow(dead_code)]
+    pub fn new(id: impl Into<String>, input1: Rc<RefCell<Box<dyn FnInOut>>>, input2: Rc<RefCell<Box<dyn FnInOut>>>) -> Self {
+        Self { 
+            id: id.into(),
+            input1,
+            input2,
+        }
+    }    
 }
 ///
 /// 
