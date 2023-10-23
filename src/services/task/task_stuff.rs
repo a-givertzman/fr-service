@@ -80,8 +80,13 @@ impl TaskStuff {
     }
     ///
     /// Returns send queue by it's name
-    pub fn getSendQueue(&mut self, name: &str) -> Option<Sender<String>> {
-        self.sendQueues.remove(name.into())
+    pub fn getSendQueue(&mut self, name: &str) -> Sender<String> {
+        match self.sendQueues.remove(name.into()) {
+            Some(sendQueue) => sendQueue,
+            None => {
+                panic!("TaskStuff.getSendQueue | sendQueue {:?} - not found", &name);
+            },
+        }
     }
 
 
