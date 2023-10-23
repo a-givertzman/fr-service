@@ -18,6 +18,9 @@ fn points() ->Vec<PointType> {
         PointType::Int(   Point { value: 65,     name:String::from("int1"),   status: 0, timestamp: chrono::offset::Utc::now() }),
     ]
 }
+fn pointFloat(value: f64) -> PointType {
+    PointType::Float( Point { value: value,  name:String::from("/path/Point.Name"), status: 0, timestamp: chrono::offset::Utc::now() })
+}
 
 pub struct TaskTestProducer {
     iterations: usize, 
@@ -40,13 +43,13 @@ impl TaskTestProducer {
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             let name = "prodicer";
             debug!("TaskTestProducer({}).run | calculating step...", name);
-            let points = points();
+            // let points = points();
             let mut random = rand::thread_rng();
-            let max = points.len();
+            let max = 1.0;//points.len();
             let mut sent = 0;
             for _ in 0..iterations {
-                let index = random.gen_range(0..max);
-                let point = &points[index];
+                let value = random.gen_range(0.0..max);
+                let point = pointFloat(value);
                 match send.send(point.clone()) {
                     Ok(_) => {
                         sent += 1;
@@ -61,6 +64,7 @@ impl TaskTestProducer {
             // thread::sleep(Duration::from_secs_f32(0.1));
             // debug!("TaskTestProducer({}).run | calculating step - done ({:?})", name, cycle.elapsed());
         }).unwrap();    
+        self.handle = Some(_h);
     }
     pub fn join(self) {
         match &self.handle {

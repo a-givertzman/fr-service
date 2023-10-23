@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{mpsc::Receiver, Arc, atomic::{AtomicBool, Ordering, AtomicUsize}}, thread};
+use std::{sync::{mpsc::Receiver, Arc, atomic::{AtomicBool, Ordering, AtomicUsize}}, thread::{self, JoinHandle}};
 
 use log::{info, debug, warn, trace};
 
@@ -8,6 +8,7 @@ use log::{info, debug, warn, trace};
 pub struct TaskTestReceiver {
     exit: Arc<AtomicBool>,
     received: Arc<AtomicUsize>,
+    handle: Option<JoinHandle<()>>,
 }
 
 impl TaskTestReceiver {
@@ -15,13 +16,14 @@ impl TaskTestReceiver {
         Self {
             exit: Arc::new(AtomicBool::new(false)),
             received: Arc::new(AtomicUsize::new(0)),
+            handle: None,
         }
     }
     pub fn run(&mut self, recvQueue: Receiver<String>, testValues: Vec<f64>) {
         info!("TaskTestReceiver.run | starting...");
         let exit = self.exit.clone();
         let received = self.received.clone();
-        let mut testValues = testValues.clone();
+        // let mut testValues = testValues.clone();
         let mut count = 0;
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             // info!("Task({}).run | prepared", name);
@@ -33,6 +35,7 @@ impl TaskTestReceiver {
                 match recvQueue.recv() {
                     Ok(sql) => {
                         count += 1;
+                        received.store(count, Ordering::Relaxed);
                         debug!("TaskTestReceiver.run | received SQL: {:?}", sql);
                         // debug!("TaskTestReceiver.run | value: {}\treceived SQL: {:?}", value, sql);
                         // assert!()
@@ -41,15 +44,6 @@ impl TaskTestReceiver {
                         warn!("TaskTestReceiver.run | Error receiving from queue: {:?}", err);
                     },
                 };
-                // match testValues.pop() {
-                //     Some(value) => {
-                //     },
-                //     None => {
-                //         warn!("TaskTestReceiver.run | No more values");
-                //         received.store(count, Ordering::Relaxed);
-                //         break;
-                //     },
-                // };
                 if exit.load(Ordering::Relaxed) {
                     break 'inner;
                 }
@@ -58,11 +52,20 @@ impl TaskTestReceiver {
             info!("TaskTestReceiver.run | stopped");
             // thread::sleep(Duration::from_secs_f32(2.1));
         }).unwrap();
+        self.handle = Some(_h);
     }
     pub fn exit(&mut self) {
         self.exit.store(true, Ordering::Relaxed);
     }
     pub fn received(&self) -> usize {
         self.received.load(Ordering::Relaxed)
+    }
+    pub fn join(self) {
+        match &self.handle {
+            Some(_) => {
+                self.handle.unwrap().join().unwrap()
+            },
+            None => {},
+        };
     }
 }

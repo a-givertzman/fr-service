@@ -62,13 +62,13 @@ fn test_task() {
     task.run();
     trace!("task tuning - ok");
     producer.join();
-    thread::sleep(Duration::from_millis(100));
+    thread::sleep(Duration::from_millis(200));
     trace!("task stopping...");
     task.exit();
     receiver.exit();
     trace!("task stopping - ok");
     println!("elapsed: {:?}", time.elapsed());
-    info!("Received points: {}", receiver.received());
+    println!("received: {:?}", receiver.received());
 
     // trace!("task: {:?}", &task);
     // assert_eq!(config, target);

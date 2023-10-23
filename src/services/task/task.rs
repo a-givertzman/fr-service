@@ -108,6 +108,7 @@ impl Task {
         let selfName = self.name.clone();
         let exit = self.exit.clone();
         let cycleInterval = self.cycle;
+        let cyclic = cycleInterval > 0;
         let conf = self.conf.clone();
         let apiQueue = self.apiQueue.pop().unwrap();
         let recvQueue = self.recvQueue.pop().unwrap();
@@ -145,7 +146,9 @@ impl Task {
                         warn!("Task({}).run | Error receiving from queue: {:?}", selfName, err);
                     },
                 };
-                cycle.wait();
+                if cyclic {
+                    cycle.wait();
+                }
                 debug!("Task({}).run | calculating step - done ({:?})", selfName, cycle.elapsed());
                 if exit.load(Ordering::Relaxed) {
                     break 'inner;

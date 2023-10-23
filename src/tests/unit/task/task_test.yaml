@@ -7,7 +7,7 @@
 #     max-length: 10000
 
 task task1:
-    cycle: 1
+    cycle: 0
     api-queue: queueApi
     let Var1:
         input fn add:
