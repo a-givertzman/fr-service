@@ -7,7 +7,7 @@ use crate::core_::{
     conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, conf_keywd::FnConfPointType}, 
 };
 
-use super::{fn_inputs::FnInputs, fn_::FnInOut, fn_input::FnInput, fn_sum::FnSum, fn_timer::FnTimer};
+use super::{fn_inputs::FnInputs, fn_::FnInOut, fn_input::FnInput, fn_sum::FnAdd, fn_timer::FnTimer};
 
 ///
 /// Creates nested functions tree from it config
@@ -54,6 +54,9 @@ impl NestedFn {
                         let func = Self::fnTimer(inputName, 0.0, input, true);
                         func
                     },
+                    "toApiQueue" => {
+
+                    }
                     _ => panic!("NestedFn.function | Unknown function name: {:?}", conf.name)
                 }
             },
@@ -128,7 +131,7 @@ impl NestedFn {
     }
     ///
     /// 
-    fn boxFnSum(input: FnSum) -> Box<(dyn FnInOut)> {
+    fn boxFnSum(input: FnAdd) -> Box<(dyn FnInOut)> {
         Box::new(input)
     }
     fn fnSum(
@@ -138,7 +141,7 @@ impl NestedFn {
     ) -> Rc<RefCell<Box<dyn FnInOut>>> {
         Rc::new(RefCell::new(
             Self::boxFnSum(        
-                FnSum {
+                FnAdd {
                     id: id.into(),
                     input1: input1, 
                     input2: input2, 

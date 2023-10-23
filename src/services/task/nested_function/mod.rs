@@ -1,5 +1,6 @@
 // pub mod fn_builder;
 pub mod fn_;
+pub mod functions;
 pub mod fn_sum;
 pub mod fn_input;
 pub mod fn_count;

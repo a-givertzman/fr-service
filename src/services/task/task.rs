@@ -57,21 +57,25 @@ impl Task {
     ///
     /// 
     fn nodes(conf: TaskConfig, inputs: &mut FnInputs) -> HashMap<std::string::String, Rc<RefCell<Box<(dyn FnInOut)>>>> {
+        let mut nodeIndex = 0;
         let mut nodes = HashMap::new();
-        for (nodeName, mut nodeConf) in conf.nodes {
-            debug!("Task.new | node: {:?}", nodeConf.name);
+        for (_nodeName, mut nodeConf) in conf.nodes {
+            let nodeName = nodeConf.name.clone();
+            debug!("Task.new | node: {:?}", &nodeConf.name);
             match nodeConf.fnKind {
                 FnConfKind::Metric => {
+                    nodeIndex += 1;
                     nodes.insert(
-                        nodeName.clone(),
+                        format!("{}-{}", nodeName, nodeIndex),
                         MetricBuilder::new(&mut nodeConf, inputs),
                     );
                     debug!("Task.new | metricConf: {:?}: {:?}", nodeName, &nodeConf);
                 },
                 FnConfKind::Fn => {
+                    nodeIndex += 1;
                     nodes.insert(
-                        nodeName.clone(),
-                        MetricBuilder::new(&mut nodeConf, inputs),
+                        format!("{}-{}", nodeName, nodeIndex),
+                        NestedFn::new(&mut nodeConf, inputs),
                     );
                     debug!("Task.new | fnConf: {:?}: {:?}", nodeName, &nodeConf);
                     // NestedFn::new(&mut fnConf, &mut inputs)

@@ -99,36 +99,6 @@ impl TaskConfig {
                         format!("{}-{}", nodeConf.name, nodeIndex),
                         nodeConf,
                     );
-
-                    // match ConfKeywd::from_str(&selfNodeConf.key) {
-                    //     Ok(selfNodeKeyword) => {
-                    //         nodeIndex += 1;
-                    //         let nodeConf = match selfNodeKeyword {
-                    //             ConfKeywd::Fn(_) => {
-                    //                 TaskConfNode::Fn(FnConfig::new(&selfNodeConf, &mut vars))
-                    //             },
-                    //             ConfKeywd::Var(_) => {
-                    //                 TaskConfNode::Fn(FnConfig::new(&selfNodeConf, &mut vars))
-                    //             },
-                    //             ConfKeywd::Const(_) => {
-                    //                 TaskConfNode::Fn(FnConfig::new(&selfNodeConf, &mut vars))
-                    //             },
-                    //             ConfKeywd::Metric(_) => {
-                    //                 TaskConfNode::Fn(FnConfig::new(&selfNodeConf, &mut vars))
-                    //             },
-                    //             ConfKeywd::Point(_) => {
-                    //                 panic!("TaskConfig.new | Unknown task keyword 'Point' in {:?}", &selfNodeConf.key)
-                    //             },
-                    //         };
-                    //         selfNodes.insert(
-                    //             format!("{}-{}", selfNodeKeyword.data(), nodeIndex),
-                    //             nodeConf,
-                    //         );
-                    //     },
-                    //     Err(err) => {
-                    //         panic!("TaskConfig.new | Unknown task keyword in {:?}\n\tdetales: {:?}", &selfNodeConf.key, err);
-                    //     },
-                    // };
                 }
                 TaskConfig {
                     name: selfName,
