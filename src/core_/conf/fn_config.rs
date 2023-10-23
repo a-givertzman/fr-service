@@ -102,53 +102,92 @@ impl FnConfig {
             }
         } else {
             debug!("FnConfig.new | SINGLE VALUE\t{:?}", &confTree.conf);
-            match ConfKeywd::from_str(confTree.conf.as_str().unwrap()) {
-                // keyword parsed successefully
-                //  - take input name and input Value / Fn from the keyword
-                Ok(fnKeyword) => {
-                    match fnKeyword {
-                        // ConfKeywd::Var(_) => {
-                            
-                        // },
-                        ConfKeywd::Const(_) => {
-                            FnConfig {
-                                fnKind: fnKeyword.kind(),
-                                name: fnKeyword.data(),
-                                inputs: HashMap::new(),
-                                type_: fnKeyword.type_(),
-                            }
-
-                        },
-                        ConfKeywd::Point(_) => {
-                            FnConfig {
-                                fnKind: fnKeyword.kind(),
-                                name: fnKeyword.data(),
-                                inputs: HashMap::new(),
-                                type_: fnKeyword.type_(),
-                            }
-
-                        },
-                        _ => {
-                            panic!("FnConfig.new | Unknown keyword: {:?}", confTree.conf)
-                        },
-                    }
-                },
-                // no keyword 
-                //  - current node just an varible name
-                Err(_) => {
-                    let varName = confTree.conf.as_str().unwrap().to_string();
-                    if vars.contains(&varName) {
-                        debug!("FnConfig.new | Variable declared - ok: {:?}", confTree.conf);
-                        FnConfig { 
-                            fnKind: FnConfKind::Var, 
-                            name: varName, 
-                            inputs: HashMap::new(),
-                            type_: FnConfPointType::Unknown,
+            if confTree.conf.is_string() {
+                match ConfKeywd::from_str(confTree.conf.as_str().unwrap()) {
+                    // keyword parsed successefully
+                    //  - take input name and input Value / Fn from the keyword
+                    Ok(fnKeyword) => {
+                        match fnKeyword {
+                            // ConfKeywd::Var(_) => {
+                                
+                            // },
+                            ConfKeywd::Const(_) => {
+                                FnConfig {
+                                    fnKind: fnKeyword.kind(),
+                                    name: fnKeyword.data(),
+                                    inputs: HashMap::new(),
+                                    type_: fnKeyword.type_(),
+                                }
+    
+                            },
+                            ConfKeywd::Point(_) => {
+                                FnConfig {
+                                    fnKind: fnKeyword.kind(),
+                                    name: fnKeyword.data(),
+                                    inputs: HashMap::new(),
+                                    type_: fnKeyword.type_(),
+                                }
+    
+                            },
+                            _ => {
+                                panic!("FnConfig.new | Unknown keyword: {:?}", confTree.conf)
+                            },
                         }
-                    } else {
-                        panic!("FnConfig.new | Variable not declared: {:?}", confTree.conf)
+                    },
+                    // no keyword 
+                    //  - current node just an varible name
+                    //  - or custom parameter
+                    Err(_) => {
+                        let varName = confTree.conf.as_str().unwrap().to_string();
+                        if vars.contains(&varName) {
+                            debug!("FnConfig.new | Variable declared - ok: {:?}", confTree.conf);
+                            FnConfig { 
+                                fnKind: FnConfKind::Var, 
+                                name: varName, 
+                                inputs: HashMap::new(),
+                                type_: FnConfPointType::Unknown,
+                            }
+                        } else {
+                            debug!("FnConfig.new | Custom parameter declared: {:?}", confTree.conf);
+                            FnConfig { 
+                                fnKind: FnConfKind::Param, 
+                                name: varName, 
+                                inputs: HashMap::new(),
+                                type_: FnConfPointType::Unknown,
+                            }
+                            // panic!("FnConfig.new | Variable not declared: {:?}", confTree.conf)
+                        }
                     }
                 }
+            } else if confTree.conf.is_bool() {
+                debug!("FnConfig.new | Custom parameter declared: {:?}", confTree.conf);
+                let varName = confTree.conf.as_bool().unwrap().to_string();
+                FnConfig { 
+                    fnKind: FnConfKind::Param, 
+                    name: varName, 
+                    inputs: HashMap::new(),
+                    type_: FnConfPointType::Unknown,
+                }
+            } else if confTree.conf.is_i64() {
+                debug!("FnConfig.new | Custom parameter declared: {:?}", confTree.conf);
+                let varName = confTree.conf.as_i64().unwrap().to_string();
+                FnConfig { 
+                    fnKind: FnConfKind::Param, 
+                    name: varName, 
+                    inputs: HashMap::new(),
+                    type_: FnConfPointType::Unknown,
+                }
+            } else if confTree.conf.is_f64() {
+                debug!("FnConfig.new | Custom parameter declared: {:?}", confTree.conf);
+                let varName = confTree.conf.as_f64().unwrap().to_string();
+                FnConfig { 
+                    fnKind: FnConfKind::Param, 
+                    name: varName, 
+                    inputs: HashMap::new(),
+                    type_: FnConfPointType::Unknown,
+                }
+            } else {
+                panic!("FnConfig.new | Custom parameter of unknown type declared, but : {:?}", confTree.conf);
             }
         }
     }
@@ -238,19 +277,22 @@ impl FnConfig {
             },
         }
     }
+    ///
+    /// returns input config by itc name
+    pub fn inputConf<'a>(&'a mut self, inputName: &str) -> &'a mut FnConfig {
+        match self.inputs.get_mut(inputName) {
+            Some(conf) => conf,
+            None => panic!("FnConfig.inputConf | function {:?} must have {:?}", self.name, inputName),
+        }
+    }
+    ///
+    /// returns custom parameter by it's name if exists, else none
+    pub fn param(&self, name: &str) -> &FnConfig {
+        match self.inputs.get(name) {
+            Some(param) => param,
+            None => {
+                panic!("FnConfig.param | parameter {:?} not fount in the {:?}", name, self.name);
+            },
+        }
+    }
 }
-
-// #[derive(Debug)]
-// pub struct FnVarConfig {
-//     pub value: FnConfig,
-// }
-
-// #[derive(Debug)]
-// pub struct FnConstConfig {
-//     pub value: String,
-// }
-
-// #[derive(Debug)]
-// pub struct FnPointConfig {
-//     pub value: String,
-// }

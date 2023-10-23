@@ -2,7 +2,7 @@
 
 use std::{cell::RefCell, rc::Rc};
 
-use crate::core_::{conf::metric_config::MetricConfig, point::{point_type::PointType, point::Point}};
+use crate::core_::{conf::{metric_config::MetricConfig, fn_config::FnConfig}, point::{point_type::PointType, point::Point}};
 
 use super::{fn_::{FnInOut, FnOut, FnIn}, fn_inputs::FnInputs, nested_fn::NestedFn};
 
@@ -37,15 +37,15 @@ pub struct MetricSelect {
 impl MetricSelect {
     //
     //
-    pub fn new(conf: &mut MetricConfig, taskStuff: &mut FnInputs) -> MetricSelect {
-        let (inputName, inputConf) = conf.inputs.iter_mut().next().unwrap();
+    pub fn new(conf: &mut FnConfig, taskStuff: &mut FnInputs) -> MetricSelect {
+        let inputConf = conf.inputConf("input");
         let input = NestedFn::new(inputConf, taskStuff);
         MetricSelect {
             id: conf.name.clone(),
             input: input,
-            initial: conf.initial,
-            table: conf.table.clone(),
-            sql: conf.sql.clone(),
+            initial: conf.param("initial").name.parse().unwrap(),
+            table: conf.param("table").name.clone(),
+            sql: conf.param("sql").name.clone(),
         }
     }
 }

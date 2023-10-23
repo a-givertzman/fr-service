@@ -18,12 +18,12 @@ impl NestedFn {
     pub fn new(conf: &mut FnConfig, taskStuff: &mut FnInputs) -> Rc<RefCell<Box<dyn FnInOut>>> {
         Self::function("", conf, taskStuff)
     }
-    fn getFnInputConf<'a>(fnName: &str, name: &str, conf: &'a mut FnConfig) -> &'a mut FnConfig {
-        match conf.inputs.get_mut(name) {
-            Some(conf) => conf,
-            None => panic!("NestedFn.function | function {:?} must have {:?}", fnName, name),
-        }
-    }
+    // fn getFnInputConf<'a>(inputName: &str, fnName: &str, conf: &'a mut FnConfig) -> &'a mut FnConfig {
+    //     match conf.inputs.get_mut(inputName) {
+    //         Some(conf) => conf,
+    //         None => panic!("NestedFn.function | function {:?} must have {:?}", fnName, inputName),
+    //     }
+    // }
     ///
     /// 
     fn function(inputName: &str, conf: &mut FnConfig, taskStuff: &mut FnInputs) -> Rc<RefCell<Box<dyn FnInOut>>> {
@@ -38,10 +38,10 @@ impl NestedFn {
                     "sum" => {
                         println!("NestedFn.function | Fn sum detected");
                         let name = "input1";
-                        let inputConf = Self::getFnInputConf(fnName, name, conf);
+                        let inputConf = conf.inputConf(name);   // Self::getFnInputConf(name, fnName, conf);
                         let input1 = Self::function(name, inputConf, taskStuff);
                         let name = "input2";
-                        let inputConf = Self::getFnInputConf(fnName, name, conf);
+                        let inputConf = conf.inputConf(name);   // Self::getFnInputConf(name, fnName, conf);
                         let input2 = Self::function(name, inputConf, taskStuff);
                         let func = Self::fnSum(inputName, input1, input2);
                         func
@@ -103,6 +103,9 @@ impl NestedFn {
             FnConfKind::Metric => {
                 panic!("NestedFn.function | Netric nested in the function is not implemented");
             },
+            FnConfKind::Param => {
+                panic!("NestedFn.function | Custom parameters are not supported in the nested functions");
+            }
         }
     }
     ///

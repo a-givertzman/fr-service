@@ -7,5 +7,6 @@ pub enum FnConfKind {
     Const,
     Point,
     Metric,
+    Param,
     // Unknown,
 }

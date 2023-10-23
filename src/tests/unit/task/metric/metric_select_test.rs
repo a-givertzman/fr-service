@@ -6,7 +6,7 @@ use std::{sync::Once, rc::Rc, cell::RefCell};
 
 use crate::{
     core_::{debug::debug_session::{DebugSession, LogLevel}, 
-    point::{point_type::PointType, point::Point}, conf::metric_config::MetricConfig}, 
+    point::{point_type::PointType, point::Point}, conf::{metric_config::MetricConfig, fn_config::FnConfig}}, 
     services::task::nested_function::{fn_::{FnInOut, FnOut}, metric_select::MetricSelect, fn_inputs::FnInputs},
 };
 
@@ -28,7 +28,7 @@ fn initOnce() {
 ///
 /// returns:
 ///  - ...
-fn initEach(conf: &mut MetricConfig, inputs: &mut FnInputs) -> Rc<RefCell<Box<dyn FnInOut>>> {
+fn initEach(conf: &mut FnConfig, inputs: &mut FnInputs) -> Rc<RefCell<Box<dyn FnInOut>>> {
     fn boxFnInput(input: MetricSelect) -> Box<(dyn FnInOut)> {
         Box::new(input)
     }
@@ -46,7 +46,7 @@ fn test_int() {
     initOnce();
     info!("test_int");
     let path = "./src/tests/unit/task/metric/metric_select_int_test.yaml";
-    let mut conf = MetricConfig::read(path);
+    let mut conf = FnConfig::read(path);
     debug!("conf: {:?}", conf);
     let mut taskStuff = FnInputs::new();
     let mut fnCount = MetricSelect::new(
@@ -99,7 +99,7 @@ fn test_float() {
     initOnce();
     info!("test_float");
     let path = "./src/tests/unit/task/metric/metric_select_float_test.yaml";
-    let mut conf = MetricConfig::read(path);
+    let mut conf = FnConfig::read(path);
     debug!("conf: {:?}", conf);
     let mut taskStuff = FnInputs::new();
     let mut fnCount = MetricSelect::new(

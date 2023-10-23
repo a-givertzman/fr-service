@@ -40,11 +40,15 @@ impl Task {
     pub fn new(cfg: TaskConfig) ->Self {
         let mut nodes = HashMap::new();
         let mut inputs = FnInputs::new();
-        for (nodeName, mut nodeConf) in cfg.nodes {
+        for (nodeName, nodeConf) in cfg.nodes {
             match nodeConf.clone() {
-                TaskConfNode::Fn(fnConf) => {
+                TaskConfNode::Fn(mut fnConf) => {
                     match fnConf.fnKind {
                         FnConfKind::Metric => {
+                            nodes.insert(
+                                nodeName.clone(),
+                                MetricBuilder::new(&mut fnConf, &mut inputs),
+                            );
                             debug!("Task.new | metricConf: {:?}: {:?}", nodeName, &fnConf);
                         },
                         FnConfKind::Fn => {
@@ -60,14 +64,12 @@ impl Task {
                         FnConfKind::Point => {
                             panic!("Task.new | Point is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
                         },
+                        FnConfKind::Param => {
+                            debug!("Task.new | custom parameter: {:?}: {:?}", nodeName, &fnConf);
+                        }
                     }
                 },
                 TaskConfNode::Metric(mut metricConf) => {
-                    nodes.insert(
-                        nodeName.clone(),
-                        MetricBuilder::new(&mut metricConf, &mut inputs),
-                    );
-                    debug!("Task.new | metricConf: {:?}: {:?}", &nodeName, metricConf)
                 },
             }
         }
