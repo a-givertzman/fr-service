@@ -10,6 +10,11 @@ pub struct TaskTestReceiver {
 }
 
 impl TaskTestReceiver {
+    pub fn new() -> Self {
+        Self {
+            exit: Arc::new(AtomicBool::new(false)),
+        }
+    }
     pub fn run(&mut self, recvQueue: Receiver<String>, testValues: Vec<f64>) {
         info!("TaskTestReceiver.run | starting...");
         let exit = self.exit.clone();
@@ -43,5 +48,8 @@ impl TaskTestReceiver {
             info!("TaskTestReceiver.run | stopped");
             // thread::sleep(Duration::from_secs_f32(2.1));
         }).unwrap();
+    }
+    pub fn exit(&mut self) {
+        self.exit.store(true, Ordering::Relaxed);
     }
 }

@@ -3,7 +3,7 @@
 use log::{trace, info};
 use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, env, thread, time::Duration};
 
-use crate::{core_::{conf::task_config::TaskConfig, debug::debug_session::{DebugSession, LogLevel}, point::point_type::PointType}, services::task::{task::Task, queue_send_mpsc_channel::QueueSendMpscChannel, queue_send::QueueSend}};
+use crate::{core_::{conf::task_config::TaskConfig, debug::debug_session::{DebugSession, LogLevel}, point::point_type::PointType}, services::task::{task::Task, queue_send_mpsc_channel::QueueSendMpscChannel, queue_send::QueueSend}, tests::unit::task::task_test_receiver::TaskTestReceiver};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -46,6 +46,10 @@ fn test_task() {
     trace!("config: {:?}", &config);
 
     let (send, recv): (Sender<String>, Receiver<String>) = mpsc::channel();
+    let mut receiver = TaskTestReceiver::new();
+    
+    let testValues = vec![0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0];
+    receiver.run(recv, testValues);
 
     let mut task = Task::new(config, send);
     trace!("task tuning...");
@@ -54,6 +58,7 @@ fn test_task() {
     thread::sleep(Duration::from_secs_f32(5.0));
     trace!("task stopping...");
     task.exit();
+    receiver.exit();
     trace!("task stopping - ok");
     // trace!("task: {:?}", &task);
     // assert_eq!(config, target);
