@@ -4,12 +4,12 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::mpsc::Sender;
+use std::sync::mpsc::{Sender, Receiver};
 use std::sync::{Arc, Mutex};
 use std::{thread, clone};
 use std::time::Duration;
 
-use log::{info, debug, warn};
+use log::{info, debug, warn, trace, error};
 
 use crate::core_::conf::fn_conf_kind::FnConfKind;
 use crate::core_::conf::task_config::TaskConfig;
@@ -20,7 +20,6 @@ use crate::services::task::nested_function::nested_fn::NestedFn;
 use crate::services::task::task_cycle::TaskCycle;
 
 use super::nested_function::fn_::FnInOut;
-use super::queue_send::QueueSend;
 use super::task_stuff::TaskStuff;
 
 // pub enum TaskNode {
@@ -37,6 +36,7 @@ pub struct Task {
     cycle: u64,
     conf: TaskConfig,
     apiQueue: Vec<Sender<String>>,
+    recvQueue: Vec<Receiver<PointType>>,
     exit: Arc<AtomicBool>,
     // nodes: Arc<Mutex<HashMap<String, Rc<RefCell<Box<dyn FnInOut>>>>>>,
 }
@@ -45,11 +45,12 @@ pub struct Task {
 impl Task {
     ///
     /// 
-    pub fn new(cfg: TaskConfig, apiQueue: Sender<String>) ->Self {
-        Self {
+    pub fn new(cfg: TaskConfig, apiQueue: Sender<String>, recvQueue: Receiver<PointType>) -> Task {
+        Task {
             name: cfg.name.clone(),
             cycle: cfg.cycle.clone(),
             apiQueue: vec![apiQueue],
+            recvQueue: vec![recvQueue],
             conf: cfg,
             exit: Arc::new(AtomicBool::new(false)),
         }
@@ -61,7 +62,7 @@ impl Task {
         let mut nodes = HashMap::new();
         for (_nodeName, mut nodeConf) in conf.nodes {
             let nodeName = nodeConf.name.clone();
-            debug!("Task.new | node: {:?}", &nodeConf.name);
+            debug!("Task.nodes | node: {:?}", &nodeConf.name);
             match nodeConf.fnKind {
                 FnConfKind::Metric => {
                     nodeIndex += 1;
@@ -69,7 +70,7 @@ impl Task {
                         format!("{}-{}", nodeName, nodeIndex),
                         MetricBuilder::new(&mut nodeConf, inputs),
                     );
-                    debug!("Task.new | metricConf: {:?}: {:?}", nodeName, &nodeConf);
+                    trace!("Task.new | metricConf: {:?}: {:?}", nodeName, &nodeConf);
                 },
                 FnConfKind::Fn => {
                     nodeIndex += 1;
@@ -77,7 +78,7 @@ impl Task {
                         format!("{}-{}", nodeName, nodeIndex),
                         NestedFn::new(&mut nodeConf, inputs),
                     );
-                    debug!("Task.new | fnConf: {:?}: {:?}", nodeName, &nodeConf);
+                    trace!("Task.new | fnConf: {:?}: {:?}", nodeName, &nodeConf);
                     // NestedFn::new(&mut fnConf, &mut inputs)
                 },
                 FnConfKind::Var => {
@@ -85,7 +86,7 @@ impl Task {
                         nodeName.clone(),
                         NestedFn::new(&mut nodeConf, inputs),
                     );
-                    debug!("Task.new | varConf: {:?}: {:?}", nodeName, &nodeConf);
+                    trace!("Task.new | varConf: {:?}: {:?}", nodeName, &nodeConf);
                 },
                 FnConfKind::Const => {
                     panic!("Task.new | Const is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
@@ -94,7 +95,7 @@ impl Task {
                     panic!("Task.new | Point is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
                 },
                 FnConfKind::Param => {
-                    debug!("Task.new | custom parameter: {:?}: {:?}", nodeName, &nodeConf);
+                    panic!("Task.new | custom parameter: {:?}: {:?}", nodeName, &nodeConf);
                 }
             }
         }
@@ -109,14 +110,14 @@ impl Task {
         let cycleInterval = self.cycle;
         let conf = self.conf.clone();
         let apiQueue = self.apiQueue.pop().unwrap();
+        let recvQueue = self.recvQueue.pop().unwrap();
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             let mut cycle = TaskCycle::new(Duration::from_millis(cycleInterval));
             let mut taskStuff = TaskStuff::new();
             taskStuff.addSendQueue("apiQueue", apiQueue);
             let nodes = Self::nodes(conf, &mut taskStuff);
-            debug!("Task({}).run | taskStuff: {:?}", selfName, taskStuff);
+            trace!("Task({}).run | taskStuff: {:?}", selfName, taskStuff);
             
-            let mut testValues = vec![0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0];
             // info!("Task({}).run | prepared", name);
             'inner: loop {
                 cycle.start();
@@ -127,26 +128,24 @@ impl Task {
                 if exit.load(Ordering::Relaxed) {
                     break 'inner;
                 }
-                match testValues.pop() {
-                    Some(value) => {
-                        let inputName = "/path/Point.Name";
-                        let point = PointType::Float(Point::newFloat(inputName, value));
-                        debug!("Task({}).run | input point: {:?}", selfName, point);
-                        match taskStuff.getInput(inputName) {
+                match recvQueue.try_recv() {
+                    Ok(point) => {
+                        let pointName = point.name();
+                        match taskStuff.getInput(&pointName) {
                             Some(input) => {
                                 input.borrow_mut().add(point);
                             },
                             None => {
-                                warn!("Task({}).run | input {:?} - not fount", selfName, inputName);
+                                warn!("Task({}).run | input {:?} - not fount", selfName, &pointName);
                             },
                         };
                         for (nodeName, node) in &nodes {
                             let out = node.borrow_mut().out();
                             debug!("Task({}).run | node {} out: {:?}", selfName, nodeName, out);
-                        }
+                        }        
                     },
-                    None => {
-                        warn!("Task({}).run | No more values", selfName);
+                    Err(err) => {
+                        warn!("Task({}).run | Error receiving from queue", err);
                     },
                 };
                 cycle.wait();

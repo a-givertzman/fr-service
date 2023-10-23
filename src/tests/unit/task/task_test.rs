@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
 use log::{trace, info};
-use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, env, thread, time::Duration};
+use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, env, thread, time::{Duration, Instant}};
 
 use crate::{core_::{conf::task_config::TaskConfig, debug::debug_session::{DebugSession, LogLevel}, point::point_type::PointType}, services::task::{task::Task, queue_send_mpsc_channel::QueueSendMpscChannel, queue_send::QueueSend}, tests::unit::task::task_test_receiver::TaskTestReceiver};
 
@@ -45,14 +45,16 @@ fn test_task() {
     let config = TaskConfig::read(path);
     trace!("config: {:?}", &config);
 
-    let (send, recv): (Sender<String>, Receiver<String>) = mpsc::channel();
+    let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
+    let (apiSend, apiRecv): (Sender<String>, Receiver<String>) = mpsc::channel();
     let mut receiver = TaskTestReceiver::new();
     
     let testValues = vec![0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0];
-    receiver.run(recv, testValues);
+    receiver.run(apiRecv, testValues);
 
-    let mut task = Task::new(config, send);
+    let mut task = Task::new(config, apiSend, recv);
     trace!("task tuning...");
+    let time = Instant::now();
     task.run();
     trace!("task tuning - ok");
     thread::sleep(Duration::from_secs_f32(5.0));
