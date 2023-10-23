@@ -19,11 +19,11 @@ fn points() ->Vec<PointType> {
     ]
 }
 
-pub struct ProducerChannel {
+pub struct TaskTestProducer {
     iterations: usize, 
     send: Vec<Sender<PointType>>,
 }
-impl ProducerChannel {
+impl TaskTestProducer {
     pub fn new(iterations: usize, send: Sender<PointType>) -> Self {
         Self {
             iterations,

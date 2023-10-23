@@ -3,7 +3,7 @@
 use log::{trace, info};
 use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, env, thread, time::{Duration, Instant}};
 
-use crate::{core_::{conf::task_config::TaskConfig, debug::debug_session::{DebugSession, LogLevel}, point::point_type::PointType}, services::task::{task::Task, queue_send_mpsc_channel::QueueSendMpscChannel, queue_send::QueueSend}, tests::unit::task::task_test_receiver::TaskTestReceiver};
+use crate::{core_::{conf::task_config::TaskConfig, debug::debug_session::{DebugSession, LogLevel}, point::point_type::PointType}, services::task::{task::Task, queue_send_mpsc_channel::QueueSendMpscChannel, queue_send::QueueSend}, tests::unit::task::{task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -39,7 +39,8 @@ fn test_task() {
     initEach();
     info!("test_task");
     
-    // let (initial, switches) = initEach();
+    let iterations = 10;
+    
     trace!("dir: {:?}", env::current_dir());
     let path = "./src/tests/unit/task/task_test.yaml";
     let config = TaskConfig::read(path);
@@ -52,6 +53,9 @@ fn test_task() {
     let testValues = vec![0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0];
     receiver.run(apiRecv, testValues);
 
+    let mut producer = TaskTestProducer::new(iterations, send);
+    producer.run();
+
     let mut task = Task::new(config, apiSend, recv);
     trace!("task tuning...");
     let time = Instant::now();
@@ -62,6 +66,9 @@ fn test_task() {
     task.exit();
     receiver.exit();
     trace!("task stopping - ok");
+    println!("elapsed: {:?}", time.elapsed());
+    info!("Received points: {}", receiver.received());
+
     // trace!("task: {:?}", &task);
     // assert_eq!(config, target);
 }
