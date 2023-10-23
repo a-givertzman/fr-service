@@ -1,27 +1,30 @@
 #![allow(non_snake_case)]
 
+use std::cell::RefCell;
 use std::collections::HashMap;
+use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::{thread, clone};
 use std::time::Duration;
 
 use log::{info, debug};
 
 use crate::core_::conf::fn_conf_kind::FnConfKind;
-use crate::core_::conf::task_config::{TaskConfig, TaskConfNode};
+use crate::core_::conf::task_config::TaskConfig;
 use crate::services::task::nested_function::metric_builder::MetricBuilder;
+use crate::services::task::nested_function::nested_fn::NestedFn;
 use crate::services::task::task_cycle::TaskCycle;
 use crate::services::task::task_stuff::TaskStuff;
 
-use super::nested_function::fn_::FnOut;
+use super::nested_function::fn_::FnInOut;
 use super::nested_function::fn_inputs::FnInputs;
 use super::queue_send::QueueSend;
 
-pub enum TaskNode {
-    Var(Arc<dyn FnOut>),
-    Metric(Arc<dyn FnOut>),
-}
+// pub enum TaskNode {
+//     Var(Arc<dyn FnOut>),
+//     Metric(Arc<dyn FnOut>),
+// }
 
 /// Task implements entity, which provides cyclically (by event) executing calculations
 ///  - executed in the cycle mode (current impl)
@@ -30,9 +33,10 @@ pub enum TaskNode {
 pub struct Task {
     name: String,
     cycle: u64,
+    conf: TaskConfig,
     apiQueue: Box<dyn QueueSend<String>>,
     exit: Arc<AtomicBool>,
-    nodes: HashMap<String, TaskNode>,
+    // nodes: Arc<Mutex<HashMap<String, Rc<RefCell<Box<dyn FnInOut>>>>>>,
 }
 ///
 /// 
@@ -40,9 +44,20 @@ impl Task {
     ///
     /// 
     pub fn new(cfg: TaskConfig, apiQueue: Box<dyn QueueSend<String>>) ->Self {
+        Self {
+            name: cfg.name.clone(),
+            cycle: cfg.cycle.clone(),
+            apiQueue: apiQueue,
+            conf: cfg,
+            exit: Arc::new(AtomicBool::new(false)),
+        }
+    }
+    ///
+    /// 
+    fn nodes(conf: TaskConfig) -> HashMap<std::string::String, Rc<RefCell<Box<(dyn FnInOut)>>>> {
         let mut nodes = HashMap::new();
         let mut inputs = FnInputs::new();
-        for (nodeName, mut nodeConf) in cfg.nodes {
+        for (nodeName, mut nodeConf) in conf.nodes {
             debug!("Task.new | node: {:?}", nodeConf.name);
             match nodeConf.fnKind {
                 FnConfKind::Metric => {
@@ -63,7 +78,7 @@ impl Task {
                 FnConfKind::Var => {
                     nodes.insert(
                         nodeName.clone(),
-                        MetricBuilder::new(&mut nodeConf, &mut inputs),
+                        NestedFn::new(&mut nodeConf, &mut inputs),
                     );
                     debug!("Task.new | varConf: {:?}: {:?}", nodeName, &nodeConf);
                 },
@@ -78,13 +93,7 @@ impl Task {
                 }
             }
         }
-        Self {
-            name: cfg.name,
-            cycle: cfg.cycle,
-            apiQueue: apiQueue,
-            exit: Arc::new(AtomicBool::new(false)),
-            nodes: nodes,
-        }
+        nodes
     }
     ///
     /// 
@@ -93,9 +102,10 @@ impl Task {
         let name = self.name.clone();
         let exit = self.exit.clone();
         let cycleInterval = self.cycle;
+        let conf = self.conf.clone();
         let h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             let mut cycle = TaskCycle::new(Duration::from_millis(cycleInterval));
-
+            let nodes = Self::nodes(conf);
             let stuff = TaskStuff::new();
             // info!("Task({}).run | prepared", name);
             'inner: loop {
@@ -106,6 +116,9 @@ impl Task {
                 // TODO impl mathematics here...
                 if exit.load(Ordering::Relaxed) {
                     break 'inner;
+                }
+                for (nodeName, node) in &nodes {
+                    node.borrow_mut().out();
                 }
                 cycle.wait();
                 if exit.load(Ordering::Relaxed) {

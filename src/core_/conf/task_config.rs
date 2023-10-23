@@ -38,7 +38,7 @@ impl TaskConfNode {
 ///                 input2:
 ///                     metric sqlSelectMetric:
 ///                         ...
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct TaskConfig {
     pub(crate) name: String,
     pub(crate) cycle: u64,
