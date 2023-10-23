@@ -14,7 +14,7 @@ fn points() ->Vec<PointType> {
         PointType::Int(   Point { value: 13,     name:String::from("int1"),   status: 0, timestamp: chrono::offset::Utc::now() }),
         PointType::Int(   Point { value: 43,     name:String::from("int1"),   status: 0, timestamp: chrono::offset::Utc::now() }),
         PointType::Bool(  Point { value: Bool(false),  name:String::from("bool1"),  status: 0, timestamp: chrono::offset::Utc::now() }),
-        PointType::Float( Point { value: 0.11,  name:String::from("/path/Point.Name"), status: 0, timestamp: chrono::offset::Utc::now() }),
+        PointType::Float( Point { value: 0.0077,  name:String::from("/path/Point.Name"), status: 0, timestamp: chrono::offset::Utc::now() }),
         PointType::Int(   Point { value: 65,     name:String::from("int1"),   status: 0, timestamp: chrono::offset::Utc::now() }),
     ]
 }

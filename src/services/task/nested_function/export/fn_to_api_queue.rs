@@ -2,7 +2,7 @@ use std::{rc::Rc, cell::RefCell, sync::mpsc::Sender};
 
 use log::{error, trace};
 
-use crate::{services::task::nested_function::fn_::{FnInOut, FnIn, FnOut}, core_::point::point_type::PointType};
+use crate::{services::task::nested_function::fn_::{FnInOut, FnIn, FnOut}, core_::point::{point_type::PointType, point::Point}};
 
 ///
 /// Exports data from the input into the associated queue
@@ -11,6 +11,7 @@ pub struct FnToApiQueue {
     id: String,
     input: Rc<RefCell<Box<dyn FnInOut>>>,
     sendQueue: Sender<String>,
+    state: PointType,
 }
 ///
 /// 
@@ -24,6 +25,7 @@ impl FnToApiQueue {
             id: id.into(),
             input,
             sendQueue: send,
+            state: PointType::Bool(Point::newBool("initial state", false))
         }
     }
 }
@@ -41,33 +43,34 @@ impl FnOut for FnToApiQueue {
     //
     fn out(&mut self) -> PointType {
         let point = self.input.borrow_mut().out();
-        match point.clone() {
-            PointType::Bool(point) => {
-                let value = point.value;
-                error!("FnToApiQueue.out | String expected, but Bool value received: {}", value);
-            },
-            PointType::Int(point) => {
-                let value = point.value;
-                error!("FnToApiQueue.out | String expected, but Int value received: {}", value);
-            },
-            PointType::Float(point) => {
-                let value = point.value;
-                error!("FnToApiQueue.out | String expected, but Float value received: {}", value);
-            },
-            PointType::String(point) => {
-                let sql = point.value;
-                trace!("FnToApiQueue.out | sql received: {}", &sql);
-                match self.sendQueue.send(sql.clone()) {
-                    Ok(_) => {
-                        trace!("FnToApiQueue.out | sql sent to queueu successfully");
-                    },
-                    Err(err) => {
-                        error!("FnToApiQueue.out | Error sending to queue sql: {}\n\terror: {:?}", &sql, err);
-
-                    },
-                };
-                // TODO add value to the associated queue
-            },
+        if point != self.state {
+            match point.clone() {
+                PointType::Bool(point) => {
+                    let value = point.value;
+                    error!("FnToApiQueue.out | String expected, but Bool value received: {}", value);
+                },
+                PointType::Int(point) => {
+                    let value = point.value;
+                    error!("FnToApiQueue.out | String expected, but Int value received: {}", value);
+                },
+                PointType::Float(point) => {
+                    let value = point.value;
+                    error!("FnToApiQueue.out | String expected, but Float value received: {}", value);
+                },
+                PointType::String(point) => {
+                    let sql = point.value;
+                    trace!("FnToApiQueue.out | sql received: {}", &sql);
+                    match self.sendQueue.send(sql.clone()) {
+                        Ok(_) => {
+                            trace!("FnToApiQueue.out | sql sent to queueu successfully");
+                        },
+                        Err(err) => {
+                            error!("FnToApiQueue.out | Error sending to queue sql: {}\n\terror: {:?}", &sql, err);
+    
+                        },
+                    };
+                },
+            };
         };
         point
     }
