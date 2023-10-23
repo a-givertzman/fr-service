@@ -36,7 +36,7 @@ fn test_task() {
     
     // let (initial, switches) = initEach();
     trace!("dir: {:?}", env::current_dir());
-    let path = "./src/tests/unit/task_config/task_config_test.yaml";
+    let path = "./src/tests/unit/task/task_test.yaml";
     let config = TaskConfig::read(path);
     trace!("config: {:?}", &config);
     let mut task = Task::new(config);

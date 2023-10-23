@@ -3,15 +3,15 @@
 use log::{trace, debug, error, warn};
 use std::{fs, collections::HashMap, str::FromStr};
 
-use crate::core_::{conf::conf_keywd::ConfKeywd, conf::conf_tree::ConfTree, point::point_type::PointType};
+use crate::core_::{conf::conf_keywd::ConfKeywd, conf::conf_tree::ConfTree};
 
 use super::{fn_conf_kind::FnConfKind, conf_keywd::FnConfPointType};
 
 
-enum ValueType<'a> {
-    Single(&'a ConfTree),
-    Mapping(&'a ConfTree),
-}
+// enum ValueType<'a> {
+//     Single(&'a ConfTree),
+//     Mapping(&'a ConfTree),
+// }
 
 
 ///
@@ -162,6 +162,11 @@ impl FnConfig {
                 trace!("FnConfig.buildInputs | sub nodes - found");
                 for subNode in subNodes {
                     trace!("FnConfig.buildInputs | sub node: {:?}", subNode);
+                    // inputs.insert(
+                    //     (&subNode).key.clone(), 
+                    //     FnConfig::new(&subNode, vars),
+                    // );
+
                     match ConfKeywd::from_str(subNode.key.as_str()) {
                         Ok(keyword) => {
                             trace!("FnConfig.buildInputs | sub node KEYWORD parsed: {:?}", keyword);
