@@ -108,11 +108,11 @@ impl Task {
         let exit = self.exit.clone();
         let cycleInterval = self.cycle;
         let conf = self.conf.clone();
-        let mut queue = self.apiQueue.clone();
-        // queue.as_mut().send("value".to_string());
+        let apiQueue = self.apiQueue.pop().unwrap();
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             let mut cycle = TaskCycle::new(Duration::from_millis(cycleInterval));
             let mut taskStuff = TaskStuff::new();
+            taskStuff.addSendQueue("apiQueue", apiQueue);
             let nodes = Self::nodes(conf, &mut taskStuff);
             debug!("Task({}).run | taskStuff: {:?}", selfName, taskStuff);
             
