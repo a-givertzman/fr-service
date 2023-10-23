@@ -2,10 +2,10 @@
 
 use std::{rc::Rc, cell::RefCell, str::FromStr};
 
-use crate::core_::{
+use crate::{core_::{
     point::{point_type::PointType, point::Point},
     conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, conf_keywd::FnConfPointType}, 
-};
+}, services::task::nested_function::metric_builder::MetricBuilder};
 
 use super::{fn_inputs::FnInputs, fn_::FnInOut, fn_input::FnInput, fn_add::FnAdd, fn_timer::FnTimer, functions::Functions, export::fn_to_api_queue::FnToApiQueue};
 
@@ -107,7 +107,8 @@ impl NestedFn {
                 input
             },
             FnConfKind::Metric => {
-                panic!("NestedFn.function | Netric nested in the function is not implemented");
+                println!("NestedFn.function | Metric nested in the function is not implemented");
+                MetricBuilder::new(conf, taskStuff)
             },
             FnConfKind::Param => {
                 panic!("NestedFn.function | Custom parameters are not supported in the nested functions");
@@ -125,14 +126,14 @@ impl NestedFn {
             )
         ))
     }
-    ///
-    /// 
-    fn boxFnInput(input: FnInput) -> Box<(dyn FnInOut)> {
-        Box::new(input)
-    }
+    // ///
+    // /// 
+    // fn boxFnInput(input: FnInput) -> Box<(dyn FnInOut)> {
+    //     Box::new(input)
+    // }
     fn fnInput(inputName: &str, initial: PointType) -> Rc<RefCell<Box<dyn FnInOut>>> {
         Rc::new(RefCell::new(
-            Self::boxFnInput(
+            Box::new(
                 FnInput::new( 
                     inputName,
                     initial, 
@@ -140,18 +141,18 @@ impl NestedFn {
             )
         ))
     }
-    ///
-    /// 
-    fn boxFnSum(input: FnAdd) -> Box<(dyn FnInOut)> {
-        Box::new(input)
-    }
+    // ///
+    // /// 
+    // fn boxFnSum(input: FnAdd) -> Box<(dyn FnInOut)> {
+    //     Box::new(input)
+    // }
     fn fnSum(
         id: &str, 
         input1: Rc<RefCell<Box<dyn FnInOut>>>, 
         input2: Rc<RefCell<Box<dyn FnInOut>>>
     ) -> Rc<RefCell<Box<dyn FnInOut>>> {
         Rc::new(RefCell::new(
-            Self::boxFnSum(        
+            Box::new(        
                 FnAdd::new(
                     id,
                     input1, 
@@ -160,11 +161,11 @@ impl NestedFn {
             )
         ))
     }    
-    ///
-    /// 
-    fn boxFnTimer(input: FnTimer) -> Box<(dyn FnInOut)> {
-        Box::new(input)
-    }
+    // ///
+    // /// 
+    // fn boxFnTimer(input: FnTimer) -> Box<(dyn FnInOut)> {
+    //     Box::new(input)
+    // }
     fn fnTimer(
         id: &str, 
         initial: impl Into<f64> + Clone,
@@ -172,7 +173,7 @@ impl NestedFn {
         repeat: bool,
     ) -> Rc<RefCell<Box<dyn FnInOut>>> {
         Rc::new(RefCell::new(
-            Self::boxFnTimer(        
+            Box::new(        
                 FnTimer::new(
                     id,
                     initial, 

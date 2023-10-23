@@ -1,6 +1,8 @@
 use std::{rc::Rc, cell::RefCell};
 
-use crate::services::task::nested_function::fn_::{FnInOut, FnIn, FnOut};
+use log::error;
+
+use crate::{services::task::nested_function::fn_::{FnInOut, FnIn, FnOut}, core_::point::point_type::PointType};
 
 ///
 /// Exports data from the input into the associated queue
@@ -28,7 +30,7 @@ impl FnToApiQueue {
 /// 
 impl FnIn for FnToApiQueue {
     //
-    fn add(&mut self, point: crate::core_::point::point_type::PointType) {
+    fn add(&mut self, point: PointType) {
         panic!("FnToApiQueue.add | method is not used");
     }
 }
@@ -36,12 +38,32 @@ impl FnIn for FnToApiQueue {
 /// 
 impl FnOut for FnToApiQueue {
     //
-    fn out(&mut self) -> crate::core_::point::point_type::PointType {
-        todo!()
+    fn out(&mut self) -> PointType {
+        let point = self.input.borrow_mut().out();
+        match point.clone() {
+            PointType::Bool(point) => {
+                let value = point.value;
+                error!("FnToApiQueue.out | String expected, but Bool value received: {}", value);
+            },
+            PointType::Int(point) => {
+                let value = point.value;
+                error!("FnToApiQueue.out | String expected, but Int value received: {}", value);
+            },
+            PointType::Float(point) => {
+                let value = point.value;
+                error!("FnToApiQueue.out | String expected, but Float value received: {}", value);
+            },
+            PointType::String(point) => {
+                let value = point.value;
+                error!("FnToApiQueue.out | sql received: {}", value);
+                // TODO add value to the associated queue
+            },
+        };
+        point
     }
     //
     fn reset(&mut self) {
-        todo!()
+        self.input.borrow_mut().reset();
     }
 }
 ///

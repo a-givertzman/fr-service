@@ -41,7 +41,7 @@ impl FromStr for Functions {
     type Err = String;
     fn from_str(input: &str) -> Result<Functions, String> {
         trace!("Functions.from_str | input: {}", input);
-        match input.to_lowercase().as_str() {
+        match input {
             INPUT           => Ok( Functions::Input),
             COUNT           => Ok( Functions::Count),
             ADD             => Ok( Functions::Add),

@@ -10,15 +10,15 @@ task task1:
     cycle: 100
     api-queue: queueApi
     let Var1:
-        input fn sum:
+        input fn add:
             input1: point float '/path/Point.Name1'
-            input2 fn sum: 
+            input2 fn add: 
                 input1: point float '/path/Point.Name1'
                 input2: const float 0.04
     let Var2:
-        input fn sum:
+        input fn add:
             input1: point float '/path/Point.Name2'
-            input2 fn sum: 
+            input2 fn add: 
                 input1: point float '/path/Point.Name2'
                 input2: const float 0.04
 
@@ -28,13 +28,13 @@ task task1:
             initial: 0.123      # начальное значение
             table: table_name
             sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
-            input1 let Var2:
-                    input fn sum:
-                        input fn sum:
+            input let Var3:
+                    input fn add:
+                        input1 fn add:
                             input1: const int 1
                             input2: point int '/path/Point.Name/'
-            # input2:
-            #     const int 1
+                        input2:
+                            const int 1
 
 # service ApiClient:
 

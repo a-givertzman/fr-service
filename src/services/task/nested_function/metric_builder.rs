@@ -17,7 +17,7 @@ pub struct MetricBuilder {
 ///
 /// 
 impl MetricBuilder {
-    pub fn new(conf: &mut FnConfig, inputs: &mut FnInputs) -> Rc<RefCell<Box<(dyn FnInOut)>>> {
+    pub fn new(conf: &mut FnConfig, taskStuff: &mut FnInputs) -> Rc<RefCell<Box<(dyn FnInOut)>>> {
         match conf.name.as_str() {
             "sqlSelectMetric" => {
                 debug!("MetricBuilder.new | fnConf: {:?}: {:?}", conf.name, conf);
@@ -25,7 +25,7 @@ impl MetricBuilder {
                     Box::new(
                         MetricSelect::new(
                             conf, 
-                            inputs
+                            taskStuff
                         )
                     )
                 ))
