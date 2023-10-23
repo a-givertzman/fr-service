@@ -122,7 +122,7 @@ impl Task {
             // info!("Task({}).run | prepared", name);
             'inner: loop {
                 cycle.start();
-                debug!("Task({}).run | calculating step...", selfName);
+                trace!("Task({}).run | calculating step...", selfName);
                 if exit.load(Ordering::Relaxed) {
                     break 'inner;
                 }
@@ -139,17 +139,18 @@ impl Task {
                         };
                         for (nodeName, node) in &nodes {
                             let out = node.borrow_mut().out();
-                            debug!("Task({}).run | node {} out: {:?}", selfName, nodeName, out);
+                            trace!("Task({}).run | node {} out: {:?}", selfName, nodeName, out);
                         }        
                     },
                     Err(err) => {
                         warn!("Task({}).run | Error receiving from queue: {:?}", selfName, err);
+                        break 'inner;
                     },
                 };
                 if cyclic {
                     cycle.wait();
                 }
-                debug!("Task({}).run | calculating step - done ({:?})", selfName, cycle.elapsed());
+                trace!("Task({}).run | calculating step - done ({:?})", selfName, cycle.elapsed());
                 if exit.load(Ordering::Relaxed) {
                     break 'inner;
                 }

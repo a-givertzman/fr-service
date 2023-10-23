@@ -8,7 +8,7 @@ use log::{info, debug, warn, trace};
 pub struct TaskTestReceiver {
     exit: Arc<AtomicBool>,
     received: Arc<AtomicUsize>,
-    handle: Option<JoinHandle<()>>,
+    handle: Vec<JoinHandle<()>>,
 }
 
 impl TaskTestReceiver {
@@ -16,10 +16,10 @@ impl TaskTestReceiver {
         Self {
             exit: Arc::new(AtomicBool::new(false)),
             received: Arc::new(AtomicUsize::new(0)),
-            handle: None,
+            handle: vec![],
         }
     }
-    pub fn run(&mut self, recvQueue: Receiver<String>, testValues: Vec<f64>) {
+    pub fn run(&mut self, recvQueue: Receiver<String>, iterations: usize, testValues: Vec<f64>) {
         info!("TaskTestReceiver.run | starting...");
         let exit = self.exit.clone();
         let received = self.received.clone();
@@ -36,7 +36,10 @@ impl TaskTestReceiver {
                     Ok(sql) => {
                         count += 1;
                         received.store(count, Ordering::Relaxed);
-                        debug!("TaskTestReceiver.run | received SQL: {:?}", sql);
+                        if count >= iterations {
+                            break 'inner;
+                        }
+                        trace!("TaskTestReceiver.run | received SQL: {:?}", sql);
                         // debug!("TaskTestReceiver.run | value: {}\treceived SQL: {:?}", value, sql);
                         // assert!()
                     },
@@ -52,7 +55,7 @@ impl TaskTestReceiver {
             info!("TaskTestReceiver.run | stopped");
             // thread::sleep(Duration::from_secs_f32(2.1));
         }).unwrap();
-        self.handle = Some(_h);
+        self.handle.push(_h);
     }
     pub fn exit(&mut self) {
         self.exit.store(true, Ordering::Relaxed);
@@ -60,10 +63,10 @@ impl TaskTestReceiver {
     pub fn received(&self) -> usize {
         self.received.load(Ordering::Relaxed)
     }
-    pub fn join(self) {
-        match &self.handle {
-            Some(_) => {
-                self.handle.unwrap().join().unwrap()
+    pub fn join(&mut self) {
+        match self.handle.pop() {
+            Some(handle) => {
+            handle.join().unwrap()
             },
             None => {},
         };

@@ -1,7 +1,12 @@
 #![allow(non_snake_case)]
-#[cfg(test)]
+// #[cfg(test)]
+// mod tests;
+mod core_;
+mod services;
+
 use log::{trace, info};
-use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, env, time::Instant};
+use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, env, thread, time::{Duration, Instant}};
+
 
 use crate::{core_::{conf::task_config::TaskConfig, debug::debug_session::{DebugSession, LogLevel}, point::point_type::PointType}, services::task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}};
 
@@ -32,8 +37,7 @@ fn initEach() -> () {
 // }
 
 
-#[test]
-fn test_task() {
+fn main() {
     DebugSession::init(LogLevel::Debug);
     initOnce();
     initEach();
