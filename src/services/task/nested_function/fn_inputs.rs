@@ -24,13 +24,19 @@ impl FnInputs {
     }
     ///
     /// Adding new input refeerence
-    pub fn addInput(&mut self, name: impl Into<String> + std::fmt::Debug, input: Rc<RefCell<Box<dyn FnInOut>>>) {
-        trace!("TaskStuff.addInput | new input {:?}: {:?}", &name, input);
-        self.inputs.insert(name.into(), input);
+    pub fn addInput(&mut self, name: impl Into<String> + std::fmt::Debug + Clone, input: Rc<RefCell<Box<dyn FnInOut>>>) {
+        if self.inputs.contains_key(&name.clone().into()) {
+            trace!("TaskStuff.addInput | input {:?} - already added", &name);
+        } else {
+            trace!("TaskStuff.addInput | adding input {:?}: {:?}", &name, input);
+            self.inputs.insert(name.into(), input);
+        }
     }
     ///
     /// Adding new variable refeerence
-    pub fn addVar(&mut self, name: impl Into<String>, input: Rc<RefCell<Box<dyn FnInOut>>>) {
+    pub fn addVar(&mut self, name: impl Into<String> + Clone, input: Rc<RefCell<Box<dyn FnInOut>>>) {
+        assert!(!self.vars.contains_key(name.clone().into().as_str()), "Dublicated variable name: {:?}", name.clone().into());
+        assert!(!name.clone().into().is_empty(), "Variable name can't be emty");
         self.vars.insert(name.into(), input);
     }
     // ///

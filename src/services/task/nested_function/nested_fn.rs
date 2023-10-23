@@ -65,7 +65,7 @@ impl NestedFn {
                     None => panic!("NestedFn.function | Var {:?} must have exact one input", &varName),
                 };
                 let input = Self::function(&inputConfName, inputConf, taskStuff);
-                taskStuff.addVar(inputName, input.clone());
+                taskStuff.addVar(conf.name.clone(), input.clone());
                 println!("NestedFn.function | Var: {:?}", input);
                 input
             },
@@ -95,7 +95,8 @@ impl NestedFn {
                 };
                 let input = Self::fnInput(inputName, initial);
                 let pointName = conf.name.clone();
-                taskStuff.addInput(pointName, input.clone());
+                taskStuff.addInput(&pointName, input.clone());
+                let input = taskStuff.getInput(&pointName).unwrap().to_owned();
                 println!("NestedFn.function | input (Point): {:?}", input);
                 input
             },

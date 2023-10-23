@@ -34,7 +34,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_task() {
-    DebugSession::init(LogLevel::Trace);
+    DebugSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_task");

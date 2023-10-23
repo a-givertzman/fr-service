@@ -100,7 +100,7 @@ impl Task {
     /// 
     pub fn run(&mut self) {
         info!("Task({}).run | starting...", self.name);
-        let name = self.name.clone();
+        let selfName = self.name.clone();
         let exit = self.exit.clone();
         let cycleInterval = self.cycle;
         let conf = self.conf.clone();
@@ -109,15 +109,15 @@ impl Task {
             
             let mut taskStuff = FnInputs::new();
             let nodes = Self::nodes(conf, &mut taskStuff);
-            debug!("Task({}).run | taskStuff: {:?}", name, taskStuff);
+            debug!("Task({}).run | taskStuff: {:?}", selfName, taskStuff);
 
             let mut testValues = vec![0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0];
             // info!("Task({}).run | prepared", name);
             'inner: loop {
                 cycle.start();
-                debug!("Task({}).run | calculating step...", name);
+                debug!("Task({}).run | calculating step...", selfName);
                 thread::sleep(Duration::from_secs_f32(0.1));
-                debug!("Task({}).run | calculating step - done ({:?})", name, cycle.elapsed());
+                debug!("Task({}).run | calculating step - done ({:?})", selfName, cycle.elapsed());
                 // TODO impl mathematics here...
                 if exit.load(Ordering::Relaxed) {
                     break 'inner;
@@ -126,21 +126,22 @@ impl Task {
                     Some(value) => {
                         let inputName = "/path/Point.Name";
                         let point = PointType::Float(Point::newFloat(inputName, value));
-                        warn!("Task({}).run | input point: {:?}", name, point);
+                        debug!("Task({}).run | input point: {:?}", selfName, point);
                         match taskStuff.getInput(inputName) {
                             Some(input) => {
                                 input.borrow_mut().add(point);
                             },
                             None => {
-                                warn!("Task({}).run | input {:?} - not fount", name, inputName);
+                                warn!("Task({}).run | input {:?} - not fount", selfName, inputName);
                             },
                         };
                         for (nodeName, node) in &nodes {
-                            node.borrow_mut().out();
+                            let out = node.borrow_mut().out();
+                            debug!("Task({}).run | node {} out: {:?}", selfName, nodeName, out);
                         }
                     },
                     None => {
-                        warn!("Task({}).run | No more values", name);
+                        warn!("Task({}).run | No more values", selfName);
                     },
                 };
                 cycle.wait();
@@ -148,7 +149,7 @@ impl Task {
                     break 'inner;
                 }
             };
-            info!("Task({}).run | stopped", name);
+            info!("Task({}).run | stopped", selfName);
             thread::sleep(Duration::from_secs_f32(2.1));
         }).unwrap();
         info!("Task({}).run | started", self.name);
