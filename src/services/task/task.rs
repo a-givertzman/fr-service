@@ -145,7 +145,7 @@ impl Task {
                         }        
                     },
                     Err(err) => {
-                        warn!("Task({}).run | Error receiving from queue", err);
+                        warn!("Task({}).run | Error receiving from queue: {:?}", selfName, err);
                     },
                 };
                 cycle.wait();

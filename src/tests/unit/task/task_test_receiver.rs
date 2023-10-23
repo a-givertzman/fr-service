@@ -30,25 +30,26 @@ impl TaskTestReceiver {
                 if exit.load(Ordering::Relaxed) {
                     break 'inner;
                 }
-                match testValues.pop() {
-                    Some(value) => {
-                        match recvQueue.recv() {
-                            Ok(sql) => {
-                                count += 1;
-                                debug!("TaskTestReceiver.run | value: {}\treceived SQL: {:?}", value, sql);
-                                // assert!()
-                            },
-                            Err(err) => {
-                                warn!("TaskTestReceiver.run | Error receiving from queue: {:?}", err);
-                            },
-                        };
+                match recvQueue.recv() {
+                    Ok(sql) => {
+                        count += 1;
+                        debug!("TaskTestReceiver.run | received SQL: {:?}", sql);
+                        // debug!("TaskTestReceiver.run | value: {}\treceived SQL: {:?}", value, sql);
+                        // assert!()
                     },
-                    None => {
-                        warn!("TaskTestReceiver.run | No more values");
-                        received.store(count, Ordering::Relaxed);
-                        break;
+                    Err(err) => {
+                        warn!("TaskTestReceiver.run | Error receiving from queue: {:?}", err);
                     },
                 };
+                // match testValues.pop() {
+                //     Some(value) => {
+                //     },
+                //     None => {
+                //         warn!("TaskTestReceiver.run | No more values");
+                //         received.store(count, Ordering::Relaxed);
+                //         break;
+                //     },
+                // };
                 if exit.load(Ordering::Relaxed) {
                     break 'inner;
                 }

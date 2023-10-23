@@ -14,7 +14,7 @@ fn points() ->Vec<PointType> {
         PointType::Int(   Point { value: 13,     name:String::from("int1"),   status: 0, timestamp: chrono::offset::Utc::now() }),
         PointType::Int(   Point { value: 43,     name:String::from("int1"),   status: 0, timestamp: chrono::offset::Utc::now() }),
         PointType::Bool(  Point { value: Bool(false),  name:String::from("bool1"),  status: 0, timestamp: chrono::offset::Utc::now() }),
-        PointType::Float( Point { value: 12.77,  name:String::from("float1"), status: 0, timestamp: chrono::offset::Utc::now() }),
+        PointType::Float( Point { value: 0.11,  name:String::from("/path/Point.Name"), status: 0, timestamp: chrono::offset::Utc::now() }),
         PointType::Int(   Point { value: 65,     name:String::from("int1"),   status: 0, timestamp: chrono::offset::Utc::now() }),
     ]
 }
@@ -35,9 +35,9 @@ impl TaskTestProducer {
     pub fn run(&mut self) {
         let iterations = self.iterations;
         let send = self.send.pop().unwrap();
-        let h = thread::Builder::new().name("name".to_owned()).spawn(move || {
+        let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             let name = "prodicer";
-            debug!("Task({}).run | calculating step...", name);
+            debug!("TaskTestProducer({}).run | calculating step...", name);
             let points = points();
             let mut random = rand::thread_rng();
             let max = points.len();
@@ -50,14 +50,14 @@ impl TaskTestProducer {
                         sent += 1;
                     },
                     Err(err) => {
-                        warn!("Error write to queue: {:?}", err);
+                        warn!("TaskTestProducer({}).run | Error write to queue: {:?}", name, err);
                     },
                 }
                 // thread::sleep(Duration::from_micros(10));
             }
-            info!("Sent points: {}", sent);
+            info!("TaskTestProducer({}).run | Sent points: {}", name, sent);
             // thread::sleep(Duration::from_secs_f32(0.1));
-            // debug!("Task({}).run | calculating step - done ({:?})", name, cycle.elapsed());
+            // debug!("TaskTestProducer({}).run | calculating step - done ({:?})", name, cycle.elapsed());
         }).unwrap();    
     }
 }
