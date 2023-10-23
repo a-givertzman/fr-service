@@ -1,4 +1,6 @@
 use std::{time::{Duration, Instant}, thread};
+
+use log::debug;
 ///
 /// TaskCycle - provides exact time interval in ms / us (future posible implementation)
 ///  - creates with Duration of interval
@@ -32,6 +34,7 @@ impl TaskCycle {
         let elapsed = self.instant.elapsed();
         if elapsed < self.interval {
             let remainder = self.interval - elapsed;
+            debug!("TaskCycle.wait | waiting: {:?}", remainder);
             thread::sleep(remainder);
         }
     }

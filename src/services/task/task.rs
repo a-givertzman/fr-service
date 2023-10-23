@@ -122,13 +122,10 @@ impl Task {
             'inner: loop {
                 cycle.start();
                 debug!("Task({}).run | calculating step...", selfName);
-                thread::sleep(Duration::from_secs_f32(0.1));
-                debug!("Task({}).run | calculating step - done ({:?})", selfName, cycle.elapsed());
-                // TODO impl mathematics here...
                 if exit.load(Ordering::Relaxed) {
                     break 'inner;
                 }
-                match recvQueue.try_recv() {
+                match recvQueue.recv() {
                     Ok(point) => {
                         let pointName = point.name();
                         match taskStuff.getInput(&pointName) {
@@ -149,6 +146,7 @@ impl Task {
                     },
                 };
                 cycle.wait();
+                debug!("Task({}).run | calculating step - done ({:?})", selfName, cycle.elapsed());
                 if exit.load(Ordering::Relaxed) {
                     break 'inner;
                 }
