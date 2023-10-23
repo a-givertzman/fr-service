@@ -12,6 +12,14 @@ pub(crate) enum TaskConfNode {
     Metric(MetricConfig)
 }
 
+impl TaskConfNode {
+    pub fn name(&self) -> String {
+        match self {
+            TaskConfNode::Fn(conf) => conf.name.clone(),
+            TaskConfNode::Metric(conf) => conf.name.clone(),
+        }
+    }
+}
 
 ///
 /// creates config from serde_yaml::Value of following format:
@@ -34,7 +42,8 @@ pub(crate) enum TaskConfNode {
 pub struct TaskConfig {
     pub(crate) name: String,
     pub(crate) cycle: u64,
-    pub(crate) nodes: HashMap<String, TaskConfNode>,
+    pub(crate) apiQueue: String,
+    pub(crate) nodes: HashMap<String, FnConfig>,
     pub(crate) vars: Vec<String>,
 }
 ///
@@ -69,48 +78,62 @@ impl TaskConfig {
             Some(mut selfConf) => {
                 debug!("TaskConfig.new | MAPPING VALUE");
                 trace!("TaskConfig.new | selfConf: {:?}", selfConf);
+                
                 let selfName = match ConfKeywd::from_str(&selfConf.key) {
                     Ok(selfKeyword) => selfKeyword.data(),
                     Err(err) => panic!("TaskConfig.new | Unknown metric name in {:?}\n\tdetales: {:?}", &selfConf.key, err),
                 };
+                trace!("TaskConfig.new | selfName: {:?}", selfName);
                 let selfCycle = (&mut selfConf).remove("cycle").unwrap().as_u64().unwrap();
+                trace!("TaskConfig.new | selfCycle: {:?}", selfCycle);
+                let selfApiQueue = (&mut selfConf).remove("api-queue").unwrap().as_str().unwrap().to_string();
+                trace!("TaskConfig.new | selfApiQueue: {:?}", selfApiQueue);
 
                 let mut nodeIndex = 0;
                 let mut selfNodes = HashMap::new();
                 for selfNodeConf in selfConf.subNodes().unwrap() {
-                    match ConfKeywd::from_str(&selfNodeConf.key) {
-                        Ok(selfNodeKeyword) => {
-                            nodeIndex += 1;
-                            let nodeConf = match selfNodeKeyword {
-                                ConfKeywd::Fn(_) => {
-                                    TaskConfNode::Fn(FnConfig::new(&selfNodeConf, &mut vars))
-                                },
-                                ConfKeywd::Var(_) => {
-                                    TaskConfNode::Fn(FnConfig::new(&selfNodeConf, &mut vars))
-                                },
-                                ConfKeywd::Const(_) => {
-                                    TaskConfNode::Fn(FnConfig::new(&selfNodeConf, &mut vars))
-                                },
-                                ConfKeywd::Metric(_) => {
-                                    TaskConfNode::Metric(MetricConfig::new(&selfNodeConf, &mut vars))
-                                },
-                                ConfKeywd::Point(_) => {
-                                    panic!("TaskConfig.new | Unknown task keyword 'Point' in {:?}", &selfNodeConf.key)
-                                },
-                            };
-                            selfNodes.insert(
-                                format!("{}-{}", selfNodeKeyword.data(), nodeIndex),
-                                nodeConf,
-                            );
-                        },
-                        Err(err) => {
-                            panic!("TaskConfig.new | Unknown task keyword in {:?}\n\tdetales: {:?}", &selfNodeConf.key, err);
-                        },
-                    };
+                    trace!("TaskConfig.new | selfNodeConf: {:?}", selfNodeConf);
+                    nodeIndex += 1;
+                    let nodeConf = FnConfig::new(&selfNodeConf, &mut vars);
+                    selfNodes.insert(
+                        format!("{}-{}", nodeConf.name, nodeIndex),
+                        nodeConf,
+                    );
+
+                    // match ConfKeywd::from_str(&selfNodeConf.key) {
+                    //     Ok(selfNodeKeyword) => {
+                    //         nodeIndex += 1;
+                    //         let nodeConf = match selfNodeKeyword {
+                    //             ConfKeywd::Fn(_) => {
+                    //                 TaskConfNode::Fn(FnConfig::new(&selfNodeConf, &mut vars))
+                    //             },
+                    //             ConfKeywd::Var(_) => {
+                    //                 TaskConfNode::Fn(FnConfig::new(&selfNodeConf, &mut vars))
+                    //             },
+                    //             ConfKeywd::Const(_) => {
+                    //                 TaskConfNode::Fn(FnConfig::new(&selfNodeConf, &mut vars))
+                    //             },
+                    //             ConfKeywd::Metric(_) => {
+                    //                 TaskConfNode::Fn(FnConfig::new(&selfNodeConf, &mut vars))
+                    //             },
+                    //             ConfKeywd::Point(_) => {
+                    //                 panic!("TaskConfig.new | Unknown task keyword 'Point' in {:?}", &selfNodeConf.key)
+                    //             },
+                    //         };
+                    //         selfNodes.insert(
+                    //             format!("{}-{}", selfNodeKeyword.data(), nodeIndex),
+                    //             nodeConf,
+                    //         );
+                    //     },
+                    //     Err(err) => {
+                    //         panic!("TaskConfig.new | Unknown task keyword in {:?}\n\tdetales: {:?}", &selfNodeConf.key, err);
+                    //     },
+                    // };
                 }
                 TaskConfig {
                     name: selfName,
                     cycle: selfCycle,
+                    apiQueue: selfApiQueue,
                     nodes: selfNodes,
                     vars: vars,
                 }

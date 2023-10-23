@@ -13,6 +13,15 @@ use super::queue_send::QueueSend;
 pub struct QueueSendMpscChannel<T> {
     send: Sender<T>
 }
+///
+/// 
+impl<T> QueueSendMpscChannel<T> {
+    pub fn new(send: Sender<T>) -> Self {
+        Self {
+            send: send,
+        }
+    }
+}
 
 impl<T: std::fmt::Debug> QueueSend<T> for QueueSendMpscChannel<T> {
     fn send(&mut self, value: T) -> Result<(), ErrorString> {

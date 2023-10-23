@@ -72,16 +72,18 @@ fn test_fn_config_new_valid() {
             TaskConfig {
                 name: String::from("task1"),
                 cycle: 100,
+                apiQueue: String::from("queueApi"),
                 vars: vec![String::from("VarName2")],
                 nodes: HashMap::from([                    
-                    (String::from("sqlSelectMetric-1"), TaskConfNode::Metric(                    
-                        MetricConfig { 
+                    (String::from("sqlSelectMetric-1"), FnConfig { 
+                            fnKind: FnConfKind::Metric,
+                            type_: FnConfPointType::Unknown,
                             name: String::from("sqlSelectMetric"), 
-                            table: String::from("table_name"), 
-                            sql: String::from("UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"), 
-                            initial: 0.123, 
-                            vars: vec![String::from("VarName2")],
+                            // vars: vec![String::from("VarName2")],
                             inputs: HashMap::from([
+                                (String::from("initial"), FnConfig { fnKind: FnConfKind::Param, name: String::from("0.123"), type_: FnConfPointType::Unknown, inputs: HashMap::new() }),
+                                (String::from("table"), FnConfig { fnKind: FnConfKind::Param, name: String::from("table_name"), type_: FnConfPointType::Unknown, inputs: HashMap::new() }),
+                                (String::from("sql"), FnConfig { fnKind: FnConfKind::Param, name: String::from("UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"), type_: FnConfPointType::Unknown, inputs: HashMap::new() }),
                                 (String::from("input1"), FnConfig { 
                                     fnKind: FnConfKind::Var, name: String::from("VarName2"), type_: FnConfPointType::Unknown, inputs: HashMap::from([
                                         (String::from("input"), FnConfig { 
@@ -105,7 +107,7 @@ fn test_fn_config_new_valid() {
                                 (String::from("input2"), FnConfig { fnKind: FnConfKind::Const, name: String::from("1"), type_: FnConfPointType::Unknown, inputs: HashMap::new() })
                             ]), 
                         }
-                    )),
+                    ),
                 ])
             }
         ),
@@ -124,9 +126,10 @@ fn test_fn_config_new_valid() {
             TaskConfig {
                 name: String::from("task1"),
                 cycle: 100,
+                apiQueue: String::from("queueApi"),
                 vars: vec![String::from("VarName2")],
                 nodes: HashMap::from([                    
-                    (String::from("VarName2-1"), TaskConfNode::Fn(FnConfig { 
+                    (String::from("VarName2-1"), FnConfig { 
                         fnKind: FnConfKind::Var, name: String::from("VarName2"), type_: FnConfPointType::Unknown, inputs: HashMap::from([
                             (String::from("input"), FnConfig { 
                                 fnKind: FnConfKind::Fn, name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: HashMap::from([
@@ -145,7 +148,7 @@ fn test_fn_config_new_valid() {
                                 ]) 
                             })
                         ]) 
-                    })), 
+                    }), 
                 ])
             }
         ),        

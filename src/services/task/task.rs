@@ -16,6 +16,7 @@ use crate::services::task::task_stuff::TaskStuff;
 
 use super::nested_function::fn_::FnOut;
 use super::nested_function::fn_inputs::FnInputs;
+use super::queue_send::QueueSend;
 
 pub enum TaskNode {
     Var(Arc<dyn FnOut>),
@@ -29,6 +30,7 @@ pub enum TaskNode {
 pub struct Task {
     name: String,
     cycle: u64,
+    apiQueue: Box<dyn QueueSend<String>>,
     exit: Arc<AtomicBool>,
     nodes: HashMap<String, TaskNode>,
 }
@@ -37,45 +39,49 @@ pub struct Task {
 impl Task {
     ///
     /// 
-    pub fn new(cfg: TaskConfig) ->Self {
+    pub fn new(cfg: TaskConfig, apiQueue: Box<dyn QueueSend<String>>) ->Self {
         let mut nodes = HashMap::new();
         let mut inputs = FnInputs::new();
-        for (nodeName, nodeConf) in cfg.nodes {
-            match nodeConf.clone() {
-                TaskConfNode::Fn(mut fnConf) => {
-                    match fnConf.fnKind {
-                        FnConfKind::Metric => {
-                            nodes.insert(
-                                nodeName.clone(),
-                                MetricBuilder::new(&mut fnConf, &mut inputs),
-                            );
-                            debug!("Task.new | metricConf: {:?}: {:?}", nodeName, &fnConf);
-                        },
-                        FnConfKind::Fn => {
-                            debug!("Task.new | fnConf: {:?}: {:?}", nodeName, &fnConf);
-                            // NestedFn::new(&mut fnConf, &mut inputs)
-                        },
-                        FnConfKind::Var => {
-                            debug!("Task.new | varConf: {:?}: {:?}", nodeName, &fnConf);
-                        },
-                        FnConfKind::Const => {
-                            panic!("Task.new | Const is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
-                        },
-                        FnConfKind::Point => {
-                            panic!("Task.new | Point is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
-                        },
-                        FnConfKind::Param => {
-                            debug!("Task.new | custom parameter: {:?}: {:?}", nodeName, &fnConf);
-                        }
-                    }
+        for (nodeName, mut nodeConf) in cfg.nodes {
+            debug!("Task.new | node: {:?}", nodeConf.name);
+            match nodeConf.fnKind {
+                FnConfKind::Metric => {
+                    nodes.insert(
+                        nodeName.clone(),
+                        MetricBuilder::new(&mut nodeConf, &mut inputs),
+                    );
+                    debug!("Task.new | metricConf: {:?}: {:?}", nodeName, &nodeConf);
                 },
-                TaskConfNode::Metric(mut metricConf) => {
+                FnConfKind::Fn => {
+                    nodes.insert(
+                        nodeName.clone(),
+                        MetricBuilder::new(&mut nodeConf, &mut inputs),
+                    );
+                    debug!("Task.new | fnConf: {:?}: {:?}", nodeName, &nodeConf);
+                    // NestedFn::new(&mut fnConf, &mut inputs)
                 },
+                FnConfKind::Var => {
+                    nodes.insert(
+                        nodeName.clone(),
+                        MetricBuilder::new(&mut nodeConf, &mut inputs),
+                    );
+                    debug!("Task.new | varConf: {:?}: {:?}", nodeName, &nodeConf);
+                },
+                FnConfKind::Const => {
+                    panic!("Task.new | Const is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
+                },
+                FnConfKind::Point => {
+                    panic!("Task.new | Point is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
+                },
+                FnConfKind::Param => {
+                    debug!("Task.new | custom parameter: {:?}: {:?}", nodeName, &nodeConf);
+                }
             }
         }
         Self {
             name: cfg.name,
             cycle: cfg.cycle,
+            apiQueue: apiQueue,
             exit: Arc::new(AtomicBool::new(false)),
             nodes: nodes,
         }
