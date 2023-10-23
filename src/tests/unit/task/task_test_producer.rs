@@ -1,4 +1,4 @@
-use std::{sync::mpsc::Sender, thread, time::Duration};
+use std::{sync::mpsc::Sender, thread::{self, JoinHandle}, time::Duration};
 use rand::Rng;
 
 use log::{debug, warn, info};
@@ -22,12 +22,14 @@ fn points() ->Vec<PointType> {
 pub struct TaskTestProducer {
     iterations: usize, 
     send: Vec<Sender<PointType>>,
+    handle: Option<JoinHandle<()>>,
 }
 impl TaskTestProducer {
     pub fn new(iterations: usize, send: Sender<PointType>) -> Self {
         Self {
             iterations,
             send: vec![send],
+            handle: None,
         }
     }
     ///
@@ -59,5 +61,13 @@ impl TaskTestProducer {
             // thread::sleep(Duration::from_secs_f32(0.1));
             // debug!("TaskTestProducer({}).run | calculating step - done ({:?})", name, cycle.elapsed());
         }).unwrap();    
+    }
+    pub fn join(self) {
+        match &self.handle {
+            Some(_) => {
+                self.handle.unwrap().join().unwrap()
+            },
+            None => {},
+        };
     }
 }

@@ -61,7 +61,8 @@ fn test_task() {
     let time = Instant::now();
     task.run();
     trace!("task tuning - ok");
-    thread::sleep(Duration::from_secs_f32(5.0));
+    producer.join();
+    thread::sleep(Duration::from_millis(100));
     trace!("task stopping...");
     task.exit();
     receiver.exit();
