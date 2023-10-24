@@ -2,7 +2,7 @@
 
 use std::{cell::RefCell, rc::Rc, collections::HashMap};
 
-use log::debug;
+use log::{debug, error, trace, warn};
 
 use crate::{core_::{conf::fn_config::FnConfig, point::{point_type::PointType, point::Point}, format::format::Format}, services::task::task_stuff::TaskStuff};
 
@@ -18,6 +18,7 @@ pub struct MetricSelect {
     initial: f64,
     table: String,
     sql: Format,
+    sqlNames: HashMap<String, (String, Option<String>)>,
 }
 ///
 /// 
@@ -44,12 +45,18 @@ impl MetricSelect {
         let mut sqlFormat = Format::new(&conf.param("sql").name);
         sqlFormat.insert("id", &id);
         sqlFormat.insert("table", &table);
+        let mut sqlNames = sqlFormat.names();
+        sqlNames.remove("initial");
+        sqlNames.remove("table");
+        sqlNames.remove("sql");
+        sqlNames.remove("id");
         MetricSelect {
             id: id,
             inputs: inputs,
             initial: initial,
             table: table,
             sql: sqlFormat,
+            sqlNames: sqlNames,
         }
     }
 }
@@ -65,10 +72,11 @@ impl FnIn for MetricSelect {
 impl FnOut for MetricSelect {
     //
     fn out(&mut self) -> PointType {
-        for (fullName, (name, sufix)) in self.sql.names() {
-            debug!("MetricSelect.out | name: {:?}, sufix: {:?}", &name, &sufix);
-            match self.inputs.get(&fullName) {
+        for (fullName, (name, sufix)) in &self.sqlNames {
+            trace!("MetricSelect.out | name: {:?}, sufix: {:?}", &name, &sufix);
+            match self.inputs.get(name) {
                 Some(input) => {
+                    trace!("MetricSelect.out | input: {:?} - found", &name);
                     let pointType = input.borrow_mut().out();
                     match sufix {
                         Some(sufix) => {
@@ -76,29 +84,31 @@ impl FnOut for MetricSelect {
                                 "value" => {
                                     match pointType {
                                         PointType::Bool(point) => {
-                                            self.sql.insert(&name, point.value);
+                                            self.sql.insert(&fullName, point.value);
                                         },
                                         PointType::Int(point) => {
-                                            self.sql.insert(&name, point.value);
+                                            self.sql.insert(&fullName, point.value);
                                         },
                                         PointType::Float(point) => {
-                                            self.sql.insert(&name, point.value);
+                                            self.sql.insert(&fullName, point.value);
                                         },
                                         PointType::String(point) => {
-                                            self.sql.insert(&name, point.value);
+                                            self.sql.insert(&fullName, point.value);
                                         },
                                     };
                                 },
-                                "timestamp" => self.sql.insert(&name, pointType.timestamp()),
+                                "timestamp" => self.sql.insert(&fullName, pointType.timestamp()),
                                 _ => panic!("MetricSelect.out | Unknown input sufix in: {:?}, allowed: .value or .timestamp", &name),
                             }
                         },
                         None => {
-                            debug!("MetricSelect.out | name: {:?}, sufix: None", &name);
+                            panic!("MetricSelect.out | name: {:?}, sufix: None", &name);
                         },
                     }
                 },
-                None => {},
+                None => {
+                    panic!("MetricSelect.out | input: {:?} - not found", &name);
+                },
             };
         }
         debug!("MetricSelect.out | sql: {:?}", self.sql.out());

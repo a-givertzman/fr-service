@@ -38,12 +38,13 @@ fn initEach() -> () {
 
 
 fn main() {
-    DebugSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Info);
     initOnce();
     initEach();
     info!("test_task");
     
-    let iterations = 10;//0_000_000;
+    let producers = 3;
+    let iterations = 100_000;//_000_000;
     
     trace!("dir: {:?}", env::current_dir());
     let path = "./src/tests/unit/task/task_test.yaml";
@@ -55,17 +56,23 @@ fn main() {
     let mut receiver = TaskTestReceiver::new();
     
     let testValues = vec![0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0];
-    receiver.run(apiRecv, iterations, testValues);
+    receiver.run(apiRecv, iterations * producers, testValues);
 
-    let mut producer = TaskTestProducer::new(iterations, send);
-    producer.run();
+    let mut producer1 = TaskTestProducer::new(iterations, send.clone());
+    let mut producer2 = TaskTestProducer::new(iterations, send.clone());
+    let mut producer3 = TaskTestProducer::new(iterations, send);
+    producer1.run();
+    producer2.run();
+    producer3.run();
 
     let mut task = Task::new(config, apiSend, recv);
     trace!("task tuning...");
     let time = Instant::now();
     task.run();
     trace!("task tuning - ok");
-    producer.join();
+    producer1.join();
+    producer2.join();
+    producer3.join();
     receiver.join();
     // thread::sleep(Duration::from_millis(200));
     trace!("task stopping...");
@@ -74,8 +81,6 @@ fn main() {
     trace!("task stopping - ok");
     println!("elapsed: {:?}", time.elapsed());
     println!("received: {:?}", receiver.received());
-
-    // trace!("task: {:?}", &task);
-    // assert_eq!(config, target);
+    assert_eq!(receiver.received(), iterations * producers);
 }
 
