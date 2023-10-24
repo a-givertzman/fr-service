@@ -27,14 +27,17 @@ task task1:
         input metric sqlSelectMetric:
             initial: 0.123      # начальное значение
             table: table_name
-            sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
-            input let Var3:
+            # sql: "UPDATE {table} SET kind = '{input1.value}' WHERE id = '{input2.value}';"
+            sql: "insert into {table} (id, value, timestamp) values ({id}, {input1.value}, {input1.timestamp});"
+            input1 let Var3:
                     input fn add:
                         input1 fn add:
                             input1: const float 0.2
                             input2: point float '/path/Point.Name'
                         input2:
                             const float 0.05
+            input2:
+                const int 333
 
 # service ApiClient:
 
