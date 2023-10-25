@@ -1,4 +1,4 @@
-use std::{collections::HashMap, rc::Rc, cell::RefCell, sync::mpsc::{Sender, Receiver}};
+use std::{collections::HashMap, rc::Rc, cell::RefCell};
 
 use log::trace;
 
@@ -7,7 +7,7 @@ use super::nested_function::fn_::FnInOut;
 
 
 ///
-/// A container for storing FnInput by name
+/// A container for storing FnInput & valiavles by name
 #[derive(Debug)]
 pub struct TaskStuffInputs {
     inputs: HashMap<String, Rc<RefCell<Box<dyn FnInOut>>>>,
@@ -39,21 +39,6 @@ impl TaskStuffInputs {
         assert!(!name.clone().into().is_empty(), "Variable name can't be emty");
         self.vars.insert(name.into(), input);
     }
-    // ///
-    // /// Adding new Bool input refeerence
-    // pub fn addBool(&mut self, name: impl Into<String>, input: Rc<RefCell<Box<dyn FnOut<Bool>>>>) {
-    //     self.refs.insert(name.into(), FnInType::Bool(input));
-    // }
-    // ///
-    // /// Adding new Int input refeerence
-    // pub fn addInt(&mut self, name: impl Into<String>, input: Rc<RefCell<Box<dyn FnOut<i64>>>>) {
-    //     self.refs.insert(name.into(), FnInType::Int(input));
-    // }
-    // ///
-    // /// Adding new Float input refeerence
-    // pub fn addFloat(&mut self, name: impl Into<String>, input: Rc<RefCell<Box<dyn FnOut<f64>>>>) {
-    //     self.refs.insert(name.into(), FnInType::Float(input));
-    // }
     ///
     /// Returns input by it's name
     pub fn getInput(&self, name: &str) -> Option<&Rc<RefCell<Box<dyn FnInOut>>>> {
