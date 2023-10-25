@@ -39,7 +39,7 @@ fn test_fn_config_read_valid() {
     let target = TaskConfig {
         name: String::from("task1"),
         cycle: 100,
-        apiQueue: String::from("api-queue"),
+        recvQueue: String::from("recv-queue"),
         vars: vec![String::from("VarName2")],
         nodes: HashMap::from([                    
             (String::from("sqlSelectMetric-1"), FnConfig { 

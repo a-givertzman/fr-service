@@ -42,7 +42,7 @@ impl TaskConfNode {
 pub struct TaskConfig {
     pub(crate) name: String,
     pub(crate) cycle: u64,
-    pub(crate) apiQueue: String,
+    pub(crate) recvQueue: String,
     pub(crate) nodes: HashMap<String, FnConfig>,
     pub(crate) vars: Vec<String>,
 }
@@ -86,8 +86,8 @@ impl TaskConfig {
                 trace!("TaskConfig.new | selfName: {:?}", selfName);
                 let selfCycle = (&mut selfConf).remove("cycle").unwrap().as_u64().unwrap();
                 trace!("TaskConfig.new | selfCycle: {:?}", selfCycle);
-                let selfApiQueue = (&mut selfConf).remove("api-queue").unwrap().as_str().unwrap().to_string();
-                trace!("TaskConfig.new | selfApiQueue: {:?}", selfApiQueue);
+                let selfRecvQueue = (&mut selfConf).remove("recv-queue").unwrap().as_str().unwrap().to_string();
+                trace!("TaskConfig.new | selfRecvQueue: {:?}", selfRecvQueue);
 
                 let mut nodeIndex = 0;
                 let mut selfNodes = HashMap::new();
@@ -103,7 +103,7 @@ impl TaskConfig {
                 TaskConfig {
                     name: selfName,
                     cycle: selfCycle,
-                    apiQueue: selfApiQueue,
+                    recvQueue: selfRecvQueue,
                     nodes: selfNodes,
                     vars: vars,
                 }

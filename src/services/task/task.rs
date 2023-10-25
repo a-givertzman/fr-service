@@ -36,8 +36,8 @@ pub struct Task {
     name: String,
     cycle: u64,
     conf: TaskConfig,
-    apiQueue: Vec<Sender<String>>,
-    recvQueue: Vec<Receiver<PointType>>,
+    queues: Vec<Queues>,
+    // recvQueue: Vec<Receiver<PointType>>,
     exit: Arc<AtomicBool>,
     // nodes: Arc<Mutex<HashMap<String, Rc<RefCell<Box<dyn FnInOut>>>>>>,
 }
@@ -47,19 +47,18 @@ impl Task {
     ///
     /// 
     pub fn new(cfg: TaskConfig, queues: Queues) -> Task {
-        let apiQueue = queues.getSendQueue(api-queue)
         Task {
             name: cfg.name.clone(),
             cycle: cfg.cycle.clone(),
-            apiQueue: vec![apiQueue],
-            recvQueue: vec![recvQueue],
+            queues: vec![queues],
+            // recvQueue: vec![recvQueue],
             conf: cfg,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
     ///
     /// 
-    fn nodes(conf: TaskConfig, inputs: &mut TaskStuffInputs) -> HashMap<std::string::String, Rc<RefCell<Box<(dyn FnInOut)>>>> {
+    fn nodes(conf: TaskConfig, inputs: &mut TaskStuffInputs, queues: &mut Queues) -> HashMap<std::string::String, Rc<RefCell<Box<(dyn FnInOut)>>>> {
         let mut nodeIndex = 0;
         let mut nodes = HashMap::new();
         for (_nodeName, mut nodeConf) in conf.nodes {
@@ -112,13 +111,12 @@ impl Task {
         let cycleInterval = self.cycle;
         let cyclic = cycleInterval > 0;
         let conf = self.conf.clone();
-        let apiQueue = self.apiQueue.pop().unwrap();
-        let recvQueue = self.recvQueue.pop().unwrap();
+        let mut queues = self.queues.pop().unwrap();
+        let recvQueue = queues.getRecvQueue(&self.conf.recvQueue);
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             let mut cycle = TaskCycle::new(Duration::from_millis(cycleInterval));
             let mut taskStuff = TaskStuffInputs::new();
-            taskStuff.addSendQueue("apiQueue", apiQueue);
-            let nodes = Self::nodes(conf, &mut taskStuff);
+            let nodes = Self::nodes(conf, &mut taskStuff, &mut queues);
             trace!("Task({}).run | taskStuff: {:?}", selfName, taskStuff);
             
             // info!("Task({}).run | prepared", name);

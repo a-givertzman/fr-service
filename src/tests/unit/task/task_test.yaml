@@ -6,9 +6,12 @@
 # queue api-queue:
 #     max-length: 10000
 
+# queue recv-queue:
+#     max-length: 10000
+
 task task1:
     cycle: 0
-    api-queue: api-queue
+    recv-queue: recv-queue
     let Var1:
         input fn add:
             input1: point float '/path/Point.Name1'

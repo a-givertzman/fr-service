@@ -60,7 +60,8 @@ impl NestedFn {
                         let name = "input";
                         let inputConf = conf.inputConf(name);   // Self::getFnInputConf(name, fnName, conf);
                         let input = Self::function(name, inputConf, taskStuff);
-                        let sendQueue = taskStuff.getSendQueue("apiQueue");
+                        let queueName = conf.param("queue").name.clone();
+                        let sendQueue = taskStuff.getSendQueue(&queueName);
                         Self::toApiQueue(inputName, input, sendQueue)
                         // Self::toApiQueue(inputName, queue, input)
                     },

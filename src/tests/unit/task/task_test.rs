@@ -5,7 +5,7 @@ use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, env, time::Instant};
 
 use crate::{
     core_::{conf::task_config::TaskConfig, debug::debug_session::{DebugSession, LogLevel}, point::point_type::PointType}, 
-    services::task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer},
+    services::{task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}, queues::queues::Queues},
 };
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -45,8 +45,12 @@ fn test_task() {
     let config = TaskConfig::read(path);
     trace!("config: {:?}", &config);
 
+    let mut queues = Queues::new();
     let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
-    let (apiSend, apiRecv): (Sender<String>, Receiver<String>) = mpsc::channel();
+    let (apiSend, apiRecv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
+    queues.addRecvQueue("recv-queue", recv);
+    queues.addSendQueue("api-queue", apiSend);
+
     let mut receiver = TaskTestReceiver::new();
     
     let testValues = vec![0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0];
@@ -55,7 +59,7 @@ fn test_task() {
     let mut producer = TaskTestProducer::new(iterations, send);
     producer.run();
 
-    let mut task = Task::new(config, apiSend, recv);
+    let mut task = Task::new(config, queues);
     trace!("task tuning...");
     let time = Instant::now();
     task.run();

@@ -4,7 +4,7 @@
 #             input: point '/path/Point.Name/'
 task task1:
     cycle: 100
-    api-queue: api-queue
+    recv-queue: recv-queue
     metric sqlSelectMetric:
         initial: 0.123      # начальное значение
         table: table_name

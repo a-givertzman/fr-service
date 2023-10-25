@@ -4,6 +4,8 @@ use std::{sync::{mpsc::Receiver, Arc, atomic::{AtomicBool, Ordering, AtomicUsize
 
 use log::{info, debug, warn, trace};
 
+use crate::core_::point::point_type::PointType;
+
 
 pub struct TaskTestReceiver {
     exit: Arc<AtomicBool>,
@@ -19,7 +21,7 @@ impl TaskTestReceiver {
             handle: vec![],
         }
     }
-    pub fn run(&mut self, recvQueue: Receiver<String>, iterations: usize, testValues: Vec<f64>) {
+    pub fn run(&mut self, recvQueue: Receiver<PointType>, iterations: usize, testValues: Vec<f64>) {
         info!("TaskTestReceiver.run | starting...");
         let exit = self.exit.clone();
         let received = self.received.clone();
@@ -39,7 +41,7 @@ impl TaskTestReceiver {
                         if count >= iterations {
                             break 'inner;
                         }
-                        trace!("TaskTestReceiver.run | received SQL: {:?}", sql);
+                        trace!("TaskTestReceiver.run | received SQL: {:?}", sql.asString().value);
                         // debug!("TaskTestReceiver.run | value: {}\treceived SQL: {:?}", value, sql);
                         // assert!()
                     },
