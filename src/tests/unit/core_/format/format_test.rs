@@ -95,27 +95,33 @@ fn test_prepare() {
     initOnce();
     initEach();
     info!("test_prepare");
-
     // let (initial, switches) = initEach();
+
+    let mut format = Format::new("abc {const} xyz '{b.name}' rty {c.value} str {c.timestamp}.");
+    format.insert("const", 12345.toPoint(""));
+    format.insert("b.name", "".toPoint("the.name"));
+    trace!("format: {}", format);
+    format.prepare();
+    let target = "abc 12345 xyz 'the.name' rty {c.value} str {c.timestamp}.";
+    assert!(format.out() == target, "prepared format != target \nformat: {} \ntarget: {}", format, target);
+
     let testData = vec![
-        ("abc {a.value} xyz {b.name} rty {c.timestamp} str {c.id}.", (false, 12, 1.618, "1223"), r"abc false xyz  rty {c.timestamp} UTC str {c.id}."),
-        ("abc {a.value} xyz {b.name} rty {c.timestamp} str {c.id}.", (false, 02, 0.618, "1223"), r"abc false xyz  rty {c.timestamp} UTC str {c.id}."),
+        (1.618, r"abc 12345 xyz 'the.name' rty {c.value} str {c.timestamp} UTC."),
+        (0.618, r"abc 12345 xyz 'the.name' rty {c.value} str {c.timestamp} UTC."),
     ];
-    for (input, values, target) in testData {
-        let mut format = Format::new(input);
-        format.insert("a.value", values.0.toPoint(""));
-        format.insert("b.name", values.1.toPoint(""));
-        format.insert("c.timestamp", values.2.toPoint(""));
+    for (values, target) in testData {
+        format.insert("a.value", values.toPoint(""));
+        format.insert("c.timestamp", values.toPoint(""));
         debug!("result: {}", format);
         let out = format.out();
         let target = target.replace(
             "{c.timestamp}",
-            values.2.toPoint("").timestamp().to_rfc3339_opts(chrono::SecondsFormat::Secs, true).replace("T", " ").replace("Z", "").as_str(),
+            values.toPoint("").timestamp().to_rfc3339_opts(chrono::SecondsFormat::Secs, true).replace("T", " ").replace("Z", "").as_str(),
         );
-        let re = format!(
-            r"(abc false xyz  rty {})(\.\d{{9}})( UTC str \{{c\.id\}}\.)", 
-            values.2.toPoint("").timestamp().to_rfc3339_opts(chrono::SecondsFormat::Secs, true).replace("T", " ").replace("Z", ""),
-        );
+        let re = r"(.+)(\.\d+)( UTC)";
+            // r"(abc false xyz  rty {})(\.\d{{9}})( UTC str \{{c\.id\}}\.)", 
+        // );
+        // values.toPoint("").timestamp().to_rfc3339_opts(chrono::SecondsFormat::Secs, true).replace("T", " ").replace("Z", ""),
         trace!("re: {}", re);
         let re = RegexBuilder::new(&re).multi_line(false).build().unwrap();
         let out = re.replace(&out, "$1$3");
