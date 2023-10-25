@@ -8,11 +8,22 @@ use regex::RegexBuilder;
 use crate::core_::point::point_type::PointType;
 
 ///
-/// Replaces markers {marker name} with the concrete values
-/// - values can be added using insert method format.insert(name, value)
-/// - string: "insert into {table} (id, value) values ({id}, {value})"
-/// - values: table = "temperature"; id = 1; value = 19,7
-/// - out   : "insert into temperature (id, value) values (1, 19,7)"
+/// Replaces input markers {marker name} with the concrete values
+///
+/// input marker can be:
+/// ````
+///      input | sufix      |
+///      name  |            |
+///     - input 
+///     - input.name
+///     - input.value
+///     - input.timestamp
+///     - input.status
+/// ````
+/// - formating string: "insert into {table} (id, value) values ({input1.status}, {input1.value})"
+/// - values can be added using insert method format.insert("input1", point)
+/// - values: table = "temperature"; point.status = 1; point.value = 19,7
+/// - out   : "insert into temperature (id, value) values (0, 19,7)"
 pub struct Format {
     input: String,
     names: HashMap<String, (String, Option<String>)>,
@@ -91,9 +102,28 @@ impl Format {
         }
     }
     ///
-    /// 
+    /// Keep in maind, the name can be:
+    /// ````
+    ///      input | sufix      |
+    ///      name  |            |
+    ///     - input 
+    ///     - input.name
+    ///     - input.value
+    ///     - input.timestamp
+    /// ````
+    /// Returns List of al names & sufixes in the following format:
+    /// HashMap<fullName, (name, sufix)>
     pub fn names(&self) -> HashMap<String, (String, Option<String>)> {
         self.names.clone()
+    }
+    ///
+    /// Already inserted values will be stored into out, 
+    /// and will be removed from the names. 
+    /// Less number of remained values, faster the replacement
+    pub fn prepare(&mut self) {
+        let input = self.out();
+        self.input = input;
+        trace!("Format.prepare | self.input {:?}", self.input);
     }
 }
 

@@ -55,11 +55,46 @@ fn test_simple_name() {
 
 
 #[test]
-fn test_dot_name() {
+fn test_name_sufix() {
     DebugSession::init(LogLevel::Trace);
     initOnce();
     initEach();
-    info!("test_dot_name");
+    info!("test_name_sufix");
+
+    // let (initial, switches) = initEach();
+    let testData = vec![
+        ("abc {a.value} xyz {b.name} rty {c.timestamp} str {c.id}.", (false, 12, 1.618, "1223"), r"abc false xyz  rty {c.timestamp} UTC str {c.id}."),
+        ("abc {a.value} xyz {b.name} rty {c.timestamp} str {c.id}.", (false, 02, 0.618, "1223"), r"abc false xyz  rty {c.timestamp} UTC str {c.id}."),
+    ];
+    for (input, values, target) in testData {
+        let mut format = Format::new(input);
+        format.insert("a.value", values.0.toPoint(""));
+        format.insert("b.name", values.1.toPoint(""));
+        format.insert("c.timestamp", values.2.toPoint(""));
+        debug!("result: {}", format);
+        let out = format.out();
+        let target = target.replace(
+            "{c.timestamp}",
+            values.2.toPoint("").timestamp().to_rfc3339_opts(chrono::SecondsFormat::Secs, true).replace("T", " ").replace("Z", "").as_str(),
+        );
+        let re = format!(
+            r"(abc false xyz  rty {})(\.\d{{9}})( UTC str \{{c\.id\}}\.)", 
+            values.2.toPoint("").timestamp().to_rfc3339_opts(chrono::SecondsFormat::Secs, true).replace("T", " ").replace("Z", ""),
+        );
+        trace!("re: {}", re);
+        let re = RegexBuilder::new(&re).multi_line(false).build().unwrap();
+        let out = re.replace(&out, "$1$3");
+        trace!("out: {}", out);
+        assert!(out == target, "format != target \nformat: {} \ntarget: {}", out, target);
+    }        
+}
+
+#[test]
+fn test_prepare() {
+    DebugSession::init(LogLevel::Trace);
+    initOnce();
+    initEach();
+    info!("test_prepare");
 
     // let (initial, switches) = initEach();
     let testData = vec![
