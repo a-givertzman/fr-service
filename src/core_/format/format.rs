@@ -14,7 +14,7 @@ use crate::core_::point::point_type::PointType;
 /// ````
 ///      input | sufix      |
 ///      name  |            |
-///     - input 
+///     - input  - by defoult input.value will be used
 ///     - input.name
 ///     - input.value
 ///     - input.timestamp
@@ -63,8 +63,8 @@ impl Format {
                             match sufix.as_str() {
                                 "name" => point.name(),
                                 "value" => Self::pointValueToString(point),
-                                "status" => point.status().to_string(),
                                 "timestamp" => point.timestamp().to_string(),
+                                "status" => point.status().to_string(),
                                 _ => panic!("MetricSelect.out | Unknown input sufix in: {:?}, allowed: .value or .timestamp", &name),
                             }
                         },
@@ -102,17 +102,20 @@ impl Format {
         }
     }
     ///
-    /// Keep in maind, the name can be:
+    /// Returns List of al names & sufixes in the following format:
+    /// ```
+    /// HashMap<fullName, (name, sufix)>
+    /// ```
+    /// - Keep in maind, the name can be:
     /// ````
     ///      input | sufix      |
     ///      name  |            |
-    ///     - input 
+    ///     - input  - by defoult input.value will be used
     ///     - input.name
     ///     - input.value
     ///     - input.timestamp
+    ///     - input.status
     /// ````
-    /// Returns List of al names & sufixes in the following format:
-    /// HashMap<fullName, (name, sufix)>
     pub fn names(&self) -> HashMap<String, (String, Option<String>)> {
         self.names.clone()
     }
@@ -123,6 +126,12 @@ impl Format {
     pub fn prepare(&mut self) {
         let input = self.out();
         self.input = input;
+        let values = self.values.clone();
+        let names = values.keys();
+        for name in names {
+            self.names.remove(name);
+            self.values.remove(name);
+        };
         trace!("Format.prepare | self.input {:?}", self.input);
     }
 }
