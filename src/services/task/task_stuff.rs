@@ -1,4 +1,6 @@
-use std::{collections::HashMap, rc::Rc, cell::RefCell};
+use std::{collections::HashMap, rc::Rc, cell::RefCell, clone};
+
+use log::debug;
 
 use super::{nested_function::fn_::FnInOut, task_stuff_inputs::TaskStuffInputs};
 
@@ -39,8 +41,17 @@ impl TaskStuff {
     }
     ///
     /// 
-    pub fn add(node: &mut TaskStuffInputs) {
+    pub fn add(&mut self, node: &mut TaskStuffInputs, out: FnInOutRef) {
         let vars = node.getVars();
         let inputs = node.getInputs();
+        let mut outs: Vec<FnInOutRef> = vars.into_values().collect();
+        outs.push(out);
+        for (name, input) in inputs {
+            self.inputs.insert(
+                name,
+                (input, outs.iter().map(|out|out.clone()).collect()),
+            );
+        };
+        debug!("TaskStuff.add | self.inputs: {:?}", self.inputs);
     }
 }
