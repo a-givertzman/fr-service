@@ -3,7 +3,10 @@
 use log::{trace, info};
 use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, env, time::Instant};
 
-use crate::{core_::{conf::task_config::TaskConfig, debug::debug_session::{DebugSession, LogLevel}, point::point_type::PointType}, services::task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}};
+use crate::{
+    core_::{conf::task_config::TaskConfig, debug::debug_session::{DebugSession, LogLevel}, point::point_type::PointType}, 
+    services::task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer},
+};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -26,10 +29,6 @@ fn initOnce() {
 fn initEach() -> () {
 
 }
-
-// fn boxQueueSend(input: QueueSendMpscChannel<PointType>) -> Box<dyn QueueSend<String>> {
-//     Box::new(input)
-// }
 
 
 #[test]
