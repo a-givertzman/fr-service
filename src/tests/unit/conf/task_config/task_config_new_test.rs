@@ -52,22 +52,21 @@ fn test_fn_config_new_valid() {
         (
             r#"task task1:
                 cycle: 100
+                api-queue: queueApi
                 metric sqlSelectMetric:
                     initial: 0.123      # начальное значение
                     table: table_name
                     sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
-                    inputs:
-                        input1:
-                            let VarName2:
+                    input1 let VarName2:
+                        input fn functionName:
+                            initial: VarName2
+                            input fn functionName:
+                                input1: const someValue
+                                input2: point float '/path/Point.Name'
                                 input fn functionName:
-                                    initial: VarName2
-                                    input fn functionName:
-                                        input1: const someValue
-                                        input2: point float '/path/Point.Name/'
-                                        input fn functionName:
-                                            input: point bool '/path/Point.Name/'
-                        input2:
-                            const 1
+                                    input: point bool '/path/Point.Name'
+                    input2:
+                        const int 1
             "#, 
             TaskConfig {
                 name: String::from("task1"),
@@ -92,10 +91,10 @@ fn test_fn_config_new_valid() {
                                                 (String::from("input"), FnConfig { 
                                                     fnKind: FnConfKind::Fn, name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: HashMap::from([
                                                         (String::from("input1"), FnConfig { fnKind: FnConfKind::Const, name: String::from("someValue"), type_: FnConfPointType::Unknown, inputs: HashMap::new() }),
-                                                        (String::from("input2"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), type_: FnConfPointType::Float, inputs: HashMap::new() }), 
+                                                        (String::from("input2"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name"), type_: FnConfPointType::Float, inputs: HashMap::new() }), 
                                                         (String::from("input"), FnConfig { 
                                                             fnKind: FnConfKind::Fn, name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: HashMap::from([
-                                                                (String::from("input"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), type_: FnConfPointType::Bool, inputs: HashMap::new() }),
+                                                                (String::from("input"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name"), type_: FnConfPointType::Bool, inputs: HashMap::new() }),
                                                             ])
                                                         }), 
                                                     ]) 
@@ -104,7 +103,7 @@ fn test_fn_config_new_valid() {
                                         })
                                     ]) 
                                 }), 
-                                (String::from("input2"), FnConfig { fnKind: FnConfKind::Const, name: String::from("1"), type_: FnConfPointType::Unknown, inputs: HashMap::new() })
+                                (String::from("input2"), FnConfig { fnKind: FnConfKind::Const, name: String::from("1"), type_: FnConfPointType::Int, inputs: HashMap::new() })
                             ]), 
                         }
                     ),
@@ -114,14 +113,15 @@ fn test_fn_config_new_valid() {
         (
             r#"task task1:
                 cycle: 100
+                api-queue: queueApi
                 let VarName2:
                     input fn functionName:
                         initial: VarName2
                         input fn functionName:
                             input1: const someValue
-                            input2: point float '/path/Point.Name/'
+                            input2: point float '/path/Point.Name'
                             input fn functionName:
-                                input: point bool '/path/Point.Name/'
+                                input: point bool '/path/Point.Name'
             "#, 
             TaskConfig {
                 name: String::from("task1"),
@@ -137,10 +137,10 @@ fn test_fn_config_new_valid() {
                                     (String::from("input"), FnConfig { 
                                         fnKind: FnConfKind::Fn, name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: HashMap::from([
                                             (String::from("input1"), FnConfig { fnKind: FnConfKind::Const, name: String::from("someValue"), type_: FnConfPointType::Unknown, inputs: HashMap::new() }),
-                                            (String::from("input2"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), type_: FnConfPointType::Float, inputs: HashMap::new() }), 
+                                            (String::from("input2"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name"), type_: FnConfPointType::Float, inputs: HashMap::new() }), 
                                             (String::from("input"), FnConfig { 
                                                 fnKind: FnConfKind::Fn, name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: HashMap::from([
-                                                    (String::from("input"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), type_: FnConfPointType::Bool, inputs: HashMap::new() }),
+                                                    (String::from("input"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name"), type_: FnConfPointType::Bool, inputs: HashMap::new() }),
                                                 ])
                                             }), 
                                         ]) 

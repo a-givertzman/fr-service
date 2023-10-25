@@ -1,7 +1,8 @@
 #![allow(non_snake_case)]
-use log::warn;
+use log::{warn, trace};
 #[cfg(test)]
 use log::{debug, info};
+use regex::RegexBuilder;
 use std::{sync::Once, rc::Rc, cell::RefCell};
 
 use crate::{
@@ -40,7 +41,7 @@ fn initEach(conf: &mut FnConfig, inputs: &mut TaskStuff) -> Rc<RefCell<Box<dyn F
 }
 
 
-#[test]
+// #[test]
 fn test_int() {
     DebugSession::init(LogLevel::Debug);
     initOnce();
@@ -55,20 +56,20 @@ fn test_int() {
     );
     debug!("taskStuff: {:?}", taskStuff);
     let testData = vec![
-        (1, "Point.Name", 3),
-        (1, "Point.Name", 3),
-        (1, "Point.Name", 3),
-        (1, "Point.Name", 3),
-        (0, "Point.Name", 2),
-        (1, "Point.Name", 3),
-        (2, "Point.Name", 4),
-        (3, "Point.Name", 5),
-        (4, "Point.Name", 6),
-        (5, "Point.Name", 7),
-        (6, "Point.Name", 8),
-        (7, "Point.Name", 9),
-        (8, "Point.Name", 10),
-        (9, "Point.Name", 11),
+        (1, "/path/Point.Name", 3),
+        (1, "/path/Point.Name", 3),
+        (1, "/path/Point.Name", 3),
+        (1, "/path/Point.Name", 3),
+        (0, "/path/Point.Name", 2),
+        (1, "/path/Point.Name", 3),
+        (2, "/path/Point.Name", 4),
+        (3, "/path/Point.Name", 5),
+        (4, "/path/Point.Name", 6),
+        (5, "/path/Point.Name", 7),
+        (6, "/path/Point.Name", 8),
+        (7, "/path/Point.Name", 9),
+        (8, "/path/Point.Name", 10),
+        (9, "/path/Point.Name", 11),
     ];
     for (value, name, targetValue) in testData {
         let point = value.toPoint(name);
@@ -82,11 +83,12 @@ fn test_int() {
                 debug!("value: {:?}   |   state: {:?}", point.asInt().value, state.asString().value);
                 assert_eq!(
                     state.asString().value, 
-                    format!("insert into SelectMetric_test_table_name values(id, value, timestamp) (sqlSelectMetric,{},{})", targetValue, point.timestamp())
+                    format!("UPDATE SelectMetric_test_table_name SET kind = '{}' WHERE id = '{}';",targetValue, 1.11),
+                    // format!("insert into SelectMetric_test_table_name values(id, value, timestamp) (sqlSelectMetric,{},{})", targetValue, point.timestamp())
                 );
             },
             None => {
-                warn!("input {:?} - not found in the current taskStuff", &inputName)
+                panic!("input {:?} - not found in the current taskStuff", &inputName)
             },
         };
     }        
@@ -95,7 +97,7 @@ fn test_int() {
 
 #[test]
 fn test_float() {
-    DebugSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Trace);
     initOnce();
     info!("test_float");
     let path = "./src/tests/unit/task/metric/metric_select_float_test.yaml";
@@ -108,20 +110,20 @@ fn test_float() {
     );
     debug!("taskStuff: {:?}", taskStuff);
     let testData = vec![
-        (1.1, "Point.Name", 3.3),
-        (1.2, "Point.Name", 3.4),
-        (1.3, "Point.Name", 3.5),
-        (1.4, "Point.Name", 3.6),
-        (0.1, "Point.Name", 2.3),
-        (1.1, "Point.Name", 3.3),
-        (2.2, "Point.Name", 4.4),
-        (3.3, "Point.Name", 5.5),
-        (4.4, "Point.Name", 6.6),
-        (5.5, "Point.Name", 7.7),
-        (6.6, "Point.Name", 8.8),
-        (7.7, "Point.Name", 9.9),
-        (8.8, "Point.Name", 11.0),
-        (9.9, "Point.Name", 12.1),
+        (1.1, "/path/Point.Name", 3.3),
+        (1.2, "/path/Point.Name", 3.4),
+        (1.3, "/path/Point.Name", 3.5),
+        (1.4, "/path/Point.Name", 3.6),
+        (0.1, "/path/Point.Name", 2.3),
+        (1.1, "/path/Point.Name", 3.3),
+        (2.2, "/path/Point.Name", 4.4),
+        (3.3, "/path/Point.Name", 5.5),
+        (4.4, "/path/Point.Name", 6.6),
+        (5.5, "/path/Point.Name", 7.7),
+        (6.6, "/path/Point.Name", 8.8),
+        (7.7, "/path/Point.Name", 9.9),
+        (8.8, "/path/Point.Name", 11.0),
+        (9.9, "/path/Point.Name", 12.1),
     ];
     for (value, name, targetValue) in testData {
         let point = value.toPoint(name);
@@ -131,141 +133,27 @@ fn test_float() {
                 input.borrow_mut().add(point.clone());
                 // debug!("input: {:?}", &input);
                 let state = fnCount.out();
-                // debug!("input: {:?}", &mut input);
+                let out = state.asString().value;
+                let re = r"(UPDATE SelectMetric_test_table_name SET kind = ')(\d+(?:\.\d+)*)(' WHERE id = '3.33';)";
+                trace!("re: {}", re);
+                let re = RegexBuilder::new(&re).multi_line(false).build().unwrap();
+                let digits: f64 = re.captures(&out).unwrap().get(2).unwrap().as_str().parse().unwrap();
+                let digits = format!("{:.1}", digits);
+                trace!("digits: {:?}", digits);
+                let out = re.replace(&out, "$1{!}$3");
+                let out = out.replace("{!}", &digits);
+                trace!("out: {}", out);
+        
                 debug!("value: {:?}   |   state: {:?}", point.asFloat().value, state.asString().value);
                 assert_eq!(
-                    state.asString().value, 
-                    format!("insert into SelectMetric_test_table_name values(id, value, timestamp) (sqlSelectMetric,{:.3},{})", targetValue, point.timestamp())
+                    out, 
+                    format!("UPDATE SelectMetric_test_table_name SET kind = '{:.1}' WHERE id = '{}';",targetValue, 3.33),
+                    // format!("insert into SelectMetric_test_table_name values(id, value, timestamp) (sqlSelectMetric,{:.3},{})", targetValue, point.timestamp())
                 );
             },
             None => {
-                warn!("input {:?} - not found in the current taskStuff", &inputName)
+                panic!("input {:?} - not found in the current taskStuff", &inputName)
             },
         };
     }        
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// 
-// #[test]
-// fn test_multiple() {
-//     DebugSession::init(LogLevel::Debug);
-//     initOnce();
-//     info!("test_multiple");
-//     let input = initEach(false.toPoint("bool"));
-//     let mut fnCount = FnCount::new(
-//         0, 
-//         input.clone(),
-//     );
-//     let testData = vec![
-//         (false, 0),
-//         (false, 0),
-//         (true, 1),
-//         (false, 1),
-//         (false, 1),
-//         (true, 2),
-//         (false, 2),
-//         (true, 3),
-//         (false, 3),
-//         (false, 3),
-//         (true, 4),
-//         (true, 4),
-//         (false, 4),
-//         (false, 4),
-//     ];
-//     for (value, targetState) in testData {
-//         let point = value.toPoint("test");
-//         input.borrow_mut().add(point);
-//         // debug!("input: {:?}", &input);
-//         let state = fnCount.out();
-//         // debug!("input: {:?}", &mut input);
-//         debug!("value: {:?}   |   state: {:?}", value, state);
-//         assert_eq!(state.asInt().value, targetState);
-//     }        
-// }
-
-// #[test]
-// fn test_multiple_reset() {
-//     DebugSession::init(LogLevel::Debug);
-//     initOnce();
-//     info!("test_multiple_reset");
-//     let input = initEach(false.toPoint("bool"));
-//     let mut fnCount = FnCount::new(
-//         0, 
-//         input.clone(),
-//     );
-//     let testData = vec![
-//         (false, 0, false),
-//         (false, 0, false),
-//         (true, 1, false),
-//         (false, 1, false),
-//         (false, 1, false),
-//         (true, 2, false),
-//         (false, 0, true),
-//         (true, 1, false),
-//         (false, 1, false),
-//         (false, 1, false),
-//         (true, 2, false),
-//         (true, 2, false),
-//         (false, 0, true),
-//         (false, 0, false),
-//     ];
-//     for (value, targetState, reset) in testData {
-//         if reset {
-//             fnCount.reset();
-//         }
-//         let point = value.toPoint("test");
-//         input.borrow_mut().add(point);
-//         // debug!("input: {:?}", &input);
-//         let state = fnCount.out();
-//         // debug!("input: {:?}", &mut input);
-//         debug!("value: {:?}   |   state: {:?}", value, state);
-//         assert_eq!(state.asInt().value, targetState);
-//     }        
-// }

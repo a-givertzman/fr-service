@@ -212,12 +212,14 @@ impl FnConfig {
                             if !keyword.input().is_empty() {
                                 inputs.insert(
                                     keyword.input(),
-                                    FnConfig {
-                                        fnKind: keyword.kind(), 
-                                        name: keyword.data(), 
-                                        inputs: Self::buildInputs(&subNode, vars),
-                                        type_: keyword.type_(),
-                                    },
+                                    FnConfig::new(&subNode, vars),
+
+                                    // FnConfig {
+                                    //     fnKind: keyword.kind(), 
+                                    //     name: keyword.data(), 
+                                    //     inputs: Self::buildInputs(&subNode, vars),
+                                    //     type_: keyword.type_(),
+                                    // },
                                 );
                             }
                         },

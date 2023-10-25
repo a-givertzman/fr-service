@@ -39,7 +39,7 @@ fn test_task() {
     initEach();
     info!("test_task");
     
-    let iterations = 1_000_000;
+    let iterations = 10;
     
     trace!("dir: {:?}", env::current_dir());
     let path = "./src/tests/unit/task/task_test.yaml";

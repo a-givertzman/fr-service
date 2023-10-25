@@ -62,10 +62,10 @@ fn test_fn_config_read_valid() {
                                         (String::from("input"), FnConfig { 
                                             fnKind: FnConfKind::Fn, name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: HashMap::from([
                                                 (String::from("input1"), FnConfig { fnKind: FnConfKind::Const, name: String::from("someValue"), type_: FnConfPointType::Unknown, inputs: HashMap::new() }),
-                                                (String::from("input2"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), type_: FnConfPointType::Float, inputs: HashMap::new() }), 
+                                                (String::from("input2"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name"), type_: FnConfPointType::Float, inputs: HashMap::new() }), 
                                                 (String::from("input"), FnConfig { 
                                                     fnKind: FnConfKind::Fn, name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: HashMap::from([
-                                                        (String::from("input"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), type_: FnConfPointType::Bool, inputs: HashMap::new() }),
+                                                        (String::from("input"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name"), type_: FnConfPointType::Bool, inputs: HashMap::new() }),
                                                     ])
                                                 }), 
                                             ]) 
