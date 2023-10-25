@@ -3,12 +3,12 @@
 #         fn functionName:
 #             input: point '/path/Point.Name/'
 
-# queue queueApi:
+# queue api-queue:
 #     max-length: 10000
 
 task task1:
     cycle: 0
-    api-queue: queueApi
+    api-queue: api-queue
     let Var1:
         input fn add:
             input1: point float '/path/Point.Name1'
@@ -23,7 +23,7 @@ task task1:
                 input2: const float 0.07
 
     fn toApiQueue:
-        queue: queueApi
+        queue: api-queue
         input metric sqlSelectMetric:
             initial: 0.123      # начальное значение
             table: table_name

@@ -7,7 +7,7 @@ use crate::{
         point::{point_type::{PointType, ToPoint}, point::Point},
         conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, conf_keywd::FnConfPointType}, 
     }, 
-    services::task::{nested_function::metric_builder::MetricBuilder, task_stuff::TaskStuff}
+    services::task::{nested_function::metric_builder::MetricBuilder, task_stuff::TaskStuffInputs}
 };
 
 use super::{fn_::FnInOut, fn_input::FnInput, fn_add::FnAdd, fn_timer::FnTimer, functions::Functions, export::fn_to_api_queue::FnToApiQueue};
@@ -18,7 +18,7 @@ pub struct NestedFn {}
 impl NestedFn {
     ///
     /// Creates nested functions tree from it config
-    pub fn new(conf: &mut FnConfig, taskStuff: &mut TaskStuff) -> Rc<RefCell<Box<dyn FnInOut>>> {
+    pub fn new(conf: &mut FnConfig, taskStuff: &mut TaskStuffInputs) -> Rc<RefCell<Box<dyn FnInOut>>> {
         Self::function("", conf, taskStuff)
     }
     // fn getFnInputConf<'a>(inputName: &str, fnName: &str, conf: &'a mut FnConfig) -> &'a mut FnConfig {
@@ -29,7 +29,7 @@ impl NestedFn {
     // }
     ///
     /// 
-    fn function(inputName: &str, conf: &mut FnConfig, taskStuff: &mut TaskStuff) -> Rc<RefCell<Box<dyn FnInOut>>> {
+    fn function(inputName: &str, conf: &mut FnConfig, taskStuff: &mut TaskStuffInputs) -> Rc<RefCell<Box<dyn FnInOut>>> {
         match conf.fnKind {
             FnConfKind::Fn => {
                 println!("NestedFn.function | Fn {:?}: {:?}...", inputName, conf.name.clone());

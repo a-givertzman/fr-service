@@ -8,7 +8,7 @@ use std::{sync::Once, rc::Rc, cell::RefCell};
 use crate::{
     core_::{debug::debug_session::{DebugSession, LogLevel}, 
     point::{point_type::{PointType, ToPoint}, point::Point}, conf::fn_config::FnConfig}, 
-    services::task::{nested_function::{fn_::{FnInOut, FnOut}, metric_select::MetricSelect}, task_stuff::TaskStuff},
+    services::task::{nested_function::{fn_::{FnInOut, FnOut}, metric_select::MetricSelect}, task_stuff::TaskStuffInputs},
 };
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -29,7 +29,7 @@ fn initOnce() {
 ///
 /// returns:
 ///  - ...
-fn initEach(conf: &mut FnConfig, inputs: &mut TaskStuff) -> Rc<RefCell<Box<dyn FnInOut>>> {
+fn initEach(conf: &mut FnConfig, inputs: &mut TaskStuffInputs) -> Rc<RefCell<Box<dyn FnInOut>>> {
     fn boxFnInput(input: MetricSelect) -> Box<(dyn FnInOut)> {
         Box::new(input)
     }
@@ -49,7 +49,7 @@ fn test_int() {
     let path = "./src/tests/unit/task/metric/metric_select_int_test.yaml";
     let mut conf = FnConfig::read(path);
     debug!("conf: {:?}", conf);
-    let mut taskStuff = TaskStuff::new();
+    let mut taskStuff = TaskStuffInputs::new();
     let mut fnCount = MetricSelect::new(
         &mut conf, 
         &mut taskStuff,
@@ -103,7 +103,7 @@ fn test_float() {
     let path = "./src/tests/unit/task/metric/metric_select_float_test.yaml";
     let mut conf = FnConfig::read(path);
     debug!("conf: {:?}", conf);
-    let mut taskStuff = TaskStuff::new();
+    let mut taskStuff = TaskStuffInputs::new();
     let mut fnCount = MetricSelect::new(
         &mut conf, 
         &mut taskStuff,

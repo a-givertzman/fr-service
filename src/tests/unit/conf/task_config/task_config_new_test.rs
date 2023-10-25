@@ -52,7 +52,7 @@ fn test_fn_config_new_valid() {
         (
             r#"task task1:
                 cycle: 100
-                api-queue: queueApi
+                api-queue: api-queue
                 metric sqlSelectMetric:
                     initial: 0.123      # начальное значение
                     table: table_name
@@ -71,7 +71,7 @@ fn test_fn_config_new_valid() {
             TaskConfig {
                 name: String::from("task1"),
                 cycle: 100,
-                apiQueue: String::from("queueApi"),
+                apiQueue: String::from("api-queue"),
                 vars: vec![String::from("VarName2")],
                 nodes: HashMap::from([                    
                     (String::from("sqlSelectMetric-1"), FnConfig { 
@@ -113,7 +113,7 @@ fn test_fn_config_new_valid() {
         (
             r#"task task1:
                 cycle: 100
-                api-queue: queueApi
+                api-queue: api-queue
                 let VarName2:
                     input fn functionName:
                         initial: VarName2
@@ -126,7 +126,7 @@ fn test_fn_config_new_valid() {
             TaskConfig {
                 name: String::from("task1"),
                 cycle: 100,
-                apiQueue: String::from("queueApi"),
+                apiQueue: String::from("api-queue"),
                 vars: vec![String::from("VarName2")],
                 nodes: HashMap::from([                    
                     (String::from("VarName2-1"), FnConfig { 

@@ -9,13 +9,13 @@ use super::nested_function::fn_::FnInOut;
 ///
 /// A container for storing FnInput by name
 #[derive(Debug)]
-pub struct TaskStuff {
+pub struct TaskStuffInputs {
     inputs: HashMap<String, Rc<RefCell<Box<dyn FnInOut>>>>,
     vars: HashMap<String, Rc<RefCell<Box<dyn FnInOut>>>>,
     sendQueues: HashMap<String, Sender<String>>,
     recvQueues: HashMap<String, Receiver<String>>,
 }
-impl TaskStuff {
+impl TaskStuffInputs {
     ///
     /// Creates new container for storing FnInput
     pub fn new() -> Self {

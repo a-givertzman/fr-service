@@ -15,12 +15,13 @@ use crate::core_::conf::fn_conf_kind::FnConfKind;
 use crate::core_::conf::task_config::TaskConfig;
 use crate::core_::point::point::Point;
 use crate::core_::point::point_type::PointType;
+use crate::services::queues::queues::Queues;
 use crate::services::task::nested_function::metric_builder::MetricBuilder;
 use crate::services::task::nested_function::nested_fn::NestedFn;
 use crate::services::task::task_cycle::TaskCycle;
 
 use super::nested_function::fn_::FnInOut;
-use super::task_stuff::TaskStuff;
+use super::task_stuff::TaskStuffInputs;
 
 // pub enum TaskNode {
 //     Var(Arc<dyn FnOut>),
@@ -45,7 +46,8 @@ pub struct Task {
 impl Task {
     ///
     /// 
-    pub fn new(cfg: TaskConfig, apiQueue: Sender<String>, recvQueue: Receiver<PointType>) -> Task {
+    pub fn new(cfg: TaskConfig, queues: Queues) -> Task {
+        let apiQueue = queues.getSendQueue(api-queue)
         Task {
             name: cfg.name.clone(),
             cycle: cfg.cycle.clone(),
@@ -57,7 +59,7 @@ impl Task {
     }
     ///
     /// 
-    fn nodes(conf: TaskConfig, inputs: &mut TaskStuff) -> HashMap<std::string::String, Rc<RefCell<Box<(dyn FnInOut)>>>> {
+    fn nodes(conf: TaskConfig, inputs: &mut TaskStuffInputs) -> HashMap<std::string::String, Rc<RefCell<Box<(dyn FnInOut)>>>> {
         let mut nodeIndex = 0;
         let mut nodes = HashMap::new();
         for (_nodeName, mut nodeConf) in conf.nodes {
@@ -114,7 +116,7 @@ impl Task {
         let recvQueue = self.recvQueue.pop().unwrap();
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             let mut cycle = TaskCycle::new(Duration::from_millis(cycleInterval));
-            let mut taskStuff = TaskStuff::new();
+            let mut taskStuff = TaskStuffInputs::new();
             taskStuff.addSendQueue("apiQueue", apiQueue);
             let nodes = Self::nodes(conf, &mut taskStuff);
             trace!("Task({}).run | taskStuff: {:?}", selfName, taskStuff);
