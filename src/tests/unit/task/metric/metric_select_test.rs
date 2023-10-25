@@ -8,7 +8,7 @@ use std::{sync::Once, rc::Rc, cell::RefCell};
 use crate::{
     core_::{debug::debug_session::{DebugSession, LogLevel}, 
     point::{point_type::{PointType, ToPoint}, point::Point}, conf::fn_config::FnConfig}, 
-    services::task::{nested_function::{fn_::{FnInOut, FnOut}, metric_select::MetricSelect}, task_stuff::TaskStuffInputs},
+    services::{task::{nested_function::{fn_::{FnInOut, FnOut}, metric_select::MetricSelect}, task_stuff::TaskStuffInputs}, queues::queues::Queues},
 };
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -35,7 +35,7 @@ fn initEach(conf: &mut FnConfig, inputs: &mut TaskStuffInputs) -> Rc<RefCell<Box
     }
     Rc::new(RefCell::new(
         boxFnInput(
-            MetricSelect::new(conf, inputs)
+            MetricSelect::new(conf, inputs, &mut Queues::new())
         )
     ))
 }
@@ -53,6 +53,7 @@ fn test_int() {
     let mut fnCount = MetricSelect::new(
         &mut conf, 
         &mut taskStuff,
+        &mut Queues::new(),
     );
     debug!("taskStuff: {:?}", taskStuff);
     let testData = vec![
@@ -107,6 +108,7 @@ fn test_float() {
     let mut fnCount = MetricSelect::new(
         &mut conf, 
         &mut taskStuff,
+        &mut Queues::new(),
     );
     debug!("taskStuff: {:?}", taskStuff);
     let testData = vec![

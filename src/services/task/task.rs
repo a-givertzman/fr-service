@@ -1,20 +1,18 @@
 #![allow(non_snake_case)]
 
-use std::cell::RefCell;
-use std::collections::HashMap;
-use std::rc::Rc;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::mpsc::{Sender, Receiver};
-use std::sync::{Arc, Mutex};
-use std::{thread, clone};
-use std::time::Duration;
+use std::{
+    cell::RefCell,
+    collections::HashMap,
+    rc::Rc,
+    sync::{Arc, atomic::{AtomicBool, Ordering}},
+    thread,
+    time::Duration,
+};
 
 use log::{info, debug, warn, trace, error};
 
 use crate::core_::conf::fn_conf_kind::FnConfKind;
 use crate::core_::conf::task_config::TaskConfig;
-use crate::core_::point::point::Point;
-use crate::core_::point::point_type::PointType;
 use crate::services::queues::queues::Queues;
 use crate::services::task::nested_function::metric_builder::MetricBuilder;
 use crate::services::task::nested_function::nested_fn::NestedFn;
@@ -69,7 +67,7 @@ impl Task {
                     nodeIndex += 1;
                     nodes.insert(
                         format!("{}-{}", nodeName, nodeIndex),
-                        MetricBuilder::new(&mut nodeConf, inputs),
+                        MetricBuilder::new(&mut nodeConf, inputs, queues),
                     );
                     trace!("Task.new | metricConf: {:?}: {:?}", nodeName, &nodeConf);
                 },
@@ -77,7 +75,7 @@ impl Task {
                     nodeIndex += 1;
                     nodes.insert(
                         format!("{}-{}", nodeName, nodeIndex),
-                        NestedFn::new(&mut nodeConf, inputs),
+                        NestedFn::new(&mut nodeConf, inputs, queues),
                     );
                     trace!("Task.new | fnConf: {:?}: {:?}", nodeName, &nodeConf);
                     // NestedFn::new(&mut fnConf, &mut inputs)
@@ -85,7 +83,7 @@ impl Task {
                 FnConfKind::Var => {
                     nodes.insert(
                         nodeName.clone(),
-                        NestedFn::new(&mut nodeConf, inputs),
+                        NestedFn::new(&mut nodeConf, inputs, queues),
                     );
                     trace!("Task.new | varConf: {:?}: {:?}", nodeName, &nodeConf);
                 },

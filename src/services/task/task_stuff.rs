@@ -12,8 +12,6 @@ use super::nested_function::fn_::FnInOut;
 pub struct TaskStuffInputs {
     inputs: HashMap<String, Rc<RefCell<Box<dyn FnInOut>>>>,
     vars: HashMap<String, Rc<RefCell<Box<dyn FnInOut>>>>,
-    sendQueues: HashMap<String, Sender<String>>,
-    recvQueues: HashMap<String, Receiver<String>>,
 }
 impl TaskStuffInputs {
     ///
@@ -22,8 +20,6 @@ impl TaskStuffInputs {
         Self {
             inputs: HashMap::new(),
             vars: HashMap::new(),
-            sendQueues: HashMap::new(),
-            recvQueues: HashMap::new(),
         }
     }
     ///
@@ -42,16 +38,6 @@ impl TaskStuffInputs {
         assert!(!self.vars.contains_key(name.clone().into().as_str()), "Dublicated variable name: {:?}", name.clone().into());
         assert!(!name.clone().into().is_empty(), "Variable name can't be emty");
         self.vars.insert(name.into(), input);
-    }
-    ///
-    /// Adding new send queue
-    pub fn addSendQueue(&mut self, name: impl Into<String> + std::fmt::Debug + Clone, send: Sender<String>) {
-        if self.sendQueues.contains_key(&name.clone().into()) {
-            trace!("TaskStuff.addInput | send queue {:?} - already added", &name);
-        } else {
-            trace!("TaskStuff.addInput | adding send queue {:?}: {:?}", &name, &send);
-            self.sendQueues.insert(name.into(), send);
-        }
     }
     // ///
     // /// Adding new Bool input refeerence
@@ -78,56 +64,4 @@ impl TaskStuffInputs {
     pub fn getVar(&self, name: &str) -> Option<&Rc<RefCell<Box<dyn FnInOut>>>> {
         self.vars.get(name.into())
     }
-    ///
-    /// Returns send queue by it's name
-    pub fn getSendQueue(&mut self, name: &str) -> Sender<String> {
-        match self.sendQueues.remove(name.into()) {
-            Some(sendQueue) => sendQueue,
-            None => {
-                panic!("TaskStuff.getSendQueue | sendQueue {:?} - not found", &name);
-            },
-        }
-    }
-
-
-    // ///
-    // /// Returns input::Bool by it's name
-    // pub fn getBool(&self, name: &str) -> Rc<RefCell<Box<dyn FnOut<Bool>>>> {
-    //     match self.refs.get(name.into()) {
-    //         Some(input) => {
-    //             match input {
-    //                 FnInType::Bool(input) => input.clone(),
-    //                 _ => panic!("invalid type Bool of requested input {:?}", name),
-    //             }
-    //         },
-    //         None => panic!("Unknown input name {:?}", name),
-    //     }
-    // }
-    // ///
-    // /// Returns input::Int by it's name
-    // pub fn getInt(&self, name: &str) -> Rc<RefCell<Box<dyn FnOut<i64>>>> {
-    //     match self.refs.get(name.into()) {
-    //         Some(input) => {
-    //             match input {
-    //                 FnInType::Int(input) => input.clone(),
-    //                 _ => panic!("invalid type Int of requested input {:?}", name),
-    //             }
-                
-    //         },
-    //         None => panic!("Unknown input name {:?}", name),
-    //     }
-    // }
-    // ///
-    // /// Returns input::Float by it's name
-    // pub fn getFloat(&self, name: &str) -> Rc<RefCell<Box<dyn FnOut<f64>>>> {
-    //     match self.refs.get(name.into()) {
-    //         Some(input) => {
-    //             match input {
-    //                 FnInType::Float(input) => input.clone(),
-    //                 _ => panic!("invalid type Float of requested input {:?}", name),
-    //             }                
-    //         },
-    //         None => panic!("Unknown input name {:?}", name),
-    //     }
-    // }
 }
