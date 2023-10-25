@@ -10,6 +10,35 @@ use crate::core_::types::bool::Bool;
 
 use super::point::Point;
 
+pub trait ToPoint {
+    fn toPoint(self, name: &str) -> PointType;
+}
+
+impl ToPoint for bool {
+    fn toPoint(self, name: &str) -> PointType {
+        PointType::Bool(Point::newBool(name, self))
+    }
+}
+impl ToPoint for i64 {
+    fn toPoint(self, name: &str) -> PointType {
+        PointType::Int(Point::newInt(name, self))
+    }
+}
+impl ToPoint for f64 {
+    fn toPoint(self, name: &str) -> PointType {
+        PointType::Float(Point::newFloat(name, self))
+    }
+}
+impl ToPoint for &str {
+    fn toPoint(self, name: &str) -> PointType {
+        PointType::String(Point::newString(name, self))
+    }
+}
+impl ToPoint for String {
+    fn toPoint(self, name: &str) -> PointType {
+        PointType::String(Point::newString(name, self))
+    }
+}
 
 ///
 /// enum container for Point<T>
@@ -22,6 +51,9 @@ pub enum PointType {
     String(Point<String>)
 }
 impl PointType {
+    pub fn new<T: ToPoint>(name: &str, value: T) -> Self {
+        value.toPoint(name)
+    }
     pub fn name(&self) -> String {
         match self {
             PointType::Bool(point) => point.name.clone(),
@@ -83,7 +115,7 @@ impl FromStr for PointType {
                 match &caps.get(1) {
                     Some(keyword) => {
                         match keyword.as_str() {
-                            "bool"  => Ok( PointType::Bool(Point::newBool("bool", false)) ),
+                            "bool"  => Ok( false.toPoint("bool") ),
                             "int"  => Ok( PointType::Int(Point::newInt("int", 0)) ),
                             "float"  => Ok( PointType::Float(Point::newFloat("float", 0.0)) ),
                             "string"  => Ok( PointType::String(Point::newString("string", String::new())) ),

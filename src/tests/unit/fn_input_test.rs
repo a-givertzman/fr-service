@@ -5,7 +5,7 @@ use std::{sync::Once, rc::Rc, cell::RefCell};
 
 use crate::{
     core_::{debug::debug_session::{DebugSession, LogLevel}, 
-    point::{point_type::PointType, point::Point}}, 
+    point::{point_type::{PointType, ToPoint}, point::Point}}, 
     services::task::nested_function::{fn_::FnInOut, fn_input::FnInput},
 };
 
@@ -44,7 +44,7 @@ fn test_int() {
     DebugSession::init(LogLevel::Debug);
     initOnce();
     info!("test_int");
-    let input = initEach(PointType::Int(Point::newInt("int", 0)));
+    let input = initEach(0.toPoint("int"));
     let testData = vec![
         0,
         1,
@@ -62,7 +62,7 @@ fn test_int() {
         0,
     ];
     for value in testData {
-        let point = PointType::Int(Point::newInt("test", value));
+        let point = value.toPoint("test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = input.borrow_mut().out();
@@ -77,7 +77,7 @@ fn test_bool() {
     DebugSession::init(LogLevel::Debug);
     initOnce();
     info!("test_bool");
-    let input = initEach(PointType::Bool(Point::newBool("bool", false)));
+    let input = initEach(false.toPoint("bool"));
     let testData = vec![
         false,
         false,
@@ -97,7 +97,7 @@ fn test_bool() {
         false,
     ];
     for value in testData {
-        let point = PointType::Bool(Point::newBool("test", value));
+        let point = value.toPoint("test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = input.borrow_mut().out();
@@ -112,7 +112,7 @@ fn test_float() {
     DebugSession::init(LogLevel::Debug);
     initOnce();
     info!("test_float");
-    let input = initEach(PointType::Float(Point::newFloat("float", 0.0)));
+    let input = initEach(0.0.toPoint("float"));
     let testData = vec![
         0.0,
         1.0,
@@ -132,7 +132,7 @@ fn test_float() {
         0.0,
     ];
     for value in testData {
-        let point = PointType::Float(Point::newFloat("test", value));
+        let point = value.toPoint("test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = input.borrow_mut().out();
@@ -148,7 +148,7 @@ fn test_string() {
     DebugSession::init(LogLevel::Debug);
     initOnce();
     info!("test_string");
-    let input = initEach(PointType::String(Point::newString("string", "0")));
+    let input = initEach("0".toPoint("string"));
     let testData = vec![
         "0",
         "1",
@@ -166,7 +166,7 @@ fn test_string() {
         "0",
     ];
     for value in testData {
-        let point = PointType::String(Point::newString("test", value));
+        let point = value.toPoint("test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = input.borrow_mut().out();

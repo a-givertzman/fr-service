@@ -1,10 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::str::FromStr;
-
 use chrono::DateTime;
-use log::trace;
-use regex::RegexBuilder;
 
 use crate::core_::types::bool::Bool;
 
@@ -18,7 +14,9 @@ pub struct Point<T> {
 }
 
 
-impl Point<bool> {
+impl Point<Bool> {
+    ///
+    /// creates Point<Bool> with given name & value, taking current timestamp
     pub fn newBool(name: &str, value: bool) -> Point<Bool> {
         Point {
             name: name.into(),
@@ -29,6 +27,8 @@ impl Point<bool> {
     }
 }
 impl Point<i64> {
+    ///
+    /// creates Point<i64> with given name & value, taking current timestamp
     pub fn newInt(name: &str, value: i64) -> Point<i64> {
         Point {
             name: name.into(),
@@ -39,6 +39,8 @@ impl Point<i64> {
     }
 }
 impl Point<f64> {
+    ///
+    /// creates Point<f64> with given name & value, taking current timestamp
     pub fn newFloat(name: &str, value: f64) -> Point<f64> {
         Point {
             name: name.into(),
@@ -49,6 +51,8 @@ impl Point<f64> {
     }
 }
 impl Point<String> {
+    ///
+    /// creates Point<String> with given name & value, taking current timestamp
     pub fn newString(name: &str, value: impl Into<String>) -> Point<String> {
         Point {
             name: name.into(),

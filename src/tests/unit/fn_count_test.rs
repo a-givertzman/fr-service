@@ -5,7 +5,7 @@ use std::{sync::Once, rc::Rc, cell::RefCell};
 
 use crate::{
     core_::{debug::debug_session::{DebugSession, LogLevel}, 
-    point::{point_type::PointType, point::Point}}, 
+    point::point_type::{PointType, ToPoint}}, 
     services::task::nested_function::{fn_::{FnInOut, FnOut}, 
     fn_count::FnCount, fn_input::FnInput},
 };
@@ -45,7 +45,7 @@ fn test_single() {
     DebugSession::init(LogLevel::Debug);
     initOnce();
     info!("test_single");
-    let input = initEach(PointType::Bool(Point::newBool("bool", false)));
+    let input = initEach(false.toPoint("bool"));
     let mut fnCount = FnCount::new(
         "test",
         0, 
@@ -68,7 +68,7 @@ fn test_single() {
         (false, 4),
     ];
     for (value, targetState) in testData {
-        let point = PointType::Bool(Point::newBool("test", value));
+        let point = value.toPoint("test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = fnCount.out();
@@ -84,7 +84,7 @@ fn test_multiple() {
     DebugSession::init(LogLevel::Debug);
     initOnce();
     info!("test_multiple");
-    let input = initEach(PointType::Bool(Point::newBool("bool", false)));
+    let input = initEach(false.toPoint("bool"));
     let mut fnCount = FnCount::new(
         "test",
         0, 
@@ -107,7 +107,7 @@ fn test_multiple() {
         (false, 4),
     ];
     for (value, targetState) in testData {
-        let point = PointType::Bool(Point::newBool("test", value));
+        let point = value.toPoint("test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = fnCount.out();
@@ -122,7 +122,7 @@ fn test_multiple_reset() {
     DebugSession::init(LogLevel::Debug);
     initOnce();
     info!("test_multiple_reset");
-    let input = initEach(PointType::Bool(Point::newBool("bool", false)));
+    let input = initEach(false.toPoint("bool"));
     let mut fnCount = FnCount::new(
         "test",
         0, 
@@ -148,7 +148,7 @@ fn test_multiple_reset() {
         if reset {
             fnCount.reset();
         }
-        let point = PointType::Bool(Point::newBool("test", value));
+        let point = value.toPoint("test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = fnCount.out();

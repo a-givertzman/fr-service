@@ -3,7 +3,7 @@
 use log::{debug, info};
 use std::{sync::Once, time::{Instant, Duration}, thread,rc::Rc, cell::RefCell};
 
-use crate::{core_::{aprox_eq::aprox_eq::AproxEq, debug::debug_session::{DebugSession, LogLevel}, point::{point_type::PointType, point::Point}}, services::task::nested_function::{fn_::{FnIn, FnInOut, FnOut}, fn_timer::FnTimer, fn_input::FnInput}};
+use crate::{core_::{aprox_eq::aprox_eq::AproxEq, debug::debug_session::{DebugSession, LogLevel}, point::{point_type::{PointType, ToPoint}, point::Point}}, services::task::nested_function::{fn_::{FnIn, FnInOut, FnOut}, fn_timer::FnTimer, fn_input::FnInput}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -40,7 +40,7 @@ fn test_elapsed_repeat_false() {
     DebugSession::init(LogLevel::Debug);
     initOnce();
     info!("test_elapsed_repeat_false");
-    let mut input = initEach(PointType::Bool(Point::newBool("bool", false)));
+    let mut input = initEach(false.toPoint("bool"));
     let mut fnTimer = FnTimer::new(
         "id", 
         0,
@@ -87,7 +87,7 @@ fn test_elapsed_repeat_false() {
             }
         }
         target = elapsedTotal + elapsed;
-        let point = PointType::Bool(Point::newBool("test", value));
+        let point = value.toPoint("test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let fnTimerElapsed = fnTimer.out().asFloat().value;
@@ -103,7 +103,7 @@ fn test_total_elapsed_repeat() {
     DebugSession::init(LogLevel::Debug);
     initOnce();
     info!("test_total_elapsed_repeat");
-    let mut input = initEach(PointType::Bool(Point::newBool("bool", false)));
+    let mut input = initEach(false.toPoint("bool"));
     let mut fnTimer = FnTimer::new(
         "id", 
         0,
@@ -145,7 +145,7 @@ fn test_total_elapsed_repeat() {
             }
         }
         target = elapsedTotal + elapsed;
-        let point = PointType::Bool(Point::newBool("test", value));
+        let point = value.toPoint("test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let fnTimerElapsed = fnTimer.out().asFloat().value;
@@ -161,7 +161,7 @@ fn test_total_elapsed_repeat_reset() {
     DebugSession::init(LogLevel::Debug);
     initOnce();
     info!("test_total_elapsed_repeat_reset");
-    let mut input = initEach(PointType::Bool(Point::newBool("bool", false)));
+    let mut input = initEach(false.toPoint("bool"));
     let mut fnTimer = FnTimer::new(
         "id",
         0, 
@@ -210,7 +210,7 @@ fn test_total_elapsed_repeat_reset() {
             }
         }
         target = elapsedTotal + elapsedSession;
-        let point = PointType::Bool(Point::newBool("test", value));
+        let point = value.toPoint("test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let fnTimerElapsed = fnTimer.out().asFloat().value;
@@ -228,7 +228,7 @@ fn test_initial_repeat() {
     initOnce();
     info!("test_initial_repeat");
     let initial = 123.1234;
-    let mut input = initEach(PointType::Bool(Point::newBool("bool", false)));
+    let mut input = initEach(false.toPoint("bool"));
     let mut fnTimer = FnTimer::new(
         "id",
         initial, 
@@ -270,7 +270,7 @@ fn test_initial_repeat() {
             }
         }
         target = elapsedTotal + elapsed;
-        let point = PointType::Bool(Point::newBool("test", value));
+        let point = value.toPoint("test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let fnTimerElapsed = fnTimer.out().asFloat().value;

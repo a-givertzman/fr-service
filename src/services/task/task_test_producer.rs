@@ -1,26 +1,23 @@
-use std::{sync::mpsc::Sender, thread::{self, JoinHandle}, time::Duration};
+use std::{sync::mpsc::Sender, thread::{self, JoinHandle}};
 use rand::Rng;
 
 use log::{debug, warn, info};
 
-use crate::core_::{point::{point_type::PointType, point::Point}, types::bool::Bool};
+use crate::core_::point::point_type::{PointType, ToPoint};
 
 
 
 
-fn points() ->Vec<PointType> {
-    vec![
-        PointType::Bool(  Point { value: Bool(true),   name:String::from("bool1"),  status: 0, timestamp: chrono::offset::Utc::now() }),
-        PointType::Int(   Point { value: 13,     name:String::from("int1"),   status: 0, timestamp: chrono::offset::Utc::now() }),
-        PointType::Int(   Point { value: 43,     name:String::from("int1"),   status: 0, timestamp: chrono::offset::Utc::now() }),
-        PointType::Bool(  Point { value: Bool(false),  name:String::from("bool1"),  status: 0, timestamp: chrono::offset::Utc::now() }),
-        PointType::Float( Point { value: 0.0077,  name:String::from("/path/Point.Name"), status: 0, timestamp: chrono::offset::Utc::now() }),
-        PointType::Int(   Point { value: 65,     name:String::from("int1"),   status: 0, timestamp: chrono::offset::Utc::now() }),
-    ]
-}
-fn pointFloat(value: f64) -> PointType {
-    PointType::Float( Point { value: value,  name:String::from("/path/Point.Name"), status: 0, timestamp: chrono::offset::Utc::now() })
-}
+// fn points() ->Vec<PointType> {
+//     vec![
+//         true.toPoint("bool1"),
+//         13.toPoint("int1"),
+//         43.toPoint("int1"),
+//         false.toPoint("bool1"),
+//         0.0077.toPoint("/path/Point.Name"),
+//         65.toPoint("int1"),
+//     ]
+// }
 
 pub struct TaskTestProducer {
     iterations: usize, 
@@ -49,7 +46,7 @@ impl TaskTestProducer {
             let mut sent = 0;
             for _ in 0..iterations {
                 let value = random.gen_range(0.0..max);
-                let point = pointFloat(value);
+                let point = value.toPoint("/path/Point.Name");
                 match send.send(point.clone()) {
                     Ok(_) => {
                         sent += 1;

@@ -6,7 +6,7 @@ use std::{sync::Once, rc::Rc, cell::RefCell};
 
 use crate::{
     core_::{debug::debug_session::{DebugSession, LogLevel}, 
-    point::{point_type::PointType, point::Point}, conf::fn_config::FnConfig}, 
+    point::{point_type::{PointType, ToPoint}, point::Point}, conf::fn_config::FnConfig}, 
     services::task::{nested_function::{fn_::{FnInOut, FnOut}, metric_select::MetricSelect}, task_stuff::TaskStuff},
 };
 
@@ -71,7 +71,7 @@ fn test_int() {
         (9, "Point.Name", 11),
     ];
     for (value, name, targetValue) in testData {
-        let point = PointType::Int(Point::newInt(name, value));
+        let point = value.toPoint(name);
         let inputName = &point.name();
         match taskStuff.getInput(&inputName) {
             Some(input) => {
@@ -124,7 +124,7 @@ fn test_float() {
         (9.9, "Point.Name", 12.1),
     ];
     for (value, name, targetValue) in testData {
-        let point = PointType::Float(Point::newFloat(name, value));
+        let point = value.toPoint(name);
         let inputName = &point.name();
         match taskStuff.getInput(&inputName) {
             Some(input) => {
@@ -198,7 +198,7 @@ fn test_float() {
 //     DebugSession::init(LogLevel::Debug);
 //     initOnce();
 //     info!("test_multiple");
-//     let input = initEach(PointType::Bool(Point::newBool("bool", false)));
+//     let input = initEach(false.toPoint("bool"));
 //     let mut fnCount = FnCount::new(
 //         0, 
 //         input.clone(),
@@ -220,7 +220,7 @@ fn test_float() {
 //         (false, 4),
 //     ];
 //     for (value, targetState) in testData {
-//         let point = PointType::Bool(Point::newBool("test", value));
+//         let point = value.toPoint("test");
 //         input.borrow_mut().add(point);
 //         // debug!("input: {:?}", &input);
 //         let state = fnCount.out();
@@ -235,7 +235,7 @@ fn test_float() {
 //     DebugSession::init(LogLevel::Debug);
 //     initOnce();
 //     info!("test_multiple_reset");
-//     let input = initEach(PointType::Bool(Point::newBool("bool", false)));
+//     let input = initEach(false.toPoint("bool"));
 //     let mut fnCount = FnCount::new(
 //         0, 
 //         input.clone(),
@@ -260,7 +260,7 @@ fn test_float() {
 //         if reset {
 //             fnCount.reset();
 //         }
-//         let point = PointType::Bool(Point::newBool("test", value));
+//         let point = value.toPoint("test");
 //         input.borrow_mut().add(point);
 //         // debug!("input: {:?}", &input);
 //         let state = fnCount.out();

@@ -3,7 +3,10 @@
 use log::{debug, info};
 use std::{sync::Once, rc::Rc, cell::RefCell};
 
-use crate::{core_::{debug::debug_session::{DebugSession, LogLevel}, point::{point_type::PointType, point::Point}}, services::task::nested_function::{fn_::{FnIn, FnInOut, FnOut}, fn_input::FnInput, fn_trip::FnTripGe}};
+use crate::{
+    core_::{debug::debug_session::{DebugSession, LogLevel}, point::{point_type::{PointType, ToPoint}, point::Point}}, 
+    services::task::nested_function::{fn_::{FnInOut, FnOut}, fn_input::FnInput, fn_trip::FnTripGe}
+};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -43,7 +46,7 @@ fn test_single_int() {
 
     // let (initial, switches) = initEach();
     let setpoint = 4.0;
-    let input = initEach(PointType::Int(Point::newInt("int", 0)));
+    let input = initEach(0.toPoint("int"));
     let mut fnTrip = FnTripGe::new(
         "test",
         false, 
@@ -67,7 +70,7 @@ fn test_single_int() {
         (0, false),
     ];
     for (value, targetState) in testData {
-        let point = PointType::Int(Point::newInt("test", value));
+        let point = value.toPoint("test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = fnTrip.out();
@@ -85,7 +88,7 @@ fn test_multiple_int() {
 
     // let (initial, switches) = initEach();
     let setpoint = 4.0;
-    let input = initEach(PointType::Int(Point::newInt("int", 0)));
+    let input = initEach(0.toPoint("int"));
     let mut fnTrip = FnTripGe::new(
         "test",
         false, 
@@ -111,7 +114,7 @@ fn test_multiple_int() {
         (0, false),
     ];
     for (value, targetState) in testData {
-        let point = PointType::Int(Point::newInt("test", value));
+        let point = value.toPoint("test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = fnTrip.out();
@@ -129,7 +132,7 @@ fn test_multiple_float() {
 
     // let (initial, switches) = initEach();
     let setpoint = 4.0;
-    let input = initEach(PointType::Float(Point::newFloat("float", 0.0)));
+    let input = initEach(0.0.toPoint("float"));
     let mut fnTrip = FnTripGe::new(
         "test",
         false, 
@@ -155,7 +158,7 @@ fn test_multiple_float() {
         (0.0, false),
     ];
     for (value, targetState) in testData {
-        let point = PointType::Float(Point::newFloat("test", value));
+        let point = value.toPoint("test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = fnTrip.out();

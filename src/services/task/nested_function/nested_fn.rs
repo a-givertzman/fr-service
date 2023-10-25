@@ -4,7 +4,7 @@ use std::{rc::Rc, cell::RefCell, str::FromStr, sync::mpsc::Sender};
 
 use crate::{
     core_::{
-        point::{point_type::PointType, point::Point},
+        point::{point_type::{PointType, ToPoint}, point::Point},
         conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, conf_keywd::FnConfPointType}, 
     }, 
     services::task::{nested_function::metric_builder::MetricBuilder, task_stuff::TaskStuff}
@@ -83,10 +83,10 @@ impl NestedFn {
                 let value = conf.name.trim().to_lowercase();
                 println!("NestedFn.function | Const: {:?}...", value);
                 let initial = match conf.type_.clone() {
-                    FnConfPointType::Bool => PointType::Bool(Point::newBool("const", value.parse().unwrap())),
-                    FnConfPointType::Int => PointType::Int(Point::newInt("const", value.parse().unwrap())),
-                    FnConfPointType::Float => PointType::Float(Point::newFloat("const", value.parse().unwrap())),
-                    FnConfPointType::String => PointType::String(Point::newString("const", value)),
+                    FnConfPointType::Bool => value.parse::<bool>().unwrap().toPoint("const"),
+                    FnConfPointType::Int => value.parse::<i64>().unwrap().toPoint("const"),
+                    FnConfPointType::Float => value.parse::<f64>().unwrap().toPoint("const"),
+                    FnConfPointType::String => value.toPoint("const"),
                     FnConfPointType::Unknown => panic!("NestedFn.function | Point type required"),
                 };
                 let input = Self::fnInput(inputName, initial);
@@ -97,10 +97,10 @@ impl NestedFn {
             FnConfKind::Point => {                
                 println!("NestedFn.function | Input (Point): {:?} ({:?})...", inputName, conf.name);
                 let initial = match conf.type_.clone() {
-                    FnConfPointType::Bool => PointType::Bool(Point::newBool("input initial", false)),
-                    FnConfPointType::Int => PointType::Int(Point::newInt("input initial", 0)),
-                    FnConfPointType::Float => PointType::Float(Point::newFloat("input initial", 0.0)),
-                    FnConfPointType::String => PointType::String(Point::newString("input initial", "")),
+                    FnConfPointType::Bool => false.toPoint("input initial"),
+                    FnConfPointType::Int => 0.toPoint("input initial"),
+                    FnConfPointType::Float => 0.0.toPoint("input initial"),
+                    FnConfPointType::String => "".toPoint("input initial"),
                     FnConfPointType::Unknown => panic!("NestedFn.function | Point type required"),
                 };
                 let input = Self::fnInput(inputName, initial);
