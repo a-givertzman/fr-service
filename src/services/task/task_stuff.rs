@@ -26,6 +26,7 @@ type FnInOutRef = Rc<RefCell<Box<dyn FnInOut>>>;
 ///       },
 ///   }
 ///   ```
+#[derive(Debug)]
 pub struct TaskStuff {
     inputs: HashMap<String, (FnInOutRef, Vec<FnInOutRef>)>,
 }
@@ -53,5 +54,10 @@ impl TaskStuff {
             );
         };
         debug!("TaskStuff.add | self.inputs: {:?}", self.inputs);
+    }
+    ///
+    /// Returns input by it's name
+    pub fn getInput(&self, name: &str) -> Option<&(FnInOutRef, Vec<FnInOutRef>)> {
+        self.inputs.get(name.into())
     }
 }

@@ -11,7 +11,7 @@ use std::{
 
 use log::{info, debug, warn, trace, error};
 
-use crate::core_::conf::fn_conf_kind::FnConfKind;
+use crate::{core_::conf::fn_conf_kind::FnConfKind, services::task::task_stuff::TaskStuff};
 use crate::core_::conf::task_config::TaskConfig;
 use crate::services::queues::queues::Queues;
 use crate::services::task::nested_function::metric_builder::MetricBuilder;
@@ -56,35 +56,43 @@ impl Task {
     }
     ///
     /// 
-    fn nodes(conf: TaskConfig, inputs: &mut TaskStuffInputs, queues: &mut Queues) -> HashMap<std::string::String, Rc<RefCell<Box<(dyn FnInOut)>>>> {
+    // fn nodes(conf: TaskConfig, taskStuff: &mut TaskStuff, queues: &mut Queues) -> HashMap<std::string::String, Rc<RefCell<Box<(dyn FnInOut)>>>> {
+    fn nodes(conf: TaskConfig, taskStuff: &mut TaskStuff, queues: &mut Queues) {
         let mut nodeIndex = 0;
-        let mut nodes = HashMap::new();
+        // let mut nodes = HashMap::new();
         for (_nodeName, mut nodeConf) in conf.nodes {
             let nodeName = nodeConf.name.clone();
             debug!("Task.nodes | node: {:?}", &nodeConf.name);
+            let mut inputs = TaskStuffInputs::new();
             match nodeConf.fnKind {
                 FnConfKind::Metric => {
                     nodeIndex += 1;
-                    nodes.insert(
-                        format!("{}-{}", nodeName, nodeIndex),
-                        MetricBuilder::new(&mut nodeConf, inputs, queues),
-                    );
+                    let out = MetricBuilder::new(&mut nodeConf, &mut inputs, queues);
+                    taskStuff.add(&mut inputs, out);
+                    // nodes.insert(
+                    //     format!("{}-{}", nodeName, nodeIndex),
+                    //     MetricBuilder::new(&mut nodeConf, inputs, queues),
+                    // );
                     trace!("Task.new | metricConf: {:?}: {:?}", nodeName, &nodeConf);
                 },
                 FnConfKind::Fn => {
                     nodeIndex += 1;
-                    nodes.insert(
-                        format!("{}-{}", nodeName, nodeIndex),
-                        NestedFn::new(&mut nodeConf, inputs, queues),
-                    );
+                    let out = NestedFn::new(&mut nodeConf, &mut inputs, queues);
+                    taskStuff.add(&mut inputs, out);
+                    // nodes.insert(
+                    //     format!("{}-{}", nodeName, nodeIndex),
+                    //     NestedFn::new(&mut nodeConf, inputs, queues),
+                    // );
                     trace!("Task.new | fnConf: {:?}: {:?}", nodeName, &nodeConf);
                     // NestedFn::new(&mut fnConf, &mut inputs)
                 },
                 FnConfKind::Var => {
-                    nodes.insert(
-                        nodeName.clone(),
-                        NestedFn::new(&mut nodeConf, inputs, queues),
-                    );
+                    let out = NestedFn::new(&mut nodeConf, &mut inputs, queues);
+                    taskStuff.add(&mut inputs, out);
+                    // nodes.insert(
+                    //     nodeName.clone(),
+                    //     NestedFn::new(&mut nodeConf, inputs, queues),
+                    // );
                     trace!("Task.new | varConf: {:?}: {:?}", nodeName, &nodeConf);
                 },
                 FnConfKind::Const => {
@@ -98,7 +106,7 @@ impl Task {
                 }
             }
         }
-        nodes
+        // nodes
     }
     ///
     /// 
@@ -113,7 +121,7 @@ impl Task {
         let recvQueue = queues.getRecvQueue(&self.conf.recvQueue);
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             let mut cycle = TaskCycle::new(Duration::from_millis(cycleInterval));
-            let mut taskStuff = TaskStuffInputs::new();
+            let mut taskStuff = TaskStuff::new();
             let nodes = Self::nodes(conf, &mut taskStuff, &mut queues);
             trace!("Task({}).run | taskStuff: {:?}", selfName, taskStuff);
             
@@ -129,16 +137,16 @@ impl Task {
                         let pointName = point.name();
                         match taskStuff.getInput(&pointName) {
                             Some(input) => {
-                                input.borrow_mut().add(point);
+                                input.0.borrow_mut().add(point);
+                                for (node) in &input.1 {
+                                    let out = node.borrow_mut().out();
+                                    trace!("Task({}).run | node {} out: {:?}", selfName, pointName, out);
+                                };
                             },
                             None => {
                                 warn!("Task({}).run | input {:?} - not fount", selfName, &pointName);
                             },
                         };
-                        for (nodeName, node) in &nodes {
-                            let out = node.borrow_mut().out();
-                            trace!("Task({}).run | node {} out: {:?}", selfName, nodeName, out);
-                        }        
                     },
                     Err(err) => {
                         warn!("Task({}).run | Error receiving from queue: {:?}", selfName, err);
