@@ -7,7 +7,7 @@ use crate::{
         point::point_type::{PointType, ToPoint},
         conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, conf_keywd::FnConfPointType}, 
     }, 
-    services::{task::{nested_function::metric_builder::MetricBuilder, task_stuff::TaskStuffInputs}, queues::queues::Queues}
+    services::{task::{nested_function::metric_builder::MetricBuilder, task_stuff_inputs::TaskStuffInputs}, queues::queues::Queues}
 };
 
 use super::{fn_::FnInOut, fn_input::FnInput, fn_add::FnAdd, fn_timer::FnTimer, functions::Functions, export::fn_to_api_queue::FnToApiQueue};

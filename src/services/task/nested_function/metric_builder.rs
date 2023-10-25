@@ -4,7 +4,7 @@ use log::debug;
 
 use crate::{
     core_::conf::fn_config::FnConfig, 
-    services::{task::{nested_function::metric_select::MetricSelect, task_stuff::TaskStuffInputs}, queues::queues::Queues},
+    services::{task::{nested_function::metric_select::MetricSelect, task_stuff_inputs::TaskStuffInputs}, queues::queues::Queues},
 };
 
 use super::fn_::FnInOut;

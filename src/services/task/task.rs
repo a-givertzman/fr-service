@@ -19,7 +19,7 @@ use crate::services::task::nested_function::nested_fn::NestedFn;
 use crate::services::task::task_cycle::TaskCycle;
 
 use super::nested_function::fn_::FnInOut;
-use super::task_stuff::TaskStuffInputs;
+use super::task_stuff_inputs::TaskStuffInputs;
 
 // pub enum TaskNode {
 //     Var(Arc<dyn FnOut>),
