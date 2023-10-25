@@ -42,10 +42,11 @@ impl MetricSelect {
         let id = conf.name.clone();
         let initial = conf.param("initial").name.parse().unwrap();
         let table = conf.param("table").name.clone();
-        let mut sqlFormat = Format::new(&conf.param("sql").name);
-        sqlFormat.insert("id", id.clone().toPoint(""));
-        sqlFormat.insert("table", table.clone().toPoint(""));
-        let mut sqlNames = sqlFormat.names();
+        let mut sql = Format::new(&conf.param("sql").name);
+        sql.insert("id", id.clone().toPoint(""));
+        sql.insert("table", table.clone().toPoint(""));
+        sql.prepare();
+        let mut sqlNames = sql.names();
         sqlNames.remove("initial");
         sqlNames.remove("table");
         sqlNames.remove("sql");
@@ -55,7 +56,7 @@ impl MetricSelect {
             inputs: inputs,
             initial: initial,
             table: table,
-            sql: sqlFormat,
+            sql,
             sqlNames: sqlNames,
         }
     }
@@ -79,33 +80,6 @@ impl FnOut for MetricSelect {
                     trace!("MetricSelect.out | input: {:?} - found", &name);
                     let point = input.borrow_mut().out();
                     self.sql.insert(&fullName, point);
-                    // match sufix {
-                    //     Some(sufix) => {
-                    //         match sufix.as_str() {
-                    //             "value" => {
-                    //                 match pointType {
-                    //                     PointType::Bool(point) => {
-                    //                         self.sql.insert(&fullName, point.value);
-                    //                     },
-                    //                     PointType::Int(point) => {
-                    //                         self.sql.insert(&fullName, point.value);
-                    //                     },
-                    //                     PointType::Float(point) => {
-                    //                         self.sql.insert(&fullName, point.value);
-                    //                     },
-                    //                     PointType::String(point) => {
-                    //                         self.sql.insert(&fullName, point.value);
-                    //                     },
-                    //                 };
-                    //             },
-                    //             "timestamp" => self.sql.insert(&fullName, pointType.timestamp()),
-                    //             _ => panic!("MetricSelect.out | Unknown input sufix in: {:?}, allowed: .value or .timestamp", &name),
-                    //         }
-                    //     },
-                    //     None => {
-                    //         panic!("MetricSelect.out | name: {:?}, sufix: None", &name);
-                    //     },
-                    // }
                 },
                 None => {
                     panic!("MetricSelect.out | input: {:?} - not found", &name);
