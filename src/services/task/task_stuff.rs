@@ -1,6 +1,6 @@
 use std::{collections::HashMap, rc::Rc, cell::RefCell, clone};
 
-use log::debug;
+use log::{debug, trace};
 
 use super::{nested_function::fn_::FnInOut, task_stuff_inputs::TaskStuffInputs};
 
@@ -53,7 +53,7 @@ impl TaskStuff {
                 (input, outs.iter().map(|out|out.clone()).collect()),
             );
         };
-        debug!("TaskStuff.add | self.inputs: {:?}", self.inputs);
+        trace!("\nTaskStuff.add | self.inputs: {:?}\n", self.inputs);
     }
     ///
     /// Returns input by it's name

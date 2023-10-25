@@ -122,8 +122,8 @@ impl Task {
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             let mut cycle = TaskCycle::new(Duration::from_millis(cycleInterval));
             let mut taskStuff = TaskStuff::new();
-            let nodes = Self::nodes(conf, &mut taskStuff, &mut queues);
-            trace!("Task({}).run | taskStuff: {:?}", selfName, taskStuff);
+            Self::nodes(conf, &mut taskStuff, &mut queues);
+            debug!("Task({}).run | taskStuff: {:?}", selfName, taskStuff);
             
             // info!("Task({}).run | prepared", name);
             'inner: loop {

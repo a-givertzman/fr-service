@@ -38,13 +38,13 @@ fn initEach() -> () {
 
 
 fn main() {
-    DebugSession::init(LogLevel::Info);
+    DebugSession::init(LogLevel::Debug);
     initOnce();
     initEach();
     info!("test_task");
     
     let producers = 3;
-    let iterations = 100_000;//_000_000;
+    let iterations = 10;//_000_000;
     
     trace!("dir: {:?}", env::current_dir());
     let path = "./src/tests/unit/task/task_test.yaml";
