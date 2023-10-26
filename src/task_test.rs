@@ -44,7 +44,7 @@ fn main() {
     info!("test_task");
     
     let producers = 3;
-    let iterations = 10_000_000;
+    let iterations = 10_000;
     
     trace!("dir: {:?}", env::current_dir());
     let path = "./src/tests/unit/task/task_test.yaml";

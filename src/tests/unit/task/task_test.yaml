@@ -10,7 +10,7 @@
 #     max-length: 10000
 
 task task1:
-    cycle: 0
+    cycle: 1
     recv-queue: recv-queue
     let Var1:
         input fn add:
