@@ -1,11 +1,13 @@
-use std::{collections::HashMap, rc::Rc, cell::RefCell, clone};
+#![allow(non_snake_case)]
+
+use std::collections::HashMap;
 
 use log::{debug, trace};
 
-use super::{nested_function::fn_::FnInOut, task_stuff_inputs::TaskStuffInputs};
+use crate::core_::types::fn_in_out_ref::FnInOutRef;
 
+use super::task_stuff_inputs::TaskStuffInputs;
 
-type FnInOutRef = Rc<RefCell<Box<dyn FnInOut>>>;
 
 /// TaskShame / TaskProgram / TaskPlan / TaskStuff / TaskNodes - holds the entities of the Task in the following structure:
 ///   ```
@@ -42,7 +44,7 @@ impl TaskStuff {
     }
     ///
     /// 
-    pub fn add(&mut self, node: &mut TaskStuffInputs, out: FnInOutRef) {
+    pub fn insert(&mut self, node: &mut TaskStuffInputs, out: FnInOutRef) {
         let vars = node.getVars();
         let inputs = node.getInputs();
         let mut outs: Vec<FnInOutRef> = vars.into_values().collect();

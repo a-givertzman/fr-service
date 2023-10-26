@@ -68,7 +68,7 @@ impl Task {
                 FnConfKind::Metric => {
                     nodeIndex += 1;
                     let out = MetricBuilder::new(&mut nodeConf, &mut inputs, queues);
-                    taskStuff.add(&mut inputs, out);
+                    taskStuff.insert(&mut inputs, out);
                     // nodes.insert(
                     //     format!("{}-{}", nodeName, nodeIndex),
                     //     MetricBuilder::new(&mut nodeConf, inputs, queues),
@@ -78,7 +78,7 @@ impl Task {
                 FnConfKind::Fn => {
                     nodeIndex += 1;
                     let out = NestedFn::new(&mut nodeConf, &mut inputs, queues);
-                    taskStuff.add(&mut inputs, out);
+                    taskStuff.insert(&mut inputs, out);
                     // nodes.insert(
                     //     format!("{}-{}", nodeName, nodeIndex),
                     //     NestedFn::new(&mut nodeConf, inputs, queues),
@@ -88,7 +88,7 @@ impl Task {
                 },
                 FnConfKind::Var => {
                     let out = NestedFn::new(&mut nodeConf, &mut inputs, queues);
-                    taskStuff.add(&mut inputs, out);
+                    taskStuff.insert(&mut inputs, out);
                     // nodes.insert(
                     //     nodeName.clone(),
                     //     NestedFn::new(&mut nodeConf, inputs, queues),

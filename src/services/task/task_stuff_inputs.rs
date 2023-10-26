@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 use std::{collections::HashMap, rc::Rc, cell::RefCell};
 
 use log::trace;
