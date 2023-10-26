@@ -48,7 +48,7 @@ impl NestedFn {
                         let name = "input2";
                         let inputConf = conf.inputConf(name);
                         let input2 = Self::function(name, inputConf, taskNodeStuff, queues);
-                        Self::fnSum(inputName, input1, input2)
+                        Self::fnAdd(inputName, input1, input2)
                     }
                     Functions::Timer => {
                         println!("NestedFn.function | Fn timer detected");
@@ -133,11 +133,7 @@ impl NestedFn {
     fn fnCount(id: impl Into<String>, initial: i64, input: FnInOutRef,) -> FnInOutRef {
         Rc::new(RefCell::new(
             Box::new(                
-                FnCount::new(
-                    id, 
-                    initial,
-                    input,
-                ),
+                FnCount::new(id, initial, input),
             )
         ))
     }
@@ -146,10 +142,7 @@ impl NestedFn {
     fn fnVar(id: impl Into<String>, input: FnInOutRef,) -> FnInOutRef {
         Rc::new(RefCell::new(
             Box::new(                
-                FnVar::new(
-                    id, 
-                    input,
-                ),
+                FnVar::new(id, input),
             )
         ))
     }
@@ -164,44 +157,28 @@ impl NestedFn {
     }
     // ///
     // /// 
-    // fn boxFnInput(input: FnInput) -> Box<(dyn FnInOut)> {
-    //     Box::new(input)
-    // }
     fn fnInput(id: &str, initial: PointType) -> FnInOutRef {
         Rc::new(RefCell::new(
             Box::new(
-                FnInput::new( 
-                    id,
-                    initial, 
-                )
+                FnInput::new( id, initial)
             )
         ))
     }
     // ///
     // /// 
-    // fn boxFnSum(input: FnAdd) -> Box<(dyn FnInOut)> {
-    //     Box::new(input)
-    // }
-    fn fnSum(
+    fn fnAdd(
         id: &str, 
         input1: FnInOutRef, 
         input2: FnInOutRef
     ) -> FnInOutRef {
         Rc::new(RefCell::new(
             Box::new(        
-                FnAdd::new(
-                    id,
-                    input1, 
-                    input2, 
-                )
+                FnAdd::new(id, input1, input2)
             )
         ))
     }    
     // ///
     // /// 
-    // fn boxFnTimer(input: FnTimer) -> Box<(dyn FnInOut)> {
-    //     Box::new(input)
-    // }
     fn fnTimer(
         id: &str, 
         initial: impl Into<f64> + Clone,
