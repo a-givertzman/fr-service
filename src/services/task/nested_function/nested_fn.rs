@@ -87,7 +87,7 @@ impl NestedFn {
                     None => {
                         match taskNodeStuff.getVar(&varName) {
                             Some(var) => var.clone(),
-                            None => panic!("NestedFn.function | Var {:?} must have exact one input", &varName),
+                            None => panic!("NestedFn.function | Var {:?} - not found", &varName),
                         }
                     },
                 }
