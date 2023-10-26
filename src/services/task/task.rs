@@ -15,7 +15,7 @@ use crate::services::task::nested_function::metric_builder::MetricBuilder;
 use crate::services::task::nested_function::nested_fn::NestedFn;
 use crate::services::task::task_cycle::TaskCycle;
 
-use super::task_node_inputs::TaskNodeInputs;
+use super::task_node_inputs::TaskNodeStuff;
 
 /// Task implements entity, which provides cyclically (by event) executing calculations
 ///  - executed in the cycle mode (current impl)
@@ -52,7 +52,7 @@ impl Task {
         for (_nodeName, mut nodeConf) in conf.nodes {
             let nodeName = nodeConf.name.clone();
             debug!("Task.nodes | node: {:?}", &nodeConf.name);
-            let mut inputs = TaskNodeInputs::new();
+            let mut inputs = TaskNodeStuff::new();
             let out = match nodeConf.fnKind {
                 FnConfKind::Metric => {
                     nodeIndex += 1;

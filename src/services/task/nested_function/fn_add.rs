@@ -5,7 +5,7 @@ use std::{rc::Rc, cell::RefCell};
 
 use log::trace;
 
-use crate::core_::{point::point_type::PointType, types::type_of::DebugTypeOf};
+use crate::core_::{point::point_type::PointType, types::{type_of::DebugTypeOf, fn_in_out_ref::FnInOutRef}};
 
 use super::fn_::{FnInOut, FnIn, FnOut};
 
@@ -17,8 +17,8 @@ use super::fn_::{FnInOut, FnIn, FnOut};
 #[derive(Debug)]
 pub struct FnAdd {
     id: String,
-    input1: Rc<RefCell<Box<dyn FnInOut>>>,
-    input2: Rc<RefCell<Box<dyn FnInOut>>>,
+    input1: FnInOutRef,
+    input2: FnInOutRef,
 }
 ///
 /// 
@@ -26,7 +26,7 @@ impl FnAdd {
     ///
     /// Creates new instance of the FnCount
     #[allow(dead_code)]
-    pub fn new(id: impl Into<String>, input1: Rc<RefCell<Box<dyn FnInOut>>>, input2: Rc<RefCell<Box<dyn FnInOut>>>) -> Self {
+    pub fn new(id: impl Into<String>, input1: FnInOutRef, input2: FnInOutRef) -> Self {
         Self { 
             id: id.into(),
             input1,

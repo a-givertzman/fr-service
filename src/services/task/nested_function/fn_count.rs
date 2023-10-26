@@ -1,9 +1,8 @@
 #![allow(non_snake_case)]
 
 use log::trace;
-use std::{cell::RefCell, rc::Rc};
 
-use crate::core_::{state::switch_state::{SwitchState, Switch, SwitchCondition}, point::{point_type::PointType, point::Point}, types::type_of::DebugTypeOf};
+use crate::core_::{state::switch_state::{SwitchState, Switch, SwitchCondition}, point::{point_type::PointType, point::Point}, types::{type_of::DebugTypeOf, fn_in_out_ref::FnInOutRef}};
 
 use super::fn_::{FnInOut, FnOut, FnIn};
 
@@ -13,7 +12,7 @@ use super::fn_::{FnInOut, FnOut, FnIn};
 #[derive(Debug)]
 pub struct FnCount {
     id: String,
-    input: Rc<RefCell<Box<dyn FnInOut>>>,
+    input: FnInOutRef,
     state: SwitchState<bool, bool>,
     count: i64,
     initial: i64,
@@ -24,7 +23,7 @@ impl FnCount {
     ///
     /// Creates new instance of the FnCount
     #[allow(dead_code)]
-    pub fn new(id: impl Into<String>, initial: i64, input: Rc<RefCell<Box<dyn FnInOut>>>) -> Self {
+    pub fn new(id: impl Into<String>, initial: i64, input: FnInOutRef) -> Self {
         Self { 
             id: id.into(),
             input,

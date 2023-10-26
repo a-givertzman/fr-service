@@ -5,7 +5,7 @@ use std::{sync::Once, rc::Rc, cell::RefCell};
 
 use crate::{
     core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-    point::point_type::{PointType, ToPoint}}, 
+    point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
     services::task::nested_function::{fn_::{FnInOut, FnOut}, 
     fn_count::FnCount, fn_input::FnInput},
 };
@@ -28,7 +28,7 @@ fn initOnce() {
 ///
 /// returns:
 ///  - ...
-fn initEach(initial: PointType) -> Rc<RefCell<Box<dyn FnInOut>>> {
+fn initEach(initial: PointType) -> FnInOutRef {
     fn boxFnInput(input: FnInput) -> Box<(dyn FnInOut)> {
         Box::new(input)
     }

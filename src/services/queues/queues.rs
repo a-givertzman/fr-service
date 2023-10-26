@@ -9,7 +9,7 @@ use crate::core_::point::point_type::PointType;
 /// A container for storing FnInput by name
 #[derive(Debug)]
 pub struct Queues {
-    // vars: HashMap<String, Rc<RefCell<Box<dyn FnInOut>>>>,
+    // vars: HashMap<String, FnInOutRef>,
     sendQueues: HashMap<String, Sender<PointType>>,
     recvQueues: HashMap<String, Receiver<PointType>>,
 }
@@ -25,7 +25,7 @@ impl Queues {
     }
     // ///
     // /// Adding new variable refeerence
-    // pub fn addVar(&mut self, name: impl Into<String> + Clone, input: Rc<RefCell<Box<dyn FnInOut>>>) {
+    // pub fn addVar(&mut self, name: impl Into<String> + Clone, input: FnInOutRef) {
     //     assert!(!self.vars.contains_key(name.clone().into().as_str()), "Dublicated variable name: {:?}", name.clone().into());
     //     assert!(!name.clone().into().is_empty(), "Variable name can't be emty");
     //     self.vars.insert(name.into(), input);
@@ -52,7 +52,7 @@ impl Queues {
     }
     // ///
     // /// Returns variable by it's name
-    // pub fn getVar(&self, name: &str) -> Option<&Rc<RefCell<Box<dyn FnInOut>>>> {
+    // pub fn getVar(&self, name: &str) -> Option<&FnInOutRef> {
     //     self.vars.get(name.into())
     // }
     ///

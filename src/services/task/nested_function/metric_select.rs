@@ -4,7 +4,7 @@ use std::{cell::RefCell, rc::Rc, collections::HashMap};
 
 use log::{debug, error, trace, warn};
 
-use crate::{core_::{conf::fn_config::FnConfig, point::{point_type::{PointType, ToPoint}, point::Point}, format::format::Format}, services::{task::task_node_inputs::TaskNodeInputs, queues::queues::Queues}};
+use crate::{core_::{conf::fn_config::FnConfig, point::{point_type::{PointType, ToPoint}, point::Point}, format::format::Format, types::fn_in_out_ref::FnInOutRef}, services::{task::task_node_inputs::TaskNodeStuff, queues::queues::Queues}};
 
 use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn};
 
@@ -14,7 +14,7 @@ use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn};
 #[derive(Debug)]
 pub struct MetricSelect {
     id: String,
-    inputs: HashMap<String, Rc<RefCell<Box<dyn FnInOut>>>>,
+    inputs: HashMap<String, FnInOutRef>,
     initial: f64,
     table: String,
     sql: Format,
@@ -25,7 +25,7 @@ pub struct MetricSelect {
 impl MetricSelect {
     //
     //
-    pub fn new(conf: &mut FnConfig, taskStuff: &mut TaskNodeInputs, queues: &mut Queues) -> MetricSelect {
+    pub fn new(conf: &mut FnConfig, taskStuff: &mut TaskNodeStuff, queues: &mut Queues) -> MetricSelect {
         let mut inputs = HashMap::new();
         let mut inputConfs = conf.inputs.clone();
         inputConfs.remove("initial");

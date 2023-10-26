@@ -1,9 +1,9 @@
 #![allow(non_snake_case)]
 
 use log::debug;
-use std::{cell::RefCell, rc::Rc, time::Instant};
+use std::time::Instant;
 
-use crate::core_::{state::switch_state::{SwitchState, Switch, SwitchCondition}, point::{point_type::PointType, point::Point}, types::type_of::DebugTypeOf};
+use crate::core_::{state::switch_state::{SwitchState, Switch, SwitchCondition}, point::{point_type::PointType, point::Point}, types::{type_of::DebugTypeOf, fn_in_out_ref::FnInOutRef}};
 
 use super::fn_::{FnInOut, FnIn, FnOut};
 
@@ -24,7 +24,7 @@ enum FnTimerState {
 #[derive(Debug)]
 pub struct FnTimer {
     id: String,
-    input: Rc<RefCell<Box<dyn FnInOut>>>,
+    input: FnInOutRef,
     state: SwitchState<FnTimerState, bool>,
     sessionElapsed: f64,
     initial: f64,
@@ -35,7 +35,7 @@ pub struct FnTimer {
 /// 
 impl FnTimer {
     #[allow(dead_code)]
-    pub fn new(id: &str, initial: impl Into<f64> + Clone, input: Rc<RefCell<Box<dyn FnInOut>>>, repeat: bool) -> Self {
+    pub fn new(id: &str, initial: impl Into<f64> + Clone, input: FnInOutRef, repeat: bool) -> Self {
         let switches = vec![
             Switch{
                 state: FnTimerState::Off,

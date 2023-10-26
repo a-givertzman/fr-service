@@ -7,8 +7,8 @@ use std::{sync::Once, rc::Rc, cell::RefCell};
 
 use crate::{
     core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-    point::{point_type::{PointType, ToPoint}, point::Point}, conf::fn_config::FnConfig}, 
-    services::{task::{nested_function::{fn_::{FnInOut, FnOut}, metric_select::MetricSelect}, task_node_inputs::TaskNodeInputs}, queues::queues::Queues},
+    point::point_type::ToPoint, conf::fn_config::FnConfig, types::fn_in_out_ref::FnInOutRef}, 
+    services::{task::{nested_function::{fn_::{FnInOut, FnOut}, metric_select::MetricSelect}, task_node_inputs::TaskNodeStuff}, queues::queues::Queues},
 };
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -29,7 +29,7 @@ fn initOnce() {
 ///
 /// returns:
 ///  - ...
-fn initEach(conf: &mut FnConfig, inputs: &mut TaskNodeInputs) -> Rc<RefCell<Box<dyn FnInOut>>> {
+fn initEach(conf: &mut FnConfig, inputs: &mut TaskNodeStuff) -> FnInOutRef {
     fn boxFnInput(input: MetricSelect) -> Box<(dyn FnInOut)> {
         Box::new(input)
     }
@@ -41,7 +41,7 @@ fn initEach(conf: &mut FnConfig, inputs: &mut TaskNodeInputs) -> Rc<RefCell<Box<
 }
 
 
-// #[test]
+#[test]
 fn test_int() {
     DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
@@ -49,13 +49,14 @@ fn test_int() {
     let path = "./src/tests/unit/task/metric/metric_select_int_test.yaml";
     let mut conf = FnConfig::read(path);
     debug!("conf: {:?}", conf);
-    let mut taskStuff = TaskNodeInputs::new();
-    let mut fnCount = MetricSelect::new(
+    let mut nodeStuff = TaskNodeStuff::new();
+    let mut metric = MetricSelect::new(
         &mut conf, 
-        &mut taskStuff,
+        &mut nodeStuff,
         &mut Queues::new(),
     );
-    debug!("taskStuff: {:?}", taskStuff);
+    let vars = nodeStuff.getVars();
+    debug!("taskStuff: {:?}", nodeStuff);
     let testData = vec![
         (1, "/path/Point.Name", 3),
         (1, "/path/Point.Name", 3),
@@ -75,11 +76,15 @@ fn test_int() {
     for (value, name, targetValue) in testData {
         let point = value.toPoint(name);
         let inputName = &point.name();
-        match taskStuff.getInput(&inputName) {
+        match &nodeStuff.getInput(&inputName) {
             Some(input) => {
                 input.borrow_mut().add(point.clone());
                 // debug!("input: {:?}", &input);
-                let state = fnCount.out();
+                for (_varName, var) in vars.iter() {
+                    var.borrow_mut().eval();
+                    debug!("var evalueted: {:?}", var.borrow_mut().out());
+                }
+                let state = metric.out();
                 // debug!("input: {:?}", &mut input);
                 debug!("value: {:?}   |   state: {:?}", point.asInt().value, state.asString().value);
                 assert_eq!(
@@ -104,13 +109,14 @@ fn test_float() {
     let path = "./src/tests/unit/task/metric/metric_select_float_test.yaml";
     let mut conf = FnConfig::read(path);
     debug!("conf: {:?}", conf);
-    let mut taskStuff = TaskNodeInputs::new();
-    let mut fnCount = MetricSelect::new(
+    let mut nodeStuff = TaskNodeStuff::new();
+    let mut metric = MetricSelect::new(
         &mut conf, 
-        &mut taskStuff,
+        &mut nodeStuff,
         &mut Queues::new(),
     );
-    debug!("taskStuff: {:?}", taskStuff);
+    let vars = nodeStuff.getVars();
+    debug!("taskStuff: {:?}", nodeStuff);
     let testData = vec![
         (1.1, "/path/Point.Name", 3.3),
         (1.2, "/path/Point.Name", 3.4),
@@ -130,11 +136,15 @@ fn test_float() {
     for (value, name, targetValue) in testData {
         let point = value.toPoint(name);
         let inputName = &point.name();
-        match taskStuff.getInput(&inputName) {
+        match nodeStuff.getInput(&inputName) {
             Some(input) => {
                 input.borrow_mut().add(point.clone());
+                for (_varName, var) in vars.iter() {
+                    var.borrow_mut().eval();
+                    debug!("var evalueted: {:?}", var.borrow_mut().out());
+                }
                 // debug!("input: {:?}", &input);
-                let state = fnCount.out();
+                let state = metric.out();
                 let out = state.asString().value;
                 let re = r"(UPDATE SelectMetric_test_table_name SET kind = ')(\d+(?:\.\d+)*)(' WHERE id = '3.33';)";
                 trace!("re: {}", re);

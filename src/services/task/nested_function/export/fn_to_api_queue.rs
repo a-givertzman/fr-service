@@ -1,17 +1,17 @@
 #![allow(non_snake_case)]
 
-use std::{rc::Rc, cell::RefCell, sync::mpsc::Sender};
+use std::sync::mpsc::Sender;
 
 use log::{error, trace};
 
-use crate::{services::task::nested_function::fn_::{FnInOut, FnIn, FnOut}, core_::point::point_type::{PointType, ToPoint}};
+use crate::{services::task::nested_function::fn_::{FnInOut, FnIn, FnOut}, core_::{point::point_type::PointType, types::fn_in_out_ref::FnInOutRef}};
 
 ///
 /// Exports data from the input into the associated queue
 #[derive(Debug)]
 pub struct FnToApiQueue {
     id: String,
-    input: Rc<RefCell<Box<dyn FnInOut>>>,
+    input: FnInOutRef,
     sendQueue: Sender<PointType>,
     state: String,
 }
@@ -22,7 +22,7 @@ impl FnToApiQueue {
     /// creates new instance of the FnToApiQueue
     /// - id - just for proper debugging
     /// - input - incoming points
-    pub fn new(id: impl Into<String>, input: Rc<RefCell<Box<dyn FnInOut>>>, send: Sender<PointType>) -> Self {
+    pub fn new(id: impl Into<String>, input: FnInOutRef, send: Sender<PointType>) -> Self {
         Self {  
             id: id.into(),
             input,

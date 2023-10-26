@@ -3,7 +3,11 @@
 use log::{debug, info};
 use std::{sync::Once, time::{Instant, Duration}, thread,rc::Rc, cell::RefCell};
 
-use crate::{core_::{aprox_eq::aprox_eq::AproxEq, debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::{point_type::{PointType, ToPoint}, point::Point}}, services::task::nested_function::{fn_::{FnIn, FnInOut, FnOut}, fn_timer::FnTimer, fn_input::FnInput}};
+use crate::{
+    core_::{aprox_eq::aprox_eq::AproxEq, debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::{PointType, ToPoint}, 
+    types::fn_in_out_ref::FnInOutRef}, 
+    services::task::nested_function::{fn_::{FnInOut, FnOut}, fn_timer::FnTimer, fn_input::FnInput},
+};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -23,7 +27,7 @@ fn initOnce() {
 ///
 /// returns:
 ///  - ...
-fn initEach(initial: PointType) -> Rc<RefCell<Box<dyn FnInOut>>> {
+fn initEach(initial: PointType) -> FnInOutRef {
     fn boxFnInput(input: FnInput) -> Box<(dyn FnInOut)> {
         Box::new(input)
     }

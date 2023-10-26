@@ -1,9 +1,8 @@
 #![allow(non_snake_case)]
 
 use log::trace;
-use std::{cell::RefCell, rc::Rc, fmt::Debug};
 
-use crate::core_::{point::{point_type::PointType, point::Point}, types::{type_of::DebugTypeOf, bool::Bool}};
+use crate::core_::{point::{point_type::PointType, point::Point}, types::{type_of::DebugTypeOf, bool::Bool, fn_in_out_ref::FnInOutRef}};
 
 use super::fn_::{FnInOut, FnIn, FnOut};
 
@@ -13,7 +12,7 @@ use super::fn_::{FnInOut, FnIn, FnOut};
 #[derive(Debug)]
 pub struct FnTripGe {
     id: String,
-    input: Rc<RefCell<Box<dyn FnInOut>>>,
+    input: FnInOutRef,
     setpoint: f64,
     initial: bool,
 }
@@ -21,7 +20,7 @@ pub struct FnTripGe {
 /// 
 impl FnTripGe {
     #[allow(dead_code)]
-    pub fn new(id: &str, initial: bool, input: Rc<RefCell<Box<dyn FnInOut>>>, setpoint: f64) -> Self {
+    pub fn new(id: &str, initial: bool, input: FnInOutRef, setpoint: f64) -> Self {
         Self { 
             id: id.into(),
             input,
