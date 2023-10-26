@@ -2,7 +2,7 @@
 use indexmap::IndexMap;
 #[cfg(test)]
 use log::{debug, info};
-use std::{sync::Once, collections::HashMap};
+use std::sync::Once;
 
 use crate::core_::{debug::debug_session::*, conf::conf_tree::ConfTree};
 
