@@ -41,7 +41,7 @@ mod tests {
         info!("test_task_config_read_valid");
         let target = TaskConfig {
             name: String::from("task1"),
-            cycle: 100,
+            cycle: Some(100),
             recvQueue: String::from("recv-queue"),
             vars: vec![String::from("VarName2")],
             nodes: IndexMap::from([                    

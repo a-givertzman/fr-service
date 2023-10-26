@@ -91,7 +91,7 @@ impl TaskConfig {
                     None => None,
                 };
                 trace!("TaskConfig.new | selfCycle: {:?}", selfCycle);
-                let selfRecvQueue = Self::getParam(&mut selfConf, &mut selfNodeNames, "recv-queue").unwrap().as_str().unwrap();
+                let selfRecvQueue = Self::getParam(&mut selfConf, &mut selfNodeNames, "recv-queue").unwrap();
                 trace!("TaskConfig.new | selfRecvQueue: {:?}", selfRecvQueue);
                 let mut nodeIndex = 0;
                 let mut selfNodes = IndexMap::new();
@@ -109,7 +109,7 @@ impl TaskConfig {
                 TaskConfig {
                     name: selfName,
                     cycle: selfCycle,
-                    recvQueue: selfRecvQueue.into(),
+                    recvQueue: selfRecvQueue.as_str().unwrap().to_string(),
                     nodes: selfNodes,
                     vars: vars,
                 }

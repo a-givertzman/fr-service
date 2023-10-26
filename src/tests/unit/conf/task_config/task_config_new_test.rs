@@ -73,7 +73,7 @@ mod tests {
                 "#, 
                 TaskConfig {
                     name: String::from("task1"),
-                    cycle: 100,
+                    cycle: Some(100),
                     recvQueue: String::from("recv-queue"),
                     vars: vec![String::from("VarName2")],
                     nodes: IndexMap::from([                    
@@ -128,7 +128,7 @@ mod tests {
                 "#, 
                 TaskConfig {
                     name: String::from("task1"),
-                    cycle: 100,
+                    cycle: Some(100),
                     recvQueue: String::from("recv-queue"),
                     vars: vec![String::from("VarName2")],
                     nodes: IndexMap::from([                    

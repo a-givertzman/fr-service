@@ -23,7 +23,7 @@ use super::task_node_inputs::TaskNodeStuff;
 ///  - has some number of functions / variables / metrics or additional entities
 pub struct Task {
     name: String,
-    cycle: u64,
+    cycle: Option<u64>,
     conf: TaskConfig,
     queues: Vec<Queues>,
     exit: Arc<AtomicBool>,
@@ -107,7 +107,10 @@ impl Task {
         let selfName = self.name.clone();
         let exit = self.exit.clone();
         let cycleInterval = self.cycle;
-        let cyclic = cycleInterval > 0;
+        let (cyclic, cycleInterval) = match cycleInterval {
+            Some(c) => (c > 0, c),
+            None => (false, 0),
+        };
         let conf = self.conf.clone();
         let mut queues = self.queues.pop().unwrap();
         let recvQueue = queues.getRecvQueue(&self.conf.recvQueue);
