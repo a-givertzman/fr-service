@@ -73,18 +73,24 @@ impl NestedFn {
             FnConfKind::Var => {
                 let varName = conf.name.clone();
                 println!("NestedFn.function | Var: {:?}...", varName);
-                let (inputConfName, inputConf) = match conf.inputs.iter_mut().next() {
-                    Some(inputConf) => inputConf,
-                    None => panic!("NestedFn.function | Var {:?} must have exact one input", &varName),
-                };
-                let input = Self::fnVar(               
-                    inputConfName, 
-                    Self::function(&inputConfName, inputConf, taskNodeStuff, queues),
-                );
-                println!("NestedFn.function | Var: {:?}: {:?}", &conf.name, input.clone());
-                taskNodeStuff.addVar(conf.name.clone(), input.clone());
-                // println!("NestedFn.function | Var: {:?}", input);
-                input
+                match conf.inputs.iter_mut().next() {
+                    Some((inputConfName, inputConf)) => {
+                        let input = Self::fnVar(               
+                            inputConfName, 
+                            Self::function(&inputConfName, inputConf, taskNodeStuff, queues),
+                        );
+                        println!("NestedFn.function | Var: {:?}: {:?}", &conf.name, input.clone());
+                        taskNodeStuff.addVar(conf.name.clone(), input.clone());
+                        // println!("NestedFn.function | Var: {:?}", input);
+                        input
+                    },
+                    None => {
+                        match taskNodeStuff.getVar(&varName) {
+                            Some(var) => var.clone(),
+                            None => panic!("NestedFn.function | Var {:?} must have exact one input", &varName),
+                        }
+                    },
+                }
             },
             FnConfKind::Const => {
                 let value = conf.name.trim().to_lowercase();

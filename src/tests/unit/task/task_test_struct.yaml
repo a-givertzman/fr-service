@@ -13,7 +13,7 @@ task task1:
     cycle: 1
     recv-queue: recv-queue
     let var0: 
-        input const float 2.22
+        input: const float 2.22
     # let Var1:
     #     input fn add:
     #         input1: point float '/path/Point.Name1'
