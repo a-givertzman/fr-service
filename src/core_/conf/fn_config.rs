@@ -139,6 +139,7 @@ impl FnConfig {
                     //  - or custom parameter
                     Err(_) => {
                         let varName = confTree.conf.as_str().unwrap().to_string();
+                        debug!("FnConfig.new | trying to find Variable: {:?} in vars: \n\t{:?}", &varName, &vars);
                         if vars.contains(&varName) {
                             debug!("FnConfig.new | Variable declared - ok: {:?}", confTree.conf);
                             FnConfig { 

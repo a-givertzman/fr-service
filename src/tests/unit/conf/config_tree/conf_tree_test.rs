@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+use indexmap::IndexMap;
 #[cfg(test)]
 use log::{debug, info};
 use std::{sync::Once, collections::HashMap};
@@ -31,8 +32,16 @@ fn initEach() -> () {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 enum Node {
-    Map(HashMap<String, Node>),
+    Map(IndexMap<String, Node>),
     End(ConfTree),
+}
+impl Node {
+    fn asMap(&self) ->&IndexMap<String, Node> {
+        match self {
+            Node::Map(map) => map,
+            Node::End(_) => panic!("is not a map"),
+        }
+    }
 }
 
 
@@ -71,6 +80,27 @@ fn test_config_tree_valid() {
         // ),
         (
             r#"
+                let newVar2:
+                    input: const 2.2
+                let newVar3:
+                    input: const 3.3
+                let newVar1:
+                    input: const 1.1
+            "#,
+            Node::Map(IndexMap::from([
+                (String::from("let newVar2"), Node::Map(IndexMap::from([
+                    (String::from("input"), Node::End(ConfTree { key: String::from("input"), conf: serde_yaml::from_str("const 2.2").unwrap() })), 
+                ]))),
+                (String::from("let newVar3"), Node::Map(IndexMap::from([
+                    (String::from("input"), Node::End(ConfTree { key: String::from("input"), conf: serde_yaml::from_str("const 3.3").unwrap() })), 
+                ]))),
+                (String::from("let newVar1"), Node::Map(IndexMap::from([
+                    (String::from("input"), Node::End(ConfTree { key: String::from("input"), conf: serde_yaml::from_str("const 1.1").unwrap() })), 
+                ]))),
+            ]))
+        ),
+        (
+            r#"
                 let newVar1:
                     input1: const 177.3
                     input2: point '/Path/Point.Name/'
@@ -79,11 +109,11 @@ fn test_config_tree_valid() {
                             inputConst1: const '13.5'
                             inputConst2: newVar1
             "#,
-            Node::Map(HashMap::from([
-                (String::from("let newVar1"), Node::Map(HashMap::from([
+            Node::Map(IndexMap::from([
+                (String::from("let newVar1"), Node::Map(IndexMap::from([
                     (String::from("input2"), Node::End(ConfTree { key: String::from("input2"), conf: serde_yaml::from_str("point '/Path/Point.Name/'").unwrap() })), 
-                    (String::from("input3"), Node::Map(HashMap::from([
-                        (String::from("fn count"), Node::Map(HashMap::from([
+                    (String::from("input3"), Node::Map(IndexMap::from([
+                        (String::from("fn count"), Node::Map(IndexMap::from([
                             (String::from("inputConst1"), Node::End(ConfTree { key: String::from("inputConst1"), conf: serde_yaml::from_str("const '13.5'").unwrap() })), 
                             (String::from("inputConst2"), Node::End(ConfTree { key: String::from("inputConst2"), conf: serde_yaml::from_str("newVar1").unwrap() }))
                         ])))
@@ -126,18 +156,18 @@ fn test_config_tree_valid() {
                 serviceTask:
                     cycle: 200
             "#,
-            Node::Map(HashMap::from([
-                (String::from("serviceCMA"), Node::Map(HashMap::from([
+            Node::Map(IndexMap::from([
+                (String::from("serviceCMA"), Node::Map(IndexMap::from([
                     (String::from("nodeType"), Node::End(ConfTree { key: String::from("nodeType"), conf: serde_yaml::from_str("API Client").unwrap() })), 
                     (String::from("address"), Node::End(ConfTree { key: String::from("address"), conf: serde_yaml::from_str("127.0.0.1:8899").unwrap() })), 
                     (String::from("cycle"), Node::End(ConfTree { key: String::from("cycle"), conf: serde_yaml::from_str("1000").unwrap() })),
                 ]))), 
-                (String::from("serviceAPI"), Node::Map(HashMap::from([
+                (String::from("serviceAPI"), Node::Map(IndexMap::from([
                     (String::from("nodeType"), Node::End(ConfTree { key: String::from("nodeType"), conf: serde_yaml::from_str("API Client").unwrap() })), 
                     (String::from("address"), Node::End(ConfTree { key: String::from("address"), conf: serde_yaml::from_str("127.0.0.1:8899").unwrap() })), 
                     (String::from("cycle"), Node::End(ConfTree { key: String::from("cycle"), conf: serde_yaml::from_str("2000").unwrap() })),
                 ]))), 
-                (String::from("serviceTask"), Node::Map(HashMap::from([
+                (String::from("serviceTask"), Node::Map(IndexMap::from([
                     (String::from("cycle"), Node::End(ConfTree { key: String::from("cycle"), conf: serde_yaml::from_str("200").unwrap() }))
                 ]))),
             ]))
@@ -154,13 +184,18 @@ fn test_config_tree_valid() {
         debug!("result: {:?}", res);
         println!("\n");
         assert_eq!(res, target);
+        let mut target = target.asMap().iter();
+        for (_name, node) in res.asMap() {
+            let (_, targetNode) = target.next().unwrap();
+            assert_eq!(node, targetNode);
+        }
     }
 }
 
 fn inputs(confTree: &ConfTree) -> Node {
     match confTree.subNodes() {
         Some(nodes) => {
-            let mut res: HashMap<String, Node> = HashMap::new();
+            let mut res: IndexMap<String, Node> = IndexMap::new();
             for node in nodes {
                 debug!("key: {:?}\t|\tnode: {:?}", &node.key, &node.conf);
                 let subRes = inputs(&node);
@@ -190,7 +225,7 @@ fn test_config_tree_as_type() {
     initEach();
     info!("test_config_tree_valid");
     // let (initial, switches) = initEach();
-    let testData: Vec<(&str, HashMap<&str, TypedValue>)> = vec![
+    let testData: Vec<(&str, IndexMap<&str, TypedValue>)> = vec![
         (
             r#"
                 boolTrue: true
@@ -203,7 +238,7 @@ fn test_config_tree_as_type() {
                 string2: '/Path/Point.Name/'
                 string3: "/Path/Point.Name/"
             "#,
-            HashMap::from([
+            IndexMap::from([
                 ("boolTrue", TypedValue::Bool(true)),
                 ("boolFalse", TypedValue::Bool(false)),
                 ("int1", TypedValue::Int(177)),

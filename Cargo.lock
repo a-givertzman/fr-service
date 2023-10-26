@@ -135,6 +135,7 @@ dependencies = [
  "chrono",
  "env_logger",
  "erased-serde",
+ "indexmap",
  "log",
  "rand",
  "regex",

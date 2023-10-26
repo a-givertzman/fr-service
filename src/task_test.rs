@@ -4,8 +4,8 @@
 mod core_;
 mod services;
 
-use log::{trace, info};
-use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, env, time::Instant};
+use log::{trace, info, debug};
+use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, env, time::Instant, fs};
 
 
 use crate::{core_::{conf::task_config::TaskConfig, debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::PointType}, services::{task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}, queues::queues::Queues}};
@@ -38,7 +38,7 @@ fn initEach() -> () {
 
 
 fn main() {
-    DebugSession::init(LogLevel::Info, Backtrace::Short);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_task");
@@ -47,9 +47,11 @@ fn main() {
     let iterations = 10_000;
     
     trace!("dir: {:?}", env::current_dir());
-    let path = "./src/tests/unit/task/task_test.yaml";
+    let path = "./src/tests/unit/task/task_test_struct.yaml";
+    assert!(fs::metadata(path).is_ok());
+    // let path = "./src/tests/unit/task/task_test.yaml";
     let config = TaskConfig::read(path);
-    trace!("config: {:?}", &config);
+    debug!("config: {:?}", &config);
 
     let mut queues = Queues::new();
     let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
