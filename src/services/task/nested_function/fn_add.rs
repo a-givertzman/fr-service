@@ -43,13 +43,14 @@ impl FnOut for FnAdd {
     //
     //
     fn out(&mut self) -> PointType {
+        // TODO Add overflow check
         let value1 = self.input1.borrow_mut().out();
         trace!("FnAdd({}).out | value1: {:?}", self.id, &value1);
         let value2 = self.input2.borrow_mut().out();
         trace!("FnAdd({}).out | value2: {:?}", self.id, &value2);
         let out = match value1 {
             PointType::Bool(value1) => {
-                PointType::Bool(value1 | value2.asBool())
+                PointType::Bool(value1 + value2.asBool())
             },
             PointType::Int(value1) => {
                 PointType::Int(value1 + value2.asInt())

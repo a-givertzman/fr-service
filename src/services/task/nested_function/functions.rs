@@ -12,7 +12,8 @@ const TIMER: &str = "timer";
 
 
 ///
-/// Entair list of all supported functions
+/// Entair list of public functions
+/// supported by NestedFn builder
 #[derive(Debug)]
 pub enum Functions {
     Input,
