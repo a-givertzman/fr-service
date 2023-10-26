@@ -95,9 +95,8 @@ impl TaskConfig {
                 trace!("TaskConfig.new | selfRecvQueue: {:?}", selfRecvQueue);
                 let mut nodeIndex = 0;
                 let mut selfNodes = IndexMap::new();
-                let mut selfNodeConfs = selfConf.subNodes().unwrap();
                 for selfNodeName in selfNodeNames {
-                    let selfNodeConf = selfNodeConfs.next().unwrap();
+                    let selfNodeConf = selfConf.get(&selfNodeName).unwrap();
                     trace!("TaskConfig.new | selfNodeConf: {:?}", selfNodeConf);
                     nodeIndex += 1;
                     let nodeConf = FnConfig::new(&selfNodeConf, &mut vars);
