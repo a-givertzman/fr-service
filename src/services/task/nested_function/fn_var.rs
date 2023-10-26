@@ -24,7 +24,7 @@ pub struct FnVar {
 ///
 /// 
 impl FnVar {
-    pub fn new(id: &str, input: FnInOutRef) -> Self {
+    pub fn new(id: impl Into<String>, input: FnInOutRef) -> Self {
         Self {
             id: id.into(), 
             input: input,

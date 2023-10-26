@@ -5,9 +5,9 @@ use std::{rc::Rc, cell::RefCell, str::FromStr, sync::mpsc::Sender};
 use crate::{
     core_::{
         point::point_type::{PointType, ToPoint},
-        conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, conf_keywd::FnConfPointType}, 
+        conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, conf_keywd::FnConfPointType}, types::fn_in_out_ref::FnInOutRef, 
     }, 
-    services::{task::{nested_function::metric_builder::MetricBuilder, task_node_inputs::TaskNodeInputs}, queues::queues::Queues}
+    services::{task::{nested_function::{metric_builder::MetricBuilder, fn_var::FnVar}, task_node_inputs::TaskNodeInputs}, queues::queues::Queues}
 };
 
 use super::{fn_::FnInOut, fn_input::FnInput, fn_add::FnAdd, fn_timer::FnTimer, functions::Functions, export::fn_to_api_queue::FnToApiQueue};
@@ -69,7 +69,10 @@ impl NestedFn {
                     Some(inputConf) => inputConf,
                     None => panic!("NestedFn.function | Var {:?} must have exact one input", &varName),
                 };
-                let input = Self::function(&inputConfName, inputConf, taskNodeInputs, queues);
+                let input = Self::fnVar(               
+                    inputConfName, 
+                    Self::function(&inputConfName, inputConf, taskNodeInputs, queues),
+                );
                 taskNodeInputs.addVar(conf.name.clone(), input.clone());
                 println!("NestedFn.function | Var: {:?}", input);
                 input
@@ -117,6 +120,17 @@ impl NestedFn {
     ///
     /// 
     /// 
+    fn fnVar(id: impl Into<String>, input: FnInOutRef,) -> FnInOutRef {
+        Rc::new(RefCell::new(
+            Box::new(                
+                FnVar::new(
+                    id, 
+                    input,
+                ),
+            )
+        ))
+    }
+    /// 
     /// 
     fn toApiQueue(id: impl Into<String>, input: Rc<RefCell<Box<dyn FnInOut>>>, sendQueue: Sender<PointType>) -> Rc<RefCell<Box<(dyn FnInOut)>>> {
         Rc::new(RefCell::new(
@@ -130,11 +144,11 @@ impl NestedFn {
     // fn boxFnInput(input: FnInput) -> Box<(dyn FnInOut)> {
     //     Box::new(input)
     // }
-    fn fnInput(inputName: &str, initial: PointType) -> Rc<RefCell<Box<dyn FnInOut>>> {
+    fn fnInput(id: &str, initial: PointType) -> Rc<RefCell<Box<dyn FnInOut>>> {
         Rc::new(RefCell::new(
             Box::new(
                 FnInput::new( 
-                    inputName,
+                    id,
                     initial, 
                 )
             )
