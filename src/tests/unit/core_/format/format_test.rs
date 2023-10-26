@@ -5,7 +5,7 @@ use log::{debug, info};
 use regex::RegexBuilder;
 use std::sync::Once;
 
-use crate::core_::{debug::debug_session::{DebugSession, LogLevel}, format::format::Format, point::point_type::{PointType, ToPoint}};
+use crate::core_::{debug::debug_session::*, format::format::Format, point::point_type::ToPoint};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -31,7 +31,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_simple_name() {
-    DebugSession::init(LogLevel::Trace);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_bool");
@@ -56,7 +56,7 @@ fn test_simple_name() {
 
 #[test]
 fn test_name_sufix() {
-    DebugSession::init(LogLevel::Trace);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_name_sufix");
@@ -91,7 +91,7 @@ fn test_name_sufix() {
 
 #[test]
 fn test_prepare() {
-    DebugSession::init(LogLevel::Trace);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_prepare");

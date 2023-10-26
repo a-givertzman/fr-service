@@ -3,7 +3,7 @@
 use log::{debug, info};
 use std::sync::Once;
 
-use crate::core_::{aprox_eq::aprox_eq::AproxEq, debug::debug_session::{DebugSession, LogLevel}};
+use crate::core_::{aprox_eq::aprox_eq::AproxEq, debug::debug_session::{DebugSession, LogLevel, Backtrace}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -29,7 +29,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_f32() {
-    DebugSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_f32");
@@ -55,7 +55,7 @@ fn test_f32() {
 
 #[test]
 fn test_f64() {
-    DebugSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_f64");

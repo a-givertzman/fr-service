@@ -6,7 +6,7 @@ mod tests {
     use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, env, time::Instant};
     
     use crate::{
-        core_::{conf::task_config::TaskConfig, debug::debug_session::{DebugSession, LogLevel}, point::point_type::PointType}, 
+        core_::{conf::task_config::TaskConfig, debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::PointType}, 
         services::{task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}, queues::queues::Queues},
     };
     
@@ -35,7 +35,7 @@ mod tests {
     
     #[test]
     fn test_task() {
-        DebugSession::init(LogLevel::Debug);
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         info!("test_task");

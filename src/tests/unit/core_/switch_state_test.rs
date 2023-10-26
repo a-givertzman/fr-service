@@ -3,7 +3,7 @@
 use log::{debug, info};
 use std::sync::Once;
 
-use crate::core_::{state::switch_state::{Switch, SwitchCondition, SwitchState}, debug::debug_session::{DebugSession, LogLevel}};
+use crate::core_::{state::switch_state::{Switch, SwitchCondition, SwitchState}, debug::debug_session::{DebugSession, LogLevel, Backtrace}};
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 enum ProcessState {
@@ -88,7 +88,7 @@ fn initEach() -> (ProcessState, Vec<Switch<ProcessState, i8>>) {
 
 #[test]
 fn test_single() {
-    DebugSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_single");
@@ -133,7 +133,7 @@ fn test_single() {
 
 #[test]
 fn test_start_step_back() {
-    DebugSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_start_step_back");
@@ -178,7 +178,7 @@ fn test_start_step_back() {
 
 #[test]
 fn test_stot_step_back() {
-    DebugSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_stot_step_back");

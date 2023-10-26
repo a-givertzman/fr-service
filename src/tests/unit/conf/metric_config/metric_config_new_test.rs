@@ -4,7 +4,7 @@ use log::{info, debug};
 use std::{sync::Once, collections::HashMap};
 
 use crate::core_::{
-    debug::debug_session::{DebugSession, LogLevel}, 
+    debug::debug_session::*, 
     point::{point_type::PointType, point::Point},
     conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, metric_config::MetricConfig, conf_keywd::FnConfPointType}, 
 };
@@ -33,7 +33,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_metric_config_new_valid() {
-    DebugSession::init(LogLevel::Trace);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_metric_config_new_valid");

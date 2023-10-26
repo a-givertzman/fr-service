@@ -6,7 +6,7 @@ use regex::RegexBuilder;
 use std::{sync::Once, rc::Rc, cell::RefCell};
 
 use crate::{
-    core_::{debug::debug_session::{DebugSession, LogLevel}, 
+    core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
     point::{point_type::{PointType, ToPoint}, point::Point}, conf::fn_config::FnConfig}, 
     services::{task::{nested_function::{fn_::{FnInOut, FnOut}, metric_select::MetricSelect}, task_node_inputs::TaskNodeInputs}, queues::queues::Queues},
 };
@@ -43,7 +43,7 @@ fn initEach(conf: &mut FnConfig, inputs: &mut TaskNodeInputs) -> Rc<RefCell<Box<
 
 // #[test]
 fn test_int() {
-    DebugSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     info!("test_int");
     let path = "./src/tests/unit/task/metric/metric_select_int_test.yaml";
@@ -98,7 +98,7 @@ fn test_int() {
 
 #[test]
 fn test_float() {
-    DebugSession::init(LogLevel::Trace);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     info!("test_float");
     let path = "./src/tests/unit/task/metric/metric_select_float_test.yaml";

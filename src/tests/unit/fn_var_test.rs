@@ -6,7 +6,7 @@ mod tests {
     use std::{sync::Once, rc::Rc, cell::RefCell};
     
     use crate::{
-        core_::{debug::debug_session::{DebugSession, LogLevel}, 
+        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
         point::point_type::{PointType, ToPoint}}, 
         services::task::nested_function::{fn_::{FnInOut, FnOut}, 
         fn_input::FnInput, fn_var::FnVar},
@@ -44,7 +44,7 @@ mod tests {
 
     #[test]
     fn test_bool() {
-        DebugSession::init(LogLevel::Debug);
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         info!("test_bool");
         let input = initEach(false.toPoint("bool"));
@@ -83,7 +83,7 @@ mod tests {
 
     #[test]
     fn test_int() {
-        DebugSession::init(LogLevel::Debug);
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         info!("test_int");
         let input = initEach(false.toPoint("bool"));
@@ -119,7 +119,7 @@ mod tests {
 
     #[test]
     fn test_float() {
-        DebugSession::init(LogLevel::Debug);
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         info!("test_float");
         let input = initEach(false.toPoint("bool"));

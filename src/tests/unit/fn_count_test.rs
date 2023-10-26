@@ -4,7 +4,7 @@ use log::{debug, info};
 use std::{sync::Once, rc::Rc, cell::RefCell};
 
 use crate::{
-    core_::{debug::debug_session::{DebugSession, LogLevel}, 
+    core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
     point::point_type::{PointType, ToPoint}}, 
     services::task::nested_function::{fn_::{FnInOut, FnOut}, 
     fn_count::FnCount, fn_input::FnInput},
@@ -42,7 +42,7 @@ fn initEach(initial: PointType) -> Rc<RefCell<Box<dyn FnInOut>>> {
 
 #[test]
 fn test_single() {
-    DebugSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     info!("test_single");
     let input = initEach(false.toPoint("bool"));
@@ -81,7 +81,7 @@ fn test_single() {
 
 #[test]
 fn test_multiple() {
-    DebugSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     info!("test_multiple");
     let input = initEach(false.toPoint("bool"));
@@ -119,7 +119,7 @@ fn test_multiple() {
 
 #[test]
 fn test_multiple_reset() {
-    DebugSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     info!("test_multiple_reset");
     let input = initEach(false.toPoint("bool"));

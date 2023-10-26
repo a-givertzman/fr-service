@@ -4,7 +4,7 @@ use log::{debug, info};
 use std::{sync::Once, collections::HashMap};
 
 use crate::core_::{
-    debug::debug_session::{DebugSession, LogLevel}, 
+    debug::debug_session::*, 
     conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, conf_keywd::FnConfPointType}, 
 };
 
@@ -32,7 +32,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_fn_config_new_valid() {
-    DebugSession::init(LogLevel::Trace);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_fn_config_new_valid");

@@ -3,7 +3,7 @@
 use log::{debug, info};
 use std::{sync::Once, time::{Instant, Duration}, thread,rc::Rc, cell::RefCell};
 
-use crate::{core_::{aprox_eq::aprox_eq::AproxEq, debug::debug_session::{DebugSession, LogLevel}, point::{point_type::{PointType, ToPoint}, point::Point}}, services::task::nested_function::{fn_::{FnIn, FnInOut, FnOut}, fn_timer::FnTimer, fn_input::FnInput}};
+use crate::{core_::{aprox_eq::aprox_eq::AproxEq, debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::{point_type::{PointType, ToPoint}, point::Point}}, services::task::nested_function::{fn_::{FnIn, FnInOut, FnOut}, fn_timer::FnTimer, fn_input::FnInput}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -37,7 +37,7 @@ fn initEach(initial: PointType) -> Rc<RefCell<Box<dyn FnInOut>>> {
 
 #[test]
 fn test_elapsed_repeat_false() {
-    DebugSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     info!("test_elapsed_repeat_false");
     let mut input = initEach(false.toPoint("bool"));
@@ -100,7 +100,7 @@ fn test_elapsed_repeat_false() {
 
 #[test]
 fn test_total_elapsed_repeat() {
-    DebugSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     info!("test_total_elapsed_repeat");
     let mut input = initEach(false.toPoint("bool"));
@@ -158,7 +158,7 @@ fn test_total_elapsed_repeat() {
 
 #[test]
 fn test_total_elapsed_repeat_reset() {
-    DebugSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     info!("test_total_elapsed_repeat_reset");
     let mut input = initEach(false.toPoint("bool"));
@@ -224,7 +224,7 @@ fn test_total_elapsed_repeat_reset() {
 
 #[test]
 fn test_initial_repeat() {
-    DebugSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     info!("test_initial_repeat");
     let initial = 123.1234;

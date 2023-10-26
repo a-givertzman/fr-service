@@ -8,7 +8,7 @@ use log::{trace, info};
 use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, env, time::Instant};
 
 
-use crate::{core_::{conf::task_config::TaskConfig, debug::debug_session::{DebugSession, LogLevel}, point::point_type::PointType}, services::{task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}, queues::queues::Queues}};
+use crate::{core_::{conf::task_config::TaskConfig, debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::PointType}, services::{task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}, queues::queues::Queues}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -38,7 +38,7 @@ fn initEach() -> () {
 
 
 fn main() {
-    DebugSession::init(LogLevel::Info);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_task");

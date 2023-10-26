@@ -4,7 +4,7 @@ use log::{debug, info};
 use std::{sync::Once, rc::Rc, cell::RefCell};
 
 use crate::{
-    core_::{debug::debug_session::{DebugSession, LogLevel}, point::{point_type::{PointType, ToPoint}, point::Point}}, 
+    core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::{point_type::{PointType, ToPoint}, point::Point}}, 
     services::task::nested_function::{fn_::{FnInOut, FnOut}, fn_input::FnInput, fn_trip::FnTripGe}
 };
 
@@ -40,7 +40,7 @@ fn initEach(initial: PointType) -> Rc<RefCell<Box<dyn FnInOut>>> {
 
 #[test]
 fn test_single_int() {
-    DebugSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     info!("test_single");
 
@@ -82,7 +82,7 @@ fn test_single_int() {
 
 #[test]
 fn test_multiple_int() {
-    DebugSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     info!("test_single");
 
@@ -126,7 +126,7 @@ fn test_multiple_int() {
 
 #[test]
 fn test_multiple_float() {
-    DebugSession::init(LogLevel::Debug);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     info!("test_single");
 
