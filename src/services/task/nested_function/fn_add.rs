@@ -36,11 +36,7 @@ impl FnAdd {
 }
 ///
 /// 
-impl FnIn for FnAdd {
-    fn add(&mut self, _: PointType) {
-        panic!("FnAdd.add | method is not used")
-    }
-}
+impl FnIn for FnAdd {}
 ///
 /// 
 impl FnOut for FnAdd { 

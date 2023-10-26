@@ -54,11 +54,7 @@ impl FnCount {
 }
 ///
 /// 
-impl FnIn for FnCount {
-    fn add(&mut self, _: PointType) {
-        panic!("FnCount.add | method is not used")
-    }
-}
+impl FnIn for FnCount {}
 ///
 /// 
 impl FnOut for FnCount {

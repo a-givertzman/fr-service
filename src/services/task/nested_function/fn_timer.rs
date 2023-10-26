@@ -99,11 +99,7 @@ impl FnTimer {
 }
 ///
 /// 
-impl FnIn for FnTimer {
-    fn add(&mut self, _: PointType) {
-        panic!("FnTimer.add | method is not used")
-    }
-}
+impl FnIn for FnTimer {}
 ///
 ///
 impl FnOut for FnTimer {

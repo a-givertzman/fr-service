@@ -32,11 +32,7 @@ impl FnTripGe {
 }
 ///
 /// 
-impl FnIn for FnTripGe {
-    fn add(&mut self, _: PointType) {
-        panic!("FnTimer.add | method is not used")
-    }
-}
+impl FnIn for FnTripGe {}
 ///
 ///
 impl FnOut for FnTripGe {

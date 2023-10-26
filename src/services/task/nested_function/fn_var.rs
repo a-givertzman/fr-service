@@ -31,25 +31,21 @@ impl FnVar {
             result: None, 
         }
     }
+}
+///
+/// 
+impl FnIn for FnVar {}
+///
+/// 
+impl FnOut for FnVar {
     /// Returns nothing, 
     /// - Evaluetes all calculations,
     /// - Result stores into inner
     /// - calculated result returns in .out() method
-    pub fn eval(&mut self) {
+    fn eval(&mut self) {
         self.result = Some(self.input.borrow_mut().out());
     }
-}
-///
-/// 
-impl FnIn for FnVar {
-    fn add(&mut self, point: PointType) {
-        panic!("FnVar.add | method is not used")
-    }
-}
-///
-/// 
-impl FnOut for FnVar {
-    //
+    ///
     /// Do not evaluete calculations, 
     /// just returns the result if evalueted, else panic
     fn out(&mut self) -> PointType {

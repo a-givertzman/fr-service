@@ -8,7 +8,9 @@ use crate::core_::point::point_type::PointType;
 /// Used for generic access to the different kinde of functions
 /// for adding new value on input side
 pub trait FnIn: std::fmt::Debug {
-    fn add(&mut self, point: PointType);
+    fn add(&mut self, point: PointType) {
+        panic!("FnIn.add | don't use this method, used only for FnInput")
+    }
 }
 ///
 /// Out side interface for the function
@@ -17,7 +19,14 @@ pub trait FnIn: std::fmt::Debug {
 /// - to reset the state to the initial
 pub trait FnOut: std::fmt::Debug {
     ///
-    /// returns calculated value
+    /// used only for FnVar
+    /// evaluate calculations
+    fn eval(&mut self) {
+        panic!("FnOut.eval | don't use this method, used only for FnVar")
+    }
+    ///
+    /// - evaluate calculations
+    /// - returns calculated value
     fn out(&mut self) -> PointType;
     ///
     /// resets self state to the initial, calls reset method of all inputs 
@@ -26,6 +35,4 @@ pub trait FnOut: std::fmt::Debug {
 ///
 /// Interface for nested function
 /// Used for generic access to the different kinde of functions in the nested tree
-pub trait FnInOut: FnIn + FnOut {
-    
-}
+pub trait FnInOut: FnIn + FnOut {}
