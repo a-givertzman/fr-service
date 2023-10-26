@@ -1,4 +1,5 @@
 pub mod task;
+pub mod task_node_type;
 pub mod task_nodes;
 pub mod task_node_inputs;
 pub mod task_cycle;

@@ -1,9 +1,6 @@
 #![allow(non_snake_case)]
 
 use std::{
-    cell::RefCell,
-    collections::HashMap,
-    rc::Rc,
     sync::{Arc, atomic::{AtomicBool, Ordering}},
     thread,
     time::Duration,
@@ -11,20 +8,14 @@ use std::{
 
 use log::{info, debug, warn, trace, error};
 
-use crate::{core_::conf::fn_conf_kind::FnConfKind, services::task::task_nodes::TaskNodes};
+use crate::{core_::{conf::fn_conf_kind::FnConfKind, types::fn_in_out_ref::FnInOutRef}, services::task::{task_nodes::TaskNodes, task_node_type::TaskNodeType}};
 use crate::core_::conf::task_config::TaskConfig;
 use crate::services::queues::queues::Queues;
 use crate::services::task::nested_function::metric_builder::MetricBuilder;
 use crate::services::task::nested_function::nested_fn::NestedFn;
 use crate::services::task::task_cycle::TaskCycle;
 
-use super::nested_function::fn_::FnInOut;
 use super::task_node_inputs::TaskNodeInputs;
-
-// pub enum TaskNode {
-//     Var(Arc<dyn FnOut>),
-//     Metric(Arc<dyn FnOut>),
-// }
 
 /// Task implements entity, which provides cyclically (by event) executing calculations
 ///  - executed in the cycle mode (current impl)
@@ -35,9 +26,7 @@ pub struct Task {
     cycle: u64,
     conf: TaskConfig,
     queues: Vec<Queues>,
-    // recvQueue: Vec<Receiver<PointType>>,
     exit: Arc<AtomicBool>,
-    // nodes: Arc<Mutex<HashMap<String, Rc<RefCell<Box<dyn FnInOut>>>>>>,
 }
 ///
 /// 
@@ -64,36 +53,39 @@ impl Task {
             let nodeName = nodeConf.name.clone();
             debug!("Task.nodes | node: {:?}", &nodeConf.name);
             let mut inputs = TaskNodeInputs::new();
-            match nodeConf.fnKind {
+            let out = match nodeConf.fnKind {
                 FnConfKind::Metric => {
                     nodeIndex += 1;
-                    let out = MetricBuilder::new(&mut nodeConf, &mut inputs, queues);
-                    taskStuff.insert(&mut inputs, out);
+                    TaskNodeType::Metric(
+                        MetricBuilder::new(&mut nodeConf, &mut inputs, queues)
+                    )
                     // nodes.insert(
                     //     format!("{}-{}", nodeName, nodeIndex),
                     //     MetricBuilder::new(&mut nodeConf, inputs, queues),
                     // );
-                    trace!("Task.new | metricConf: {:?}: {:?}", nodeName, &nodeConf);
+                    // trace!("Task.new | metricConf: {:?}: {:?}", nodeName, &nodeConf);
                 },
                 FnConfKind::Fn => {
                     nodeIndex += 1;
-                    let out = NestedFn::new(&mut nodeConf, &mut inputs, queues);
-                    taskStuff.insert(&mut inputs, out);
+                    TaskNodeType::Metric(
+                        NestedFn::new(&mut nodeConf, &mut inputs, queues)
+                    )
                     // nodes.insert(
                     //     format!("{}-{}", nodeName, nodeIndex),
                     //     NestedFn::new(&mut nodeConf, inputs, queues),
                     // );
-                    trace!("Task.new | fnConf: {:?}: {:?}", nodeName, &nodeConf);
+                    // trace!("Task.new | fnConf: {:?}: {:?}", nodeName, &nodeConf);
                     // NestedFn::new(&mut fnConf, &mut inputs)
                 },
                 FnConfKind::Var => {
-                    let out = NestedFn::new(&mut nodeConf, &mut inputs, queues);
-                    taskStuff.insert(&mut inputs, out);
+                    TaskNodeType::Var(
+                        NestedFn::new(&mut nodeConf, &mut inputs, queues)
+                    )
                     // nodes.insert(
                     //     nodeName.clone(),
                     //     NestedFn::new(&mut nodeConf, inputs, queues),
                     // );
-                    trace!("Task.new | varConf: {:?}: {:?}", nodeName, &nodeConf);
+                    // trace!("Task.new | varConf: {:?}: {:?}", nodeName, &nodeConf);
                 },
                 FnConfKind::Const => {
                     panic!("Task.new | Const is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
@@ -103,10 +95,10 @@ impl Task {
                 },
                 FnConfKind::Param => {
                     panic!("Task.new | custom parameter: {:?}: {:?}", nodeName, &nodeConf);
-                }
-            }
+                },
+            };
+            taskStuff.insert(&mut inputs, out);
         }
-        // nodes
     }
     ///
     /// 
@@ -134,8 +126,15 @@ impl Task {
                             Some(evalNode) => {
                                 evalNode.getInput().borrow_mut().add(point);
                                 for evalNodeOut in evalNode.getOuts() {
-                                    let out = evalNodeOut.borrow_mut().out();
-                                    trace!("Task({}).run | evalNode {} out: {:?}", selfName, evalNode.name(), out);
+                                    match evalNodeOut {
+                                        TaskNodeType::Var(evalNodeOut) => {
+                                            let out = evalNodeOut.borrow_mut().out();
+                                            trace!("Task({}).run | evalNode {} out: {:?}", selfName, evalNode.name(), out);                                            
+                                        },
+                                        TaskNodeType::Metric(evalNodeOut) => {
+                                            
+                                        },
+                                    }
                                 };
                             },
                             None => {

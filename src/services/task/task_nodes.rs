@@ -6,7 +6,7 @@ use log::{debug, trace};
 
 use crate::core_::types::fn_in_out_ref::FnInOutRef;
 
-use super::{task_node_inputs::TaskNodeInputs, task_eval_node::TaskEvalNode};
+use super::{task_node_inputs::TaskNodeInputs, task_eval_node::TaskEvalNode, task_node_type::TaskNodeType};
 
 
 /// TaskNodes - holds the HashMap<TaskNode> in the following structure:
@@ -44,10 +44,10 @@ impl TaskNodes {
     }
     ///
     /// 
-    pub fn insert(&mut self, node: &mut TaskNodeInputs, out: FnInOutRef) {
+    pub fn insert(&mut self, node: &mut TaskNodeInputs, out: TaskNodeType) {
         let vars = node.getVars();
         let inputs = node.getInputs();
-        let mut outs: Vec<FnInOutRef> = vars.into_values().collect();
+        let mut outs: Vec<TaskNodeType> = vars.into_values().map(|var| TaskNodeType::Var(var)).collect();
         outs.push(out);
         for (name, input) in inputs {
             self.inputs.insert(
