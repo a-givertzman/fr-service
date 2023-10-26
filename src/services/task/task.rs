@@ -124,14 +124,9 @@ impl Task {
             let mut taskStuff = TaskNodes::new();
             Self::nodes(conf, &mut taskStuff, &mut queues);
             debug!("Task({}).run | taskStuff: {:?}", selfName, taskStuff);
-            
-            // info!("Task({}).run | prepared", name);
-            'inner: loop {
+            'main: loop {
                 cycle.start();
-                trace!("Task({}).run | calculating step...", selfName);
-                if exit.load(Ordering::Relaxed) {
-                    break 'inner;
-                }
+                trace!("Task({}).run | calculation step...", selfName);
                 match recvQueue.recv() {
                     Ok(point) => {
                         let pointName = point.name();
@@ -150,19 +145,18 @@ impl Task {
                     },
                     Err(err) => {
                         warn!("Task({}).run | Error receiving from queue: {:?}", selfName, err);
-                        break 'inner;
+                        break 'main;
                     },
                 };
+                if exit.load(Ordering::Relaxed) {
+                    break 'main;
+                }
+                trace!("Task({}).run | calculation step - done ({:?})", selfName, cycle.elapsed());
                 if cyclic {
                     cycle.wait();
                 }
-                trace!("Task({}).run | calculating step - done ({:?})", selfName, cycle.elapsed());
-                if exit.load(Ordering::Relaxed) {
-                    break 'inner;
-                }
             };
             info!("Task({}).run | stopped", selfName);
-            thread::sleep(Duration::from_secs_f32(2.1));
         }).unwrap();
         info!("Task({}).run | started", self.name);
         // h.join().unwrap();

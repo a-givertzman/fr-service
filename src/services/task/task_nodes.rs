@@ -9,12 +9,12 @@ use crate::core_::types::fn_in_out_ref::FnInOutRef;
 use super::{task_node_inputs::TaskNodeInputs, task_eval_node::TaskEvalNode};
 
 
-/// TaskShame / TaskProgram / TaskPlan / TaskStuff / TaskNodes - holds the entities of the Task in the following structure:
+/// TaskNodes - holds the HashMap<TaskNode> in the following structure:
 ///   ```
 ///   {
-///       inputId1: {
-///           input: inputRef,
-///           outpots: [
+///       inputName1: TaskNode {
+///           input: FnInOutRef,
+///           outs: [
 ///               var1
 ///               var2
 ///               var...
@@ -23,7 +23,7 @@ use super::{task_node_inputs::TaskNodeInputs, task_eval_node::TaskEvalNode};
 ///               metric...
 ///           ]
 ///       },
-///       inputId2: {
+///       inputName1: TaskNode {
 ///           ...
 ///       },
 ///   }
