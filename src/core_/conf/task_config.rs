@@ -42,7 +42,7 @@ impl TaskConfNode {
 #[derive(Debug, PartialEq, Clone)]
 pub struct TaskConfig {
     pub(crate) name: String,
-    pub(crate) cycle: u64,
+    pub(crate) cycle: Option<u64>,
     pub(crate) recvQueue: String,
     pub(crate) nodes: IndexMap<String, FnConfig>,
     pub(crate) vars: Vec<String>,
@@ -79,20 +79,25 @@ impl TaskConfig {
             Some(mut selfConf) => {
                 debug!("TaskConfig.new | MAPPING VALUE");
                 trace!("TaskConfig.new | selfConf: {:?}", selfConf);
-                
+                let mut selfNodeNames: Vec<String> = selfConf.subNodes().unwrap().map(|conf| conf.key).collect();
+                trace!("TaskConfig.new | selfConf keys: {:?}", selfNodeNames);
                 let selfName = match ConfKeywd::from_str(&selfConf.key) {
                     Ok(selfKeyword) => selfKeyword.data(),
                     Err(err) => panic!("TaskConfig.new | Unknown metric name in {:?}\n\tdetales: {:?}", &selfConf.key, err),
                 };
                 trace!("TaskConfig.new | selfName: {:?}", selfName);
-                let selfCycle = (&mut selfConf).remove("cycle").unwrap().as_u64().unwrap();
+                let selfCycle = match Self::getParam(&mut selfConf, &mut selfNodeNames, "cycle") {
+                    Some(value) => Some(value.as_u64().unwrap()),
+                    None => None,
+                };
                 trace!("TaskConfig.new | selfCycle: {:?}", selfCycle);
-                let selfRecvQueue = (&mut selfConf).remove("recv-queue").unwrap().as_str().unwrap().to_string();
+                let selfRecvQueue = Self::getParam(&mut selfConf, &mut selfNodeNames, "recv-queue").unwrap().as_str().unwrap();
                 trace!("TaskConfig.new | selfRecvQueue: {:?}", selfRecvQueue);
-
                 let mut nodeIndex = 0;
                 let mut selfNodes = IndexMap::new();
-                for selfNodeConf in selfConf.subNodes().unwrap() {
+                let mut selfNodeConfs = selfConf.subNodes().unwrap();
+                for selfNodeName in selfNodeNames {
+                    let selfNodeConf = selfNodeConfs.next().unwrap();
                     trace!("TaskConfig.new | selfNodeConf: {:?}", selfNodeConf);
                     nodeIndex += 1;
                     let nodeConf = FnConfig::new(&selfNodeConf, &mut vars);
@@ -104,7 +109,7 @@ impl TaskConfig {
                 TaskConfig {
                     name: selfName,
                     cycle: selfCycle,
-                    recvQueue: selfRecvQueue,
+                    recvQueue: selfRecvQueue.into(),
                     nodes: selfNodes,
                     vars: vars,
                 }
@@ -139,5 +144,14 @@ impl TaskConfig {
             },
         }
     }
-
+    ///
+    /// 
+    fn getParam(selfConf: &mut ConfTree, selfKeys: &mut Vec<String>, name: &str) -> Option<serde_yaml::Value> {
+        let index = selfKeys.iter().position(|x| *x == name).unwrap();
+        selfKeys.remove(index);
+        match selfConf.get(name) {
+            Some(confTree) => Some(confTree.conf),
+            None => None,
+        }
+    }
 }

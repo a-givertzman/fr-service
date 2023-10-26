@@ -38,7 +38,7 @@ fn initEach() -> () {
 
 
 fn main() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Trace, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_task");
@@ -51,7 +51,10 @@ fn main() {
     assert!(fs::metadata(path).is_ok());
     // let path = "./src/tests/unit/task/task_test.yaml";
     let config = TaskConfig::read(path);
-    debug!("config: {:?}", &config);
+    for confNode in config.nodes.clone() {
+        debug!("config node: {:?}", &confNode);
+    }
+    // debug!("config: {:?}", &config);
 
     let mut queues = Queues::new();
     let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
