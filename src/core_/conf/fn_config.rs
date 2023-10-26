@@ -1,7 +1,8 @@
 #![allow(non_snake_case)]
 
-use log::{trace, debug, error, warn};
-use std::{fs, collections::HashMap, str::FromStr};
+use indexmap::IndexMap;
+use log::{trace, debug, error};
+use std::{fs, str::FromStr};
 
 use crate::core_::{conf::conf_keywd::ConfKeywd, conf::conf_tree::ConfTree};
 
@@ -29,7 +30,7 @@ use super::{fn_conf_kind::FnConfKind, conf_keywd::FnConfPointType};
 pub struct FnConfig {
     pub fnKind: FnConfKind,
     pub name: String,
-    pub inputs: HashMap<String, FnConfig>,
+    pub inputs: IndexMap<String, FnConfig>,
     pub type_: FnConfPointType,
 }
 ///
@@ -61,10 +62,10 @@ impl FnConfig {
                 Ok(selfKeyword) => {
                     trace!("FnConfig.new | selfKeyword parsed: {:?}", selfKeyword);
                     // parse sub nodes
-                    // let mut inputs = HashMap::new();
+                    // let mut inputs = IndexMap::new();
                     trace!("FnConfig.new | build inputs...");
                     let fnName: String;
-                    let inputs: HashMap<String, FnConfig>;
+                    let inputs: IndexMap<String, FnConfig>;
                     match selfKeyword.kind() {
                         FnConfKind::Const => {
                             fnName = if selfKeyword.data().is_empty() {
@@ -72,7 +73,7 @@ impl FnConfig {
                             } else {
                                 selfKeyword.data()
                             };
-                            inputs = HashMap::new();
+                            inputs = IndexMap::new();
                         },
                         FnConfKind::Var => {
                             vars.push(selfKeyword.data());
@@ -115,7 +116,7 @@ impl FnConfig {
                                 FnConfig {
                                     fnKind: fnKeyword.kind(),
                                     name: fnKeyword.data(),
-                                    inputs: HashMap::new(),
+                                    inputs: IndexMap::new(),
                                     type_: fnKeyword.type_(),
                                 }
     
@@ -124,7 +125,7 @@ impl FnConfig {
                                 FnConfig {
                                     fnKind: fnKeyword.kind(),
                                     name: fnKeyword.data(),
-                                    inputs: HashMap::new(),
+                                    inputs: IndexMap::new(),
                                     type_: fnKeyword.type_(),
                                 }
     
@@ -145,7 +146,7 @@ impl FnConfig {
                             FnConfig { 
                                 fnKind: FnConfKind::Var, 
                                 name: varName, 
-                                inputs: HashMap::new(),
+                                inputs: IndexMap::new(),
                                 type_: FnConfPointType::Unknown,
                             }
                         } else {
@@ -153,7 +154,7 @@ impl FnConfig {
                             FnConfig { 
                                 fnKind: FnConfKind::Param, 
                                 name: varName, 
-                                inputs: HashMap::new(),
+                                inputs: IndexMap::new(),
                                 type_: FnConfPointType::Unknown,
                             }
                             // panic!("FnConfig.new | Variable not declared: {:?}", confTree.conf)
@@ -166,7 +167,7 @@ impl FnConfig {
                 FnConfig { 
                     fnKind: FnConfKind::Param, 
                     name: varName, 
-                    inputs: HashMap::new(),
+                    inputs: IndexMap::new(),
                     type_: FnConfPointType::Unknown,
                 }
             } else if confTree.conf.is_i64() {
@@ -175,7 +176,7 @@ impl FnConfig {
                 FnConfig { 
                     fnKind: FnConfKind::Param, 
                     name: varName, 
-                    inputs: HashMap::new(),
+                    inputs: IndexMap::new(),
                     type_: FnConfPointType::Unknown,
                 }
             } else if confTree.conf.is_f64() {
@@ -184,7 +185,7 @@ impl FnConfig {
                 FnConfig { 
                     fnKind: FnConfKind::Param, 
                     name: varName, 
-                    inputs: HashMap::new(),
+                    inputs: IndexMap::new(),
                     type_: FnConfPointType::Unknown,
                 }
             } else {
@@ -194,8 +195,8 @@ impl FnConfig {
     }
     ///
     /// 
-    fn buildInputs(confTree: &ConfTree, vars: &mut Vec<String>) ->HashMap<String, FnConfig> {
-        let mut inputs = HashMap::new();
+    fn buildInputs(confTree: &ConfTree, vars: &mut Vec<String>) ->IndexMap<String, FnConfig> {
+        let mut inputs = IndexMap::new();
         match confTree.subNodes() {
             // has inputs in mapping
             Some(subNodes) => {

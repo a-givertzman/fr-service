@@ -1,13 +1,14 @@
 #![allow(non_snake_case)]
 
+use indexmap::IndexMap;
 use log::{trace, debug, error};
-use std::{fs, collections::HashMap, str::FromStr};
+use std::{fs, str::FromStr};
 
 use crate::core_::conf::{metric_config::MetricConfig, fn_config::FnConfig, conf_tree::ConfTree, conf_keywd::ConfKeywd};
 
 
 #[derive(Debug, Clone, PartialEq)]
-pub(crate) enum TaskConfNode {
+pub enum TaskConfNode {
     Fn(FnConfig),
     Metric(MetricConfig)
 }
@@ -43,7 +44,7 @@ pub struct TaskConfig {
     pub(crate) name: String,
     pub(crate) cycle: u64,
     pub(crate) recvQueue: String,
-    pub(crate) nodes: HashMap<String, FnConfig>,
+    pub(crate) nodes: IndexMap<String, FnConfig>,
     pub(crate) vars: Vec<String>,
 }
 ///
@@ -90,7 +91,7 @@ impl TaskConfig {
                 trace!("TaskConfig.new | selfRecvQueue: {:?}", selfRecvQueue);
 
                 let mut nodeIndex = 0;
-                let mut selfNodes = HashMap::new();
+                let mut selfNodes = IndexMap::new();
                 for selfNodeConf in selfConf.subNodes().unwrap() {
                     trace!("TaskConfig.new | selfNodeConf: {:?}", selfNodeConf);
                     nodeIndex += 1;

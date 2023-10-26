@@ -1,12 +1,12 @@
 #![allow(non_snake_case)]
+use indexmap::IndexMap;
 #[cfg(test)]
 use log::{trace, info};
-use std::{sync::Once, env, collections::HashMap};
+use std::{sync::Once, env};
 
 use crate::core_::{
     debug::debug_session::*, 
-    conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, conf_keywd::FnConfPointType, metric_config::MetricConfig}, 
-    point::{point_type::PointType, point::Point},
+    conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, conf_keywd::FnConfPointType, metric_config::MetricConfig},
 };
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -43,19 +43,19 @@ fn test_fn_config_read_valid() {
         sql: String::from("UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"), 
         initial: 0.123, 
         vars: vec![String::from("VarName2")],
-        inputs: HashMap::from([
+        inputs: IndexMap::from([
             (String::from("input1"), FnConfig { 
-                fnKind: FnConfKind::Var, name: String::from("VarName2"), type_: FnConfPointType::Unknown, inputs: HashMap::from([
+                fnKind: FnConfKind::Var, name: String::from("VarName2"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                     (String::from("input"), FnConfig { 
-                        fnKind: FnConfKind::Fn, name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: HashMap::from([
-                            (String::from("initial"), FnConfig { fnKind: FnConfKind::Var, name: String::from("VarName2"), type_: FnConfPointType::Unknown, inputs: HashMap::new() }),
+                        fnKind: FnConfKind::Fn, name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                            (String::from("initial"), FnConfig { fnKind: FnConfKind::Var, name: String::from("VarName2"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() }),
                             (String::from("input"), FnConfig { 
-                                fnKind: FnConfKind::Fn, name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: HashMap::from([
-                                    (String::from("input1"), FnConfig { fnKind: FnConfKind::Const, name: String::from("someValue"), type_: FnConfPointType::Unknown, inputs: HashMap::new() }),
-                                    (String::from("input2"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), type_: FnConfPointType::Float, inputs: HashMap::new() }), 
+                                fnKind: FnConfKind::Fn, name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                    (String::from("input1"), FnConfig { fnKind: FnConfKind::Const, name: String::from("someValue"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() }),
+                                    (String::from("input2"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), type_: FnConfPointType::Float, inputs: IndexMap::new() }), 
                                     (String::from("input"), FnConfig { 
-                                        fnKind: FnConfKind::Fn, name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: HashMap::from([
-                                            (String::from("input"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), type_: FnConfPointType::Bool, inputs: HashMap::new() }),
+                                        fnKind: FnConfKind::Fn, name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                            (String::from("input"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), type_: FnConfPointType::Bool, inputs: IndexMap::new() }),
                                         ])
                                     }), 
                                 ]) 
@@ -64,7 +64,7 @@ fn test_fn_config_read_valid() {
                     })
                 ]) 
             }), 
-            (String::from("input2"), FnConfig { fnKind: FnConfKind::Const, name: String::from("1"), type_: FnConfPointType::Unknown, inputs: HashMap::new() })
+            (String::from("input2"), FnConfig { fnKind: FnConfKind::Const, name: String::from("1"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() })
         ]), 
     };
     

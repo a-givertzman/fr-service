@@ -1,5 +1,8 @@
+#![allow(non_snake_case)]
+
+use indexmap::IndexMap;
 use log::{trace, debug, error};
-use std::{fs, collections::HashMap, str::FromStr};
+use std::{fs, str::FromStr};
 
 use crate::core_::conf::{fn_config::FnConfig, conf_tree::ConfTree, conf_keywd::ConfKeywd};
 
@@ -23,7 +26,7 @@ pub struct MetricConfig {
     pub(crate) table: String,
     pub(crate) sql: String,
     pub(crate) initial: f64,
-    pub(crate) inputs: HashMap<String, FnConfig>,
+    pub(crate) inputs: IndexMap<String, FnConfig>,
     pub(crate) vars: Vec<String>,
 }
 ///
@@ -62,7 +65,7 @@ impl MetricConfig {
                         panic!("MetricConfig.new | Unknown metric name in {:?}\n\tdetales: {:?}", &confTree.key, err)
                     },
                 };
-                let mut inputs = HashMap::new();
+                let mut inputs = IndexMap::new();
                 match confTree.get("inputs") {
                     Some(inputsNode) => {
                         for inputConf in inputsNode.subNodes().unwrap() {
