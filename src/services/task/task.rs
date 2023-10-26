@@ -11,7 +11,7 @@ use std::{
 
 use log::{info, debug, warn, trace, error};
 
-use crate::{core_::conf::fn_conf_kind::FnConfKind, services::task::task_stuff::TaskStuff};
+use crate::{core_::conf::fn_conf_kind::FnConfKind, services::task::task_nodes::TaskNodes};
 use crate::core_::conf::task_config::TaskConfig;
 use crate::services::queues::queues::Queues;
 use crate::services::task::nested_function::metric_builder::MetricBuilder;
@@ -19,7 +19,7 @@ use crate::services::task::nested_function::nested_fn::NestedFn;
 use crate::services::task::task_cycle::TaskCycle;
 
 use super::nested_function::fn_::FnInOut;
-use super::task_stuff_inputs::TaskStuffInputs;
+use super::task_node_inputs::TaskNodeInputs;
 
 // pub enum TaskNode {
 //     Var(Arc<dyn FnOut>),
@@ -57,13 +57,13 @@ impl Task {
     ///
     /// 
     // fn nodes(conf: TaskConfig, taskStuff: &mut TaskStuff, queues: &mut Queues) -> HashMap<std::string::String, Rc<RefCell<Box<(dyn FnInOut)>>>> {
-    fn nodes(conf: TaskConfig, taskStuff: &mut TaskStuff, queues: &mut Queues) {
+    fn nodes(conf: TaskConfig, taskStuff: &mut TaskNodes, queues: &mut Queues) {
         let mut nodeIndex = 0;
         // let mut nodes = HashMap::new();
         for (_nodeName, mut nodeConf) in conf.nodes {
             let nodeName = nodeConf.name.clone();
             debug!("Task.nodes | node: {:?}", &nodeConf.name);
-            let mut inputs = TaskStuffInputs::new();
+            let mut inputs = TaskNodeInputs::new();
             match nodeConf.fnKind {
                 FnConfKind::Metric => {
                     nodeIndex += 1;
@@ -121,7 +121,7 @@ impl Task {
         let recvQueue = queues.getRecvQueue(&self.conf.recvQueue);
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             let mut cycle = TaskCycle::new(Duration::from_millis(cycleInterval));
-            let mut taskStuff = TaskStuff::new();
+            let mut taskStuff = TaskNodes::new();
             Self::nodes(conf, &mut taskStuff, &mut queues);
             debug!("Task({}).run | taskStuff: {:?}", selfName, taskStuff);
             

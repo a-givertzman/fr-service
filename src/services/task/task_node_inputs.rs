@@ -11,11 +11,11 @@ use super::nested_function::fn_::FnInOut;
 ///
 /// A container for storing FnInput & valiavles by name
 #[derive(Debug)]
-pub struct TaskStuffInputs {
+pub struct TaskNodeInputs {
     inputs: HashMap<String, Rc<RefCell<Box<dyn FnInOut>>>>,
     vars: HashMap<String, Rc<RefCell<Box<dyn FnInOut>>>>,
 }
-impl TaskStuffInputs {
+impl TaskNodeInputs {
     ///
     /// Creates new container for storing FnInput
     pub fn new() -> Self {

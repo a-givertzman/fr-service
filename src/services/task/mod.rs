@@ -1,6 +1,6 @@
 pub mod task;
-pub mod task_stuff;
-pub mod task_stuff_inputs;
+pub mod task_nodes;
+pub mod task_node_inputs;
 pub mod task_cycle;
 pub mod task_eval_node;
 pub mod task_test_receiver;

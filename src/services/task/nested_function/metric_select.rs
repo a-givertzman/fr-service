@@ -4,7 +4,7 @@ use std::{cell::RefCell, rc::Rc, collections::HashMap};
 
 use log::{debug, error, trace, warn};
 
-use crate::{core_::{conf::fn_config::FnConfig, point::{point_type::{PointType, ToPoint}, point::Point}, format::format::Format}, services::{task::task_stuff_inputs::TaskStuffInputs, queues::queues::Queues}};
+use crate::{core_::{conf::fn_config::FnConfig, point::{point_type::{PointType, ToPoint}, point::Point}, format::format::Format}, services::{task::task_node_inputs::TaskNodeInputs, queues::queues::Queues}};
 
 use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn};
 
@@ -25,7 +25,7 @@ pub struct MetricSelect {
 impl MetricSelect {
     //
     //
-    pub fn new(conf: &mut FnConfig, taskStuff: &mut TaskStuffInputs, queues: &mut Queues) -> MetricSelect {
+    pub fn new(conf: &mut FnConfig, taskStuff: &mut TaskNodeInputs, queues: &mut Queues) -> MetricSelect {
         let mut inputs = HashMap::new();
         let mut inputConfs = conf.inputs.clone();
         inputConfs.remove("initial");

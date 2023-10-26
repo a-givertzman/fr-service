@@ -6,7 +6,7 @@ use log::{debug, trace};
 
 use crate::core_::types::fn_in_out_ref::FnInOutRef;
 
-use super::{task_stuff_inputs::TaskStuffInputs, task_eval_node::TaskEvalNode};
+use super::{task_node_inputs::TaskNodeInputs, task_eval_node::TaskEvalNode};
 
 
 /// TaskShame / TaskProgram / TaskPlan / TaskStuff / TaskNodes - holds the entities of the Task in the following structure:
@@ -29,14 +29,14 @@ use super::{task_stuff_inputs::TaskStuffInputs, task_eval_node::TaskEvalNode};
 ///   }
 ///   ```
 #[derive(Debug)]
-pub struct TaskStuff {
+pub struct TaskNodes {
     inputs: HashMap<String, TaskEvalNode>,
 }
 ///
 /// 
-impl TaskStuff {
+impl TaskNodes {
     ///
-    /// Creates new empty TaskStuff instance 
+    /// Creates new empty instance 
     pub fn new() ->Self {
         Self {
             inputs: HashMap::new(),
@@ -44,7 +44,7 @@ impl TaskStuff {
     }
     ///
     /// 
-    pub fn insert(&mut self, node: &mut TaskStuffInputs, out: FnInOutRef) {
+    pub fn insert(&mut self, node: &mut TaskNodeInputs, out: FnInOutRef) {
         let vars = node.getVars();
         let inputs = node.getInputs();
         let mut outs: Vec<FnInOutRef> = vars.into_values().collect();
