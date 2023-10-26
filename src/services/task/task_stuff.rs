@@ -6,7 +6,7 @@ use log::{debug, trace};
 
 use crate::core_::types::fn_in_out_ref::FnInOutRef;
 
-use super::task_stuff_inputs::TaskStuffInputs;
+use super::{task_stuff_inputs::TaskStuffInputs, task_eval_node::TaskEvalNode};
 
 
 /// TaskShame / TaskProgram / TaskPlan / TaskStuff / TaskNodes - holds the entities of the Task in the following structure:
@@ -30,7 +30,7 @@ use super::task_stuff_inputs::TaskStuffInputs;
 ///   ```
 #[derive(Debug)]
 pub struct TaskStuff {
-    inputs: HashMap<String, (FnInOutRef, Vec<FnInOutRef>)>,
+    inputs: HashMap<String, TaskEvalNode>,
 }
 ///
 /// 
@@ -51,15 +51,19 @@ impl TaskStuff {
         outs.push(out);
         for (name, input) in inputs {
             self.inputs.insert(
-                name,
-                (input, outs.iter().map(|out|out.clone()).collect()),
+                name.clone(),
+                TaskEvalNode::new(
+                    name,
+                    input,
+                    outs.iter().map(|out|out.clone()).collect()
+                )
             );
         };
         trace!("\nTaskStuff.add | self.inputs: {:?}\n", self.inputs);
     }
     ///
     /// Returns input by it's name
-    pub fn getInput(&self, name: &str) -> Option<&(FnInOutRef, Vec<FnInOutRef>)> {
+    pub fn getInput(&self, name: &str) -> Option<&TaskEvalNode> {
         self.inputs.get(name.into())
     }
 }

@@ -136,15 +136,15 @@ impl Task {
                     Ok(point) => {
                         let pointName = point.name();
                         match taskStuff.getInput(&pointName) {
-                            Some(input) => {
-                                input.0.borrow_mut().add(point);
-                                for (node) in &input.1 {
-                                    let out = node.borrow_mut().out();
-                                    trace!("Task({}).run | node {} out: {:?}", selfName, pointName, out);
+                            Some(evalNode) => {
+                                evalNode.getInput().borrow_mut().add(point);
+                                for evalNodeOut in evalNode.getOuts() {
+                                    let out = evalNodeOut.borrow_mut().out();
+                                    trace!("Task({}).run | evalNode {} out: {:?}", selfName, evalNode.name(), out);
                                 };
                             },
                             None => {
-                                warn!("Task({}).run | input {:?} - not fount", selfName, &pointName);
+                                warn!("Task({}).run | evalNode {:?} - not fount", selfName, &pointName);
                             },
                         };
                     },
