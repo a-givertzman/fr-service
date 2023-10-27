@@ -122,6 +122,7 @@ impl Task {
                 trace!("Task({}).run | calculation step...", selfName);
                 match recvQueue.recv() {
                     Ok(point) => {
+                        debug!("Task({}).run | point: {:?}", selfName, &point);                                            
                         let pointName = point.name();
                         match taskNodes.getEvalNode(&pointName) {
                             Some(evalNode) => {

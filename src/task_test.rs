@@ -38,13 +38,13 @@ fn initEach() -> () {
 
 
 fn main() {
-    DebugSession::init(LogLevel::Trace, Backtrace::Short);
+    DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_task");
     
     let producers = 3;
-    let iterations = 10_000;
+    let iterations = 10;
     
     trace!("dir: {:?}", env::current_dir());
     let path = "./src/tests/unit/task/task_test_struct.yaml";
@@ -57,6 +57,7 @@ fn main() {
     // debug!("config: {:?}", &config);
 
     let mut queues = Queues::new();
+    let (send1, recv1): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
     let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
     let (apiSend, apiRecv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
     queues.addRecvQueue("recv-queue", recv);
@@ -66,18 +67,58 @@ fn main() {
     let testValues = vec![0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0];
     receiver.run(apiRecv, iterations * producers, testValues);
 
-    let mut producer1 = TaskTestProducer::new(iterations, send.clone());
-    let mut producer2 = TaskTestProducer::new(iterations, send.clone());
-    let mut producer3 = TaskTestProducer::new(iterations, send);
+    let mut producer1 = TaskTestProducer::new(iterations, vec![send1.clone(), send.clone()]);
+    let mut producer2 = TaskTestProducer::new(iterations, vec![send1.clone(), send.clone()]);
+    let mut producer3 = TaskTestProducer::new(iterations, vec![send1, send]);
     producer1.run();
     producer2.run();
     producer3.run();
 
     let mut task = Task::new(config, queues);
-    trace!("task tuning...");
+    info!("task runing...");
     let time = Instant::now();
     task.run();
-    trace!("task tuning - ok");
+    info!("task runing - ok");
+    println!("elapsed: {:?}", time.elapsed());
+    println!("received: {:?}", receiver.received());
+    let resRecv = receiver.getInputValues();
+    let mut count = 0;
+    while count < iterations * producers {
+        match recv1.recv() {
+            Ok(point) => {
+                match resRecv.recv() {
+                    Ok(result) => {
+                        match point {
+                            PointType::Bool(point) => {
+                            },
+                            PointType::Int(point) => {
+                                
+                            },
+                            PointType::Float(point) => {                
+                                let target = format!(
+                                    "insert into {} (id, value, timestamp) values ({}, {}, {});", 
+                                    "table_name", 
+                                    "sqlSelectMetric", 
+                                    point.value + 0.2 + 0.05,
+                                    2.224,
+                                );
+                                let result = result.asString().value;
+                                debug!("\ntarget: {}\nresult: {}", target, result);
+                                assert_eq!(result, target);
+                                count += 1;
+                            },
+                            PointType::String(point) => {
+                
+                            },
+                        }
+                    },
+                    Err(_) => {},
+                };
+            },
+            Err(_) => {},
+        };
+    }
+    assert_eq!(receiver.received(), iterations * producers);
     producer1.join();
     producer2.join();
     producer3.join();
@@ -87,8 +128,6 @@ fn main() {
     task.exit();
     receiver.exit();
     trace!("task stopping - ok");
-    println!("elapsed: {:?}", time.elapsed());
-    println!("received: {:?}", receiver.received());
-    assert_eq!(receiver.received(), iterations * producers);
+        
 }
 

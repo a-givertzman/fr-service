@@ -13,7 +13,7 @@ task task1:
     cycle: 1
     recv-queue: recv-queue
     let var0: 
-        input: const float 2.22
+        input: const float 2.224
     # let Var1:
     #     input fn add:
     #         input1: point float '/path/Point.Name1'
@@ -33,7 +33,7 @@ task task1:
             initial: 0.123      # начальное значение
             table: table_name
             # sql: "UPDATE {table} SET kind = '{input1.value}' WHERE id = '{input2.value}';"
-            sql: "insert into {table} (id, value, timestamp) values ({id}, {input.value}, {input3.timestamp});"
+            sql: "insert into {table} (id, value, timestamp) values ({id}, {input.value}, {input3.value});"
             input let Var3:
                     input fn add:
                         input1 fn add:

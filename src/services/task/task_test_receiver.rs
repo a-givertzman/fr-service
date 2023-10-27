@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{mpsc::Receiver, Arc, atomic::{AtomicBool, Ordering, AtomicUsize}}, thread::{self, JoinHandle}};
+use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering, AtomicUsize}}, thread::{self, JoinHandle}};
 
 use log::{info, debug, warn, trace};
 
@@ -11,6 +11,7 @@ pub struct TaskTestReceiver {
     exit: Arc<AtomicBool>,
     received: Arc<AtomicUsize>,
     handle: Vec<JoinHandle<()>>,
+    recv: Vec<Receiver<PointType>>
 }
 
 impl TaskTestReceiver {
@@ -19,6 +20,7 @@ impl TaskTestReceiver {
             exit: Arc::new(AtomicBool::new(false)),
             received: Arc::new(AtomicUsize::new(0)),
             handle: vec![],
+            recv: vec![],
         }
     }
     pub fn run(&mut self, recvQueue: Receiver<PointType>, iterations: usize, testValues: Vec<f64>) {
@@ -28,6 +30,8 @@ impl TaskTestReceiver {
         // let mut testValues = testValues.clone();
         let mut count = 0;
         let mut errorCount = 0;
+        let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
+        self.recv.push(recv);
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             // info!("Task({}).run | prepared", name);
             'inner: loop {
@@ -42,6 +46,7 @@ impl TaskTestReceiver {
                         if count >= iterations {
                             break 'inner;
                         }
+                        let _r = send.send(sql.clone());
                         trace!("TaskTestReceiver.run | received SQL: {:?}", sql.asString().value);
                         // debug!("TaskTestReceiver.run | value: {}\treceived SQL: {:?}", value, sql);
                         // assert!()
@@ -78,5 +83,8 @@ impl TaskTestReceiver {
             },
             None => {},
         };
+    }
+    pub fn getInputValues(&mut self) -> Receiver<PointType> {
+        self.recv.pop().unwrap()
     }
 }

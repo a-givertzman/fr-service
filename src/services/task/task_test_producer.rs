@@ -25,10 +25,10 @@ pub struct TaskTestProducer {
     handle: Option<JoinHandle<()>>,
 }
 impl TaskTestProducer {
-    pub fn new(iterations: usize, send: Sender<PointType>) -> Self {
+    pub fn new(iterations: usize, send: Vec<Sender<PointType>>) -> Self {
         Self {
             iterations,
-            send: vec![send],
+            send: send,
             handle: None,
         }
     }
@@ -36,7 +36,11 @@ impl TaskTestProducer {
     /// 
     pub fn run(&mut self) {
         let iterations = self.iterations;
-        let send = self.send.pop().unwrap();
+        // let send = self.send. .pop().unwrap();
+        let mut send: Vec<Sender<PointType>> = vec![]; 
+        for _ in 0..self.send.len() {
+            send.push(self.send.pop().unwrap().to_owned())
+        };
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             let name = "prodicer";
             debug!("TaskTestProducer({}).run | calculating step...", name);
@@ -47,13 +51,15 @@ impl TaskTestProducer {
             for _ in 0..iterations {
                 let value = random.gen_range(0.0..max);
                 let point = value.toPoint("/path/Point.Name");
-                match send.send(point.clone()) {
-                    Ok(_) => {
-                        sent += 1;
-                    },
-                    Err(err) => {
-                        warn!("TaskTestProducer({}).run | Error write to queue: {:?}", name, err);
-                    },
+                for s in &send {
+                    match s.send(point.clone()) {
+                        Ok(_) => {
+                            sent += 1;
+                        },
+                        Err(err) => {
+                            warn!("TaskTestProducer({}).run | Error write to queue: {:?}", name, err);
+                        },
+                    }
                 }
                 // thread::sleep(Duration::from_micros(10));
             }
