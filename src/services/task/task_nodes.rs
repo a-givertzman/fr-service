@@ -1,7 +1,5 @@
 #![allow(non_snake_case)]
 
-use std::collections::HashMap;
-
 use indexmap::IndexMap;
 use log::{debug, trace};
 
@@ -31,7 +29,7 @@ use super::{task_node_stuff::TaskNodeStuff, task_eval_node::TaskEvalNode, task_n
 ///   ```
 #[derive(Debug)]
 pub struct TaskNodes {
-    inputs: HashMap<String, TaskEvalNode>,
+    inputs: IndexMap<String, TaskEvalNode>,
     vars: IndexMap<String, FnInOutRef>,
     nodeStuff: Option<TaskNodeStuff>,
 }
@@ -42,7 +40,7 @@ impl TaskNodes {
     /// Creates new empty instance 
     pub fn new() ->Self {
         Self {
-            inputs: HashMap::new(),
+            inputs: IndexMap::new(),
             vars: IndexMap::new(),
             nodeStuff: None,
         }

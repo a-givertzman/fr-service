@@ -114,16 +114,16 @@ impl Task {
         let recvQueue = queues.getRecvQueue(&self.conf.recvQueue);
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             let mut cycle = TaskCycle::new(Duration::from_millis(cycleInterval));
-            let mut taskStuff = TaskNodes::new();
-            Self::nodes(conf, &mut taskStuff, &mut queues);
-            debug!("Task({}).run | taskStuff: {:?}", selfName, taskStuff);
+            let mut taskNodes = TaskNodes::new();
+            Self::nodes(conf, &mut taskNodes, &mut queues);
+            debug!("Task({}).run | taskNodes: {:?}", selfName, taskNodes);
             'main: loop {
                 cycle.start();
                 trace!("Task({}).run | calculation step...", selfName);
                 match recvQueue.recv() {
                     Ok(point) => {
                         let pointName = point.name();
-                        match taskStuff.getEvalNode(&pointName) {
+                        match taskNodes.getEvalNode(&pointName) {
                             Some(evalNode) => {
                                 evalNode.getInput().borrow_mut().add(point);
                                 for evalNodeOut in evalNode.getOuts() {
