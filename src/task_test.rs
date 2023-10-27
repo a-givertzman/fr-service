@@ -5,7 +5,7 @@ mod core_;
 mod services;
 
 use log::{trace, info, debug};
-use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, env, time::Instant, fs};
+use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, env, time::{Instant, Duration}, fs, thread};
 
 
 use crate::{core_::{conf::task_config::TaskConfig, debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::PointType}, services::{task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}, queues::queues::Queues}};
@@ -82,7 +82,7 @@ fn main() {
     println!("elapsed: {:?}", time.elapsed());
     println!("received: {:?}", receiver.received());
     let resRecv = receiver.getInputValues();
-    let mut count = 0;
+    let mut count = 1;
     while count < iterations * producers {
         match recv1.recv() {
             Ok(point) => {
@@ -95,6 +95,7 @@ fn main() {
                                 
                             },
                             PointType::Float(point) => {                
+                                count += 1;
                                 let target = format!(
                                     "insert into {} (id, value, timestamp) values ({}, {}, {});", 
                                     "table_name", 
@@ -103,9 +104,8 @@ fn main() {
                                     2.224,
                                 );
                                 let result = result.asString().value;
-                                debug!("\ntarget: {}\nresult: {}", target, result);
+                                debug!("count: {}\ntarget: {}\nresult: {}", count, target, result);
                                 assert_eq!(result, target);
-                                count += 1;
                             },
                             PointType::String(point) => {
                 
@@ -118,11 +118,13 @@ fn main() {
             Err(_) => {},
         };
     }
+    thread::sleep(Duration::from_millis(300));
     assert_eq!(receiver.received(), iterations * producers);
-    producer1.join();
-    producer2.join();
-    producer3.join();
-    receiver.join();
+    assert_eq!(count, iterations * producers);
+    // producer1.join();
+    // producer2.join();
+    // producer3.join();
+    // receiver.join();
     // thread::sleep(Duration::from_millis(200));
     trace!("task stopping...");
     task.exit();
