@@ -75,20 +75,22 @@ impl NestedFn {
                 println!("NestedFn.function | Var: {:?}...", varName);
                 match conf.inputs.iter_mut().next() {
                     Some((inputConfName, inputConf)) => {
-                        let input = Self::fnVar(               
+                        let var = Self::fnVar(               
                             varName, 
                             Self::function(&inputConfName, inputConf, taskNodes, queues),
                         );
-                        println!("NestedFn.function | Var: {:?}: {:?}", &conf.name, input.clone());
-                        taskNodes.addVar(conf.name.clone(), input.clone());
+                        println!("NestedFn.function | Var: {:?}: {:?}", &conf.name, var.clone());
+                        taskNodes.addVar(conf.name.clone(), var.clone());
                         // println!("NestedFn.function | Var: {:?}", input);
-                        input
+                        var
                     },
                     None => {
-                        match taskNodes.getVar(&varName) {
-                            Some(var) => var.clone(),
+                        let var = match taskNodes.getVar(&varName) {
+                            Some(var) => var,
                             None => panic!("NestedFn.function | Var {:?} - not found", &varName),
-                        }
+                        }.to_owned();
+                        taskNodes.addVar(conf.name.clone(), var.clone());
+                        var.clone()
                     },
                 }
             },
