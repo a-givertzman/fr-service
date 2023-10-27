@@ -129,10 +129,12 @@ impl Task {
                                 for evalNodeOut in evalNode.getOuts() {
                                     match evalNodeOut {
                                         TaskNodeType::Var(evalNodeOut) => {
+                                            trace!("Task({}).run | evalNode {} - evaluating...", selfName, evalNode.name());                                            
                                             evalNodeOut.borrow_mut().eval();
-                                            trace!("Task({}).run | evalNode {} - evaluated", selfName, evalNode.name());                                            
+                                            trace!("Task({}).run | evalNode {} - var evaluated", selfName, evalNode.name());                                            
                                         },
                                         TaskNodeType::Metric(evalNodeOut) => {
+                                            trace!("Task({}).run | evalNode {} out...", selfName, evalNode.name());                                            
                                             let out = evalNodeOut.borrow_mut().out();
                                             trace!("Task({}).run | evalNode {} out: {:?}", selfName, evalNode.name(), out);                                            
                                         },

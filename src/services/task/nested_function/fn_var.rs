@@ -43,6 +43,7 @@ impl FnOut for FnVar {
     /// - Result stores into inner
     /// - calculated result returns in .out() method
     fn eval(&mut self) {
+        trace!("FnVar({}).eval | evaluating...", self.id);
         self.result = Some(self.input.borrow_mut().out());
     }
     ///
