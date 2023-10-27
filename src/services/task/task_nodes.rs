@@ -126,7 +126,7 @@ impl TaskNodes {
     /// - after that you can add inputs and variables
     /// - to finish call finishNewNode(out) and pass created out
     pub fn beginNewNode(&mut self) {
-        TaskNodeStuff::new();
+        self.nodeStuff = Some(TaskNodeStuff::new());
     }
     ///
     /// Call this method if out is ready

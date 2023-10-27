@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use log::{warn, trace};
+use log::trace;
 #[cfg(test)]
 use log::{debug, info};
 use regex::RegexBuilder;
@@ -8,7 +8,7 @@ use std::{sync::Once, rc::Rc, cell::RefCell};
 use crate::{
     core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
     point::point_type::ToPoint, conf::fn_config::FnConfig, types::fn_in_out_ref::FnInOutRef}, 
-    services::{task::{nested_function::{fn_::{FnInOut, FnOut}, metric_select::MetricSelect}, task_node_inputs::TaskNodeStuff}, queues::queues::Queues},
+    services::{task::{nested_function::metric_select::MetricSelect, task_nodes::TaskNodes, task_node_type::TaskNodeType}, queues::queues::Queues},
 };
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -29,13 +29,10 @@ fn initOnce() {
 ///
 /// returns:
 ///  - ...
-fn initEach(conf: &mut FnConfig, inputs: &mut TaskNodeStuff) -> FnInOutRef {
-    fn boxFnInput(input: MetricSelect) -> Box<(dyn FnInOut)> {
-        Box::new(input)
-    }
+fn initEach(conf: &mut FnConfig, taskNodes: &mut TaskNodes) -> FnInOutRef {
     Rc::new(RefCell::new(
-        boxFnInput(
-            MetricSelect::new(conf, inputs, &mut Queues::new())
+        Box::new(
+            MetricSelect::new(conf, taskNodes, &mut Queues::new())
         )
     ))
 }
@@ -49,14 +46,14 @@ fn test_int() {
     let path = "./src/tests/unit/task/metric/metric_select_int_test.yaml";
     let mut conf = FnConfig::read(path);
     debug!("conf: {:?}", conf);
-    let mut nodeStuff = TaskNodeStuff::new();
-    let mut metric = MetricSelect::new(
+    let mut nodes = TaskNodes::new();
+    nodes.beginNewNode();
+    let mut metric = initEach(
         &mut conf, 
-        &mut nodeStuff,
-        &mut Queues::new(),
+        &mut nodes,
     );
-    let vars = nodeStuff.getVars();
-    debug!("taskStuff: {:?}", nodeStuff);
+    nodes.finishNewNode(TaskNodeType::Metric(metric));
+    debug!("taskStuff: {:?}", nodes);
     let testData = vec![
         (1, "/path/Point.Name", 3),
         (1, "/path/Point.Name", 3),
@@ -76,22 +73,39 @@ fn test_int() {
     for (value, name, targetValue) in testData {
         let point = value.toPoint(name);
         let inputName = &point.name();
-        match &nodeStuff.getInput(&inputName) {
-            Some(input) => {
+        match &nodes.getEvalNode(&inputName) {
+            Some(evalNode) => {
+                let input = evalNode.getInput();
                 input.borrow_mut().add(point.clone());
-                // debug!("input: {:?}", &input);
-                for (_varName, var) in vars.iter() {
-                    var.borrow_mut().eval();
-                    debug!("var evalueted: {:?}", var.borrow_mut().out());
+                for out in evalNode.getOuts() {
+                    match out {
+                        TaskNodeType::Var(var) => {
+                            var.borrow_mut().eval();
+                            debug!("var evalueted: {:?}", var.borrow_mut().out());
+                        },
+                        TaskNodeType::Metric(metric) => {
+                            // debug!("input: {:?}", &input);
+                            let state = metric.borrow_mut().out();
+                            let out = state.asString().value;
+                            let re = r"(UPDATE SelectMetric_test_table_name SET kind = ')(\d+(?:\.\d+)*)(' WHERE id = '3.33';)";
+                            trace!("re: {}", re);
+                            let re = RegexBuilder::new(&re).multi_line(false).build().unwrap();
+                            let digits: f64 = re.captures(&out).unwrap().get(2).unwrap().as_str().parse().unwrap();
+                            let digits = format!("{:.1}", digits);
+                            trace!("digits: {:?}", digits);
+                            let out = re.replace(&out, "$1{!}$3");
+                            let out = out.replace("{!}", &digits);
+                            trace!("out: {}", out);
+                    
+                            debug!("value: {:?}   |   state: {:?}", point.asFloat().value, state.asString().value);
+                            assert_eq!(
+                                out, 
+                                format!("UPDATE SelectMetric_test_table_name SET kind = '{:.1}' WHERE id = '{}';",targetValue, 3.33),
+                                // format!("insert into SelectMetric_test_table_name values(id, value, timestamp) (sqlSelectMetric,{:.3},{})", targetValue, point.timestamp())
+                            );
+                        },
+                    }
                 }
-                let state = metric.out();
-                // debug!("input: {:?}", &mut input);
-                debug!("value: {:?}   |   state: {:?}", point.asInt().value, state.asString().value);
-                assert_eq!(
-                    state.asString().value, 
-                    format!("UPDATE SelectMetric_test_table_name SET kind = '{}' WHERE id = '{}';",targetValue, 1.11),
-                    // format!("insert into SelectMetric_test_table_name values(id, value, timestamp) (sqlSelectMetric,{},{})", targetValue, point.timestamp())
-                );
             },
             None => {
                 panic!("input {:?} - not found in the current taskStuff", &inputName)
@@ -109,14 +123,14 @@ fn test_float() {
     let path = "./src/tests/unit/task/metric/metric_select_float_test.yaml";
     let mut conf = FnConfig::read(path);
     debug!("conf: {:?}", conf);
-    let mut nodeStuff = TaskNodeStuff::new();
-    let mut metric = MetricSelect::new(
+    let mut nodes = TaskNodes::new();
+    nodes.beginNewNode();
+    let mut metric = initEach(
         &mut conf, 
-        &mut nodeStuff,
-        &mut Queues::new(),
+        &mut nodes,
     );
-    let vars = nodeStuff.getVars();
-    debug!("taskStuff: {:?}", nodeStuff);
+    nodes.finishNewNode(TaskNodeType::Metric(metric));
+    debug!("taskStuff: {:?}", nodes);
     let testData = vec![
         (1.1, "/path/Point.Name", 3.3),
         (1.2, "/path/Point.Name", 3.4),
@@ -136,32 +150,39 @@ fn test_float() {
     for (value, name, targetValue) in testData {
         let point = value.toPoint(name);
         let inputName = &point.name();
-        match nodeStuff.getInput(&inputName) {
-            Some(input) => {
+        match nodes.getEvalNode(&inputName) {
+            Some(evalNode) => {
+                let input = evalNode.getInput();
                 input.borrow_mut().add(point.clone());
-                for (_varName, var) in vars.iter() {
-                    var.borrow_mut().eval();
-                    debug!("var evalueted: {:?}", var.borrow_mut().out());
+                for out in evalNode.getOuts() {
+                    match out {
+                        TaskNodeType::Var(var) => {
+                            var.borrow_mut().eval();
+                            debug!("var evalueted: {:?}", var.borrow_mut().out());
+                        },
+                        TaskNodeType::Metric(metric) => {
+                            // debug!("input: {:?}", &input);
+                            let state = metric.borrow_mut().out();
+                            let out = state.asString().value;
+                            let re = r"(UPDATE SelectMetric_test_table_name SET kind = ')(\d+(?:\.\d+)*)(' WHERE id = '3.33';)";
+                            trace!("re: {}", re);
+                            let re = RegexBuilder::new(&re).multi_line(false).build().unwrap();
+                            let digits: f64 = re.captures(&out).unwrap().get(2).unwrap().as_str().parse().unwrap();
+                            let digits = format!("{:.1}", digits);
+                            trace!("digits: {:?}", digits);
+                            let out = re.replace(&out, "$1{!}$3");
+                            let out = out.replace("{!}", &digits);
+                            trace!("out: {}", out);
+                    
+                            debug!("value: {:?}   |   state: {:?}", point.asFloat().value, state.asString().value);
+                            assert_eq!(
+                                out, 
+                                format!("UPDATE SelectMetric_test_table_name SET kind = '{:.1}' WHERE id = '{}';",targetValue, 3.33),
+                                // format!("insert into SelectMetric_test_table_name values(id, value, timestamp) (sqlSelectMetric,{:.3},{})", targetValue, point.timestamp())
+                            );
+                        },
+                    }
                 }
-                // debug!("input: {:?}", &input);
-                let state = metric.out();
-                let out = state.asString().value;
-                let re = r"(UPDATE SelectMetric_test_table_name SET kind = ')(\d+(?:\.\d+)*)(' WHERE id = '3.33';)";
-                trace!("re: {}", re);
-                let re = RegexBuilder::new(&re).multi_line(false).build().unwrap();
-                let digits: f64 = re.captures(&out).unwrap().get(2).unwrap().as_str().parse().unwrap();
-                let digits = format!("{:.1}", digits);
-                trace!("digits: {:?}", digits);
-                let out = re.replace(&out, "$1{!}$3");
-                let out = out.replace("{!}", &digits);
-                trace!("out: {}", out);
-        
-                debug!("value: {:?}   |   state: {:?}", point.asFloat().value, state.asString().value);
-                assert_eq!(
-                    out, 
-                    format!("UPDATE SelectMetric_test_table_name SET kind = '{:.1}' WHERE id = '{}';",targetValue, 3.33),
-                    // format!("insert into SelectMetric_test_table_name values(id, value, timestamp) (sqlSelectMetric,{:.3},{})", targetValue, point.timestamp())
-                );
             },
             None => {
                 panic!("input {:?} - not found in the current taskStuff", &inputName)
