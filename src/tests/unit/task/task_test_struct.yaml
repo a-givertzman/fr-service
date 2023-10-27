@@ -41,8 +41,10 @@ task task1:
                             input2: point float '/path/Point.Name'
                         input2:
                             const float 0.05
-            input3:
-                var0
+            input3 fn add:
+                input1:
+                    var0
+                input2: point float '/path/Point.Name'
 
 # service ApiClient:
 

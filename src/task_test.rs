@@ -96,12 +96,13 @@ fn main() {
                             },
                             PointType::Float(point) => {                
                                 count += 1;
+                                let value = point.value;
                                 let target = format!(
                                     "insert into {} (id, value, timestamp) values ({}, {}, {});", 
                                     "table_name", 
                                     "sqlSelectMetric", 
                                     point.value + 0.2 + 0.05,
-                                    2.224,
+                                    point.value + 2.224,
                                 );
                                 let result = result.asString().value;
                                 debug!("count: {}\ntarget: {}\nresult: {}", count, target, result);
