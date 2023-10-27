@@ -7,7 +7,7 @@ use log::{debug, trace};
 
 use crate::core_::types::fn_in_out_ref::FnInOutRef;
 
-use super::{task_node_inputs::TaskNodeStuff, task_eval_node::TaskEvalNode, task_node_type::TaskNodeType};
+use super::{task_node_stuff::TaskNodeStuff, task_eval_node::TaskEvalNode, task_node_type::TaskNodeType};
 
 
 /// TaskNodes - holds the HashMap<TaskNode> in the following structure:
