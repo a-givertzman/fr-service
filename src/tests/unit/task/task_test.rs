@@ -59,7 +59,7 @@ mod tests {
         let testValues = vec![0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0];
         receiver.run(apiRecv, iterations, testValues);
     
-        let mut producer = TaskTestProducer::new(iterations, send);
+        let mut producer = TaskTestProducer::new(iterations, vec![send]);
         producer.run();
     
         let mut task = Task::new(config, queues);
@@ -107,7 +107,7 @@ mod tests {
         let testValues = vec![0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0];
         receiver.run(apiRecv, iterations, testValues);
     
-        let mut producer = TaskTestProducer::new(iterations, send);
+        let mut producer = TaskTestProducer::new(iterations, vec![send]);
         producer.run();
     
         let mut task = Task::new(config, queues);
