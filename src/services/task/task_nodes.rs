@@ -101,8 +101,8 @@ impl TaskNodes {
                     debug!("TaskNodes.addVar | adding variable {:?}", &name.clone().into());
                     trace!("TaskNodes.addVar | adding variable {:?}: {:?}", &name.clone().into(), &var);
                     self.vars.insert(name.clone().into(), var);
-                    self.nodeStuff.as_mut().unwrap().addVar(name.clone().into());
                 }
+                self.nodeStuff.as_mut().unwrap().addVar(name.clone().into());
             },
             None => panic!("TaskNodes.addInput | Error: call beginNewNode first, then you can add inputs"),
         }
