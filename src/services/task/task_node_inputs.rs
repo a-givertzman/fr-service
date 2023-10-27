@@ -38,6 +38,7 @@ impl TaskNodeStuff {
     pub fn addVar(&mut self, name: impl Into<String> + Clone, input: FnInOutRef) {
         assert!(!self.vars.contains_key(name.clone().into().as_str()), "Dublicated variable name: {:?}", name.clone().into());
         assert!(!name.clone().into().is_empty(), "Variable name can't be emty");
+        trace!("TaskStuff.addVar | adding variable {:?}: {:?}", name.clone().into(), &input);
         self.vars.insert(name.into(), input);
     }
     ///
@@ -48,6 +49,7 @@ impl TaskNodeStuff {
     ///
     /// Returns variable by it's name
     pub fn getVar(&self, name: &str) -> Option<&FnInOutRef> {
+        trace!("TaskNodeStuff.getVar | trying to find variable {:?} in {:?}", &name, self.vars);
         self.vars.get(name.into())
     }
     ///

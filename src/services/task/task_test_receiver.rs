@@ -27,6 +27,7 @@ impl TaskTestReceiver {
         let received = self.received.clone();
         // let mut testValues = testValues.clone();
         let mut count = 0;
+        let mut errorCount = 0;
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             // info!("Task({}).run | prepared", name);
             'inner: loop {
@@ -47,6 +48,11 @@ impl TaskTestReceiver {
                     },
                     Err(err) => {
                         warn!("TaskTestReceiver.run | Error receiving from queue: {:?}", err);
+                        errorCount += 1;
+                        if errorCount > 10 {
+                            warn!("TaskTestReceiver.run | Error receiving count > 10, exit...");
+                            break 'inner;
+                        }        
                     },
                 };
                 if exit.load(Ordering::Relaxed) {
