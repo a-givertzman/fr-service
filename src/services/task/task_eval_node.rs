@@ -17,12 +17,15 @@ pub struct TaskEvalNode {
 impl TaskEvalNode {
     ///
     /// Creates new instance from input name, input it self and dependent vars & outs
-    pub fn new(name: impl Into<String>, input: FnInOutRef, outs: Vec<TaskNodeType>) -> Self {
+    pub fn new(name: impl Into<String>, input: FnInOutRef) -> Self {
         TaskEvalNode { 
             name: name.into(), 
             input: input, 
-            outs:  outs,
+            outs:  vec![],
         }
+    }
+    pub fn addOuts(&mut self, outs: &mut Vec<TaskNodeType>) {
+        self.outs.append(outs)
     }
     ///
     /// 

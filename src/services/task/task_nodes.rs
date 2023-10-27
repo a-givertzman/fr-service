@@ -99,7 +99,17 @@ impl TaskNodes {
     pub fn addInput(&mut self, name: impl Into<String> + std::fmt::Debug + Clone, input: FnInOutRef) {
         match self.nodeStuff {
             Some(_) => {
-                self.nodeStuff.as_mut().unwrap().addInput(name, input);
+                if self.inputs.contains_key(&name.clone().into()) {
+                    trace!("TaskNodes.addInput | input {:?} - already added", &name);
+                } else {
+                    debug!("TaskNodes.addInput | adding input {:?}", &name);
+                    trace!("TaskNodes.addInput | adding input {:?}: {:?}", &name, &input);
+                    self.inputs.insert(
+                        name.clone().into(), 
+                        TaskEvalNode::new(name.clone(), input),
+                    );
+                    self.nodeStuff.as_mut().unwrap().addInput(name);
+                }
             },
             None => {
                 panic!("TaskNodes.addInput | Call beginNewNode first, then you can add inputs")
@@ -108,14 +118,18 @@ impl TaskNodes {
     }
     ///
     /// Adding new variable refeerence
-    pub fn addVar(&mut self, name: impl Into<String> + Clone, input: FnInOutRef) {
+    pub fn addVar(&mut self, name: impl Into<String> + Clone, var: FnInOutRef) {
         assert!(!self.vars.contains_key(name.clone().into().as_str()), "Dublicated variable name: {:?}", name.clone().into());
         assert!(!name.clone().into().is_empty(), "Variable name can't be emty");
-        trace!("TaskNodes.addVar | adding variable {:?}: {:?}", name.clone().into(), &input);
         match self.nodeStuff {
             Some(_) => {
-                self.nodeStuff.as_mut().unwrap().addVar(name.clone().into(), input.clone());
-                self.vars.insert(name.into(), input);
+                if self.vars.contains_key(&name.clone().into()) {
+                    self.vars.insert(name.clone().into(), var);
+                    self.nodeStuff.as_mut().unwrap().addVar(name.clone().into());
+                } else {
+                    debug!("TaskNodes.addVar | adding variable {:?}", &name.clone().into());
+                    trace!("TaskNodes.addVar | adding variable {:?}: {:?}", name.into(), &var);
+                }
             },
             None => panic!("TaskNodes.addInput | Error: call beginNewNode first, then you can add inputs"),
         }
@@ -133,21 +147,27 @@ impl TaskNodes {
     pub fn finishNewNode(&mut self, out: TaskNodeType) {
         match self.nodeStuff {
             Some(_) => {
-                let vars = self.nodeStuff.as_mut().unwrap().getVars();
-                let inputs = self.nodeStuff.as_mut().unwrap().getInputs();
-                self.nodeStuff = None;
-                let mut outs: Vec<TaskNodeType> = vars.into_values().map(|var| TaskNodeType::Var(var)).collect();
-                outs.push(out);
-                for (name, input) in inputs {
-                    self.inputs.insert(
-                        name.clone(),
-                        TaskEvalNode::new(
-                            name,
-                            input,
-                            outs.iter().map(|out|out.clone()).collect()
-                        )
-                    );
+                let mut outs: Vec<TaskNodeType> = vec![];
+                for varName in self.nodeStuff.as_mut().unwrap().getVars() {
+                    match self.vars.get(&varName) {
+                        Some(var) => {
+                            outs.push(
+                                TaskNodeType::Var(var.clone())
+                            )
+                        },
+                        None => panic!("TaskNodes.finishNewNode | Variable {:?} - not found", varName),
+                    };
                 };
+                outs.push(out);
+                for inputName in self.nodeStuff.as_mut().unwrap().getInputs() {
+                    match self.inputs.get_mut(&inputName) {
+                        Some(evalNode) => {
+                            evalNode.addOuts(&mut outs);
+                        },
+                        None => panic!("TaskNodes.finishNewNode | Input {:?} - not found", inputName),
+                    };
+                };
+                self.nodeStuff = None;
                 trace!("\nTaskNodes.add | self.inputs: {:?}\n", self.inputs);
             },
             None => panic!("TaskNodes.finishNewNode | Call beginNewNode first, then you can add inputs & vars, then finish node"),
