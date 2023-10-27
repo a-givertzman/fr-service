@@ -87,20 +87,11 @@ fn test_int() {
                             // debug!("input: {:?}", &input);
                             let state = metric.borrow_mut().out();
                             let out = state.asString().value;
-                            let re = r"(UPDATE SelectMetric_test_table_name SET kind = ')(\d+(?:\.\d+)*)(' WHERE id = '3.33';)";
-                            trace!("re: {}", re);
-                            let re = RegexBuilder::new(&re).multi_line(false).build().unwrap();
-                            let digits: f64 = re.captures(&out).unwrap().get(2).unwrap().as_str().parse().unwrap();
-                            let digits = format!("{:.1}", digits);
-                            trace!("digits: {:?}", digits);
-                            let out = re.replace(&out, "$1{!}$3");
-                            let out = out.replace("{!}", &digits);
-                            trace!("out: {}", out);
-                    
-                            debug!("value: {:?}   |   state: {:?}", point.asFloat().value, state.asString().value);
+                            trace!("out: {}", out);                    
+                            debug!("value: {:?}   |   state: {:?}", point.asInt().value, state.asString().value);
                             assert_eq!(
                                 out, 
-                                format!("UPDATE SelectMetric_test_table_name SET kind = '{:.1}' WHERE id = '{}';",targetValue, 3.33),
+                                format!("UPDATE SelectMetric_test_table_name SET kind = '{:.1}' WHERE id = '{}';",targetValue, 1.11),
                                 // format!("insert into SelectMetric_test_table_name values(id, value, timestamp) (sqlSelectMetric,{:.3},{})", targetValue, point.timestamp())
                             );
                         },

@@ -89,7 +89,7 @@ impl NestedFn {
                             Some(var) => var,
                             None => panic!("NestedFn.function | Var {:?} - not found", &varName),
                         }.to_owned();
-                        taskNodes.addVar(conf.name.clone(), var.clone());
+                        taskNodes.addVarOut(conf.name.clone());
                         var.clone()
                     },
                 }
@@ -126,7 +126,7 @@ impl NestedFn {
                 input
             },
             FnConfKind::Metric => {
-                println!("NestedFn.function | Metric nested in the function is not implemented");
+                println!("NestedFn.function | Metric {:?}", &conf.name);
                 MetricBuilder::new(conf, taskNodes, queues)
             },
             FnConfKind::Param => {

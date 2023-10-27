@@ -31,7 +31,7 @@ use super::{task_node_stuff::TaskNodeStuff, task_eval_node::TaskEvalNode, task_n
 pub struct TaskNodes {
     inputs: IndexMap<String, TaskEvalNode>,
     vars: IndexMap<String, FnInOutRef>,
-    nodeStuff: Option<TaskNodeStuff>,
+    newNodeStuff: Option<TaskNodeStuff>,
 }
 ///
 /// 
@@ -42,7 +42,7 @@ impl TaskNodes {
         Self {
             inputs: IndexMap::new(),
             vars: IndexMap::new(),
-            nodeStuff: None,
+            newNodeStuff: None,
         }
     }
     ///
@@ -69,7 +69,7 @@ impl TaskNodes {
     ///
     /// Adding new input refeerence
     pub fn addInput(&mut self, name: impl Into<String> + std::fmt::Debug + Clone, input: FnInOutRef) {
-        match self.nodeStuff {
+        match self.newNodeStuff {
             Some(_) => {
                 if self.inputs.contains_key(&name.clone().into()) {
                     trace!("TaskNodes.addInput | input {:?} - already added", &name);
@@ -80,7 +80,7 @@ impl TaskNodes {
                         name.clone().into(), 
                         TaskEvalNode::new(name.clone(), input),
                     );
-                    self.nodeStuff.as_mut().unwrap().addInput(name);
+                    self.newNodeStuff.as_mut().unwrap().addInput(name);
                 }
             },
             None => {
@@ -91,9 +91,9 @@ impl TaskNodes {
     ///
     /// Adding new variable refeerence
     pub fn addVar(&mut self, name: impl Into<String> + Clone, var: FnInOutRef) {
-        assert!(!self.vars.contains_key(name.clone().into().as_str()), "Dublicated variable name: {:?}", name.clone().into());
+        // assert!(!self.vars.contains_key(name.clone().into().as_str()), "Dublicated variable name: {:?}", name.clone().into());
         assert!(!name.clone().into().is_empty(), "Variable name can't be emty");
-        match self.nodeStuff {
+        match self.newNodeStuff {
             Some(_) => {
                 if self.vars.contains_key(&name.clone().into()) {
                     panic!("TaskNodes.addVar | Dublicated variable name: {:?}", &name.clone().into());
@@ -102,26 +102,36 @@ impl TaskNodes {
                     trace!("TaskNodes.addVar | adding variable {:?}: {:?}", &name.clone().into(), &var);
                     self.vars.insert(name.clone().into(), var);
                 }
-                self.nodeStuff.as_mut().unwrap().addVar(name.clone().into());
+                self.newNodeStuff.as_mut().unwrap().addVar(name.clone().into());
             },
             None => panic!("TaskNodes.addInput | Error: call beginNewNode first, then you can add inputs"),
         }
     }
-    
+    ///
+    /// Adding already declared variable as out to the newNodeStuff
+    pub fn addVarOut(&mut self, name: impl Into<String> + Clone) {
+        assert!(!name.clone().into().is_empty(), "Variable name can't be emty");
+        match self.newNodeStuff {
+            Some(_) => {
+                self.newNodeStuff.as_mut().unwrap().addVar(name.clone().into());
+            },
+            None => panic!("TaskNodes.addInput | Error: call beginNewNode first, then you can add inputs"),
+        }
+    }    
     ///
     /// Call this metod if new Task node begins, 
     /// - after that you can add inputs and variables
     /// - to finish call finishNewNode(out) and pass created out
     pub fn beginNewNode(&mut self) {
-        self.nodeStuff = Some(TaskNodeStuff::new());
+        self.newNodeStuff = Some(TaskNodeStuff::new());
     }
     ///
     /// Call this method if out is ready
     pub fn finishNewNode(&mut self, out: TaskNodeType) {
-        match self.nodeStuff {
+        match self.newNodeStuff {
             Some(_) => {
                 let mut outs: Vec<TaskNodeType> = vec![];
-                for varName in self.nodeStuff.as_mut().unwrap().getVars() {
+                for varName in self.newNodeStuff.as_mut().unwrap().getVars() {
                     match self.vars.get(&varName) {
                         Some(var) => {
                             outs.push(
@@ -132,7 +142,7 @@ impl TaskNodes {
                     };
                 };
                 outs.push(out);
-                for inputName in self.nodeStuff.as_mut().unwrap().getInputs() {
+                for inputName in self.newNodeStuff.as_mut().unwrap().getInputs() {
                     match self.inputs.get_mut(&inputName) {
                         Some(evalNode) => {
                             evalNode.addOuts(&mut outs);
@@ -140,7 +150,7 @@ impl TaskNodes {
                         None => panic!("TaskNodes.finishNewNode | Input {:?} - not found", inputName),
                     };
                 };
-                self.nodeStuff = None;
+                self.newNodeStuff = None;
                 trace!("\nTaskNodes.add | self.inputs: {:?}\n", self.inputs);
             },
             None => panic!("TaskNodes.finishNewNode | Call beginNewNode first, then you can add inputs & vars, then finish node"),
