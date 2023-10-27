@@ -47,25 +47,6 @@ impl TaskNodes {
             nodeStuff: None,
         }
     }
-    // ///
-    // /// 
-    // pub fn insert(&mut self, node: &mut TaskNodeStuff, out: TaskNodeType) {
-    //     let vars = node.getVars();
-    //     let inputs = node.getInputs();
-    //     let mut outs: Vec<TaskNodeType> = vars.into_values().map(|var| TaskNodeType::Var(var)).collect();
-    //     outs.push(out);
-    //     for (name, input) in inputs {
-    //         self.inputs.insert(
-    //             name.clone(),
-    //             TaskEvalNode::new(
-    //                 name,
-    //                 input,
-    //                 outs.iter().map(|out|out.clone()).collect()
-    //             )
-    //         );
-    //     };
-    //     trace!("\nTaskNodes.add | self.inputs: {:?}\n", self.inputs);
-    // }
     ///
     /// Returns input by it's name
     pub fn getEvalNode(&self, name: &str) -> Option<&TaskEvalNode> {
@@ -87,13 +68,6 @@ impl TaskNodes {
         trace!("TaskNodes.getVar | trying to find variable {:?} in {:?}", &name, self.vars);
         self.vars.get(name.into())
     }
-    ///
-    /// 
-
-
-
-
-
     ///
     /// Adding new input refeerence
     pub fn addInput(&mut self, name: impl Into<String> + std::fmt::Debug + Clone, input: FnInOutRef) {
@@ -124,11 +98,12 @@ impl TaskNodes {
         match self.nodeStuff {
             Some(_) => {
                 if self.vars.contains_key(&name.clone().into()) {
-                    self.vars.insert(name.clone().into(), var);
-                    self.nodeStuff.as_mut().unwrap().addVar(name.clone().into());
+                    panic!("TaskNodes.addVar | Dublicated variable name: {:?}", &name.clone().into());
                 } else {
                     debug!("TaskNodes.addVar | adding variable {:?}", &name.clone().into());
-                    trace!("TaskNodes.addVar | adding variable {:?}: {:?}", name.into(), &var);
+                    trace!("TaskNodes.addVar | adding variable {:?}: {:?}", &name.clone().into(), &var);
+                    self.vars.insert(name.clone().into(), var);
+                    self.nodeStuff.as_mut().unwrap().addVar(name.clone().into());
                 }
             },
             None => panic!("TaskNodes.addInput | Error: call beginNewNode first, then you can add inputs"),
