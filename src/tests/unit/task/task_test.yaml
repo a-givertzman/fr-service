@@ -3,6 +3,9 @@
 #         fn functionName:
 #             input: point '/path/Point.Name/'
 
+# link api-link
+#     max-length: 10000
+
 # queue api-queue:
 #     max-length: 10000
 
@@ -10,7 +13,7 @@
 #     max-length: 10000
 
 task task1:
-    cycle: 1
+    cycle: 1 us
     recv-queue: recv-queue
     let Var1:
         input fn add:
