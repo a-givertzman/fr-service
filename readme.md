@@ -43,7 +43,7 @@ flowchart LR;
                 udtClient[UDP<br>Client];
             end
 
-            dataCache((" Data Cache"));
+            dataCache(("Poont Queue<br>Point Pipe"));
             subgraph Task
                 task1[Task<br>Operating Cycle];
                 task2[Task<br>Fault Detection];
