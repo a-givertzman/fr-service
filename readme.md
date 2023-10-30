@@ -26,7 +26,7 @@
 flowchart LR;
     subgraph Backend
         subgraph CMA
-            cmaServer[CMA Server]
+            cmaServer[CMA Server];
         end
 
         subgraph Database
@@ -35,33 +35,41 @@ flowchart LR;
         end
 
         subgraph FaultRecorder[Fault Recorder]
-            cmaClient[CMA Client];
-            apiClient[API Client];
+            subgraph Interfaces
+                cmaServerRust[CMA Server];
+                cmaClient[CMA Client];
+                apiClient[API Client];
+                profinetClient[Profinet<br>Client];
+                udtClient[UDP<br>Client];
+            end
+
             dataCache((" Data Cache"));
-            task1[Task<br>Operating Cycle];
-            task2[Task<br>Fault Detection];
-            task3[Task<br>Additional];
-            faultDetectionMetrics1[Metrics]
-            faultDetectionMetrics2[Metrics]
-            operatingCycleMetrics1[Metrics];
-            operatingCycleMetrics2[Metrics];
-            additionalMetrics1[Metrics];
-            additionalMetrics2[Metrics];
-            faultDetectionFunctions1[Functions]
-            faultDetectionFunctions2[Functions]
-            operatingCycleFunctions1[Functions];
-            operatingCycleFunctions2[Functions];
-            additionalfunctions1[Functions];
-            additionalfunctions2[Functions];
+            subgraph Task
+                task1[Task<br>Operating Cycle];
+                task2[Task<br>Fault Detection];
+                task3[Task<br>Additional];
+                faultDetectionMetrics1[Metrics];
+                faultDetectionMetrics2[Metrics];
+                operatingCycleMetrics1[Metrics];
+                operatingCycleMetrics2[Metrics];
+                additionalMetrics1[Metrics];
+                additionalMetrics2[Metrics];
+                faultDetectionFunctions1[Functions];
+                faultDetectionFunctions2[Functions];
+                operatingCycleFunctions1[Functions];
+                operatingCycleFunctions2[Functions];
+                additionalfunctions1[Functions];
+                additionalfunctions2[Functions];
+            end
         end
 
         db <--> apiServer;
         apiClient<--->|point|task1;
         apiClient<--->|point|task2;
 
-        cmaServer --> cmaClient
-        cmaClient --> dataCache
-        apiClient <--> |json|apiServer
+        cmaServer --> cmaClient;
+        cmaClient --> dataCache;
+        apiClient <--> |json|apiServer;
 
         dataCache <--> |point| task1;
         dataCache <--> |point| task2;
@@ -79,10 +87,13 @@ flowchart LR;
         operatingCycleMetrics1 <--> |value| operatingCycleFunctions1
         operatingCycleMetrics2 <--> |value| operatingCycleFunctions2
     end
-classDef gray fill:#DCDCDC,stroke:#333,stroke-width:2px;
-classDef green fill:#9f6,stroke:#333,stroke-width:2px;
+classDef gray fill:#DCDCDC,stroke:#DCDCDC,stroke-width:2px;
+classDef lightBlue fill:#D3DCFF,stroke:#DCDCDC,stroke-width:2px;
+classDef green fill:#DEFFD3,stroke:#333,stroke-width:2px;
 classDef orange fill:#f96,stroke:#333,stroke-width:4px;
 class Backend gray
+class Interfaces lightBlue
+class CMA green
 %% class di orange    
 ```
 
