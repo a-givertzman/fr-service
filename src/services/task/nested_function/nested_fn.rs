@@ -85,12 +85,13 @@ impl NestedFn {
                         var
                     },
                     None => {
-                        let var = match taskNodes.getVar(&varName) {
+                        let nodeVar = match taskNodes.getVar(&varName) {
                             Some(var) => var,
                             None => panic!("NestedFn.function | Var {:?} - not found", &varName),
                         }.to_owned();
+                        let var = nodeVar.var().clone();
                         taskNodes.addVarOut(conf.name.clone());
-                        var.clone()
+                        var
                     },
                 }
             },

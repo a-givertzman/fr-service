@@ -50,12 +50,12 @@ impl TaskNodeStuff {
     }
     ///
     /// Returns all collected input names
-    pub fn getInputs(&mut self) -> HashSet<String> {
+    pub fn getInputs(&self) -> HashSet<String> {
         self.inputs.clone()
     }
     ///
     /// Returns all collected var names
-    pub fn getVars(&mut self) -> HashSet<String> {
+    pub fn getVars(&self) -> HashSet<String> {
         self.vars.clone()
     }
 }

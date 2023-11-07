@@ -5,7 +5,7 @@ use log::{debug, trace};
 
 use crate::core_::types::fn_in_out_ref::FnInOutRef;
 
-use super::{task_node_stuff::TaskNodeStuff, task_eval_node::TaskEvalNode, task_node_type::TaskNodeType};
+use super::{task_node_stuff::TaskNodeStuff, task_eval_node::TaskEvalNode, task_node_type::TaskNodeType, task_node_var::TaskNodeVar};
 
 
 /// TaskNodes - holds the IndexMap<String, TaskNode> in the following structure:
@@ -30,7 +30,7 @@ use super::{task_node_stuff::TaskNodeStuff, task_eval_node::TaskEvalNode, task_n
 #[derive(Debug)]
 pub struct TaskNodes {
     inputs: IndexMap<String, TaskEvalNode>,
-    vars: IndexMap<String, FnInOutRef>,
+    vars: IndexMap<String, TaskNodeVar>,
     newNodeStuff: Option<TaskNodeStuff>,
 }
 ///
@@ -62,7 +62,7 @@ impl TaskNodes {
     }
     ///
     /// Returns variable by it's name
-    pub fn getVar(&self, name: &str) -> Option<&FnInOutRef> {
+    pub fn getVar(&self, name: &str) -> Option<&TaskNodeVar> {
         trace!("TaskNodes.getVar | trying to find variable {:?} in {:?}", &name, self.vars);
         self.vars.get(name.into())
     }
@@ -100,7 +100,10 @@ impl TaskNodes {
                 } else {
                     debug!("TaskNodes.addVar | adding variable {:?}", &name.clone().into());
                     trace!("TaskNodes.addVar | adding variable {:?}: {:?}", &name.clone().into(), &var);
-                    self.vars.insert(name.clone().into(), var);
+                    self.vars.insert(
+                        name.clone().into(),
+                        TaskNodeVar::new(var, self.newNodeStuff.as_ref().unwrap().getInputs()),
+                    );
                 }
                 self.newNodeStuff.as_mut().unwrap().addVar(name.clone().into());
             },
@@ -133,9 +136,9 @@ impl TaskNodes {
                 let mut outs: Vec<TaskNodeType> = vec![];
                 for varName in self.newNodeStuff.as_mut().unwrap().getVars() {
                     match self.vars.get(&varName) {
-                        Some(var) => {
+                        Some(nodeVar) => {
                             outs.push(
-                                TaskNodeType::Var(var.clone())
+                                TaskNodeType::Var(nodeVar.var().clone())
                             )
                         },
                         None => panic!("TaskNodes.finishNewNode | Variable {:?} - not found", varName),
