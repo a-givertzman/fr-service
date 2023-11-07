@@ -7,7 +7,7 @@ use log::{debug, trace};
 
 use crate::core_::types::fn_in_out_ref::FnInOutRef;
 
-use super::{task_node_stuff::TaskNodeStuff, task_eval_node::TaskEvalNode, task_node_type::TaskNodeType, task_node_var::TaskNodeVar};
+use super::{task_node_stuff::TaskNodeStuff, task_eval_node::TaskEvalNode, task_node_type::TaskNodeType};
 
 
 /// TaskNodes - holds the IndexMap<String, TaskNode> in the following structure:
@@ -32,7 +32,7 @@ use super::{task_node_stuff::TaskNodeStuff, task_eval_node::TaskEvalNode, task_n
 #[derive(Debug)]
 pub struct TaskNodes {
     inputs: IndexMap<String, TaskEvalNode>,
-    vars: IndexMap<String, TaskNodeVar>,
+    vars: IndexMap<String, FnInOutRef>,
     newNodeStuff: Option<TaskNodeStuff>,
 }
 ///
@@ -64,7 +64,7 @@ impl TaskNodes {
     }
     ///
     /// Returns variable by it's name
-    pub fn getVar(&self, name: &str) -> Option<&TaskNodeVar> {
+    pub fn getVar(&self, name: &str) -> Option<&FnInOutRef> {
         trace!("TaskNodes.getVar | trying to find variable {:?} in {:?}", &name, self.vars);
         self.vars.get(name.into())
     }
@@ -104,7 +104,7 @@ impl TaskNodes {
                     trace!("TaskNodes.addVar | adding variable {:?}: {:?}", &name.clone().into(), &var);
                     self.vars.insert(
                         name.clone().into(),
-                        TaskNodeVar::new(var, self.newNodeStuff.as_ref().unwrap().getInputs()),
+                        var,
                     );
                 }
                 self.newNodeStuff.as_mut().unwrap().addVar(name.clone().into());
@@ -138,31 +138,16 @@ impl TaskNodes {
                 let mut outs: Vec<TaskNodeType> = vec![];
                 for varName in self.newNodeStuff.as_mut().unwrap().getVars() {
                     match self.vars.get(&varName) {
-                        Some(nodeVar) => {
+                        Some(var) => {
                             outs.push(
-                                TaskNodeType::Var(nodeVar.var().clone())
+                                TaskNodeType::Var(var.clone())
                             );
-                            // let inputsVarDependOn = nodeVar.inputs();
-                            // for inputName in inputsVarDependOn {
-
-                            // }
                         },
                         None => panic!("TaskNodes.finishNewNode | Variable {:?} - not found", varName),
                     };
                 };
                 outs.push(out);
-                let mut inputsDependOn = HashSet::<String>::new();
-                for varName in self.newNodeStuff.as_mut().unwrap().getVars() {
-                    match self.vars.get(&varName) {
-                        Some(nodeVar) => {
-                            let inputsVarDependOn = nodeVar.inputs();
-                            inputsDependOn.extend(inputsVarDependOn);
-                        },
-                        None => panic!("TaskNodes.finishNewNode | Variable {:?} - not found", varName),
-                    };
-                };
-                inputsDependOn.extend( self.newNodeStuff.as_mut().unwrap().getInputs() );
-                for inputName in inputsDependOn {
+                for inputName in self.newNodeStuff.as_mut().unwrap().getInputs() {
                     match self.inputs.get_mut(&inputName) {
                         Some(evalNode) => {
                             evalNode.addOuts(&mut outs);

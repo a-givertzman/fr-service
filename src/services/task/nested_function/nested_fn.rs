@@ -88,11 +88,11 @@ impl NestedFn {
                     },
                     // Usage declared variable
                     None => {
-                        let nodeVar = match taskNodes.getVar(&varName) {
+                        let var = match taskNodes.getVar(&varName) {
                             Some(var) => var,
                             None => panic!("NestedFn.function | Var {:?} - not declared", &varName),
                         }.to_owned();
-                        let var = nodeVar.var().clone();
+                        let var = var.clone();
                         taskNodes.addVarOut(conf.name.clone());
                         var
                     },
