@@ -67,8 +67,8 @@ fn test_task_nodes() {
     }
     let testData = vec![
         ("/path/Point.Name1", 0.1,  0),
-        ("/path/Point.Name1", 0.11,  0),
-        ("/path/Point.Name1", 0.12,  0),
+        ("/path/Point.Name1", 0.2,  0),
+        ("/path/Point.Name1", 0.3,  0),
         ("/path/Point.Name2", 0.2,  0),
         ("/path/Point.Name3", 0.3,  0),
     ];
