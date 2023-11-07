@@ -43,47 +43,26 @@ impl Task {
     }
     ///
     /// 
-    // fn nodes(conf: TaskConfig, taskStuff: &mut TaskStuff, queues: &mut Queues) -> HashMap<std::string::String, Rc<RefCell<Box<(dyn FnInOut)>>>> {
     fn nodes(conf: TaskConfig, taskNodes: &mut TaskNodes, queues: &mut Queues) {
-        let mut nodeIndex = 0;
-        // let mut nodes = HashMap::new();
         for (_nodeName, mut nodeConf) in conf.nodes {
             let nodeName = nodeConf.name.clone();
             debug!("Task.nodes | node: {:?}", &nodeConf.name);
             taskNodes.beginNewNode();
             let out = match nodeConf.fnKind {
                 FnConfKind::Metric => {
-                    nodeIndex += 1;
                     TaskNodeType::Metric(
                         MetricBuilder::new(&mut nodeConf, taskNodes, queues)
                     )
-                    // nodes.insert(
-                    //     format!("{}-{}", nodeName, nodeIndex),
-                    //     MetricBuilder::new(&mut nodeConf, inputs, queues),
-                    // );
-                    // trace!("Task.new | metricConf: {:?}: {:?}", nodeName, &nodeConf);
                 },
                 FnConfKind::Fn => {
-                    nodeIndex += 1;
                     TaskNodeType::Metric(
                         NestedFn::new(&mut nodeConf, taskNodes, queues)
                     )
-                    // nodes.insert(
-                    //     format!("{}-{}", nodeName, nodeIndex),
-                    //     NestedFn::new(&mut nodeConf, inputs, queues),
-                    // );
-                    // trace!("Task.new | fnConf: {:?}: {:?}", nodeName, &nodeConf);
-                    // NestedFn::new(&mut fnConf, &mut inputs)
                 },
                 FnConfKind::Var => {
                     TaskNodeType::Var(
                         NestedFn::new(&mut nodeConf, taskNodes, queues)
                     )
-                    // nodes.insert(
-                    //     nodeName.clone(),
-                    //     NestedFn::new(&mut nodeConf, inputs, queues),
-                    // );
-                    // trace!("Task.new | varConf: {:?}: {:?}", nodeName, &nodeConf);
                 },
                 FnConfKind::Const => {
                     panic!("Task.new | Const is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
@@ -99,7 +78,7 @@ impl Task {
         }
     }
     ///
-    /// 
+    /// Tasck main execution loop spawned in the separate thread
     pub fn run(&mut self) {
         info!("Task({}).run | starting...", self.name);
         let selfName = self.name.clone();

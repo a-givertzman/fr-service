@@ -8,7 +8,7 @@ use crate::core_::types::fn_in_out_ref::FnInOutRef;
 use super::{task_node_stuff::TaskNodeStuff, task_eval_node::TaskEvalNode, task_node_type::TaskNodeType};
 
 
-/// TaskNodes - holds the HashMap<TaskNode> in the following structure:
+/// TaskNodes - holds the IndexMap<String, TaskNode> in the following structure:
 ///   ```
 ///   {
 ///       inputName1: TaskNode {
@@ -121,12 +121,12 @@ impl TaskNodes {
     ///
     /// Call this metod if new Task node begins, 
     /// - after that you can add inputs and variables
-    /// - to finish call finishNewNode(out) and pass created out
+    /// - to finish call [finishNewNode(out: TaskNodeType)] and pass created task node
     pub fn beginNewNode(&mut self) {
         self.newNodeStuff = Some(TaskNodeStuff::new());
     }
     ///
-    /// Call this method if out is ready
+    /// Call this method to finish configuration of jast created task node
     pub fn finishNewNode(&mut self, out: TaskNodeType) {
         match self.newNodeStuff {
             Some(_) => {

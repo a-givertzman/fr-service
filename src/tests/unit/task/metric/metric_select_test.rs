@@ -28,13 +28,11 @@ fn initOnce() {
 
 ///
 /// returns:
-///  - ...
+///  - Rc<RefCell<Box<dyn FnInOut>>>...
 fn initEach(conf: &mut FnConfig, taskNodes: &mut TaskNodes) -> FnInOutRef {
-    Rc::new(RefCell::new(
-        Box::new(
-            MetricSelect::new(conf, taskNodes, &mut Queues::new())
-        )
-    ))
+    Rc::new(RefCell::new(Box::new(
+        MetricSelect::new(conf, taskNodes, &mut Queues::new())
+    )))
 }
 
 

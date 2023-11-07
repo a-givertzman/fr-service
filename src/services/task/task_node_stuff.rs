@@ -8,7 +8,7 @@ use crate::core_::types::fn_in_out_ref::FnInOutRef;
 
 
 ///
-/// A container for storing storing variable & input names 
+/// A container for storing variable & input names 
 /// during configuring single TaskEvalNode only
 #[derive(Debug)]
 pub struct TaskNodeStuff {
