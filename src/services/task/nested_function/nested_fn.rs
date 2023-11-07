@@ -74,6 +74,8 @@ impl NestedFn {
                 let varName = conf.name.clone();
                 println!("NestedFn.function | Var: {:?}...", varName);
                 match conf.inputs.iter_mut().next() {
+                    //
+                    // New var declaration
                     Some((inputConfName, inputConf)) => {
                         let var = Self::fnVar(               
                             varName, 
@@ -84,10 +86,11 @@ impl NestedFn {
                         // println!("NestedFn.function | Var: {:?}", input);
                         var
                     },
+                    // Usage declared variable
                     None => {
                         let nodeVar = match taskNodes.getVar(&varName) {
                             Some(var) => var,
-                            None => panic!("NestedFn.function | Var {:?} - not found", &varName),
+                            None => panic!("NestedFn.function | Var {:?} - not declared", &varName),
                         }.to_owned();
                         let var = nodeVar.var().clone();
                         taskNodes.addVarOut(conf.name.clone());

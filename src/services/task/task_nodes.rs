@@ -1,5 +1,7 @@
 #![allow(non_snake_case)]
 
+use std::collections::HashSet;
+
 use indexmap::IndexMap;
 use log::{debug, trace};
 
@@ -139,13 +141,28 @@ impl TaskNodes {
                         Some(nodeVar) => {
                             outs.push(
                                 TaskNodeType::Var(nodeVar.var().clone())
-                            )
+                            );
+                            // let inputsVarDependOn = nodeVar.inputs();
+                            // for inputName in inputsVarDependOn {
+
+                            // }
                         },
                         None => panic!("TaskNodes.finishNewNode | Variable {:?} - not found", varName),
                     };
                 };
                 outs.push(out);
-                for inputName in self.newNodeStuff.as_mut().unwrap().getInputs() {
+                let mut inputsDependOn = HashSet::<String>::new();
+                for varName in self.newNodeStuff.as_mut().unwrap().getVars() {
+                    match self.vars.get(&varName) {
+                        Some(nodeVar) => {
+                            let inputsVarDependOn = nodeVar.inputs();
+                            inputsDependOn.extend(inputsVarDependOn);
+                        },
+                        None => panic!("TaskNodes.finishNewNode | Variable {:?} - not found", varName),
+                    };
+                };
+                inputsDependOn.extend( self.newNodeStuff.as_mut().unwrap().getInputs() );
+                for inputName in inputsDependOn {
                     match self.inputs.get_mut(&inputName) {
                         Some(evalNode) => {
                             evalNode.addOuts(&mut outs);
