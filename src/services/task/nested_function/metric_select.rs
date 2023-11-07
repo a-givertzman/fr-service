@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 
+use indexmap::IndexMap;
 use log::{debug, error, trace, warn};
 
 use crate::{
@@ -17,7 +18,7 @@ use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn};
 #[derive(Debug)]
 pub struct MetricSelect {
     id: String,
-    inputs: HashMap<String, FnInOutRef>,
+    inputs: IndexMap<String, FnInOutRef>,
     initial: f64,
     table: String,
     sql: Format,
@@ -29,16 +30,26 @@ impl MetricSelect {
     //
     //
     pub fn new(conf: &mut FnConfig, taskNodes: &mut TaskNodes, queues: &mut Queues) -> MetricSelect {
-        let mut inputs = HashMap::new();
-        let mut inputConfs = conf.inputs.clone();
-        inputConfs.remove("initial");
-        inputConfs.remove("table");
-        inputConfs.remove("sql");
-        for (name, fnConf) in inputConfs {
+        let mut inputs = IndexMap::new();
+        let inputConfs = conf.inputs.clone();
+        let inputConfNames = inputConfs.keys().filter(|v| {
+            let delete = match v.as_str() {
+                "initial" => true,
+                "table" => true,
+                "sql" => true,
+                _ => false
+            };
+            !delete
+        });
+        // let v: Vec<&String> = inputConfNames.collect();
+        // inputConfs.remove("initial");
+        // inputConfs.remove("table");
+        // inputConfs.remove("sql");
+        for name in inputConfNames {
             debug!("MetricSelect.new | input name: {:?}", name);
             let inputConf = conf.inputConf(&name);
             inputs.insert(
-                name, 
+                name.to_string(), 
                 NestedFn::new(inputConf, taskNodes, queues),
             );
         }
