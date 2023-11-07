@@ -2,9 +2,9 @@
 
 use indexmap::IndexMap;
 use log::{trace, debug, error};
-use std::{fs, str::FromStr};
+use std::{fs, str::FromStr, time::Duration};
 
-use crate::core_::conf::{metric_config::MetricConfig, fn_config::FnConfig, conf_tree::ConfTree, conf_keywd::ConfKeywd};
+use crate::core_::conf::{metric_config::MetricConfig, fn_config::FnConfig, conf_tree::ConfTree, conf_keywd::ConfKeywd, conf_duration::{ConfDuration, ConfDurationUnit}};
 
 
 #[derive(Debug, Clone, PartialEq)]
@@ -42,7 +42,7 @@ impl TaskConfNode {
 #[derive(Debug, PartialEq, Clone)]
 pub struct TaskConfig {
     pub(crate) name: String,
-    pub(crate) cycle: Option<u64>,
+    pub(crate) cycle: Option<Duration>,
     pub(crate) recvQueue: String,
     pub(crate) nodes: IndexMap<String, FnConfig>,
     pub(crate) vars: Vec<String>,
@@ -87,7 +87,26 @@ impl TaskConfig {
                 };
                 trace!("TaskConfig.new | selfName: {:?}", selfName);
                 let selfCycle = match Self::getParam(&mut selfConf, &mut selfNodeNames, "cycle") {
-                    Some(value) => Some(value.as_u64().unwrap()),
+                    Some(value) => {
+                        match value.as_str() {
+                            Some(value) => {
+                                match ConfDuration::from_str(value) {
+                                    Ok(confDuration) => {
+                                        match confDuration.unit {
+                                            ConfDurationUnit::Nanos => Some(Duration::from_nanos(confDuration.value)),
+                                            ConfDurationUnit::Micros => Some(Duration::from_micros(confDuration.value)),
+                                            ConfDurationUnit::Millis => Some(Duration::from_millis(confDuration.value)),
+                                            ConfDurationUnit::Secs => Some(Duration::from_secs(confDuration.value)),
+                                            ConfDurationUnit::Mins => Some(Duration::from_secs(confDuration.value)),
+                                            ConfDurationUnit::Hours => Some(Duration::from_secs(confDuration.value)),
+                                        }
+                                    },
+                                    Err(err) => panic!("TaskConfig.new | Parse cycle duration '{}' error: {:?}", &value, err),
+                                }
+                            },
+                            None => panic!("TaskConfig.new | Invalid cycle duration format: {:?} \n\tin: {:?}", &value, selfConf),
+                        }
+                    },
                     None => None,
                 };
                 trace!("TaskConfig.new | selfCycle: {:?}", selfCycle);

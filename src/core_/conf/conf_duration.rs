@@ -17,7 +17,7 @@ use serde::Deserialize;
 pub enum ConfDurationUnit {
     Nanos,
     Micros,
-    Milles,
+    Millis,
     Secs,
     Mins,
     Hours,
@@ -30,7 +30,7 @@ impl FromStr for ConfDurationUnit {
         match input {
             "ns" => Ok(Self::Nanos),
             "us" => Ok(Self::Micros),
-            "ms" => Ok(Self::Milles),
+            "ms" => Ok(Self::Millis),
             "s" => Ok(Self::Secs),
             "m" => Ok(Self::Mins),
             "h" => Ok(Self::Hours),
@@ -57,8 +57,8 @@ impl FromStr for ConfDurationUnit {
 /// ````
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct ConfDuration {
-    value: u64,
-    unit: ConfDurationUnit,
+    pub value: u64,
+    pub unit: ConfDurationUnit,
 }
 ///
 /// 
