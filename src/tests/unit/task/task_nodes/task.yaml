@@ -1,32 +1,21 @@
 task task1:
     cycle: 1 us
     recv-queue: recv-queue
+
     let Var1:
-        input fn add:
-            input1: point float '/path/Point.Name1'
-            input2 fn add: 
-                input1: point float '/path/Point.Name1'
-                input2: const float 0.04
+        input: point float '/path/Point.Name1'
+
     let Var2:
-        input fn add:
-            input1: point float '/path/Point.Name2'
-            input2 fn add: 
-                input1: point float '/path/Point.Name2'
-                input2: const float 0.07
+        input: point float '/path/Point.Name2'
 
     fn toApiQueue:
         queue: api-queue
         input metric sqlSelectMetric:
             initial: 0.123      # начальное значение
             table: table_name
-            # sql: "UPDATE {table} SET kind = '{input1.value}' WHERE id = '{input2.value}';"
-            sql: "insert into {table} (id, value, timestamp) values ({id}, {input.value}, {input3.timestamp});"
+            sql: "{input.value}, {input1.value}, {input2.value}, {input2.value}"
             input let Var3:
-                    input fn add:
-                        input1 fn add:
-                            input1: const float 0.2
-                            input2: point float '/path/Point.Name'
-                        input2:
-                            const float 0.05
-            input3:
-                const int 333
+                    input: point float '/path/Point.Name3'
+            input1: Var1
+            input2: Var2
+            input3: Var3
