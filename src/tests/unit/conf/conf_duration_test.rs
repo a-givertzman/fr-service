@@ -51,13 +51,13 @@ fn test_create_valid() {
         ("9h"       , ConfDuration::new(9, ConfDurationUnit::Hours)),
     ];
     for (value, target) in testData {
-        let fnConfigType = ConfDuration::from_str(value).unwrap();
-        debug!("value: {:?}   |   fnConfigType: {:?}   |   target: {:?}", value, fnConfigType, target);
-        assert_eq!(fnConfigType, target);
+        let confDuration = ConfDuration::from_str(value).unwrap();
+        debug!("value: {:?}   |   fnConfigType: {:?}   |   target: {:?}", value, confDuration, target);
+        assert_eq!(confDuration, target);
     }
 }
 
-// #[test]
+#[test]
 fn test_create_invalid() {
     DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
@@ -65,34 +65,22 @@ fn test_create_invalid() {
     info!("test_create_invalid");
     // let (initial, switches) = initEach();
     let testData: Vec<(&str, Result<&str, ()>)> = vec![
-        ("fn:name", Err(())),
-        ("fn\nname", Err(())),
-        ("fn: name", Err(())),
-        ("fn :name", Err(())),
-        ("fn : name", Err(())),
-        ("Fn name", Err(())),
-        ("FN name", Err(())),
-        ("fnName", Err(())),
-        ("fn_name", Err(())),
-        ("let:name", Err(())),
-        ("Let name", Err(())),
-        ("LET name", Err(())),
-        ("letName", Err(())),
-        ("let_name", Err(())),
-        ("const:name", Err(())),
-        ("Const name", Err(())),
-        ("CONST name", Err(())),
-        ("constName", Err(())),
-        ("const_name", Err(())),
-        ("point:name", Err(())),
-        ("Point name", Err(())),
-        ("POINT name", Err(())),
-        ("pointName", Err(())),
-        ("point_name", Err(())),
+        ("1nsec", Err(())),
+        ("12usec", Err(())),
+        ("3msec", Err(())),
+        ("12sec", Err(())),
+        ("1min", Err(())),
+        ("2hour", Err(())),
+        ("1.1ns", Err(())),
+        ("12.2us", Err(())),
+        ("3.1ms", Err(())),
+        ("12.2s", Err(())),
+        ("3.5m", Err(())),
+        ("1.5h", Err(())),
     ];
     for (value, target) in testData {
-        let fnConfigType = ConfKeywd::from_str(value);
-        debug!("value: {:?}   |   fnConfigType: {:?}   |   target: {:?}", value, fnConfigType, target);
-        assert_eq!(fnConfigType.is_err(), true);
+        let confDuration = ConfKeywd::from_str(value);
+        debug!("value: {:?}   |   fnConfigType: {:?}   |   target: {:?}", value, confDuration, target);
+        assert_eq!(confDuration.is_err(), true);
     }
 }
