@@ -4,7 +4,7 @@
 mod tests {
     use indexmap::IndexMap;
     use log::{info, debug};
-    use std::sync::Once;
+    use std::{sync::Once, time::Duration};
     
     use crate::core_::{
         debug::debug_session::*, 
@@ -73,7 +73,7 @@ mod tests {
                 "#, 
                 TaskConfig {
                     name: String::from("task1"),
-                    cycle: Some(100),
+                    cycle: Some(Duration::from_millis(100)),
                     recvQueue: String::from("recv-queue"),
                     vars: vec![String::from("VarName2")],
                     nodes: IndexMap::from([                    
@@ -128,7 +128,7 @@ mod tests {
                 "#, 
                 TaskConfig {
                     name: String::from("task1"),
-                    cycle: Some(100),
+                    cycle: Some(Duration::from_millis(100)),
                     recvQueue: String::from("recv-queue"),
                     vars: vec![String::from("VarName2")],
                     nodes: IndexMap::from([                    
