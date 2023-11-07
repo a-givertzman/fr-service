@@ -76,7 +76,7 @@ impl FromStr for ConfDuration {
     type Err = String;
     fn from_str(input: &str) -> Result<ConfDuration, String> {
         trace!("ConfDuration.from_str | input: {}", input);
-        let re = r#"(\d)+[ \t]*(?:(ns|us|ms|s|m|h){1})"#;
+        let re = r#"(\d+)[ \t]*(ns|us|ms|s|m|h){0,1}"#;
         let re = RegexBuilder::new(re).multi_line(true).build().unwrap();
         let groupValue = 1;
         let groupUnit = 2;
