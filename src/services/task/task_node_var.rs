@@ -1,7 +1,5 @@
 #![allow(non_snake_case)]
 
-use std::collections::HashSet;
-
 use crate::core_::types::fn_in_out_ref::FnInOutRef;
 
 ///
@@ -9,17 +7,17 @@ use crate::core_::types::fn_in_out_ref::FnInOutRef;
 #[derive(Debug)]
 pub struct TaskNodeVar {
     var: FnInOutRef,
-    inputs: HashSet<String>,
+    inputs: Vec<String>,
 }
 ///
 /// 
 impl TaskNodeVar {
     ///
     /// 
-    pub fn new(var: FnInOutRef, inputs: HashSet<String>) -> Self {
+    pub fn new(var: FnInOutRef, inputs: Vec<String>) -> Self {
         Self {
             var,
-            inputs: HashSet::from_iter(inputs),
+            inputs: Vec::from_iter(inputs),
         }
     }
     ///
@@ -29,7 +27,7 @@ impl TaskNodeVar {
     }
     ///
     /// Returns all input names depend on
-    pub fn inputs(&self) -> HashSet<String> {
+    pub fn inputs(&self) -> Vec<String> {
         self.inputs.clone()
     }
 }

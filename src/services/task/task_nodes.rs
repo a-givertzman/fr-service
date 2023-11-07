@@ -1,7 +1,5 @@
 #![allow(non_snake_case)]
 
-use std::collections::HashSet;
-
 use indexmap::IndexMap;
 use log::{debug, trace};
 
@@ -119,9 +117,10 @@ impl TaskNodes {
         match self.newNodeStuff {
             Some(_) => {
                 self.newNodeStuff.as_mut().unwrap().addVar(name.clone().into());
-                match self.getVar(&name.into()) {
+                match self.getVar(&name.clone().into()) {
                     Some(nodeVar) => {
                         for inputNamesVarDependOn in nodeVar.inputs() {
+                            debug!("TaskNodes.addVarOut | variable {:?} dipending on input: {:?}", &name.clone().into(), &inputNamesVarDependOn);
                             self.newNodeStuff.as_mut().unwrap().addInput(inputNamesVarDependOn)
                         }
                     },
@@ -154,17 +153,22 @@ impl TaskNodes {
                         None => panic!("TaskNodes.finishNewNode | Variable {:?} - not found", varName),
                     };
                 };
+                let inputs = self.newNodeStuff.as_mut().unwrap().getInputs();
+                debug!("TaskNodes.finishNewNode | out {:?} \n\tdipending on inputs:: {:?}\n", &out, inputs);
                 outs.push(out);
-                for inputName in self.newNodeStuff.as_mut().unwrap().getInputs() {
+                for inputName in inputs {
                     match self.inputs.get_mut(&inputName) {
                         Some(evalNode) => {
-                            evalNode.addOuts(&mut outs);
+                            debug!("TaskNodes.finishNewNode | updating input: {:?}", inputName);
+                            let len = outs.len();
+                            evalNode.addOuts(&mut outs.clone());
+                            debug!("TaskNodes.finishNewNode | evalNode '{}' appended: {:?}", evalNode.name(), len);
                         },
                         None => panic!("TaskNodes.finishNewNode | Input {:?} - not found", inputName),
                     };
                 };
                 self.newNodeStuff = None;
-                trace!("\nTaskNodes.add | self.inputs: {:?}\n", self.inputs);
+                trace!("\nTaskNodes.finishNewNode | self.inputs: {:?}\n", self.inputs);
             },
             None => panic!("TaskNodes.finishNewNode | Call beginNewNode first, then you can add inputs & vars, then finish node"),
         }

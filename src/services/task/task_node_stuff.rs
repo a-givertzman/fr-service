@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use log::trace;
 
@@ -12,8 +12,8 @@ use crate::core_::types::fn_in_out_ref::FnInOutRef;
 /// during configuring single TaskEvalNode only
 #[derive(Debug)]
 pub struct TaskNodeStuff {
-    inputs: HashSet<String>,
-    vars: HashSet<String>,
+    inputs: Vec<String>,
+    vars: Vec<String>,
 }
 impl TaskNodeStuff {
     ///
@@ -21,8 +21,8 @@ impl TaskNodeStuff {
     /// during configuring single TaskEvalNode only
     pub fn new() -> Self {
         Self {
-            inputs: HashSet::new(),
-            vars: HashSet::new(),
+            inputs: Vec::new(),
+            vars: Vec::new(),
         }
     }
     ///
@@ -32,7 +32,7 @@ impl TaskNodeStuff {
             trace!("TaskNodeStuff.addInput | input {:?} - already added", &name);
         } else {
             trace!("TaskNodeStuff.addInput | adding input {:?}", &name);
-            self.inputs.insert(name.into());
+            self.inputs.push(name.into());
         }
     }
     ///
@@ -41,7 +41,7 @@ impl TaskNodeStuff {
         // assert!(!self.vars.contains(name.clone().into().as_str()), "Dublicated variable name: {:?}", name.clone().into());
         assert!(!name.clone().into().is_empty(), "Variable name can't be emty");
         trace!("TaskNodeStuff.addVar | adding variable {:?}", name.clone().into());
-        self.vars.insert(name.into());
+        self.vars.push(name.into());
     }
     ///
     /// 
@@ -50,12 +50,12 @@ impl TaskNodeStuff {
     }
     ///
     /// Returns all collected input names
-    pub fn getInputs(&self) -> HashSet<String> {
+    pub fn getInputs(&self) -> Vec<String> {
         self.inputs.clone()
     }
     ///
     /// Returns all collected var names
-    pub fn getVars(&self) -> HashSet<String> {
+    pub fn getVars(&self) -> Vec<String> {
         self.vars.clone()
     }
 }

@@ -66,11 +66,11 @@ fn test_task_nodes() {
         taskNodes.finishNewNode(metric);
     }
     let testData = vec![
-        ("/path/Point.Name1", 0.1,  0),
-        ("/path/Point.Name1", 0.2,  0),
-        ("/path/Point.Name1", 0.3,  0),
-        ("/path/Point.Name2", 0.2,  0),
-        ("/path/Point.Name3", 0.3,  0),
+        ("/path/Point.Name1", 1.1,  0),
+        ("/path/Point.Name1", 1.2,  0),
+        ("/path/Point.Name1", 1.3,  0),
+        ("/path/Point.Name2", 2.2,  0),
+        ("/path/Point.Name3", 3.3,  0),
     ];
     for (name, value, targetValue) in testData {
         let point = value.toPoint(name);
@@ -80,6 +80,8 @@ fn test_task_nodes() {
             Some(evalNode) => {
                 let input = evalNode.getInput();
                 input.borrow_mut().add(point.clone());
+                debug!("evalNode: {:?}", evalNode.name());
+                // debug!("evalNode outs: {:?}", evalNode.getOuts());
                 for out in evalNode.getOuts() {
                     match out {
                         TaskNodeType::Var(var) => {
