@@ -21,7 +21,7 @@ use crate::services::task::task_cycle::TaskCycle;
 ///  - has some number of functions / variables / metrics or additional entities
 pub struct Task {
     name: String,
-    cycle: Option<u64>,
+    cycle: Option<Duration>,
     conf: TaskConfig,
     queues: Vec<Queues>,
     exit: Arc<AtomicBool>,
@@ -85,14 +85,14 @@ impl Task {
         let exit = self.exit.clone();
         let cycleInterval = self.cycle;
         let (cyclic, cycleInterval) = match cycleInterval {
-            Some(c) => (c > 0, c),
-            None => (false, 0),
+            Some(interval) => (interval > Duration::ZERO, interval),
+            None => (false, Duration::ZERO),
         };
         let conf = self.conf.clone();
         let mut queues = self.queues.pop().unwrap();
         let recvQueue = queues.getRecvQueue(&self.conf.recvQueue);
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
-            let mut cycle = TaskCycle::new(Duration::from_millis(cycleInterval));
+            let mut cycle = TaskCycle::new(cycleInterval);
             let mut taskNodes = TaskNodes::new();
             Self::nodes(conf, &mut taskNodes, &mut queues);
             debug!("Task({}).run | taskNodes: {:?}", selfName, taskNodes);
