@@ -119,6 +119,14 @@ impl TaskNodes {
         match self.newNodeStuff {
             Some(_) => {
                 self.newNodeStuff.as_mut().unwrap().addVar(name.clone().into());
+                match self.getVar(&name.into()) {
+                    Some(nodeVar) => {
+                        for inputNamesVarDependOn in nodeVar.inputs() {
+                            self.newNodeStuff.as_mut().unwrap().addInput(inputNamesVarDependOn)
+                        }
+                    },
+                    None => todo!(),
+                }
             },
             None => panic!("TaskNodes.addInput | Error: call beginNewNode first, then you can add inputs"),
         }
