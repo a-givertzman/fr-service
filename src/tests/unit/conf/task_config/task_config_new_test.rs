@@ -54,7 +54,7 @@ mod tests {
             // ),
             (
                 r#"task task1:
-                    cycle: 100
+                    cycle: 100 ms
                     recv-queue: recv-queue
                     metric sqlSelectMetric:
                         initial: 0.123      # начальное значение
@@ -115,7 +115,7 @@ mod tests {
             ),
             (
                 r#"task task1:
-                    cycle: 100
+                    cycle: 100 ms
                     recv-queue: recv-queue
                     let VarName2:
                         input fn functionName:

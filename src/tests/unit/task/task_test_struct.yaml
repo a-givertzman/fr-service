@@ -12,7 +12,7 @@
 #     max-length: 10000
 
 task task1:
-    cycle: 1
+    cycle: 1 ms
     recv-queue: recv-queue
     let var0: 
         input: const float 2.224
