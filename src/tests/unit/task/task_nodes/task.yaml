@@ -2,11 +2,11 @@ task task1:
     cycle: 1 us
     recv-queue: recv-queue
 
-    let Var1:
-        input: point float '/path/Point.Name1'
-
     let Var2:
         input: point float '/path/Point.Name2'
+
+    let Var3:
+        input: point float '/path/Point.Name3'
 
     fn toApiQueue:
         queue: api-queue
@@ -14,8 +14,10 @@ task task1:
             initial: 0.123      # начальное значение
             table: table_name
             sql: "{input.value}, {input1.value}, {input2.value}, {input2.value}"
-            input let Var3:
-                    input: point float '/path/Point.Name3'
-            input1: Var1
+            input let Var1:
+                input: point float '/path/Point.Name1'
+            input1 fn add:
+                    input1: Var1
+                    input2: const float 0.01
             input2: Var2
             input3: Var3

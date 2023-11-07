@@ -66,11 +66,12 @@ fn test_task_nodes() {
         taskNodes.finishNewNode(metric);
     }
     let testData = vec![
-        ("/path/Point.Name1",   0),
-        ("/path/Point.Name",    0),
+        ("/path/Point.Name1", 0.1,  0),
+        ("/path/Point.Name2", 0.2,  0),
+        ("/path/Point.Name3", 0.3,  0),
     ];
-    for (name, targetValue) in testData {
-        let point = 0.001.toPoint(name);
+    for (name, value, targetValue) in testData {
+        let point = value.toPoint(name);
         // let inputName = &point.name();
         match &taskNodes.getEvalNode(&name) {
             Some(evalNode) => {
