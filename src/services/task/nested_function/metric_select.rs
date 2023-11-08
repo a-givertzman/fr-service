@@ -3,10 +3,15 @@
 use std::collections::HashMap;
 
 use indexmap::IndexMap;
-use log::{debug, error, trace, warn};
+use log::{debug, trace};
 
 use crate::{
-    core_::{conf::fn_config::FnConfig, point::{point_type::{PointType, ToPoint}, point::Point}, format::format::Format, types::fn_in_out_ref::FnInOutRef}, 
+    core_::{
+        types::fn_in_out_ref::FnInOutRef,
+        conf::fn_config::FnConfig, 
+        point::{point_type::{PointType, ToPoint}, point::Point}, 
+        format::format::Format, 
+    }, 
     services::{task::task_nodes::TaskNodes, queues::queues::Queues},
 };
 
@@ -85,6 +90,18 @@ impl FnIn for MetricSelect {
 ///
 /// 
 impl FnOut for MetricSelect {
+    //
+    fn id(&self) -> String {
+        self.id.clone()
+    }
+    //
+    fn inputs(&self) -> Vec<String> {
+        let mut inputs = vec![];
+        for (_, input) in &self.inputs {
+            inputs.extend(input.borrow().inputs());
+        }
+        inputs
+    }
     //
     fn out(&mut self) -> PointType {
         for (fullName, (name, sufix)) in &self.sqlNames {

@@ -11,7 +11,7 @@ use super::fn_::{FnIn, FnOut, FnInOut};
 /// 
 #[derive(Debug, Clone)]
 pub struct FnInput {
-    pub id: String,
+    id: String,
     point: PointType,
     initial: PointType,
 }
@@ -37,6 +37,14 @@ impl FnIn for FnInput {
 ///
 /// 
 impl FnOut for FnInput {
+    //
+    fn id(&self) -> String {
+        self.id.clone()
+    }
+    //
+    fn inputs(&self) -> Vec<String> {
+        vec![self.point.name()]
+    }
     //
     fn out(&mut self) -> PointType {
         trace!("FnInput({}).out | value: {:?}", self.id, &self.point);

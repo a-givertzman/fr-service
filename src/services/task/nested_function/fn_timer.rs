@@ -3,7 +3,11 @@
 use log::debug;
 use std::time::Instant;
 
-use crate::core_::{state::switch_state::{SwitchState, Switch, SwitchCondition}, point::{point_type::PointType, point::Point}, types::{type_of::DebugTypeOf, fn_in_out_ref::FnInOutRef}};
+use crate::core_::{
+    types::{type_of::DebugTypeOf, fn_in_out_ref::FnInOutRef},
+    state::switch_state::{SwitchState, Switch, SwitchCondition}, 
+    point::{point_type::PointType, point::Point}, 
+};
 
 use super::fn_::{FnInOut, FnIn, FnOut};
 
@@ -103,6 +107,14 @@ impl FnIn for FnTimer {}
 ///
 ///
 impl FnOut for FnTimer {
+    //
+    fn id(&self) -> String {
+        self.id.clone()
+    }
+    //
+    fn inputs(&self) -> Vec<String> {
+        self.input.borrow().inputs()
+    }
     ///
     fn out(&mut self) -> PointType {
         // trace!("FnTimer.out | input: {:?}", self.input.print());

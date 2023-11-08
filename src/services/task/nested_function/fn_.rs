@@ -19,6 +19,12 @@ pub trait FnIn: std::fmt::Debug {
 /// - to reset the state to the initial
 pub trait FnOut: std::fmt::Debug {
     ///
+    /// Retirns it unique idetificator
+    fn id(&self) -> String;
+    ///
+    /// Returns names of inputs it depending on
+    fn inputs(&self) -> Vec<String>;
+    ///
     /// used only for FnVar
     /// evaluate calculations
     fn eval(&mut self) {

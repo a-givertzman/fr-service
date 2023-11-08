@@ -1,7 +1,6 @@
 #![allow(non_snake_case)]
 
 use log::trace;
-use std::fmt::Debug;
 
 use crate::core_::{point::point_type::PointType, types::fn_in_out_ref::FnInOutRef};
 
@@ -17,7 +16,7 @@ use super::fn_::{FnIn, FnOut, FnInOut};
 /// - out() method do not evaluete calculations, just returns the result
 #[derive(Debug, Clone)]
 pub struct FnVar {
-    pub id: String,
+    id: String,
     input: FnInOutRef,
     result: Option<PointType>,
 }
@@ -38,6 +37,14 @@ impl FnIn for FnVar {}
 ///
 /// 
 impl FnOut for FnVar {
+    //
+    fn id(&self) -> String {
+        self.id.clone()
+    }
+    //
+    fn inputs(&self) -> Vec<String> {
+        self.input.borrow().inputs()
+    }
     /// Returns nothing, 
     /// - Evaluetes all calculations,
     /// - Result stores into inner

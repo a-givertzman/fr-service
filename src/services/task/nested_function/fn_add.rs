@@ -1,16 +1,10 @@
 #![allow(non_snake_case)]
 
-
-use std::{rc::Rc, cell::RefCell};
-
 use log::trace;
 
 use crate::core_::{point::point_type::PointType, types::{type_of::DebugTypeOf, fn_in_out_ref::FnInOutRef}};
 
 use super::fn_::{FnInOut, FnIn, FnOut};
-
-
-
 
 ///
 /// Function do Add of input1 and input2
@@ -40,6 +34,16 @@ impl FnIn for FnAdd {}
 ///
 /// 
 impl FnOut for FnAdd { 
+    //
+    fn id(&self) -> String {
+        self.id.clone()
+    }
+    //
+    fn inputs(&self) -> Vec<String> {
+        let mut inputs = self.input1.borrow().inputs();
+        inputs.extend(self.input2.borrow().inputs());
+        inputs
+    }
     //
     //
     fn out(&mut self) -> PointType {

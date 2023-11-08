@@ -36,6 +36,14 @@ impl FnIn for FnTripGe {}
 ///
 impl FnOut for FnTripGe {
     //
+    fn id(&self) -> String {
+        self.id.clone()
+    }
+    //
+    fn inputs(&self) -> Vec<String> {
+        self.input.borrow().inputs()
+    }
+    //
     //
     fn out(&mut self) -> PointType {
         // debug!("FnTrip.out | input: {:?}", self.input.print());

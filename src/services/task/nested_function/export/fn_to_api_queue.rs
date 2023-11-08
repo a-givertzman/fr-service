@@ -43,6 +43,14 @@ impl FnIn for FnToApiQueue {
 /// 
 impl FnOut for FnToApiQueue {
     //
+    fn id(&self) -> String {
+        self.id.clone()
+    }
+    //
+    fn inputs(&self) -> Vec<String> {
+        self.input.borrow().inputs()
+    }
+    //
     fn out(&mut self) -> PointType {
         let point = self.input.borrow_mut().out();
         let sql = point.asString().value;

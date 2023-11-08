@@ -1,7 +1,6 @@
 #![allow(non_snake_case)]
 
 use log::trace;
-use std::fmt::Debug;
 
 use crate::core_::point::point_type::PointType;
 
@@ -30,6 +29,14 @@ impl FnIn for FnConst {}
 ///
 /// 
 impl FnOut for FnConst {
+    //
+    fn id(&self) -> String {
+        self.id.clone()
+    }
+    //
+    fn inputs(&self) -> Vec<String> {
+        vec![]
+    }
     //
     fn out(&mut self) -> PointType {
         trace!("FnConst({}).out | value: {:?}", self.id, &self.point);

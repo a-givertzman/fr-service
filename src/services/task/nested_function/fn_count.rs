@@ -2,7 +2,11 @@
 
 use log::trace;
 
-use crate::core_::{state::switch_state::{SwitchState, Switch, SwitchCondition}, point::{point_type::PointType, point::Point}, types::{type_of::DebugTypeOf, fn_in_out_ref::FnInOutRef}};
+use crate::core_::{
+    types::{type_of::DebugTypeOf, fn_in_out_ref::FnInOutRef},
+    state::switch_state::{SwitchState, Switch, SwitchCondition}, 
+    point::{point_type::PointType, point::Point}, 
+};
 
 use super::fn_::{FnInOut, FnOut, FnIn};
 
@@ -57,6 +61,14 @@ impl FnIn for FnCount {}
 ///
 /// 
 impl FnOut for FnCount {
+    //
+    fn id(&self) -> String {
+        self.id.clone()
+    }
+    //
+    fn inputs(&self) -> Vec<String> {
+        self.input.borrow().inputs()
+    }
     ///
     fn out(&mut self) -> PointType {
         // trace!("FnCount.out | input: {:?}", self.input.print());
