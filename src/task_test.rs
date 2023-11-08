@@ -47,9 +47,8 @@ fn main() {
     let iterations = 10;
     
     trace!("dir: {:?}", env::current_dir());
-    let path = "./src/tests/unit/task/task_test_struct.yaml";
+    let path = "./src/task_test.yaml";
     assert!(fs::metadata(path).is_ok());
-    // let path = "./src/tests/unit/task/task_test.yaml";
     let config = TaskConfig::read(path);
     for confNode in config.nodes.clone() {
         debug!("config node: {:?}", &confNode);
