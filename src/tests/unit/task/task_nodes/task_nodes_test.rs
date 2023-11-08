@@ -52,7 +52,7 @@ fn test_task_nodes() {
     let (apiSend, apiRecv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
     // queues.addRecvQueue("recv-queue", recv);
     queues.addSendQueue("api-queue", apiSend);
-    let mut taskNodes = TaskNodes::new();
+    let mut taskNodes = TaskNodes::new("test_task_nodes");
     let conf = TaskConfig::read(path);
     debug!("conf: {:?}", conf);
     taskNodes.buildNodes(conf, &mut queues);
@@ -73,25 +73,16 @@ fn test_task_nodes() {
                 input.borrow_mut().add(point.clone());
                 debug!("evalNode: {:?}", evalNode.name());
                 // debug!("evalNode outs: {:?}", evalNode.getOuts());
-                for out in evalNode.getOuts() {
-                    match out {
-                        TaskNodeType::Var(var) => {
-                            var.borrow_mut().eval();
-                            debug!("var evalueted: {:?}", var.borrow_mut().out());
-                        },
-                        TaskNodeType::Metric(metric) => {
-                            // debug!("input: {:?}", &input);
-                            let state = metric.borrow_mut().out();
-                            let out = state.asString().value;
-                            trace!("out: {}", out);                    
-                            debug!("value: {:?}   |   state: {:?}", point.asFloat().value, state.asString().value);
-                            // assert_eq!(
-                            //     out, 
-                            //     format!("UPDATE SelectMetric_test_table_name SET kind = '{:.1}' WHERE id = '{}';",targetValue, 1.11),
-                            // );
-                        },
-                    }
-                }
+                for evalNodeVar in evalNode.getVars() {
+                    trace!("TaskEvalNode.eval | evalNode '{}' - var '{}' evaluating...", evalNode.name(), evalNodeVar.borrow().id());
+                    evalNodeVar.borrow_mut().eval();
+                    debug!("TaskEvalNode.eval | evalNode '{}' - var '{}' evaluated", evalNode.name(), evalNodeVar.borrow().id());
+                };
+                for evalNodeOut in evalNode.getOuts() {
+                    trace!("TaskEvalNode.eval | evalNode '{}' out...", evalNode.name());
+                    let out = evalNodeOut.borrow_mut().out();
+                    debug!("TaskEvalNode.eval | evalNode '{}' out: {:?}", evalNode.name(), out);
+                };
             },
             None => {
                 panic!("input {:?} - not found in the current taskStuff", &name)

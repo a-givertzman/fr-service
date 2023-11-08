@@ -1,9 +1,9 @@
 #![allow(non_snake_case)]
 
 use indexmap::IndexMap;
-use log::{debug, trace};
+use log::{debug, trace, warn};
 
-use crate::{core_::{types::fn_in_out_ref::FnInOutRef, conf::{task_config::TaskConfig, fn_conf_kind::FnConfKind}}, services::{queues::queues::Queues, task::nested_function::{metric_builder::MetricBuilder, nested_fn::NestedFn}}};
+use crate::{core_::{types::fn_in_out_ref::FnInOutRef, conf::{task_config::TaskConfig, fn_conf_kind::FnConfKind}, point::point_type::PointType}, services::{queues::queues::Queues, task::nested_function::{metric_builder::MetricBuilder, nested_fn::NestedFn}}};
 
 use super::{task_node_vars::TaskNodeVars, task_eval_node::TaskEvalNode, task_node_type::TaskNodeType};
 
@@ -29,6 +29,7 @@ use super::{task_node_vars::TaskNodeVars, task_eval_node::TaskEvalNode, task_nod
 ///   ```
 #[derive(Debug)]
 pub struct TaskNodes {
+    name: String,
     inputs: IndexMap<String, TaskEvalNode>,
     vars: IndexMap<String, FnInOutRef>,
     newNodeVars: Option<TaskNodeVars>,
@@ -38,8 +39,9 @@ pub struct TaskNodes {
 impl TaskNodes {
     ///
     /// Creates new empty instance 
-    pub fn new() ->Self {
+    pub fn new(name: impl Into<String>) ->Self {
         Self {
+            name: name.into(),
             inputs: IndexMap::new(),
             vars: IndexMap::new(),
             newNodeVars: None,
@@ -47,8 +49,8 @@ impl TaskNodes {
     }
     ///
     /// Returns input by it's name
-    pub fn getEvalNode(&self, name: &str) -> Option<&TaskEvalNode> {
-        self.inputs.get(name.into())
+    pub fn getEvalNode(&mut self, name: &str) -> Option<&mut TaskEvalNode> {
+        self.inputs.get_mut(name.into())
     }
     ///
     /// Returns input by it's name
@@ -78,7 +80,7 @@ impl TaskNodes {
                     trace!("TaskNodes.addInput | adding input {:?}: {:?}", &name, &input);
                     self.inputs.insert(
                         name.clone().into(), 
-                        TaskEvalNode::new(name.clone(), input),
+                        TaskEvalNode::new(self.name.clone(), name.clone(), input),
                     );
                 }
             },
@@ -129,24 +131,21 @@ impl TaskNodes {
     }
     ///
     /// Call this method to finish configuration of jast created task node
-    fn finishNewNode(&mut self, out: TaskNodeType) {
+    fn finishNewNode(&mut self, out: FnInOutRef) {
         match self.newNodeVars {
             Some(_) => {
-                let mut vars: Vec<TaskNodeType> = vec![];
+                let mut vars: Vec<FnInOutRef> = vec![];
                 for varName in self.newNodeVars.as_mut().unwrap().getVars() {
                     match self.vars.get(&varName) {
                         Some(var) => {
                             vars.push(
-                                TaskNodeType::Var(var.clone())
+                                var.clone()
                             );
                         },
                         None => panic!("TaskNodes.finishNewNode | Variable {:?} - not found", varName),
                     };
                 };
-                let inputs = match &out {
-                    TaskNodeType::Var(var) => var.borrow().inputs(),
-                    TaskNodeType::Metric(metric) => metric.borrow().inputs(),
-                };
+                let inputs = out.borrow().inputs();
                 debug!("TaskNodes.finishNewNode | out {:?} \n\tdipending on inputs:: {:?}\n", &out, inputs);
                 for inputName in inputs {
                     match self.inputs.get_mut(&inputName) {
@@ -175,19 +174,13 @@ impl TaskNodes {
             self.beginNewNode();
             let out = match nodeConf.fnKind {
                 FnConfKind::Metric => {
-                    TaskNodeType::Metric(
-                        MetricBuilder::new(&mut nodeConf, self, queues)
-                    )
+                    MetricBuilder::new(&mut nodeConf, self, queues)
                 },
                 FnConfKind::Fn => {
-                    TaskNodeType::Metric(
-                        NestedFn::new(&mut nodeConf, self, queues)
-                    )
+                    NestedFn::new(&mut nodeConf, self, queues)
                 },
                 FnConfKind::Var => {
-                    TaskNodeType::Var(
-                        NestedFn::new(&mut nodeConf, self, queues)
-                    )
+                    NestedFn::new(&mut nodeConf, self, queues)
                 },
                 FnConfKind::Const => {
                     panic!("TaskNodes.buildNodes | Const is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
@@ -202,5 +195,19 @@ impl TaskNodes {
             self.finishNewNode(out);
         }
     }
-
+    ///
+    /// 
+    pub fn eval(&mut self, point: PointType) {
+        let selfName = self.name.clone();
+        let pointName = point.name();
+        match self.getEvalNode(&pointName) {
+            Some(evalNode) => {
+                debug!("Task({}).run | evalNode {} - evaluating...", selfName, &evalNode.name());                                            
+                evalNode.eval(point);
+            },
+            None => {
+                warn!("Task({}).run | evalNode {:?} - not fount", selfName, &pointName);
+            },
+        };
+    }
 }

@@ -8,11 +8,9 @@ use std::{
 
 use log::{info, debug, warn, trace};
 
-use crate::{core_::conf::fn_conf_kind::FnConfKind, services::task::{task_nodes::TaskNodes, task_node_type::TaskNodeType}};
+use crate::services::task::task_nodes::TaskNodes;
 use crate::core_::conf::task_config::TaskConfig;
 use crate::services::queues::queues::Queues;
-use crate::services::task::nested_function::metric_builder::MetricBuilder;
-use crate::services::task::nested_function::nested_fn::NestedFn;
 use crate::services::task::task_cycle::TaskCycle;
 
 /// Task implements entity, which provides cyclically (by event) executing calculations
@@ -41,6 +39,69 @@ impl Task {
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
+    ///
+    /// Tasck main execution loop spawned in the separate thread
+    pub fn run(&mut self) {
+        info!("Task({}).run | starting...", self.name);
+        let selfName = self.name.clone();
+        let exit = self.exit.clone();
+        let cycleInterval = self.cycle;
+        let (cyclic, cycleInterval) = match cycleInterval {
+            Some(interval) => (interval > Duration::ZERO, interval),
+            None => (false, Duration::ZERO),
+        };
+        let conf = self.conf.clone();
+        let mut queues = self.queues.pop().unwrap();
+        let recvQueue = queues.getRecvQueue(&self.conf.recvQueue);
+        let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
+            let mut cycle = TaskCycle::new(cycleInterval);
+            let mut taskNodes = TaskNodes::new(&selfName);
+            taskNodes.buildNodes(conf, &mut queues);
+            debug!("Task({}).run | taskNodes: {:?}", selfName, taskNodes);
+            'main: loop {
+                cycle.start();
+                trace!("Task({}).run | calculation step...", selfName);
+                match recvQueue.recv() {
+                    Ok(point) => {
+                        debug!("Task({}).run | point: {:?}", selfName, &point);
+                        taskNodes.eval(point);
+                    },
+                    Err(err) => {
+                        warn!("Task({}).run | Error receiving from queue: {:?}", selfName, err);
+                        break 'main;
+                    },
+                };
+                if exit.load(Ordering::Relaxed) {
+                    break 'main;
+                }
+                trace!("Task({}).run | calculation step - done ({:?})", selfName, cycle.elapsed());
+                if cyclic {
+                    cycle.wait();
+                }
+            };
+            info!("Task({}).run | stopped", selfName);
+        }).unwrap();
+        info!("Task({}).run | started", self.name);
+        // h.join().unwrap();
+    }
+    ///
+    /// 
+    pub fn exit(&self) {
+        self.exit.store(true, Ordering::Relaxed);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
     // ///
     // /// 
     // fn nodes(conf: TaskConfig, taskNodes: &mut TaskNodes, queues: &mut Queues) {
@@ -77,76 +138,28 @@ impl Task {
     //         taskNodes.finishNewNode(out);
     //     }
     // }
-    ///
-    /// Tasck main execution loop spawned in the separate thread
-    pub fn run(&mut self) {
-        info!("Task({}).run | starting...", self.name);
-        let selfName = self.name.clone();
-        let exit = self.exit.clone();
-        let cycleInterval = self.cycle;
-        let (cyclic, cycleInterval) = match cycleInterval {
-            Some(interval) => (interval > Duration::ZERO, interval),
-            None => (false, Duration::ZERO),
-        };
-        let conf = self.conf.clone();
-        let mut queues = self.queues.pop().unwrap();
-        let recvQueue = queues.getRecvQueue(&self.conf.recvQueue);
-        let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
-            let mut cycle = TaskCycle::new(cycleInterval);
-            let mut taskNodes = TaskNodes::new();
-            taskNodes.buildNodes(conf, &mut queues);
-            debug!("Task({}).run | taskNodes: {:?}", selfName, taskNodes);
-            'main: loop {
-                cycle.start();
-                trace!("Task({}).run | calculation step...", selfName);
-                match recvQueue.recv() {
-                    Ok(point) => {
-                        debug!("Task({}).run | point: {:?}", selfName, &point);                                            
-                        let pointName = point.name();
-                        match taskNodes.getEvalNode(&pointName) {
-                            Some(evalNode) => {
-                                evalNode.getInput().borrow_mut().add(point);
-                                for evalNodeOut in evalNode.getOuts() {
-                                    match evalNodeOut {
-                                        TaskNodeType::Var(evalNodeOut) => {
-                                            trace!("Task({}).run | evalNode {} - evaluating...", selfName, evalNode.name());                                            
-                                            evalNodeOut.borrow_mut().eval();
-                                            trace!("Task({}).run | evalNode {} - var evaluated", selfName, evalNode.name());                                            
-                                        },
-                                        TaskNodeType::Metric(evalNodeOut) => {
-                                            trace!("Task({}).run | evalNode {} out...", selfName, evalNode.name());                                            
-                                            let out = evalNodeOut.borrow_mut().out();
-                                            trace!("Task({}).run | evalNode {} out: {:?}", selfName, evalNode.name(), out);                                            
-                                        },
-                                    }
-                                };
-                            },
-                            None => {
-                                warn!("Task({}).run | evalNode {:?} - not fount", selfName, &pointName);
-                            },
-                        };
-                    },
-                    Err(err) => {
-                        warn!("Task({}).run | Error receiving from queue: {:?}", selfName, err);
-                        break 'main;
-                    },
-                };
-                if exit.load(Ordering::Relaxed) {
-                    break 'main;
-                }
-                trace!("Task({}).run | calculation step - done ({:?})", selfName, cycle.elapsed());
-                if cyclic {
-                    cycle.wait();
-                }
-            };
-            info!("Task({}).run | stopped", selfName);
-        }).unwrap();
-        info!("Task({}).run | started", self.name);
-        // h.join().unwrap();
-    }
-    ///
-    /// 
-    pub fn exit(&self) {
-        self.exit.store(true, Ordering::Relaxed);
-    }
-}
+
+
+                        // let pointName = point.name();
+                        // match taskNodes.getEvalNode(&pointName) {
+                        //     Some(evalNode) => {
+                        //         evalNode.getInput().borrow_mut().add(point);
+                        //         for evalNodeOut in evalNode.getOuts() {
+                        //             match evalNodeOut {
+                        //                 TaskNodeType::Var(evalNodeOut) => {
+                        //                     trace!("Task({}).run | evalNode {} - evaluating...", selfName, evalNode.name());
+                        //                     evalNodeOut.borrow_mut().eval();
+                        //                     trace!("Task({}).run | evalNode {} - var evaluated", selfName, evalNode.name());
+                        //                 },
+                        //                 TaskNodeType::Metric(evalNodeOut) => {
+                        //                     trace!("Task({}).run | evalNode {} out...", selfName, evalNode.name());
+                        //                     let out = evalNodeOut.borrow_mut().out();
+                        //                     trace!("Task({}).run | evalNode {} out: {:?}", selfName, evalNode.name(), out);
+                        //                 },
+                        //             }
+                        //         };
+                        //     },
+                        //     None => {
+                        //         warn!("Task({}).run | evalNode {:?} - not fount", selfName, &pointName);
+                        //     },
+                        // };    

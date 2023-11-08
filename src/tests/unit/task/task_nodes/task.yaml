@@ -13,7 +13,7 @@ task task1:
         input metric sqlSelectMetric:
             initial: 0.123      # начальное значение
             table: table_name
-            sql: "{input.value}, {input1.value}, {input2.value}, {input2.value}"
+            sql: "{input.value}, {input1.value}, {input2.value}, {input3.value}"
             input let Var1:
                 input: point float '/path/Point.Name1'
             input1 fn add:

@@ -45,7 +45,7 @@ fn test_int() {
     let mut conf = FnConfig::read(path);
     debug!("conf: {:?}", conf);
     let mut queues = Queues::new();
-    let mut nodes = TaskNodes::new();
+    let mut nodes = TaskNodes::new("test_int");
     // nodes.buildNodes(conf, &mut queues);
     // nodes.beginNewNode();
     // let mut metric = initEach(
@@ -115,7 +115,7 @@ fn test_float() {
     let mut conf = FnConfig::read(path);
     debug!("conf: {:?}", conf);
     let mut queues = Queues::new();
-    let mut nodes = TaskNodes::new();
+    let mut nodes = TaskNodes::new("test_float");
     // nodes.buildNodes(conf, &mut queues);
     // nodes.beginNewNode();
     // let mut metric = initEach(
