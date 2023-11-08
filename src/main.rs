@@ -1,53 +1,84 @@
-#![allow(non_snake_case)]
 #[cfg(test)]
 mod tests;
 mod core_;
-mod task;
-use std::{env, time::Duration, thread};
+mod services;
 
-use log::{debug, info, trace};
-use core_::{debug::debug_session::DebugSession, conf::conf_tree::ConfTree};
+use std::marker::PhantomData;
+trait SpecializationTest<T> {
+    type Target;
+    // fn special(&self) -> &T;
+    // fn target(&self) -> &Self::Target;
+}
 
-use crate::{core_::{conf::task_config::TaskConfig, debug::debug_session::LogLevel}, task::task::Task};
+trait Out<O> {
+    fn out(&self) ->O ;
+}
 
+#[derive(Debug)]
+struct Ikea<S, T, Q> 
+    where S: SpecializationTest<T, Target=Q>
+{
+    pub value: Q,
+    pub inner: Vec<S>, 
+    _marker: (PhantomData<T>, PhantomData<Q>)
+}
 
+impl<S> Out<S::Target> for Ikea<S, i64, f64>
+    where S : SpecializationTest<i64, Target=f64>
+{
+    fn out(&self) ->f64 {
+        self.value
+    }
+}
 
+impl<S> Out<S::Target> for Ikea<S, f64, i64>
+    where S: SpecializationTest<f64, Target=i64>
+{
+    fn out(&self) ->i64 {
+        self.value
+    }
+}
+impl<S> Out<S::Target> for Ikea<S, f64, f64>
+    where S: SpecializationTest<f64, Target=f64>
+{
+    fn out(&self) ->f64 {
+        self.value
+    }
+}
+
+impl<S> Out<S::Target> for Ikea<S, f64, bool>
+    where S: SpecializationTest<f64, Target=bool>
+{
+    fn out(&self) ->bool {
+        self.value
+    }
+}
 
 fn main() {
-    DebugSession::init(LogLevel::Debug);
-    info!("test_task");
-    
-    // let (initial, switches) = initEach();
-    trace!("dir: {:?}", env::current_dir());
-    let path = "./src/tests/unit/task_config/task_config_test.yaml";
-    let config = TaskConfig::read(path);
-    trace!("config: {:?}", &config);
-    let mut task = Task::new(config);
-    trace!("task tuning...");
-    task.run();
-    trace!("task tuning - ok");
-    thread::sleep(Duration::from_secs_f32(5.0));
-    trace!("task stopping...");
-    task.exit();
-    trace!("task stopping - ok");
+    // let ikea = Ikea{ 
+    //     value: true,
+    //     inner: vec![
+    //         // Inner{input: 4.4, out: true, _marker: PhantomData::<f64>}
+    //     ], 
+    //     _marker: (PhantomData::<f64>, PhantomData::<bool>), 
+    // };
+    // let out = ikea.out();
+    // let r = &ikea.inner[0];
+    // let ii = *r.special();
+    // println!("special: {:?}", r);
+    // println!("special: {:?}", r.special());
+    // println!("special: {:?}", r.target());
 }
 
-fn main1() {
-    DebugSession::init(core_::debug::debug_session::LogLevel::Debug);
-    let testData = [
-        r#"
-            input1: const 177.3
-            input2: point '/Path/Point.Name/'
-            input3:
-                fn count:
-                    inputConst1: const '13.5'
-                    inputConst2: newVar1
-        "#,
-    ];
-    let mut conf: serde_yaml::Value = serde_yaml::from_str(testData[0]).unwrap();
-    let map = conf.as_mapping_mut().unwrap();
-    debug!("map: {:?}", &map);
-    let removed = map.remove_entry("input2");
-    debug!("removed: {:?}", &removed);
-    debug!("map: {:?}", &map);
+
+// #[derive(Debug)]
+struct Inner<T, Q> 
+    where T: SpecializationTest<T, Target=Q>
+{
+    pub input: T,
+    pub out: Q,
+    _marker: PhantomData<Q>
 }
+// impl<T, Q> SpecializationTest<Q> for Inner<T, Q> {
+//     type Target = Q;
+// }

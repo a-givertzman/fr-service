@@ -1,8 +1,11 @@
 use std::{env, sync::Once};
 
+use env_logger::{Builder, WriteStyle};
+
 static INIT: Once = Once::new();
 
-#[allow(dead_code)]
+///
+/// 
 pub enum LogLevel {
     Off,
     Error,
@@ -11,11 +14,19 @@ pub enum LogLevel {
     Debug,
     Trace,
 }
+///
+/// 
+pub enum Backtrace {
+    Full,
+    Short,
+}
 
+///
+/// Call DebugSession::init() to initialize logging
 pub struct DebugSession {}
 
 impl DebugSession {
-    pub fn init(logLevel: LogLevel) {
+    pub fn init(logLevel: LogLevel, backtrace: Backtrace) {
         INIT.call_once(|| {
             let logLevel = match logLevel {
                 LogLevel::Off => "off",
@@ -26,10 +37,18 @@ impl DebugSession {
                 LogLevel::Trace => "trace",
                 // _ => "debug",
             };
+            let backtrace = match backtrace {
+                Backtrace::Full => "full",
+                Backtrace::Short => "short",
+            };
             env::set_var("RUST_LOG", logLevel);  // off / error / warn / info / debug / trace
             // env::set_var("RUST_BACKTRACE", "1");
-            env::set_var("RUST_BACKTRACE", "full");
+            env::set_var("RUST_BACKTRACE", backtrace);
+            env::set_var("RUST_LOG_STYLE", "always");     // auto / always / never
+            // let mut builder = Builder::from_default_env();
+            // match env_logger::builder().is_test(true).try_init() {
             match env_logger::builder().is_test(true).try_init() {
+            // match builder.is_test(true).try_init() {
                 Ok(_) => {
                     println!("DebugSession.init | Ok\n")
                 },

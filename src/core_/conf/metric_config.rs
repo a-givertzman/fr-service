@@ -1,5 +1,8 @@
+#![allow(non_snake_case)]
+
+use indexmap::IndexMap;
 use log::{trace, debug, error};
-use std::{fs, collections::HashMap, str::FromStr};
+use std::{fs, str::FromStr};
 
 use crate::core_::conf::{fn_config::FnConfig, conf_tree::ConfTree, conf_keywd::ConfKeywd};
 
@@ -17,13 +20,13 @@ use crate::core_::conf::{fn_config::FnConfig, conf_tree::ConfTree, conf_keywd::C
 ///         input2:
 ///             metric sqlSelectMetric:
 ///                 ...
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct MetricConfig {
     pub(crate) name: String,
     pub(crate) table: String,
     pub(crate) sql: String,
     pub(crate) initial: f64,
-    pub(crate) inputs: HashMap<String, FnConfig>,
+    pub(crate) inputs: IndexMap<String, FnConfig>,
     pub(crate) vars: Vec<String>,
 }
 ///
@@ -49,20 +52,20 @@ impl MetricConfig {
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item
         if confTree.count() > 1 {
-            error!("MetricConfig.new | FnConf must have single item, additional items was ignored")
+            error!("MetricConfig.new | FnConf must have single item, additional items was ignored: {:?}", confTree)
         };
         if confTree.isMapping() {
                 debug!("MetricConfig.new | MAPPING VALUE");
                 trace!("MetricConfig.new | confTree: {:?}", confTree);
                 let selfName = match ConfKeywd::from_str(&confTree.key) {
                     Ok(selfKeyword) => {
-                        selfKeyword.name()
+                        selfKeyword.data()
                     },
                     Err(err) => {
                         panic!("MetricConfig.new | Unknown metric name in {:?}\n\tdetales: {:?}", &confTree.key, err)
                     },
                 };
-                let mut inputs = HashMap::new();
+                let mut inputs = IndexMap::new();
                 match confTree.get("inputs") {
                     Some(inputsNode) => {
                         for inputConf in inputsNode.subNodes().unwrap() {

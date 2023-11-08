@@ -21,3 +21,11 @@ typetag = "^0.2"
 regex = "^1.9"
 
 rand = "^0.8"
+
+chrono = "0.4"
+
+indexmap = "^2.0"
+
+[[bin]]
+name = "task_test"
+path = "src/task_test.rs"
