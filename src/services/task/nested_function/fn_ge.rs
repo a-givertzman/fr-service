@@ -56,7 +56,9 @@ impl FnOut for FnGe {
     }
     //
     fn inputs(&self) -> Vec<String> {
-        self.input1.borrow().inputs()
+        let mut inputs = self.input1.borrow().inputs();
+        inputs.extend(self.input2.borrow().inputs());
+        inputs
     }
     //
     //

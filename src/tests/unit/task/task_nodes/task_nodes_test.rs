@@ -62,6 +62,7 @@ fn test_task_nodes() {
         ("/path/Point.Name1", 1.3,  0),
         ("/path/Point.Name2", 2.2,  0),
         ("/path/Point.Name3", 3.3,  0),
+        ("/path/Point.Name3", 3.4,  0),
     ];
     for (name, value, targetValue) in testData {
         let point = value.toPoint(name);
