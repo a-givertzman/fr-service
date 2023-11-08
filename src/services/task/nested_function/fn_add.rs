@@ -17,7 +17,6 @@ pub struct FnAdd {
     input1: FnInOutRef,
     input2: FnInOutRef,
 }
-static COUNT: AtomicUsize = AtomicUsize::new(0);
 ///
 /// 
 impl FnAdd {
@@ -86,7 +85,12 @@ impl FnOut for FnAdd {
 ///
 /// 
 impl FnInOut for FnAdd {}
-
+///
+/// 
+static COUNT: AtomicUsize = AtomicUsize::new(0);
+pub fn resetCount() {
+    COUNT.store(0, Ordering::SeqCst)
+}
 
 
 

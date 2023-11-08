@@ -19,7 +19,6 @@ pub struct FnGe {
     input1: FnInOutRef,
     input2: FnInOutRef,
 }
-static COUNT: AtomicUsize = AtomicUsize::new(0);
 ///
 /// 
 impl FnGe {
@@ -107,3 +106,9 @@ impl FnOut for FnGe {
 ///
 /// 
 impl FnInOut for FnGe {}
+///
+/// 
+static COUNT: AtomicUsize = AtomicUsize::new(0);
+pub fn resetCount() {
+    COUNT.store(0, Ordering::SeqCst)
+}

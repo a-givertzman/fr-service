@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use log::debug;
-use std::time::Instant;
+use std::{time::Instant, sync::atomic::{AtomicUsize, Ordering}};
 
 use crate::core_::{
     types::{type_of::DebugTypeOf, fn_in_out_ref::FnInOutRef},
@@ -180,3 +180,9 @@ impl FnOut for FnTimer {
 ///
 /// 
 impl FnInOut for FnTimer {}
+///
+/// 
+static COUNT: AtomicUsize = AtomicUsize::new(0);
+pub fn resetCount() {
+    COUNT.store(0, Ordering::SeqCst)
+}

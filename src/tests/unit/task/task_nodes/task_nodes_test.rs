@@ -9,7 +9,7 @@ use crate::{
         debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
         conf::task_config::TaskConfig, point::point_type::{ToPoint, PointType},
     }, 
-    services::{task::{task_nodes::TaskNodes, nested_function::fn_kind::FnKind}, queues::queues::Queues},
+    services::{task::{task_nodes::TaskNodes, nested_function::{fn_kind::FnKind, fn_count::{self}, fn_ge}}, queues::queues::Queues},
 }; 
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -30,13 +30,16 @@ fn initOnce() {
 ///
 /// returns:
 ///  - Rc<RefCell<Box<dyn FnInOut>>>...
-// fn initEach() {
-// }
+fn initEach() {
+    fn_ge::resetCount();
+    fn_count::resetCount();
+}
 
 #[test]
 fn test_task_nodes() {
     DebugSession::init(LogLevel::Debug, Backtrace::Short);
     initOnce();
+    initEach();
     println!("");
     info!("test_task_nodes");
     let path = "./src/tests/unit/task/task_nodes/task.yaml";

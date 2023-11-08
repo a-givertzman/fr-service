@@ -24,7 +24,6 @@ pub struct FnPulseCount {
     count: i64,
     initial: i64,
 }
-static COUNT: AtomicUsize = AtomicUsize::new(0);
 ///
 /// 
 impl FnPulseCount {
@@ -114,3 +113,9 @@ impl FnOut for FnPulseCount {
 ///
 /// 
 impl FnInOut for FnPulseCount {}
+///
+/// 
+static COUNT: AtomicUsize = AtomicUsize::new(0);
+pub fn resetCount() {
+    COUNT.store(0, Ordering::SeqCst)
+}

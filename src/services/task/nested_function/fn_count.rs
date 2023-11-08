@@ -22,7 +22,6 @@ pub struct FnCount {
     count: f64,
     initial: f64,
 }
-static COUNT: AtomicUsize = AtomicUsize::new(0);
 ///
 /// 
 impl FnCount {
@@ -88,3 +87,9 @@ impl FnOut for FnCount {
 ///
 /// 
 impl FnInOut for FnCount {}
+///
+///
+static COUNT: AtomicUsize = AtomicUsize::new(0);
+pub fn resetCount() {
+    COUNT.store(0, Ordering::SeqCst)
+}
