@@ -8,17 +8,17 @@ use super::fn_::{FnInOut, FnIn, FnOut};
 
 
 ///
-/// Greater than function
-/// Ge ( input1, input2 ) === input1.value >= input2.value
+/// Function | Greater than or equal to
+/// FnGe ( input1, input2 ) === input1.value >= input2.value
 #[derive(Debug)]
-pub struct FnTripGe {
+pub struct FnGe {
     id: String,
     input1: FnInOutRef,
     input2: FnInOutRef,
 }
 ///
 /// 
-impl FnTripGe {
+impl FnGe {
     #[allow(dead_code)]
     pub fn new(id: &str, input1: FnInOutRef, input2: FnInOutRef) -> Self {
         Self { 
@@ -46,10 +46,10 @@ impl FnTripGe {
 }
 ///
 /// 
-impl FnIn for FnTripGe {}
+impl FnIn for FnGe {}
 ///
 ///
-impl FnOut for FnTripGe {
+impl FnOut for FnGe {
     //
     fn id(&self) -> String {
         self.id.clone()
@@ -65,7 +65,7 @@ impl FnOut for FnTripGe {
         let point1 = self.input1.borrow_mut().out();     
         let point2 = self.input2.borrow_mut().out();    
         let value = self.toFloat(&point1) >= self.toFloat(&point2);
-        debug!("FnTripGe.out | input.out: {:?}", &value);
+        debug!("FnGe.out | input.out: {:?}", &value);
         let status = match point1.status().cmp(&point2.status()) {
             std::cmp::Ordering::Less => point2.status(),
             std::cmp::Ordering::Equal => point1.status(),
@@ -78,7 +78,7 @@ impl FnOut for FnTripGe {
         };
         PointType::Bool(
             Point::<Bool> {
-                name: String::from("FnTripGe"),
+                name: String::from("FnGe"),
                 value: Bool(value),
                 status: status,
                 timestamp: timestamp,
@@ -93,4 +93,4 @@ impl FnOut for FnTripGe {
 }
 ///
 /// 
-impl FnInOut for FnTripGe {}
+impl FnInOut for FnGe {}

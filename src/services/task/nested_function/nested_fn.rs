@@ -10,7 +10,7 @@ use crate::{
     services::{task::{nested_function::{metric_builder::MetricBuilder, fn_var::FnVar}, task_nodes::TaskNodes}, queues::queues::Queues}
 };
 
-use super::{fn_::FnInOut, fn_input::FnInput, fn_add::FnAdd, fn_timer::FnTimer, functions::Functions, export::fn_to_api_queue::FnToApiQueue, fn_count::FnCount, fn_const::FnConst, fn_trip::FnTripGe};
+use super::{fn_::FnInOut, fn_input::FnInput, fn_add::FnAdd, fn_timer::FnTimer, functions::Functions, export::fn_to_api_queue::FnToApiQueue, fn_count::FnCount, fn_const::FnConst, fn_trip::FnGe};
 
 ///
 /// Creates nested functions tree from it config
@@ -220,7 +220,7 @@ impl NestedFn {
         input2: FnInOutRef
     ) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(        
-            FnTripGe::new(id, input1, input2)
+            FnGe::new(id, input1, input2)
         )))
     }    
 }

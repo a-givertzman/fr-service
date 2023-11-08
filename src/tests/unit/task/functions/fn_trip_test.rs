@@ -5,7 +5,7 @@ use std::{sync::Once, rc::Rc, cell::RefCell};
 
 use crate::{
     core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
-    services::task::nested_function::{fn_::{FnInOut, FnOut}, fn_input::FnInput, fn_trip::FnTripGe}
+    services::task::nested_function::{fn_::{FnInOut, FnOut}, fn_input::FnInput, fn_trip::FnGe}
 };
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -42,7 +42,7 @@ fn test_single_int() {
     // let (initial, switches) = initEach();
     let input1 = initEach(0.toPoint("point1"));
     let input2 = initEach(0.toPoint("point2"));
-    let mut fnTrip = FnTripGe::new(
+    let mut fnTrip = FnGe::new(
         "test",
         input1.clone(),
         input2.clone(),
@@ -83,7 +83,7 @@ fn test_multiple_int() {
     // let (initial, switches) = initEach();
     let input1 = initEach(0.toPoint("point1"));
     let input2 = initEach(0.toPoint("point2"));
-    let mut fnTrip = FnTripGe::new(
+    let mut fnTrip = FnGe::new(
         "test",
         input1.clone(),
         input2.clone(),
@@ -128,7 +128,7 @@ fn test_multiple_float() {
     // let (initial, switches) = initEach();
     let input1 = initEach(0.0.toPoint("point1"));
     let input2 = initEach(0.0.toPoint("point2"));
-    let mut fnTrip = FnTripGe::new(
+    let mut fnTrip = FnGe::new(
         "test",
         input1.clone(),
         input2.clone(),
