@@ -10,6 +10,7 @@ use super::task_node_type::TaskNodeType;
 pub struct TaskEvalNode {
     name: String,
     input: FnInOutRef,
+    vars: Vec<TaskNodeType>,
     outs: Vec<TaskNodeType>,
 }
 ///
@@ -21,11 +22,19 @@ impl TaskEvalNode {
         TaskEvalNode { 
             name: name.into(), 
             input: input, 
-            outs:  vec![],
+            vars:  vec![],
+            outs: vec![],
         }
     }
-    pub fn addOuts(&mut self, outs: &mut Vec<TaskNodeType>) {
-        self.outs.append(outs)
+    ///
+    /// 
+    pub fn addVars(&mut self, vars: &mut Vec<TaskNodeType>) {
+        self.vars.append(vars);
+    }
+    ///
+    /// 
+    pub fn addOut(&mut self, out: TaskNodeType) {
+        self.outs.push(out);
     }
     ///
     /// 
@@ -40,6 +49,6 @@ impl TaskEvalNode {
     ///
     /// 
     pub fn getOuts(&self) -> & Vec<TaskNodeType> {
-        &self.outs
+        &self.vars
     }
 }

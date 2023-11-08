@@ -41,42 +41,42 @@ impl Task {
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
-    ///
-    /// 
-    fn nodes(conf: TaskConfig, taskNodes: &mut TaskNodes, queues: &mut Queues) {
-        for (_nodeName, mut nodeConf) in conf.nodes {
-            let nodeName = nodeConf.name.clone();
-            debug!("Task.nodes | node: {:?}", &nodeConf.name);
-            taskNodes.beginNewNode();
-            let out = match nodeConf.fnKind {
-                FnConfKind::Metric => {
-                    TaskNodeType::Metric(
-                        MetricBuilder::new(&mut nodeConf, taskNodes, queues)
-                    )
-                },
-                FnConfKind::Fn => {
-                    TaskNodeType::Metric(
-                        NestedFn::new(&mut nodeConf, taskNodes, queues)
-                    )
-                },
-                FnConfKind::Var => {
-                    TaskNodeType::Var(
-                        NestedFn::new(&mut nodeConf, taskNodes, queues)
-                    )
-                },
-                FnConfKind::Const => {
-                    panic!("Task.new | Const is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
-                },
-                FnConfKind::Point => {
-                    panic!("Task.new | Point is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
-                },
-                FnConfKind::Param => {
-                    panic!("Task.new | custom parameter: {:?}: {:?}", nodeName, &nodeConf);
-                },
-            };
-            taskNodes.finishNewNode(out);
-        }
-    }
+    // ///
+    // /// 
+    // fn nodes(conf: TaskConfig, taskNodes: &mut TaskNodes, queues: &mut Queues) {
+    //     for (_nodeName, mut nodeConf) in conf.nodes {
+    //         let nodeName = nodeConf.name.clone();
+    //         debug!("Task.nodes | node: {:?}", &nodeConf.name);
+    //         taskNodes.beginNewNode();
+    //         let out = match nodeConf.fnKind {
+    //             FnConfKind::Metric => {
+    //                 TaskNodeType::Metric(
+    //                     MetricBuilder::new(&mut nodeConf, taskNodes, queues)
+    //                 )
+    //             },
+    //             FnConfKind::Fn => {
+    //                 TaskNodeType::Metric(
+    //                     NestedFn::new(&mut nodeConf, taskNodes, queues)
+    //                 )
+    //             },
+    //             FnConfKind::Var => {
+    //                 TaskNodeType::Var(
+    //                     NestedFn::new(&mut nodeConf, taskNodes, queues)
+    //                 )
+    //             },
+    //             FnConfKind::Const => {
+    //                 panic!("Task.new | Const is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
+    //             },
+    //             FnConfKind::Point => {
+    //                 panic!("Task.new | Point is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
+    //             },
+    //             FnConfKind::Param => {
+    //                 panic!("Task.new | custom parameter: {:?}: {:?}", nodeName, &nodeConf);
+    //             },
+    //         };
+    //         taskNodes.finishNewNode(out);
+    //     }
+    // }
     ///
     /// Tasck main execution loop spawned in the separate thread
     pub fn run(&mut self) {
@@ -94,7 +94,7 @@ impl Task {
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             let mut cycle = TaskCycle::new(cycleInterval);
             let mut taskNodes = TaskNodes::new();
-            Self::nodes(conf, &mut taskNodes, &mut queues);
+            taskNodes.buildNodes(conf, &mut queues);
             debug!("Task({}).run | taskNodes: {:?}", selfName, taskNodes);
             'main: loop {
                 cycle.start();

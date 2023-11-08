@@ -44,14 +44,16 @@ fn test_int() {
     let path = "./src/tests/unit/task/metric/metric_select_int_test.yaml";
     let mut conf = FnConfig::read(path);
     debug!("conf: {:?}", conf);
+    let mut queues = Queues::new();
     let mut nodes = TaskNodes::new();
-    nodes.beginNewNode();
-    let mut metric = initEach(
-        &mut conf, 
-        &mut nodes,
-    );
-    nodes.finishNewNode(TaskNodeType::Metric(metric));
-    debug!("taskStuff: {:?}", nodes);
+    // nodes.buildNodes(conf, &mut queues);
+    // nodes.beginNewNode();
+    // let mut metric = initEach(
+    //     &mut conf, 
+    //     &mut nodes,
+    // );
+    // nodes.finishNewNode(TaskNodeType::Metric(metric));
+    debug!("taskNodes: {:?}", nodes);
     let testData = vec![
         (1, "/path/Point.Name", 3),
         (1, "/path/Point.Name", 3),
@@ -112,13 +114,15 @@ fn test_float() {
     let path = "./src/tests/unit/task/metric/metric_select_float_test.yaml";
     let mut conf = FnConfig::read(path);
     debug!("conf: {:?}", conf);
+    let mut queues = Queues::new();
     let mut nodes = TaskNodes::new();
-    nodes.beginNewNode();
-    let mut metric = initEach(
-        &mut conf, 
-        &mut nodes,
-    );
-    nodes.finishNewNode(TaskNodeType::Metric(metric));
+    // nodes.buildNodes(conf, &mut queues);
+    // nodes.beginNewNode();
+    // let mut metric = initEach(
+    //     &mut conf, 
+    //     &mut nodes,
+    // );
+    // nodes.finishNewNode(TaskNodeType::Metric(metric));
     debug!("taskStuff: {:?}", nodes);
     let testData = vec![
         (1.1, "/path/Point.Name", 3.3),

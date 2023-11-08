@@ -52,19 +52,10 @@ fn test_task_nodes() {
     let (apiSend, apiRecv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
     // queues.addRecvQueue("recv-queue", recv);
     queues.addSendQueue("api-queue", apiSend);
-
     let mut taskNodes = TaskNodes::new();
     let conf = TaskConfig::read(path);
     debug!("conf: {:?}", conf);
-    for (_nodeName, mut nodeConf) in conf.nodes {
-        taskNodes.beginNewNode();
-        let metric = initEach(
-            &mut nodeConf, 
-            &mut taskNodes,
-            &mut queues,
-        );
-        taskNodes.finishNewNode(metric);
-    }
+    taskNodes.buildNodes(conf, &mut queues);
     let testData = vec![
         ("/path/Point.Name1", 1.1,  0),
         ("/path/Point.Name1", 1.2,  0),

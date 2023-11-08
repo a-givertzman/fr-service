@@ -3,7 +3,7 @@
 use indexmap::IndexMap;
 use log::{debug, trace};
 
-use crate::core_::types::fn_in_out_ref::FnInOutRef;
+use crate::{core_::{types::fn_in_out_ref::FnInOutRef, conf::{task_config::TaskConfig, fn_conf_kind::FnConfKind}}, services::{queues::queues::Queues, task::nested_function::{metric_builder::MetricBuilder, nested_fn::NestedFn}}};
 
 use super::{task_node_vars::TaskNodeVars, task_eval_node::TaskEvalNode, task_node_type::TaskNodeType};
 
@@ -124,19 +124,19 @@ impl TaskNodes {
     /// Call this metod if new Task node begins, 
     /// - after that you can add inputs and variables
     /// - to finish call [finishNewNode(out: TaskNodeType)] and pass created task node
-    pub fn beginNewNode(&mut self) {
+    fn beginNewNode(&mut self) {
         self.newNodeVars = Some(TaskNodeVars::new());
     }
     ///
     /// Call this method to finish configuration of jast created task node
-    pub fn finishNewNode(&mut self, out: TaskNodeType) {
+    fn finishNewNode(&mut self, out: TaskNodeType) {
         match self.newNodeVars {
             Some(_) => {
-                let mut outs: Vec<TaskNodeType> = vec![];
+                let mut vars: Vec<TaskNodeType> = vec![];
                 for varName in self.newNodeVars.as_mut().unwrap().getVars() {
                     match self.vars.get(&varName) {
                         Some(var) => {
-                            outs.push(
+                            vars.push(
                                 TaskNodeType::Var(var.clone())
                             );
                         },
@@ -148,13 +148,13 @@ impl TaskNodes {
                     TaskNodeType::Metric(metric) => metric.borrow().inputs(),
                 };
                 debug!("TaskNodes.finishNewNode | out {:?} \n\tdipending on inputs:: {:?}\n", &out, inputs);
-                outs.push(out);
                 for inputName in inputs {
                     match self.inputs.get_mut(&inputName) {
                         Some(evalNode) => {
                             debug!("TaskNodes.finishNewNode | updating input: {:?}", inputName);
-                            let len = outs.len();
-                            evalNode.addOuts(&mut outs.clone());
+                            let len = vars.len();
+                            evalNode.addVars(&mut vars.clone());
+                            evalNode.addOut(out.clone());
                             debug!("TaskNodes.finishNewNode | evalNode '{}' appended: {:?}", evalNode.name(), len);
                         },
                         None => panic!("TaskNodes.finishNewNode | Input {:?} - not found", inputName),
@@ -166,4 +166,41 @@ impl TaskNodes {
             None => panic!("TaskNodes.finishNewNode | Call beginNewNode first, then you can add inputs & vars, then finish node"),
         }
     }
+    ///
+    /// Creates all task nodes depending on it config
+    pub fn buildNodes(&mut self, conf: TaskConfig, queues: &mut Queues) {
+        for (_nodeName, mut nodeConf) in conf.nodes {
+            let nodeName = nodeConf.name.clone();
+            debug!("TaskNodes.nodes | node: {:?}", &nodeConf.name);
+            self.beginNewNode();
+            let out = match nodeConf.fnKind {
+                FnConfKind::Metric => {
+                    TaskNodeType::Metric(
+                        MetricBuilder::new(&mut nodeConf, self, queues)
+                    )
+                },
+                FnConfKind::Fn => {
+                    TaskNodeType::Metric(
+                        NestedFn::new(&mut nodeConf, self, queues)
+                    )
+                },
+                FnConfKind::Var => {
+                    TaskNodeType::Var(
+                        NestedFn::new(&mut nodeConf, self, queues)
+                    )
+                },
+                FnConfKind::Const => {
+                    panic!("TaskNodes.buildNodes | Const is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
+                },
+                FnConfKind::Point => {
+                    panic!("TaskNodes.buildNodes | Point is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
+                },
+                FnConfKind::Param => {
+                    panic!("TaskNodes.buildNodes | custom parameter: {:?}: {:?}", nodeName, &nodeConf);
+                },
+            };
+            self.finishNewNode(out);
+        }
+    }
+
 }
