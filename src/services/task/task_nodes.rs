@@ -30,7 +30,7 @@ use super::{task_node_stuff::TaskNodeStuff, task_eval_node::TaskEvalNode, task_n
 #[derive(Debug)]
 pub struct TaskNodes {
     inputs: IndexMap<String, TaskEvalNode>,
-    vars: IndexMap<String, TaskNodeVar>,
+    vars: IndexMap<String, FnInOutRef>,
     newNodeStuff: Option<TaskNodeStuff>,
 }
 ///
@@ -62,7 +62,7 @@ impl TaskNodes {
     }
     ///
     /// Returns variable by it's name
-    pub fn getVar(&self, name: &str) -> Option<&TaskNodeVar> {
+    pub fn getVar(&self, name: &str) -> Option<&FnInOutRef> {
         trace!("TaskNodes.getVar | trying to find variable {:?} in {:?}", &name, self.vars);
         self.vars.get(name.into())
     }
@@ -80,7 +80,7 @@ impl TaskNodes {
                         name.clone().into(), 
                         TaskEvalNode::new(name.clone(), input),
                     );
-                    self.newNodeStuff.as_mut().unwrap().addInput(name);
+                    // self.newNodeStuff.as_mut().unwrap().addInput(name);
                 }
             },
             None => {
@@ -102,7 +102,7 @@ impl TaskNodes {
                     trace!("TaskNodes.addVar | adding variable {:?}: {:?}", &name.clone().into(), &var);
                     self.vars.insert(
                         name.clone().into(),
-                        TaskNodeVar::new(var, self.newNodeStuff.as_ref().unwrap().getInputs()),
+                        var,
                     );
                 }
                 self.newNodeStuff.as_mut().unwrap().addVar(name.clone().into());
@@ -117,15 +117,15 @@ impl TaskNodes {
         match self.newNodeStuff {
             Some(_) => {
                 self.newNodeStuff.as_mut().unwrap().addVar(name.clone().into());
-                match self.getVar(&name.clone().into()) {
-                    Some(nodeVar) => {
-                        for inputNamesVarDependOn in nodeVar.inputs() {
-                            debug!("TaskNodes.addVarOut | variable {:?} dipending on input: {:?}", &name.clone().into(), &inputNamesVarDependOn);
-                            self.newNodeStuff.as_mut().unwrap().addInput(inputNamesVarDependOn)
-                        }
-                    },
-                    None => todo!(),
-                }
+                // match self.getVar(&name.clone().into()) {
+                //     Some(nodeVar) => {
+                //         for inputNamesVarDependOn in nodeVar.inputs() {
+                //             debug!("TaskNodes.addVarOut | variable {:?} dipending on input: {:?}", &name.clone().into(), &inputNamesVarDependOn);
+                //             self.newNodeStuff.as_mut().unwrap().addInput(inputNamesVarDependOn)
+                //         }
+                //     },
+                //     None => todo!(),
+                // }
             },
             None => panic!("TaskNodes.addInput | Error: call beginNewNode first, then you can add inputs"),
         }
@@ -145,15 +145,18 @@ impl TaskNodes {
                 let mut outs: Vec<TaskNodeType> = vec![];
                 for varName in self.newNodeStuff.as_mut().unwrap().getVars() {
                     match self.vars.get(&varName) {
-                        Some(nodeVar) => {
+                        Some(var) => {
                             outs.push(
-                                TaskNodeType::Var(nodeVar.var())
+                                TaskNodeType::Var(var.clone())
                             );
                         },
                         None => panic!("TaskNodes.finishNewNode | Variable {:?} - not found", varName),
                     };
                 };
-                let inputs = self.newNodeStuff.as_mut().unwrap().getInputs();
+                let inputs = match &out {
+                    TaskNodeType::Var(var) => var.borrow().inputs(),
+                    TaskNodeType::Metric(metric) => metric.borrow().inputs(),
+                };
                 debug!("TaskNodes.finishNewNode | out {:?} \n\tdipending on inputs:: {:?}\n", &out, inputs);
                 outs.push(out);
                 for inputName in inputs {

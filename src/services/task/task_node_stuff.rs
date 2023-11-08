@@ -12,7 +12,7 @@ use crate::core_::types::fn_in_out_ref::FnInOutRef;
 /// during configuring single TaskEvalNode only
 #[derive(Debug)]
 pub struct TaskNodeStuff {
-    inputs: Vec<String>,
+    // inputs: Vec<String>,
     vars: Vec<String>,
 }
 impl TaskNodeStuff {
@@ -21,20 +21,20 @@ impl TaskNodeStuff {
     /// during configuring single TaskEvalNode only
     pub fn new() -> Self {
         Self {
-            inputs: Vec::new(),
+            // inputs: Vec::new(),
             vars: Vec::new(),
         }
     }
     ///
     /// Adding new input name
-    pub fn addInput(&mut self, name: impl Into<String> + std::fmt::Debug + Clone) {
-        if self.inputs.contains(&name.clone().into()) {
-            trace!("TaskNodeStuff.addInput | input {:?} - already added", &name);
-        } else {
-            trace!("TaskNodeStuff.addInput | adding input {:?}", &name);
-            self.inputs.push(name.into());
-        }
-    }
+    // pub fn addInput(&mut self, name: impl Into<String> + std::fmt::Debug + Clone) {
+    //     if self.inputs.contains(&name.clone().into()) {
+    //         trace!("TaskNodeStuff.addInput | input {:?} - already added", &name);
+    //     } else {
+    //         trace!("TaskNodeStuff.addInput | adding input {:?}", &name);
+    //         self.inputs.push(name.into());
+    //     }
+    // }
     ///
     /// Adding new variable name
     pub fn addVar(&mut self, name: impl Into<String> + Clone) {
@@ -50,9 +50,9 @@ impl TaskNodeStuff {
     }
     ///
     /// Returns all collected input names
-    pub fn getInputs(&self) -> Vec<String> {
-        self.inputs.clone()
-    }
+    // pub fn getInputs(&self) -> Vec<String> {
+    //     self.inputs.clone()
+    // }
     ///
     /// Returns all collected var names
     pub fn getVars(&self) -> Vec<String> {
