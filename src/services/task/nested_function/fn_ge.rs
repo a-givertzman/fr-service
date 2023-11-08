@@ -1,10 +1,12 @@
 #![allow(non_snake_case)]
 
+use std::sync::atomic::{AtomicUsize, Ordering};
+
 use log::{trace, debug};
 
 use crate::core_::{point::{point_type::PointType, point::Point}, types::{type_of::DebugTypeOf, bool::Bool, fn_in_out_ref::FnInOutRef}};
 
-use super::fn_::{FnInOut, FnIn, FnOut};
+use super::{fn_::{FnInOut, FnIn, FnOut}, fn_kind::FnKind};
 
 
 ///
@@ -13,16 +15,20 @@ use super::fn_::{FnInOut, FnIn, FnOut};
 #[derive(Debug)]
 pub struct FnGe {
     id: String,
+    kind: FnKind,
     input1: FnInOutRef,
     input2: FnInOutRef,
 }
+static COUNT: AtomicUsize = AtomicUsize::new(0);
 ///
 /// 
 impl FnGe {
     #[allow(dead_code)]
-    pub fn new(id: &str, input1: FnInOutRef, input2: FnInOutRef) -> Self {
+    pub fn new(id: impl Into<String>, input1: FnInOutRef, input2: FnInOutRef) -> Self {
+        COUNT.fetch_add(1, Ordering::SeqCst);
         Self { 
-            id: id.into(),
+            id: format!("{}{}", id.into(), COUNT.load(Ordering::Relaxed)),
+            kind: FnKind::Fn,
             input1,
             input2,
         }
@@ -55,6 +61,10 @@ impl FnOut for FnGe {
         self.id.clone()
     }
     //
+    fn kind(&self) -> &FnKind {
+        &self.kind
+    }
+    //
     fn inputs(&self) -> Vec<String> {
         let mut inputs = self.input1.borrow().inputs();
         inputs.extend(self.input2.borrow().inputs());
@@ -67,7 +77,7 @@ impl FnOut for FnGe {
         let point1 = self.input1.borrow_mut().out();     
         let point2 = self.input2.borrow_mut().out();    
         let value = self.toFloat(&point1) >= self.toFloat(&point2);
-        debug!("FnGe.out | input.out: {:?}", &value);
+        debug!("{}.out | input.out: {:?}", self.id, &value);
         let status = match point1.status().cmp(&point2.status()) {
             std::cmp::Ordering::Less => point2.status(),
             std::cmp::Ordering::Equal => point1.status(),
@@ -80,7 +90,7 @@ impl FnOut for FnGe {
         };
         PointType::Bool(
             Point::<Bool> {
-                name: String::from("FnGe"),
+                name: String::from(format!("{}.out", self.id)),
                 value: Bool(value),
                 status: status,
                 timestamp: timestamp,

@@ -3,9 +3,12 @@
 use indexmap::IndexMap;
 use log::{debug, trace, warn};
 
-use crate::{core_::{types::fn_in_out_ref::FnInOutRef, conf::{task_config::TaskConfig, fn_conf_kind::FnConfKind}, point::point_type::PointType}, services::{queues::queues::Queues, task::nested_function::{metric_builder::MetricBuilder, nested_fn::NestedFn}}};
+use crate::{
+    core_::{types::fn_in_out_ref::FnInOutRef, conf::{task_config::TaskConfig, fn_conf_kind::FnConfKind}, point::point_type::PointType}, 
+    services::{queues::queues::Queues, task::nested_function::{metric_builder::MetricBuilder, nested_fn::NestedFn, fn_kind::FnKind}},
+};
 
-use super::{task_node_vars::TaskNodeVars, task_eval_node::TaskEvalNode, task_node_type::TaskNodeType};
+use super::{task_node_vars::TaskNodeVars, task_eval_node::TaskEvalNode};
 
 
 /// TaskNodes - holds the IndexMap<String, TaskNode> in the following structure:
@@ -146,7 +149,9 @@ impl TaskNodes {
                             debug!("TaskNodes.finishNewNode | updating input: {:?}", inputName);
                             let len = vars.len();
                             evalNode.addVars(&mut vars.clone());
-                            evalNode.addOut(out.clone());
+                            if out.borrow().kind() != &FnKind::Var {
+                                evalNode.addOut(out.clone());
+                            }
                             debug!("TaskNodes.finishNewNode | evalNode '{}' appended: {:?}", evalNode.name(), len);
                         },
                         None => panic!("TaskNodes.finishNewNode | Input {:?} - not found", inputName),

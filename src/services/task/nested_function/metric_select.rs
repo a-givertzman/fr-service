@@ -15,7 +15,7 @@ use crate::{
     services::{task::task_nodes::TaskNodes, queues::queues::Queues},
 };
 
-use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn};
+use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn, fn_kind::FnKind};
 
 
 ///
@@ -23,6 +23,7 @@ use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn};
 #[derive(Debug)]
 pub struct MetricSelect {
     id: String,
+    kind: FnKind,
     inputs: IndexMap<String, FnInOutRef>,
     initial: f64,
     table: String,
@@ -72,6 +73,7 @@ impl MetricSelect {
         sqlNames.remove("id");
         MetricSelect {
             id: id,
+            kind: FnKind::Fn,
             inputs: inputs,
             initial: initial,
             table: table,
@@ -93,6 +95,10 @@ impl FnOut for MetricSelect {
     //
     fn id(&self) -> String {
         self.id.clone()
+    }
+    //
+    fn kind(&self) -> &FnKind {
+        &self.kind
     }
     //
     fn inputs(&self) -> Vec<String> {

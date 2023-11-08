@@ -8,7 +8,7 @@ use crate::core_::{
     point::{point_type::PointType, point::Point}, 
 };
 
-use super::fn_::{FnInOut, FnOut, FnIn};
+use super::{fn_::{FnInOut, FnOut, FnIn}, fn_kind::FnKind};
 
 
 ///
@@ -16,6 +16,7 @@ use super::fn_::{FnInOut, FnOut, FnIn};
 #[derive(Debug)]
 pub struct FnCount {
     id: String,
+    kind: FnKind,
     input: FnInOutRef,
     state: SwitchState<bool, bool>,
     count: i64,
@@ -30,6 +31,7 @@ impl FnCount {
     pub fn new(id: impl Into<String>, initial: i64, input: FnInOutRef) -> Self {
         Self { 
             id: id.into(),
+            kind:FnKind::Fn,
             input,
             state: SwitchState::new(
                 false, 
@@ -64,6 +66,10 @@ impl FnOut for FnCount {
     //
     fn id(&self) -> String {
         self.id.clone()
+    }
+    //
+    fn kind(&self) -> &FnKind {
+        &self.kind
     }
     //
     fn inputs(&self) -> Vec<String> {

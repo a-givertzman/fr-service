@@ -1,19 +1,23 @@
 #![allow(non_snake_case)]
 
+use std::sync::atomic::{AtomicUsize, Ordering};
+
 use log::trace;
 
 use crate::core_::{point::point_type::PointType, types::{type_of::DebugTypeOf, fn_in_out_ref::FnInOutRef}};
 
-use super::fn_::{FnInOut, FnIn, FnOut};
+use super::{fn_::{FnInOut, FnIn, FnOut}, fn_kind::FnKind};
 
 ///
 /// Function do Add of input1 and input2
 #[derive(Debug)]
 pub struct FnAdd {
     id: String,
+    kind: FnKind,
     input1: FnInOutRef,
     input2: FnInOutRef,
 }
+static COUNT: AtomicUsize = AtomicUsize::new(0);
 ///
 /// 
 impl FnAdd {
@@ -21,8 +25,10 @@ impl FnAdd {
     /// Creates new instance of the FnCount
     #[allow(dead_code)]
     pub fn new(id: impl Into<String>, input1: FnInOutRef, input2: FnInOutRef) -> Self {
+        COUNT.fetch_add(1, Ordering::SeqCst);
         Self { 
-            id: id.into(),
+            id: format!("{}{}", id.into(), COUNT.load(Ordering::Relaxed)),
+            kind: FnKind::Fn,
             input1,
             input2,
         }
@@ -37,6 +43,10 @@ impl FnOut for FnAdd {
     //
     fn id(&self) -> String {
         self.id.clone()
+    }
+    //
+    fn kind(&self) -> &FnKind {
+        &self.kind
     }
     //
     fn inputs(&self) -> Vec<String> {

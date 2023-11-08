@@ -47,7 +47,7 @@ impl DebugSession {
             env::set_var("RUST_LOG_STYLE", "always");     // auto / always / never
             // let mut builder = Builder::from_default_env();
             // match env_logger::builder().is_test(true).try_init() {
-            match env_logger::try_init() {
+            match env_logger::builder().is_test(true).try_init() {
             // match builder.is_test(true).try_init() {
                 Ok(_) => {
                     println!("DebugSession.init | Ok\n")

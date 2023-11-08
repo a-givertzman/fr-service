@@ -3,13 +3,13 @@ use log::trace;
 #[cfg(test)]
 
 use log::{warn, info, debug};
-use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, time::{Duration, Instant}};
+use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, collections::HashMap};
 use crate::{
     core_::{
         debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-        conf::{fn_config::FnConfig, task_config::TaskConfig}, point::point_type::{ToPoint, PointType},
+        conf::{fn_config::FnConfig, task_config::TaskConfig, fn_conf_kind::FnConfKind}, point::point_type::{ToPoint, PointType}, types::fn_in_out_ref::FnInOutRef,
     }, 
-    services::{task::{task_nodes::TaskNodes, nested_function::{nested_fn::NestedFn, metric_builder::MetricBuilder}, task_node_type::TaskNodeType}, queues::queues::Queues},
+    services::{task::{task_nodes::TaskNodes, nested_function::{nested_fn::NestedFn, metric_builder::MetricBuilder}}, queues::queues::Queues},
 }; 
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -30,14 +30,14 @@ fn initOnce() {
 ///
 /// returns:
 ///  - Rc<RefCell<Box<dyn FnInOut>>>...
-fn initEach(conf: &mut FnConfig, taskNodes: &mut TaskNodes, queues: &mut Queues) -> TaskNodeType {
+fn initEach(conf: &mut FnConfig, taskNodes: &mut TaskNodes, queues: &mut Queues) -> FnInOutRef {
     match conf.fnKind {
-        crate::core_::conf::fn_conf_kind::FnConfKind::Fn => TaskNodeType::Metric(NestedFn::new(conf, taskNodes, queues)),
-        crate::core_::conf::fn_conf_kind::FnConfKind::Var => TaskNodeType::Var(NestedFn::new(conf, taskNodes, queues)),
-        crate::core_::conf::fn_conf_kind::FnConfKind::Const => panic!("Const builder not implemented"),
-        crate::core_::conf::fn_conf_kind::FnConfKind::Point => panic!("Const builder not implemented"),
-        crate::core_::conf::fn_conf_kind::FnConfKind::Metric => TaskNodeType::Metric(MetricBuilder::new(conf, taskNodes, queues)),
-        crate::core_::conf::fn_conf_kind::FnConfKind::Param => panic!("Const builder not implemented"),
+        FnConfKind::Fn => NestedFn::new(conf, taskNodes, queues),
+        FnConfKind::Var => NestedFn::new(conf, taskNodes, queues),
+        FnConfKind::Const => panic!("Const builder not implemented"),
+        FnConfKind::Point => panic!("Const builder not implemented"),
+        FnConfKind::Metric => MetricBuilder::new(conf, taskNodes, queues),
+        FnConfKind::Param => panic!("Const builder not implemented"),
     }
 }
 
@@ -57,12 +57,50 @@ fn test_task_nodes() {
     debug!("conf: {:?}", conf);
     taskNodes.buildNodes(conf, &mut queues);
     let testData = vec![
-        ("/path/Point.Name1", 1.1,  0),
-        ("/path/Point.Name1", 1.2,  0),
-        ("/path/Point.Name1", 1.3,  0),
-        ("/path/Point.Name2", 2.2,  0),
-        ("/path/Point.Name3", 3.3,  0),
-        ("/path/Point.Name3", 3.4,  0),
+        (
+            "/path/Point.Name1", 1.1, 
+            HashMap::from([
+                ("MetricSelect.out", "1.1, 1.11, 0, 0"),
+            ])
+        ),
+        (
+            "/path/Point.Name1", 1.2, 
+            HashMap::from([
+                ("MetricSelect.out", "1.2, 1.21, 0, 0"),
+            ])
+            
+        ),
+        (
+            "/path/Point.Name1", 1.3, 
+            HashMap::from([
+                ("MetricSelect.out", "1.3, 1.31, 0, 0"),
+            ])
+            
+        ),
+        (
+            "/path/Point.Name2", 2.2, 
+            HashMap::from([
+                ("MetricSelect.out", "1.3, 1.31, 2.2, 0"),
+                ("FnGe.out", "false"),
+            ])
+            
+        ),
+        (
+            "/path/Point.Name3", 3.3, 
+            HashMap::from([
+                ("MetricSelect.out", "1.3, 1.31, 2.2, 3.3"),
+                ("FnGe.out", "false"),
+            ])
+            
+        ),
+        (
+            "/path/Point.Name3", 3.4, 
+            HashMap::from([
+                ("MetricSelect.out", "1.3, 1.31, 2.2, 3.3"),
+                ("FnGe.out", "false"),
+            ])
+            
+        ),
     ];
     for (name, value, targetValue) in testData {
         let point = value.toPoint(name);
@@ -82,7 +120,15 @@ fn test_task_nodes() {
                 for evalNodeOut in evalNode.getOuts() {
                     trace!("TaskEvalNode.eval | evalNode '{}' out...", evalNode.name());
                     let out = evalNodeOut.borrow_mut().out();
-                    debug!("TaskEvalNode.eval | evalNode '{}' out: {:?}", evalNode.name(), out);
+                    let outValue = match &out {
+                        PointType::Bool(point) => point.value.to_string(),
+                        PointType::Int(point) => point.value.to_string(),
+                        PointType::Float(point) => point.value.to_string(),
+                        PointType::String(point) => point.value.clone(),
+                    };
+                    debug!("TaskEvalNode.eval | evalNode '{}' out - '{}': {:?}", evalNode.name(), evalNodeOut.borrow().id(), out);
+                    // let target = targetValue.get(&out.name().as_str()).unwrap().to_string();
+                    // assert!(outValue == target, "\nout  Value: {} \n targetValue: {}", outValue, target);
                 };
             },
             None => {

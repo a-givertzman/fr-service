@@ -2,6 +2,8 @@
 
 use crate::core_::point::point_type::PointType;
 
+use super::fn_kind::FnKind;
+
 
 ///
 /// Input side interface for nested function
@@ -21,6 +23,9 @@ pub trait FnOut: std::fmt::Debug {
     ///
     /// Retirns it unique idetificator
     fn id(&self) -> String;
+    ///
+    /// Returns enum kind of the FnOut
+    fn kind(&self) -> &FnKind;
     ///
     /// Returns names of inputs it depending on
     fn inputs(&self) -> Vec<String>;

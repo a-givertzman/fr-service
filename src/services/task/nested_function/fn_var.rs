@@ -4,7 +4,7 @@ use log::trace;
 
 use crate::core_::{point::point_type::PointType, types::fn_in_out_ref::FnInOutRef};
 
-use super::fn_::{FnIn, FnOut, FnInOut};
+use super::{fn_::{FnIn, FnOut, FnInOut}, fn_kind::FnKind};
 
 ///
 /// Specific kinde of function
@@ -17,6 +17,7 @@ use super::fn_::{FnIn, FnOut, FnInOut};
 #[derive(Debug, Clone)]
 pub struct FnVar {
     id: String,
+    kind: FnKind,
     input: FnInOutRef,
     result: Option<PointType>,
 }
@@ -26,6 +27,7 @@ impl FnVar {
     pub fn new(id: impl Into<String>, input: FnInOutRef) -> Self {
         Self {
             id: id.into(), 
+            kind: FnKind::Var,
             input: input,
             result: None, 
         }
@@ -40,6 +42,10 @@ impl FnOut for FnVar {
     //
     fn id(&self) -> String {
         self.id.clone()
+    }
+    //
+    fn kind(&self) -> &FnKind {
+        &self.kind
     }
     //
     fn inputs(&self) -> Vec<String> {

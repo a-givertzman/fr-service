@@ -62,7 +62,7 @@ impl NestedFn {
                         let input = Self::function(name, inputConf, taskNodes ,queues);
                         let queueName = conf.param("queue").name.clone();
                         let sendQueue = queues.getSendQueue(&queueName);
-                        Self::toApiQueue(inputName, input, sendQueue)
+                        Self::toApiQueue(fnName.name(), input, sendQueue)
                         // Self::toApiQueue(inputName, queue, input)
                     },
                     Functions::Ge => {
@@ -72,7 +72,7 @@ impl NestedFn {
                         let name = "input2";
                         let inputConf = conf.inputConf(name);
                         let input2 = Self::function(name, inputConf, taskNodes, queues);
-                        Self::fnGe(inputName, input1, input2)
+                        Self::fnGe(fnName.name(), input1, input2)
                     }
                     _ => panic!("NestedFn.function | Unknown function name: {:?}", conf.name)
                 }

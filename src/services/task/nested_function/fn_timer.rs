@@ -9,7 +9,7 @@ use crate::core_::{
     point::{point_type::PointType, point::Point}, 
 };
 
-use super::fn_::{FnInOut, FnIn, FnOut};
+use super::{fn_::{FnInOut, FnIn, FnOut}, fn_kind::FnKind};
 
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
@@ -28,6 +28,7 @@ enum FnTimerState {
 #[derive(Debug)]
 pub struct FnTimer {
     id: String,
+    kind: FnKind,
     input: FnInOutRef,
     state: SwitchState<FnTimerState, bool>,
     sessionElapsed: f64,
@@ -92,6 +93,7 @@ impl FnTimer {
         ];
         Self { 
             id: id.into(),
+            kind: FnKind::Fn,
             input,
             state: SwitchState::new(FnTimerState::Off, switches),
             sessionElapsed: 0.0,
@@ -110,6 +112,10 @@ impl FnOut for FnTimer {
     //
     fn id(&self) -> String {
         self.id.clone()
+    }
+    //
+    fn kind(&self) -> &FnKind {
+        &self.kind
     }
     //
     fn inputs(&self) -> Vec<String> {
