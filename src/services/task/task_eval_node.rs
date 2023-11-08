@@ -41,9 +41,20 @@ impl TaskEvalNode {
     }
     ///
     /// 
-    pub fn addVars(&mut self, vars: &mut Vec<FnInOutRef>) {
+    fn containsOut(&self, out: &FnInOutRef) -> bool {
+        let outId = out.borrow().id();
+        for selfOut in &self.outs {
+            if selfOut.borrow().id() == outId {
+                return true;
+            }
+        }
+        false
+    }
+    ///
+    /// 
+    pub fn addVars(&mut self, vars: &Vec<FnInOutRef>) {
         for var in vars {
-            if !self.containsVar(var) {
+            if !self.containsVar(&var) {
                 self.vars.push(var.clone());
             }
         }
@@ -51,7 +62,9 @@ impl TaskEvalNode {
     ///
     /// 
     pub fn addOut(&mut self, out: FnInOutRef) {
-        self.outs.push(out);
+        if !self.containsOut(&out) {
+            self.outs.push(out);
+        }
     }
     ///
     /// 
