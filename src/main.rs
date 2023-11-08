@@ -1,102 +1,84 @@
-#![allow(non_snake_case)]
+#[cfg(test)]
+mod tests;
+mod core_;
+mod services;
 
-mod core;
-
-use std::env;
-
-use crate::core::state::switch_state::{
-    SwitchState,
-    Switch, SwitchCondition,
-};
-
-
-
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
-enum ProcessState {
-    Off,
-    Start,
-    Progress,
-    Stop,
+use std::marker::PhantomData;
+trait SpecializationTest<T> {
+    type Target;
+    // fn special(&self) -> &T;
+    // fn target(&self) -> &Self::Target;
 }
 
-#[cfg(test)]
-// #[path = "./tests"]
-mod tests;
+trait Out<O> {
+    fn out(&self) ->O ;
+}
 
+#[derive(Debug)]
+struct Ikea<S, T, Q> 
+    where S: SpecializationTest<T, Target=Q>
+{
+    pub value: Q,
+    pub inner: Vec<S>, 
+    _marker: (PhantomData<T>, PhantomData<Q>)
+}
 
-fn main() {
-    env::set_var("RUST_LOG", "debug");  // off / error / warn / info / debug / trace
-    // env::set_var("RUST_BACKTRACE", "1");
-    env::set_var("RUST_BACKTRACE", "full");
-    env_logger::init();
-
-    println!("main");
-    // let state = State::off;
-    // match state {
-    //     State::off => todo!(),
-    //     State::start => todo!(),
-    //     State::progress => todo!(),
-    //     State::stop => todo!(),
-    // }
-    let initial = ProcessState::Off;
-    let switches = vec![
-        Switch{
-            state: ProcessState::Off,
-            conditions: vec![
-                SwitchCondition {
-                    condition: Box::new(|value| {value >= 5}),
-                    target: ProcessState::Start,        
-                },
-            ],
-        },
-        Switch{
-            state: ProcessState::Stop,
-            conditions: vec![
-                SwitchCondition {
-                    condition: Box::new(|value| {value >= 5}),
-                    target: ProcessState::Start,
-                },
-                SwitchCondition {
-                    condition: Box::new(|value| {value < 5}),
-                    target: ProcessState::Off,
-                },
-            ],
-        },
-        Switch{
-            state: ProcessState::Start,
-            conditions: vec![
-                SwitchCondition {
-                    condition: Box::new(|value| {value >= 5}),
-                    target: ProcessState::Progress,        
-                },
-                SwitchCondition {
-                    condition: Box::new(|value| {value < 5}),
-                    target: ProcessState::Stop,
-                },
-            ],
-
-        },
-        Switch{
-            state: ProcessState::Progress,
-            conditions: vec![
-                SwitchCondition {
-                    condition: Box::new(|value| {value < 5}),
-                    target: ProcessState::Stop,
-                },
-            ],
-
-        },
-    ];
-    let mut switchState: SwitchState<ProcessState, i8> = SwitchState::new(
-        initial,
-        switches,
-    );
-    let sequence = vec![0,0,1,1,2,2,5,5,6,6,6,7,7,7,6,6,6,5,5,2,2,1,1];
-    // let sequence = vec![0,0,1,1,2,2,5,0,6,0,6,7,7,7,6,6,6,5,5,2,2,1,1];
-    // let sequence = vec![0,0,1,1,2,2,5,0,6,0,6,7,7,7,6,6,6,5,2,7,2,1,1];
-    for value in sequence {
-        switchState.add(value);
-        let state = switchState.state();
-        println!("value: {:?}   |   state: {:?}", value, state);
+impl<S> Out<S::Target> for Ikea<S, i64, f64>
+    where S : SpecializationTest<i64, Target=f64>
+{
+    fn out(&self) ->f64 {
+        self.value
     }
 }
+
+impl<S> Out<S::Target> for Ikea<S, f64, i64>
+    where S: SpecializationTest<f64, Target=i64>
+{
+    fn out(&self) ->i64 {
+        self.value
+    }
+}
+impl<S> Out<S::Target> for Ikea<S, f64, f64>
+    where S: SpecializationTest<f64, Target=f64>
+{
+    fn out(&self) ->f64 {
+        self.value
+    }
+}
+
+impl<S> Out<S::Target> for Ikea<S, f64, bool>
+    where S: SpecializationTest<f64, Target=bool>
+{
+    fn out(&self) ->bool {
+        self.value
+    }
+}
+
+fn main() {
+    // let ikea = Ikea{ 
+    //     value: true,
+    //     inner: vec![
+    //         // Inner{input: 4.4, out: true, _marker: PhantomData::<f64>}
+    //     ], 
+    //     _marker: (PhantomData::<f64>, PhantomData::<bool>), 
+    // };
+    // let out = ikea.out();
+    // let r = &ikea.inner[0];
+    // let ii = *r.special();
+    // println!("special: {:?}", r);
+    // println!("special: {:?}", r.special());
+    // println!("special: {:?}", r.target());
+}
+
+
+// #[derive(Debug)]
+struct Inner<T, Q> 
+    where T: SpecializationTest<T, Target=Q>
+{
+    pub input: T,
+    pub out: Q,
+    _marker: PhantomData<Q>
+}
+// impl<T, Q> SpecializationTest<Q> for Inner<T, Q> {
+//     type Target = Q;
+// }
