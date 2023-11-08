@@ -2,14 +2,14 @@
 use log::trace;
 #[cfg(test)]
 
-use log::{warn, info, debug};
+use log::{info, debug};
 use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, collections::HashMap};
 use crate::{
     core_::{
         debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-        conf::{fn_config::FnConfig, task_config::TaskConfig, fn_conf_kind::FnConfKind}, point::point_type::{ToPoint, PointType}, types::fn_in_out_ref::FnInOutRef,
+        conf::task_config::TaskConfig, point::point_type::{ToPoint, PointType},
     }, 
-    services::{task::{task_nodes::TaskNodes, nested_function::{nested_fn::NestedFn, metric_builder::MetricBuilder}}, queues::queues::Queues},
+    services::{task::{task_nodes::TaskNodes, nested_function::fn_kind::FnKind}, queues::queues::Queues},
 }; 
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -30,16 +30,8 @@ fn initOnce() {
 ///
 /// returns:
 ///  - Rc<RefCell<Box<dyn FnInOut>>>...
-fn initEach(conf: &mut FnConfig, taskNodes: &mut TaskNodes, queues: &mut Queues) -> FnInOutRef {
-    match conf.fnKind {
-        FnConfKind::Fn => NestedFn::new(conf, taskNodes, queues),
-        FnConfKind::Var => NestedFn::new(conf, taskNodes, queues),
-        FnConfKind::Const => panic!("Const builder not implemented"),
-        FnConfKind::Point => panic!("Const builder not implemented"),
-        FnConfKind::Metric => MetricBuilder::new(conf, taskNodes, queues),
-        FnConfKind::Param => panic!("Const builder not implemented"),
-    }
-}
+// fn initEach() {
+// }
 
 #[test]
 fn test_task_nodes() {
@@ -49,7 +41,7 @@ fn test_task_nodes() {
     info!("test_task_nodes");
     let path = "./src/tests/unit/task/task_nodes/task.yaml";
     let mut queues = Queues::new();
-    let (apiSend, apiRecv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
+    let (apiSend, _apiRecv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
     // queues.addRecvQueue("recv-queue", recv);
     queues.addSendQueue("api-queue", apiSend);
     let mut taskNodes = TaskNodes::new("test_task_nodes");
@@ -58,46 +50,49 @@ fn test_task_nodes() {
     taskNodes.buildNodes(conf, &mut queues);
     let testData = vec![
         (
-            "/path/Point.Name1", 1.1, 
+            "/path/Point.Name1", 101, 
             HashMap::from([
-                ("MetricSelect.out", "1.1, 1.11, 0, 0"),
+                ("MetricSelect.out", "101, 1102, 0, 0"),
+                ("FnCount1.out", "101"),
             ])
         ),
         (
-            "/path/Point.Name1", 1.2, 
+            "/path/Point.Name1", 201, 
             HashMap::from([
-                ("MetricSelect.out", "1.2, 1.21, 0, 0"),
-            ])
-            
-        ),
-        (
-            "/path/Point.Name1", 1.3, 
-            HashMap::from([
-                ("MetricSelect.out", "1.3, 1.31, 0, 0"),
+                ("MetricSelect.out", "201, 1202, 0, 0"),
+                ("FnCount1.out", "302"),
             ])
             
         ),
         (
-            "/path/Point.Name2", 2.2, 
+            "/path/Point.Name1", 301, 
             HashMap::from([
-                ("MetricSelect.out", "1.3, 1.31, 2.2, 0"),
-                ("FnGe.out", "false"),
+                ("MetricSelect.out", "301, 1302, 0, 0"),
+                ("FnCount1.out", "603"),
             ])
             
         ),
         (
-            "/path/Point.Name3", 3.3, 
+            "/path/Point.Name2", 202, 
             HashMap::from([
-                ("MetricSelect.out", "1.3, 1.31, 2.2, 3.3"),
-                ("FnGe.out", "false"),
+                ("MetricSelect.out", "301, 1302, 202, 0"),
+                ("FnGe1.out", "true"),
             ])
             
         ),
         (
-            "/path/Point.Name3", 3.4, 
+            "/path/Point.Name3", 303, 
             HashMap::from([
-                ("MetricSelect.out", "1.3, 1.31, 2.2, 3.3"),
-                ("FnGe.out", "false"),
+                ("MetricSelect.out", "301, 1302, 202, 303"),
+                ("FnGe1.out", "false"),
+            ])
+            
+        ),
+        (
+            "/path/Point.Name3", 304, 
+            HashMap::from([
+                ("MetricSelect.out", "301, 1302, 202, 304"),
+                ("FnGe1.out", "false"),
             ])
             
         ),
@@ -127,8 +122,13 @@ fn test_task_nodes() {
                         PointType::String(point) => point.value.clone(),
                     };
                     debug!("TaskEvalNode.eval | evalNode '{}' out - '{}': {:?}", evalNode.name(), evalNodeOut.borrow().id(), out);
-                    // let target = targetValue.get(&out.name().as_str()).unwrap().to_string();
-                    // assert!(outValue == target, "\nout  Value: {} \n targetValue: {}", outValue, target);
+                    if evalNodeOut.borrow().kind() != &FnKind::Var {
+                        if evalNodeOut.borrow().kind() != &FnKind::Var {
+                            debug!("TaskEvalNode.eval | out.name: '{}'", out.name());
+                            let target = targetValue.get(&out.name().as_str()).unwrap().to_string();
+                            assert!(outValue == target, "\n   outValue: {} \ntargetValue: {}", outValue, target);
+                        }
+                    }
                 };
             },
             None => {

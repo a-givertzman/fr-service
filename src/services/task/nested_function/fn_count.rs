@@ -1,10 +1,11 @@
 #![allow(non_snake_case)]
 
+use std::sync::atomic::{AtomicUsize, Ordering};
+
 use log::trace;
 
 use crate::core_::{
     types::{type_of::DebugTypeOf, fn_in_out_ref::FnInOutRef},
-    state::switch_state::{SwitchState, Switch, SwitchCondition}, 
     point::{point_type::PointType, point::Point}, 
 };
 
@@ -18,40 +19,23 @@ pub struct FnCount {
     id: String,
     kind: FnKind,
     input: FnInOutRef,
-    state: SwitchState<bool, bool>,
-    count: i64,
-    initial: i64,
+    count: f64,
+    initial: f64,
 }
+static COUNT: AtomicUsize = AtomicUsize::new(0);
 ///
 /// 
 impl FnCount {
     ///
     /// Creates new instance of the FnCount
     #[allow(dead_code)]
-    pub fn new(id: impl Into<String>, initial: i64, input: FnInOutRef) -> Self {
+    pub fn new(id: impl Into<String>, initial: f64, input: FnInOutRef) -> Self {
+        COUNT.fetch_add(1, Ordering::SeqCst);
+        let id = "FnCount";
         Self { 
-            id: id.into(),
+            id: format!("{}{}", id, COUNT.load(Ordering::Relaxed)),
             kind:FnKind::Fn,
             input,
-            state: SwitchState::new(
-                false, 
-                vec![
-                    Switch {
-                        state: false,
-                        conditions: vec![SwitchCondition {
-                            condition: Box::new(|value| {value}),
-                            target: true,
-                        }],
-                    },
-                    Switch {
-                        state: true,
-                        conditions: vec![SwitchCondition {
-                            condition: Box::new(|_| {true}),
-                            target: false,
-                        }],
-                    },
-                ]
-            ),
             count: initial.clone(),
             initial: initial,
         }
@@ -80,20 +64,16 @@ impl FnOut for FnCount {
         // trace!("FnCount.out | input: {:?}", self.input.print());
         let point = self.input.borrow_mut().out();
         let value = match &point {
-            PointType::Bool(point) => point.value.0,
-            PointType::Int(point) => point.value > 0,
-            PointType::Float(point) => point.value > 0.0,
+            PointType::Bool(point) => if point.value.0 {1.0} else {0.0},
+            PointType::Int(point) => point.value as f64,
+            PointType::Float(point) => point.value,
             _ => panic!("FnCount.out | {:?} type is not supported: {:?}", point.typeOf(), point),
         };
-        self.state.add(value);
-        let state = self.state.state();
-        trace!("FnCount.out | input.out: {:?}   | state: {:?}", &value, state);
-        if state {
-            self.count += 1;
-        }
-        PointType::Int(
+        self.count += value;
+        trace!("FnCount.out | input.out: {:?}   | state: {:?}", &value, self.count);
+        PointType::Float(
             Point {
-                name: String::from("FnCount.out"),
+                name: String::from(format!("{}.out", self.id)),
                 value: self.count,
                 status: point.status(),
                 timestamp: point.timestamp(),
@@ -102,7 +82,6 @@ impl FnOut for FnCount {
     }
     fn reset(&mut self) {
         self.count = self.initial;
-        self.state.reset();
         self.input.borrow_mut().reset();
     }
 }

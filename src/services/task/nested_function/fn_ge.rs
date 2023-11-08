@@ -26,8 +26,9 @@ impl FnGe {
     #[allow(dead_code)]
     pub fn new(id: impl Into<String>, input1: FnInOutRef, input2: FnInOutRef) -> Self {
         COUNT.fetch_add(1, Ordering::SeqCst);
+        let id = "FnGe";
         Self { 
-            id: format!("{}{}", id.into(), COUNT.load(Ordering::Relaxed)),
+            id: format!("{}{}", id, COUNT.load(Ordering::Relaxed)),
             kind: FnKind::Fn,
             input1,
             input2,

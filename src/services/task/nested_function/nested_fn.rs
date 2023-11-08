@@ -35,7 +35,7 @@ impl NestedFn {
                 println!("NestedFn.function | Fn '{}' detected", fnName.name());
                 match fnName {
                     Functions::Count => {
-                        let initial = 0;
+                        let initial = 0.0;
                         let name = "input";
                         let inputConf = conf.inputConf(name);
                         let input = Self::function(name, inputConf, taskNodes, queues);
@@ -149,7 +149,7 @@ impl NestedFn {
     /// 
     /// 
     /// 
-    fn fnCount(id: impl Into<String>, initial: i64, input: FnInOutRef,) -> FnInOutRef {
+    fn fnCount(id: impl Into<String>, initial: f64, input: FnInOutRef,) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(                
             FnCount::new(id, initial, input),
         )))

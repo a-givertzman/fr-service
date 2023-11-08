@@ -3,10 +3,10 @@ task task1:
     recv-queue: recv-queue
 
     let Var2:
-        input: point float '/path/Point.Name2'
+        input: point int '/path/Point.Name2'
 
     let Var3:
-        input: point float '/path/Point.Name3'
+        input: point int '/path/Point.Name3'
 
     fn toApiQueue:
         queue: api-queue
@@ -15,13 +15,16 @@ task task1:
             table: table_name
             sql: "{input.value}, {input1.value}, {input2.value}, {input3.value}"
             input let Var1:
-                input: point float '/path/Point.Name1'
+                input: point int '/path/Point.Name1'
             input1 fn add:
                     input1: Var1
-                    input2: const float 0.01
+                    input2: const int 1001
             input2: Var2
             input3: Var3
 
     fn ge:
-        input1: point float '/path/Point.Name2'
-        input2: point float '/path/Point.Name3'
+        input1: point int '/path/Point.Name2'
+        input2: point int '/path/Point.Name3'
+
+    fn count:
+        input: point int  '/path/Point.Name1'
