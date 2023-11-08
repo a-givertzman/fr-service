@@ -8,24 +8,41 @@ use super::fn_::{FnInOut, FnIn, FnOut};
 
 
 ///
-/// Returns true on input grater then setpoint
+/// Greater than function
+/// Ge ( input1, input2 ) === input1.value >= input2.value
 #[derive(Debug)]
 pub struct FnTripGe {
     id: String,
-    input: FnInOutRef,
-    setpoint: f64,
+    input1: FnInOutRef,
+    input2: FnInOutRef,
     initial: bool,
 }
 ///
 /// 
 impl FnTripGe {
     #[allow(dead_code)]
-    pub fn new(id: &str, initial: bool, input: FnInOutRef, setpoint: f64) -> Self {
+    pub fn new(id: &str, initial: bool, input1: FnInOutRef, input2: FnInOutRef) -> Self {
         Self { 
             id: id.into(),
-            input,
-            setpoint,
-            initial: initial,
+            input1,
+            input2,
+            initial,
+        }
+    }
+    ///
+    /// 
+    fn toFloat(&self, point: &PointType) -> f64 {
+        match point {
+            PointType::Bool(point) => {
+                if point.value.0 {1.0} else {0.0}
+            },
+            PointType::Int(point) => {
+                point.value as f64
+            },
+            PointType::Float(point) => {
+                point.value
+            },
+            _ => panic!("FnCount.out | {:?} type is not supported: {:?}", point.typeOf(), point),
         }
     }
 }
@@ -41,40 +58,39 @@ impl FnOut for FnTripGe {
     }
     //
     fn inputs(&self) -> Vec<String> {
-        self.input.borrow().inputs()
+        self.input1.borrow().inputs()
     }
     //
     //
     fn out(&mut self) -> PointType {
         // debug!("FnTrip.out | input: {:?}", self.input.print());
-        let point = self.input.borrow_mut().out();        
-        let value: bool = match &point {
-            PointType::Bool(point) => {
-                let value = if point.value.0 {1.0} else {0.0};
-                value > self.setpoint
-            },
-            PointType::Int(point) => {
-                point.value as f64 > self.setpoint
-            },
-            PointType::Float(point) => {
-                point.value > self.setpoint
-            },
-            _ => panic!("FnCount.out | {:?} type is not supported: {:?}", point.typeOf(), point),
-        };
+        let point1 = self.input1.borrow_mut().out();     
+        let point2 = self.input2.borrow_mut().out();    
+        let value = self.toFloat(&point1) >= self.toFloat(&point2);
         trace!("FnTrip.out | input.out: {:?}", &value);
+        let status = match point1.status().cmp(&point2.status()) {
+            std::cmp::Ordering::Less => point2.status(),
+            std::cmp::Ordering::Equal => point1.status(),
+            std::cmp::Ordering::Greater => point1.status(),
+        };
+        let timestamp = match point1.timestamp().cmp(&point2.timestamp()) {
+            std::cmp::Ordering::Less => point2.timestamp(),
+            std::cmp::Ordering::Equal => point1.timestamp(),
+            std::cmp::Ordering::Greater => point1.timestamp(),
+        };
         PointType::Bool(
             Point::<Bool> {
                 name: String::from("FnTripGe"),
                 value: Bool(value),
-                status: point.status(),
-                timestamp: point.timestamp(),
+                status: status,
+                timestamp: timestamp,
             }
         )
     }
     //
     //
     fn reset(&mut self) {
-        self.input.borrow_mut().reset();
+        self.input1.borrow_mut().reset();
     }
 }
 ///

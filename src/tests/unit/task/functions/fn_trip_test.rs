@@ -27,14 +27,9 @@ fn initOnce() {
 /// returns:
 ///  - ...
 fn initEach(initial: PointType) -> FnInOutRef {
-    fn boxFnInput(input: FnInput) -> Box<(dyn FnInOut)> {
-        Box::new(input)
-    }
-    Rc::new(RefCell::new(
-        boxFnInput(
-            FnInput::new("test", initial)
-        )
-    ))
+    Rc::new(RefCell::new(Box::new(
+        FnInput::new("test", initial)
+    )))
 }
 
 
@@ -45,37 +40,37 @@ fn test_single_int() {
     info!("test_single");
 
     // let (initial, switches) = initEach();
-    let setpoint = 4.0;
-    let input = initEach(0.toPoint("int"));
+    let input1 = initEach(0.toPoint("point1"));
+    let input2 = initEach(0.toPoint("point2"));
     let mut fnTrip = FnTripGe::new(
         "test",
         false, 
-        input.clone(),
-        setpoint,
+        input1.clone(),
+        input2.clone(),
     );
     let testData = vec![
-        (0, false),
-        (1, false),
-        (2, false),
-        (3, false),
-        (4, false),
-        (5, true),
-        (7, true),
-        (6, true),
-        (5, true),
-        (3, false),
-        (2, false),
-        (1, false),
-        (0, false),
-        (0, false),
+        (-1, 0, false),
+        (0, 1, false),
+        (-2, -1, false),
+        (0, 1, false),
+        (0, 0, true),
+        (2, 1, true),
+        (i64::MAX, 5, true),
+        (3, 4, false),
+        (2, 3, false),
+        (1, 2, false),
+        (0, 1, false),
+        (-1, 0, false),
     ];
-    for (value, targetState) in testData {
-        let point = value.toPoint("test");
-        input.borrow_mut().add(point);
+    for (value1, value2, targetState) in testData {
+        let point1 = value1.toPoint("point1");
+        let point2 = value2.toPoint("point2");
+        input1.borrow_mut().add(point1);
+        input2.borrow_mut().add(point2);
         // debug!("input: {:?}", &input);
         let state = fnTrip.out();
         // debug!("input: {:?}", &mut input);
-        debug!("value: {:?}   |   state: {:?}", value, state);
+        debug!("value1: {:?}  >=  value2: {:?}  |   state: {:?}", value1, value2, state);
         assert_eq!(state.asBool().value.0, targetState);
     }        
 }
@@ -87,39 +82,41 @@ fn test_multiple_int() {
     info!("test_single");
 
     // let (initial, switches) = initEach();
-    let setpoint = 4.0;
-    let input = initEach(0.toPoint("int"));
+    let input1 = initEach(0.toPoint("point1"));
+    let input2 = initEach(0.toPoint("point2"));
     let mut fnTrip = FnTripGe::new(
         "test",
         false, 
-        input.clone(),
-        setpoint,
+        input1.clone(),
+        input2.clone(),
     );
     let testData = vec![
-        (0, false),
-        (1, false),
-        (2, false),
-        (5, true),
-        (3, false),
-        (5, true),
-        (6, true),
-        (3, false),
-        (2, false),
-        (3, false),
-        (5, true),
-        (5, true),
-        (3, false),
-        (2, false),
-        (1, false),
-        (0, false),
+        (-1, 0, false),
+        (0, 1, false),
+        (1, 2, false),
+        (3, 3, true),
+        (2, 3, false),
+        (5, 3, true),
+        (6, 3, true),
+        (2, 3, false),
+        (1, 2, false),
+        (2, 3, false),
+        (4, 4, true),
+        (5, 4, true),
+        (3, 4, false),
+        (2, 3, false),
+        (1, 2, false),
+        (0, 1, false),
     ];
-    for (value, targetState) in testData {
-        let point = value.toPoint("test");
-        input.borrow_mut().add(point);
+    for (value1, value2, targetState) in testData {
+        let point1 = value1.toPoint("point1");
+        let point2 = value2.toPoint("point2");
+        input1.borrow_mut().add(point1);
+        input2.borrow_mut().add(point2);
         // debug!("input: {:?}", &input);
         let state = fnTrip.out();
         // debug!("input: {:?}", &mut input);
-        debug!("value: {:?}   |   state: {:?}", value, state);
+        debug!("value1: {:?}  >=  value2: {:?}  |   state: {:?}", value1, value2, state);
         assert_eq!(state.asBool().value.0, targetState);
     }        
 }
@@ -131,39 +128,42 @@ fn test_multiple_float() {
     info!("test_single");
 
     // let (initial, switches) = initEach();
-    let setpoint = 4.0;
-    let input = initEach(0.0.toPoint("float"));
+    let input1 = initEach(0.0.toPoint("point1"));
+    let input2 = initEach(0.0.toPoint("point2"));
     let mut fnTrip = FnTripGe::new(
         "test",
         false, 
-        input.clone(),
-        setpoint,
+        input1.clone(),
+        input2.clone(),
     );
     let testData = vec![
-        (0.0, false),
-        (1.0, false),
-        (2.0, false),
-        (5.0, true),
-        (3.0, false),
-        (5.0, true),
-        (6.0, true),
-        (3.0, false),
-        (2.0, false),
-        (3.0, false),
-        (5.0, true),
-        (5.0, true),
-        (3.0, false),
-        (2.0, false),
-        (1.0, false),
-        (0.0, false),
+        (-0.1, 0.0, false),
+        (1.0, 1.1, false),
+        (2.0, 2.2, false),
+        (5.0, 5.0, true),
+        (3.0, 3.1, false),
+        (5.0, 5.0, true),
+        (5.1, 5.0, true),
+        (4.9, 5.0, false),
+        (4.8, 5.0, false),
+        (4.7, 5.0, false),
+        (5.1, 5.0, true),
+        (5.2, 5.0, true),
+        (2.0, 3.0, false),
+        (1.0, 2.0, false),
+        (0.0, 1.0, false),
+        (-0.1, 0.0, false),
     ];
-    for (value, targetState) in testData {
-        let point = value.toPoint("test");
-        input.borrow_mut().add(point);
+    for (value1, value2, targetState) in testData {
+        let point1 = value1.toPoint("point1");
+        let point2 = value2.toPoint("point2");
+        input1.borrow_mut().add(point1);
+        input2.borrow_mut().add(point2);
         // debug!("input: {:?}", &input);
         let state = fnTrip.out();
         // debug!("input: {:?}", &mut input);
-        debug!("value: {:?}   |   state: {:?}", value, state);
+        debug!("value1: {:?}  >=  value2: {:?}  |   state: {:?}", value1, value2, state);
+
         assert_eq!(state.asBool().value.0, targetState);
     }        
 }

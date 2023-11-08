@@ -10,7 +10,7 @@ use crate::{
     services::{task::{nested_function::{metric_builder::MetricBuilder, fn_var::FnVar}, task_nodes::TaskNodes}, queues::queues::Queues}
 };
 
-use super::{fn_::FnInOut, fn_input::FnInput, fn_add::FnAdd, fn_timer::FnTimer, functions::Functions, export::fn_to_api_queue::FnToApiQueue, fn_count::FnCount, fn_const::FnConst};
+use super::{fn_::FnInOut, fn_input::FnInput, fn_add::FnAdd, fn_timer::FnTimer, functions::Functions, export::fn_to_api_queue::FnToApiQueue, fn_count::FnCount, fn_const::FnConst, fn_trip::FnTripGe};
 
 ///
 /// Creates nested functions tree from it config
@@ -31,9 +31,10 @@ impl NestedFn {
                 let fnName= c.clone();
                 let fnName = fnName.as_str(); 
                 drop(c);
-                match Functions::from_str(fnName).unwrap() {
+                let fnName = Functions::from_str(fnName).unwrap();
+                println!("NestedFn.function | Fn '{}' detected", fnName.name());
+                match fnName {
                     Functions::Count => {
-                        println!("NestedFn.function | Fn count detected");
                         let initial = 0;
                         let name = "input";
                         let inputConf = conf.inputConf(name);
@@ -41,7 +42,6 @@ impl NestedFn {
                         Self::fnCount(inputName, initial, input)
                     }
                     Functions::Add => {
-                        println!("NestedFn.function | Fn add detected");
                         let name = "input1";
                         let inputConf = conf.inputConf(name);
                         let input1 = Self::function(name, inputConf, taskNodes, queues);
@@ -51,14 +51,12 @@ impl NestedFn {
                         Self::fnAdd(inputName, input1, input2)
                     }
                     Functions::Timer => {
-                        println!("NestedFn.function | Fn timer detected");
                         let name = "input1";
                         let conf = conf.inputs.get_mut(name).unwrap();
                         let input = Self::function(name, conf, taskNodes, queues);
                         Self::fnTimer(inputName, 0.0, input, true)
                     },
                     Functions::ToApiQueue => {
-                        println!("NestedFn.function | Fn toApiQueue detected");
                         let name = "input";
                         let inputConf = conf.inputConf(name);
                         let input = Self::function(name, inputConf, taskNodes ,queues);
@@ -67,6 +65,15 @@ impl NestedFn {
                         Self::toApiQueue(inputName, input, sendQueue)
                         // Self::toApiQueue(inputName, queue, input)
                     },
+                    Functions::Ge => {
+                        let name = "input1";
+                        let inputConf = conf.inputConf(name);
+                        let input1 = Self::function(name, inputConf, taskNodes, queues);
+                        let name = "input2";
+                        let inputConf = conf.inputConf(name);
+                        let input2 = Self::function(name, inputConf, taskNodes, queues);
+                        Self::fnAdd(inputName, input1, input2)
+                    }
                     _ => panic!("NestedFn.function | Unknown function name: {:?}", conf.name)
                 }
             },
@@ -204,5 +211,17 @@ impl NestedFn {
                 )
             )
         ))
+    }    
+    // ///
+    // /// 
+    fn fnGe(
+        id: &str, 
+        initial: bool,
+        input1: FnInOutRef, 
+        input2: FnInOutRef
+    ) -> FnInOutRef {
+        Rc::new(RefCell::new(Box::new(        
+            FnTripGe::new(id, initial, input1, input2)
+        )))
     }    
 }

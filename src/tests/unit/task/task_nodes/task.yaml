@@ -21,3 +21,7 @@ task task1:
                     input2: const float 0.01
             input2: Var2
             input3: Var3
+
+    fn ge:
+        input1: point float '/path/Point.Name2'
+        input2: point float '/path/Point.Name3'

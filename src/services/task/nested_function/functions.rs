@@ -9,6 +9,7 @@ const COUNT: &str = "count";
 const ADD: &str = "add";
 const TO_API_QUEUE: &str = "toApiQueue";
 const TIMER: &str = "timer";
+const GE: &str = "ge";
 
 
 ///
@@ -21,6 +22,7 @@ pub enum Functions {
     Add,
     ToApiQueue,
     Timer,
+    Ge,
 }
 ///
 /// 
@@ -32,6 +34,7 @@ impl Functions {
             Functions::Add => ADD,
             Functions::ToApiQueue => TO_API_QUEUE,
             Functions::Timer => TIMER,
+            Functions::Ge => GE,
         }
     }
 }
@@ -48,6 +51,7 @@ impl FromStr for Functions {
             ADD             => Ok( Functions::Add),
             TO_API_QUEUE    => Ok( Functions::ToApiQueue),
             TIMER           => Ok( Functions::Timer ),
+            GE              => Ok( Functions::Ge ),
             _ => Err(format!("Functions.from_str | Unknown function name '{}'", &input)),
         }
     }
