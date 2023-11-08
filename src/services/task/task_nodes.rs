@@ -199,7 +199,7 @@ impl TaskNodes {
                 evalNode.eval(point);
             },
             None => {
-                warn!("Task({}).run | evalNode {:?} - not fount", selfName, &pointName);
+                panic!("Task({}).run | evalNode {:?} - not fount", selfName, &pointName);
             },
         };
     }

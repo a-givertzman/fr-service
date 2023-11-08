@@ -44,7 +44,6 @@ fn test_single_int() {
     let input2 = initEach(0.toPoint("point2"));
     let mut fnTrip = FnTripGe::new(
         "test",
-        false, 
         input1.clone(),
         input2.clone(),
     );
@@ -86,7 +85,6 @@ fn test_multiple_int() {
     let input2 = initEach(0.toPoint("point2"));
     let mut fnTrip = FnTripGe::new(
         "test",
-        false, 
         input1.clone(),
         input2.clone(),
     );
@@ -132,7 +130,6 @@ fn test_multiple_float() {
     let input2 = initEach(0.0.toPoint("point2"));
     let mut fnTrip = FnTripGe::new(
         "test",
-        false, 
         input1.clone(),
         input2.clone(),
     );

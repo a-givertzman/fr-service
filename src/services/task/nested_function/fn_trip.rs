@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use log::trace;
+use log::{trace, debug};
 
 use crate::core_::{point::{point_type::PointType, point::Point}, types::{type_of::DebugTypeOf, bool::Bool, fn_in_out_ref::FnInOutRef}};
 
@@ -15,18 +15,16 @@ pub struct FnTripGe {
     id: String,
     input1: FnInOutRef,
     input2: FnInOutRef,
-    initial: bool,
 }
 ///
 /// 
 impl FnTripGe {
     #[allow(dead_code)]
-    pub fn new(id: &str, initial: bool, input1: FnInOutRef, input2: FnInOutRef) -> Self {
+    pub fn new(id: &str, input1: FnInOutRef, input2: FnInOutRef) -> Self {
         Self { 
             id: id.into(),
             input1,
             input2,
-            initial,
         }
     }
     ///
@@ -67,7 +65,7 @@ impl FnOut for FnTripGe {
         let point1 = self.input1.borrow_mut().out();     
         let point2 = self.input2.borrow_mut().out();    
         let value = self.toFloat(&point1) >= self.toFloat(&point2);
-        trace!("FnTrip.out | input.out: {:?}", &value);
+        debug!("FnTripGe.out | input.out: {:?}", &value);
         let status = match point1.status().cmp(&point2.status()) {
             std::cmp::Ordering::Less => point2.status(),
             std::cmp::Ordering::Equal => point1.status(),

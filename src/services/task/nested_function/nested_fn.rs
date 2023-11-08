@@ -72,7 +72,7 @@ impl NestedFn {
                         let name = "input2";
                         let inputConf = conf.inputConf(name);
                         let input2 = Self::function(name, inputConf, taskNodes, queues);
-                        Self::fnAdd(inputName, input1, input2)
+                        Self::fnGe(inputName, input1, input2)
                     }
                     _ => panic!("NestedFn.function | Unknown function name: {:?}", conf.name)
                 }
@@ -216,12 +216,11 @@ impl NestedFn {
     // /// 
     fn fnGe(
         id: &str, 
-        initial: bool,
         input1: FnInOutRef, 
         input2: FnInOutRef
     ) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(        
-            FnTripGe::new(id, initial, input1, input2)
+            FnTripGe::new(id, input1, input2)
         )))
     }    
 }
