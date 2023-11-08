@@ -117,10 +117,10 @@ impl NestedFn {
             FnConfKind::Point => {                
                 println!("NestedFn.function | Input (Point): {:?} ({:?})...", inputName, conf.name);
                 let initial = match conf.type_.clone() {
-                    FnConfPointType::Bool => false.toPoint("input initial"),
-                    FnConfPointType::Int => 0.toPoint("input initial"),
-                    FnConfPointType::Float => 0.0.toPoint("input initial"),
-                    FnConfPointType::String => "".toPoint("input initial"),
+                    FnConfPointType::Bool => false.toPoint(&conf.name),
+                    FnConfPointType::Int => 0.toPoint(&conf.name),
+                    FnConfPointType::Float => 0.0.toPoint(&conf.name),
+                    FnConfPointType::String => "".toPoint(&conf.name),
                     FnConfPointType::Unknown => panic!("NestedFn.function | Point type required"),
                 };
                 let pointName = conf.name.clone();
