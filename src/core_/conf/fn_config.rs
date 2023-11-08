@@ -52,9 +52,9 @@ impl FnConfig {
         trace!("FnConfig.new | confTree: {:?}", confTree);
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item
-        if confTree.count() > 1 {
-            error!("FnConfig.new | FnConf must have single item, additional items was ignored")
-        };
+        // if confTree.count() > 1 {
+        //     error!("FnConfig.new | FnConf must have single item, additional items was ignored: {:?}", confTree)
+        // };
         if confTree.isMapping() {
             debug!("FnConfig.new | MAPPING VALUE");
             trace!("FnConfig.new | confTree: {:?}", confTree);

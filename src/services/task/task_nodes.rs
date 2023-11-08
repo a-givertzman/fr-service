@@ -123,13 +123,6 @@ impl TaskNodes {
         }
     }    
     ///
-    /// Call this metod if new Task node begins, 
-    /// - after that you can add inputs and variables
-    /// - to finish call [finishNewNode(out: TaskNodeType)] and pass created task node
-    fn beginNewNode(&mut self) {
-        self.newNodeVars = Some(TaskNodeVars::new());
-    }
-    ///
     /// Call this method to finish configuration of jast created task node
     fn finishNewNode(&mut self, out: FnInOutRef) {
         match self.newNodeVars {
@@ -171,7 +164,7 @@ impl TaskNodes {
         for (_nodeName, mut nodeConf) in conf.nodes {
             let nodeName = nodeConf.name.clone();
             debug!("TaskNodes.nodes | node: {:?}", &nodeConf.name);
-            self.beginNewNode();
+            self.newNodeVars = Some(TaskNodeVars::new());
             let out = match nodeConf.fnKind {
                 FnConfKind::Metric => {
                     MetricBuilder::new(&mut nodeConf, self, queues)

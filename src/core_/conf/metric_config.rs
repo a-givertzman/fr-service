@@ -52,7 +52,7 @@ impl MetricConfig {
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item
         if confTree.count() > 1 {
-            error!("MetricConfig.new | FnConf must have single item, additional items was ignored")
+            error!("MetricConfig.new | FnConf must have single item, additional items was ignored: {:?}", confTree)
         };
         if confTree.isMapping() {
                 debug!("MetricConfig.new | MAPPING VALUE");

@@ -72,7 +72,7 @@ impl TaskConfig {
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item
         if confTree.count() > 1 {
-            error!("TaskConfig.new | FnConf must have single item, additional items was ignored")
+            error!("TaskConfig.new | FnConf must have single item, additional items was ignored: {:?}", confTree)
         };
         let mut vars = vec![];
         match confTree.next() {
