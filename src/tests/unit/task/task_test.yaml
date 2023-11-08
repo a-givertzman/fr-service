@@ -6,9 +6,6 @@
 # link api-link
 #     max-length: 10000
 
-# queue api-queue:
-#     max-length: 10000
-
 # queue recv-queue:
 #     max-length: 10000
 
@@ -46,6 +43,8 @@ task task1:
                 const int 333
 
 # service ApiClient:
+#     queue api-queue:
+#         max-length: 10000
 
 # service CmaClient:
 
