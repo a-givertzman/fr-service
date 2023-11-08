@@ -11,30 +11,18 @@ use crate::core_::types::fn_in_out_ref::FnInOutRef;
 /// A container for storing variable & input names 
 /// during configuring single TaskEvalNode only
 #[derive(Debug)]
-pub struct TaskNodeStuff {
-    // inputs: Vec<String>,
+pub struct TaskNodeVars {
     vars: Vec<String>,
 }
-impl TaskNodeStuff {
+impl TaskNodeVars {
     ///
     /// Creates new container for storing variable & input names
     /// during configuring single TaskEvalNode only
     pub fn new() -> Self {
         Self {
-            // inputs: Vec::new(),
             vars: Vec::new(),
         }
     }
-    ///
-    /// Adding new input name
-    // pub fn addInput(&mut self, name: impl Into<String> + std::fmt::Debug + Clone) {
-    //     if self.inputs.contains(&name.clone().into()) {
-    //         trace!("TaskNodeStuff.addInput | input {:?} - already added", &name);
-    //     } else {
-    //         trace!("TaskNodeStuff.addInput | adding input {:?}", &name);
-    //         self.inputs.push(name.into());
-    //     }
-    // }
     ///
     /// Adding new variable name
     pub fn addVar(&mut self, name: impl Into<String> + Clone) {
@@ -48,11 +36,6 @@ impl TaskNodeStuff {
     fn names(collection: &HashMap<String, FnInOutRef>) -> Vec<String> {
         collection.keys().map(|v| v.clone()).collect()
     }
-    ///
-    /// Returns all collected input names
-    // pub fn getInputs(&self) -> Vec<String> {
-    //     self.inputs.clone()
-    // }
     ///
     /// Returns all collected var names
     pub fn getVars(&self) -> Vec<String> {
