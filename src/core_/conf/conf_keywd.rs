@@ -149,6 +149,7 @@ impl FromStr for ConfKeywd {
                                     "point" => Ok( ConfKeywd::Point( FnConfKeywdValue { input: input, type_: type_, data } )),
                                     "metric" => Ok( ConfKeywd::Metric( FnConfKeywdValue { input: input, type_: type_, data } )),
                                     "task" => Ok( ConfKeywd::Metric( FnConfKeywdValue { input: input, type_: type_, data } )),
+                                    "service" => Ok( ConfKeywd::Metric( FnConfKeywdValue { input: input, type_: type_, data } )),
                                     _      => Err(format!("Unknown keyword '{}'", &input)),
                                 }
                             },
