@@ -18,11 +18,9 @@ use serde::Serialize;
 /// }
 #[derive(Serialize)]    // , Deserialize
 pub struct ApiQuery {
-    #[serde(rename(serialize = "auth_token"))]
     authToken: String,
     id: String,
     sql:  HashMap<String, String>,
-    #[serde(rename(serialize = "keep-alive"))]
     keepAlive: bool,
     debug: bool,
 }

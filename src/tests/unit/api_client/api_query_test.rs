@@ -39,12 +39,22 @@ fn test_api_query() {
         (
             ApiQueryStruct { 
                 authToken: "123zxy456!@#".to_string(), 
-                id: "123".to_string(), 
+                id: "111".to_string(), 
                 database: "database name".to_string(), 
                 sql: "Some valid sql query".to_string(), 
                 keepAlive: true, 
                 debug: false},
-            r#"{"auth_token":"123zxy456!@#","id":"123","sql":{"database":"database name","sql":"Some valid sql query"},"keep-alive":true,"debug":false}"#
+            r#"{"authToken":"123zxy456!@#","id":"111","sql":{"database":"database name","sql":"Some valid sql query"},"keepAlive":true,"debug":false}"#
+        ),
+        (
+            ApiQueryStruct { 
+                authToken: "123zxy456!@#".to_string(), 
+                id: "112".to_string(), 
+                database: "database name".to_string(), 
+                sql: "Some valid sql query".to_string(), 
+                keepAlive: false, 
+                debug: true},
+            r#"{"authToken":"123zxy456!@#","id":"112","sql":{"database":"database name","sql":"Some valid sql query"},"keepAlive":false,"debug":true}"#
         ),
     ];
     for (value, target) in testData {
