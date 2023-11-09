@@ -4,7 +4,7 @@ use indexmap::IndexMap;
 use log::{trace, debug, error};
 use std::{fs, str::FromStr, time::Duration, net::SocketAddr};
 
-use crate::core_::conf::{metric_config::MetricConfig, fn_config::FnConfig, conf_tree::ConfTree, conf_keywd::ConfKeywd, conf_duration::{ConfDuration, ConfDurationUnit}};
+use crate::core_::conf::{metric_config::MetricConfig, fn_config::FnConfig, conf_tree::ConfTree, fn_conf_keywd::FnConfKeywd, conf_duration::{ConfDuration, ConfDurationUnit}};
 
 
 // #[derive(Debug, Clone, PartialEq)]
@@ -82,7 +82,7 @@ impl ApiClientConfig {
                 trace!("ApiClientConfig.new | selfConf: {:?}", selfConf);
                 let mut selfNodeNames: Vec<String> = selfConf.subNodes().unwrap().map(|conf| conf.key).collect();
                 trace!("ApiClientConfig.new | selfConf keys: {:?}", selfNodeNames);
-                let selfName = match ConfKeywd::from_str(&selfConf.key) {
+                let selfName = match FnConfKeywd::from_str(&selfConf.key) {
                     Ok(selfKeyword) => selfKeyword.data(),
                     Err(err) => panic!("ApiClientConfig.new | Unknown keyword in {:?}\n\tdetales: {:?}", &selfConf.key, err),
                 };

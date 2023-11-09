@@ -4,7 +4,7 @@ use indexmap::IndexMap;
 use log::{trace, debug, error};
 use std::{fs, str::FromStr};
 
-use crate::core_::conf::{fn_config::FnConfig, conf_tree::ConfTree, conf_keywd::ConfKeywd};
+use crate::core_::conf::{fn_config::FnConfig, conf_tree::ConfTree, fn_conf_keywd::FnConfKeywd};
 
 ///
 /// creates config from serde_yaml::Value of following format:
@@ -57,7 +57,7 @@ impl MetricConfig {
         if confTree.isMapping() {
                 debug!("MetricConfig.new | MAPPING VALUE");
                 trace!("MetricConfig.new | confTree: {:?}", confTree);
-                let selfName = match ConfKeywd::from_str(&confTree.key) {
+                let selfName = match FnConfKeywd::from_str(&confTree.key) {
                     Ok(selfKeyword) => {
                         selfKeyword.data()
                     },

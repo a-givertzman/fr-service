@@ -3,7 +3,7 @@
 use log::{debug, info};
 use std::{sync::Once, str::FromStr};
 
-use crate::core_::{conf::{conf_keywd::{ConfKeywd, FnConfKeywdValue, FnConfPointType}, conf_duration::{ConfDuration, ConfDurationUnit}}, debug::debug_session::*};
+use crate::core_::{conf::{fn_conf_keywd::{FnConfKeywd, FnConfKeywdValue, FnConfPointType}, conf_duration::{ConfDuration, ConfDurationUnit}}, debug::debug_session::*};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -79,7 +79,7 @@ fn test_create_invalid() {
         ("1.5h", Err(())),
     ];
     for (value, target) in testData {
-        let confDuration = ConfKeywd::from_str(value);
+        let confDuration = FnConfKeywd::from_str(value);
         debug!("value: {:?}   |   fnConfigType: {:?}   |   target: {:?}", value, confDuration, target);
         assert_eq!(confDuration.is_err(), true);
     }

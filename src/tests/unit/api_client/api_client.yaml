@@ -1,7 +1,8 @@
 service ApiClient:
     cycle: 1 s
     address: 127.0.0.1:8080
-
+    in queue api-queue:
+        max-length: 10000
 
 
 
