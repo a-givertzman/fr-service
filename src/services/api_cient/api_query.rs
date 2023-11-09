@@ -56,4 +56,9 @@ impl ApiQuery {
             Err(err) => panic!("ApiQuery.toJson | convertion error: {:?}", err),
         }
     }
+    ///
+    /// Returns ApiQuery in bytes, ready to write to socket
+    pub fn asBytes(&self) -> Vec<u8> {
+        self.toJson().as_bytes().to_vec()
+    }
 }
