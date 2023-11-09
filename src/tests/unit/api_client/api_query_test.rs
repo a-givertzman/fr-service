@@ -64,7 +64,7 @@ fn test_api_query() {
             value.keepAlive,
             value.debug,
         );
-        let json = query.toJson().as_str();
+        let json = query.toJson().to_string();
         assert!(json == target, "result: {:?}\ntarget: {:?}", json, target);
     }
 }

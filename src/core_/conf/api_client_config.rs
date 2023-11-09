@@ -2,7 +2,7 @@
 
 use indexmap::IndexMap;
 use log::{trace, debug, error};
-use std::{fs, str::FromStr, time::Duration};
+use std::{fs, str::FromStr, time::Duration, net::SocketAddr};
 
 use crate::core_::conf::{metric_config::MetricConfig, fn_config::FnConfig, conf_tree::ConfTree, conf_keywd::ConfKeywd, conf_duration::{ConfDuration, ConfDurationUnit}};
 
@@ -42,6 +42,7 @@ use crate::core_::conf::{metric_config::MetricConfig, fn_config::FnConfig, conf_
 #[derive(Debug, PartialEq, Clone)]
 pub struct ApiClientConfig {
     pub(crate) name: String,
+    pub(crate) address: SocketAddr,
     pub(crate) cycle: Option<Duration>,
     pub(crate) recvQueue: String,
     pub(crate) nodes: IndexMap<String, FnConfig>,
@@ -83,7 +84,11 @@ impl ApiClientConfig {
                 trace!("ApiClientConfig.new | selfConf keys: {:?}", selfNodeNames);
                 let selfName = match ConfKeywd::from_str(&selfConf.key) {
                     Ok(selfKeyword) => selfKeyword.data(),
-                    Err(err) => panic!("ApiClientConfig.new | Unknown metric name in {:?}\n\tdetales: {:?}", &selfConf.key, err),
+                    Err(err) => panic!("ApiClientConfig.new | Unknown keyword in {:?}\n\tdetales: {:?}", &selfConf.key, err),
+                };
+                let selfAddress = match Self::getParam(&mut selfConf, &mut selfNodeNames, "address") {
+                    Some(addr) => addr.as_str().unwrap().parse().unwrap(),
+                    None => panic!("ApiClientConfig.new | 'address' - not found in: {:?}", &selfConf),
                 };
                 trace!("ApiClientConfig.new | selfName: {:?}", selfName);
                 let selfCycle = match Self::getParam(&mut selfConf, &mut selfNodeNames, "cycle") {
@@ -119,6 +124,7 @@ impl ApiClientConfig {
                 }
                 ApiClientConfig {
                     name: selfName,
+                    address: selfAddress,
                     cycle: selfCycle,
                     recvQueue: selfRecvQueue.as_str().unwrap().to_string(),
                     nodes: selfNodes,

@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering}}, time::Duration, thread, collections::VecDeque, net::TcpStream, io::Write};
+use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering}}, time::Duration, thread, collections::VecDeque, net::{TcpStream, SocketAddr}, io::Write};
 
 use log::{info, debug, trace, warn};
 
@@ -15,6 +15,7 @@ use super::api_query::ApiQuery;
 /// - Sent messages immediately removed from the buffer
 pub struct ApiClient {
     id: String,
+    addres: SocketAddr,
     recv: Vec<Receiver<PointType>>,
     send: Sender<PointType>,
     conf: ApiClientConfig,
@@ -30,6 +31,7 @@ impl ApiClient {
         let (send, recv) = mpsc::channel();
         Self {
             id,
+            addres: conf.address,
             recv: vec![recv],
             send: send,
             conf: conf.clone(),
@@ -86,6 +88,7 @@ impl ApiClient {
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             let mut buffer = Vec::new();
             let mut cycle = ServiceCycle::new(cycleInterval);
+            let mut stream = TcpStream::connect("127.0.0.1:34254").unwrap();
             'main: loop {
                 cycle.start();
                 trace!("ApiClient({}).run | step...", selfName);
@@ -94,8 +97,8 @@ impl ApiClient {
                 while count > 0 {
                     match buffer.pop() {
                         Some(point) => {
-                            let sql = point.asString();
-                            match Self::send(sql) {
+                            let sql = point.asString().value;
+                            match Self::send(&selfName, sql, &mut stream) {
                                 Ok(_) => {},
                                 Err(err) => {
                                     warn!("ApiClient({}).run | error sending API: {:?}", selfName, err);
