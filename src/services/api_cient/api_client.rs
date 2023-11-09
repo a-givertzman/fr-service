@@ -10,15 +10,19 @@ use crate::core_::point::point_type::PointType;
 /// - Sending messages (wrapped into ApiQuery) from the beginning of the buffer
 /// - Sent messages immediately removed from the buffer
 pub struct ApiClient {
+    id: String,
     inQueue: Receiver<PointType>,
     send: Sender<PointType>,
 }
 ///
 /// 
 impl ApiClient {
-    pub fn new() -> Self {
-        let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
+    ///
+    /// 
+    pub fn new(id: String) -> Self {        //, conf: ServiceCong
+        let (send, recv) = mpsc::channel();
         Self {
+            id,
             inQueue: recv,
             send: send,
         }
@@ -27,5 +31,10 @@ impl ApiClient {
     /// 
     pub fn getLink(&self, _name: &str) -> Sender<PointType> {
         self.send.clone()
+    }
+    ///
+    /// 
+    pub fn run() {
+
     }
 }
