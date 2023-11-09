@@ -20,8 +20,8 @@ use serde::Serialize;
 pub struct ApiQuery {
     authToken: String,
     id: String,
-    keepAlive: bool,
     sql:  HashMap<String, String>,
+    keepAlive: bool,
     debug: bool,
 }
 ///
@@ -30,21 +30,21 @@ impl ApiQuery {
     ///
     /// Creates new instance of ApiQuery
     pub fn new(
-        authToken: String,
-        id: String,
+        authToken: impl Into<String>,
+        id: impl Into<String>,
+        database: impl Into<String>,
+        sql: impl Into<String>,
         keepAlive: bool,
-        database: String,
-        sql: String,
         debug: bool
     ) -> Self {
         Self {
-            authToken,
-            id,
-            keepAlive,
+            authToken: authToken.into(),
+            id: id.into(),
             sql: HashMap::from([
-                ("database".to_string(), database),
-                ("sql".to_string(), sql),
+                ("database".to_string(), database.into()),
+                ("sql".to_string(), sql.into()),
             ]),
+            keepAlive,
             debug,
         }
     }

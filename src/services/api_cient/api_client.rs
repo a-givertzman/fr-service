@@ -1,10 +1,12 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering}}, time::Duration, thread, collections::VecDeque, net::TcpStream};
+use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering}}, time::Duration, thread, collections::VecDeque, net::TcpStream, io::Write};
 
 use log::{info, debug, trace, warn};
 
 use crate::{core_::{point::point_type::PointType, conf::api_client_config::ApiClientConfig}, services::task::task_cycle::ServiceCycle};
+
+use super::api_query::ApiQuery;
 
 ///
 /// - Holding single input queue
@@ -59,7 +61,8 @@ impl ApiClient {
     ///
     /// Writing sql string to the TcpStream
     fn send(selfName: &str, sql: String, stream: &mut TcpStream) -> Result<(), Box<dyn std::error::Error>>{
-        match stream.write(bytes) {
+        let query = ApiQuery::new("authToken", "id", "database", sql, true, true);
+        match stream.write(query.toJson().as_bytes()) {
             Ok(_) => Ok(()),
             Err(err) => {
                 warn!("ApiClient({}).run | write to tcp stream error: {:?}", selfName, err);
