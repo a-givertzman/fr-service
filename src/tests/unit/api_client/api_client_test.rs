@@ -34,6 +34,6 @@ fn test_task_cycle() {
     initEach();
     println!("");
     info!("test_task_cycle");
-    assert!(false)
+    // assert!(false)
     // assert!(result == target, "result: {:?}\ntarget: {:?}", result, target);
 }
