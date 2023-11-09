@@ -1,10 +1,10 @@
 #![allow(non_snake_case)]
 
-use std::sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering}};
+use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering}}, time::Duration, thread};
 
-use log::{info, debug};
+use log::{info, debug, trace, warn};
 
-use crate::core_::point::point_type::PointType;
+use crate::{core_::{point::point_type::PointType, conf::api_client_config::ApiClientConfig}, services::task::task_cycle::ServiceCycle};
 
 ///
 /// - Holding single input queue
@@ -13,8 +13,10 @@ use crate::core_::point::point_type::PointType;
 /// - Sent messages immediately removed from the buffer
 pub struct ApiClient {
     id: String,
-    inQueue: Receiver<PointType>,
+    recv: Vec<Receiver<PointType>>,
     send: Sender<PointType>,
+    conf: ApiClientConfig,
+    cycle: Option<Duration>,
     exit: Arc<AtomicBool>,
 }
 ///
@@ -22,12 +24,14 @@ pub struct ApiClient {
 impl ApiClient {
     ///
     /// 
-    pub fn new(id: String) -> Self {        //, conf: ServiceCong
+    pub fn new(id: String, conf: ApiClientConfig) -> Self {
         let (send, recv) = mpsc::channel();
         Self {
             id,
-            inQueue: recv,
+            recv: vec![recv],
             send: send,
+            conf: conf.clone(),
+            cycle: conf.cycle.clone(),
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -39,7 +43,7 @@ impl ApiClient {
     ///
     /// 
     pub fn run(&mut self) {
-        info!("Task({}).run | starting...", self.id);
+        info!("ApiClient({}).run | starting...", self.id);
         let selfName = self.id.clone();
         let exit = self.exit.clone();
         let cycleInterval = self.cycle;
@@ -48,37 +52,31 @@ impl ApiClient {
             None => (false, Duration::ZERO),
         };
         let conf = self.conf.clone();
-        let mut queues = self.queues.pop().unwrap();
-        let recvQueue = queues.getRecvQueue(&self.conf.recvQueue);
+        let mut recv = self.recv.pop().unwrap();
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
-            let mut cycle = TaskCycle::new(cycleInterval);
-            let mut taskNodes = TaskNodes::new(&selfName);
-            taskNodes.buildNodes(conf, &mut queues);
-            debug!("Task({}).run | taskNodes: {:?}", selfName, taskNodes);
+            let mut cycle = ServiceCycle::new(cycleInterval);
             'main: loop {
                 cycle.start();
-                trace!("Task({}).run | calculation step...", selfName);
-                match recvQueue.recv() {
+                trace!("ApiClient({}).run | calculation step...", selfName);
+                match recv.recv() {
                     Ok(point) => {
-                        debug!("Task({}).run | point: {:?}", selfName, &point);
-                        taskNodes.eval(point);
+                        debug!("ApiClient({}).run | point: {:?}", selfName, &point);
                     },
                     Err(err) => {
-                        warn!("Task({}).run | Error receiving from queue: {:?}", selfName, err);
-                        break 'main;
+                        warn!("ApiClient({}).run | Error receiving from queue: {:?}", selfName, err);
                     },
                 };
                 if exit.load(Ordering::SeqCst) {
                     break 'main;
                 }
-                trace!("Task({}).run | calculation step - done ({:?})", selfName, cycle.elapsed());
+                trace!("ApiClient({}).run | calculation step - done ({:?})", selfName, cycle.elapsed());
                 if cyclic {
                     cycle.wait();
                 }
             };
-            info!("Task({}).run | stopped", selfName);
+            info!("ApiClient({}).run | stopped", selfName);
         }).unwrap();
-        info!("Task({}).run | started", self.id);
+        info!("ApiClient({}).run | started", self.id);
         // h.join().unwrap();
     }
     ///

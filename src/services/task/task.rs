@@ -11,7 +11,7 @@ use log::{info, debug, warn, trace};
 use crate::services::task::task_nodes::TaskNodes;
 use crate::core_::conf::task_config::TaskConfig;
 use crate::services::queues::queues::Queues;
-use crate::services::task::task_cycle::TaskCycle;
+use crate::services::task::task_cycle::ServiceCycle;
 
 /// Task implements entity, which provides cyclically (by event) executing calculations
 ///  - executed in the cycle mode (current impl)
@@ -34,7 +34,6 @@ impl Task {
             id: cfg.name.clone(),
             cycle: cfg.cycle.clone(),
             queues: vec![queues],
-            // recvQueue: vec![recvQueue],
             conf: cfg,
             exit: Arc::new(AtomicBool::new(false)),
         }
@@ -54,7 +53,7 @@ impl Task {
         let mut queues = self.queues.pop().unwrap();
         let recvQueue = queues.getRecvQueue(&self.conf.recvQueue);
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
-            let mut cycle = TaskCycle::new(cycleInterval);
+            let mut cycle = ServiceCycle::new(cycleInterval);
             let mut taskNodes = TaskNodes::new(&selfName);
             taskNodes.buildNodes(conf, &mut queues);
             debug!("Task({}).run | taskNodes: {:?}", selfName, taskNodes);
