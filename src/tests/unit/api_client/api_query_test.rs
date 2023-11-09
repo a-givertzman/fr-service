@@ -2,6 +2,7 @@
 #[cfg(test)]
 
 use log::{warn, info, debug};
+use serde_json::json;
 use std::{sync::Once, time::{Duration, Instant}};
 use crate::{core_::debug::debug_session::{DebugSession, LogLevel, Backtrace}, services::api_cient::api_query::ApiQuery}; 
 
@@ -43,16 +44,7 @@ fn test_api_query() {
                 sql: "Some valid sql query".to_string(), 
                 keepAlive: true, 
                 debug: false},
-            r#"{
-                "auth_token": "123zxy456!@#",
-                "id": "123",
-                "sql": {
-                    "database": "database name",
-                    "sql": "Some valid sql query"
-                },
-                "keep-alive": true,
-                "debug": false
-            }"#
+            r#"{"auth_token":"123zxy456!@#","id":"123","sql":{"database":"database name","sql":"Some valid sql query"},"keep-alive":true,"debug":false}"#
         ),
     ];
     for (value, target) in testData {
@@ -65,7 +57,9 @@ fn test_api_query() {
             value.debug,
         );
         let json = query.toJson().to_string();
-        assert!(json == target, "result: {:?}\ntarget: {:?}", json, target);
+        let json = json!(json);
+        let target = json!(target);
+        assert!(json.as_object() == target.as_object(), "\n  json: {:?}\ntarget: {:?}", json, target);
     }
 }
 
