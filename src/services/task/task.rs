@@ -18,7 +18,7 @@ use crate::services::task::task_cycle::TaskCycle;
 ///  - executed event mode (future impl..)
 ///  - has some number of functions / variables / metrics or additional entities
 pub struct Task {
-    name: String,
+    id: String,
     cycle: Option<Duration>,
     conf: TaskConfig,
     queues: Vec<Queues>,
@@ -31,7 +31,7 @@ impl Task {
     /// 
     pub fn new(cfg: TaskConfig, queues: Queues) -> Task {
         Task {
-            name: cfg.name.clone(),
+            id: cfg.name.clone(),
             cycle: cfg.cycle.clone(),
             queues: vec![queues],
             // recvQueue: vec![recvQueue],
@@ -42,8 +42,8 @@ impl Task {
     ///
     /// Tasck main execution loop spawned in the separate thread
     pub fn run(&mut self) {
-        info!("Task({}).run | starting...", self.name);
-        let selfName = self.name.clone();
+        info!("Task({}).run | starting...", self.id);
+        let selfName = self.id.clone();
         let exit = self.exit.clone();
         let cycleInterval = self.cycle;
         let (cyclic, cycleInterval) = match cycleInterval {
@@ -71,7 +71,7 @@ impl Task {
                         break 'main;
                     },
                 };
-                if exit.load(Ordering::Relaxed) {
+                if exit.load(Ordering::SeqCst) {
                     break 'main;
                 }
                 trace!("Task({}).run | calculation step - done ({:?})", selfName, cycle.elapsed());
@@ -81,12 +81,12 @@ impl Task {
             };
             info!("Task({}).run | stopped", selfName);
         }).unwrap();
-        info!("Task({}).run | started", self.name);
+        info!("Task({}).run | started", self.id);
         // h.join().unwrap();
     }
     ///
     /// 
     pub fn exit(&self) {
-        self.exit.store(true, Ordering::Relaxed);
+        self.exit.store(true, Ordering::SeqCst);
     }
 }
