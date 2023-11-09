@@ -86,13 +86,12 @@ impl ApiClientConfig {
                     Ok(selfKeyword) => selfKeyword.data(),
                     Err(err) => panic!("ApiClientConfig.new | Unknown keyword in {:?}\n\tdetales: {:?}", &selfConf.key, err),
                 };
-                let selfAddress = match Self::getParam(&mut selfConf, &mut selfNodeNames, "address") {
-                    Some(addr) => addr.as_str().unwrap().parse().unwrap(),
-                    None => panic!("ApiClientConfig.new | 'address' - not found in: {:?}", &selfConf),
-                };
                 trace!("ApiClientConfig.new | selfName: {:?}", selfName);
+                let selfAddress = Self::getParam(&mut selfConf, &mut selfNodeNames, "address").unwrap();
+                let selfAddress = selfAddress.as_str().unwrap().parse().unwrap();
+                debug!("ApiClientConfig.new | selfAddress: {:?}", selfAddress);
                 let selfCycle = match Self::getParam(&mut selfConf, &mut selfNodeNames, "cycle") {
-                    Some(value) => {
+                    Ok(value) => {
                         match value.as_str() {
                             Some(value) => {
                                 match ConfDuration::from_str(value) {
@@ -105,7 +104,7 @@ impl ApiClientConfig {
                             None => panic!("ApiClientConfig.new | Invalid cycle duration format: {:?} \n\tin: {:?}", &value, selfConf),
                         }
                     },
-                    None => None,
+                    Err(_) => None,
                 };
                 trace!("ApiClientConfig.new | selfCycle: {:?}", selfCycle);
                 let selfRecvQueue = Self::getParam(&mut selfConf, &mut selfNodeNames, "recv-queue").unwrap();
@@ -163,12 +162,16 @@ impl ApiClientConfig {
     }
     ///
     /// 
-    fn getParam(selfConf: &mut ConfTree, selfKeys: &mut Vec<String>, name: &str) -> Option<serde_yaml::Value> {
-        let index = selfKeys.iter().position(|x| *x == name).unwrap();
-        selfKeys.remove(index);
-        match selfConf.get(name) {
-            Some(confTree) => Some(confTree.conf),
-            None => None,
+    fn getParam(selfConf: &mut ConfTree, selfKeys: &mut Vec<String>, name: &str) -> Result<serde_yaml::Value, String> {
+        match selfKeys.iter().position(|x| *x == name) {
+            Some(index) => {
+                selfKeys.remove(index);
+                match selfConf.get(name) {
+                    Some(confTree) => Ok(confTree.conf),
+                    None => Err(format!("ApiClientConfig.getParam | '{}' - not found in: {:?}", name, selfConf)),
+                }
+            },
+            None => Err(format!("ApiClientConfig.getParam | '{}' - not found in: {:?}", name, selfConf)),
         }
     }
 }
