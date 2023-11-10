@@ -40,13 +40,16 @@ mod tests {
             ("service ApiClient", ConfKeywd::Service( ConfKeywdValue {prefix: String::new(), kind: ConfKind::Service, name: String::from("ApiClient")} )),
             ("service MultiQueuue", ConfKeywd::Service( ConfKeywdValue {prefix: String::new(), kind: ConfKind::Service, name: String::from("MultiQueuue")} )),
             ("task Task1", ConfKeywd::Task( ConfKeywdValue {prefix: String::new(), kind: ConfKind::Task, name: String::from("Task1")} )),
+            ("task task1", ConfKeywd::Task( ConfKeywdValue {prefix: String::new(), kind: ConfKind::Task, name: String::from("task1")} )),
             ("in queue queue", ConfKeywd::Queue( ConfKeywdValue {prefix: String::from("in"), kind: ConfKind::Queue, name: String::from("queue")} )),
+            ("in link link", ConfKeywd::Link( ConfKeywdValue {prefix: String::from("in"), kind: ConfKind::Link, name: String::from("link")} )),
             ("in queue in-queue", ConfKeywd::Queue( ConfKeywdValue {prefix: String::from("in"), kind: ConfKind::Queue, name: String::from("in-queue")} )),
             ("out queue", ConfKeywd::Queue( ConfKeywdValue {prefix: String::from("out"), kind: ConfKind::Queue, name: String::new()} )),
+            ("out link", ConfKeywd::Link( ConfKeywdValue {prefix: String::from("out"), kind: ConfKind::Link, name: String::new()} )),
         ];
         for (value, target) in testData {
             let fnConfigType = ConfKeywd::from_str(value).unwrap();
-            debug!("value: {:?}   |   fnConfigType: {:?}   |   target: {:?}", value, fnConfigType, target);
+            debug!("value: {:?}   |   ConfKind: {:?}   |   target: {:?}", value, fnConfigType, target);
             assert_eq!(fnConfigType, target);
         }
     }
