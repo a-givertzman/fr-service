@@ -1,14 +1,14 @@
 service ApiClient:
     cycle: 1 s
     address: 127.0.0.1:8080
-    in link api-link:
+    in queue api-link:
         max-length: 10000
     out queue: MultiQueuue.queue
 
 
-service MultiQueuue:
-    in link queue:
-        max-length: 10000
+# service MultiQueuue:
+#     in link queue:
+#         max-length: 10000
 
 
 # let VarName1:

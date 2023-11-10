@@ -8,7 +8,7 @@ use serde::Deserialize;
 
 ///
 /// 
-#[derive(Debug, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Deserialize, PartialEq, Eq, Hash, Clone)]
 pub enum ConfKind {
     Task,
     Service,
@@ -28,9 +28,19 @@ impl FromStr for ConfKind {
         }
     }
 }
+impl ToString for ConfKind {
+    fn to_string(&self) -> String {
+        match self {
+            ConfKind::Task => "task",
+            ConfKind::Service => "service",
+            ConfKind::Queue => "queue",
+            ConfKind::Unknown => "unknown",
+        }.to_string()
+    }
+}
 ///
 /// 
-#[derive(Debug, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Deserialize, PartialEq, Eq, Hash, Clone)]
 pub struct ConfKeywdValue {
     pub prefix: String,
     pub kind: ConfKind,
@@ -50,7 +60,7 @@ pub struct ConfKeywdValue {
 /// | in     | queue  | in-queue            |
 /// | out    | queue  | out-queue           |
 /// ````
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Eq, Hash)]
 pub enum ConfKeywd {
     Task(ConfKeywdValue),
     Service(ConfKeywdValue),
@@ -59,6 +69,13 @@ pub enum ConfKeywd {
 ///
 /// 
 impl ConfKeywd {
+    pub fn prefix(&self) -> String {
+        match self {
+            ConfKeywd::Task(v) => v.prefix.clone(),
+            ConfKeywd::Service(v) => v.prefix.clone(),
+            ConfKeywd::Queue(v) => v.prefix.clone(),
+        }
+    }
     pub fn kind(&self) -> ConfKind {
         match self {
             ConfKeywd::Task(v) => v.kind.clone(),

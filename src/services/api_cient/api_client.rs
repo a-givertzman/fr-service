@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering}}, time::Duration, thread, collections::VecDeque, net::{TcpStream, SocketAddr}, io::Write};
+use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering}}, time::Duration, thread, collections::{VecDeque, HashMap}, net::{TcpStream, SocketAddr}, io::Write};
 
 use log::{info, debug, trace, warn};
 
@@ -17,7 +17,7 @@ pub struct ApiClient {
     id: String,
     addres: SocketAddr,
     recv: Vec<Receiver<PointType>>,
-    send: Sender<PointType>,
+    send: HashMap<String, Sender<PointType>>,
     conf: ApiClientConfig,
     cycle: Option<Duration>,
     exit: Arc<AtomicBool>,
@@ -27,22 +27,25 @@ pub struct ApiClient {
 impl ApiClient {
     ///
     /// 
-    pub fn new(id: String, conf: ApiClientConfig) -> Self {
+    pub fn new(id: impl Into<String>, conf: ApiClientConfig) -> Self {
         let (send, recv) = mpsc::channel();
         Self {
-            id,
+            id: id.into(),
             addres: conf.address,
             recv: vec![recv],
-            send: send,
+            send: HashMap::from([(conf.recvQueue.clone(), send)]),
             conf: conf.clone(),
             cycle: conf.cycle.clone(),
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
     ///
-    /// 
-    pub fn getLink(&self, _name: &str) -> Sender<PointType> {
-        self.send.clone()
+    /// returns sender of the ApiClient queue by name
+    pub fn getLink(&self, name: &str) -> Sender<PointType> {
+        match self.send.get(name) {
+            Some(send) => send.clone(),
+            None => panic!("ApiClient({}).run | link '{:?}' - not found", self.id, name),
+        }
     }
     ///
     /// 

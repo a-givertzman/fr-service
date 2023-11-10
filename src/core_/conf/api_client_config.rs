@@ -1,10 +1,11 @@
 #![allow(non_snake_case)]
 
-use indexmap::IndexMap;
 use log::{trace, debug, error};
 use std::{fs, str::FromStr, time::Duration, net::SocketAddr};
 
-use crate::core_::conf::{fn_config::FnConfig, conf_tree::ConfTree, conf_duration::ConfDuration, conf_keywd::ConfKeywd};
+use crate::core_::conf::{conf_tree::ConfTree, conf_duration::ConfDuration, conf_keywd::ConfKeywd};
+
+use super::conf_keywd::ConfKind;
 
 
 // #[derive(Debug, Clone, PartialEq)]
@@ -45,8 +46,7 @@ pub struct ApiClientConfig {
     pub(crate) address: SocketAddr,
     pub(crate) cycle: Option<Duration>,
     pub(crate) recvQueue: String,
-    pub(crate) nodes: IndexMap<String, FnConfig>,
-    pub(crate) vars: Vec<String>,
+    pub(crate) recvQueueMaxLength: i64,
 }
 ///
 /// 
@@ -75,7 +75,6 @@ impl ApiClientConfig {
         if confTree.count() > 1 {
             error!("ApiClientConfig.new | FnConf must have single item, additional items was ignored: {:?}", confTree)
         };
-        let mut vars = vec![];
         match confTree.next() {
             Some(mut selfConf) => {
                 debug!("ApiClientConfig.new | MAPPING VALUE");
@@ -106,28 +105,24 @@ impl ApiClientConfig {
                     },
                     Err(_) => None,
                 };
-                trace!("ApiClientConfig.new | selfCycle: {:?}", selfCycle);
-                let selfRecvQueue = Self::getParam(&mut selfConf, &mut selfNodeNames, "in-queue").unwrap();
-                trace!("ApiClientConfig.new | selfRecvQueue: {:?}", selfRecvQueue);
-                let mut nodeIndex = 0;
-                let mut selfNodes = IndexMap::new();
-                for selfNodeName in selfNodeNames {
-                    let selfNodeConf = selfConf.get(&selfNodeName).unwrap();
-                    trace!("ApiClientConfig.new | selfNodeConf: {:?}", selfNodeConf);
-                    nodeIndex += 1;
-                    let nodeConf = FnConfig::new(&selfNodeConf, &mut vars);
-                    selfNodes.insert(
-                        format!("{}-{}", nodeConf.name, nodeIndex),
-                        nodeConf,
-                    );
-                }
+                debug!("ApiClientConfig.new | selfCycle: {:?}", selfCycle);
+                let (selfRecvQueue, selfRecvQueueMaxLength) = match Self::getParamByKeyword(&mut selfConf, &mut selfNodeNames, "in", ConfKind::Queue) {
+                    Some((keyword, mut selfRecvQueue)) => {
+                        let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
+                        debug!("ApiClientConfig.new | self in-queue params {}: {:?}", name, selfRecvQueue);
+                        // let mut params = Self::getParam(&mut selfConf, &mut selfNodeNames, &name).unwrap();
+                        let maxLength = Self::getParam(&mut selfRecvQueue, &mut vec![String::from("max-length")], "max-length").unwrap().as_i64().unwrap();
+                        (keyword.name(), maxLength)
+                    },
+                    None => panic!("ApiClientConfig.new | in queue - not found in : {:?}", selfConf),
+                };
+                debug!("ApiClientConfig.new | selfRecvQueue: {},\tmax-length: {}", selfRecvQueue, selfRecvQueueMaxLength);
                 ApiClientConfig {
                     name: selfName,
                     address: selfAddress,
                     cycle: selfCycle,
-                    recvQueue: selfRecvQueue.as_str().unwrap().to_string(),
-                    nodes: selfNodes,
-                    vars: vars,
+                    recvQueue: selfRecvQueue,
+                    recvQueueMaxLength: selfRecvQueueMaxLength,
                 }
             },
             None => {
@@ -173,5 +168,31 @@ impl ApiClientConfig {
             },
             None => Err(format!("ApiClientConfig.getParam | '{}' - not found in: {:?}", name, selfConf)),
         }
+    }
+    ///
+    /// 
+    fn getParamByKeyword(selfConf: &mut ConfTree, selfKeys: &mut Vec<String>, keywordPrefix: &str, keywordKind: ConfKind) -> Option<(ConfKeywd, ConfTree)> {
+        // let mut map = HashMap::new();
+        for node in selfConf.subNodes().unwrap() {
+            match ConfKeywd::from_str(&node.key) {
+                Ok(keyword) => {
+                    if keyword.kind() == keywordKind && keyword.prefix() == keywordPrefix {
+                        return Some((keyword, node));
+                    }
+                },
+                Err(_) => {},
+            }
+        }
+        None
+        // match selfKeys.iter().position(|x| *x == name) {
+        //     Some(index) => {
+        //         selfKeys.remove(index);
+        //         match selfConf.get(name) {
+        //             Some(confTree) => Ok(confTree.conf),
+        //             None => Err(format!("ApiClientConfig.getParam | '{}' - not found in: {:?}", name, selfConf)),
+        //         }
+        //     },
+        //     None => Err(format!("ApiClientConfig.getParam | '{}' - not found in: {:?}", name, selfConf)),
+        // }
     }
 }
