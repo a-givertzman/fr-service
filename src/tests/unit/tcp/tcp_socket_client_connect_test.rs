@@ -109,7 +109,7 @@ mod tests {
             ok.store(true, Ordering::SeqCst);
             info!("connected: {:?}", tcpStream);
         }
-        assert!(ok.load(Ordering::SeqCst) == false, "\nresult: {:?}\ntarget: {:?}", ok, true);
+        assert!(ok.load(Ordering::SeqCst) == false, "\nresult: {:?}\ntarget: {:?}", ok, false);
     }
 
 }
