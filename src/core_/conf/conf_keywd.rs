@@ -13,6 +13,7 @@ pub enum ConfKind {
     Task,
     Service,
     Queue,
+    Link,
     Unknown,
 }
 ///
@@ -24,6 +25,7 @@ impl FromStr for ConfKind {
             "task" => Ok(ConfKind::Task),
             "service" => Ok(ConfKind::Service),
             "queue" => Ok(ConfKind::Queue),
+            "link" => Ok(ConfKind::Link),
             _ => Err(format!("ConfKind.fron_str | Unknown keyword: '{}'", input))
         }
     }
@@ -34,6 +36,7 @@ impl ToString for ConfKind {
             ConfKind::Task => "task",
             ConfKind::Service => "service",
             ConfKind::Queue => "queue",
+            ConfKind::Link => "link",
             ConfKind::Unknown => "unknown",
         }.to_string()
     }
@@ -65,6 +68,7 @@ pub enum ConfKeywd {
     Task(ConfKeywdValue),
     Service(ConfKeywdValue),
     Queue(ConfKeywdValue),
+    Link(ConfKeywdValue),
 }
 ///
 /// 
@@ -74,6 +78,7 @@ impl ConfKeywd {
             ConfKeywd::Task(v) => v.prefix.clone(),
             ConfKeywd::Service(v) => v.prefix.clone(),
             ConfKeywd::Queue(v) => v.prefix.clone(),
+            ConfKeywd::Link(v) => v.prefix.clone(),
         }
     }
     pub fn kind(&self) -> ConfKind {
@@ -81,6 +86,7 @@ impl ConfKeywd {
             ConfKeywd::Task(v) => v.kind.clone(),
             ConfKeywd::Service(v) => v.kind.clone(),
             ConfKeywd::Queue(v) => v.kind.clone(),
+            ConfKeywd::Link(v) => v.kind.clone(),
         }
     }
     pub fn name(&self) -> String {
@@ -88,6 +94,7 @@ impl ConfKeywd {
             ConfKeywd::Task(v) => v.name.clone(),
             ConfKeywd::Service(v) => v.name.clone(),
             ConfKeywd::Queue(v) => v.name.clone(),
+            ConfKeywd::Link(v) => v.name.clone(),
         }
     }
 }
@@ -96,8 +103,7 @@ impl FromStr for ConfKeywd {
     type Err = String;
     fn from_str(input: &str) -> Result<ConfKeywd, String> {
         trace!("FnConfKeywd.from_str | input: {}", input);
-        // let re = r#"[ \t]*(?:(\w+)[ \t]+)*(task|service|queue){1}(?:[ \t]+['"]*([\w/.\-_]+)['"]*)*"#;
-        let re = r#"(?:(?:(\w+)[ \t]+)|)(task|service|queue){1}(?:[ \t]+['"]*([\w/.\-_]+)['"]*)*"#;
+        let re = r#"(?:(?:(\w+)|))(?:(?:\s|)(task|service|queue|link){1}(?:$|(?:[ \t]['"]*(\S+)['"]*)))"#;
         let re = RegexBuilder::new(re).multi_line(false).build().unwrap();
         let groupPrefix = 1;
         let groupKind = 2;
@@ -140,7 +146,8 @@ impl FromStr for ConfKeywd {
                                     "task" => Ok( ConfKeywd::Task( ConfKeywdValue { prefix, kind, name: name.to_string() } )),
                                     "service" => Ok( ConfKeywd::Service( ConfKeywdValue { prefix, kind, name: name.to_string() } )),
                                     "queue" => Ok( ConfKeywd::Queue( ConfKeywdValue { prefix, kind, name: name.to_string() } )),
-                                    _      => Err(format!("Unknown keyword '{}'", &input)),
+                                    "link" => Ok( ConfKeywd::Link( ConfKeywdValue { prefix, kind, name: name.to_string() } )),
+                                    _      => Err(format!("Unknown keyword '{:?}'", &keyword)),
                                 }
                             },
                             None => {
@@ -152,7 +159,7 @@ impl FromStr for ConfKeywd {
                 }
             },
             None => {
-                Err(format!("Unknown keyword '{}'", &input))
+                Err(format!("Prefix Kinde Name - not found in keyword '{}'", &input))
             },
         }
     }

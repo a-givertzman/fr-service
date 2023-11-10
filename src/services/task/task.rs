@@ -84,7 +84,7 @@ impl Task {
         // h.join().unwrap();
     }
     ///
-    /// 
+    /// Exit thread
     pub fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
     }

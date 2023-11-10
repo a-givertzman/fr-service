@@ -2,6 +2,7 @@
 mod tests;
 mod core_;
 mod services;
+mod tcp;
 
 use std::marker::PhantomData;
 trait SpecializationTest<T> {

@@ -4,7 +4,7 @@ use indexmap::IndexMap;
 use log::{trace, debug, error};
 use std::{fs, str::FromStr, time::Duration};
 
-use crate::core_::conf::{metric_config::MetricConfig, fn_config::FnConfig, conf_tree::ConfTree, fn_conf_keywd::FnConfKeywd, conf_duration::{ConfDuration, ConfDurationUnit}};
+use crate::core_::conf::{metric_config::MetricConfig, fn_config::FnConfig, conf_tree::ConfTree, fn_conf_keywd::FnConfKeywd, conf_duration::{ConfDuration, ConfDurationUnit}, conf_keywd::ConfKeywd};
 
 
 #[derive(Debug, Clone, PartialEq)]
@@ -81,8 +81,12 @@ impl TaskConfig {
                 trace!("TaskConfig.new | selfConf: {:?}", selfConf);
                 let mut selfNodeNames: Vec<String> = selfConf.subNodes().unwrap().map(|conf| conf.key).collect();
                 trace!("TaskConfig.new | selfConf keys: {:?}", selfNodeNames);
-                let selfName = match FnConfKeywd::from_str(&selfConf.key) {
-                    Ok(selfKeyword) => selfKeyword.data(),
+                debug!("TaskConfig.new | selfConf.key: {:?}", selfConf.key);
+                let selfName = match ConfKeywd::from_str(&selfConf.key) {
+                    Ok(selfKeyword) => {
+                        debug!("TaskConfig.new | selfKeyword: {:?}", selfKeyword);
+                        selfKeyword.name()
+                    },
                     Err(err) => panic!("TaskConfig.new | Unknown metric name in {:?}\n\tdetales: {:?}", &selfConf.key, err),
                 };
                 trace!("TaskConfig.new | selfName: {:?}", selfName);

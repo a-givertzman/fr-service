@@ -37,7 +37,7 @@ fn test_ApiClient() {
     let path = "./src/tests/unit/api_client/api_client.yaml";
     let conf = ApiClientConfig::read(path);
     let apiClient = ApiClient::new("test ApiClient", conf);
-    let send = apiClient.getLink("api-link1");
+    let send = apiClient.getLink("api-link");
     // assert!(false)
     // assert!(result == target, "result: {:?}\ntarget: {:?}", result, target);
 }
