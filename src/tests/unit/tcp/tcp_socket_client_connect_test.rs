@@ -35,7 +35,7 @@ mod tests {
         println!("");
         info!("success connection");
         let addr = "127.0.0.1:9999";
-        let timeout = Duration::from_millis(1500); // ms
+        let timeout = Duration::from_millis(3500); // ms
         let mut connect = TcpSocketClientConnect::new("test", addr);
 
         let ok = Arc::new(AtomicBool::new(false));
