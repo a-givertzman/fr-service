@@ -87,6 +87,7 @@ impl ApiClient {
             None => (false, Duration::ZERO),
         };
         let conf = self.conf.clone();
+        let _queueMaxLength = conf.recvQueueMaxLength;
         let recv = self.recv.pop().unwrap();
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             let mut buffer = Vec::new();
