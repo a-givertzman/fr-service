@@ -1,11 +1,14 @@
 service ApiClient:
     cycle: 1 s
     address: 127.0.0.1:8080
-    in queue api-queue:
+    in link api-link:
         max-length: 10000
+    out queue: MultiQueuue.queue
 
 
-
+service MultiQueuue:
+    in link queue:
+        max-length: 10000
 
 
 # let VarName1:
@@ -40,7 +43,7 @@ service ApiClient:
 #     #             input2: const float 0.07
 
 #     fn toApiQueue:
-#         queue: api-queue
+#         out queue: ApiClient.api-queue
 #         input metric sqlSelectMetric:
 #             initial: 0.123      # начальное значение
 #             table: table_name

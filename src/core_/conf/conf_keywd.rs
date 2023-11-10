@@ -79,8 +79,9 @@ impl FromStr for ConfKeywd {
     type Err = String;
     fn from_str(input: &str) -> Result<ConfKeywd, String> {
         trace!("FnConfKeywd.from_str | input: {}", input);
-        let re = r#"[ \t]*(?:(\w+)[ \t]+)*(?:(task|service|queue){1}(?:[ \t]+['"]*([\w/.\-_]+)['"]*))"#;
-        let re = RegexBuilder::new(re).multi_line(true).build().unwrap();
+        // let re = r#"[ \t]*(?:(\w+)[ \t]+)*(task|service|queue){1}(?:[ \t]+['"]*([\w/.\-_]+)['"]*)*"#;
+        let re = r#"(?:(?:(\w+)[ \t]+)|)(task|service|queue){1}(?:[ \t]+['"]*([\w/.\-_]+)['"]*)*"#;
+        let re = RegexBuilder::new(re).multi_line(false).build().unwrap();
         let groupPrefix = 1;
         let groupKind = 2;
         let groupName = 3;
@@ -94,7 +95,7 @@ impl FromStr for ConfKeywd {
                     Some(kind) => {
                         match ConfKind::from_str(&kind.as_str().to_lowercase()) {
                             Ok(kinde) => kinde,
-                            Err(err) => {
+                            Err(_err) => {
                                 warn!("ConfKeywd.from_str | Error parsing kind of keyword '{}'", &input);
                                 ConfKind::Unknown
                             },
