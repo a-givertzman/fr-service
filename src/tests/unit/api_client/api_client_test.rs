@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
 mod tests {
-    use log::info;
-    use std::{sync::{Once, Arc, Mutex}, thread, time::Duration};
+    use log::{info, debug};
+    use std::{sync::{Once, Arc, Mutex}, thread, time::Duration, net::TcpListener, io::{Read, Write}};
     use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, conf::api_client_config::ApiClientConfig, point::point_type::{ToPoint, PointType}}, services::api_cient::api_client::ApiClient}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -53,7 +53,53 @@ mod tests {
         info!("test_ApiClient");
         let path = "./src/tests/unit/api_client/api_client.yaml";
         let conf = ApiClientConfig::read(path);
+        let addr = conf.address.clone();
         let apiClient = Arc::new(Mutex::new(ApiClient::new("test ApiClient", conf)));
+
+        let mut buf = [0; 1024 * 4];
+
+        thread::spawn(move || {
+            info!("Preparing test TCP server...");
+            match TcpListener::bind(addr) {
+                Ok(listener) => {
+                    info!("Preparing test TCP server - ok");
+                    match listener.accept() {
+                        Ok((mut _socket, addr)) => {
+                            info!("incoming connection - ok\n\t{:?}", addr);
+                            loop {
+                                match _socket.read(&mut buf) {
+                                    Ok(bytes) => {
+                                        debug!("received bytes: {:?}", bytes);
+                                        match _socket.write("ok".as_bytes()) {
+                                            Ok(bytes) => {
+                                                debug!("sent bytes: {:?}", bytes);
+                                            },
+                                            Err(err) => {
+                                                debug!("socket write - error: {:?}", err);
+                                            },
+                                        };
+                                    },
+                                    Err(err) => {
+                                        debug!("socket read - error: {:?}", err);
+                                    },
+                                };
+                            }
+                        },
+                        Err(err) => {
+                            info!("incoming connection - error: {:?}", err);
+                        },
+                    }
+                },
+                Err(err) => {
+                    // connectExit.send(true).unwrap();
+                    // okRef.store(false, Ordering::SeqCst);
+                    panic!("Preparing test TCP server - error: {:?}", err);
+                },
+            };
+        });
+
+
+
         apiClient.lock().unwrap().run();
         let send = apiClient.lock().unwrap().getLink("api-link");
         let testData = vec![
