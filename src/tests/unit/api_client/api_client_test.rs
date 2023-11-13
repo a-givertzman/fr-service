@@ -82,6 +82,8 @@ mod tests {
                                                 debug!("socket write - error: {:?}", err);
                                             },
                                         };
+                                        _socket.shutdown(std::net::Shutdown::Both).unwrap();
+                                        break;
                                     },
                                     Err(err) => {
                                         debug!("socket read - error: {:?}", err);

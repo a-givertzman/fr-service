@@ -12,7 +12,7 @@ use crate::services::task::task_cycle::ServiceCycle;
 pub struct TcpSocketClientConnect {
     id: String,
     addr: SocketAddr,
-    exitRecv: Vec<Receiver<bool>>,
+    exitRecv: Arc<Mutex<Receiver<bool>>>,
     exitSend: Sender<bool>,
     // exit: Arc<AtomicBool>,
 }
@@ -35,7 +35,7 @@ impl TcpSocketClientConnect {
         Self { 
             id: id.into(), 
             addr,
-            exitRecv: vec![recv],
+            exitRecv: Arc::new(Mutex::new(recv)),
             exitSend: send,
             // exit: Arc::new(AtomicBool::new(false)),
         }
@@ -45,10 +45,11 @@ impl TcpSocketClientConnect {
     pub fn connect(&mut self, cycle: Duration) -> Option<TcpStream> {
         let id = self.id.clone();
         let addr = self.addr.clone();
-        let exit = self.exitRecv.pop().unwrap();
+        let exit = self.exitRecv.clone();
         let result: Arc<Mutex<Vec<Option<TcpStream>>>> = Arc::new(Mutex::new(vec![]));
         let resultRef = result.clone();
         let h = thread::spawn(move || {
+            let exit = exit.lock().unwrap();
             let mut cycle = ServiceCycle::new(cycle);
             let mut result = resultRef.lock().unwrap();
             'main: loop {
@@ -86,7 +87,8 @@ impl TcpSocketClientConnect {
     /// Opens a TCP connection to a remote host
     /// - tries to connect [attempts] times
     pub fn connect_attempts(&mut self, attempts: u8) -> Result<TcpStream, std::io::Error> {
-        let exit = self.exitRecv.pop().unwrap();
+        let exit = self.exitRecv.clone();
+        let exit = exit.lock().unwrap();
         let mut result: Option<Result<TcpStream, std::io::Error>> = None;
         for attempt in 0..=attempts {
             let r = TcpStream::connect(self.addr);
