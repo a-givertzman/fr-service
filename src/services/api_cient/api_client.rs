@@ -55,10 +55,10 @@ impl ApiClient {
     ///
     /// 
     fn readQueue(selfId: &str, recv: &Receiver<PointType>, buffer: &mut Vec<PointType>) {
-        for _ in 0..1000 {                    
+        for _ in 0..1 {                    
             match recv.recv() {
                 Ok(point) => {
-                    debug!("ApiClient({}).run | point: {:?}", selfId, &point);
+                    debug!("ApiClient({}).readQueue | point: {:?}", selfId, &point);
                     buffer.push(point);
                 },
                 Err(_err) => {
@@ -75,7 +75,7 @@ impl ApiClient {
         match stream.write(query.toJson().as_bytes()) {
             Ok(_) => Ok(()),
             Err(err) => {
-                warn!("ApiClient({}).run | write to tcp stream error: {:?}", selfId, err);
+                warn!("ApiClient({}).send | write to tcp stream error: {:?}", selfId, err);
                 Err(Box::new(err))
             },
         }
@@ -99,35 +99,43 @@ impl ApiClient {
             let mut buffer = Vec::new();
             let mut cycle = ServiceCycle::new(cycleInterval);
             let mut connect = TcpSocketClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address);
+            let mut stream = None;
             'main: loop {
-                let mut stream = connect.connect(reconnect).unwrap();
-                cycle.start();
-                trace!("ApiClient({}).run | step...", selfId);
-                Self::readQueue(&selfId, &recv, &mut buffer);
-                let mut count = buffer.len();
-                while count > 0 {
-                    match buffer.pop() {
-                        Some(point) => {
-                            let sql = point.asString().value;
-                            match Self::send(&selfId, sql, &mut stream) {
-                                Ok(_) => {
-                                    Self::readAll(&selfId, &mut stream);
-                                },
-                                Err(err) => {
-                                    warn!("ApiClient({}).run | error sending API: {:?}", selfId, err);
-                                },
-                            }
-                        },
-                        None => {},
-                    };
-                    count -=1;
+                if stream.is_none() {
+                    stream = connect.connect(reconnect);
                 }
-                if exit.load(Ordering::SeqCst) {
-                    break 'main;
-                }
-                trace!("ApiClient({}).run | step - done ({:?})", selfId, cycle.elapsed());
-                if cyclic {
-                    cycle.wait();
+                match &mut stream {
+                    Some(stream) => {
+                        cycle.start();
+                        trace!("ApiClient({}).run | step...", selfId);
+                        Self::readQueue(&selfId, &recv, &mut buffer);
+                        let mut count = buffer.len();
+                        while count > 0 {
+                            match buffer.pop() {
+                                Some(point) => {
+                                    let sql = point.asString().value;
+                                    match Self::send(&selfId, sql, stream) {
+                                        Ok(_) => {
+                                            Self::readAll(&selfId, stream);
+                                        },
+                                        Err(err) => {
+                                            warn!("ApiClient({}).run | error sending API: {:?}", selfId, err);
+                                        },
+                                    }
+                                },
+                                None => {},
+                            };
+                            count -=1;
+                        }
+                        if exit.load(Ordering::SeqCst) {
+                            break 'main;
+                        }
+                        trace!("ApiClient({}).run | step - done ({:?})", selfId, cycle.elapsed());
+                        if cyclic {
+                            cycle.wait();
+                        }
+                    },
+                    None => {},
                 }
             };
             info!("ApiClient({}).run | stopped", selfId);

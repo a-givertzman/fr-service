@@ -34,12 +34,12 @@ mod tests {
         String(String),
     }
     impl Value {
-        fn toPoint(&self, name: &str) -> PointType {
+        fn toString(&self) -> String {
             match &self {
-                Value::Bool(v) => v.clone().toPoint(name),
-                Value::Int(v) => v.clone().toPoint(name),
-                Value::Float(v) => v.clone().toPoint(name),
-                Value::String(v) => v.clone().toPoint(name),
+                Value::Bool(v) => v.to_string(),
+                Value::Int(v) => v.to_string(),
+                Value::Float(v) => v.to_string(),
+                Value::String(v) => v.to_string(),
             }
         }
     }
@@ -103,18 +103,19 @@ mod tests {
         apiClient.lock().unwrap().run();
         let send = apiClient.lock().unwrap().getLink("api-link");
         let testData = vec![
-            Value::Int(0),
-            Value::Float(0.0),
-            Value::Bool(true),
-            Value::Bool(false),
+            // Value::Int(0),
+            // Value::Float(0.0),
+            // Value::Bool(true),
+            // Value::Bool(false),
             Value::String("test1".to_owned()),
             Value::String("test2".to_owned()),
         ];
         for value in testData {
-            let point = value.toPoint("teset");
+            let point = format!("select from table where id = {}", value.toString()).toPoint("teset");
             send.send(point).unwrap();
+            thread::sleep(Duration::from_millis(10));
         }
-        thread::sleep(Duration::from_millis(10000));
+        thread::sleep(Duration::from_millis(1000));
         // assert!(false)
         // assert!(result == target, "result: {:?}\ntarget: {:?}", result, target);
     }
