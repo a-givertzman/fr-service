@@ -75,7 +75,7 @@ mod tests {
             connectExit.send(true).unwrap();
         });
         info!("Connecting...");
-        let tcpStream = connect.connect(1000);
+        let tcpStream = connect.connect(Duration::from_millis(1000));
         if tcpStream.is_some() {
             ok.store(true, Ordering::SeqCst);
             info!("connected: {:?}", tcpStream);
@@ -104,7 +104,7 @@ mod tests {
             connectExit.send(true).unwrap();
         });
         info!("Connecting...");
-        let tcpStream = connect.connect(1000);
+        let tcpStream = connect.connect(Duration::from_millis(1000));
         if tcpStream.is_some() {
             ok.store(true, Ordering::SeqCst);
             info!("connected: {:?}", tcpStream);

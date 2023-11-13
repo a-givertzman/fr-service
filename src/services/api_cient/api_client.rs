@@ -1,10 +1,14 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering}}, time::Duration, thread, collections::{VecDeque, HashMap}, net::{TcpStream, SocketAddr}, io::Write};
+use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering}}, time::Duration, thread, collections::HashMap, net::TcpStream, io::Write};
 
 use log::{info, debug, trace, warn};
 
-use crate::{core_::{point::point_type::PointType, conf::api_client_config::ApiClientConfig}, services::task::task_cycle::ServiceCycle};
+use crate::{
+    core_::{point::point_type::PointType, conf::api_client_config::ApiClientConfig}, 
+    services::task::task_cycle::ServiceCycle, 
+    tcp::tcp_socket_client_connect::TcpSocketClientConnect, 
+};
 
 use super::api_query::ApiQuery;
 
@@ -15,11 +19,9 @@ use super::api_query::ApiQuery;
 /// - Sent messages immediately removed from the buffer
 pub struct ApiClient {
     id: String,
-    addres: SocketAddr,
     recv: Vec<Receiver<PointType>>,
     send: HashMap<String, Sender<PointType>>,
     conf: ApiClientConfig,
-    cycle: Option<Duration>,
     exit: Arc<AtomicBool>,
 }
 ///
@@ -31,11 +33,9 @@ impl ApiClient {
         let (send, recv) = mpsc::channel();
         Self {
             id: id.into(),
-            addres: conf.address,
             recv: vec![recv],
             send: HashMap::from([(conf.recvQueue.clone(), send)]),
             conf: conf.clone(),
-            cycle: conf.cycle.clone(),
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -79,33 +79,36 @@ impl ApiClient {
     /// 
     pub fn run(&mut self) {
         info!("ApiClient({}).run | starting...", self.id);
-        let selfName = self.id.clone();
+        let selfId = self.id.clone();
         let exit = self.exit.clone();
-        let cycleInterval = self.cycle;
+        let conf = self.conf.clone();
+        let recv = self.recv.pop().unwrap();
+        let cycleInterval = conf.cycle;
         let (cyclic, cycleInterval) = match cycleInterval {
             Some(interval) => (interval > Duration::ZERO, interval),
             None => (false, Duration::ZERO),
         };
-        let conf = self.conf.clone();
+        let reconnect = if conf.reconnectCycle.is_some() {conf.reconnectCycle.unwrap()} else {Duration::from_secs(3)};
         let _queueMaxLength = conf.recvQueueMaxLength;
-        let recv = self.recv.pop().unwrap();
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             let mut buffer = Vec::new();
             let mut cycle = ServiceCycle::new(cycleInterval);
-            let mut stream = TcpStream::connect("127.0.0.1:34254").unwrap();
+            let mut connect = TcpSocketClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address);
+            let mut stream = connect.connect(reconnect).unwrap();
+            //  TcpStream::connect(conf.address).unwrap();
             'main: loop {
                 cycle.start();
-                trace!("ApiClient({}).run | step...", selfName);
-                Self::readQueue(&selfName, &recv, &mut buffer);
+                trace!("ApiClient({}).run | step...", selfId);
+                Self::readQueue(&selfId, &recv, &mut buffer);
                 let mut count = buffer.len();
                 while count > 0 {
                     match buffer.pop() {
                         Some(point) => {
                             let sql = point.asString().value;
-                            match Self::send(&selfName, sql, &mut stream) {
+                            match Self::send(&selfId, sql, &mut stream) {
                                 Ok(_) => {},
                                 Err(err) => {
-                                    warn!("ApiClient({}).run | error sending API: {:?}", selfName, err);
+                                    warn!("ApiClient({}).run | error sending API: {:?}", selfId, err);
                                 },
                             }
                         },
@@ -116,12 +119,12 @@ impl ApiClient {
                 if exit.load(Ordering::SeqCst) {
                     break 'main;
                 }
-                trace!("ApiClient({}).run | step - done ({:?})", selfName, cycle.elapsed());
+                trace!("ApiClient({}).run | step - done ({:?})", selfId, cycle.elapsed());
                 if cyclic {
                     cycle.wait();
                 }
             };
-            info!("ApiClient({}).run | stopped", selfName);
+            info!("ApiClient({}).run | stopped", selfId);
         }).unwrap();
         info!("ApiClient({}).run | started", self.id);
         // h.join().unwrap();

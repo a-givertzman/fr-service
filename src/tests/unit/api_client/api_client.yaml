@@ -1,5 +1,6 @@
 service ApiClient:
     cycle: 1 s
+    reconnect: 1 s  # default 3 s
     address: 127.0.0.1:8080
     in queue api-link:
         max-length: 10000
