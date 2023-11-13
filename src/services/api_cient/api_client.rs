@@ -96,16 +96,18 @@ impl ApiClient {
         let reconnect = if conf.reconnectCycle.is_some() {conf.reconnectCycle.unwrap()} else {Duration::from_secs(3)};
         let _queueMaxLength = conf.recvQueueMaxLength;
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
+            let mut isConnected = false;
             let mut buffer = Vec::new();
             let mut cycle = ServiceCycle::new(cycleInterval);
             let mut connect = TcpSocketClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address);
             let mut stream = None;
             'main: loop {
-                if stream.is_none() {
+                if !isConnected {
                     stream = connect.connect(reconnect);
                 }
                 match &mut stream {
                     Some(stream) => {
+                        isConnected = true;
                         cycle.start();
                         trace!("ApiClient({}).run | step...", selfId);
                         Self::readQueue(&selfId, &recv, &mut buffer);
@@ -116,9 +118,18 @@ impl ApiClient {
                                     let sql = point.asString().value;
                                     match Self::send(&selfId, sql, stream) {
                                         Ok(_) => {
-                                            Self::readAll(&selfId, stream);
+                                            match Self::readAll(&selfId, stream) {
+                                                ConnectionStatus::Active(bytes) => {
+                                                    let replay = String::from_utf8(bytes).unwrap();
+                                                    trace!("ApiClient({}).run | API replay: {:?}", selfId, replay);
+                                                },
+                                                ConnectionStatus::Closed => {
+                                                    isConnected = false;
+                                                },
+                                            };
                                         },
                                         Err(err) => {
+                                            isConnected = false;
                                             warn!("ApiClient({}).run | error sending API: {:?}", selfId, err);
                                         },
                                     }
@@ -135,7 +146,9 @@ impl ApiClient {
                             cycle.wait();
                         }
                     },
-                    None => {},
+                    None => {
+                        isConnected = false;
+                    },
                 }
             };
             info!("ApiClient({}).run | stopped", selfId);
