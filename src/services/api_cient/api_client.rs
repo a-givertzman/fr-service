@@ -1,17 +1,21 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering}}, time::Duration, thread, collections::HashMap, net::TcpStream, io::Write};
+use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering}}, time::Duration, thread, collections::HashMap, net::TcpStream, io::{Write, Read}};
 
 use log::{info, debug, trace, warn};
 
 use crate::{
     core_::{point::point_type::PointType, conf::api_client_config::ApiClientConfig}, 
     services::task::task_cycle::ServiceCycle, 
-    // tcp::tcp_socket_client_connect::TcpSocketClientConnect, 
+    tcp::tcp_socket_client_connect::TcpSocketClientConnect, 
 };
 
 use super::api_query::ApiQuery;
-use super::super::super::tcp::tcp_socket_client_connect::TcpSocketClientConnect;
+
+enum ConnectionStatus {
+    Active(Vec<u8>),
+    Closed,
+}
 
 ///
 /// - Holding single input queue
@@ -50,11 +54,11 @@ impl ApiClient {
     }
     ///
     /// 
-    fn readQueue(selfName: &str, recv: &Receiver<PointType>, buffer: &mut Vec<PointType>) {
+    fn readQueue(selfId: &str, recv: &Receiver<PointType>, buffer: &mut Vec<PointType>) {
         for _ in 0..1000 {                    
             match recv.recv() {
                 Ok(point) => {
-                    debug!("ApiClient({}).run | point: {:?}", selfName, &point);
+                    debug!("ApiClient({}).run | point: {:?}", selfId, &point);
                     buffer.push(point);
                 },
                 Err(_err) => {
@@ -66,12 +70,12 @@ impl ApiClient {
     }
     ///
     /// Writing sql string to the TcpStream
-    fn send(selfName: &str, sql: String, stream: &mut TcpStream) -> Result<(), Box<dyn std::error::Error>>{
+    fn send(selfId: &str, sql: String, stream: &mut TcpStream) -> Result<(), Box<dyn std::error::Error>>{
         let query = ApiQuery::new("authToken", "id", "database", sql, true, true);
         match stream.write(query.toJson().as_bytes()) {
             Ok(_) => Ok(()),
             Err(err) => {
-                warn!("ApiClient({}).run | write to tcp stream error: {:?}", selfName, err);
+                warn!("ApiClient({}).run | write to tcp stream error: {:?}", selfId, err);
                 Err(Box::new(err))
             },
         }
@@ -106,7 +110,9 @@ impl ApiClient {
                         Some(point) => {
                             let sql = point.asString().value;
                             match Self::send(&selfId, sql, &mut stream) {
-                                Ok(_) => {},
+                                Ok(_) => {
+                                    Self::readAll(&selfId, &mut stream);
+                                },
                                 Err(err) => {
                                     warn!("ApiClient({}).run | error sending API: {:?}", selfId, err);
                                 },
@@ -129,6 +135,82 @@ impl ApiClient {
         info!("ApiClient({}).run | started", self.id);
         // h.join().unwrap();
     }
+    ///
+    /// bytes to be read from socket at once
+    const BUF_LEN: usize = 1024 * 4;
+    ///
+    /// reads all avalible data from the TspStream
+    /// - returns Active: if read bytes non zero length without errors
+    /// - returns Closed:
+    ///    - if read 0 bytes
+    ///    - if on error
+    fn readAll(selfId: &str, stream: &mut TcpStream) -> ConnectionStatus {
+        let mut buf = [0; Self::BUF_LEN];
+        let mut result = vec![];
+        loop {
+            match stream.read(&mut buf) {
+                Ok(len) => {
+                    debug!("TcpServer.readAll ({}) |     read len: {:?}", selfId, len);
+                    result.append(& mut buf[..len].into());
+                    if len < Self::BUF_LEN {
+                        if len == 0 {
+                            return ConnectionStatus::Closed;
+                        } else {
+                            return ConnectionStatus::Active(result)
+                        }
+                    }
+                },
+                Err(err) => {
+                    warn!("TcpServer.readAll ({}) | error reading from socket: {:?}", selfId, err);
+                    warn!("TcpServer.readAll ({}) | error kind: {:?}", selfId, err.kind());
+                    return match err.kind() {
+                        std::io::ErrorKind::NotFound => todo!(),
+                        std::io::ErrorKind::PermissionDenied => ConnectionStatus::Closed,
+                        std::io::ErrorKind::ConnectionRefused => ConnectionStatus::Closed,
+                        std::io::ErrorKind::ConnectionReset => ConnectionStatus::Closed,
+                        // std::io::ErrorKind::HostUnreachable => ConnectionStatus::Closed,
+                        // std::io::ErrorKind::NetworkUnreachable => ConnectionStatus::Closed,
+                        std::io::ErrorKind::ConnectionAborted => ConnectionStatus::Closed,
+                        std::io::ErrorKind::NotConnected => ConnectionStatus::Closed,
+                        std::io::ErrorKind::AddrInUse => ConnectionStatus::Closed,
+                        std::io::ErrorKind::AddrNotAvailable => ConnectionStatus::Closed,
+                        // std::io::ErrorKind::NetworkDown => ConnectionStatus::Closed,
+                        std::io::ErrorKind::BrokenPipe => ConnectionStatus::Closed,
+                        std::io::ErrorKind::AlreadyExists => todo!(),
+                        std::io::ErrorKind::WouldBlock => ConnectionStatus::Closed,
+                        // std::io::ErrorKind::NotADirectory => todo!(),
+                        // std::io::ErrorKind::IsADirectory => todo!(),
+                        // std::io::ErrorKind::DirectoryNotEmpty => todo!(),
+                        // std::io::ErrorKind::ReadOnlyFilesystem => todo!(),
+                        // std::io::ErrorKind::FilesystemLoop => todo!(),
+                        // std::io::ErrorKind::StaleNetworkFileHandle => todo!(),
+                        std::io::ErrorKind::InvalidInput => todo!(),
+                        std::io::ErrorKind::InvalidData => todo!(),
+                        std::io::ErrorKind::TimedOut => todo!(),
+                        std::io::ErrorKind::WriteZero => todo!(),
+                        // std::io::ErrorKind::StorageFull => todo!(),
+                        // std::io::ErrorKind::NotSeekable => todo!(),
+                        // std::io::ErrorKind::FilesystemQuotaExceeded => todo!(),
+                        // std::io::ErrorKind::FileTooLarge => todo!(),
+                        // std::io::ErrorKind::ResourceBusy => todo!(),
+                        // std::io::ErrorKind::ExecutableFileBusy => todo!(),
+                        // std::io::ErrorKind::Deadlock => todo!(),
+                        // std::io::ErrorKind::CrossesDevices => todo!(),
+                        // std::io::ErrorKind::TooManyLinks => todo!(),
+                        // std::io::ErrorKind::InvalidFilename => todo!(),
+                        // std::io::ErrorKind::ArgumentListTooLong => todo!(),
+                        std::io::ErrorKind::Interrupted => todo!(),
+                        std::io::ErrorKind::Unsupported => todo!(),
+                        std::io::ErrorKind::UnexpectedEof => todo!(),
+                        std::io::ErrorKind::OutOfMemory => todo!(),
+                        std::io::ErrorKind::Other => todo!(),
+                        _ => ConnectionStatus::Closed,
+                    }
+                    // return ConnectionStatus::Closed;
+                },
+            };
+        }
+    }    
     ///
     /// 
     pub fn exit(&self) {

@@ -68,7 +68,7 @@ mod tests {
             let point = value.toPoint("teset");
             send.send(point).unwrap();
         }
-        thread::sleep(Duration::from_millis(100));
+        thread::sleep(Duration::from_millis(10000));
         // assert!(false)
         // assert!(result == target, "result: {:?}\ntarget: {:?}", result, target);
     }
