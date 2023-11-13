@@ -7,10 +7,11 @@ use log::{info, debug, trace, warn};
 use crate::{
     core_::{point::point_type::PointType, conf::api_client_config::ApiClientConfig}, 
     services::task::task_cycle::ServiceCycle, 
-    tcp::tcp_socket_client_connect::TcpSocketClientConnect, 
+    // tcp::tcp_socket_client_connect::TcpSocketClientConnect, 
 };
 
 use super::api_query::ApiQuery;
+use super::super::super::tcp::tcp_socket_client_connect::TcpSocketClientConnect;
 
 ///
 /// - Holding single input queue
@@ -94,9 +95,8 @@ impl ApiClient {
             let mut buffer = Vec::new();
             let mut cycle = ServiceCycle::new(cycleInterval);
             let mut connect = TcpSocketClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address);
-            let mut stream = connect.connect(reconnect).unwrap();
-            //  TcpStream::connect(conf.address).unwrap();
             'main: loop {
+                let mut stream = connect.connect(reconnect).unwrap();
                 cycle.start();
                 trace!("ApiClient({}).run | step...", selfId);
                 Self::readQueue(&selfId, &recv, &mut buffer);
