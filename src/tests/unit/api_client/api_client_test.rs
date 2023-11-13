@@ -56,9 +56,13 @@ mod tests {
         let addr = conf.address.clone();
         let apiClient = Arc::new(Mutex::new(ApiClient::new("test ApiClient", conf)));
 
+        let mut sent = vec![];
+        let received = Arc::new(Mutex::new(vec![]));
+        let receivedRef = received.clone();
         let mut buf = [0; 1024 * 4];
 
         thread::spawn(move || {
+            let mut received = receivedRef.lock().unwrap();
             info!("Preparing test TCP server...");
             match TcpListener::bind(addr) {
                 Ok(listener) => {
@@ -73,6 +77,7 @@ mod tests {
                                         let raw = String::from_utf8(buf.to_vec()).unwrap();
                                         let raw = raw.trim_matches(char::from(0));
                                         let value: serde_json::Value = serde_json::from_str(&raw).unwrap();
+                                        received.push(value.as_str().unwrap().to_string());
                                         debug!("received: {:?}", value);
                                         match _socket.write("ok".as_bytes()) {
                                             Ok(bytes) => {
@@ -82,8 +87,8 @@ mod tests {
                                                 debug!("socket write - error: {:?}", err);
                                             },
                                         };
-                                        _socket.shutdown(std::net::Shutdown::Both).unwrap();
-                                        break;
+                                        // _socket.shutdown(std::net::Shutdown::Both).unwrap();
+                                        // break;
                                     },
                                     Err(err) => {
                                         debug!("socket read - error: {:?}", err);
@@ -118,8 +123,15 @@ mod tests {
         ];
         for value in testData {
             let point = format!("select from table where id = {}", value.toString()).toPoint("teset");
-            send.send(point).unwrap();
+            send.send(point.clone()).unwrap();
+            sent.push(point.asString().value);
             thread::sleep(Duration::from_millis(10));
+        }
+        let mut received = received.lock().unwrap();
+        while &sent.len() > &0 {
+            let target = sent.pop().unwrap();
+            let result = received.pop().unwrap();
+            assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
         thread::sleep(Duration::from_millis(3000));
         // assert!(false)
