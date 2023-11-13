@@ -70,6 +70,10 @@ mod tests {
                                 match _socket.read(&mut buf) {
                                     Ok(bytes) => {
                                         debug!("received bytes: {:?}", bytes);
+                                        let raw = String::from_utf8(buf.to_vec()).unwrap();
+                                        let raw = raw.trim_matches(char::from(0));
+                                        let value: serde_json::Value = serde_json::from_str(&raw).unwrap();
+                                        debug!("received: {:?}", value);
                                         match _socket.write("ok".as_bytes()) {
                                             Ok(bytes) => {
                                                 debug!("sent bytes: {:?}", bytes);
@@ -103,10 +107,10 @@ mod tests {
         apiClient.lock().unwrap().run();
         let send = apiClient.lock().unwrap().getLink("api-link");
         let testData = vec![
-            // Value::Int(0),
-            // Value::Float(0.0),
-            // Value::Bool(true),
-            // Value::Bool(false),
+            Value::Int(0),
+            Value::Float(0.0),
+            Value::Bool(true),
+            Value::Bool(false),
             Value::String("test1".to_owned()),
             Value::String("test2".to_owned()),
         ];
@@ -115,7 +119,7 @@ mod tests {
             send.send(point).unwrap();
             thread::sleep(Duration::from_millis(10));
         }
-        thread::sleep(Duration::from_millis(1000));
+        thread::sleep(Duration::from_millis(3000));
         // assert!(false)
         // assert!(result == target, "result: {:?}\ntarget: {:?}", result, target);
     }
