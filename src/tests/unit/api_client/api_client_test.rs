@@ -56,6 +56,16 @@ mod tests {
         let addr = conf.address.clone();
         let apiClient = Arc::new(Mutex::new(ApiClient::new("test ApiClient", conf)));
 
+        let testData = vec![
+            Value::Int(0),
+            Value::Float(0.0),
+            Value::Bool(true),
+            Value::Bool(false),
+            Value::String("test1".to_owned()),
+            Value::String("test2".to_owned()),
+        ];
+        let testDataLen = testData.len();
+
         let mut sent = vec![];
         let received = Arc::new(Mutex::new(vec![]));
         let receivedRef = received.clone();
@@ -70,15 +80,15 @@ mod tests {
                     match listener.accept() {
                         Ok((mut _socket, addr)) => {
                             info!("incoming connection - ok\n\t{:?}", addr);
-                            loop {
+                            while received.len() < testDataLen {
                                 match _socket.read(&mut buf) {
                                     Ok(bytes) => {
                                         debug!("received bytes: {:?}", bytes);
                                         let raw = String::from_utf8(buf.to_vec()).unwrap();
                                         let raw = raw.trim_matches(char::from(0));
                                         let value: serde_json::Value = serde_json::from_str(&raw).unwrap();
-                                        received.push(value.as_str().unwrap().to_string());
                                         debug!("received: {:?}", value);
+                                        received.push(value);
                                         match _socket.write("ok".as_bytes()) {
                                             Ok(bytes) => {
                                                 debug!("sent bytes: {:?}", bytes);
@@ -113,14 +123,6 @@ mod tests {
 
         apiClient.lock().unwrap().run();
         let send = apiClient.lock().unwrap().getLink("api-link");
-        let testData = vec![
-            Value::Int(0),
-            Value::Float(0.0),
-            Value::Bool(true),
-            Value::Bool(false),
-            Value::String("test1".to_owned()),
-            Value::String("test2".to_owned()),
-        ];
         for value in testData {
             let point = format!("select from table where id = {}", value.toString()).toPoint("teset");
             send.send(point.clone()).unwrap();
@@ -131,9 +133,11 @@ mod tests {
         while &sent.len() > &0 {
             let target = sent.pop().unwrap();
             let result = received.pop().unwrap();
-            assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
+            let result = result.as_object().unwrap().get("sql").unwrap().as_object().unwrap().get("sql").unwrap().as_str().unwrap();
+            println!("\nresult: {:?}\ntarget: {:?}", result, target);
+            assert!(result == &target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
-        thread::sleep(Duration::from_millis(3000));
+        thread::sleep(Duration::from_millis(100));
         // assert!(false)
         // assert!(result == target, "result: {:?}\ntarget: {:?}", result, target);
     }
