@@ -2,7 +2,8 @@
 #[cfg(test)]
 mod tests {
     use log::{info, debug};
-    use std::{sync::{Once, Arc, Mutex}, thread, time::Duration, net::TcpListener, io::{Read, Write}};
+    use rand::Rng;
+    use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::{Read, Write}};
     use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, conf::api_client_config::ApiClientConfig, point::point_type::{ToPoint, PointType}}, services::api_cient::api_client::ApiClient}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -46,19 +47,21 @@ mod tests {
     
     #[test]
     fn test_ApiClient() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
         info!("test_ApiClient");
+        let mut rnd = rand::thread_rng();
         let path = "./src/tests/unit/api_client/api_client.yaml";
         let conf = ApiClientConfig::read(path);
         let addr = conf.address.clone();
         let apiClient = Arc::new(Mutex::new(ApiClient::new("test ApiClient", conf)));
 
+        let count = 100;
         let testData = vec![
-            Value::Int(0),
-            Value::Float(0.0),
+            Value::Int(7),
+            Value::Float(1.3),
             Value::Bool(true),
             Value::Bool(false),
             Value::String("test1".to_owned()),
@@ -80,12 +83,14 @@ mod tests {
                     match listener.accept() {
                         Ok((mut _socket, addr)) => {
                             info!("incoming connection - ok\n\t{:?}", addr);
-                            while received.len() < testDataLen {
+                            while received.len() < count {
+                                for e in buf.iter_mut() {*e = 0;}
                                 match _socket.read(&mut buf) {
                                     Ok(bytes) => {
                                         debug!("received bytes: {:?}", bytes);
                                         let raw = String::from_utf8(buf.to_vec()).unwrap();
                                         let raw = raw.trim_matches(char::from(0));
+                                        debug!("received raw: {:?}", raw);
                                         let value: serde_json::Value = serde_json::from_str(&raw).unwrap();
                                         debug!("received: {:?}", value);
                                         received.push(value);
@@ -122,22 +127,30 @@ mod tests {
 
 
         apiClient.lock().unwrap().run();
+        let timer = Instant::now();
         let send = apiClient.lock().unwrap().getLink("api-link");
-        for value in testData {
+        for _ in 0..count {
+            let index = rnd.gen_range(0..testDataLen);
+            let value = testData.get(index).unwrap();
             let point = format!("select from table where id = {}", value.toString()).toPoint("teset");
             send.send(point.clone()).unwrap();
             sent.push(point.asString().value);
-            thread::sleep(Duration::from_millis(10));
         }
+        let mut waitAttempts = 100;
+        while received.lock().unwrap().len() < sent.len() {
+            thread::sleep(Duration::from_millis(10));
+            waitAttempts -= 1;
+            assert!(waitAttempts > 0, "Transfering {} points taks too mach time {:?}", count, timer.elapsed());
+        }
+        println!("elapsed: {:?}", timer.elapsed());
         let mut received = received.lock().unwrap();
         while &sent.len() > &0 {
             let target = sent.pop().unwrap();
             let result = received.pop().unwrap();
             let result = result.as_object().unwrap().get("sql").unwrap().as_object().unwrap().get("sql").unwrap().as_str().unwrap();
-            println!("\nresult: {:?}\ntarget: {:?}", result, target);
+            debug!("\nresult: {:?}\ntarget: {:?}", result, target);
             assert!(result == &target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
-        thread::sleep(Duration::from_millis(100));
         // assert!(false)
         // assert!(result == target, "result: {:?}\ntarget: {:?}", result, target);
     }
