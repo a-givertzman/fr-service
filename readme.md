@@ -100,7 +100,7 @@ class CMA green
 #### Configuration fo the tasks, metrics, functions
 
 ```yaml
-client CMA:
+service CmaClient:
     addres: 127.0.0.1:8881  // Self local addres
     cycle: 100 ms           // operating cycle time of the module
     auth:                   // some auth credentials
@@ -111,45 +111,47 @@ client CMA:
         queue faultDetectionQueue:
             max-length: 10000
 
-client API:
-    addres: 127.0.0.1:8080  // Self local addres
-    cycle: 100 ms           // operating cycle time of the module
-    auth:                   // some auth credentials
-    in:
-        queue1:
-            task OperatingCycle:
-                cycle: 500 ms       // operating cycle time of the task
-                outputQueue: operatingCycleQueue
-                metrics:
-                    metric MetricName1:
-                        initial: 0      # начальное значение
+service ApiClient:
+    cycle: 1 ms
+    reconnect: 1 s  # default 3 s
+    address: 127.0.0.1:8080
+    in queue api-link:
+        max-length: 10000
+    out queue: MultiQueuue.queue
+
+
+
+task OperatingCycle:
+    cycle: 500 ms       // operating cycle time of the task
+    outputQueue: operatingCycleQueue
+    metrics:
+        metric MetricName1:
+            initial: 0      # начальное значение
+            input: 
+                var VarName1:
+                    fn count:
                         input: 
-                            var VarName1:
-                                fn count:
-                                    input: 
-                                        - /line1/ied1/db1/Dev1.State
-                    metric MetricName2:
-                        initial: 0      # начальное значение
-                        input: 
-                            var VarName2:
-                                fn timer:
-                                    initial: VarName1
-                                    input:
-                                        fn or:
-                                            input: 
-                                                - /line1/ied1/db1/Dev2.State
-                                                - /line1/ied1/db1/Dev3.State
-                                                - /line1/ied1/db1/Dev4.State
-        queue2:
-            task FaultDetection:
-                cycle: 100 ms       // operating cycle time of the module
-                outputQueue: operatingCycleQueue
-                metrics:
-                    metric MetricName1:
-                        ...
-                    metric MetricName2:
-                        ...
-    out: null
+                            - /line1/ied1/db1/Dev1.State
+        metric MetricName2:
+            initial: 0      # начальное значение
+            input: 
+                var VarName2:
+                    fn timer:
+                        initial: VarName1
+                        input:
+                            fn or:
+                                input: 
+                                    - /line1/ied1/db1/Dev2.State
+                                    - /line1/ied1/db1/Dev3.State
+                                    - /line1/ied1/db1/Dev4.State
+task FaultDetection:
+    cycle: 100 ms       // operating cycle time of the module
+    outputQueue: operatingCycleQueue
+    metrics:
+        metric MetricName1:
+            ...
+        metric MetricName2:
+            ...
 ```
 
 #### Complit configuration example
