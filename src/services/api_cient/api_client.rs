@@ -6,7 +6,7 @@ use log::{info, debug, trace, warn};
 
 use crate::{
     core_::{point::point_type::PointType, conf::api_client_config::ApiClientConfig}, 
-    services::task::task_cycle::ServiceCycle, 
+    services::{task::task_cycle::ServiceCycle, api_cient::api_reply::SqlReply}, 
     tcp::tcp_socket_client_connect::TcpSocketClientConnect, 
 };
 
@@ -104,6 +104,17 @@ impl ApiClient {
             'main: loop {
                 if !isConnected {
                     stream = connect.connect(reconnect);
+                    match &stream {
+                        Some(stream) => {
+                            match stream.set_read_timeout(Some(Duration::from_secs(10))) {
+                                Ok(_) => {},
+                                Err(err) => {
+                                    debug!("ApiClient({}).run | TcpStream.set_timeout error: {:?}", selfId, err);
+                                },
+                            };
+                        },
+                        None => {},
+                    }
                 }
                 match &mut stream {
                     Some(stream) => {
@@ -113,28 +124,37 @@ impl ApiClient {
                         Self::readQueue(&selfId, &recv, &mut buffer);
                         let mut count = buffer.len();
                         while count > 0 {
-                            match buffer.pop() {
+                            match buffer.last() {
                                 Some(point) => {
                                     let sql = point.asString().value;
                                     match Self::send(&selfId, sql, stream) {
                                         Ok(_) => {
                                             match Self::readAll(&selfId, stream) {
                                                 ConnectionStatus::Active(bytes) => {
-                                                    let replay = String::from_utf8(bytes).unwrap();
-                                                    trace!("ApiClient({}).run | API replay: {:?}", selfId, replay);
+                                                    let reply = String::from_utf8(bytes).unwrap();
+                                                    debug!("ApiClient({}).run | API reply: {:?}", selfId, reply);
+                                                    let reply: SqlReply = serde_json::from_str(&reply).unwrap();
+                                                    if reply.hasError() {
+                                                        warn!("ApiClient({}).run | API reply has error: {:?}", selfId, reply.error);
+                                                        break;
+                                                    } else {
+                                                        buffer.pop();
+                                                    }
                                                 },
                                                 ConnectionStatus::Closed => {
                                                     isConnected = false;
+                                                    break;
                                                 },
                                             };
                                         },
                                         Err(err) => {
                                             isConnected = false;
                                             warn!("ApiClient({}).run | error sending API: {:?}", selfId, err);
+                                            break;
                                         },
                                     }
                                 },
-                                None => {},
+                                None => {break;},
                             };
                             count -=1;
                         }

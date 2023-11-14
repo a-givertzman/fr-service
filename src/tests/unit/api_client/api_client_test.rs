@@ -1,10 +1,10 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
 mod tests {
-    use log::{info, debug};
+    use log::{info, debug, error};
     use rand::Rng;
     use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::{Read, Write}};
-    use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, conf::api_client_config::ApiClientConfig, point::point_type::{ToPoint, PointType}}, services::api_cient::api_client::ApiClient}; 
+    use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, conf::api_client_config::ApiClientConfig, point::point_type::{ToPoint, PointType}}, services::api_cient::{api_client::ApiClient, api_reply::SqlReply, api_error::ApiError}}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -47,7 +47,7 @@ mod tests {
     
     #[test]
     fn test_ApiClient() {
-        DebugSession::init(LogLevel::Info, Backtrace::Short);
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
@@ -58,7 +58,9 @@ mod tests {
         let addr = conf.address.clone();
         let apiClient = Arc::new(Mutex::new(ApiClient::new("test ApiClient", conf)));
 
-        let count = 100;
+        let maxTestDuration = Duration::from_secs(10);
+        let count = 1000;
+        let mut state = 0;
         let testData = vec![
             Value::Int(7),
             Value::Float(1.3),
@@ -76,44 +78,81 @@ mod tests {
 
         thread::spawn(move || {
             let mut received = receivedRef.lock().unwrap();
-            info!("Preparing test TCP server...");
+            info!("TCP server | Preparing test server...");
             match TcpListener::bind(addr) {
                 Ok(listener) => {
-                    info!("Preparing test TCP server - ok");
-                    match listener.accept() {
-                        Ok((mut _socket, addr)) => {
-                            info!("incoming connection - ok\n\t{:?}", addr);
-                            while received.len() < count {
-                                for e in buf.iter_mut() {*e = 0;}
-                                match _socket.read(&mut buf) {
-                                    Ok(bytes) => {
-                                        debug!("received bytes: {:?}", bytes);
-                                        let raw = String::from_utf8(buf.to_vec()).unwrap();
-                                        let raw = raw.trim_matches(char::from(0));
-                                        debug!("received raw: {:?}", raw);
-                                        let value: serde_json::Value = serde_json::from_str(&raw).unwrap();
-                                        debug!("received: {:?}", value);
-                                        received.push(value);
-                                        match _socket.write("ok".as_bytes()) {
-                                            Ok(bytes) => {
-                                                debug!("sent bytes: {:?}", bytes);
-                                            },
-                                            Err(err) => {
-                                                debug!("socket write - error: {:?}", err);
-                                            },
-                                        };
-                                        // _socket.shutdown(std::net::Shutdown::Both).unwrap();
-                                        // break;
-                                    },
-                                    Err(err) => {
-                                        debug!("socket read - error: {:?}", err);
-                                    },
-                                };
-                            }
-                        },
-                        Err(err) => {
-                            info!("incoming connection - error: {:?}", err);
-                        },
+                    info!("TCP server | Preparing test server - ok");
+                    let mut acceptCount = 2;
+                    let mut maxReadErrors = 3;
+                    while acceptCount > 0 {
+                        acceptCount -= 1;
+                        match listener.accept() {
+                            Ok((mut _socket, addr)) => {
+                                info!("TCP server | accept connection - ok\n\t{:?}", addr);
+                                _socket.set_read_timeout(Some(Duration::from_millis(100))).unwrap();
+                                while received.len() < count {
+                                    for e in buf.iter_mut() {*e = 0;}
+                                    match _socket.read(&mut buf) {
+                                        Ok(bytes) => {
+                                            debug!("TCP server | received bytes: {:?}", bytes);
+                                            let raw = String::from_utf8(buf.to_vec()).unwrap();
+                                            let raw = raw.trim_matches(char::from(0));
+                                            debug!("TCP server | received raw: {:?}", raw);
+                                            match serde_json::from_str(&raw) {
+                                                Ok(value) => {
+                                                    let value: serde_json::Value = value;
+                                                    debug!("TCP server | received: {:?}", value);
+                                                    received.push(value.clone());
+                                                    let obj = value.as_object().unwrap();
+                                                    let reply = SqlReply {
+                                                        authToken: obj.get("authToken").unwrap().as_str().unwrap().to_string(),
+                                                        id: obj.get("id").unwrap().as_str().unwrap().to_string(),
+                                                        keepAlive: obj.get("keepAlive").unwrap().as_bool().unwrap(),
+                                                        query: "".into(),
+                                                        data: vec![],
+                                                        error: ApiError::empty(),
+                                                    };
+                                                    match _socket.write(&reply.asBytes()) {
+                                                        Ok(bytes) => {
+                                                            debug!("TCP server | sent bytes: {:?}", bytes);
+                                                        },
+                                                        Err(err) => {
+                                                            debug!("TCP server | socket write - error: {:?}", err);
+                                                        },
+                                                    };
+                                                    // debug!("TCP server | received / count: {:?}", received.len() / count);
+                                                    if (state == 0) && received.len() as f64 / count as f64 > 0.333 {
+                                                        state = 1;
+                                                        let duration = Duration::from_millis(5000);
+                                                        debug!("TCP server | beaking socket connection for {:?}", duration);
+                                                        _socket.flush();
+                                                        _socket.shutdown(std::net::Shutdown::Both).unwrap();
+                                                        thread::sleep(duration);
+                                                        debug!("TCP server | beaking socket connection for {:?} - elapsed, restoring...", duration);
+                                                        break;
+                                                    }
+                                                },
+                                                Err(err) => {
+                                                    debug!("TCP server | parse read data error: {:?}", err);
+                                                },
+                                            };
+                                        },
+                                        Err(err) => {
+                                            debug!("socket read - error: {:?}", err);
+                                            maxReadErrors -= 1;
+                                            if maxReadErrors <= 0 {
+                                                error!("TCP server | socket read error: {:?}", err);
+                                                break;
+                                            }
+                                        },
+                                    };
+                                    thread::sleep(Duration::from_micros(100));
+                                }
+                            },
+                            Err(err) => {
+                                info!("incoming connection - error: {:?}", err);
+                            },
+                        }
                     }
                 },
                 Err(err) => {
@@ -136,19 +175,26 @@ mod tests {
             send.send(point.clone()).unwrap();
             sent.push(point.asString().value);
         }
-        let mut waitAttempts = 100;
-        while received.lock().unwrap().len() < sent.len() {
-            thread::sleep(Duration::from_millis(10));
+        let waitDuration = Duration::from_millis(10);
+        let mut waitAttempts = maxTestDuration.as_micros() / waitDuration.as_micros();
+        while received.lock().unwrap().len() < count {
+            debug!("waiting while all data beeng received {}/{}...", received.lock().unwrap().len(), count);
+            thread::sleep(waitDuration);
             waitAttempts -= 1;
-            assert!(waitAttempts > 0, "Transfering {} points taks too mach time {:?}", count, timer.elapsed());
+            assert!(waitAttempts > 0, "Transfering {}/{} points taks too mach time {:?} of {:?}", received.lock().unwrap().len(), count, timer.elapsed(), maxTestDuration);
         }
         println!("elapsed: {:?}", timer.elapsed());
+        println!("total test events: {:?}", count);
+        println!("sent events: {:?}", sent.len());
         let mut received = received.lock().unwrap();
+        println!("recv events: {:?}", received.len());
+        assert!(sent.len() == count, "sent: {:?}\ntarget: {:?}", sent.len(), count);
+        assert!(received.len() == count, "received: {:?}\ntarget: {:?}", received.len(), count);
         while &sent.len() > &0 {
             let target = sent.pop().unwrap();
             let result = received.pop().unwrap();
             let result = result.as_object().unwrap().get("sql").unwrap().as_object().unwrap().get("sql").unwrap().as_str().unwrap();
-            debug!("\nresult: {:?}\ntarget: {:?}", result, target);
+            debug!("\nresult({}): {:?}\ntarget({}): {:?}", received.len(), result, sent.len(), target);
             assert!(result == &target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
         // assert!(false)
