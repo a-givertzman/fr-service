@@ -102,14 +102,11 @@ class CMA green
 ```yaml
 service CmaClient:
     addres: 127.0.0.1:8881  // Self local addres
-    cycle: 100 ms           // operating cycle time of the module
+    cycle: 1 ms           // operating cycle time of the module
     auth:                   // some auth credentials
-    in: null
-    out:
-        queue operatingCycleQueue:
-            max-length: 10000
-        queue faultDetectionQueue:
-            max-length: 10000
+    in queue in-queue:
+        max-length: 10000
+    out queue: MultiQueuue.in-queue
 
 service ApiClient:
     cycle: 1 ms
@@ -117,9 +114,15 @@ service ApiClient:
     address: 127.0.0.1:8080
     in queue api-link:
         max-length: 10000
-    out queue: MultiQueuue.queue
+    out queue: MultiQueuue.in-queue
 
-
+service MultiQueue:
+    in queue in-queue:
+        max-length: 10000
+    out queue:
+        - task1.recv-queue
+        - CmaClient.in-queue
+        - CmaServer.in-queue
 
 task OperatingCycle:
     cycle: 500 ms       // operating cycle time of the task
