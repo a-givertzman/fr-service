@@ -123,9 +123,9 @@ mod tests {
                                                     // debug!("TCP server | received / count: {:?}", received.len() / count);
                                                     if (state == 0) && received.len() as f64 / count as f64 > 0.333 {
                                                         state = 1;
-                                                        let duration = Duration::from_millis(5000);
+                                                        let duration = Duration::from_millis(500);
                                                         debug!("TCP server | beaking socket connection for {:?}", duration);
-                                                        _socket.flush();
+                                                        _socket.flush().unwrap();
                                                         _socket.shutdown(std::net::Shutdown::Both).unwrap();
                                                         thread::sleep(duration);
                                                         debug!("TCP server | beaking socket connection for {:?} - elapsed, restoring...", duration);

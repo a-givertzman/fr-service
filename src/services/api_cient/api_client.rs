@@ -124,7 +124,7 @@ impl ApiClient {
                         Self::readQueue(&selfId, &recv, &mut buffer);
                         let mut count = buffer.len();
                         while count > 0 {
-                            match buffer.last() {
+                            match buffer.first() {
                                 Some(point) => {
                                     let sql = point.asString().value;
                                     match Self::send(&selfId, sql, stream) {
@@ -136,9 +136,9 @@ impl ApiClient {
                                                     let reply: SqlReply = serde_json::from_str(&reply).unwrap();
                                                     if reply.hasError() {
                                                         warn!("ApiClient({}).run | API reply has error: {:?}", selfId, reply.error);
-                                                        break;
+                                                        // break;
                                                     } else {
-                                                        buffer.pop();
+                                                        buffer.remove(0);
                                                     }
                                                 },
                                                 ConnectionStatus::Closed => {
