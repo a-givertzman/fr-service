@@ -4,9 +4,9 @@ use indexmap::IndexMap;
 use log::{trace, debug, error};
 use std::{fs, str::FromStr};
 
-use crate::core_::{conf::conf_keywd::ConfKeywd, conf::conf_tree::ConfTree};
+use crate::core_::{conf::fn_conf_keywd::FnConfKeywd, conf::conf_tree::ConfTree};
 
-use super::{fn_conf_kind::FnConfKind, conf_keywd::FnConfPointType};
+use super::{fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType};
 
 
 // enum ValueType<'a> {
@@ -58,7 +58,7 @@ impl FnConfig {
         if confTree.isMapping() {
             debug!("FnConfig.new | MAPPING VALUE");
             trace!("FnConfig.new | confTree: {:?}", confTree);
-            match ConfKeywd::from_str(confTree.key.as_str()) {
+            match FnConfKeywd::from_str(confTree.key.as_str()) {
                 Ok(selfKeyword) => {
                     trace!("FnConfig.new | selfKeyword parsed: {:?}", selfKeyword);
                     // parse sub nodes
@@ -104,7 +104,7 @@ impl FnConfig {
         } else {
             debug!("FnConfig.new | SINGLE VALUE\t{:?}", &confTree.conf);
             if confTree.conf.is_string() {
-                match ConfKeywd::from_str(confTree.conf.as_str().unwrap()) {
+                match FnConfKeywd::from_str(confTree.conf.as_str().unwrap()) {
                     // keyword parsed successefully
                     //  - take input name and input Value / Fn from the keyword
                     Ok(fnKeyword) => {
@@ -112,7 +112,7 @@ impl FnConfig {
                             // ConfKeywd::Var(_) => {
                                 
                             // },
-                            ConfKeywd::Const(_) => {
+                            FnConfKeywd::Const(_) => {
                                 FnConfig {
                                     fnKind: fnKeyword.kind(),
                                     name: fnKeyword.data(),
@@ -121,7 +121,7 @@ impl FnConfig {
                                 }
     
                             },
-                            ConfKeywd::Point(_) => {
+                            FnConfKeywd::Point(_) => {
                                 FnConfig {
                                     fnKind: fnKeyword.kind(),
                                     name: fnKeyword.data(),
@@ -208,7 +208,7 @@ impl FnConfig {
                     //     FnConfig::new(&subNode, vars),
                     // );
 
-                    match ConfKeywd::from_str(subNode.key.as_str()) {
+                    match FnConfKeywd::from_str(subNode.key.as_str()) {
                         Ok(keyword) => {
                             trace!("FnConfig.buildInputs | sub node KEYWORD parsed: {:?}", keyword);
                             if !keyword.input().is_empty() {

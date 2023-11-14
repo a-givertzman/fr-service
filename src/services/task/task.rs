@@ -11,14 +11,14 @@ use log::{info, debug, warn, trace};
 use crate::services::task::task_nodes::TaskNodes;
 use crate::core_::conf::task_config::TaskConfig;
 use crate::services::queues::queues::Queues;
-use crate::services::task::task_cycle::TaskCycle;
+use crate::services::task::task_cycle::ServiceCycle;
 
 /// Task implements entity, which provides cyclically (by event) executing calculations
 ///  - executed in the cycle mode (current impl)
 ///  - executed event mode (future impl..)
 ///  - has some number of functions / variables / metrics or additional entities
 pub struct Task {
-    name: String,
+    id: String,
     cycle: Option<Duration>,
     conf: TaskConfig,
     queues: Vec<Queues>,
@@ -31,10 +31,9 @@ impl Task {
     /// 
     pub fn new(cfg: TaskConfig, queues: Queues) -> Task {
         Task {
-            name: cfg.name.clone(),
+            id: cfg.name.clone(),
             cycle: cfg.cycle.clone(),
             queues: vec![queues],
-            // recvQueue: vec![recvQueue],
             conf: cfg,
             exit: Arc::new(AtomicBool::new(false)),
         }
@@ -42,8 +41,8 @@ impl Task {
     ///
     /// Tasck main execution loop spawned in the separate thread
     pub fn run(&mut self) {
-        info!("Task({}).run | starting...", self.name);
-        let selfName = self.name.clone();
+        info!("Task({}).run | starting...", self.id);
+        let selfName = self.id.clone();
         let exit = self.exit.clone();
         let cycleInterval = self.cycle;
         let (cyclic, cycleInterval) = match cycleInterval {
@@ -54,7 +53,7 @@ impl Task {
         let mut queues = self.queues.pop().unwrap();
         let recvQueue = queues.getRecvQueue(&self.conf.recvQueue);
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
-            let mut cycle = TaskCycle::new(cycleInterval);
+            let mut cycle = ServiceCycle::new(cycleInterval);
             let mut taskNodes = TaskNodes::new(&selfName);
             taskNodes.buildNodes(conf, &mut queues);
             debug!("Task({}).run | taskNodes: {:?}", selfName, taskNodes);
@@ -71,7 +70,7 @@ impl Task {
                         break 'main;
                     },
                 };
-                if exit.load(Ordering::Relaxed) {
+                if exit.load(Ordering::SeqCst) {
                     break 'main;
                 }
                 trace!("Task({}).run | calculation step - done ({:?})", selfName, cycle.elapsed());
@@ -81,12 +80,12 @@ impl Task {
             };
             info!("Task({}).run | stopped", selfName);
         }).unwrap();
-        info!("Task({}).run | started", self.name);
+        info!("Task({}).run | started", self.id);
         // h.join().unwrap();
     }
     ///
-    /// 
+    /// Exit thread
     pub fn exit(&self) {
-        self.exit.store(true, Ordering::Relaxed);
+        self.exit.store(true, Ordering::SeqCst);
     }
 }

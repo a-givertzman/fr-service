@@ -1,8 +1,7 @@
 #![allow(non_snake_case)]
-use log::trace;
 #[cfg(test)]
 
-use log::{info, debug};
+use log::{info, debug, trace};
 use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, collections::HashMap};
 use crate::{
     core_::{

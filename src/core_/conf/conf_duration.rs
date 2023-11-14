@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::str::FromStr;
+use std::{str::FromStr, time::Duration};
 use log::{trace, warn};
 use regex::RegexBuilder;
 use serde::Deserialize;
@@ -63,10 +63,24 @@ pub struct ConfDuration {
 ///
 /// 
 impl ConfDuration {
+    ///
+    /// New instance if ConfDuration
     pub fn new(value: u64, unit: ConfDurationUnit) -> Self {
         Self {
             value,
             unit,
+        }
+    }
+    ///
+    /// 
+    pub fn toDuration(&self) -> Duration {
+        match self.unit {
+            ConfDurationUnit::Nanos => Duration::from_nanos(self.value),
+            ConfDurationUnit::Micros => Duration::from_micros(self.value),
+            ConfDurationUnit::Millis => Duration::from_millis(self.value),
+            ConfDurationUnit::Secs => Duration::from_secs(self.value),
+            ConfDurationUnit::Mins => Duration::from_secs(self.value),
+            ConfDurationUnit::Hours => Duration::from_secs(self.value),
         }
     }
 }

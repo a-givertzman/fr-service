@@ -3,6 +3,7 @@
 // mod tests;
 mod core_;
 mod services;
+mod tcp;
 
 use log::{trace, info, debug};
 use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, env, time::{Instant, Duration}, fs, thread};

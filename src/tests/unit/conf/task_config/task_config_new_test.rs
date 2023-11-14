@@ -8,7 +8,7 @@ mod tests {
     
     use crate::core_::{
         debug::debug_session::*, 
-        conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, conf_keywd::FnConfPointType, task_config::TaskConfig}, 
+        conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType, task_config::TaskConfig}, 
     };
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.

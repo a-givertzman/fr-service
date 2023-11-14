@@ -5,93 +5,96 @@ use log::{trace, warn};
 use regex::RegexBuilder;
 use serde::Deserialize;
 
-use super::fn_conf_kind::FnConfKind;
 
 ///
-/// Represents type of Point / Const in the configuration
-#[derive(Debug, Deserialize, PartialEq, Clone)]
-pub enum FnConfPointType {
-    Bool,
-    Int,
-    Float,
-    String,
+/// 
+#[derive(Debug, Deserialize, PartialEq, Eq, Hash, Clone)]
+pub enum ConfKind {
+    Task,
+    Service,
+    Queue,
+    Link,
     Unknown,
 }
-
-#[derive(Debug, Deserialize, PartialEq, Clone)]
-pub struct FnConfKeywdValue {
-    pub input: String,
-    pub type_: FnConfPointType,
-    pub data: String,
+///
+/// 
+impl FromStr for ConfKind {
+    type Err = String;
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        match input {
+            "task" => Ok(ConfKind::Task),
+            "service" => Ok(ConfKind::Service),
+            "queue" => Ok(ConfKind::Queue),
+            "link" => Ok(ConfKind::Link),
+            _ => Err(format!("ConfKind.fron_str | Unknown keyword: '{}'", input))
+        }
+    }
+}
+impl ToString for ConfKind {
+    fn to_string(&self) -> String {
+        match self {
+            ConfKind::Task => "task",
+            ConfKind::Service => "service",
+            ConfKind::Queue => "queue",
+            ConfKind::Link => "link",
+            ConfKind::Unknown => "unknown",
+        }.to_string()
+    }
+}
+///
+/// 
+#[derive(Debug, Deserialize, PartialEq, Eq, Hash, Clone)]
+pub struct ConfKeywdValue {
+    pub prefix: String,
+    pub kind: ConfKind,
+    pub name: String,
 }
 
 ///
-/// keyword konsists of 4 fields:
+/// keyword konsists of 3 fields:
 /// ```
-/// | input  |  kind  | type  |  data               |
-/// | name   |        |       |                     |
-/// |--------|--------|-------|---------------------|
-/// | opt    | requir | opt   |                     |
-/// |--------|--------|-------|---------------------|
-/// | input  |  point | float | '/path/Point.name'  |
-/// | input  |  const | int   | 17                  |
-/// |        |  let   |       | varName             |
-/// |        |  fn    |       | fnName              |
+/// | prefix |  kind  |  name               |
+/// |        |        |                     |
+/// |--------|--------|---------------------|
+/// | opt    | requir |  requir             |
+/// |--------|--------|---------------------|
+/// |        | task   | Task1               |
+/// |        | service| ApiClient           |
+/// | in     | queue  | in-queue            |
+/// | out    | queue  | out-queue           |
 /// ````
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Eq, Hash)]
 pub enum ConfKeywd {
-    Fn(FnConfKeywdValue),
-    Var(FnConfKeywdValue),
-    Const(FnConfKeywdValue),
-    Point(FnConfKeywdValue),
-    Metric(FnConfKeywdValue),
+    Task(ConfKeywdValue),
+    Service(ConfKeywdValue),
+    Queue(ConfKeywdValue),
+    Link(ConfKeywdValue),
 }
 ///
 /// 
 impl ConfKeywd {
-    pub fn input(&self) -> String {
+    pub fn prefix(&self) -> String {
         match self {
-            ConfKeywd::Fn(v) => v.input.clone(),
-            ConfKeywd::Var(v) => v.input.clone(),
-            ConfKeywd::Const(v) => v.input.clone(),
-            ConfKeywd::Point(v) => v.input.clone(),
-            ConfKeywd::Metric(v) => v.input.clone(),
+            ConfKeywd::Task(v) => v.prefix.clone(),
+            ConfKeywd::Service(v) => v.prefix.clone(),
+            ConfKeywd::Queue(v) => v.prefix.clone(),
+            ConfKeywd::Link(v) => v.prefix.clone(),
         }
     }
-    pub fn kind(&self) -> FnConfKind {
+    pub fn kind(&self) -> ConfKind {
         match self {
-            ConfKeywd::Fn(_) => FnConfKind::Fn,
-            ConfKeywd::Var(_) => FnConfKind::Var,
-            ConfKeywd::Const(_) => FnConfKind::Const,
-            ConfKeywd::Point(_) => FnConfKind::Point,
-            ConfKeywd::Metric(_) => FnConfKind::Metric,
+            ConfKeywd::Task(v) => v.kind.clone(),
+            ConfKeywd::Service(v) => v.kind.clone(),
+            ConfKeywd::Queue(v) => v.kind.clone(),
+            ConfKeywd::Link(v) => v.kind.clone(),
         }
     }
-    pub fn type_(&self) -> FnConfPointType {
+    pub fn name(&self) -> String {
         match self {
-            ConfKeywd::Fn(v) => v.type_.clone(),
-            ConfKeywd::Var(v) => v.type_.clone(),
-            ConfKeywd::Const(v) => v.type_.clone(),
-            ConfKeywd::Point(v) => v.type_.clone(),
-            ConfKeywd::Metric(v) => v.type_.clone(),
-        }
-    }
-    pub fn data(&self) -> String {
-        match self {
-            ConfKeywd::Fn(v) => v.data.clone(),
-            ConfKeywd::Var(v) => v.data.clone(),
-            ConfKeywd::Const(v) => v.data.clone(),
-            ConfKeywd::Point(v) => v.data.clone(),
-            ConfKeywd::Metric(v) => v.data.clone(),
-        }
-    }
-    fn matchType(typeName: &str) -> Result<FnConfPointType, String> {
-        match typeName {
-            "bool" => Ok(FnConfPointType::Bool),
-            "int" => Ok(FnConfPointType::Int),
-            "float" => Ok(FnConfPointType::Float),
-            "string" => Ok(FnConfPointType::String),
-            _ => Err(format!("Unknown keyword '{}'", typeName))
+            ConfKeywd::Task(v) => v.name.clone(),
+            ConfKeywd::Service(v) => v.name.clone(),
+            ConfKeywd::Queue(v) => v.name.clone(),
+            ConfKeywd::Link(v) => v.name.clone(),
         }
     }
 }
@@ -100,33 +103,30 @@ impl FromStr for ConfKeywd {
     type Err = String;
     fn from_str(input: &str) -> Result<ConfKeywd, String> {
         trace!("FnConfKeywd.from_str | input: {}", input);
-        // let re = r#"[ \t]*(?:(\w+)[ \t]+)*(?:(let|fn|const|point|metric|task){1}(?:$|(?:[ \t]+['"]*([\w/.]+)['"]*)))"#;
-        let re = r#"[ \t]*(?:(\w+)[ \t]+)*(?:(let|fn|const|point|metric|task){1}(?:[ \t](bool|int|float|string))*(?:$|(?:[ \t]+['"]*([\w/.]+)['"]*)))"#;
-        // let re = Regex::new(re).unwrap();
-        let re = RegexBuilder::new(re).multi_line(true).build().unwrap();
-        let groupInput = 1;
+        let re = r#"(?:(?:(\w+)|))(?:(?:\s|)(task|service|queue|link){1}(?:$|(?:[ \t]['"]*(\S+)['"]*)))"#;
+        let re = RegexBuilder::new(re).multi_line(false).build().unwrap();
+        let groupPrefix = 1;
         let groupKind = 2;
-        let groupType = 3;
-        let groupData = 4;
+        let groupName = 3;
         match re.captures(input) {
             Some(caps) => {
-                let input = match &caps.get(groupInput) {
+                let prefix = match &caps.get(groupPrefix) {
                     Some(first) => String::from(first.as_str()),
                     None => String::new(),
                 };
-                let type_ = match &caps.get(groupType) {
-                    Some(arg) => {
-                        match ConfKeywd::matchType(&arg.as_str().to_lowercase()) {
-                            Ok(type_) => type_,
-                            Err(err) => {
-                                warn!("ConfKeywd.from_str | Error reading type of keyword '{}'", &input);
-                                FnConfPointType::Unknown
+                let kind = match &caps.get(groupKind) {
+                    Some(kind) => {
+                        match ConfKind::from_str(&kind.as_str().to_lowercase()) {
+                            Ok(kinde) => kinde,
+                            Err(_err) => {
+                                warn!("ConfKeywd.from_str | Error parsing kind of keyword '{}'", &input);
+                                ConfKind::Unknown
                             },
                         }
                     },
-                    None => FnConfPointType::Unknown,
+                    None => ConfKind::Unknown,
                 };
-                let data = match &caps.get(groupData) {
+                let name = match &caps.get(groupName) {
                     Some(arg) => {
                         Ok(arg.as_str().to_string())
                     },
@@ -138,18 +138,16 @@ impl FromStr for ConfKeywd {
                         }
                     },
                 };
-                match data {
-                    Ok(data) => {
+                match &name {
+                    Ok(name) => {
                         match &caps.get(groupKind) {
                             Some(keyword) => {
                                 match keyword.as_str() {
-                                    "fn"  => Ok( ConfKeywd::Fn( FnConfKeywdValue { input: input, type_: type_, data } )),
-                                    "let"  => Ok( ConfKeywd::Var( FnConfKeywdValue { input: input, type_: type_, data } )),
-                                    "const"  => Ok( ConfKeywd::Const( FnConfKeywdValue { input: input, type_: type_, data } )),
-                                    "point" => Ok( ConfKeywd::Point( FnConfKeywdValue { input: input, type_: type_, data } )),
-                                    "metric" => Ok( ConfKeywd::Metric( FnConfKeywdValue { input: input, type_: type_, data } )),
-                                    "task" => Ok( ConfKeywd::Metric( FnConfKeywdValue { input: input, type_: type_, data } )),
-                                    _      => Err(format!("Unknown keyword '{}'", &input)),
+                                    "task" => Ok( ConfKeywd::Task( ConfKeywdValue { prefix, kind, name: name.to_string() } )),
+                                    "service" => Ok( ConfKeywd::Service( ConfKeywdValue { prefix, kind, name: name.to_string() } )),
+                                    "queue" => Ok( ConfKeywd::Queue( ConfKeywdValue { prefix, kind, name: name.to_string() } )),
+                                    "link" => Ok( ConfKeywd::Link( ConfKeywdValue { prefix, kind, name: name.to_string() } )),
+                                    _      => Err(format!("Unknown keyword '{:?}'", &keyword)),
                                 }
                             },
                             None => {
@@ -157,11 +155,11 @@ impl FromStr for ConfKeywd {
                             },
                         }
                     },
-                    Err(err) => Err(err),
+                    Err(err) => Err(err.to_string()),
                 }
             },
             None => {
-                Err(format!("Unknown keyword '{}'", &input))
+                Err(format!("Prefix Kinde Name - not found in keyword '{}'", &input))
             },
         }
     }

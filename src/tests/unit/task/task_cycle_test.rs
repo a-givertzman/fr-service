@@ -5,7 +5,7 @@ use log::{info, debug};
 use std::{sync::Once, time::{Duration, Instant}};
 use rand::Rng;
 
-use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, aprox_eq::aprox_eq::AproxEq}, services::task::task_cycle::TaskCycle};
+use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, aprox_eq::aprox_eq::AproxEq}, services::task::task_cycle::ServiceCycle};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -67,7 +67,7 @@ fn test_task_cycle() {
         load(max);
         info!("load range 1...{:?}", max);
         info!("elapsed for max load: {:?}", t.elapsed());
-        let mut cycle = TaskCycle::new(Duration::from_millis(targetCycleInterval));
+        let mut cycle = ServiceCycle::new(Duration::from_millis(targetCycleInterval));
         for _ in 0..testCycles {
             let num = rand::thread_rng().gen_range(1..max);
             debug!("load: {}", num);

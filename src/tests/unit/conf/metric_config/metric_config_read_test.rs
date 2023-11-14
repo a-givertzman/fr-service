@@ -6,7 +6,7 @@ use std::{sync::Once, env};
 
 use crate::core_::{
     debug::debug_session::*, 
-    conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, conf_keywd::FnConfPointType, metric_config::MetricConfig},
+    conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType, metric_config::MetricConfig},
 };
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.

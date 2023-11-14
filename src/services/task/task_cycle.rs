@@ -8,13 +8,13 @@ use log::debug;
 ///  - method wait() - awaiting remainder of the specified interval if not elapsed
 /// 
 /// [How to sleep for a few microseconds](https://stackoverflow.com/questions/4986818/how-to-sleep-for-a-few-microseconds)
-pub struct TaskCycle {
+pub struct ServiceCycle {
     instant: Instant,
     interval: Duration,
 }
 ///
 /// 
-impl TaskCycle {
+impl ServiceCycle {
     ///
     /// creates TaskCycle with Duration of interval
     pub fn new(interval: Duration) ->Self {
