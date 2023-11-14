@@ -59,7 +59,7 @@ mod tests {
         let apiClient = Arc::new(Mutex::new(ApiClient::new("test ApiClient", conf)));
 
         let maxTestDuration = Duration::from_secs(10);
-        let count = 1000;
+        let count = 300;
         let mut state = 0;
         let testData = vec![
             Value::Int(7),

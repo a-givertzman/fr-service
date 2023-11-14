@@ -1,5 +1,5 @@
 service ApiClient:
-    cycle: 10 ms
+    cycle: 1 ms
     reconnect: 1 s  # default 3 s
     address: 127.0.0.1:8080
     in queue api-link:
