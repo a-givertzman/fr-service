@@ -3,42 +3,21 @@
 use log::{trace, debug, error};
 use std::{fs, str::FromStr, time::Duration, net::SocketAddr};
 
-use crate::core_::conf::{conf_tree::ConfTree, conf_duration::ConfDuration, conf_keywd::ConfKeywd};
+use crate::conf::{conf_tree::ConfTree, conf_duration::ConfDuration, conf_keywd::ConfKeywd};
 
 use super::conf_keywd::ConfKind;
 
 
-// #[derive(Debug, Clone, PartialEq)]
-// pub enum TaskConfNode {
-//     Fn(FnConfig),
-//     Metric(MetricConfig)
-// }
-
-// impl TaskConfNode {
-//     pub fn name(&self) -> String {
-//         match self {
-//             TaskConfNode::Fn(conf) => conf.name.clone(),
-//             TaskConfNode::Metric(conf) => conf.name.clone(),
-//         }
-//     }
-// }
-
 ///
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
-/// task operatingMetric:
-///     cycle: 100 ms
-///     metrics:
-///         metric sqlUpdateMetric:
-///             table: "TableName"
-///             sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"
-///             initial: 123.456
-///             inputs:
-///                 input1:
-///                     fn functionName:
-///                         ...
-///                 input2:
-///                     metric sqlSelectMetric:
+/// service ApiClient:
+///     cycle: 1 ms
+///     reconnect: 1 s  # default 3 s
+///     address: 127.0.0.1:8080
+///     in queue api-link:
+///         max-length: 10000
+///     out queue: MultiQueuue.queue
 ///                         ...
 #[derive(Debug, PartialEq, Clone)]
 pub struct ApiClientConfig {
@@ -55,18 +34,13 @@ impl ApiClientConfig {
     ///
     /// creates config from serde_yaml::Value of following format:
     /// ```yaml
-    /// task taskName:
-    ///     cycle: 100  // ms
-    ///     metric sqlUpdateMetric:
-    ///         table: "TableName"
-    ///         sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"
-    ///         initial: 123.456
-    ///         inputs:
-    ///             input1:
-    ///                 fn functionName:
-    ///                     ...
-    ///             input2:
-    ///                 metric sqlSelectMetric:
+    /// service ApiClient:
+    ///     cycle: 1 ms
+    ///     reconnect: 1 s  # default 3 s
+    ///     address: 127.0.0.1:8080
+    ///     in queue api-link:
+    ///         max-length: 10000
+    ///     out queue: MultiQueuue.queue
     ///                     ...
     pub fn new(confTree: &mut ConfTree) -> ApiClientConfig {
         println!("\n");

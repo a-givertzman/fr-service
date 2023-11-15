@@ -5,8 +5,9 @@ use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Order
 use log::{info, debug, trace, warn};
 
 use crate::{
-    core_::{point::point_type::PointType, conf::api_client_config::ApiClientConfig}, 
-    services::{task::task_cycle::ServiceCycle, api_cient::api_reply::SqlReply}, 
+    core_::point::point_type::PointType, 
+    conf::api_client_config::ApiClientConfig,
+    services::{task::task_cycle::ServiceCycle, api_cient::api_reply::SqlReply, service::Service}, 
     tcp::tcp_socket_client_connect::TcpSocketClientConnect, 
 };
 
@@ -45,14 +46,6 @@ impl ApiClient {
         }
     }
     ///
-    /// returns sender of the ApiClient queue by name
-    pub fn getLink(&self, name: &str) -> Sender<PointType> {
-        match self.send.get(name) {
-            Some(send) => send.clone(),
-            None => panic!("ApiClient({}).run | link '{:?}' - not found", self.id, name),
-        }
-    }
-    ///
     /// 
     fn readQueue(selfId: &str, recv: &Receiver<PointType>, buffer: &mut Vec<PointType>) {
         for _ in 0..1 {                    
@@ -81,8 +74,97 @@ impl ApiClient {
         }
     }
     ///
+    /// bytes to be read from socket at once
+    const BUF_LEN: usize = 1024 * 4;
+    ///
+    /// reads all avalible data from the TspStream
+    /// - returns Active: if read bytes non zero length without errors
+    /// - returns Closed:
+    ///    - if read 0 bytes
+    ///    - if on error
+    fn readAll(selfId: &str, stream: &mut TcpStream) -> ConnectionStatus {
+        let mut buf = [0; Self::BUF_LEN];
+        let mut result = vec![];
+        loop {
+            match stream.read(&mut buf) {
+                Ok(len) => {
+                    debug!("TcpServer.readAll ({}) |     read len: {:?}", selfId, len);
+                    result.append(& mut buf[..len].into());
+                    if len < Self::BUF_LEN {
+                        if len == 0 {
+                            return ConnectionStatus::Closed;
+                        } else {
+                            return ConnectionStatus::Active(result)
+                        }
+                    }
+                },
+                Err(err) => {
+                    warn!("TcpServer.readAll ({}) | error reading from socket: {:?}", selfId, err);
+                    warn!("TcpServer.readAll ({}) | error kind: {:?}", selfId, err.kind());
+                    return match err.kind() {
+                        std::io::ErrorKind::NotFound => todo!(),
+                        std::io::ErrorKind::PermissionDenied => ConnectionStatus::Closed,
+                        std::io::ErrorKind::ConnectionRefused => ConnectionStatus::Closed,
+                        std::io::ErrorKind::ConnectionReset => ConnectionStatus::Closed,
+                        // std::io::ErrorKind::HostUnreachable => ConnectionStatus::Closed,
+                        // std::io::ErrorKind::NetworkUnreachable => ConnectionStatus::Closed,
+                        std::io::ErrorKind::ConnectionAborted => ConnectionStatus::Closed,
+                        std::io::ErrorKind::NotConnected => ConnectionStatus::Closed,
+                        std::io::ErrorKind::AddrInUse => ConnectionStatus::Closed,
+                        std::io::ErrorKind::AddrNotAvailable => ConnectionStatus::Closed,
+                        // std::io::ErrorKind::NetworkDown => ConnectionStatus::Closed,
+                        std::io::ErrorKind::BrokenPipe => ConnectionStatus::Closed,
+                        std::io::ErrorKind::AlreadyExists => todo!(),
+                        std::io::ErrorKind::WouldBlock => ConnectionStatus::Closed,
+                        // std::io::ErrorKind::NotADirectory => todo!(),
+                        // std::io::ErrorKind::IsADirectory => todo!(),
+                        // std::io::ErrorKind::DirectoryNotEmpty => todo!(),
+                        // std::io::ErrorKind::ReadOnlyFilesystem => todo!(),
+                        // std::io::ErrorKind::FilesystemLoop => todo!(),
+                        // std::io::ErrorKind::StaleNetworkFileHandle => todo!(),
+                        std::io::ErrorKind::InvalidInput => todo!(),
+                        std::io::ErrorKind::InvalidData => todo!(),
+                        std::io::ErrorKind::TimedOut => todo!(),
+                        std::io::ErrorKind::WriteZero => todo!(),
+                        // std::io::ErrorKind::StorageFull => todo!(),
+                        // std::io::ErrorKind::NotSeekable => todo!(),
+                        // std::io::ErrorKind::FilesystemQuotaExceeded => todo!(),
+                        // std::io::ErrorKind::FileTooLarge => todo!(),
+                        // std::io::ErrorKind::ResourceBusy => todo!(),
+                        // std::io::ErrorKind::ExecutableFileBusy => todo!(),
+                        // std::io::ErrorKind::Deadlock => todo!(),
+                        // std::io::ErrorKind::CrossesDevices => todo!(),
+                        // std::io::ErrorKind::TooManyLinks => todo!(),
+                        // std::io::ErrorKind::InvalidFilename => todo!(),
+                        // std::io::ErrorKind::ArgumentListTooLong => todo!(),
+                        std::io::ErrorKind::Interrupted => todo!(),
+                        std::io::ErrorKind::Unsupported => todo!(),
+                        std::io::ErrorKind::UnexpectedEof => todo!(),
+                        std::io::ErrorKind::OutOfMemory => todo!(),
+                        std::io::ErrorKind::Other => todo!(),
+                        _ => ConnectionStatus::Closed,
+                    }
+                    // return ConnectionStatus::Closed;
+                },
+            };
+        }
+    }    
+}
+///
+/// 
+impl Service for ApiClient {
+    ///
+    /// returns sender of the ApiClient queue by name
+    fn getLink(&self, name: impl Into<String>) -> Sender<PointType> {
+        let name = name.into();
+        match self.send.get(&name) {
+            Some(send) => send.clone(),
+            None => panic!("ApiClient({}).run | link '{:?}' - not found", self.id, name),
+        }
+    }
+    ///
     /// 
-    pub fn run(&mut self) {
+    fn run(&mut self) {
         info!("ApiClient({}).run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
@@ -177,84 +259,8 @@ impl ApiClient {
         // h.join().unwrap();
     }
     ///
-    /// bytes to be read from socket at once
-    const BUF_LEN: usize = 1024 * 4;
-    ///
-    /// reads all avalible data from the TspStream
-    /// - returns Active: if read bytes non zero length without errors
-    /// - returns Closed:
-    ///    - if read 0 bytes
-    ///    - if on error
-    fn readAll(selfId: &str, stream: &mut TcpStream) -> ConnectionStatus {
-        let mut buf = [0; Self::BUF_LEN];
-        let mut result = vec![];
-        loop {
-            match stream.read(&mut buf) {
-                Ok(len) => {
-                    debug!("TcpServer.readAll ({}) |     read len: {:?}", selfId, len);
-                    result.append(& mut buf[..len].into());
-                    if len < Self::BUF_LEN {
-                        if len == 0 {
-                            return ConnectionStatus::Closed;
-                        } else {
-                            return ConnectionStatus::Active(result)
-                        }
-                    }
-                },
-                Err(err) => {
-                    warn!("TcpServer.readAll ({}) | error reading from socket: {:?}", selfId, err);
-                    warn!("TcpServer.readAll ({}) | error kind: {:?}", selfId, err.kind());
-                    return match err.kind() {
-                        std::io::ErrorKind::NotFound => todo!(),
-                        std::io::ErrorKind::PermissionDenied => ConnectionStatus::Closed,
-                        std::io::ErrorKind::ConnectionRefused => ConnectionStatus::Closed,
-                        std::io::ErrorKind::ConnectionReset => ConnectionStatus::Closed,
-                        // std::io::ErrorKind::HostUnreachable => ConnectionStatus::Closed,
-                        // std::io::ErrorKind::NetworkUnreachable => ConnectionStatus::Closed,
-                        std::io::ErrorKind::ConnectionAborted => ConnectionStatus::Closed,
-                        std::io::ErrorKind::NotConnected => ConnectionStatus::Closed,
-                        std::io::ErrorKind::AddrInUse => ConnectionStatus::Closed,
-                        std::io::ErrorKind::AddrNotAvailable => ConnectionStatus::Closed,
-                        // std::io::ErrorKind::NetworkDown => ConnectionStatus::Closed,
-                        std::io::ErrorKind::BrokenPipe => ConnectionStatus::Closed,
-                        std::io::ErrorKind::AlreadyExists => todo!(),
-                        std::io::ErrorKind::WouldBlock => ConnectionStatus::Closed,
-                        // std::io::ErrorKind::NotADirectory => todo!(),
-                        // std::io::ErrorKind::IsADirectory => todo!(),
-                        // std::io::ErrorKind::DirectoryNotEmpty => todo!(),
-                        // std::io::ErrorKind::ReadOnlyFilesystem => todo!(),
-                        // std::io::ErrorKind::FilesystemLoop => todo!(),
-                        // std::io::ErrorKind::StaleNetworkFileHandle => todo!(),
-                        std::io::ErrorKind::InvalidInput => todo!(),
-                        std::io::ErrorKind::InvalidData => todo!(),
-                        std::io::ErrorKind::TimedOut => todo!(),
-                        std::io::ErrorKind::WriteZero => todo!(),
-                        // std::io::ErrorKind::StorageFull => todo!(),
-                        // std::io::ErrorKind::NotSeekable => todo!(),
-                        // std::io::ErrorKind::FilesystemQuotaExceeded => todo!(),
-                        // std::io::ErrorKind::FileTooLarge => todo!(),
-                        // std::io::ErrorKind::ResourceBusy => todo!(),
-                        // std::io::ErrorKind::ExecutableFileBusy => todo!(),
-                        // std::io::ErrorKind::Deadlock => todo!(),
-                        // std::io::ErrorKind::CrossesDevices => todo!(),
-                        // std::io::ErrorKind::TooManyLinks => todo!(),
-                        // std::io::ErrorKind::InvalidFilename => todo!(),
-                        // std::io::ErrorKind::ArgumentListTooLong => todo!(),
-                        std::io::ErrorKind::Interrupted => todo!(),
-                        std::io::ErrorKind::Unsupported => todo!(),
-                        std::io::ErrorKind::UnexpectedEof => todo!(),
-                        std::io::ErrorKind::OutOfMemory => todo!(),
-                        std::io::ErrorKind::Other => todo!(),
-                        _ => ConnectionStatus::Closed,
-                    }
-                    // return ConnectionStatus::Closed;
-                },
-            };
-        }
-    }    
-    ///
     /// 
-    pub fn exit(&self) {
+    fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
     }
 }

@@ -6,8 +6,8 @@ mod tests {
     use log::{info, debug};
     use std::{sync::Once, time::Duration};
     
-    use crate::core_::{
-        debug::debug_session::*, 
+    use crate::{
+        core_::debug::debug_session::*, 
         conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType, task_config::TaskConfig}, 
     };
     

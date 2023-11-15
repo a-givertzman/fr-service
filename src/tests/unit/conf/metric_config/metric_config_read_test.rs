@@ -4,8 +4,8 @@ use indexmap::IndexMap;
 use log::{trace, info};
 use std::{sync::Once, env};
 
-use crate::core_::{
-    debug::debug_session::*, 
+use crate::{
+    core_::debug::debug_session::*, 
     conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType, metric_config::MetricConfig},
 };
 

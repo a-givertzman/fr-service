@@ -4,7 +4,8 @@ use indexmap::IndexMap;
 use log::{debug, trace, warn};
 
 use crate::{
-    core_::{types::fn_in_out_ref::FnInOutRef, conf::{task_config::TaskConfig, fn_conf_kind::FnConfKind}, point::point_type::PointType}, 
+    core_::{types::fn_in_out_ref::FnInOutRef, point::point_type::PointType}, 
+    conf::{task_config::TaskConfig, fn_conf_kind::FnConfKind}, 
     services::{queues::queues::Queues, task::nested_function::{metric_builder::MetricBuilder, nested_fn::NestedFn, fn_kind::FnKind}},
 };
 

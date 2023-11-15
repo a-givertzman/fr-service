@@ -4,7 +4,10 @@ use indexmap::IndexMap;
 use log::{debug, info};
 use std::sync::Once;
 
-use crate::core_::{debug::debug_session::*, conf::conf_tree::ConfTree};
+use crate::{
+    core_::debug::debug_session::*,
+    conf::conf_tree::ConfTree,
+};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;

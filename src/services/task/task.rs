@@ -9,7 +9,7 @@ use std::{
 use log::{info, debug, warn, trace};
 
 use crate::services::task::task_nodes::TaskNodes;
-use crate::core_::conf::task_config::TaskConfig;
+use crate::conf::task_config::TaskConfig;
 use crate::services::queues::queues::Queues;
 use crate::services::task::task_cycle::ServiceCycle;
 
