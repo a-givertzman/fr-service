@@ -5,18 +5,13 @@ use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Order
 use log::{info, debug, trace, warn};
 
 use crate::{
-    core_::point::point_type::PointType, 
+    core_::{point::point_type::PointType, net::connection_status::ConnectionStatus}, 
     conf::api_client_config::ApiClientConfig,
     services::{task::task_cycle::ServiceCycle, api_cient::api_reply::SqlReply, service::Service}, 
     tcp::tcp_socket_client_connect::TcpSocketClientConnect, 
 };
 
 use super::api_query::ApiQuery;
-
-enum ConnectionStatus {
-    Active(Vec<u8>),
-    Closed,
-}
 
 ///
 /// - Holding single input queue
@@ -85,7 +80,7 @@ impl ApiClient {
         loop {
             match stream.read(&mut buf) {
                 Ok(len) => {
-                    debug!("TcpServer.readAll ({}) |     read len: {:?}", selfId, len);
+                    debug!("{}.readAll |     read len: {:?}", selfId, len);
                     result.append(& mut buf[..len].into());
                     if len < Self::BUF_LEN {
                         if len == 0 {
@@ -96,8 +91,8 @@ impl ApiClient {
                     }
                 },
                 Err(err) => {
-                    warn!("TcpServer.readAll ({}) | error reading from socket: {:?}", selfId, err);
-                    warn!("TcpServer.readAll ({}) | error kind: {:?}", selfId, err.kind());
+                    warn!("{}.readAll | error reading from socket: {:?}", selfId, err);
+                    warn!("{}.readAll | error kind: {:?}", selfId, err.kind());
                     return match err.kind() {
                         std::io::ErrorKind::NotFound => todo!(),
                         std::io::ErrorKind::PermissionDenied => ConnectionStatus::Closed,
