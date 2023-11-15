@@ -11,6 +11,7 @@ use std::collections::VecDeque;
 /// - remove(index) - returns and removes value<T> from the [index] position
 /// - len() - Returns the number of elements in the buffer
 pub struct RetainBuffer<T> {
+    id: String,
     vec: VecDeque<T>,
     capacity: Option<usize>,
 }
@@ -19,8 +20,9 @@ pub struct RetainBuffer<T> {
 impl<T> RetainBuffer<T> {
     ///
     /// Creates new instance of the ReatinBuffer
-    pub const fn new(capacity: Option<usize>) -> Self {
+    pub fn new(parent: impl Into<String>, name: impl Into<String>, capacity: Option<usize>) -> Self {
         Self { 
+            id: format!("{}/RetainBuffer({})", parent.into(), name.into()),
             vec: VecDeque::new(),
             capacity,
         }
@@ -57,6 +59,7 @@ impl<T> RetainBuffer<T> {
     ///
     /// Immediately stores the content of the buffer
     pub fn store(&self) {
+        // TODO self.vec to be stored into the json located on the path coming from self.id
         todo!()
     }
 }
