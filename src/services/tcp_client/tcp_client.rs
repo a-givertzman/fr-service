@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{mpsc::{Sender, Receiver}, Arc, atomic::AtomicBool}, time::Duration, collections::HashMap, thread};
+use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Ordering}}, time::Duration, collections::HashMap, thread};
 
 use log::{info, debug, trace};
 
@@ -60,8 +60,7 @@ impl Service for TcpClient {
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         let recv = self.recv.pop().unwrap();
-        let cycleInterval = conf.cycle;
-        let (cyclic, cycleInterval) = match cycleInterval {
+        let (cyclic, cycleInterval) = match conf.cycle {
             Some(interval) => (interval > Duration::ZERO, interval),
             None => (false, Duration::ZERO),
         };
@@ -69,7 +68,7 @@ impl Service for TcpClient {
         let _queueMaxLength = conf.recvQueueMaxLength;
         let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
             let mut isConnected = false;
-            let mut buffer = Vec::new();
+            // let mut buffer = Vec::new();
             let mut cycle = ServiceCycle::new(cycleInterval);
             let mut connect = TcpSocketClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address);
             let mut stream = None;
@@ -91,52 +90,52 @@ impl Service for TcpClient {
                 match &mut stream {
                     Some(stream) => {
                         isConnected = true;
-                        cycle.start();
-                        trace!("ApiClient({}).run | step...", selfId);
-                        Self::readQueue(&selfId, &recv, &mut buffer);
-                        let mut count = buffer.len();
-                        while count > 0 {
-                            match buffer.first() {
-                                Some(point) => {
-                                    let sql = point.asString().value;
-                                    match Self::send(&selfId, sql, stream) {
-                                        Ok(_) => {
-                                            match Self::readAll(&selfId, stream) {
-                                                ConnectionStatus::Active(bytes) => {
-                                                    let reply = String::from_utf8(bytes).unwrap();
-                                                    debug!("ApiClient({}).run | API reply: {:?}", selfId, reply);
-                                                    let reply: SqlReply = serde_json::from_str(&reply).unwrap();
-                                                    if reply.hasError() {
-                                                        warn!("ApiClient({}).run | API reply has error: {:?}", selfId, reply.error);
-                                                        // break;
-                                                    } else {
-                                                        buffer.remove(0);
-                                                    }
-                                                },
-                                                ConnectionStatus::Closed => {
-                                                    isConnected = false;
-                                                    break;
-                                                },
-                                            };
-                                        },
-                                        Err(err) => {
-                                            isConnected = false;
-                                            warn!("ApiClient({}).run | error sending API: {:?}", selfId, err);
-                                            break;
-                                        },
-                                    }
-                                },
-                                None => {break;},
-                            };
-                            count -=1;
-                        }
-                        if exit.load(Ordering::SeqCst) {
-                            break 'main;
-                        }
-                        trace!("ApiClient({}).run | step - done ({:?})", selfId, cycle.elapsed());
-                        if cyclic {
-                            cycle.wait();
-                        }
+                        // cycle.start();
+                        // trace!("ApiClient({}).run | step...", selfId);
+                        // Self::readQueue(&selfId, &recv, &mut buffer);
+                        // let mut count = buffer.len();
+                        // while count > 0 {
+                        //     match buffer.first() {
+                        //         Some(point) => {
+                        //             let sql = point.asString().value;
+                        //             match Self::send(&selfId, sql, stream) {
+                        //                 Ok(_) => {
+                        //                     match Self::readAll(&selfId, stream) {
+                        //                         ConnectionStatus::Active(bytes) => {
+                        //                             let reply = String::from_utf8(bytes).unwrap();
+                        //                             debug!("ApiClient({}).run | API reply: {:?}", selfId, reply);
+                        //                             let reply: SqlReply = serde_json::from_str(&reply).unwrap();
+                        //                             if reply.hasError() {
+                        //                                 warn!("ApiClient({}).run | API reply has error: {:?}", selfId, reply.error);
+                        //                                 // break;
+                        //                             } else {
+                        //                                 buffer.remove(0);
+                        //                             }
+                        //                         },
+                        //                         ConnectionStatus::Closed => {
+                        //                             isConnected = false;
+                        //                             break;
+                        //                         },
+                        //                     };
+                        //                 },
+                        //                 Err(err) => {
+                        //                     isConnected = false;
+                        //                     warn!("ApiClient({}).run | error sending API: {:?}", selfId, err);
+                        //                     break;
+                        //                 },
+                        //             }
+                        //         },
+                        //         None => {break;},
+                        //     };
+                        //     count -=1;
+                        // }
+                        // if exit.load(Ordering::SeqCst) {
+                        //     break 'main;
+                        // }
+                        // trace!("ApiClient({}).run | step - done ({:?})", selfId, cycle.elapsed());
+                        // if cyclic {
+                        //     cycle.wait();
+                        // }
                     },
                     None => {
                         isConnected = false;

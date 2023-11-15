@@ -170,8 +170,7 @@ impl Service for ApiClient {
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         let recv = self.recv.pop().unwrap();
-        let cycleInterval = conf.cycle;
-        let (cyclic, cycleInterval) = match cycleInterval {
+        let (cyclic, cycleInterval) = match conf.cycle {
             Some(interval) => (interval > Duration::ZERO, interval),
             None => (false, Duration::ZERO),
         };
