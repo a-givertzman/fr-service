@@ -63,7 +63,7 @@ mod tests {
         let mut producer = TaskTestProducer::new(iterations, vec![send]);
         producer.run();
     
-        let mut task = Task::new(config, queues);
+        let mut task = Task::new("test", config, queues);
         trace!("task tuning...");
         let time = Instant::now();
         task.run();
@@ -111,7 +111,7 @@ mod tests {
         let mut producer = TaskTestProducer::new(iterations, vec![send]);
         producer.run();
     
-        let mut task = Task::new(config, queues);
+        let mut task = Task::new("test", config, queues);
         trace!("task tuning...");
         let time = Instant::now();
         task.run();

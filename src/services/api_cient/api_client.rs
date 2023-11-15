@@ -34,11 +34,12 @@ pub struct ApiClient {
 /// 
 impl ApiClient {
     ///
-    /// 
-    pub fn new(id: impl Into<String>, conf: ApiClientConfig) -> Self {
+    /// Creates new instance of [ApiClient]
+    /// - [parent] - the ID if the parent entity
+    pub fn new(parent: impl Into<String>, conf: ApiClientConfig) -> Self {
         let (send, recv) = mpsc::channel();
         Self {
-            id: id.into(),
+            id: format!("{}/ApiClient({})", parent.into(), conf.name),
             recv: vec![recv],
             send: HashMap::from([(conf.recvQueue.clone(), send)]),
             conf: conf.clone(),
@@ -46,19 +47,15 @@ impl ApiClient {
         }
     }
     ///
-    /// 
+    /// Reads all avalible at the moment items from the in-queue
     fn readQueue(selfId: &str, recv: &Receiver<PointType>, buffer: &mut Vec<PointType>) {
-        for _ in 0..1 {                    
-            match recv.recv() {
-                Ok(point) => {
-                    debug!("ApiClient({}).readQueue | point: {:?}", selfId, &point);
-                    buffer.push(point);
-                },
-                Err(_err) => {
-                    break;
-                    // warn!("ApiClient({}).run | Error receiving from queue: {:?}", selfName, err);
-                },
-            };
+        let maxReadAtOnce = 1000;
+        for (index, point) in recv.iter().enumerate() {   
+            debug!("{}.readQueue | point: {:?}", selfId, &point);
+            buffer.push(point);
+            if index > maxReadAtOnce {
+                break;
+            }                 
         }
     }
     ///
@@ -68,7 +65,7 @@ impl ApiClient {
         match stream.write(query.toJson().as_bytes()) {
             Ok(_) => Ok(()),
             Err(err) => {
-                warn!("ApiClient({}).send | write to tcp stream error: {:?}", selfId, err);
+                warn!("{}.send | write to tcp stream error: {:?}", selfId, err);
                 Err(Box::new(err))
             },
         }
@@ -159,13 +156,13 @@ impl Service for ApiClient {
         let name = name.into();
         match self.send.get(&name) {
             Some(send) => send.clone(),
-            None => panic!("ApiClient({}).run | link '{:?}' - not found", self.id, name),
+            None => panic!("{}.run | link '{:?}' - not found", self.id, name),
         }
     }
     ///
     /// 
     fn run(&mut self) {
-        info!("ApiClient({}).run | starting...", self.id);
+        info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
         let conf = self.conf.clone();
@@ -176,7 +173,7 @@ impl Service for ApiClient {
         };
         let reconnect = if conf.reconnectCycle.is_some() {conf.reconnectCycle.unwrap()} else {Duration::from_secs(3)};
         let _queueMaxLength = conf.recvQueueMaxLength;
-        let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
+        let _h = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
             let mut isConnected = false;
             let mut buffer = Vec::new();
             let mut cycle = ServiceCycle::new(cycleInterval);
@@ -190,7 +187,7 @@ impl Service for ApiClient {
                             match stream.set_read_timeout(Some(Duration::from_secs(10))) {
                                 Ok(_) => {},
                                 Err(err) => {
-                                    debug!("ApiClient({}).run | TcpStream.set_timeout error: {:?}", selfId, err);
+                                    debug!("{}.run | TcpStream.set_timeout error: {:?}", selfId, err);
                                 },
                             };
                         },
@@ -201,7 +198,7 @@ impl Service for ApiClient {
                     Some(stream) => {
                         isConnected = true;
                         cycle.start();
-                        trace!("ApiClient({}).run | step...", selfId);
+                        trace!("{}.run | step...", selfId);
                         Self::readQueue(&selfId, &recv, &mut buffer);
                         let mut count = buffer.len();
                         while count > 0 {
@@ -213,10 +210,10 @@ impl Service for ApiClient {
                                             match Self::readAll(&selfId, stream) {
                                                 ConnectionStatus::Active(bytes) => {
                                                     let reply = String::from_utf8(bytes).unwrap();
-                                                    debug!("ApiClient({}).run | API reply: {:?}", selfId, reply);
+                                                    debug!("{}.run | API reply: {:?}", selfId, reply);
                                                     let reply: SqlReply = serde_json::from_str(&reply).unwrap();
                                                     if reply.hasError() {
-                                                        warn!("ApiClient({}).run | API reply has error: {:?}", selfId, reply.error);
+                                                        warn!("{}.run | API reply has error: {:?}", selfId, reply.error);
                                                         // break;
                                                     } else {
                                                         buffer.remove(0);
@@ -230,7 +227,7 @@ impl Service for ApiClient {
                                         },
                                         Err(err) => {
                                             isConnected = false;
-                                            warn!("ApiClient({}).run | error sending API: {:?}", selfId, err);
+                                            warn!("{}.run | error sending API: {:?}", selfId, err);
                                             break;
                                         },
                                     }
@@ -242,7 +239,7 @@ impl Service for ApiClient {
                         if exit.load(Ordering::SeqCst) {
                             break 'main;
                         }
-                        trace!("ApiClient({}).run | step - done ({:?})", selfId, cycle.elapsed());
+                        trace!("{}.run | step - done ({:?})", selfId, cycle.elapsed());
                         if cyclic {
                             cycle.wait();
                         }
@@ -252,9 +249,9 @@ impl Service for ApiClient {
                     },
                 }
             };
-            info!("ApiClient({}).run | stopped", selfId);
+            info!("{}.run | stopped", selfId);
         }).unwrap();
-        info!("ApiClient({}).run | started", self.id);
+        info!("{}.run | started", self.id);
         // h.join().unwrap();
     }
     ///

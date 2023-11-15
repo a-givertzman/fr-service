@@ -79,7 +79,7 @@ fn main() {
     producer2.run();
     producer3.run();
 
-    let mut task = Task::new(config, queues);
+    let mut task = Task::new("test", config, queues);
     info!("task runing...");
     let time = Instant::now();
     task.run();

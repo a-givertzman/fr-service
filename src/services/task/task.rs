@@ -27,19 +27,20 @@ pub struct Task {
 /// 
 impl Task {
     ///
-    /// 
-    pub fn new(cfg: TaskConfig, queues: Queues) -> Task {
+    /// Creates new instance of [Task]
+    /// - [parent] - the ID if the parent entity
+    pub fn new(parent: impl Into<String>, conf: TaskConfig, queues: Queues) -> Task {
         Task {
-            id: cfg.name.clone(),
+            id: format!("{}/Task({})", parent.into(), conf.name),
             queues: vec![queues],
-            conf: cfg,
+            conf,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
     ///
     /// Tasck main execution loop spawned in the separate thread
     pub fn run(&mut self) {
-        info!("Task({}).run | starting...", self.id);
+        info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
         let conf = self.conf.clone();
@@ -49,35 +50,35 @@ impl Task {
             None => (false, Duration::ZERO),
         };
         let recvQueue = queues.getRecvQueue(&conf.recvQueue);
-        let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
+        let _h = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
             let mut cycle = ServiceCycle::new(cycleInterval);
             let mut taskNodes = TaskNodes::new(&selfId);
             taskNodes.buildNodes(conf, &mut queues);
-            debug!("Task({}).run | taskNodes: {:?}", selfId, taskNodes);
+            debug!("{}.run | taskNodes: {:?}", selfId, taskNodes);
             'main: loop {
                 cycle.start();
-                trace!("Task({}).run | calculation step...", selfId);
+                trace!("{}.run | calculation step...", selfId);
                 match recvQueue.recv() {
                     Ok(point) => {
-                        debug!("Task({}).run | point: {:?}", selfId, &point);
+                        debug!("{}.run | point: {:?}", selfId, &point);
                         taskNodes.eval(point);
                     },
                     Err(err) => {
-                        warn!("Task({}).run | Error receiving from queue: {:?}", selfId, err);
+                        warn!("{}.run | Error receiving from queue: {:?}", selfId, err);
                         break 'main;
                     },
                 };
                 if exit.load(Ordering::SeqCst) {
                     break 'main;
                 }
-                trace!("Task({}).run | calculation step - done ({:?})", selfId, cycle.elapsed());
+                trace!("{}.run | calculation step - done ({:?})", selfId, cycle.elapsed());
                 if cyclic {
                     cycle.wait();
                 }
             };
-            info!("Task({}).run | stopped", selfId);
+            info!("{}.run | stopped", selfId);
         }).unwrap();
-        info!("Task({}).run | started", self.id);
+        info!("{}.run | started", self.id);
         // h.join().unwrap();
     }
     ///
