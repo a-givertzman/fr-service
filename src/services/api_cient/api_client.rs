@@ -50,7 +50,7 @@ impl ApiClient {
     /// Reads all avalible at the moment items from the in-queue
     fn readQueue(selfId: &str, recv: &Receiver<PointType>, buffer: &mut Vec<PointType>) {
         let maxReadAtOnce = 1000;
-        for (index, point) in recv.iter().enumerate() {   
+        for (index, point) in recv.try_iter().enumerate() {   
             debug!("{}.readQueue | point: {:?}", selfId, &point);
             buffer.push(point);
             if index > maxReadAtOnce {
