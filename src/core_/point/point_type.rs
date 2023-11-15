@@ -2,8 +2,8 @@
 
 use std::str::FromStr;
 
-use chrono::DateTime;
-use log::trace;
+use chrono::{DateTime, Utc};
+use log::{trace, warn};
 use regex::RegexBuilder;
 
 use crate::core_::types::bool::Bool;
@@ -50,10 +50,78 @@ pub enum PointType {
     Float(Point<f64>),
     String(Point<String>)
 }
+///
+/// 
 impl PointType {
+    ///
+    /// 
     pub fn new<T: ToPoint>(name: &str, value: T) -> Self {
         value.toPoint(name)
     }
+    ///
+    /// 
+    fn fromJsonBytes(bytes: Vec<u8>) -> Result<Self, String> {
+        match String::from_utf8(bytes) {
+            Ok(jsonString) => {
+                match serde_json::from_str(&jsonString) {
+                    Ok(value) => {
+                        let value: serde_json::Value = value;
+                        match value.as_object() {
+                            Some(obj) => {
+                                match obj.get("type") {
+                                    Some(type_) => {
+                                        match type_.as_str() {
+                                            Some("bool") => {
+                                                let value = obj.get("value").unwrap().as_bool().unwrap();
+                                                let status = obj.get("status").unwrap().as_i64().unwrap();
+                                                let timestamp = obj.get("timestamp").unwrap().as_str().unwrap();
+                                                let timestamp: DateTime<Utc> = chrono::DateTime::parse_from_rfc3339(timestamp).unwrap();
+                                                let p = Point::<Bool>::new(
+                                                    "bool",
+                                                    Bool(value),
+                                                    status as u8,
+                                                    timestamp,
+                                                );
+                                                Ok(PointType::Bool(p))
+
+                                            },
+                                            _ => {
+                                                let message = format!("PointType.fromBytes | Unknown point type: {}", type_);
+                                                warn!("{}", message);
+                                                Err(message)
+                                            }
+                                        }
+                                    },
+                                    None => {
+                                        let message = format!("PointType.fromBytes | JSON convertion error: mapping not found in the JSON: {}", value);
+                                        warn!("{}", message);
+                                        Err(message)        
+                                    },
+                                }
+                            },
+                            None => {
+                                let message = format!("PointType.fromBytes | JSON convertion error: mapping not found in the JSON: {}", value);
+                                warn!("{}", message);
+                                Err(message)
+                            },
+                        }
+                    },
+                    Err(err) => {
+                        let message = format!("PointType.fromBytes | JSON convertion error: {:?}", err);
+                        warn!("{}", message);
+                        Err(message)        
+                    },
+                }
+                // PointType::
+            },
+            Err(err) => {
+                let message = format!("PointType.fromBytes | From bytes error: {:?}", err);
+                warn!("{}", message);
+                Err(message)        
+            },
+        }
+    }
+
     pub fn name(&self) -> String {
         match self {
             PointType::Bool(point) => point.name.clone(),
@@ -103,7 +171,8 @@ impl PointType {
         }
     }
 }
-
+///
+/// 
 impl FromStr for PointType {
     type Err = String;
     fn from_str(input: &str) -> Result<PointType, String> {

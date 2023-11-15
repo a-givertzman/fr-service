@@ -5,7 +5,7 @@ use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Order
 use log::{info, debug, trace, warn};
 
 use crate::{
-    core_::{point::point_type::PointType, net::connection_status::ConnectionStatus},
+    core_::{point::{point_type::PointType, point::Point}, net::connection_status::ConnectionStatus, retain_buffer::retain_buffer::RetainBuffer},
     conf::tcp_client_config::TcpClientConfig,
     services::{service::Service, task::task_cycle::ServiceCycle}, tcp::tcp_socket_client_connect::TcpSocketClientConnect, 
 };
@@ -23,6 +23,8 @@ pub struct TcpClient {
     send: HashMap<String, Sender<PointType>>,
     conf: TcpClientConfig,
     exit: Arc<AtomicBool>,
+    exitR: Arc<AtomicBool>,
+    exitW: Arc<AtomicBool>,
 }
 ///
 /// 
@@ -38,6 +40,8 @@ impl TcpClient {
             send: HashMap::from([(conf.recvQueue.clone(), send)]),
             conf: conf.clone(),
             exit: Arc::new(AtomicBool::new(false)),
+            exitR: Arc::new(AtomicBool::new(false)),
+            exitW: Arc::new(AtomicBool::new(false)),
         }
     }
     ///
@@ -147,8 +151,8 @@ impl Service for TcpClient {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
-        let exitR = exit.clone();
-        let exitW = exit.clone();
+        let exitR = self.exitR.clone();
+        let exitW = self.exitW.clone();
         let conf = self.conf.clone();
         let recv = Arc::new(Mutex::new(self.recv.pop().unwrap()));
         let (cyclic, cycleInterval) = match conf.cycle {
@@ -159,7 +163,7 @@ impl Service for TcpClient {
         let _queueMaxLength = conf.recvQueueMaxLength;
         let _h = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
             let mut isConnected = false;
-            let mut buffer = Arc::new(Mutex::new(Vec::new()));
+            let mut buffer = Arc::new(Mutex::new(RetainBuffer::new(&selfId, "", Some(conf.recvQueueMaxLength as usize))));
             let mut cycle = ServiceCycle::new(cycleInterval);
             let mut connect = TcpSocketClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address);
             let mut stream = None;
@@ -186,7 +190,15 @@ impl Service for TcpClient {
                         let mut streamR = stream.try_clone().unwrap();
                         let _hR = thread::Builder::new().name(format!("{} - Read", selfIdR.clone())).spawn(move || {
                             'read: loop {
-                                Self::readAll(&selfIdR, &mut streamR);
+                                match Self::readAll(&selfIdR, &mut streamR) {
+                                    ConnectionStatus::Active(bytes) => {
+                                        let point = PointType::
+                                    },
+                                    ConnectionStatus::Closed => {
+                                        isConnected = false;
+                                        break;
+                                    },
+                                };
                                 if exitR.load(Ordering::SeqCst) {
                                     break 'read;
                                 }
@@ -224,6 +236,8 @@ impl Service for TcpClient {
     ///
     /// 
     fn exit(&self) {
+        self.exitR.store(true, Ordering::SeqCst);
+        self.exitW.store(true, Ordering::SeqCst);
         self.exit.store(true, Ordering::SeqCst);
     }
 }

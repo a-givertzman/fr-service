@@ -12,8 +12,18 @@ pub struct Point<T> {
     pub status: u8,
     pub timestamp: DateTime<chrono::Utc>,
 }
-
-
+impl<T> Point<T> {
+    pub fn new(name: &str, value: T, status: u8, timestamp: DateTime<chrono::Utc>,) -> Point<T> {
+        Self {
+            name: name.to_owned(),
+            value,
+            status,
+            timestamp,
+        }
+    }
+}
+///
+/// 
 impl Point<Bool> {
     ///
     /// creates Point<Bool> with given name & value, taking current timestamp
@@ -26,6 +36,8 @@ impl Point<Bool> {
         }
     }
 }
+///
+/// 
 impl Point<i64> {
     ///
     /// creates Point<i64> with given name & value, taking current timestamp
@@ -38,6 +50,8 @@ impl Point<i64> {
         }
     }
 }
+///
+/// 
 impl Point<f64> {
     ///
     /// creates Point<f64> with given name & value, taking current timestamp
@@ -50,6 +64,8 @@ impl Point<f64> {
         }
     }
 }
+///
+/// 
 impl Point<String> {
     ///
     /// creates Point<String> with given name & value, taking current timestamp
@@ -62,7 +78,8 @@ impl Point<String> {
         }
     }
 }
-
+///
+/// 
 impl<T: std::ops::Add<Output = T> + Clone> std::ops::Add for Point<T> {
     type Output = Point<T>;
     fn add(self, rhs: Self) -> Self::Output {
