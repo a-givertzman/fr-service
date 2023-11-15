@@ -5,7 +5,7 @@ use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Order
 use log::{info, debug, trace, warn};
 
 use crate::{
-    core_::{point::point_type::PointType, net::connection_status::ConnectionStatus}, 
+    core_::{point::point_type::PointType, net::connection_status::ConnectionStatus, retain_buffer::retain_buffer::RetainBuffer}, 
     conf::api_client_config::ApiClientConfig,
     services::{task::task_cycle::ServiceCycle, api_cient::api_reply::SqlReply, service::Service}, 
     tcp::tcp_socket_client_connect::TcpSocketClientConnect, 
@@ -43,7 +43,7 @@ impl ApiClient {
     }
     ///
     /// Reads all avalible at the moment items from the in-queue
-    fn readQueue(selfId: &str, recv: &Receiver<PointType>, buffer: &mut Vec<PointType>) {
+    fn readQueue(selfId: &str, recv: &Receiver<PointType>, buffer: &mut RetainBuffer<PointType>) {
         let maxReadAtOnce = 1000;
         for (index, point) in recv.try_iter().enumerate() {   
             debug!("{}.readQueue | point: {:?}", selfId, &point);
@@ -170,7 +170,7 @@ impl Service for ApiClient {
         let _queueMaxLength = conf.recvQueueMaxLength;
         let _h = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
             let mut isConnected = false;
-            let mut buffer = Vec::new();
+            let mut buffer = RetainBuffer::new(&selfId, "", Some(conf.recvQueueMaxLength as usize));
             let mut cycle = ServiceCycle::new(cycleInterval);
             let mut connect = TcpSocketClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address);
             let mut stream = None;

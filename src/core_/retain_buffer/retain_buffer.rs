@@ -42,6 +42,11 @@ impl<T> RetainBuffer<T> {
         self.vec.push_back(value);
     }
     ///
+    /// Returns first value<T> in the buffer
+    pub fn first(&mut self) -> Option<&T> {
+        self.vec.front()
+    }
+    ///
     /// Returns and removes first value<T> in the buffer
     pub fn popFirst(&mut self) -> Option<T> {
         self.vec.pop_front()
