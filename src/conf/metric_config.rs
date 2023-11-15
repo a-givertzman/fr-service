@@ -1,10 +1,10 @@
 #![allow(non_snake_case)]
 
 use indexmap::IndexMap;
-use log::{trace, debug, error};
+use log::{trace, debug};
 use std::{fs, str::FromStr};
 
-use crate::core_::conf::{fn_config::FnConfig, conf_tree::ConfTree, fn_conf_keywd::FnConfKeywd};
+use crate::conf::{fn_config::FnConfig, conf_tree::ConfTree, fn_conf_keywd::FnConfKeywd};
 
 ///
 /// creates config from serde_yaml::Value of following format:

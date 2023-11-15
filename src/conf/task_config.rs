@@ -4,7 +4,7 @@ use indexmap::IndexMap;
 use log::{trace, debug, error};
 use std::{fs, str::FromStr, time::Duration};
 
-use crate::core_::conf::{metric_config::MetricConfig, fn_config::FnConfig, conf_tree::ConfTree, fn_conf_keywd::FnConfKeywd, conf_duration::{ConfDuration, ConfDurationUnit}, conf_keywd::ConfKeywd};
+use crate::conf::{metric_config::MetricConfig, fn_config::FnConfig, conf_tree::ConfTree, conf_duration::ConfDuration, conf_keywd::ConfKeywd};
 
 
 #[derive(Debug, Clone, PartialEq)]
