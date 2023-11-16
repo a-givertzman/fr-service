@@ -60,7 +60,7 @@ mod tests {
         let path = "./src/tests/unit/api_client/api_client.yaml";
         let conf = ApiClientConfig::read(path);
         let addr = conf.address.clone();
-        let apiClient = ApiClient::new("test ApiClient", conf);
+        let mut apiClient = ApiClient::new("test ApiClient", conf);
 
         let maxTestDuration = Duration::from_secs(10);
         let count = 300;
@@ -169,6 +169,7 @@ mod tests {
 
 
 
+        apiClient.run();
         let timer = Instant::now();
         let send = apiClient.getLink("api-link");
         for _ in 0..count {
