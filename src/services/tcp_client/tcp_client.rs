@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Ordering}, Mutex}, time::Duration, collections::HashMap, thread, net::TcpStream, io::Read};
+use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Ordering}, Mutex}, time::Duration, collections::HashMap, thread, net::TcpStream, io::{Read, Write}};
 
 use log::{info, debug, trace, warn, error};
 
@@ -23,8 +23,7 @@ pub struct TcpClient {
     send: HashMap<String, Sender<PointType>>,
     conf: TcpClientConfig,
     exit: Arc<AtomicBool>,
-    exitR: Arc<AtomicBool>,
-    exitW: Arc<AtomicBool>,
+    exitRW: Arc<AtomicBool>,
 }
 ///
 /// 
@@ -40,8 +39,7 @@ impl TcpClient {
             send: HashMap::from([(conf.recvQueue.clone(), send)]),
             conf: conf.clone(),
             exit: Arc::new(AtomicBool::new(false)),
-            exitR: Arc::new(AtomicBool::new(false)),
-            exitW: Arc::new(AtomicBool::new(false)),
+            exitRW: Arc::new(AtomicBool::new(false)),
         }
     }
     ///
@@ -54,6 +52,27 @@ impl TcpClient {
             if index > maxReadAtOnce {
                 break;
             }                 
+        }
+    }
+    ///
+    /// Writing sql string to the TcpStream
+    fn send(selfId: &str, point: &PointType, stream: &mut TcpStream) -> Result<(), String>{
+        match point.toJsonBytes() {
+            Ok(bytes) => {
+                match stream.write(&bytes) {
+                    Ok(_) => Ok(()),
+                    Err(err) => {
+                        let message= format!("{}.send | write to tcp stream error: {:?}", selfId, err);
+                        warn!("{}", message);
+                        Err(message)
+                    },
+                }
+            },
+            Err(err) => {
+                let message= format!("{}.send | error: {:?}", selfId, err);
+                warn!("{}", message);
+                Err(message)
+            },
         }
     }
     ///
@@ -151,8 +170,8 @@ impl Service for TcpClient {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
-        let exitR = self.exitR.clone();
-        let exitW = self.exitW.clone();
+        let exitRW = self.exitRW.clone();
+        // let exitW = self.exitRW.clone();
         let conf = self.conf.clone();
         let send = self.send.get(&conf.sendQueue).unwrap().clone();
         let send = Arc::new(Mutex::new(send));
@@ -172,73 +191,87 @@ impl Service for TcpClient {
             'main: loop {
                 if !isConnected {
                     stream = connect.connect(reconnect);
-                    match &stream {
-                        Some(stream) => {
+                    match stream {
+                        Some(mut stream) => {
                             match stream.set_read_timeout(Some(Duration::from_secs(10))) {
                                 Ok(_) => {},
                                 Err(err) => {
                                     debug!("{}.run | TcpStream.set_timeout error: {:?}", selfId, err);
-                                },
+                                },                            
                             };
-                        },
-                        None => {},
-                    }
-                }
-                match &mut stream {
-                    Some(stream) => {
-                        isConnected = true;
-                        let selfIdR = selfId.clone();
-                        let exitR = exitR.clone();
-                        let send = send.clone();
-                        let mut streamR = stream.try_clone().unwrap();
-                        let _hR = thread::Builder::new().name(format!("{} - Read", selfIdR.clone())).spawn(move || {
-                            let send = send.lock().unwrap();
-                            'read: loop {
-                                match Self::readAll(&selfIdR, &mut streamR) {
-                                    ConnectionStatus::Active(bytes) => {
-                                        match PointType::fromJsonBytes(bytes) {
-                                            Ok(point) => {
-                                                match send.send(point) {
-                                                    Ok(_) => {},
-                                                    Err(err) => {
-                                                        warn!("{}.send | write to tcp stream error: {:?}", selfIdR, err);
+                            isConnected = true;
+                            let selfIdR = selfId.clone();
+                            let exitR = exitRW.clone();
+                            let send = send.clone();
+                            let mut streamR = stream.try_clone().unwrap();
+                            let _hR = thread::Builder::new().name(format!("{} - Read", selfIdR.clone())).spawn(move || {
+                                let send = send.lock().unwrap();
+                                'read: loop {
+                                    match Self::readAll(&selfIdR, &mut streamR) {
+                                        ConnectionStatus::Active(bytes) => {
+                                            match PointType::fromJsonBytes(bytes) {
+                                                Ok(point) => {
+                                                    match send.send(point) {
+                                                        Ok(_) => {},
+                                                        Err(err) => {
+                                                            warn!("{}.send | write to tcp stream error: {:?}", selfIdR, err);
+                                                        },
+                                                    };
+                                                },
+                                                Err(err) => {
+                                                    warn!("{}.run | Point prsing from json error: {:?}", selfIdR, err);
+                                                },
+                                            }
+                                        },
+                                        ConnectionStatus::Closed => {
+                                            isConnected = false;
+                                            exitR.store(true, Ordering::SeqCst);
+                                            break;
+                                        },
+                                    };
+                                    if exitR.load(Ordering::SeqCst) {
+                                        break 'read;
+                                    }
+                                }
+                            }).unwrap();
+                            let selfIdW = selfId.clone();
+                            let buffer = buffer.clone();
+                            let exitW = exitRW.clone();
+                            let recv = recv.clone();
+                            let _hW = thread::Builder::new().name(format!("{} - Write", selfIdW.clone())).spawn(move || {
+                                let mut buffer = buffer.lock().unwrap();
+                                let recv = recv.lock().unwrap();
+                                'write: loop {
+                                    Self::readQueue(&selfIdW, &recv, &mut buffer);
+                                    let mut count = buffer.len();
+                                    while count > 0 {
+                                        match buffer.first() {
+                                            Some(point) => {
+                                                match Self::send(&selfIdW, point, &mut stream) {
+                                                    Ok(_) => {
+                                                        buffer.remove(0);
                                                     },
-                                                };
+                                                    Err(err) => {
+                                                        
+                                                    },
+                                                }
                                             },
-                                            Err(err) => {
-                                                warn!("{}.run | Point prsing from json error: {:?}", selfIdR, err);
-                                            },
-                                        }
-                                    },
-                                    ConnectionStatus::Closed => {
-                                        isConnected = false;
-                                        break;
-                                    },
-                                };
-                                if exitR.load(Ordering::SeqCst) {
-                                    break 'read;
+                                            None => {break;},
+                                        };
+                                        count -=1;
+                                    }
+                                    if exitW.load(Ordering::SeqCst) {
+                                        break 'write;
+                                    }
                                 }
-                            }
-                        }).unwrap();
-                        let selfIdW = selfId.clone();
-                        let buffer = buffer.clone();
-                        let exitW = exitW.clone();
-                        let recv = recv.clone();
-                        let _hW = thread::Builder::new().name(format!("{} - Write", selfIdW.clone())).spawn(move || {
-                            let mut buffer = buffer.lock().unwrap();
-                            let recv = recv.lock().unwrap();
-                            'write: loop {
-                                Self::readQueue(&selfIdW, &recv, &mut buffer);
-
-                                if exitW.load(Ordering::SeqCst) {
-                                    break 'write;
-                                }
-                            }
-                        }).unwrap();
-                    },
-                    None => {
-                        isConnected = false;
-                    },
+                            }).unwrap();
+                            _hR.join().unwrap();
+                            _hW.join().unwrap();
+                        },
+                        None => {
+                            isConnected = false;
+                        },
+                    }
                 }
                 if exit.load(Ordering::SeqCst) {
                     break 'main;
@@ -252,89 +285,7 @@ impl Service for TcpClient {
     ///
     /// 
     fn exit(&self) {
-        self.exitR.store(true, Ordering::SeqCst);
-        self.exitW.store(true, Ordering::SeqCst);
+        self.exitRW.store(true, Ordering::SeqCst);
         self.exit.store(true, Ordering::SeqCst);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                        // cycle.start();
-                        // trace!("{}.run | step...", selfId);
-                        // Self::readQueue(&selfId, &recv, &mut buffer);
-                        // let mut count = buffer.len();
-                        // while count > 0 {
-                        //     match buffer.first() {
-                        //         Some(point) => {
-                        //             let sql = point.asString().value;
-                        //             match Self::send(&selfId, sql, stream) {
-                        //                 Ok(_) => {
-                        //                     match Self::readAll(&selfId, stream) {
-                        //                         ConnectionStatus::Active(bytes) => {
-                        //                             let reply = String::from_utf8(bytes).unwrap();
-                        //                             debug!("{}.run | API reply: {:?}", selfId, reply);
-                        //                             let reply: SqlReply = serde_json::from_str(&reply).unwrap();
-                        //                             if reply.hasError() {
-                        //                                 warn!("{}.run | API reply has error: {:?}", selfId, reply.error);
-                        //                                 // break;
-                        //                             } else {
-                        //                                 buffer.remove(0);
-                        //                             }
-                        //                         },
-                        //                         ConnectionStatus::Closed => {
-                        //                             isConnected = false;
-                        //                             break;
-                        //                         },
-                        //                     };
-                        //                 },
-                        //                 Err(err) => {
-                        //                     isConnected = false;
-                        //                     warn!("{}.run | error sending API: {:?}", selfId, err);
-                        //                     break;
-                        //                 },
-                        //             }
-                        //         },
-                        //         None => {break;},
-                        //     };
-                        //     count -=1;
-                        // }
-                        // if exit.load(Ordering::SeqCst) {
-                        //     break 'main;
-                        // }
-                        // trace!("{}.run | step - done ({:?})", selfId, cycle.elapsed());
-                        // if cyclic {
-                        //     cycle.wait();
-                        // }
