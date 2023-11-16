@@ -2,7 +2,7 @@
 
 use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Ordering}, Mutex}, time::Duration, collections::HashMap, thread, net::TcpStream, io::Read};
 
-use log::{info, debug, trace, warn};
+use log::{info, debug, trace, warn, error};
 
 use crate::{
     core_::{point::{point_type::PointType, point::Point}, net::connection_status::ConnectionStatus, retain_buffer::retain_buffer::RetainBuffer},
@@ -154,6 +154,8 @@ impl Service for TcpClient {
         let exitR = self.exitR.clone();
         let exitW = self.exitW.clone();
         let conf = self.conf.clone();
+        let send = self.send.get(&conf.sendQueue).unwrap().clone();
+        let send = Arc::new(Mutex::new(send));
         let recv = Arc::new(Mutex::new(self.recv.pop().unwrap()));
         let (cyclic, cycleInterval) = match conf.cycle {
             Some(interval) => (interval > Duration::ZERO, interval),
@@ -163,7 +165,7 @@ impl Service for TcpClient {
         let _queueMaxLength = conf.recvQueueMaxLength;
         let _h = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
             let mut isConnected = false;
-            let mut buffer = Arc::new(Mutex::new(RetainBuffer::new(&selfId, "", Some(conf.recvQueueMaxLength as usize))));
+            let buffer = Arc::new(Mutex::new(RetainBuffer::new(&selfId, "", Some(conf.recvQueueMaxLength as usize))));
             let mut cycle = ServiceCycle::new(cycleInterval);
             let mut connect = TcpSocketClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address);
             let mut stream = None;
@@ -187,12 +189,26 @@ impl Service for TcpClient {
                         isConnected = true;
                         let selfIdR = selfId.clone();
                         let exitR = exitR.clone();
+                        let send = send.clone();
                         let mut streamR = stream.try_clone().unwrap();
                         let _hR = thread::Builder::new().name(format!("{} - Read", selfIdR.clone())).spawn(move || {
+                            let send = send.lock().unwrap();
                             'read: loop {
                                 match Self::readAll(&selfIdR, &mut streamR) {
                                     ConnectionStatus::Active(bytes) => {
-                                        // let point = PointType::
+                                        match PointType::fromJsonBytes(bytes) {
+                                            Ok(point) => {
+                                                match send.send(point) {
+                                                    Ok(_) => {},
+                                                    Err(err) => {
+                                                        warn!("{}.send | write to tcp stream error: {:?}", selfIdR, err);
+                                                    },
+                                                };
+                                            },
+                                            Err(err) => {
+                                                warn!("{}.run | Point prsing from json error: {:?}", selfIdR, err);
+                                            },
+                                        }
                                     },
                                     ConnectionStatus::Closed => {
                                         isConnected = false;
