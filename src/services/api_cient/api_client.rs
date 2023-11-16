@@ -147,9 +147,8 @@ impl ApiClient {
 impl Service for ApiClient {
     ///
     /// returns sender of the ApiClient queue by name
-    fn getLink(&self, name: impl Into<String>) -> Sender<PointType> {
-        let name = name.into();
-        match self.send.get(&name) {
+    fn getLink(&self, name: &str) -> Sender<PointType> {
+        match self.send.get(name) {
             Some(send) => send.clone(),
             None => panic!("{}.run | link '{:?}' - not found", self.id, name),
         }
