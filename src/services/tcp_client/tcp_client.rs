@@ -46,7 +46,7 @@ impl TcpClient {
     }
     ///
     /// Reads all avalible at the moment items from the in-queue
-    fn readQueue(selfId: &str, recv: &Receiver<PointType>, buffer: &mut Vec<PointType>) {
+    fn readQueue(selfId: &str, recv: &Receiver<PointType>, buffer: &mut RetainBuffer<PointType>) {
         let maxReadAtOnce = 1000;
         for (index, point) in recv.try_iter().enumerate() {   
             debug!("{}.readQueue | point: {:?}", selfId, &point);
@@ -192,7 +192,7 @@ impl Service for TcpClient {
                             'read: loop {
                                 match Self::readAll(&selfIdR, &mut streamR) {
                                     ConnectionStatus::Active(bytes) => {
-                                        let point = PointType::
+                                        // let point = PointType::
                                     },
                                     ConnectionStatus::Closed => {
                                         isConnected = false;
