@@ -2,10 +2,10 @@
 
 use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Ordering}, Mutex}, time::Duration, collections::HashMap, thread, net::TcpStream, io::{Read, Write}};
 
-use log::{info, debug, trace, warn, error};
+use log::{info, debug, warn};
 
 use crate::{
-    core_::{point::{point_type::PointType, point::Point}, net::connection_status::ConnectionStatus, retain_buffer::retain_buffer::RetainBuffer},
+    core_::{point::point_type::PointType, net::connection_status::ConnectionStatus, retain_buffer::retain_buffer::RetainBuffer},
     conf::tcp_client_config::TcpClientConfig,
     services::{service::Service, task::task_cycle::ServiceCycle}, tcp::tcp_socket_client_connect::TcpSocketClientConnect, 
 };
@@ -56,13 +56,13 @@ impl TcpClient {
     }
     ///
     /// Writing sql string to the TcpStream
-    fn send(selfId: &str, point: &PointType, stream: &mut TcpStream, isConnected: &mut bool) -> Result<(), String>{
+    fn send(selfId: &str, point: &PointType, stream: &mut TcpStream, isConnected: &AtomicBool) -> Result<(), String>{
         match point.toJsonBytes() {
             Ok(bytes) => {
                 match stream.write(&bytes) {
                     Ok(_) => Ok(()),
                     Err(err) => {
-                        *isConnected = false;
+                        isConnected.store(false, Ordering::SeqCst);
                         let message= format!("{}.send | write to tcp stream error: {:?}", selfId, err);
                         warn!("{}", message);
                         Err(message)
@@ -177,20 +177,20 @@ impl Service for TcpClient {
         let send = self.send.get(&conf.sendQueue).unwrap().clone();
         let send = Arc::new(Mutex::new(send));
         let recv = Arc::new(Mutex::new(self.recv.pop().unwrap()));
-        let (cyclic, cycleInterval) = match conf.cycle {
-            Some(interval) => (interval > Duration::ZERO, interval),
-            None => (false, Duration::ZERO),
-        };
+        // let (cyclic, cycleInterval) = match conf.cycle {
+        //     Some(interval) => (interval > Duration::ZERO, interval),
+        //     None => (false, Duration::ZERO),
+        // };
         let reconnect = if conf.reconnectCycle.is_some() {conf.reconnectCycle.unwrap()} else {Duration::from_secs(3)};
         let _queueMaxLength = conf.recvQueueMaxLength;
         let _h = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
-            let mut isConnected = false;
+            let isConnected = Arc::new(AtomicBool::new(false));
             let buffer = Arc::new(Mutex::new(RetainBuffer::new(&selfId, "", Some(conf.recvQueueMaxLength as usize))));
-            let mut cycle = ServiceCycle::new(cycleInterval);
+            // let mut cycle = ServiceCycle::new(cycleInterval);
             let mut connect = TcpSocketClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address);
             let mut stream = None;
             'main: loop {
-                if !isConnected {
+                if !isConnected.load(Ordering::SeqCst) {
                     stream = connect.connect(reconnect);
                     match stream {
                         Some(mut stream) => {
@@ -200,11 +200,12 @@ impl Service for TcpClient {
                                     debug!("{}.run | TcpStream.set_timeout error: {:?}", selfId, err);
                                 },                            
                             };
-                            isConnected = true;
+                            isConnected.store(true, Ordering::SeqCst);
                             let selfIdR = selfId.clone();
                             let exitR = exitRW.clone();
                             let send = send.clone();
                             let mut streamR = stream.try_clone().unwrap();
+                            let isConnectedR = isConnected.clone();
                             let _hR = thread::Builder::new().name(format!("{} - Read", selfIdR.clone())).spawn(move || {
                                 let send = send.lock().unwrap();
                                 'read: loop {
@@ -225,7 +226,7 @@ impl Service for TcpClient {
                                             }
                                         },
                                         ConnectionStatus::Closed => {
-                                            isConnected = false;
+                                            isConnectedR.store(false, Ordering::SeqCst);
                                             exitR.store(true, Ordering::SeqCst);
                                             break;
                                         },
@@ -239,6 +240,7 @@ impl Service for TcpClient {
                             let buffer = buffer.clone();
                             let exitW = exitRW.clone();
                             let recv = recv.clone();
+                            let isConnectedW = isConnected.clone();
                             let _hW = thread::Builder::new().name(format!("{} - Write", selfIdW.clone())).spawn(move || {
                                 let mut buffer = buffer.lock().unwrap();
                                 let recv = recv.lock().unwrap();
@@ -248,12 +250,12 @@ impl Service for TcpClient {
                                     while count > 0 {
                                         match buffer.first() {
                                             Some(point) => {
-                                                match Self::send(&selfIdW, point, &mut stream, &mut isConnected) {
+                                                match Self::send(&selfIdW, point, &mut stream, &isConnectedW) {
                                                     Ok(_) => {
                                                         buffer.remove(0);
                                                     },
                                                     Err(err) => {
-                                                        
+                                                        warn!("{}.run | error: {:?}", selfIdW, err);
                                                     },
                                                 }
                                             },
@@ -270,7 +272,7 @@ impl Service for TcpClient {
                             _hW.join().unwrap();
                         },
                         None => {
-                            isConnected = false;
+                            isConnected.store(false, Ordering::SeqCst);
                         },
                     }
                 }
