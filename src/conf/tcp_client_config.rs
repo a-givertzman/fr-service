@@ -27,6 +27,7 @@ pub struct TcpClientConfig {
     pub(crate) reconnectCycle: Option<Duration>,
     pub(crate) recvQueue: String,
     pub(crate) recvQueueMaxLength: i64,
+    pub(crate) sendQueue: String,
 }
 ///
 /// 
@@ -71,9 +72,16 @@ impl TcpClientConfig {
                     Some((keyword, mut selfRecvQueue)) => {
                         let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
                         debug!("TcpClientConfig.new | self in-queue params {}: {:?}", name, selfRecvQueue);
-                        // let mut params = Self::getParam(&mut selfConf, &mut selfNodeNames, &name).unwrap();
                         let maxLength = Self::getParam(&mut selfRecvQueue, &mut vec![String::from("max-length")], "max-length").unwrap().as_i64().unwrap();
                         (keyword.name(), maxLength)
+                    },
+                    None => panic!("TcpClientConfig.new | in queue - not found in : {:?}", selfConf),
+                };
+                let selfSendQueue = match Self::getParamByKeyword(&mut selfConf, &mut selfNodeNames, "out", ConfKind::Queue) {
+                    Some((keyword, selfRecvQueue)) => {
+                        let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
+                        debug!("TcpClientConfig.new | self out-queue param {}: {:?}", name, selfRecvQueue);
+                        keyword.name()
                     },
                     None => panic!("TcpClientConfig.new | in queue - not found in : {:?}", selfConf),
                 };
@@ -85,6 +93,7 @@ impl TcpClientConfig {
                     reconnectCycle: selfReconnectCycle,
                     recvQueue: selfRecvQueue,
                     recvQueueMaxLength: selfRecvQueueMaxLength,
+                    sendQueue: selfSendQueue,
                 }
             },
             None => {

@@ -201,7 +201,5 @@ mod tests {
             debug!("\nresult({}): {:?}\ntarget({}): {:?}", received.len(), result, sent.len(), target);
             assert!(result == &target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
-        // assert!(false)
-        // assert!(result == target, "result: {:?}\ntarget: {:?}", result, target);
     }
 }

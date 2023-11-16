@@ -5,3 +5,5 @@ pub mod switch_state_test;
 pub mod format;
 
 pub mod retain_buffer;
+
+pub mod point;
