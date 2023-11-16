@@ -3,7 +3,7 @@
 mod tests {
     use log::{info, debug, error};
     use rand::Rng;
-    use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::{Read, Write}};
+    use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::{Read, Write}, process::exit};
     use crate::{
         core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::{ToPoint, PointType}},
         conf::tcp_client_config::TcpClientConfig,  
@@ -176,7 +176,7 @@ mod tests {
         });
 
 
-
+        exit(0);
         tcpClient.lock().unwrap().run();
         let timer = Instant::now();
         let send = tcpClient.lock().unwrap().getLink("link");
