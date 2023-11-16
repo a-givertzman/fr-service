@@ -56,12 +56,13 @@ impl TcpClient {
     }
     ///
     /// Writing sql string to the TcpStream
-    fn send(selfId: &str, point: &PointType, stream: &mut TcpStream) -> Result<(), String>{
+    fn send(selfId: &str, point: &PointType, stream: &mut TcpStream, isConnected: &mut bool) -> Result<(), String>{
         match point.toJsonBytes() {
             Ok(bytes) => {
                 match stream.write(&bytes) {
                     Ok(_) => Ok(()),
                     Err(err) => {
+                        *isConnected = false;
                         let message= format!("{}.send | write to tcp stream error: {:?}", selfId, err);
                         warn!("{}", message);
                         Err(message)
@@ -247,7 +248,7 @@ impl Service for TcpClient {
                                     while count > 0 {
                                         match buffer.first() {
                                             Some(point) => {
-                                                match Self::send(&selfIdW, point, &mut stream) {
+                                                match Self::send(&selfIdW, point, &mut stream, &mut isConnected) {
                                                     Ok(_) => {
                                                         buffer.remove(0);
                                                     },
