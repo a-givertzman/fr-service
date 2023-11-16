@@ -69,8 +69,9 @@ mod tests {
         let conf = TcpClientConfig::read(path);
         let addr = conf.address.clone();
         let tcpClient = TcpClient::new("test TcpClient", conf);
-        let services = Services::new("test");
-        let tcpClient = Arc::new(Mutex::new(tcpClient));
+        let mut services = Services::new("test");
+        services.insert("TcpClient", Box::new(tcpClient));
+        // let tcpClient = Arc::new(Mutex::new(tcpClient));
 
         let maxTestDuration = Duration::from_secs(10);
         let count = 300;
@@ -179,9 +180,8 @@ mod tests {
 
 
         exit(0);
-        tcpClient.lock().unwrap().run();
         let timer = Instant::now();
-        let send = tcpClient.lock().unwrap().getLink("link");
+        let send = tcpClient.getLink("link");
         for _ in 0..count {
             let index = rnd.gen_range(0..testDataLen);
             let value = testData.get(index).unwrap();

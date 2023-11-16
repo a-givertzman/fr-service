@@ -60,7 +60,7 @@ mod tests {
         let path = "./src/tests/unit/api_client/api_client.yaml";
         let conf = ApiClientConfig::read(path);
         let addr = conf.address.clone();
-        let apiClient = Arc::new(Mutex::new(ApiClient::new("test ApiClient", conf)));
+        let apiClient = ApiClient::new("test ApiClient", conf);
 
         let maxTestDuration = Duration::from_secs(10);
         let count = 300;
@@ -169,9 +169,8 @@ mod tests {
 
 
 
-        apiClient.lock().unwrap().run();
         let timer = Instant::now();
-        let send = apiClient.lock().unwrap().getLink("api-link");
+        let send = apiClient.getLink("api-link");
         for _ in 0..count {
             let index = rnd.gen_range(0..testDataLen);
             let value = testData.get(index).unwrap();
