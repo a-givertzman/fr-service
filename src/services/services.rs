@@ -23,6 +23,14 @@ impl Services {
     }
     ///
     /// 
+    pub fn insert(&mut self, id:&str, service: Box<dyn Service>) {
+        if self.map.contains_key(id) {
+            panic!("{}.insert | Duplicated service name '{:?}'", self.id, id);
+        }
+        self.map.insert(id.to_string(), service);
+    }
+    ///
+    /// 
     pub fn get(&self, name: &str) -> &Box<dyn Service> {
         match self.map.get(name) {
             Some(srvc) => srvc,

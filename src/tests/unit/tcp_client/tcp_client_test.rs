@@ -7,7 +7,7 @@ mod tests {
     use crate::{
         core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::{ToPoint, PointType}},
         conf::tcp_client_config::TcpClientConfig,  
-        services::{api_cient::{api_client::ApiClient, api_reply::SqlReply, api_error::ApiError}, service::Service, tcp_client::tcp_client::TcpClient},
+        services::{api_cient::{api_client::ApiClient, api_reply::SqlReply, api_error::ApiError}, service::Service, tcp_client::tcp_client::TcpClient, services::Services},
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -68,7 +68,9 @@ mod tests {
         let path = "./src/tests/unit/tcp_client/tcp_client.yaml";
         let conf = TcpClientConfig::read(path);
         let addr = conf.address.clone();
-        let tcpClient = Arc::new(Mutex::new(TcpClient::new("test TcpClient", conf)));
+        let tcpClient = TcpClient::new("test TcpClient", conf);
+        let services = Services::new("test");
+        let tcpClient = Arc::new(Mutex::new(tcpClient));
 
         let maxTestDuration = Duration::from_secs(10);
         let count = 300;
