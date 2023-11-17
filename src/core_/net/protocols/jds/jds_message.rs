@@ -38,12 +38,16 @@ impl JdsMessage {
     ///
     /// 
     pub fn read(&mut self) -> ConnectionStatus {
-        let mut bytes = vec![];
+        let mut bytes = self.buffer.clone();
         match Self::readAll(&self.id, &mut bytes, &mut self.stream) {
             Status::Active => {
+                self.buffer.clear();
                 ConnectionStatus::Active(bytes)
             },
             Status::Closed => {
+                if !bytes.is_empty() {
+                    self.buffer = bytes;
+                }
                 ConnectionStatus::Closed
             },
         }

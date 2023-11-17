@@ -3,6 +3,7 @@
 mod tests {
     use chrono::{DateTime, Utc};
     use log::{info, debug, trace, error};
+    use rand::Rng;
     use std::{sync::{Once, atomic::{AtomicUsize, Ordering}, Arc}, time::{Duration, Instant}, net::{TcpStream, TcpListener}, thread, io::Write};
     use crate::core_::{
         types::bool::Bool, 
@@ -113,6 +114,7 @@ mod tests {
         let mut sent = 0;
         thread::spawn(move || {
             info!("TCP server | Preparing test server...");
+            let mut rng = rand::thread_rng();
             match TcpListener::bind(addr) {
                 Ok(listener) => {
                     info!("TCP server | Preparing test server - ok");
@@ -126,9 +128,28 @@ mod tests {
                                 let EOT = [4];
                                 for _ in 0..count {
                                     for (msg, _) in &testData {
+                                        let pos: usize = rng.gen_range(5..(msg.len() - 5));
                                         // for e in buf.iter_mut() {*e = 0;}
-                                        let bytes = msg.as_bytes();
-                                        match _socket.write(&[bytes, &EOT].concat()) {
+                                        let (msg1, msg2) = msg.split_at(pos);
+                                        let bytes1 = msg1.as_bytes();
+                                        let bytes2 = msg2.as_bytes();
+
+                                        match _socket.write(bytes1) {
+                                            Ok(_bytes) => {
+                                                sent += 1;
+                                                trace!("socket sent: {:?}", msg);
+                                            },
+                                            Err(err) => {
+                                                debug!("socket read - error: {:?}", err);
+                                                maxReadErrors -= 1;
+                                                if maxReadErrors <= 0 {
+                                                    error!("TCP server | socket read error: {:?}", err);
+                                                    break;
+                                                }
+                                            },
+                                        };
+                                        _socket.flush().unwrap();
+                                        match _socket.write(&[bytes2, &EOT].concat()) {
                                             Ok(_bytes) => {
                                                 sent += 1;
                                                 trace!("socket sent: {:?}", msg);
