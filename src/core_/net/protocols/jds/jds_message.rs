@@ -2,7 +2,7 @@
 
 use std::{net::TcpStream, io::{Read, BufReader, ErrorKind}};
 
-use log::{debug, warn};
+use log::warn;
 
 use crate::core_::net::connection_status::ConnectionStatus;
 
