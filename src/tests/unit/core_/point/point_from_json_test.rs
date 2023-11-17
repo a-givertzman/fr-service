@@ -2,8 +2,8 @@
 #[cfg(test)]
 mod tests {
     use chrono::{DateTime, Utc};
-    use log::{warn, info, debug};
-    use std::{sync::Once, time::{Duration, Instant}};
+    use log::{warn, info, debug, error};
+    use std::{sync::Once, time::{Duration, Instant}, net::{TcpStream, TcpListener}, thread, io::{Read, BufReader}};
     use crate::core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::{point_type::PointType, point::Point}, types::bool::Bool}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -46,7 +46,7 @@ mod tests {
         let ts = ts();
         // debug!("timestamp: {:?}", ts);j
         let testData = [
-            (format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": false,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Bool(Point::new(name, Bool(false), 0, ts))),
+            (format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": false,   "status": 0, "timestamp":"{}"}}\xa"#, name, tsStr(ts)), PointType::Bool(Point::new(name, Bool(false), 0, ts))),
             (format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": true,    "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Bool(Point::new(name, Bool(true),  0, ts))),
             (format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": 1,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Int(Point::new(name, 1, 0, ts))),
             (format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": -9223372036854775808,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Int(Point::new(name, -9223372036854775808, 0, ts))),
