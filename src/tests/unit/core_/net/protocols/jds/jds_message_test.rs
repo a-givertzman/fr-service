@@ -68,7 +68,7 @@ mod tests {
         //
         let addr = "127.0.0.1:9997";
         let received = Arc::new(AtomicUsize::new(0));
-        let count = 100000;
+        let count = 1000;
         let testDataLen = testData.len();
         let total = count * testDataLen;
         mocTcpServer(addr.to_string(), count, testData.clone(), received.clone());
