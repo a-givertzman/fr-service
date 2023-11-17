@@ -179,7 +179,7 @@ mod tests {
         });
 
 
-        exit(0);
+        return;
         let timer = Instant::now();
         let send = tcpClient.getLink("link");
         for _ in 0..count {
