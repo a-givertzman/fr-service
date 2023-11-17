@@ -40,13 +40,14 @@ mod tests {
         ts.to_rfc3339()
     }
 
+    #[ignore = "run this test by hand to compare performance of different methods socket reading"]
     #[test]
-    fn test_point_from_socket() {
+    fn test_read_bytes_performance() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test_point_from_json_bytes");
+        info!("test_read_bytes_performance");
         let name = "/server/line1/ied1/test1";
         let ts = ts();
         // debug!("timestamp: {:?}", ts);j
@@ -65,7 +66,7 @@ mod tests {
         ];
 
         //
-        ///
+        //
         let addr = "127.0.0.1:9997";
         let received = Arc::new(AtomicUsize::new(0));
         let count = 100000;

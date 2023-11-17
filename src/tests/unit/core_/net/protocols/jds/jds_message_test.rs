@@ -2,13 +2,13 @@
 #[cfg(test)]
 mod tests {
     use chrono::{DateTime, Utc};
-    use log::{warn, info, debug, error, trace};
-    use std::{sync::{Once, atomic::{AtomicUsize, Ordering}, Arc}, time::{Duration, Instant}, net::{TcpStream, TcpListener}, thread, io::{Read, BufReader, Write}};
+    use log::{info, debug, trace, error};
+    use std::{sync::{Once, atomic::{AtomicUsize, Ordering}, Arc}, time::{Duration, Instant}, net::{TcpStream, TcpListener}, thread, io::Write};
     use crate::core_::{
         types::bool::Bool, 
         debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
         point::{point_type::PointType, point::Point}, 
-        net::{protocols::jds::jds_message::{JDS_END_OF_TRANSMISSION, JdsMessage}, connection_status::ConnectionStatus},
+        net::{protocols::jds::jds_message::JdsMessage, connection_status::ConnectionStatus},
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -41,12 +41,12 @@ mod tests {
     }
 
     #[test]
-    fn test_point_from_socket() {
+    fn test_jds_message() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test_point_from_json_bytes");
+        info!("test_jds_message");
         let name = "/server/line1/ied1/test1";
         let ts = ts();
         // debug!("timestamp: {:?}", ts);j
@@ -63,9 +63,8 @@ mod tests {
             (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(name,  1.7976931348623157e308, 0, ts))),
             (format!(r#"{{"id": "1", "type": "String","name": "{}", "value": "~!@#$%^&*()_+`1234567890-=","status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::String(Point::new(name, "~!@#$%^&*()_+`1234567890-=".to_string(), 0, ts))),
         ];
-
         //
-        ///
+        //
         let addr = "127.0.0.1:9997";
         let received = Arc::new(AtomicUsize::new(0));
         let count = 100000;
