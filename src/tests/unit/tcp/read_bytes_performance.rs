@@ -64,15 +64,14 @@ mod tests {
             (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(name,  1.7976931348623157e308, 0, ts))),
             (format!(r#"{{"id": "1", "type": "String","name": "{}", "value": "~!@#$%^&*()_+`1234567890-=","status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::String(Point::new(name, "~!@#$%^&*()_+`1234567890-=".to_string(), 0, ts))),
         ];
-
         //
         //
         let addr = "127.0.0.1:9997";
         let received = Arc::new(AtomicUsize::new(0));
-        let count = 100000;
+        let count = 100_000;
         let testDataLen = testData.len();
         let total = count * testDataLen;
-        mocTcpServer(addr.to_string(), count, testData.clone(), received.clone());
+        mockTcpServer(addr.to_string(), count, testData.clone(), received.clone());
         thread::sleep(Duration::from_micros(100));
         {
             println!("\nReading from stream.read(byte)...");
@@ -125,7 +124,7 @@ mod tests {
         // let count = 10000;
         let testDataLen = testData.len();
         let total = count * testDataLen;
-        mocTcpServer(addr.to_string(), count, testData.clone(), received.clone());
+        mockTcpServer(addr.to_string(), count, testData.clone(), received.clone());
         thread::sleep(Duration::from_micros(100));
         {
             println!("\nReading from stream.bytes...");
@@ -178,7 +177,7 @@ mod tests {
         // let count = 10000;
         let testDataLen = testData.len();
         let total = count * testDataLen;
-        mocTcpServer(addr.to_string(), count, testData.clone(), received.clone());
+        mockTcpServer(addr.to_string(), count, testData.clone(), received.clone());
         thread::sleep(Duration::from_micros(100));
         {
             println!("\nreading from BufReader<stream>...");
@@ -232,7 +231,7 @@ mod tests {
     }
     ///
     /// 
-    fn mocTcpServer(addr: String, count: usize, testData: [(String, PointType); 11], received: Arc<AtomicUsize>) {
+    fn mockTcpServer(addr: String, count: usize, testData: [(String, PointType); 11], received: Arc<AtomicUsize>) {
         let mut sent = 0;
         thread::spawn(move || {
             info!("TCP server | Preparing test server...");
