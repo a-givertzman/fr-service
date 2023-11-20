@@ -27,7 +27,7 @@ pub struct JdsDecodeMessage {
 /// 
 impl JdsDecodeMessage {
     ///
-    /// Creates new instance of the JdsMessage
+    /// Creates new instance of the JdsDecodeMessage
     pub fn new(parent: impl Into<String>, stream: TcpStream) -> Self {
         Self {
             id: format!("{}/JdsMessage", parent.into()),
