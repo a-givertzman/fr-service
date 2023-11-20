@@ -216,18 +216,13 @@ impl Service for TcpClient {
                                 'read: loop {
                                     match streamR.read() {
                                         ConnectionStatus::Active(point) => {
-                                            match point {
-                                                Some(point) => {
-                                                    match send.send(point) {
-                                                        Ok(_) => {},
-                                                        Err(err) => {
-                                                            warn!("{}.send | write to tcp stream error: {:?}", selfIdR, err);
-                                                        },
-                                                    };
-                                                },
-                                                None => {
-                                                    // warn!("{}.run | Point prsing from json error: {:?}", selfIdR, err);
-                                                },
+                                            if let Some(point) = point {
+                                                match send.send(point) {
+                                                    Ok(_) => {},
+                                                    Err(err) => {
+                                                        warn!("{}.send | write to tcp stream error: {:?}", selfIdR, err);
+                                                    },
+                                                };
                                             }
                                         },
                                         ConnectionStatus::Closed => {
