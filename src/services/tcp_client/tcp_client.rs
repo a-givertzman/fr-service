@@ -5,7 +5,7 @@ use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Order
 use log::{info, debug, warn};
 
 use crate::{
-    core_::{point::point_type::PointType, net::connection_status::ConnectionStatus, retain_buffer::retain_buffer::RetainBuffer},
+    core_::{point::point_type::PointType, net::{connection_status::ConnectionStatus, protocols::jds::{jds_message::JdsMessage, jds_deserialize::JdsDeserialize}}, retain_buffer::retain_buffer::RetainBuffer},
     conf::tcp_client_config::TcpClientConfig,
     services::{service::Service, task::task_cycle::ServiceCycle}, tcp::tcp_socket_client_connect::TcpSocketClientConnect, 
 };
@@ -203,15 +203,21 @@ impl Service for TcpClient {
                             let selfIdR = selfId.clone();
                             let exitR = exitRW.clone();
                             let send = send.clone();
-                            let mut streamR = stream.try_clone().unwrap();
+                            let mut streamR = JdsDeserialize::new(
+                                selfIdR.clone(),
+                                JdsMessage::new(
+                                    selfIdR.clone(),
+                                    stream.try_clone().unwrap(),
+                                ),
+                            );
                             let isConnectedR = isConnected.clone();
                             let _hR = thread::Builder::new().name(format!("{} - Read", selfIdR.clone())).spawn(move || {
                                 let send = send.lock().unwrap();
                                 'read: loop {
-                                    match Self::readAll(&selfIdR, &mut streamR) {
-                                        ConnectionStatus::Active(bytes) => {
-                                            match PointType::fromJsonBytes(bytes) {
-                                                Ok(point) => {
+                                    match streamR.read() {
+                                        ConnectionStatus::Active(point) => {
+                                            match point {
+                                                Some(point) => {
                                                     match send.send(point) {
                                                         Ok(_) => {},
                                                         Err(err) => {
@@ -219,8 +225,8 @@ impl Service for TcpClient {
                                                         },
                                                     };
                                                 },
-                                                Err(err) => {
-                                                    warn!("{}.run | Point prsing from json error: {:?}", selfIdR, err);
+                                                None => {
+                                                    // warn!("{}.run | Point prsing from json error: {:?}", selfIdR, err);
                                                 },
                                             }
                                         },
