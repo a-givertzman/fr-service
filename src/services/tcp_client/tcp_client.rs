@@ -49,7 +49,7 @@ impl TcpClient {
         for (index, point) in recv.try_iter().enumerate() {   
             debug!("{}.readQueue | point: {:?}", selfId, &point);
             buffer.push(point);
-            if index > maxReadAtOnce {
+            if index >= maxReadAtOnce {
                 break;
             }                 
         }
@@ -57,102 +57,26 @@ impl TcpClient {
     ///
     /// Writing sql string to the TcpStream
     fn send(selfId: &str, point: &PointType, stream: &mut TcpStream, isConnected: &AtomicBool) -> Result<(), String>{
-        match point.toJsonBytes() {
-            Ok(bytes) => {
-                match stream.write(&bytes) {
-                    Ok(_) => Ok(()),
-                    Err(err) => {
-                        isConnected.store(false, Ordering::SeqCst);
-                        let message= format!("{}.send | write to tcp stream error: {:?}", selfId, err);
-                        warn!("{}", message);
-                        Err(message)
-                    },
-                }
-            },
-            Err(err) => {
-                let message= format!("{}.send | error: {:?}", selfId, err);
-                warn!("{}", message);
-                Err(message)
-            },
-        }
+        // match point.toJsonBytes() {
+        //     Ok(bytes) => {
+        //         match stream.write(&bytes) {
+        //             Ok(_) => Ok(()),
+        //             Err(err) => {
+        //                 isConnected.store(false, Ordering::SeqCst);
+        //                 let message= format!("{}.send | write to tcp stream error: {:?}", selfId, err);
+        //                 warn!("{}", message);
+        //                 Err(message)
+        //             },
+        //         }
+        //     },
+        //     Err(err) => {
+        //         let message= format!("{}.send | error: {:?}", selfId, err);
+        //         warn!("{}", message);
+        //         Err(message)
+        //     },
+        // }
+        Err(format!("{}.send | To be implemented...", selfId))
     }
-    ///
-    /// bytes to be read from socket at once
-    const BUF_LEN: usize = 1024 * 4;
-    ///
-    /// reads all avalible data from the TspStream
-    /// - returns Active: if read bytes non zero length without errors
-    /// - returns Closed:
-    ///    - if read 0 bytes
-    ///    - if on error
-    fn readAll(selfId: &str, stream: &mut TcpStream) -> ConnectionStatus<Vec<u8>> {
-        let mut buf = [0; Self::BUF_LEN];
-        let mut result = vec![];
-        loop {
-            match stream.read(&mut buf) {
-                Ok(len) => {
-                    debug!("{}.readAll |     read len: {:?}", selfId, len);
-                    result.append(& mut buf[..len].into());
-                    if len < Self::BUF_LEN {
-                        if len == 0 {
-                            return ConnectionStatus::Closed;
-                        } else {
-                            return ConnectionStatus::Active(result)
-                        }
-                    }
-                },
-                Err(err) => {
-                    warn!("{}.readAll | error reading from socket: {:?}", selfId, err);
-                    warn!("{}.readAll | error kind: {:?}", selfId, err.kind());
-                    return match err.kind() {
-                        std::io::ErrorKind::NotFound => todo!(),
-                        std::io::ErrorKind::PermissionDenied => ConnectionStatus::Closed,
-                        std::io::ErrorKind::ConnectionRefused => ConnectionStatus::Closed,
-                        std::io::ErrorKind::ConnectionReset => ConnectionStatus::Closed,
-                        // std::io::ErrorKind::HostUnreachable => ConnectionStatus::Closed,
-                        // std::io::ErrorKind::NetworkUnreachable => ConnectionStatus::Closed,
-                        std::io::ErrorKind::ConnectionAborted => ConnectionStatus::Closed,
-                        std::io::ErrorKind::NotConnected => ConnectionStatus::Closed,
-                        std::io::ErrorKind::AddrInUse => ConnectionStatus::Closed,
-                        std::io::ErrorKind::AddrNotAvailable => ConnectionStatus::Closed,
-                        // std::io::ErrorKind::NetworkDown => ConnectionStatus::Closed,
-                        std::io::ErrorKind::BrokenPipe => ConnectionStatus::Closed,
-                        std::io::ErrorKind::AlreadyExists => todo!(),
-                        std::io::ErrorKind::WouldBlock => ConnectionStatus::Closed,
-                        // std::io::ErrorKind::NotADirectory => todo!(),
-                        // std::io::ErrorKind::IsADirectory => todo!(),
-                        // std::io::ErrorKind::DirectoryNotEmpty => todo!(),
-                        // std::io::ErrorKind::ReadOnlyFilesystem => todo!(),
-                        // std::io::ErrorKind::FilesystemLoop => todo!(),
-                        // std::io::ErrorKind::StaleNetworkFileHandle => todo!(),
-                        std::io::ErrorKind::InvalidInput => todo!(),
-                        std::io::ErrorKind::InvalidData => todo!(),
-                        std::io::ErrorKind::TimedOut => todo!(),
-                        std::io::ErrorKind::WriteZero => todo!(),
-                        // std::io::ErrorKind::StorageFull => todo!(),
-                        // std::io::ErrorKind::NotSeekable => todo!(),
-                        // std::io::ErrorKind::FilesystemQuotaExceeded => todo!(),
-                        // std::io::ErrorKind::FileTooLarge => todo!(),
-                        // std::io::ErrorKind::ResourceBusy => todo!(),
-                        // std::io::ErrorKind::ExecutableFileBusy => todo!(),
-                        // std::io::ErrorKind::Deadlock => todo!(),
-                        // std::io::ErrorKind::CrossesDevices => todo!(),
-                        // std::io::ErrorKind::TooManyLinks => todo!(),
-                        // std::io::ErrorKind::InvalidFilename => todo!(),
-                        // std::io::ErrorKind::ArgumentListTooLong => todo!(),
-                        std::io::ErrorKind::Interrupted => todo!(),
-                        std::io::ErrorKind::Unsupported => todo!(),
-                        std::io::ErrorKind::UnexpectedEof => todo!(),
-                        std::io::ErrorKind::OutOfMemory => todo!(),
-                        std::io::ErrorKind::Other => todo!(),
-                        _ => ConnectionStatus::Closed,
-                    }
-                    // return ConnectionStatus::Closed;
-                },
-            };
-        }
-    }    
-
     ///
     ///
     fn readSocket(selfId: String, mut stream: JdsDeserialize, send: Arc<Mutex<Sender<PointType>>>, exit: Arc<AtomicBool>, isConnected: Arc<AtomicBool>) -> JoinHandle<()> {
@@ -242,8 +166,8 @@ impl Service for TcpClient {
         let exitRW = self.exitRW.clone();
         // let exitW = self.exitRW.clone();
         let conf = self.conf.clone();
-        let send = self.send.get(&conf.sendQueue).unwrap().clone();
-        let send = Arc::new(Mutex::new(send));
+        // let send = self.send.get(&conf.recvQueue).unwrap().clone();
+        // let send = Arc::new(Mutex::new(send));
         let recv = Arc::new(Mutex::new(self.recv.pop().unwrap()));
         // let (cyclic, cycleInterval) = match conf.cycle {
         //     Some(interval) => (interval > Duration::ZERO, interval),
@@ -262,28 +186,25 @@ impl Service for TcpClient {
                     stream = connect.connect(reconnect);
                     match stream {
                         Some(stream) => {
-                            match stream.set_read_timeout(Some(Duration::from_secs(10))) {
-                                Ok(_) => {},
-                                Err(err) => {
-                                    debug!("{}.run | TcpStream.set_timeout error: {:?}", selfId, err);
-                                },                            
+                            if let Err(err) = stream.set_read_timeout(Some(Duration::from_secs(10))) {
+                                debug!("{}.run | TcpStream.set_timeout error: {:?}", selfId, err);
                             };
                             isConnected.store(true, Ordering::SeqCst);
-                            let send = send.clone();
-                            let streamR = JdsDeserialize::new(
-                                selfId.clone(),
-                                JdsDecodeMessage::new(
-                                    selfId.clone(),
-                                    stream.try_clone().unwrap(),
-                                ),
-                            );
-                            let handleR = Self::readSocket(
-                                selfId.clone(),
-                                streamR,
-                                send,
-                                exitRW.clone(),
-                                isConnected.clone()
-                            );
+                            // let send = send.clone();
+                            // let streamR = JdsDeserialize::new(
+                            //     selfId.clone(),
+                            //     JdsDecodeMessage::new(
+                            //         selfId.clone(),
+                            //         stream.try_clone().unwrap(),
+                            //     ),
+                            // );
+                            // let handleR = Self::readSocket(
+                            //     selfId.clone(),
+                            //     streamR,
+                            //     send,
+                            //     exitRW.clone(),
+                            //     isConnected.clone()
+                            // );
                             let handleW = Self::writeSocket(
                                 selfId.clone(),
                                 stream,
@@ -292,7 +213,7 @@ impl Service for TcpClient {
                                 exitRW.clone(),
                                 isConnected.clone()
                             );
-                            handleR.join().unwrap();
+                            // handleR.join().unwrap();
                             handleW.join().unwrap();
                         },
                         None => {
@@ -307,7 +228,6 @@ impl Service for TcpClient {
             info!("{}.run | stopped", selfId);
         }).unwrap();
         info!("{}.run | started", self.id);
-        // h.join().unwrap();
     }
     ///
     /// 

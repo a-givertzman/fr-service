@@ -37,4 +37,12 @@ impl Services {
             None => panic!("{}.get | service '{:?}' - not found", self.id, name),
         }
     }
+    ///
+    /// 
+    pub fn get_mut(&mut self, name: &str) -> &mut Box<dyn Service> {
+        match self.map.get_mut(name) {
+            Some(srvc) => srvc,
+            None => panic!("{}.get | service '{:?}' - not found", self.id, name),
+        }
+    }
 }

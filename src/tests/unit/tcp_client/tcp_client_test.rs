@@ -73,11 +73,9 @@ mod tests {
         let mut services = Services::new("test");
         let tcpClientServiceId = "TcpClient";
         services.insert(tcpClientServiceId, Box::new(tcpClient));
-        // let tcpClient = Arc::new(Mutex::new(tcpClient));
 
         let maxTestDuration = Duration::from_secs(10);
-        let count = 300;
-        let mut state = 0;
+        let count = 10;
         let testData = vec![
             Value::Int(7),
             Value::Float(1.3),
@@ -96,9 +94,9 @@ mod tests {
         thread::sleep(Duration::from_micros(100));
 
 
-        // return;
+        let tcpClient = services.get_mut(tcpClientServiceId);
+        tcpClient.run();
         let timer = Instant::now();
-        let tcpClient = services.get(tcpClientServiceId);
         let send = tcpClient.getLink("link");
         for _ in 0..count {
             let index = rnd.gen_range(0..testDataLen);

@@ -58,12 +58,6 @@ impl PointType {
     pub fn new<T: ToPoint>(name: &str, value: T) -> Self {
         value.toPoint(name)
     }
-    ///
-    /// 
-    pub fn toJsonBytes(&self) -> Result<Vec<u8>, String> {
-        let mut bytes = vec![];
-        Ok(bytes)
-    }
     pub fn name(&self) -> String {
         match self {
             PointType::Bool(point) => point.name.clone(),
