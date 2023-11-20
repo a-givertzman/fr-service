@@ -87,7 +87,7 @@ mod tests {
                             match stream.read() {
                                 ConnectionStatus::Active(point) => {
                                     match point {
-                                        Some(point) => {
+                                        Ok(point) => {
                                             received.fetch_add(1, Ordering::SeqCst);
                                             let recvIndex = (received.load(Ordering::SeqCst) - 1) % testDataLen;
                                             trace!("socket read - received[{}]: {:?}", recvIndex, point);
@@ -97,7 +97,9 @@ mod tests {
                                                 break 'read;
                                             }
                                         },
-                                        None => todo!(),
+                                        Err(err) => {
+                                            panic!("socket read - parsing error: {:?}", err);
+                                        },
                                     }
                                 },
                                 ConnectionStatus::Closed => {

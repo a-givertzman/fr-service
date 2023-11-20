@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Ordering}, Mutex}, time::Duration, collections::HashMap, thread, net::TcpStream, io::{Read, Write}};
+use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Ordering}, Mutex}, time::Duration, collections::HashMap, thread::{self, JoinHandle}, net::TcpStream, io::{Read, Write}};
 
 use log::{info, debug, warn};
 
@@ -152,6 +152,75 @@ impl TcpClient {
             };
         }
     }    
+
+    ///
+    ///
+    fn readSocket(selfId: String, mut stream: JdsDeserialize, send: Arc<Mutex<Sender<PointType>>>, exit: Arc<AtomicBool>, isConnected: Arc<AtomicBool>) -> JoinHandle<()> {
+        let handle = thread::Builder::new().name(format!("{} - Read", selfId.clone())).spawn(move || {
+            let send = send.lock().unwrap();
+            'read: loop {
+                match stream.read() {
+                    ConnectionStatus::Active(point) => {
+                        match point {
+                            Ok(point) => {
+                                match send.send(point) {
+                                    Ok(_) => {},
+                                    Err(err) => {
+                                        warn!("{}.send | write to tcp stream error: {:?}", selfId, err);
+                                    },
+                                };
+                            },
+                            Err(err) => {
+                                warn!("{}.send | write to tcp stream error: {:?}", selfId, err);
+                            },
+                        }
+                    },
+                    ConnectionStatus::Closed => {
+                        isConnected.store(false, Ordering::SeqCst);
+                        exit.store(true, Ordering::SeqCst);
+                        break;
+                    },
+                };
+                if exit.load(Ordering::SeqCst) {
+                    break 'read;
+                }
+            }
+        }).unwrap();
+        handle
+    }
+
+    ///
+    /// 
+    fn writeSocket(selfId: String, mut stream: TcpStream, recv: Arc<Mutex<Receiver<PointType>>>, buffer: Arc<Mutex<RetainBuffer<PointType>>>, exit: Arc<AtomicBool>, isConnected: Arc<AtomicBool>) -> JoinHandle<()> {
+        let _hW = thread::Builder::new().name(format!("{} - Write", selfId.clone())).spawn(move || {
+            let mut buffer = buffer.lock().unwrap();
+            let recv = recv.lock().unwrap();
+            'write: loop {
+                Self::readQueue(&selfId, &recv, &mut buffer);
+                let mut count = buffer.len();
+                while count > 0 {
+                    match buffer.first() {
+                        Some(point) => {
+                            match Self::send(&selfId, point, &mut stream, &isConnected) {
+                                Ok(_) => {
+                                    buffer.remove(0);
+                                },
+                                Err(err) => {
+                                    warn!("{}.run | error: {:?}", selfId, err);
+                                },
+                            }
+                        },
+                        None => {break;},
+                    };
+                    count -=1;
+                }
+                if exit.load(Ordering::SeqCst) {
+                    break 'write;
+                }
+            }
+        }).unwrap();
+        _hW
+    }
 }
 ///
 /// 
@@ -200,76 +269,31 @@ impl Service for TcpClient {
                                 },                            
                             };
                             isConnected.store(true, Ordering::SeqCst);
-                            let selfIdR = selfId.clone();
-                            let exitR = exitRW.clone();
                             let send = send.clone();
-                            let mut streamR = JdsDeserialize::new(
-                                selfIdR.clone(),
+                            let streamR = JdsDeserialize::new(
+                                selfId.clone(),
                                 JdsDecodeMessage::new(
-                                    selfIdR.clone(),
+                                    selfId.clone(),
                                     stream.try_clone().unwrap(),
                                 ),
                             );
-                            let isConnectedR = isConnected.clone();
-                            let _hR = thread::Builder::new().name(format!("{} - Read", selfIdR.clone())).spawn(move || {
-                                let send = send.lock().unwrap();
-                                'read: loop {
-                                    match streamR.read() {
-                                        ConnectionStatus::Active(point) => {
-                                            if let Some(point) = point {
-                                                match send.send(point) {
-                                                    Ok(_) => {},
-                                                    Err(err) => {
-                                                        warn!("{}.send | write to tcp stream error: {:?}", selfIdR, err);
-                                                    },
-                                                };
-                                            }
-                                        },
-                                        ConnectionStatus::Closed => {
-                                            isConnectedR.store(false, Ordering::SeqCst);
-                                            exitR.store(true, Ordering::SeqCst);
-                                            break;
-                                        },
-                                    };
-                                    if exitR.load(Ordering::SeqCst) {
-                                        break 'read;
-                                    }
-                                }
-                            }).unwrap();
-                            let selfIdW = selfId.clone();
-                            let buffer = buffer.clone();
-                            let exitW = exitRW.clone();
-                            let recv = recv.clone();
-                            let isConnectedW = isConnected.clone();
-                            let _hW = thread::Builder::new().name(format!("{} - Write", selfIdW.clone())).spawn(move || {
-                                let mut buffer = buffer.lock().unwrap();
-                                let recv = recv.lock().unwrap();
-                                'write: loop {
-                                    Self::readQueue(&selfIdW, &recv, &mut buffer);
-                                    let mut count = buffer.len();
-                                    while count > 0 {
-                                        match buffer.first() {
-                                            Some(point) => {
-                                                match Self::send(&selfIdW, point, &mut stream, &isConnectedW) {
-                                                    Ok(_) => {
-                                                        buffer.remove(0);
-                                                    },
-                                                    Err(err) => {
-                                                        warn!("{}.run | error: {:?}", selfIdW, err);
-                                                    },
-                                                }
-                                            },
-                                            None => {break;},
-                                        };
-                                        count -=1;
-                                    }
-                                    if exitW.load(Ordering::SeqCst) {
-                                        break 'write;
-                                    }
-                                }
-                            }).unwrap();
-                            _hR.join().unwrap();
-                            _hW.join().unwrap();
+                            let handleR = Self::readSocket(
+                                selfId.clone(),
+                                streamR,
+                                send,
+                                exitRW.clone(),
+                                isConnected.clone()
+                            );
+                            let handleW = Self::writeSocket(
+                                selfId.clone(),
+                                stream,
+                                recv.clone(),
+                                buffer.clone(),
+                                exitRW.clone(),
+                                isConnected.clone()
+                            );
+                            handleR.join().unwrap();
+                            handleW.join().unwrap();
                         },
                         None => {
                             isConnected.store(false, Ordering::SeqCst);

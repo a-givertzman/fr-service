@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use chrono::{DateTime, Utc};
-use log::{warn, error};
+use log::{warn, error, trace};
 
 use crate::core_::{net::connection_status::ConnectionStatus, point::{point_type::PointType, point::Point}, types::bool::Bool};
 
@@ -27,16 +27,16 @@ impl JdsDeserialize {
     }
     ///
     /// Reads single point from TcpStream
-    pub fn read(&mut self) -> ConnectionStatus<Option<PointType>> {
+    pub fn read(&mut self) -> ConnectionStatus<Result<PointType, String>> {
         match self.stream.read() {
             ConnectionStatus::Active(bytes) => {
                 match Self::parse(bytes) {
                     Ok(point) => {
-                        ConnectionStatus::Active(Some(point))
+                        ConnectionStatus::Active(Ok(point))
                     },
                     Err(err) => {
                         error!("{}", err);
-                        ConnectionStatus::Active(None)
+                        ConnectionStatus::Active(Err(err))
                     },
                 }
             },
@@ -112,28 +112,28 @@ impl JdsDeserialize {
                                             },
                                             _ => {
                                                 let message = format!("JdsDeserialize.parse | Unknown point type: {}", type_);
-                                                warn!("{}", message);
+                                                trace!("{}", message);
                                                 Err(message)
                                             }
                                         }
                                     },
                                     None => {
                                         let message = format!("JdsDeserialize.parse | JSON convertion error: mapping not found in the JSON: {}", value);
-                                        warn!("{}", message);
+                                        trace!("{}", message);
                                         Err(message)        
                                     },
                                 }
                             },
                             None => {
                                 let message = format!("JdsDeserialize.parse | JSON convertion error: mapping not found in the JSON: {}", value);
-                                warn!("{}", message);
+                                trace!("{}", message);
                                 Err(message)
                             },
                         }
                     },
                     Err(err) => {
                         let message = format!("JdsDeserialize.parse | JSON convertion error: {:?}", err);
-                        warn!("{}", message);
+                        trace!("{}", message);
                         Err(message)        
                     },
                 }
@@ -141,7 +141,7 @@ impl JdsDeserialize {
             },
             Err(err) => {
                 let message = format!("JdsDeserialize.parse | From bytes error: {:?}", err);
-                warn!("{}", message);
+                trace!("{}", message);
                 Err(message)        
             },
         }
