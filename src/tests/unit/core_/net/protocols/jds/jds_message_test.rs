@@ -42,12 +42,12 @@ mod tests {
     }
 
     #[test]
-    fn test_jds_message() {
+    fn test_jds_decode_message() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test_jds_message");
+        info!("test_jds_decode_message");
         let name = "/server/line1/ied1/test1";
         let ts = ts();
         // debug!("timestamp: {:?}", ts);j
