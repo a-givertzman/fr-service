@@ -132,7 +132,7 @@ mod tests {
     }
     ///
     /// TcpServer setup
-    fn mocTcpServer(addr: String, count: usize, testData: Vec<Value>, received: Arc<Mutex<Vec<serde_json::Value>>>) {
+    fn mocTcpServer(addr: String, count: usize, testData: Vec<Value>, received: Arc<Mutex<Vec<PointType>>>) {
         let mut sent = 0;
         thread::spawn(move || {
             info!("TCP server | Preparing test server...");
@@ -154,7 +154,14 @@ mod tests {
                                 for _ in 0..count {
                                     match jds.read() {
                                         ConnectionStatus::Active(point) => {
-
+                                            match point {
+                                                Ok(point) => {
+                                                    received.lock().unwrap().push(point);
+                                                },
+                                                Err(err) => {
+                                                    warn!("{:?}", err);
+                                                },
+                                            }
                                         },
                                         ConnectionStatus::Closed => {
                                             
