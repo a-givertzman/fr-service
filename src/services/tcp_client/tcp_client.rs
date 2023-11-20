@@ -261,7 +261,7 @@ impl Service for TcpClient {
                 if !isConnected.load(Ordering::SeqCst) {
                     stream = connect.connect(reconnect);
                     match stream {
-                        Some(mut stream) => {
+                        Some(stream) => {
                             match stream.set_read_timeout(Some(Duration::from_secs(10))) {
                                 Ok(_) => {},
                                 Err(err) => {
