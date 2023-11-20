@@ -8,7 +8,7 @@ mod tests {
         types::bool::Bool, 
         debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
         point::{point_type::PointType, point::Point}, 
-        net::protocols::jds::jds_message::JDS_END_OF_TRANSMISSION,
+        net::protocols::jds::jds_message::JDS_END_OF_TRANSMISSION, testing::test_session::TestSession,
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -66,7 +66,7 @@ mod tests {
         ];
         //
         //
-        let addr = "127.0.0.1:9997";
+        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
         let received = Arc::new(AtomicUsize::new(0));
         let count = 100_000;
         let testDataLen = testData.len();
@@ -77,7 +77,7 @@ mod tests {
             println!("\nReading from stream.read(byte)...");
             let time = Instant::now();
             'main: loop {
-                match TcpStream::connect(addr) {
+                match TcpStream::connect(&addr) {
                     Ok(mut stream) => {
                         let mut buffer = vec![];
                         let mut byte = [0u8];
@@ -119,7 +119,7 @@ mod tests {
         }
         //
         // reading from stream.bytes
-        let addr = "127.0.0.1:9998";
+        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
         let received = Arc::new(AtomicUsize::new(0));
         // let count = 10000;
         let testDataLen = testData.len();
@@ -130,8 +130,8 @@ mod tests {
             println!("\nReading from stream.bytes...");
             let time = Instant::now();
             'main: loop {
-                match TcpStream::connect(addr) {
-                    Ok(mut stream) => {
+                match TcpStream::connect(&addr) {
+                    Ok(stream) => {
                         let mut buffer = vec![];
                         // let mut byte = [0u8];
                         for byte in stream.bytes() {
@@ -172,7 +172,7 @@ mod tests {
         }
         //
         // reading from BufReader<stream>
-        let addr = "127.0.0.1:9999";
+        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
         let received = Arc::new(AtomicUsize::new(0));
         // let count = 10000;
         let testDataLen = testData.len();
@@ -183,8 +183,8 @@ mod tests {
             println!("\nreading from BufReader<stream>...");
             let time = Instant::now();
             'main: loop {
-                match TcpStream::connect(addr) {
-                    Ok(mut stream) => {
+                match TcpStream::connect(&addr) {
+                    Ok(stream) => {
                         let mut buffer = vec![];
                         // let mut byte = [0u8];
                         let bufReader = BufReader::new(stream);

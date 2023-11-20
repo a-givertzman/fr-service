@@ -7,3 +7,4 @@ pub mod types;
 pub mod format;
 pub mod net;
 pub mod retain_buffer;
+pub mod testing;

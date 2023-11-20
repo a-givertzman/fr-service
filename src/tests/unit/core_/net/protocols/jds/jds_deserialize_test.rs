@@ -9,7 +9,7 @@ mod tests {
         types::bool::Bool, 
         debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
         point::{point_type::PointType, point::Point}, 
-        net::{protocols::jds::{jds_message::JdsMessage, jds_deserialize::JdsDeserialize}, connection_status::ConnectionStatus},
+        net::{protocols::jds::{jds_message::JdsMessage, jds_deserialize::JdsDeserialize}, connection_status::ConnectionStatus}, testing::test_session::TestSession,
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -66,7 +66,7 @@ mod tests {
         ];
         //
         //
-        let addr = "127.0.0.1:9997";
+        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
         let received = Arc::new(AtomicUsize::new(0));
         let count = 1000;
         let testDataLen = testData.len();
@@ -77,7 +77,7 @@ mod tests {
             println!("\nReading from stream.read(byte)...");
             let time = Instant::now();
             'main: loop {
-                match TcpStream::connect(addr) {
+                match TcpStream::connect(&addr) {
                     Ok(stream) => {
                         let mut stream = JdsDeserialize::new(
                             "test", 
