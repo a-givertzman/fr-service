@@ -36,8 +36,8 @@ impl JdsMessage {
         }
     }
     ///
-    /// 
-    pub fn read(&mut self) -> ConnectionStatus {
+    /// Reads sequence of bytes from TcpStream
+    pub fn read(&mut self) -> ConnectionStatus<Vec<u8>> {
         let mut bytes = self.buffer.clone();
         match Self::readAll(&self.id, &mut bytes, &mut self.stream) {
             Status::Active => {

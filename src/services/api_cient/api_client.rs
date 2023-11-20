@@ -74,7 +74,7 @@ impl ApiClient {
     /// - returns Closed:
     ///    - if read 0 bytes
     ///    - if on error
-    fn readAll(selfId: &str, stream: &mut TcpStream) -> ConnectionStatus {
+    fn readAll(selfId: &str, stream: &mut TcpStream) -> ConnectionStatus<Vec<u8>> {
         let mut buf = [0; Self::BUF_LEN];
         let mut result = vec![];
         loop {

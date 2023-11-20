@@ -1,6 +1,6 @@
 ///
 /// Used in the TspStream handling like Result
-pub enum ConnectionStatus {
-    Active(Vec<u8>),
+pub enum ConnectionStatus<T> {
+    Active(T),
     Closed,
 }
