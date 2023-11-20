@@ -3,7 +3,7 @@
 mod tests {
     use log::{warn, info, debug};
     use std::{sync::{Once, atomic::{AtomicBool, Ordering}, Arc}, time::Duration, thread, net::TcpListener};
-    use crate::{core_::debug::debug_session::{DebugSession, LogLevel, Backtrace}, tcp::tcp_socket_client_connect::TcpSocketClientConnect}; 
+    use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_session::TestSession}, tcp::tcp_socket_client_connect::TcpSocketClientConnect}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -34,9 +34,9 @@ mod tests {
         initEach();
         println!("");
         info!("success connection");
-        let addr = "127.0.0.1:9995";
+        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
         let timeout = Duration::from_millis(3500); // ms
-        let mut connect = TcpSocketClientConnect::new("test", addr);
+        let mut connect = TcpSocketClientConnect::new("test", &addr);
 
         let ok = Arc::new(AtomicBool::new(false));
         let okRef = ok.clone();
@@ -91,7 +91,8 @@ mod tests {
         println!("");
         info!("failure connection");
         let timeout = Duration::from_millis(1500); // ms
-        let mut connect = TcpSocketClientConnect::new("test", "127.0.0.1:9996");
+        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
+        let mut connect = TcpSocketClientConnect::new("test", &addr);
         let connectExit = connect.exit();
         let ok = Arc::new(AtomicBool::new(false));
         let okRef = ok.clone();

@@ -9,7 +9,7 @@ mod tests {
         types::bool::Bool, 
         debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
         point::{point_type::PointType, point::Point}, 
-        net::{protocols::jds::jds_message::JdsMessage, connection_status::ConnectionStatus}, testing::test_session::TestSession,
+        net::{protocols::jds::{jds_message::JdsMessage, jds_deserialize::JdsDeserialize}, connection_status::ConnectionStatus}, testing::test_session::TestSession,
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -79,18 +79,25 @@ mod tests {
             'main: loop {
                 match TcpStream::connect(&addr) {
                     Ok(stream) => {
-                        let mut stream = JdsMessage::new("test", stream);
+                        let mut stream = JdsDeserialize::new(
+                            "test", 
+                            JdsMessage::new("test", stream)
+                        );
                         'read: loop {
                             match stream.read() {
-                                ConnectionStatus::Active(bytes) => {
-                                    received.fetch_add(1, Ordering::SeqCst);
-                                    let msg = String::from_utf8(bytes).unwrap();
-                                    let recvIndex = (received.load(Ordering::SeqCst) - 1) % testDataLen;
-                                    trace!("socket read - received[{}]: {:?}", recvIndex, msg);
-                                    assert!(msg == testData[recvIndex].0);
-                                    // debug!("socket read - received: {:?}", received.load(Ordering::SeqCst));
-                                    if received.load(Ordering::SeqCst) >= total {
-                                        break 'read;
+                                ConnectionStatus::Active(point) => {
+                                    match point {
+                                        Some(point) => {
+                                            received.fetch_add(1, Ordering::SeqCst);
+                                            let recvIndex = (received.load(Ordering::SeqCst) - 1) % testDataLen;
+                                            trace!("socket read - received[{}]: {:?}", recvIndex, point);
+                                            assert!(point == testData[recvIndex].1);
+                                            // debug!("socket read - received: {:?}", received.load(Ordering::SeqCst));
+                                            if received.load(Ordering::SeqCst) >= total {
+                                                break 'read;
+                                            }
+                                        },
+                                        None => todo!(),
                                     }
                                 },
                                 ConnectionStatus::Closed => {

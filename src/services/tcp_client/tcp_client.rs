@@ -5,7 +5,7 @@ use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Order
 use log::{info, debug, warn};
 
 use crate::{
-    core_::{point::point_type::PointType, net::connection_status::ConnectionStatus, retain_buffer::retain_buffer::RetainBuffer},
+    core_::{point::point_type::PointType, net::{connection_status::ConnectionStatus, protocols::jds::{jds_message::JdsMessage, jds_deserialize::JdsDeserialize}}, retain_buffer::retain_buffer::RetainBuffer},
     conf::tcp_client_config::TcpClientConfig,
     services::{service::Service, task::task_cycle::ServiceCycle}, tcp::tcp_socket_client_connect::TcpSocketClientConnect, 
 };
@@ -85,7 +85,7 @@ impl TcpClient {
     /// - returns Closed:
     ///    - if read 0 bytes
     ///    - if on error
-    fn readAll(selfId: &str, stream: &mut TcpStream) -> ConnectionStatus {
+    fn readAll(selfId: &str, stream: &mut TcpStream) -> ConnectionStatus<Vec<u8>> {
         let mut buf = [0; Self::BUF_LEN];
         let mut result = vec![];
         loop {
@@ -203,25 +203,26 @@ impl Service for TcpClient {
                             let selfIdR = selfId.clone();
                             let exitR = exitRW.clone();
                             let send = send.clone();
-                            let mut streamR = stream.try_clone().unwrap();
+                            let mut streamR = JdsDeserialize::new(
+                                selfIdR.clone(),
+                                JdsMessage::new(
+                                    selfIdR.clone(),
+                                    stream.try_clone().unwrap(),
+                                ),
+                            );
                             let isConnectedR = isConnected.clone();
                             let _hR = thread::Builder::new().name(format!("{} - Read", selfIdR.clone())).spawn(move || {
                                 let send = send.lock().unwrap();
                                 'read: loop {
-                                    match Self::readAll(&selfIdR, &mut streamR) {
-                                        ConnectionStatus::Active(bytes) => {
-                                            match PointType::fromJsonBytes(bytes) {
-                                                Ok(point) => {
-                                                    match send.send(point) {
-                                                        Ok(_) => {},
-                                                        Err(err) => {
-                                                            warn!("{}.send | write to tcp stream error: {:?}", selfIdR, err);
-                                                        },
-                                                    };
-                                                },
-                                                Err(err) => {
-                                                    warn!("{}.run | Point prsing from json error: {:?}", selfIdR, err);
-                                                },
+                                    match streamR.read() {
+                                        ConnectionStatus::Active(point) => {
+                                            if let Some(point) = point {
+                                                match send.send(point) {
+                                                    Ok(_) => {},
+                                                    Err(err) => {
+                                                        warn!("{}.send | write to tcp stream error: {:?}", selfIdR, err);
+                                                    },
+                                                };
                                             }
                                         },
                                         ConnectionStatus::Closed => {
