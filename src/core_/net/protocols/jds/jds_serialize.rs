@@ -8,20 +8,20 @@ use crate::core_::{net::connection_status::ConnectionStatus, point::{point_type:
 use super::jds_decode_message::JdsDecodeMessage;
 
 ///
-/// Converts squence of bytes into the PointType
-/// useng bytes -> JSON -> Point<type> PointType conversion
-pub struct JdsDeserialize {
+/// Converts PointType into the squence of bytes
+/// useng PointType -> Point<type> -> JSON -> bytes conversion
+pub struct JdsSerialize {
     id: String,
     stream: JdsDecodeMessage,
 }
 ///
 /// 
-impl JdsDeserialize {
+impl JdsSerialize {
     ///
-    /// Creates new instance of the JdsDeserialize
+    /// Creates new instance of the JdsSerialize
     pub fn new(parent: impl Into<String>, stream: JdsDecodeMessage) -> Self {
         Self {
-            id: format!("{}/JdsDeserialize", parent.into()),
+            id: format!("{}/JdsSerialize", parent.into()),
             stream,
         }
     }
@@ -111,28 +111,28 @@ impl JdsDeserialize {
                                                 )))
                                             },
                                             _ => {
-                                                let message = format!("JdsDeserialize.parse | Unknown point type: {}", type_);
+                                                let message = format!("JdsSerialize.parse | Unknown point type: {}", type_);
                                                 warn!("{}", message);
                                                 Err(message)
                                             }
                                         }
                                     },
                                     None => {
-                                        let message = format!("JdsDeserialize.parse | JSON convertion error: mapping not found in the JSON: {}", value);
+                                        let message = format!("JdsSerialize.parse | JSON convertion error: mapping not found in the JSON: {}", value);
                                         warn!("{}", message);
                                         Err(message)        
                                     },
                                 }
                             },
                             None => {
-                                let message = format!("JdsDeserialize.parse | JSON convertion error: mapping not found in the JSON: {}", value);
+                                let message = format!("JdsSerialize.parse | JSON convertion error: mapping not found in the JSON: {}", value);
                                 warn!("{}", message);
                                 Err(message)
                             },
                         }
                     },
                     Err(err) => {
-                        let message = format!("JdsDeserialize.parse | JSON convertion error: {:?}", err);
+                        let message = format!("JdsSerialize.parse | JSON convertion error: {:?}", err);
                         warn!("{}", message);
                         Err(message)        
                     },
@@ -140,7 +140,7 @@ impl JdsDeserialize {
                 // PointType::
             },
             Err(err) => {
-                let message = format!("JdsDeserialize.parse | From bytes error: {:?}", err);
+                let message = format!("JdsSerialize.parse | From bytes error: {:?}", err);
                 warn!("{}", message);
                 Err(message)        
             },

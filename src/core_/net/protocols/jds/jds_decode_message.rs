@@ -18,14 +18,14 @@ enum Status {
 /// Reads bytes from TcpStream
 /// splits bytes sequence with Jds.endOfTransmission = 4 separator
 /// returns Result<Vec, Err>
-pub struct JdsMessage {
+pub struct JdsDecodeMessage {
     id: String,
     stream: BufReader<TcpStream>,
     buffer: Vec<u8>,
 }
 ///
 /// 
-impl JdsMessage {
+impl JdsDecodeMessage {
     ///
     /// Creates new instance of the JdsMessage
     pub fn new(parent: impl Into<String>, stream: TcpStream) -> Self {

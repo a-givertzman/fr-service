@@ -9,7 +9,7 @@ mod tests {
         types::bool::Bool, 
         debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
         point::{point_type::PointType, point::Point}, 
-        net::{protocols::jds::jds_message::JdsMessage, connection_status::ConnectionStatus}, testing::test_session::TestSession,
+        net::{protocols::jds::jds_decode_message::JdsDecodeMessage, connection_status::ConnectionStatus}, testing::test_session::TestSession,
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -79,7 +79,7 @@ mod tests {
             'main: loop {
                 match TcpStream::connect(&addr) {
                     Ok(stream) => {
-                        let mut stream = JdsMessage::new("test", stream);
+                        let mut stream = JdsDecodeMessage::new("test", stream);
                         'read: loop {
                             match stream.read() {
                                 ConnectionStatus::Active(bytes) => {

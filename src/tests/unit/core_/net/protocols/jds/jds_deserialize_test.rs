@@ -9,7 +9,7 @@ mod tests {
         types::bool::Bool, 
         debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
         point::{point_type::PointType, point::Point}, 
-        net::{protocols::jds::{jds_message::JdsMessage, jds_deserialize::JdsDeserialize}, connection_status::ConnectionStatus}, testing::test_session::TestSession,
+        net::{protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}, connection_status::ConnectionStatus}, testing::test_session::TestSession,
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -81,7 +81,7 @@ mod tests {
                     Ok(stream) => {
                         let mut stream = JdsDeserialize::new(
                             "test", 
-                            JdsMessage::new("test", stream)
+                            JdsDecodeMessage::new("test", stream)
                         );
                         'read: loop {
                             match stream.read() {

@@ -5,7 +5,7 @@ use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Order
 use log::{info, debug, warn};
 
 use crate::{
-    core_::{point::point_type::PointType, net::{connection_status::ConnectionStatus, protocols::jds::{jds_message::JdsMessage, jds_deserialize::JdsDeserialize}}, retain_buffer::retain_buffer::RetainBuffer},
+    core_::{point::point_type::PointType, net::{connection_status::ConnectionStatus, protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}}, retain_buffer::retain_buffer::RetainBuffer},
     conf::tcp_client_config::TcpClientConfig,
     services::{service::Service, task::task_cycle::ServiceCycle}, tcp::tcp_socket_client_connect::TcpSocketClientConnect, 
 };
@@ -205,7 +205,7 @@ impl Service for TcpClient {
                             let send = send.clone();
                             let mut streamR = JdsDeserialize::new(
                                 selfIdR.clone(),
-                                JdsMessage::new(
+                                JdsDecodeMessage::new(
                                     selfIdR.clone(),
                                     stream.try_clone().unwrap(),
                                 ),
