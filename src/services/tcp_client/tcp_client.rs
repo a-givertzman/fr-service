@@ -118,11 +118,16 @@ impl Service for TcpClient {
         let exit = self.exit.clone();
         let exitRW = self.exitRW.clone();
         let conf = self.conf.clone();
-        info!("{}.run | out queue name: {:?}", self.id, conf.recvQueue);
-        let recvQueueParts: Vec<&str> = conf.recvQueue.split(".").collect();
+        info!("{}.run | in queue name: {:?}", self.id, conf.recvQueue);
+        info!("{}.run | out queue name: {:?}", self.id, conf.sendQueue);
+        let recvQueueParts: Vec<&str> = conf.sendQueue.split(".").collect();
         let receiverServiceName = recvQueueParts[0];
         let receiverQueueName = recvQueueParts[1];
-        let outSend = self.services.lock().unwrap().get(&receiverServiceName).getLink(receiverQueueName);
+        debug!("{}.run | Getting services...", selfId);
+        let services = self.services.lock().unwrap();
+        debug!("{}.run | Getting services - ok", selfId);
+
+        let outSend = services.get(&receiverServiceName).lock().unwrap().getLink(receiverQueueName);
         let outSend = Arc::new(Mutex::new(outSend));
         let buffered = true; // TODO Read this from config
         let inRecv = self.inRecv.pop().unwrap();
@@ -132,7 +137,8 @@ impl Service for TcpClient {
         // };
         let reconnect = if conf.reconnectCycle.is_some() {conf.reconnectCycle.unwrap()} else {Duration::from_secs(3)};
         let _queueMaxLength = conf.recvQueueMaxLength;
-        let _h = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
+        let handle = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
+            info!("{}.run | Tread main starting...", selfId);
             let isConnected = Arc::new(AtomicBool::new(false));
             let tcpStreamWrite = Arc::new(Mutex::new(TcpStreamWrite::new(
                 &selfId,

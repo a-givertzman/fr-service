@@ -58,7 +58,7 @@ mod tests {
         }
     }
     
-    // #[test]
+    #[test]
     fn test_TcpClient() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
@@ -70,9 +70,9 @@ mod tests {
         let conf = TcpClientConfig::read(path);
         let addr = conf.address.clone();
         let services = Arc::new(Mutex::new(Services::new("test")));
-        let tcpClient = TcpClient::new("test TcpClient", conf, services.clone());
+        let tcpClient = Arc::new(Mutex::new(TcpClient::new("test TcpClient", conf, services.clone())));
         let tcpClientServiceId = "TcpClient";
-        services.lock().unwrap().insert(tcpClientServiceId, Box::new(tcpClient));
+        services.lock().unwrap().insert(tcpClientServiceId, tcpClient.clone());
 
         let maxTestDuration = Duration::from_secs(10);
         let count = 10;
@@ -93,11 +93,19 @@ mod tests {
         mockTcpServer(addr.to_string(), count, testData.clone(), received.clone());
         thread::sleep(Duration::from_micros(100));
 
+        debug!("Getting services...");
         let mut services = services.lock().unwrap();
-        let tcpClient = services.get_mut(tcpClientServiceId);
-        tcpClient.run();
+        debug!("Getting services - ok");
+        debug!("Getting service {}...", tcpClientServiceId);
+        let tcpClient = services.get(tcpClientServiceId);
+        debug!("Getting service {} - ok", tcpClientServiceId);
+        debug!("Running service {}...", tcpClientServiceId);
+        tcpClient.lock().unwrap().run();
+        debug!("Running service {} - ok", tcpClientServiceId);
         let timer = Instant::now();
-        let send = tcpClient.getLink("link");
+        let send = tcpClient.lock().unwrap().getLink("link");
+        debug!("Test - setup - ok");
+        debug!("Sending points...");
         for _ in 0..count {
             let index = rnd.gen_range(0..testDataLen);
             let value = testData.get(index).unwrap();

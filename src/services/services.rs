@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::{Arc, Mutex}};
 
 use super::service::Service;
 
@@ -8,7 +8,7 @@ use super::service::Service;
 /// Holds a map of the all services in app by there names
 pub struct Services {
     id: String,
-    map: HashMap<String, Box<dyn Service>>,
+    map: HashMap<String, Arc<Mutex<dyn Service>>>,
 }
 ///
 /// 
@@ -23,7 +23,7 @@ impl Services {
     }
     ///
     /// 
-    pub fn insert(&mut self, id:&str, service: Box<dyn Service>) {
+    pub fn insert(&mut self, id:&str, service: Arc<Mutex<dyn Service>>) {
         if self.map.contains_key(id) {
             panic!("{}.insert | Duplicated service name '{:?}'", self.id, id);
         }
@@ -31,18 +31,18 @@ impl Services {
     }
     ///
     /// 
-    pub fn get(&self, name: &str) -> &Box<dyn Service> {
+    pub fn get(&self, name: &str) -> Arc<Mutex<dyn Service>> {
         match self.map.get(name) {
-            Some(srvc) => srvc,
+            Some(srvc) => srvc.clone(),
             None => panic!("{}.get | service '{:?}' - not found", self.id, name),
         }
     }
-    ///
-    /// 
-    pub fn get_mut(&mut self, name: &str) -> &mut Box<dyn Service> {
-        match self.map.get_mut(name) {
-            Some(srvc) => srvc,
-            None => panic!("{}.get | service '{:?}' - not found", self.id, name),
-        }
-    }
+    // ///
+    // /// 
+    // pub fn get_mut(&mut self, name: &str) -> Arc<Mutex<dyn Service>> {
+    //     match self.map.get_mut(name) {
+    //         Some(srvc) => srvc,
+    //         None => panic!("{}.get | service '{:?}' - not found", self.id, name),
+    //     }
+    // }
 }

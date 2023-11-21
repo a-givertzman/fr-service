@@ -81,7 +81,7 @@ impl TcpClientConfig {
                     Some((keyword, selfRecvQueue)) => {
                         let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
                         debug!("TcpClientConfig.new | self out-queue param {}: {:?}", name, selfRecvQueue);
-                        keyword.name()
+                        selfRecvQueue.conf.as_str().unwrap().to_owned()
                     },
                     None => panic!("TcpClientConfig.new | in queue - not found in : {:?}", selfConf),
                 };
