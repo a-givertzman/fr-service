@@ -83,7 +83,7 @@ mod tests {
         services.lock().unwrap().insert(multiQueueServiceId, multiQueue.clone());
 
         let maxTestDuration = Duration::from_secs(10);
-        let count = 1000;
+        let count = 10000;
         let testData = vec![
             Value::Int(7),
             Value::Float(1.3),

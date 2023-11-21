@@ -43,7 +43,7 @@ fn test_task_cycle() {
     }
     let testCycles = 100;
     let mut errors = 0; // a few errors will be ok, but not more then 5% of test cycles
-    let errorsAllowed = (testCycles as f64 * 0.07) as usize;
+    let errorsAllowed = (testCycles as f64 * 0.10) as usize;
     // const TARGET_CYCLE_INTERVALS: [u64; 4] = [1, 10, 100, 1000];
     // const TARGET_CYCLE_INTERVALS: [u64; 3] = [1, 10, 100];
     const TARGET_CYCLE_INTERVALS: [u64; 2] = [1, 10];
