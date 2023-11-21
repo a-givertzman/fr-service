@@ -2,13 +2,13 @@
 #[cfg(test)]
 mod tests {
     use chrono::{DateTime, Utc};
-    use log::{warn, info, debug, error, trace};
+    use log::{info, debug, error, trace};
     use std::{sync::{Once, atomic::{AtomicUsize, Ordering}, Arc}, time::{Duration, Instant}, net::{TcpStream, TcpListener}, thread, io::{Read, BufReader, Write}};
     use crate::core_::{
         types::bool::Bool, 
         debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
         point::{point_type::PointType, point::Point}, 
-        net::protocols::jds::jds_decode_message::JDS_END_OF_TRANSMISSION, testing::test_session::TestSession,
+        net::protocols::jds::jds_define::JDS_END_OF_TRANSMISSION, testing::test_session::TestSession,
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
