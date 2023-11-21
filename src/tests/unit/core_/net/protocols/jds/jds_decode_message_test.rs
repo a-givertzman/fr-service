@@ -71,7 +71,7 @@ mod tests {
         let count = 1000;
         let testDataLen = testData.len();
         let total = count * testDataLen;
-        mocTcpServer(addr.to_string(), count, testData.clone(), received.clone());
+        mockTcpServer(addr.to_string(), count, testData.clone(), received.clone());
         thread::sleep(Duration::from_micros(100));
         {
             println!("\nReading from stream.read(byte)...");
@@ -110,7 +110,7 @@ mod tests {
     }
     ///
     /// TcpServer setup
-    fn mocTcpServer(addr: String, count: usize, testData: [(String, PointType); 11], received: Arc<AtomicUsize>) {
+    fn mockTcpServer(addr: String, count: usize, testData: [(String, PointType); 11], received: Arc<AtomicUsize>) {
         let mut sent = 0;
         thread::spawn(move || {
             info!("TCP server | Preparing test server...");

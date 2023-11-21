@@ -90,7 +90,7 @@ mod tests {
         let received = Arc::new(Mutex::new(vec![]));
 
 
-        mocTcpServer(addr.to_string(), count, testData.clone(), received.clone());
+        mockTcpServer(addr.to_string(), count, testData.clone(), received.clone());
         thread::sleep(Duration::from_micros(100));
 
         let mut services = services.lock().unwrap();
@@ -130,7 +130,7 @@ mod tests {
     }
     ///
     /// TcpServer setup
-    fn mocTcpServer(addr: String, count: usize, testData: Vec<Value>, received: Arc<Mutex<Vec<PointType>>>) {
+    fn mockTcpServer(addr: String, count: usize, testData: Vec<Value>, received: Arc<Mutex<Vec<PointType>>>) {
         let mut sent = 0;
         thread::spawn(move || {
             info!("TCP server | Preparing test server...");
@@ -188,109 +188,3 @@ mod tests {
         });
     }    
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        // thread::spawn(move || {
-        //     let mut received = receivedRef.lock().unwrap();
-        //     info!("TCP server | Preparing test server...");
-        //     match TcpListener::bind(addr) {
-        //         Ok(listener) => {
-        //             info!("TCP server | Preparing test server - ok");
-        //             let mut acceptCount = 2;
-        //             let mut maxReadErrors = 3;
-        //             while acceptCount > 0 {
-        //                 acceptCount -= 1;
-        //                 match listener.accept() {
-        //                     Ok((mut _socket, addr)) => {
-        //                         info!("TCP server | accept connection - ok\n\t{:?}", addr);
-        //                         _socket.set_read_timeout(Some(Duration::from_millis(100))).unwrap();
-        //                         while received.len() < count {
-        //                             for e in buf.iter_mut() {*e = 0;}
-        //                             match _socket.read(&mut buf) {
-        //                                 Ok(bytes) => {
-        //                                     debug!("TCP server | received bytes: {:?}", bytes);
-        //                                     let raw = String::from_utf8(buf.to_vec()).unwrap();
-        //                                     let raw = raw.trim_matches(char::from(0));
-        //                                     debug!("TCP server | received raw: {:?}", raw);
-        //                                     match serde_json::from_str(&raw) {
-        //                                         Ok(value) => {
-        //                                             let value: serde_json::Value = value;
-        //                                             debug!("TCP server | received: {:?}", value);
-        //                                             received.push(value.clone());
-        //                                             // let obj = value.as_object().unwrap();
-        //                                             // let reply = SqlReply {
-        //                                             //     authToken: obj.get("authToken").unwrap().as_str().unwrap().to_string(),
-        //                                             //     id: obj.get("id").unwrap().as_str().unwrap().to_string(),
-        //                                             //     keepAlive: obj.get("keepAlive").unwrap().as_bool().unwrap(),
-        //                                             //     query: "".into(),
-        //                                             //     data: vec![],
-        //                                             //     error: ApiError::empty(),
-        //                                             // };
-        //                                             // match _socket.write(&reply.asBytes()) {
-        //                                             //     Ok(bytes) => {
-        //                                             //         debug!("TCP server | sent bytes: {:?}", bytes);
-        //                                             //     },
-        //                                             //     Err(err) => {
-        //                                             //         debug!("TCP server | socket write - error: {:?}", err);
-        //                                             //     },
-        //                                             // };
-        //                                             // // debug!("TCP server | received / count: {:?}", received.len() / count);
-        //                                             // if (state == 0) && received.len() as f64 / count as f64 > 0.333 {
-        //                                             //     state = 1;
-        //                                             //     let duration = Duration::from_millis(500);
-        //                                             //     debug!("TCP server | beaking socket connection for {:?}", duration);
-        //                                             //     _socket.flush().unwrap();
-        //                                             //     _socket.shutdown(std::net::Shutdown::Both).unwrap();
-        //                                             //     thread::sleep(duration);
-        //                                             //     debug!("TCP server | beaking socket connection for {:?} - elapsed, restoring...", duration);
-        //                                             //     break;
-        //                                             // }
-        //                                         },
-        //                                         Err(err) => {
-        //                                             debug!("TCP server | parse read data error: {:?}", err);
-        //                                         },
-        //                                     };
-        //                                 },
-        //                                 Err(err) => {
-        //                                     debug!("socket read - error: {:?}", err);
-        //                                     maxReadErrors -= 1;
-        //                                     if maxReadErrors <= 0 {
-        //                                         error!("TCP server | socket read error: {:?}", err);
-        //                                         break;
-        //                                     }
-        //                                 },
-        //                             };
-        //                             thread::sleep(Duration::from_micros(100));
-        //                         }
-        //                     },
-        //                     Err(err) => {
-        //                         info!("incoming connection - error: {:?}", err);
-        //                     },
-        //                 }
-        //             }
-        //         },
-        //         Err(err) => {
-        //             // connectExit.send(true).unwrap();
-        //             // okRef.store(false, Ordering::SeqCst);
-        //             panic!("Preparing test TCP server - error: {:?}", err);
-        //         },
-        //     };
-        // });
-
