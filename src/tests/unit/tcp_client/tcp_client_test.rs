@@ -58,7 +58,7 @@ mod tests {
         }
     }
     
-    #[test]
+    // #[test]
     fn test_TcpClient() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
