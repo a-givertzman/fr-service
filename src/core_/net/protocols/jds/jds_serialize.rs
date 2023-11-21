@@ -1,149 +1,105 @@
 #![allow(non_snake_case)]
 
-use chrono::{DateTime, Utc};
-use log::{warn, error};
+use std::{sync::mpsc::Receiver, collections::HashMap};
 
-use crate::core_::{net::connection_status::ConnectionStatus, point::{point_type::PointType, point::Point}, types::bool::Bool};
+use chrono::DateTime;
+use log::trace;
+use serde::{Serialize, ser::SerializeStruct};
+use serde_json::json;
 
-use super::jds_decode_message::JdsDecodeMessage;
+use crate::core_::point::point_type::PointType;
+
 
 ///
 /// Converts PointType into the squence of bytes
 /// useng PointType -> Point<type> -> JSON -> bytes conversion
 pub struct JdsSerialize {
     id: String,
-    stream: JdsDecodeMessage,
+    stream: Receiver<PointType>,
 }
 ///
 /// 
 impl JdsSerialize {
     ///
     /// Creates new instance of the JdsSerialize
-    pub fn new(parent: impl Into<String>, stream: JdsDecodeMessage) -> Self {
+    pub fn new(parent: impl Into<String>, stream: Receiver<PointType>) -> Self {
         Self {
             id: format!("{}/JdsSerialize", parent.into()),
             stream,
         }
     }
     ///
-    /// Reads single point from TcpStream
-    pub fn read(&mut self) -> ConnectionStatus<Option<PointType>> {
-        match self.stream.read() {
-            ConnectionStatus::Active(bytes) => {
-                match Self::parse(bytes) {
-                    Ok(point) => {
-                        ConnectionStatus::Active(Some(point))
-                    },
-                    Err(err) => {
-                        error!("{}", err);
-                        ConnectionStatus::Active(None)
-                    },
-                }
+    /// Reads single point from Receiver & serialize it into json string
+    pub fn read(&mut self) -> Result<String, String> {
+        match self.stream.recv() {
+            Ok(point) => {
+                trace!("{}.read | point: {:?}", self.id, &point);
+                self.serialize(point)
             },
-            ConnectionStatus::Closed => {
-                ConnectionStatus::Closed
+            Err(err) => {
+                let message = format!("{}.read | error: {:?}", self.id, err);
+                trace!("{:?}", message);
+                Err(message)
             },
         }
     }
     ///
-    /// 
-    pub fn parse(bytes: Vec<u8>) -> Result<PointType, String> {
-        match String::from_utf8(bytes) {
-            Ok(jsonString) => {
-                match serde_json::from_str(&jsonString) {
-                    Ok(value) => {
-                        let value: serde_json::Value = value;
-                        match value.as_object() {
-                            Some(obj) => {
-                                match obj.get("type") {
-                                    Some(type_) => {
-                                        match type_.as_str() {
-                                            Some("bool") | Some("Bool") => {
-                                                let name = obj.get("name").unwrap().as_str().unwrap();
-                                                let value = obj.get("value").unwrap().as_bool().unwrap();
-                                                let status = obj.get("status").unwrap().as_i64().unwrap();
-                                                let timestamp = obj.get("timestamp").unwrap().as_str().unwrap();
-                                                let timestamp: DateTime<Utc> = chrono::DateTime::parse_from_rfc3339(timestamp).unwrap().with_timezone(&Utc);
-                                                Ok(PointType::Bool(Point::new(
-                                                    name,
-                                                    Bool(value),
-                                                    status as u8,
-                                                    timestamp,
-                                                )))
-                                            },
-                                            Some("int") | Some("Int") => {
-                                                let name = obj.get("name").unwrap().as_str().unwrap();
-                                                let value = obj.get("value").unwrap().as_i64().unwrap();
-                                                let status = obj.get("status").unwrap().as_i64().unwrap();
-                                                let timestamp = obj.get("timestamp").unwrap().as_str().unwrap();
-                                                let timestamp: DateTime<Utc> = chrono::DateTime::parse_from_rfc3339(timestamp).unwrap().with_timezone(&Utc);
-                                                Ok(PointType::Int(Point::new(
-                                                    name,
-                                                    value,
-                                                    status as u8,
-                                                    timestamp,
-                                                )))
-                                            },
-                                            Some("float") | Some("Float") => {
-                                                let name = obj.get("name").unwrap().as_str().unwrap();
-                                                let value = obj.get("value").unwrap().as_f64().unwrap();
-                                                let status = obj.get("status").unwrap().as_i64().unwrap();
-                                                let timestamp = obj.get("timestamp").unwrap().as_str().unwrap();
-                                                let timestamp: DateTime<Utc> = chrono::DateTime::parse_from_rfc3339(timestamp).unwrap().with_timezone(&Utc);
-                                                Ok(PointType::Float(Point::new(
-                                                    name,
-                                                    value,
-                                                    status as u8,
-                                                    timestamp,
-                                                )))
-                                            },
-                                            Some("string") | Some("String") => {
-                                                let name = obj.get("name").unwrap().as_str().unwrap();
-                                                let value = obj.get("value").unwrap().as_str().unwrap();
-                                                let status = obj.get("status").unwrap().as_i64().unwrap();
-                                                let timestamp = obj.get("timestamp").unwrap().as_str().unwrap();
-                                                let timestamp: DateTime<Utc> = chrono::DateTime::parse_from_rfc3339(timestamp).unwrap().with_timezone(&Utc);
-                                                Ok(PointType::String(Point::new(
-                                                    name,
-                                                    value.to_owned(),
-                                                    status as u8,
-                                                    timestamp,
-                                                )))
-                                            },
-                                            _ => {
-                                                let message = format!("JdsSerialize.parse | Unknown point type: {}", type_);
-                                                warn!("{}", message);
-                                                Err(message)
-                                            }
-                                        }
-                                    },
-                                    None => {
-                                        let message = format!("JdsSerialize.parse | JSON convertion error: mapping not found in the JSON: {}", value);
-                                        warn!("{}", message);
-                                        Err(message)        
-                                    },
-                                }
-                            },
-                            None => {
-                                let message = format!("JdsSerialize.parse | JSON convertion error: mapping not found in the JSON: {}", value);
-                                warn!("{}", message);
-                                Err(message)
-                            },
-                        }
-                    },
-                    Err(err) => {
-                        let message = format!("JdsSerialize.parse | JSON convertion error: {:?}", err);
-                        warn!("{}", message);
-                        Err(message)        
-                    },
-                }
-                // PointType::
+    /// Serialize point into json string
+    fn serialize(&self, point: PointType) -> Result<String, String> {
+        let value = match point {
+            PointType::Bool(point) => {
+                json!(PointSerializable {
+                    name: point.name,
+                    value: point.value,
+                    status: point.status,
+                    timestamp: point.timestamp,
+                })
             },
-            Err(err) => {
-                let message = format!("JdsSerialize.parse | From bytes error: {:?}", err);
-                warn!("{}", message);
-                Err(message)        
+            PointType::Int(point) => {
+                json!(PointSerializable {
+                    name: point.name,
+                    value: point.value,
+                    status: point.status,
+                    timestamp: point.timestamp,
+                })
             },
+            PointType::Float(point) => {
+                json!(PointSerializable {
+                    name: point.name,
+                    value: point.value,
+                    status: point.status,
+                    timestamp: point.timestamp,
+                })
+            },
+            PointType::String(point) => {
+                json!(PointSerializable {
+                    name: point.name,
+                    value: point.value,
+                    status: point.status,
+                    timestamp: point.timestamp,
+                })
+            },
+        };
+        match value.as_str() {
+            Some(value) => Ok(value.to_owned()),
+            None => Err(format!("{}.read | json encoding error", self.id)),
         }
     }    
+}
+
+
+struct PointSerializable<T> {
+    pub name: String,
+    pub value: T,
+    pub status: u8,
+    pub timestamp: DateTime<chrono::Utc>,
+}
+impl<T> Serialize for PointSerializable<T> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer {
+        let mut state = serializer.serialize_struct("Color", 3)?;
+        state.serialize_field("name", &self.name)?;
+        state.end()
+    }
 }
