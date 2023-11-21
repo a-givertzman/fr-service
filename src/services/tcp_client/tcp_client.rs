@@ -189,13 +189,13 @@ impl Service for TcpClient {
             let isConnected = Arc::new(AtomicBool::new(false));
             let buffer = Arc::new(Mutex::new(RetainBuffer::new(&selfId, "", Some(conf.recvQueueMaxLength as usize))));
 
-            let j = JdsEncodeMessage::new(
-                &selfId,
-                JdsSerialize::new(
-                    &selfId,
-                    inRecv.lock().unwrap(),
-                ),
-            );
+            // let j = JdsEncodeMessage::new(
+            //     &selfId,
+            //     JdsSerialize::new(
+            //         &selfId,
+            //         inRecv.lock().unwrap(),
+            //     ),
+            // );
             // let mut cycle = ServiceCycle::new(cycleInterval);
             let mut connect = TcpSocketClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address);
             let mut stream = None;
@@ -216,13 +216,13 @@ impl Service for TcpClient {
                                     stream.try_clone().unwrap(),
                                 ),
                             );
-                            let handleR = Self::readSocket(
-                                selfId.clone(),
-                                streamR,
-                                send,
-                                exitRW.clone(),
-                                isConnected.clone()
-                            );
+                            // let handleR = Self::readSocket(
+                            //     selfId.clone(),
+                            //     streamR,
+                            //     send,
+                            //     exitRW.clone(),
+                            //     isConnected.clone()
+                            // );
                             let handleW = Self::writeSocket(
                                 selfId.clone(),
                                 stream,

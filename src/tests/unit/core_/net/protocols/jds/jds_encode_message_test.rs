@@ -5,7 +5,7 @@ mod tests {
     use log::{warn, info, debug};
     use serde_json::json;
     use std::{sync::{Once, mpsc}, time::{Duration, Instant}};
-    use crate::core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::{point_type::PointType, point::Point}, types::bool::Bool, net::protocols::jds::{jds_serialize::JdsSerialize, jds_encode_message::JdsEncodeMessage}}; 
+    use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::{point_type::PointType, point::Point}, types::bool::Bool, net::protocols::jds::{jds_serialize::JdsSerialize, jds_encode_message::JdsEncodeMessage}}, tcp::steam_read::StreamRead}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
