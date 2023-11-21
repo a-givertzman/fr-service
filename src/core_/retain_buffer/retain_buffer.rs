@@ -42,7 +42,7 @@ impl<T> RetainBuffer<T> {
         self.vec.push_back(value);
     }
     ///
-    /// Returns first value<T> in the buffer
+    /// Returns first &value<T> in the buffer or None if empty
     pub fn first(&mut self) -> Option<&T> {
         self.vec.front()
     }

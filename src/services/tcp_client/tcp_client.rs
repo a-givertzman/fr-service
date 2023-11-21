@@ -178,6 +178,7 @@ impl Service for TcpClient {
         let receiverQueueName = recvQueueParts[1];
         let outSend = self.services.lock().unwrap().get(&receiverServiceName).getLink(receiverQueueName);
         let outSend = Arc::new(Mutex::new(outSend));
+        let buffered = true; // TODO Read this from config
         let inRecv = self.inRecv.pop().unwrap();
         // let (cyclic, cycleInterval) = match conf.cycle {
         //     Some(interval) => (interval > Duration::ZERO, interval),
@@ -189,6 +190,9 @@ impl Service for TcpClient {
             let isConnected = Arc::new(AtomicBool::new(false));
             // let buffer = Arc::new(Mutex::new(RetainBuffer::new(&selfId, "", Some(conf.recvQueueMaxLength as usize))));
             let tcpStreamWrite = TcpStreamWrite::new(
+                &selfId,
+                buffered,
+                Some(conf.recvQueueMaxLength as usize),
                 Box::new(JdsEncodeMessage::new(
                     &selfId,
                     JdsSerialize::new(
