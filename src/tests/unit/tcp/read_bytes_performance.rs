@@ -8,7 +8,7 @@ mod tests {
         types::bool::Bool, 
         debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
         point::{point_type::PointType, point::Point}, 
-        net::protocols::jds::jds_message::JDS_END_OF_TRANSMISSION, testing::test_session::TestSession,
+        net::protocols::jds::jds_decode_message::JDS_END_OF_TRANSMISSION, testing::test_session::TestSession,
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.

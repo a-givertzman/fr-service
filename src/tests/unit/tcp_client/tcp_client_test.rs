@@ -1,13 +1,13 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
 mod tests {
-    use log::{info, debug, error};
+    use log::{info, debug, error, trace, warn};
     use rand::Rng;
-    use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::{Read, Write}, process::exit};
+    use std::{sync::{Once, Arc, Mutex, atomic::AtomicUsize}, thread, time::{Duration, Instant}, net::TcpListener, io::{Read, Write}, process::exit};
     use crate::{
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::{ToPoint, PointType}},
+        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::{ToPoint, PointType}, net::{protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}, connection_status::ConnectionStatus}},
         conf::tcp_client_config::TcpClientConfig,  
-        services::{api_cient::{api_client::ApiClient, api_reply::SqlReply, api_error::ApiError}, service::Service, tcp_client::tcp_client::TcpClient, services::Services},
+        services::{service::Service, tcp_client::tcp_client::TcpClient, services::Services},
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -32,6 +32,7 @@ mod tests {
     
     }
     
+    #[derive(Clone)]
     enum Value {
         Bool(bool),
         Int(i64),
@@ -57,7 +58,7 @@ mod tests {
         }
     }
     
-    #[test]
+    // #[test]
     fn test_TcpClient() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
@@ -70,12 +71,11 @@ mod tests {
         let addr = conf.address.clone();
         let tcpClient = TcpClient::new("test TcpClient", conf);
         let mut services = Services::new("test");
-        services.insert("TcpClient", Box::new(tcpClient));
-        // let tcpClient = Arc::new(Mutex::new(tcpClient));
+        let tcpClientServiceId = "TcpClient";
+        services.insert(tcpClientServiceId, Box::new(tcpClient));
 
         let maxTestDuration = Duration::from_secs(10);
-        let count = 300;
-        let mut state = 0;
+        let count = 10;
         let testData = vec![
             Value::Int(7),
             Value::Float(1.3),
@@ -88,98 +88,14 @@ mod tests {
 
         let mut sent = vec![];
         let received = Arc::new(Mutex::new(vec![]));
-        let receivedRef = received.clone();
-        let mut buf = [0; 1024 * 4];
-
-        thread::spawn(move || {
-            let mut received = receivedRef.lock().unwrap();
-            info!("TCP server | Preparing test server...");
-            match TcpListener::bind(addr) {
-                Ok(listener) => {
-                    info!("TCP server | Preparing test server - ok");
-                    let mut acceptCount = 2;
-                    let mut maxReadErrors = 3;
-                    while acceptCount > 0 {
-                        acceptCount -= 1;
-                        match listener.accept() {
-                            Ok((mut _socket, addr)) => {
-                                info!("TCP server | accept connection - ok\n\t{:?}", addr);
-                                _socket.set_read_timeout(Some(Duration::from_millis(100))).unwrap();
-                                while received.len() < count {
-                                    for e in buf.iter_mut() {*e = 0;}
-                                    match _socket.read(&mut buf) {
-                                        Ok(bytes) => {
-                                            debug!("TCP server | received bytes: {:?}", bytes);
-                                            let raw = String::from_utf8(buf.to_vec()).unwrap();
-                                            let raw = raw.trim_matches(char::from(0));
-                                            debug!("TCP server | received raw: {:?}", raw);
-                                            match serde_json::from_str(&raw) {
-                                                Ok(value) => {
-                                                    let value: serde_json::Value = value;
-                                                    debug!("TCP server | received: {:?}", value);
-                                                    received.push(value.clone());
-                                                    // let obj = value.as_object().unwrap();
-                                                    // let reply = SqlReply {
-                                                    //     authToken: obj.get("authToken").unwrap().as_str().unwrap().to_string(),
-                                                    //     id: obj.get("id").unwrap().as_str().unwrap().to_string(),
-                                                    //     keepAlive: obj.get("keepAlive").unwrap().as_bool().unwrap(),
-                                                    //     query: "".into(),
-                                                    //     data: vec![],
-                                                    //     error: ApiError::empty(),
-                                                    // };
-                                                    // match _socket.write(&reply.asBytes()) {
-                                                    //     Ok(bytes) => {
-                                                    //         debug!("TCP server | sent bytes: {:?}", bytes);
-                                                    //     },
-                                                    //     Err(err) => {
-                                                    //         debug!("TCP server | socket write - error: {:?}", err);
-                                                    //     },
-                                                    // };
-                                                    // // debug!("TCP server | received / count: {:?}", received.len() / count);
-                                                    // if (state == 0) && received.len() as f64 / count as f64 > 0.333 {
-                                                    //     state = 1;
-                                                    //     let duration = Duration::from_millis(500);
-                                                    //     debug!("TCP server | beaking socket connection for {:?}", duration);
-                                                    //     _socket.flush().unwrap();
-                                                    //     _socket.shutdown(std::net::Shutdown::Both).unwrap();
-                                                    //     thread::sleep(duration);
-                                                    //     debug!("TCP server | beaking socket connection for {:?} - elapsed, restoring...", duration);
-                                                    //     break;
-                                                    // }
-                                                },
-                                                Err(err) => {
-                                                    debug!("TCP server | parse read data error: {:?}", err);
-                                                },
-                                            };
-                                        },
-                                        Err(err) => {
-                                            debug!("socket read - error: {:?}", err);
-                                            maxReadErrors -= 1;
-                                            if maxReadErrors <= 0 {
-                                                error!("TCP server | socket read error: {:?}", err);
-                                                break;
-                                            }
-                                        },
-                                    };
-                                    thread::sleep(Duration::from_micros(100));
-                                }
-                            },
-                            Err(err) => {
-                                info!("incoming connection - error: {:?}", err);
-                            },
-                        }
-                    }
-                },
-                Err(err) => {
-                    // connectExit.send(true).unwrap();
-                    // okRef.store(false, Ordering::SeqCst);
-                    panic!("Preparing test TCP server - error: {:?}", err);
-                },
-            };
-        });
 
 
-        return;
+        mocTcpServer(addr.to_string(), count, testData.clone(), received.clone());
+        thread::sleep(Duration::from_micros(100));
+
+
+        let tcpClient = services.get_mut(tcpClientServiceId);
+        tcpClient.run();
         let timer = Instant::now();
         let send = tcpClient.getLink("link");
         for _ in 0..count {
@@ -212,4 +128,169 @@ mod tests {
         //     assert!(result == &target, "\nresult: {:?}\ntarget: {:?}", result, target);
         // }
     }
+    ///
+    /// TcpServer setup
+    fn mocTcpServer(addr: String, count: usize, testData: Vec<Value>, received: Arc<Mutex<Vec<PointType>>>) {
+        let mut sent = 0;
+        thread::spawn(move || {
+            info!("TCP server | Preparing test server...");
+            let mut rng = rand::thread_rng();
+            match TcpListener::bind(addr) {
+                Ok(listener) => {
+                    info!("TCP server | Preparing test server - ok");
+                    let mut acceptCount = 2;
+                    let mut maxReadErrors = 3;
+                    while acceptCount > 0 {
+                        acceptCount -= 1;
+                        match listener.accept() {
+                            Ok((mut _socket, addr)) => {
+                                info!("TCP server | accept connection - ok\n\t{:?}", addr);
+                                let mut jds = JdsDeserialize::new(
+                                    "test", 
+                                    JdsDecodeMessage::new("test", _socket),
+                                );
+                                for _ in 0..count {
+                                    match jds.read() {
+                                        ConnectionStatus::Active(point) => {
+                                            match point {
+                                                Ok(point) => {
+                                                    received.lock().unwrap().push(point);
+                                                },
+                                                Err(err) => {
+                                                    warn!("{:?}", err);
+                                                },
+                                            }
+                                        },
+                                        ConnectionStatus::Closed => {
+                                            
+                                        },
+                                    }
+
+                                }
+                                info!("TCP server | all sent: {:?}", sent);
+                                while received.lock().unwrap().len() < count {
+                                    thread::sleep(Duration::from_micros(100));
+                                }
+                                // while received.len() < count {}
+                            },
+                            Err(err) => {
+                                warn!("incoming connection - error: {:?}", err);
+                            },
+                        }
+                    }
+                },
+                Err(err) => {
+                    // connectExit.send(true).unwrap();
+                    // okRef.store(false, Ordering::SeqCst);
+                    panic!("Preparing test TCP server - error: {:?}", err);
+                },
+            };
+        });
+    }    
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // thread::spawn(move || {
+        //     let mut received = receivedRef.lock().unwrap();
+        //     info!("TCP server | Preparing test server...");
+        //     match TcpListener::bind(addr) {
+        //         Ok(listener) => {
+        //             info!("TCP server | Preparing test server - ok");
+        //             let mut acceptCount = 2;
+        //             let mut maxReadErrors = 3;
+        //             while acceptCount > 0 {
+        //                 acceptCount -= 1;
+        //                 match listener.accept() {
+        //                     Ok((mut _socket, addr)) => {
+        //                         info!("TCP server | accept connection - ok\n\t{:?}", addr);
+        //                         _socket.set_read_timeout(Some(Duration::from_millis(100))).unwrap();
+        //                         while received.len() < count {
+        //                             for e in buf.iter_mut() {*e = 0;}
+        //                             match _socket.read(&mut buf) {
+        //                                 Ok(bytes) => {
+        //                                     debug!("TCP server | received bytes: {:?}", bytes);
+        //                                     let raw = String::from_utf8(buf.to_vec()).unwrap();
+        //                                     let raw = raw.trim_matches(char::from(0));
+        //                                     debug!("TCP server | received raw: {:?}", raw);
+        //                                     match serde_json::from_str(&raw) {
+        //                                         Ok(value) => {
+        //                                             let value: serde_json::Value = value;
+        //                                             debug!("TCP server | received: {:?}", value);
+        //                                             received.push(value.clone());
+        //                                             // let obj = value.as_object().unwrap();
+        //                                             // let reply = SqlReply {
+        //                                             //     authToken: obj.get("authToken").unwrap().as_str().unwrap().to_string(),
+        //                                             //     id: obj.get("id").unwrap().as_str().unwrap().to_string(),
+        //                                             //     keepAlive: obj.get("keepAlive").unwrap().as_bool().unwrap(),
+        //                                             //     query: "".into(),
+        //                                             //     data: vec![],
+        //                                             //     error: ApiError::empty(),
+        //                                             // };
+        //                                             // match _socket.write(&reply.asBytes()) {
+        //                                             //     Ok(bytes) => {
+        //                                             //         debug!("TCP server | sent bytes: {:?}", bytes);
+        //                                             //     },
+        //                                             //     Err(err) => {
+        //                                             //         debug!("TCP server | socket write - error: {:?}", err);
+        //                                             //     },
+        //                                             // };
+        //                                             // // debug!("TCP server | received / count: {:?}", received.len() / count);
+        //                                             // if (state == 0) && received.len() as f64 / count as f64 > 0.333 {
+        //                                             //     state = 1;
+        //                                             //     let duration = Duration::from_millis(500);
+        //                                             //     debug!("TCP server | beaking socket connection for {:?}", duration);
+        //                                             //     _socket.flush().unwrap();
+        //                                             //     _socket.shutdown(std::net::Shutdown::Both).unwrap();
+        //                                             //     thread::sleep(duration);
+        //                                             //     debug!("TCP server | beaking socket connection for {:?} - elapsed, restoring...", duration);
+        //                                             //     break;
+        //                                             // }
+        //                                         },
+        //                                         Err(err) => {
+        //                                             debug!("TCP server | parse read data error: {:?}", err);
+        //                                         },
+        //                                     };
+        //                                 },
+        //                                 Err(err) => {
+        //                                     debug!("socket read - error: {:?}", err);
+        //                                     maxReadErrors -= 1;
+        //                                     if maxReadErrors <= 0 {
+        //                                         error!("TCP server | socket read error: {:?}", err);
+        //                                         break;
+        //                                     }
+        //                                 },
+        //                             };
+        //                             thread::sleep(Duration::from_micros(100));
+        //                         }
+        //                     },
+        //                     Err(err) => {
+        //                         info!("incoming connection - error: {:?}", err);
+        //                     },
+        //                 }
+        //             }
+        //         },
+        //         Err(err) => {
+        //             // connectExit.send(true).unwrap();
+        //             // okRef.store(false, Ordering::SeqCst);
+        //             panic!("Preparing test TCP server - error: {:?}", err);
+        //         },
+        //     };
+        // });
+

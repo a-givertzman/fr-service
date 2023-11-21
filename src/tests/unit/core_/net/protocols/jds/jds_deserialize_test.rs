@@ -9,7 +9,7 @@ mod tests {
         types::bool::Bool, 
         debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
         point::{point_type::PointType, point::Point}, 
-        net::{protocols::jds::{jds_message::JdsMessage, jds_deserialize::JdsDeserialize}, connection_status::ConnectionStatus}, testing::test_session::TestSession,
+        net::{protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}, connection_status::ConnectionStatus}, testing::test_session::TestSession,
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -42,12 +42,12 @@ mod tests {
     }
 
     #[test]
-    fn test_jds_message() {
+    fn test_jds_deserialize() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test_jds_message");
+        info!("test_jds_deserialize");
         let name = "/server/line1/ied1/test1";
         let ts = ts();
         // debug!("timestamp: {:?}", ts);j
@@ -81,13 +81,13 @@ mod tests {
                     Ok(stream) => {
                         let mut stream = JdsDeserialize::new(
                             "test", 
-                            JdsMessage::new("test", stream)
+                            JdsDecodeMessage::new("test", stream)
                         );
                         'read: loop {
                             match stream.read() {
                                 ConnectionStatus::Active(point) => {
                                     match point {
-                                        Some(point) => {
+                                        Ok(point) => {
                                             received.fetch_add(1, Ordering::SeqCst);
                                             let recvIndex = (received.load(Ordering::SeqCst) - 1) % testDataLen;
                                             trace!("socket read - received[{}]: {:?}", recvIndex, point);
@@ -97,7 +97,9 @@ mod tests {
                                                 break 'read;
                                             }
                                         },
-                                        None => todo!(),
+                                        Err(err) => {
+                                            panic!("socket read - parsing error: {:?}", err);
+                                        },
                                     }
                                 },
                                 ConnectionStatus::Closed => {
