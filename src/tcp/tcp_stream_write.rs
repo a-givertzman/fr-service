@@ -22,7 +22,14 @@ impl TcpStreamWrite {
     }
     ///
     /// 
-    pub fn write() {
-        
+    pub fn write(&mut self) {
+        match self.stream.read() {
+            Ok(bytes) => {
+
+            },
+            Err(err) => {
+
+            },
+        }
     }
 }
