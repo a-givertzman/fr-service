@@ -2,7 +2,7 @@
 
 use std::{net::TcpStream, io::Write};
 
-use log::{warn, LevelFilter, debug};
+use log::{warn, LevelFilter, debug, trace};
 
 use crate::{tcp::steam_read::StreamRead, core_::retain_buffer::retain_buffer::RetainBuffer};
 
@@ -41,7 +41,7 @@ impl TcpStreamWrite {
         match self.stream.read() {
             Ok(bytes) => {
                 while let Some(bytes) = self.buffer.first() {
-                    debug!("{}.write | bytes: {:?}", self.id, bytes);
+                    trace!("{}.write | bytes: {:?}", self.id, bytes);
                     match tcpStream.write(&bytes) {
                         Ok(_) => {
                             self.buffer.popFirst();
@@ -55,7 +55,7 @@ impl TcpStreamWrite {
                         },
                     };
                 }
-                debug!("{}.write | bytes: {:?}", self.id, bytes);
+                trace!("{}.write | bytes: {:?}", self.id, bytes);
                 match tcpStream.write(&bytes) {
                     Ok(sent) => {Ok(sent)},
                     Err(err) => {
