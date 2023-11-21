@@ -1,5 +1,7 @@
 #![allow(non_snake_case)]
 
+use crate::tcp::steam_read::StreamRead;
+
 use super::{jds_serialize::JdsSerialize, jds_define::JDS_END_OF_TRANSMISSION};
 
 
@@ -22,9 +24,13 @@ impl JdsEncodeMessage {
             stream,
         }
     }
+}
+///
+/// 
+impl StreamRead<Vec<u8>, String> for JdsEncodeMessage {
     ///
     /// Returns sequence of bytes representing encoded single PointType, ends with Jds.endOfTransmission = 4
-    pub fn read(&mut self) -> Result<Vec<u8>, String> {
+    fn read(&mut self) -> Result<Vec<u8>, String> {
         let mut bytes = Vec::new();
         match self.stream.read() {
             Ok(value) => {
