@@ -1,4 +1,8 @@
 #![allow(non_snake_case)]
+
+use std::sync::mpsc::{Sender, Receiver};
+
+use crate::{services::service::Service, core_::point::point_type::PointType};
 #[cfg(test)]
 mod tests {
     use log::{info, debug, error, trace, warn};
@@ -7,7 +11,7 @@ mod tests {
     use crate::{
         core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::{ToPoint, PointType}, net::{protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}, connection_status::ConnectionStatus}},
         conf::tcp_client_config::TcpClientConfig,  
-        services::{service::Service, tcp_client::tcp_client::TcpClient, services::Services},
+        services::{service::Service, tcp_client::tcp_client::TcpClient, services::Services}, tests::unit::tcp_client::tcp_client_test::MockMultiqueue,
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -70,9 +74,12 @@ mod tests {
         let conf = TcpClientConfig::read(path);
         let addr = conf.address.clone();
         let services = Arc::new(Mutex::new(Services::new("test")));
+        let multiQueue = Arc::new(Mutex::new(MockMultiqueue::new()));
         let tcpClient = Arc::new(Mutex::new(TcpClient::new("test TcpClient", conf, services.clone())));
+        let multiQueueServiceId = "MultiQueuue";
         let tcpClientServiceId = "TcpClient";
         services.lock().unwrap().insert(tcpClientServiceId, tcpClient.clone());
+        services.lock().unwrap().insert(multiQueueServiceId, multiQueue.clone());
 
         let maxTestDuration = Duration::from_secs(10);
         let count = 10;
@@ -94,12 +101,13 @@ mod tests {
         thread::sleep(Duration::from_micros(100));
 
         debug!("Getting services...");
-        let mut services = services.lock().unwrap();
+        let services = services.lock().unwrap();
         debug!("Getting services - ok");
         debug!("Getting service {}...", tcpClientServiceId);
         let tcpClient = services.get(tcpClientServiceId);
         debug!("Getting service {} - ok", tcpClientServiceId);
         debug!("Running service {}...", tcpClientServiceId);
+        drop(services);
         tcpClient.lock().unwrap().run();
         debug!("Running service {} - ok", tcpClientServiceId);
         let timer = Instant::now();
@@ -195,4 +203,39 @@ mod tests {
             };
         });
     }    
+}
+
+
+struct MockMultiqueue {
+    id: String,
+    send: Sender<PointType>,
+    recv: Receiver<PointType>,
+}
+impl MockMultiqueue {
+    fn new() -> Self {
+        let (send, recv) = std::sync::mpsc::channel();
+        Self {
+            id: "MockMultiqueue".to_owned(),
+            send,
+            recv,
+        }
+    }
+}
+impl Service for MockMultiqueue {
+    //
+    //
+    fn getLink(&self, name: &str) -> Sender<PointType> {
+        assert!(name == "queue", "{}.run | link '{:?}' - not found", self.id, name);
+        self.send.clone()
+    }
+    //
+    // 
+    fn run(&mut self) {
+        todo!()
+    }
+    //
+    // 
+    fn exit(&self) {
+        todo!()
+    }
 }
