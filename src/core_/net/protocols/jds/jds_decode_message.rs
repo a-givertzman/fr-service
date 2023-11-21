@@ -4,10 +4,8 @@ use std::{net::TcpStream, io::{Read, BufReader, ErrorKind}};
 
 use log::warn;
 
-use crate::core_::net::connection_status::ConnectionStatus;
+use crate::core_::net::{connection_status::ConnectionStatus, protocols::jds::jds_define::JDS_END_OF_TRANSMISSION};
 
-
-pub const JDS_END_OF_TRANSMISSION: u8 = 0x4;
 
 enum Status {
     Active,

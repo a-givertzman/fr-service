@@ -1,9 +1,7 @@
 #![allow(non_snake_case)]
 
-use super::jds_serialize::JdsSerialize;
+use super::{jds_serialize::JdsSerialize, jds_define::JDS_END_OF_TRANSMISSION};
 
-
-pub const JDS_END_OF_TRANSMISSION: u8 = 0x4;
 
 ///
 /// Converts json string into the bytes
@@ -32,6 +30,7 @@ impl JdsEncodeMessage {
             Ok(value) => {
                 match serde_json::to_writer(&mut bytes, &value) {
                     Ok(_) => {
+                        bytes.push(JDS_END_OF_TRANSMISSION);
                         Ok(bytes)
                     },
                     Err(err) => Err(format!("{}.read | error: {:?}", self.id, err)),
