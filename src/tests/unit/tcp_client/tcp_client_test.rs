@@ -58,7 +58,7 @@ mod tests {
         }
     }
     
-    // #[test]
+    #[test]
     fn test_TcpClient() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
@@ -69,10 +69,10 @@ mod tests {
         let path = "./src/tests/unit/tcp_client/tcp_client.yaml";
         let conf = TcpClientConfig::read(path);
         let addr = conf.address.clone();
-        let tcpClient = TcpClient::new("test TcpClient", conf);
-        let mut services = Services::new("test");
+        let services = Arc::new(Mutex::new(Services::new("test")));
+        let tcpClient = TcpClient::new("test TcpClient", conf, services.clone());
         let tcpClientServiceId = "TcpClient";
-        services.insert(tcpClientServiceId, Box::new(tcpClient));
+        services.lock().unwrap().insert(tcpClientServiceId, Box::new(tcpClient));
 
         let maxTestDuration = Duration::from_secs(10);
         let count = 10;
@@ -93,7 +93,7 @@ mod tests {
         mocTcpServer(addr.to_string(), count, testData.clone(), received.clone());
         thread::sleep(Duration::from_micros(100));
 
-
+        let mut services = services.lock().unwrap();
         let tcpClient = services.get_mut(tcpClientServiceId);
         tcpClient.run();
         let timer = Instant::now();

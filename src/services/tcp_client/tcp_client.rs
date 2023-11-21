@@ -1,13 +1,13 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Ordering}, Mutex}, time::Duration, collections::HashMap, thread::{self, JoinHandle}, net::TcpStream, io::{Read, Write}};
+use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Ordering}, Mutex}, time::Duration, collections::HashMap, thread::{self, JoinHandle}, net::TcpStream, io::{Read, Write}, rc::Rc};
 
 use log::{info, debug, warn};
 
 use crate::{
-    core_::{point::point_type::PointType, net::{connection_status::ConnectionStatus, protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}}, retain_buffer::retain_buffer::RetainBuffer},
+    core_::{point::point_type::PointType, net::{connection_status::ConnectionStatus, protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_serialize::JdsSerialize, jds_encode_message::JdsEncodeMessage}}, retain_buffer::retain_buffer::RetainBuffer},
     conf::tcp_client_config::TcpClientConfig,
-    services::{service::Service, task::task_cycle::ServiceCycle}, tcp::tcp_socket_client_connect::TcpSocketClientConnect, 
+    services::{service::Service, task::task_cycle::ServiceCycle, services::Services}, tcp::tcp_socket_client_connect::TcpSocketClientConnect, 
 };
 
 
@@ -19,9 +19,12 @@ use crate::{
 /// - Sent messages immediately removed from the buffer
 pub struct TcpClient {
     id: String,
-    recv: Vec<Receiver<PointType>>,
-    send: HashMap<String, Sender<PointType>>,
+    inRecv: Vec<Receiver<PointType>>,
+    inSend: HashMap<String, Sender<PointType>>,
+    outRecv: Vec<Receiver<PointType>>,
+    outSend: HashMap<String, Sender<PointType>>,
     conf: TcpClientConfig,
+    services: Arc<Mutex<Services>>,
     exit: Arc<AtomicBool>,
     exitRW: Arc<AtomicBool>,
 }
@@ -31,13 +34,16 @@ impl TcpClient {
     ///
     /// Creates new instance of [ApiClient]
     /// - [parent] - the ID if the parent entity
-    pub fn new(parent: impl Into<String>, conf: TcpClientConfig) -> Self {
+    pub fn new(parent: impl Into<String>, conf: TcpClientConfig, services: Arc<Mutex<Services>>) -> Self {
         let (send, recv) = mpsc::channel();
         Self {
             id: format!("{}/TcpClient({})", parent.into(), conf.name),
-            recv: vec![recv],
-            send: HashMap::from([(conf.recvQueue.clone(), send)]),
+            inRecv: vec![recv],
+            inSend: HashMap::from([(conf.recvQueue.clone(), send)]),
+            outRecv: vec![],
+            outSend: HashMap::new(),
             conf: conf.clone(),
+            services,
             exit: Arc::new(AtomicBool::new(false)),
             exitRW: Arc::new(AtomicBool::new(false)),
         }
@@ -150,15 +156,15 @@ impl TcpClient {
 /// 
 impl Service for TcpClient {
     ///
-    /// returns sender of the ApiClient queue by name
+    /// returns sender of the TcpClient input queue by name
     fn getLink(&self, name: &str) -> Sender<PointType> {
-        match self.send.get(name) {
+        match self.inSend.get(name) {
             Some(send) => send.clone(),
             None => panic!("{}.run | link '{:?}' - not found", self.id, name),
         }
     }
     ///
-    /// 
+    /// The TcpClient main loop
     fn run(&mut self) {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
@@ -166,9 +172,13 @@ impl Service for TcpClient {
         let exitRW = self.exitRW.clone();
         // let exitW = self.exitRW.clone();
         let conf = self.conf.clone();
-        // let send = self.send.get(&conf.recvQueue).unwrap().clone();
-        // let send = Arc::new(Mutex::new(send));
-        let recv = Arc::new(Mutex::new(self.recv.pop().unwrap()));
+        info!("{}.run | out queue name: {:?}", self.id, conf.recvQueue);
+        let recvQueueParts: Vec<&str> = conf.recvQueue.split(".").collect();
+        let receiverServiceName = recvQueueParts[0];
+        let receiverQueueName = recvQueueParts[1];
+        let outSend = self.services.lock().unwrap().get(&receiverServiceName).getLink(receiverQueueName);
+        let outSend = Arc::new(Mutex::new(outSend));
+        let inRecv = Arc::new(Mutex::new(self.inRecv.pop().unwrap()));
         // let (cyclic, cycleInterval) = match conf.cycle {
         //     Some(interval) => (interval > Duration::ZERO, interval),
         //     None => (false, Duration::ZERO),
@@ -178,6 +188,14 @@ impl Service for TcpClient {
         let _h = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
             let isConnected = Arc::new(AtomicBool::new(false));
             let buffer = Arc::new(Mutex::new(RetainBuffer::new(&selfId, "", Some(conf.recvQueueMaxLength as usize))));
+
+            let j = JdsEncodeMessage::new(
+                &selfId,
+                JdsSerialize::new(
+                    &selfId,
+                    inRecv.lock().unwrap(),
+                ),
+            );
             // let mut cycle = ServiceCycle::new(cycleInterval);
             let mut connect = TcpSocketClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address);
             let mut stream = None;
@@ -190,25 +208,25 @@ impl Service for TcpClient {
                                 debug!("{}.run | TcpStream.set_timeout error: {:?}", selfId, err);
                             };
                             isConnected.store(true, Ordering::SeqCst);
-                            // let send = send.clone();
-                            // let streamR = JdsDeserialize::new(
-                            //     selfId.clone(),
-                            //     JdsDecodeMessage::new(
-                            //         selfId.clone(),
-                            //         stream.try_clone().unwrap(),
-                            //     ),
-                            // );
-                            // let handleR = Self::readSocket(
-                            //     selfId.clone(),
-                            //     streamR,
-                            //     send,
-                            //     exitRW.clone(),
-                            //     isConnected.clone()
-                            // );
+                            let outSend = outSend.clone();
+                            let streamR = JdsDeserialize::new(
+                                selfId.clone(),
+                                JdsDecodeMessage::new(
+                                    selfId.clone(),
+                                    stream.try_clone().unwrap(),
+                                ),
+                            );
+                            let handleR = Self::readSocket(
+                                selfId.clone(),
+                                streamR,
+                                send,
+                                exitRW.clone(),
+                                isConnected.clone()
+                            );
                             let handleW = Self::writeSocket(
                                 selfId.clone(),
                                 stream,
-                                recv.clone(),
+                                inRecv.clone(),
                                 buffer.clone(),
                                 exitRW.clone(),
                                 isConnected.clone()
