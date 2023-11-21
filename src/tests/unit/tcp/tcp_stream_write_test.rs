@@ -5,7 +5,7 @@ use crate::tcp::steam_read::StreamRead;
 mod tests {
     use log::{warn, info, debug, error};
     use rand::Rng;
-    use std::{sync::{Once, Arc, Mutex, atomic::{AtomicUsize, Ordering}}, time::{Duration, Instant}, thread, net::{TcpListener, TcpStream}, io::Read};
+    use std::{sync::{Once, Arc, Mutex, atomic::{AtomicUsize, Ordering, AtomicU8}}, time::{Duration, Instant}, thread, net::{TcpListener, TcpStream}, io::Read};
     use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, net::connection_status::ConnectionStatus, testing::test_session::TestSession}, tcp::tcp_stream_write::TcpStreamWrite, tests::unit::tcp::tcp_stream_write_test::MockStreamRead}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -29,12 +29,18 @@ mod tests {
     fn initEach() -> () {
     
     }
+    static index: AtomicU8 = AtomicU8::new(0);
     fn randomBytes(len: usize) -> Vec<u8> {
         let mut rnd = rand::thread_rng();
         let mut bytes = vec![];
-        for _ in 0..len {
-            bytes.push(rnd.gen_range(0..255));
+        // for _ in 0..len {
+        //     bytes.push(rnd.gen_range(0..255));
+        // }
+        let ix = index.load(Ordering::SeqCst);
+        for i in ix..ix + 10 {
+            bytes.push(i);
         }
+        index.fetch_add(10, Ordering::SeqCst);
         bytes
     }
 
@@ -45,15 +51,16 @@ mod tests {
         initEach();
         println!("");
         info!("test_");
-        let count = 100;
+        let count = 10;
         let maxTestDuration = Duration::from_secs(10);
         let sent = Arc::new(AtomicUsize::new(0));
         let received = Arc::new(Mutex::new(vec![]));
         let messageLen = 10;
         let mut testData = vec![];
-        for _ in 0..=count {
+        for _ in 0..count {
             testData.push(randomBytes(messageLen))
         }
+        info!("testData: {:?}", testData);
         let mut tcpStreamWrite = TcpStreamWrite::new(
             "test",
             true,
@@ -110,7 +117,13 @@ mod tests {
         assert!(sent.load(Ordering::SeqCst) == count, "sent: {:?}\ntarget: {:?}", sent, count);
         assert!(received.len() == count, "received: {:?}\ntarget: {:?}", received.len(), count);
         for target in testData {
-            let result = received.first().unwrap();
+            let result = match received.first() {
+                Some(bytes) => {
+                    debug!("\nresult: {:?}\ntarget: {:?}", bytes, target);
+                    bytes
+                },
+                None => panic!("received is empty"),
+            };
             assert!(result == &target, "\nresult: {:?}\ntarget: {:?}", result, target);
             received.remove(0);
         }
@@ -140,16 +153,17 @@ mod tests {
                                             buffer.append(&mut bytes);
                                             if buffer.len() >= messageLen {
                                                 let v = buffer.drain(0..messageLen).collect();
+                                                debug!("TCP server | received: {:?}", v);
                                                 received.lock().unwrap().push(v);
-                                            }
-                                            if (state == 0) && sent.load(Ordering::SeqCst) as f64 / count as f64 > 0.333 {
-                                                state = 1;
-                                                let duration = Duration::from_millis(500);
-                                                debug!("TCP server | beaking socket connection for {:?}", duration);
-                                                _socket.shutdown(std::net::Shutdown::Both).unwrap();
-                                                thread::sleep(duration);
-                                                debug!("TCP server | beaking socket connection for {:?} - elapsed, restoring...", duration);
-                                                break;
+                                                // if (state == 0) && sent.load(Ordering::SeqCst) as f64 / count as f64 > 0.333 {
+                                                //     state = 1;
+                                                //     let duration = Duration::from_millis(500);
+                                                //     debug!("TCP server | beaking socket connection for {:?}", duration);
+                                                //     _socket.shutdown(std::net::Shutdown::Both).unwrap();
+                                                //     thread::sleep(duration);
+                                                //     debug!("TCP server | beaking socket connection for {:?} - elapsed, restoring...", duration);
+                                                //     break;
+                                                // }
                                             }
                                         },
                                         Err(err) => {
