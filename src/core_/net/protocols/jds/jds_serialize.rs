@@ -1,13 +1,13 @@
 #![allow(non_snake_case)]
 
-use std::{sync::mpsc::Receiver, collections::HashMap};
+use std::sync::mpsc::Receiver;
 
 use chrono::DateTime;
 use log::{trace, debug};
 use serde::{Serialize, ser::SerializeStruct};
 use serde_json::json;
 
-use crate::core_::point::point_type::PointType;
+use crate::{core_::point::point_type::PointType, tcp::steam_read::StreamRead};
 
 
 ///
@@ -26,21 +26,6 @@ impl JdsSerialize {
         Self {
             id: format!("{}/JdsSerialize", parent.into()),
             stream,
-        }
-    }
-    ///
-    /// Reads single point from Receiver & serialize it into json string
-    pub fn read(&mut self) -> Result<serde_json::Value, String> {
-        match self.stream.recv() {
-            Ok(point) => {
-                trace!("{}.read | point: {:?}", self.id, &point);
-                self.serialize(point)
-            },
-            Err(err) => {
-                let message = format!("{}.read | error: {:?}", self.id, err);
-                trace!("{:?}", message);
-                Err(message)
-            },
         }
     }
     ///
@@ -87,6 +72,25 @@ impl JdsSerialize {
         debug!("{}.read | json: {:?}", self.id, value);
         Ok(value)
     }    
+}
+///
+/// 
+impl StreamRead<serde_json::Value, String> for JdsSerialize {
+    ///
+    /// Reads single point from Receiver & serialize it into json string
+    fn read(&mut self) -> Result<serde_json::Value, String> {
+        match self.stream.recv() {
+            Ok(point) => {
+                trace!("{}.read | point: {:?}", self.id, &point);
+                self.serialize(point)
+            },
+            Err(err) => {
+                let message = format!("{}.read | error: {:?}", self.id, err);
+                trace!("{:?}", message);
+                Err(message)
+            },
+        }
+    }
 }
 
 

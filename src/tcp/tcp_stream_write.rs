@@ -20,4 +20,9 @@ impl TcpStreamWrite {
             stream,
         }
     }
+    ///
+    /// 
+    pub fn write() {
+        
+    }
 }
