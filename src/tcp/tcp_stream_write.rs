@@ -2,7 +2,7 @@
 
 use std::{net::TcpStream, io::Write};
 
-use log::{warn, LevelFilter};
+use log::{warn, LevelFilter, debug};
 
 use crate::{tcp::steam_read::StreamRead, core_::retain_buffer::retain_buffer::RetainBuffer};
 
@@ -37,30 +37,27 @@ impl TcpStreamWrite {
     }
     ///
     /// 
-    pub fn write(&mut self, tcpStream: &mut TcpStream) -> Result<(), String> {
+    pub fn write(&mut self, tcpStream: &mut TcpStream) -> Result<usize, String> {
         match self.stream.read() {
             Ok(bytes) => {
-                while self.buffer.len() > 0 {
-                    match self.buffer.first() {
-                        Some(bytes) => {
-                            match tcpStream.write(&bytes) {
-                                Ok(_) => {
-                                    self.buffer.remove(0);
-                                },
-                                Err(err) => {
-                                    let message = format!("{}.write | error: {:?}", self.id, err);
-                                    if log::max_level() == LevelFilter::Trace {
-                                        warn!("{}", message);
-                                    }
-                                    return Err(message);
-                                },
-                            }
+                while let Some(bytes) = self.buffer.first() {
+                    debug!("{}.write | bytes: {:?}", self.id, bytes);
+                    match tcpStream.write(&bytes) {
+                        Ok(_) => {
+                            self.buffer.popFirst();
                         },
-                        None => {},
-                    }
+                        Err(err) => {
+                            let message = format!("{}.write | error: {:?}", self.id, err);
+                            if log::max_level() == LevelFilter::Trace {
+                                warn!("{}", message);
+                            }
+                            return Err(message);
+                        },
+                    };
                 }
+                debug!("{}.write | bytes: {:?}", self.id, bytes);
                 match tcpStream.write(&bytes) {
-                    Ok(_) => {Ok(())},
+                    Ok(sent) => {Ok(sent)},
                     Err(err) => {
                         self.buffer.push(bytes);
                         let message = format!("{}.write | error: {:?}", self.id, err);

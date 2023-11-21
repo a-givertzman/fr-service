@@ -210,7 +210,7 @@ impl Service for ApiClient {
                                                         warn!("{}.run | API reply has error: {:?}", selfId, reply.error);
                                                         // break;
                                                     } else {
-                                                        buffer.remove(0);
+                                                        buffer.popFirst();
                                                     }
                                                 },
                                                 ConnectionStatus::Closed => {

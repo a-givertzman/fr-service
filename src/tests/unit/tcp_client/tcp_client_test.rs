@@ -116,7 +116,7 @@ mod tests {
         println!("elapsed: {:?}", timer.elapsed());
         println!("total test events: {:?}", count);
         println!("sent events: {:?}", sent.len());
-        let mut received = received.lock().unwrap();
+        let received = received.lock().unwrap();
         println!("recv events: {:?}", received.len());
         assert!(sent.len() == count, "sent: {:?}\ntarget: {:?}", sent.len(), count);
         assert!(received.len() == count, "received: {:?}\ntarget: {:?}", received.len(), count);

@@ -133,7 +133,7 @@ impl TcpClient {
                         Some(point) => {
                             match Self::send(&selfId, point, &mut stream, &isConnected) {
                                 Ok(_) => {
-                                    buffer.remove(0);
+                                    buffer.popFirst();
                                 },
                                 Err(err) => {
                                     warn!("{}.run | error: {:?}", selfId, err);

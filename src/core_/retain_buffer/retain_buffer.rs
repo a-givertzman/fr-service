@@ -51,11 +51,11 @@ impl<T> RetainBuffer<T> {
     pub fn popFirst(&mut self) -> Option<T> {
         self.vec.pop_front()
     }
-    ///
-    /// Returns and removes value<T> from the [index] position
-    pub fn remove(&mut self, index: usize) -> Option<T> {
-        self.vec.pop_front()
-    }
+    // ///
+    // /// Returns and removes value<T> from the [index] position
+    // pub fn remove(&mut self, index: usize) -> Option<T> {
+    //     self.vec.remove(index)
+    // }
     ///
     /// Returns the number of elements in the buffer
     pub fn len(&self) -> usize {
