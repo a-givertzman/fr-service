@@ -7,7 +7,7 @@ use crate::{services::service::Service, core_::point::point_type::PointType};
 mod tests {
     use log::{info, debug, error, trace, warn};
     use rand::Rng;
-    use std::{sync::{Once, Arc, Mutex, atomic::AtomicUsize}, thread, time::{Duration, Instant}, net::TcpListener, io::{Read, Write}, process::exit};
+    use std::{sync::{Once, Arc, Mutex, atomic::AtomicUsize}, thread, time::{Duration, Instant}, net::{TcpListener, SocketAddr}, io::{Read, Write}, process::exit};
     use crate::{
         core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::{ToPoint, PointType}, net::{protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}, connection_status::ConnectionStatus}, testing::test_session::TestSession},
         conf::tcp_client_config::TcpClientConfig,  
@@ -71,9 +71,9 @@ mod tests {
         info!("test_TcpClient");
         let mut rnd = rand::thread_rng();
         let path = "./src/tests/unit/tcp_client/tcp_client.yaml";
-        let conf = TcpClientConfig::read(path);
+        let mut conf = TcpClientConfig::read(path);
         let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
-        // let addr = conf.address.clone();
+        conf.address = addr.parse().unwrap();
         let services = Arc::new(Mutex::new(Services::new("test")));
         let multiQueue = Arc::new(Mutex::new(MockMultiqueue::new()));
         let tcpClient = Arc::new(Mutex::new(TcpClient::new("test TcpClient", conf, services.clone())));
