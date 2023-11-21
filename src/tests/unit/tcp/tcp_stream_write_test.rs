@@ -4,6 +4,7 @@ use crate::tcp::steam_read::StreamRead;
 #[cfg(test)]
 mod tests {
     use log::{warn, info, debug, error};
+    use rand::Rng;
     use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}, thread, net::{TcpListener, TcpStream}, io::Read};
     use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, net::connection_status::ConnectionStatus, testing::test_session::TestSession}, tcp::tcp_stream_write::TcpStreamWrite, tests::unit::tcp::tcp_stream_write_test::MockStreamRead}; 
     
@@ -28,7 +29,15 @@ mod tests {
     fn initEach() -> () {
     
     }
-    
+    fn randomBytes(len: usize) -> Vec<u8> {
+        let mut rnd = rand::thread_rng();
+        let mut bytes = vec![];
+        for _ in 0..len {
+            bytes.push(rnd.gen_range(0..255));
+        }
+        bytes
+    }
+
     #[test]
     fn test_() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -36,47 +45,66 @@ mod tests {
         initEach();
         println!("");
         info!("test_");
+        let count = 100000;
+        let maxTestDuration = Duration::from_secs(10);
         let mut sent = 0;
         let received = Arc::new(Mutex::new(vec![]));
-        let testData = vec![
-            vec![0, 1, 2, 3, 4],
-            vec![0, 1, 2, 3, 4],
-        ];
+        let messageLen = 10;
+        let mut testData = vec![];
+        for _ in 0..count {
+            testData.push(randomBytes(messageLen))
+        }
         let mut tcpStreamWrite = TcpStreamWrite::new(
             "test",
             true,
             Some(10000),
             Box::new(MockStreamRead { buffer: testData.clone()}),
         );
-        let count = testData.len();
         let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
 
-        mockTcpServer(addr.clone(), count, testData, received.clone());
-
+        mockTcpServer(addr.clone(), count, messageLen, received.clone());
+        thread::sleep(Duration::from_micros(100));
         let mut stream = TcpStream::connect(addr).unwrap();
+        thread::sleep(Duration::from_micros(100));
+
+        let timer = Instant::now();
         while sent < count {
             match tcpStreamWrite.write(&mut stream) {
                 Ok(_) => {
-                    sent += 1
+                    sent += 1;
                 },
                 Err(err) => {
-                    panic!("{}", err);
+                    panic!("sent: {}/{}, error: {}", sent, count, err);
                 },
             };
             // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
-        assert!(sent == received.lock().unwrap().len(), "\nresult: {:?}\ntarget: {:?}", sent, received.lock().unwrap().len());
+        let waitDuration = Duration::from_millis(10);
+        let mut waitAttempts = maxTestDuration.as_micros() / waitDuration.as_micros();
+        while received.lock().unwrap().len() < count {
+            debug!("waiting while all data beeng received {}/{}...", received.lock().unwrap().len(), count);
+            thread::sleep(waitDuration);
+            waitAttempts -= 1;
+            assert!(waitAttempts > 0, "Transfering {}/{} points taks too mach time {:?} of {:?}", received.lock().unwrap().len(), count, timer.elapsed(), maxTestDuration);
+        }
+        println!("elapsed: {:?}", timer.elapsed());
+        println!("total test events: {:?}", count);
+        println!("sent events: {:?}", sent);
+        let received = received.lock().unwrap();
+        println!("recv events: {:?}", received.len());
+        assert!(sent == count, "sent: {:?}\ntarget: {:?}", sent, count);
+        assert!(received.len() == count, "received: {:?}\ntarget: {:?}", received.len(), count);
+
+        // assert!(sent == received.lock().unwrap().len(), "\nresult: {:?}\ntarget: {:?}", sent, received.lock().unwrap().len());
     }
     ///
     /// TcpServer setup
-    fn mockTcpServer(addr: String, count: usize, testData: Vec<Vec<u8>>, received: Arc<Mutex<Vec<Vec<u8>>>>) {
-        let mut sent = 0;
+    fn mockTcpServer(addr: String, count: usize, messageLen: usize, received: Arc<Mutex<Vec<Vec<u8>>>>) {
         thread::spawn(move || {
             info!("TCP server | Preparing test server...");
-            let mut rng = rand::thread_rng();
-            match TcpListener::bind(addr) {
+            match TcpListener::bind(&addr) {
                 Ok(listener) => {
-                    info!("TCP server | Preparing test server - ok");
+                    info!("TCP server | Preparing test server - ok ({})", addr);
                     let mut acceptCount = 2;
                     // let mut maxReadErrors = 3;
                     while acceptCount > 0 {
@@ -84,23 +112,27 @@ mod tests {
                         match listener.accept() {
                             Ok((mut _socket, addr)) => {
                                 info!("TCP server | accept connection - ok\n\t{:?}", addr);
-                                let mut bytes = vec![];
+                                let mut buffer = Vec::new();
                                 for _ in 0..count {
+                                    let mut bytes = vec![0u8; messageLen];
                                     match _socket.read(&mut bytes) {
                                         Ok(_) => {
-                                            received.lock().unwrap().push(bytes.clone());
-                                            bytes.clear();
+                                            buffer.append(&mut bytes);
+                                            if buffer.len() >= messageLen {
+                                                let v = buffer.drain(0..messageLen).collect();
+                                                received.lock().unwrap().push(v);
+                                            }
                                         },
                                         Err(err) => {
                                             warn!("{:?}", err);
                                         },
                                     }
                                 }
-                                info!("TCP server | all sent: {:?}", sent);
+                                info!("TCP server | all received: {:?}", received.lock().unwrap().len());
                                 while received.lock().unwrap().len() < count {
                                     thread::sleep(Duration::from_micros(100));
                                 }
-                                // while received.len() < count {}
+                                thread::sleep(Duration::from_micros(100));
                             },
                             Err(err) => {
                                 warn!("incoming connection - error: {:?}", err);
