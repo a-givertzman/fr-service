@@ -14,7 +14,7 @@ use crate::{tcp::steam_read::StreamRead, core_::retain_buffer::retain_buffer::Re
 pub struct TcpStreamWrite {
     id: String,
     buffered: bool,
-    stream: Box<dyn StreamRead<Vec<u8>, String>>,
+    stream: Box<dyn StreamRead<Vec<u8>, String> + Send>,
     buffer: RetainBuffer<Vec<u8>>,
 }
 ///
@@ -22,7 +22,7 @@ pub struct TcpStreamWrite {
 impl TcpStreamWrite {
     ///
     /// Creates new instance of [TcpStreamWrite]
-    pub fn new(parent: impl Into<String>, buffered: bool, bufferLength: Option<usize>, stream: Box<dyn StreamRead<Vec<u8>, String>>) -> Self {
+    pub fn new(parent: impl Into<String>, buffered: bool, bufferLength: Option<usize>, stream: Box<dyn StreamRead<Vec<u8>, String> + Send>) -> Self {
         let selfId = format!("{}/TcpStreamWrite", parent.into());
         let buffer = match buffered {
             true => RetainBuffer::new(&selfId, "", bufferLength),
@@ -79,3 +79,6 @@ impl TcpStreamWrite {
         }
     }
 }
+///
+/// 
+unsafe impl Sync for TcpStreamWrite {}

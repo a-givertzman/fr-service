@@ -49,41 +49,6 @@ impl TcpClient {
         }
     }
     ///
-    /// Reads all avalible at the moment items from the in-queue
-    fn readQueue(selfId: &str, recv: &Receiver<PointType>, buffer: &mut RetainBuffer<PointType>) {
-        let maxReadAtOnce = 1000;
-        for (index, point) in recv.try_iter().enumerate() {   
-            debug!("{}.readQueue | point: {:?}", selfId, &point);
-            buffer.push(point);
-            if index >= maxReadAtOnce {
-                break;
-            }                 
-        }
-    }
-    ///
-    /// Writing sql string to the TcpStream
-    fn send(selfId: &str, point: &PointType, stream: &mut TcpStream, isConnected: &AtomicBool) -> Result<(), String>{
-        // match point.toJsonBytes() {
-        //     Ok(bytes) => {
-        //         match stream.write(&bytes) {
-        //             Ok(_) => Ok(()),
-        //             Err(err) => {
-        //                 isConnected.store(false, Ordering::SeqCst);
-        //                 let message= format!("{}.send | write to tcp stream error: {:?}", selfId, err);
-        //                 warn!("{}", message);
-        //                 Err(message)
-        //             },
-        //         }
-        //     },
-        //     Err(err) => {
-        //         let message= format!("{}.send | error: {:?}", selfId, err);
-        //         warn!("{}", message);
-        //         Err(message)
-        //     },
-        // }
-        Err(format!("{}.send | To be implemented...", selfId))
-    }
-    ///
     ///
     fn readSocket(selfId: String, mut stream: JdsDeserialize, send: Arc<Mutex<Sender<PointType>>>, exit: Arc<AtomicBool>, isConnected: Arc<AtomicBool>) -> JoinHandle<()> {
         let handle = thread::Builder::new().name(format!("{} - Read", selfId.clone())).spawn(move || {
@@ -121,29 +86,11 @@ impl TcpClient {
 
     ///
     /// 
-    fn writeSocket(selfId: String, mut stream: TcpStream, recv: Arc<Mutex<Receiver<PointType>>>, buffer: Arc<Mutex<RetainBuffer<PointType>>>, exit: Arc<AtomicBool>, isConnected: Arc<AtomicBool>) -> JoinHandle<()> {
+    fn writeSocket(selfId: String, mut streamWrite: Arc<Mutex<TcpStreamWrite>>, mut tcpStream: TcpStream, exit: Arc<AtomicBool>, isConnected: Arc<AtomicBool>) -> JoinHandle<()> {
         let _hW = thread::Builder::new().name(format!("{} - Write", selfId.clone())).spawn(move || {
-            let mut buffer = buffer.lock().unwrap();
-            let recv = recv.lock().unwrap();
+            let mut streamWrite = streamWrite.lock().unwrap();
             'write: loop {
-                Self::readQueue(&selfId, &recv, &mut buffer);
-                let mut count = buffer.len();
-                while count > 0 {
-                    match buffer.first() {
-                        Some(point) => {
-                            match Self::send(&selfId, point, &mut stream, &isConnected) {
-                                Ok(_) => {
-                                    buffer.popFirst();
-                                },
-                                Err(err) => {
-                                    warn!("{}.run | error: {:?}", selfId, err);
-                                },
-                            }
-                        },
-                        None => {break;},
-                    };
-                    count -=1;
-                }
+                streamWrite.write(&mut tcpStream);
                 if exit.load(Ordering::SeqCst) {
                     break 'write;
                 }
@@ -170,7 +117,6 @@ impl Service for TcpClient {
         let selfId = self.id.clone();
         let exit = self.exit.clone();
         let exitRW = self.exitRW.clone();
-        // let exitW = self.exitRW.clone();
         let conf = self.conf.clone();
         info!("{}.run | out queue name: {:?}", self.id, conf.recvQueue);
         let recvQueueParts: Vec<&str> = conf.recvQueue.split(".").collect();
@@ -188,8 +134,7 @@ impl Service for TcpClient {
         let _queueMaxLength = conf.recvQueueMaxLength;
         let _h = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
             let isConnected = Arc::new(AtomicBool::new(false));
-            // let buffer = Arc::new(Mutex::new(RetainBuffer::new(&selfId, "", Some(conf.recvQueueMaxLength as usize))));
-            let tcpStreamWrite = TcpStreamWrite::new(
+            let tcpStreamWrite = Arc::new(Mutex::new(TcpStreamWrite::new(
                 &selfId,
                 buffered,
                 Some(conf.recvQueueMaxLength as usize),
@@ -200,7 +145,7 @@ impl Service for TcpClient {
                         inRecv,
                     ),
                 )),
-            );
+            )));
             // let mut cycle = ServiceCycle::new(cycleInterval);
             let mut connect = TcpSocketClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address);
             let mut stream = None;
@@ -228,16 +173,15 @@ impl Service for TcpClient {
                             //     exitRW.clone(),
                             //     isConnected.clone()
                             // );
-                            // let handleW = Self::writeSocket(
-                            //     selfId.clone(),
-                            //     stream,
-                            //     inRecv.clone(),
-                            //     buffer.clone(),
-                            //     exitRW.clone(),
-                            //     isConnected.clone()
-                            // );
+                            let handleW = Self::writeSocket(
+                                selfId.clone(),
+                                tcpStreamWrite.clone(),
+                                stream,
+                                exitRW.clone(),
+                                isConnected.clone()
+                            );
                             // handleR.join().unwrap();
-                            // handleW.join().unwrap();
+                            handleW.join().unwrap();
                         },
                         None => {
                             isConnected.store(false, Ordering::SeqCst);

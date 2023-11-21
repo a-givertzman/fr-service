@@ -92,7 +92,9 @@ impl StreamRead<serde_json::Value, String> for JdsSerialize {
         }
     }
 }
-
+///
+/// 
+unsafe impl Sync for JdsSerialize {}
 
 struct PointSerializable {
     pub type_: String,

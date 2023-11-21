@@ -198,7 +198,7 @@ mod tests {
 struct MockStreamRead<T> {
     buffer: Vec<T>
 }
-impl<T> StreamRead<T, String> for MockStreamRead<T> {
+impl<T: Sync> StreamRead<T, String> for MockStreamRead<T> {
     fn read(&mut self) -> Result<T, String> {
         match self.buffer.first() {
             Some(_) => Ok(self.buffer.remove(0)),
