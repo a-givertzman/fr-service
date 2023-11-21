@@ -7,7 +7,7 @@ use crate::tcp::steam_read::StreamRead;
 /// Sends sequences of bites from the beginning of the buffer
 /// Sent sequences of bites immediately removed from the buffer
 /// Buffering - is optional
-struct TcpStreamWrite {
+pub struct TcpStreamWrite {
     stream: Box<dyn StreamRead<Vec<u8>, String>>,
 }
 ///

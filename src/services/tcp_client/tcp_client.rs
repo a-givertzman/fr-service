@@ -7,7 +7,7 @@ use log::{info, debug, warn};
 use crate::{
     core_::{point::point_type::PointType, net::{connection_status::ConnectionStatus, protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_serialize::JdsSerialize, jds_encode_message::JdsEncodeMessage}}, retain_buffer::retain_buffer::RetainBuffer},
     conf::tcp_client_config::TcpClientConfig,
-    services::{service::Service, task::task_cycle::ServiceCycle, services::Services}, tcp::tcp_socket_client_connect::TcpSocketClientConnect, 
+    services::{service::Service, task::task_cycle::ServiceCycle, services::Services}, tcp::{tcp_socket_client_connect::TcpSocketClientConnect, tcp_stream_write::TcpStreamWrite}, 
 };
 
 
@@ -178,7 +178,7 @@ impl Service for TcpClient {
         let receiverQueueName = recvQueueParts[1];
         let outSend = self.services.lock().unwrap().get(&receiverServiceName).getLink(receiverQueueName);
         let outSend = Arc::new(Mutex::new(outSend));
-        let inRecv = Arc::new(Mutex::new(self.inRecv.pop().unwrap()));
+        let inRecv = self.inRecv.pop().unwrap();
         // let (cyclic, cycleInterval) = match conf.cycle {
         //     Some(interval) => (interval > Duration::ZERO, interval),
         //     None => (false, Duration::ZERO),
@@ -187,15 +187,16 @@ impl Service for TcpClient {
         let _queueMaxLength = conf.recvQueueMaxLength;
         let _h = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
             let isConnected = Arc::new(AtomicBool::new(false));
-            let buffer = Arc::new(Mutex::new(RetainBuffer::new(&selfId, "", Some(conf.recvQueueMaxLength as usize))));
-
-            // let j = JdsEncodeMessage::new(
-            //     &selfId,
-            //     JdsSerialize::new(
-            //         &selfId,
-            //         inRecv.lock().unwrap(),
-            //     ),
-            // );
+            // let buffer = Arc::new(Mutex::new(RetainBuffer::new(&selfId, "", Some(conf.recvQueueMaxLength as usize))));
+            let tcpStreamWrite = TcpStreamWrite::new(
+                Box::new(JdsEncodeMessage::new(
+                    &selfId,
+                    JdsSerialize::new(
+                        &selfId,
+                        inRecv,
+                    ),
+                )),
+            );
             // let mut cycle = ServiceCycle::new(cycleInterval);
             let mut connect = TcpSocketClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address);
             let mut stream = None;
@@ -223,16 +224,16 @@ impl Service for TcpClient {
                             //     exitRW.clone(),
                             //     isConnected.clone()
                             // );
-                            let handleW = Self::writeSocket(
-                                selfId.clone(),
-                                stream,
-                                inRecv.clone(),
-                                buffer.clone(),
-                                exitRW.clone(),
-                                isConnected.clone()
-                            );
+                            // let handleW = Self::writeSocket(
+                            //     selfId.clone(),
+                            //     stream,
+                            //     inRecv.clone(),
+                            //     buffer.clone(),
+                            //     exitRW.clone(),
+                            //     isConnected.clone()
+                            // );
                             // handleR.join().unwrap();
-                            handleW.join().unwrap();
+                            // handleW.join().unwrap();
                         },
                         None => {
                             isConnected.store(false, Ordering::SeqCst);
