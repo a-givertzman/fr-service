@@ -1,6 +1,8 @@
 #![allow(non_snake_case)]
 
-use std::sync::mpsc::{Sender, Receiver};
+use std::sync::{mpsc::{Sender, Receiver}, Arc, atomic::{AtomicBool, Ordering}};
+
+use log::warn;
 
 use crate::{core_::point::point_type::PointType, services::service::Service};
 
@@ -8,6 +10,8 @@ pub struct MockMultiqueue {
     id: String,
     send: Sender<PointType>,
     recv: Receiver<PointType>,
+    received: Vec<PointType>,
+    exit: Arc<AtomicBool>,
 }
 impl MockMultiqueue {
     pub fn new() -> Self {
@@ -16,7 +20,12 @@ impl MockMultiqueue {
             id: "MockMultiqueue".to_owned(),
             send,
             recv,
+            received: vec![],
+            exit: Arc::new(AtomicBool::new(false)),
         }
+    }
+    pub fn received(&self) -> &Vec<PointType> {
+        &self.received
     }
 }
 impl Service for MockMultiqueue {
@@ -29,11 +38,24 @@ impl Service for MockMultiqueue {
     //
     // 
     fn run(&mut self) {
-        todo!()
+        let exit = self.exit.clone();
+        'main: loop {
+            match self.recv.recv() {
+                Ok(point) => {
+                    self.received.push(point);
+                },
+                Err(err) => {
+                    warn!("{}.run | recv error: {:?}", self.id, err);
+                },
+            }
+            if exit.load(Ordering::SeqCst) {
+                break 'main;
+            }        
+        }
     }
     //
     // 
     fn exit(&self) {
-        todo!()
+        self.exit.store(true, Ordering::SeqCst);
     }
 }
