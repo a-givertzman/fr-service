@@ -15,7 +15,7 @@ mod tests {
             connection_status::ConnectionStatus}, 
         },
         conf::tcp_client_config::TcpClientConfig,  
-        services::{tcp_client::tcp_client::TcpClient, services::Services}, tests::unit::tcp_client::mock_multiqueue::MockMultiqueue,
+        services::{tcp_client::tcp_client::TcpClient, services::Services, service::Service}, tests::unit::tcp_client::mock_multiqueue::MockMultiqueue,
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -105,10 +105,6 @@ mod tests {
         let tcpClient = services.get(tcpClientServiceId);
         debug!("Getting service {} - ok", tcpClientServiceId);
 
-        debug!("Getting service {}...", multiQueueServiceId);
-        let multiQueue = services.get(multiQueueServiceId);
-        debug!("Getting service {} - ok", multiQueueServiceId);
-
         debug!("Running service {}...", tcpClientServiceId);
         drop(services);
         multiQueue.lock().unwrap().run();
@@ -116,19 +112,19 @@ mod tests {
         debug!("Running service {} - ok", tcpClientServiceId);
         let timer = Instant::now();
         // let send = tcpClient.lock().unwrap().getLink("link");
-        let send = multiQueue.lock().unwrap().getLink("in-link");
+        // let send = multiQueue.lock().unwrap().getLink("in-link");
         debug!("Test - setup - ok");
-        debug!("Sending points...");
-        for _ in 0..count {
-            let index = rnd.gen_range(0..testDataLen);
-            let value = testData.get(index).unwrap();
-            let point = value.toPoint("teset");
-            send.send(point.clone()).unwrap();
-            sent.push(point);
-        }
+        // debug!("Sending points...");
+        // for _ in 0..count {
+        //     let index = rnd.gen_range(0..testDataLen);
+        //     let value = testData.get(index).unwrap();
+        //     let point = value.toPoint("teset");
+        //     send.send(point.clone()).unwrap();
+        //     sent.push(point);
+        // }
         let waitDuration = Duration::from_millis(10);
         let mut waitAttempts = maxTestDuration.as_micros() / waitDuration.as_micros();
-        while received.lock().unwrap().len() < count {
+        while multiQueue.lock().unwrap().received().len() < count {
             debug!("waiting while all data beeng received {}/{}...", received.lock().unwrap().len(), count);
             thread::sleep(waitDuration);
             waitAttempts -= 1;
