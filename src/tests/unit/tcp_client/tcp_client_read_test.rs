@@ -1,17 +1,21 @@
 #![allow(non_snake_case)]
-
-use std::sync::mpsc::{Sender, Receiver};
-
-use crate::{services::service::Service, core_::point::point_type::PointType};
 #[cfg(test)]
+
+
 mod tests {
-    use log::{info, debug, error, trace, warn};
+    use log::{info, debug, warn};
     use rand::Rng;
-    use std::{sync::{Once, Arc, Mutex, atomic::AtomicUsize}, thread, time::{Duration, Instant}, net::{TcpListener, SocketAddr}, io::{Read, Write}, process::exit};
+    use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener};
     use crate::{
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::{ToPoint, PointType}, net::{protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}, connection_status::ConnectionStatus}, testing::test_session::TestSession},
+        core_::{
+            debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
+            testing::test_session::TestSession,
+            point::point_type::{ToPoint, PointType}, 
+            net::{protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}, 
+            connection_status::ConnectionStatus}, 
+        },
         conf::tcp_client_config::TcpClientConfig,  
-        services::{service::Service, tcp_client::tcp_client::TcpClient, services::Services}, tests::unit::tcp_client::tcp_client_test::MockMultiqueue,
+        services::{tcp_client::tcp_client::TcpClient, services::Services}, tests::unit::tcp_client::mock_multiqueue::MockMultiqueue,
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -44,14 +48,6 @@ mod tests {
         String(String),
     }
     impl Value {
-        fn toString(&self) -> String {
-            match &self {
-                Value::Bool(v) => v.to_string(),
-                Value::Int(v) => v.to_string(),
-                Value::Float(v) => v.to_string(),
-                Value::String(v) => v.to_string(),
-            }
-        }
         fn toPoint(&self, name: &str) -> PointType {
             match &self {
                 Value::Bool(v) => v.toPoint(name),
@@ -63,12 +59,12 @@ mod tests {
     }
     
     #[test]
-    fn test_TcpClient() {
+    fn test_TcpClient_read() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test_TcpClient");
+        info!("test_TcpClient READ");
         let mut rnd = rand::thread_rng();
         let path = "./src/tests/unit/tcp_client/tcp_client.yaml";
         let mut conf = TcpClientConfig::read(path);
@@ -104,15 +100,23 @@ mod tests {
         debug!("Getting services...");
         let services = services.lock().unwrap();
         debug!("Getting services - ok");
+
         debug!("Getting service {}...", tcpClientServiceId);
         let tcpClient = services.get(tcpClientServiceId);
         debug!("Getting service {} - ok", tcpClientServiceId);
+
+        debug!("Getting service {}...", multiQueueServiceId);
+        let multiQueue = services.get(multiQueueServiceId);
+        debug!("Getting service {} - ok", multiQueueServiceId);
+
         debug!("Running service {}...", tcpClientServiceId);
         drop(services);
+        multiQueue.lock().unwrap().run();
         tcpClient.lock().unwrap().run();
         debug!("Running service {} - ok", tcpClientServiceId);
         let timer = Instant::now();
-        let send = tcpClient.lock().unwrap().getLink("link");
+        // let send = tcpClient.lock().unwrap().getLink("link");
+        let send = multiQueue.lock().unwrap().getLink("in-link");
         debug!("Test - setup - ok");
         debug!("Sending points...");
         for _ in 0..count {
@@ -204,39 +208,4 @@ mod tests {
             };
         });
     }    
-}
-
-
-struct MockMultiqueue {
-    id: String,
-    send: Sender<PointType>,
-    recv: Receiver<PointType>,
-}
-impl MockMultiqueue {
-    fn new() -> Self {
-        let (send, recv) = std::sync::mpsc::channel();
-        Self {
-            id: "MockMultiqueue".to_owned(),
-            send,
-            recv,
-        }
-    }
-}
-impl Service for MockMultiqueue {
-    //
-    //
-    fn getLink(&self, name: &str) -> Sender<PointType> {
-        assert!(name == "queue", "{}.run | link '{:?}' - not found", self.id, name);
-        self.send.clone()
-    }
-    //
-    // 
-    fn run(&mut self) {
-        todo!()
-    }
-    //
-    // 
-    fn exit(&self) {
-        todo!()
-    }
 }
