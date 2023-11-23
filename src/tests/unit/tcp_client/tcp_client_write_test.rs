@@ -184,8 +184,8 @@ mod tests {
                                                 },
                                             }
                                         },
-                                        ConnectionStatus::Closed => {
-                                            
+                                        ConnectionStatus::Closed(err) => {
+                                            warn!("TCP server | connection - closed");
                                         },
                                     }
 

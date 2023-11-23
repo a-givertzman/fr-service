@@ -50,49 +50,56 @@ impl TcpClient {
     }
     ///
     ///
-    fn readSocket(selfId: String, mut stream: JdsDeserialize, send: Arc<Mutex<Sender<PointType>>>, exit: Arc<AtomicBool>, isConnected: Arc<AtomicBool>) -> JoinHandle<()> {
+    fn readSocket(selfId: String, mut tcpStream: JdsDeserialize, send: Arc<Mutex<Sender<PointType>>>, exit: Arc<AtomicBool>, isConnected: Arc<AtomicBool>) -> JoinHandle<()> {
         let handle = thread::Builder::new().name(format!("{} - Read", selfId.clone())).spawn(move || {
             let send = send.lock().unwrap();
-            'read: loop {
-                match stream.read() {
+            loop {
+                match tcpStream.read() {
                     ConnectionStatus::Active(point) => {
                         match point {
                             Ok(point) => {
                                 match send.send(point) {
                                     Ok(_) => {},
                                     Err(err) => {
-                                        warn!("{}.send | write to tcp stream error: {:?}", selfId, err);
+                                        warn!("{}.readSocket | write to queue error: {:?}", selfId, err);
                                     },
                                 };
                             },
                             Err(err) => {
-                                warn!("{}.send | write to tcp stream error: {:?}", selfId, err);
+                                warn!("{}.readSocket | error: {:?}", selfId, err);
                             },
                         }
                     },
-                    ConnectionStatus::Closed => {
+                    ConnectionStatus::Closed(err) => {
                         isConnected.store(false, Ordering::SeqCst);
                         exit.store(true, Ordering::SeqCst);
+                        warn!("{}.readSocket | error: {:?}", selfId, err);
                         break;
                     },
                 };
                 if exit.load(Ordering::SeqCst) {
-                    break 'read;
+                    break;
                 }
             }
         }).unwrap();
         handle
     }
-
     ///
     /// 
-    fn writeSocket(selfId: String, mut streamWrite: Arc<Mutex<TcpStreamWrite>>, mut tcpStream: TcpStream, exit: Arc<AtomicBool>, isConnected: Arc<AtomicBool>) -> JoinHandle<()> {
+    fn writeSocket(selfId: String, streamWrite: Arc<Mutex<TcpStreamWrite>>, mut tcpStream: TcpStream, exit: Arc<AtomicBool>, isConnected: Arc<AtomicBool>) -> JoinHandle<()> {
         let _hW = thread::Builder::new().name(format!("{} - Write", selfId.clone())).spawn(move || {
             let mut streamWrite = streamWrite.lock().unwrap();
-            'write: loop {
-                streamWrite.write(&mut tcpStream);
+            loop {
+                match streamWrite.write(&mut tcpStream) {
+                    Ok(_) => {},
+                    Err(err) => {
+                        warn!("{}.writeSocket | error: {:?}", selfId, err);
+                        isConnected.store(false, Ordering::SeqCst);
+                        break;
+                    },
+                };
                 if exit.load(Ordering::SeqCst) {
-                    break 'write;
+                    break;
                 }
             }
         }).unwrap();
@@ -137,7 +144,7 @@ impl Service for TcpClient {
         // };
         let reconnect = if conf.reconnectCycle.is_some() {conf.reconnectCycle.unwrap()} else {Duration::from_secs(3)};
         let _queueMaxLength = conf.recvQueueMaxLength;
-        let handle = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
+        let _handle = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
             info!("{}.run | Tread main starting...", selfId);
             let isConnected = Arc::new(AtomicBool::new(false));
             let tcpStreamWrite = Arc::new(Mutex::new(TcpStreamWrite::new(
@@ -154,18 +161,18 @@ impl Service for TcpClient {
             )));
             // let mut cycle = ServiceCycle::new(cycleInterval);
             let mut connect = TcpSocketClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address);
-            let mut stream = None;
+            let mut tcpStream = None;
             'main: loop {
                 if !isConnected.load(Ordering::SeqCst) {
-                    stream = connect.connect(reconnect);
-                    match stream {
+                    tcpStream = connect.connect(reconnect);
+                    match tcpStream {
                         Some(stream) => {
                             if let Err(err) = stream.set_read_timeout(Some(Duration::from_secs(10))) {
                                 debug!("{}.run | TcpStream.set_timeout error: {:?}", selfId, err);
                             };
                             isConnected.store(true, Ordering::SeqCst);
                             let outSend = outSend.clone();
-                            let streamR = JdsDeserialize::new(
+                            let streamRead = JdsDeserialize::new(
                                 selfId.clone(),
                                 JdsDecodeMessage::new(
                                     selfId.clone(),
@@ -174,7 +181,7 @@ impl Service for TcpClient {
                             );
                             let handleR = Self::readSocket(
                                 selfId.clone(),
-                                streamR,
+                                streamRead,
                                 outSend,
                                 exitRW.clone(),
                                 isConnected.clone()

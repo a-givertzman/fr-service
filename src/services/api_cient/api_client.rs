@@ -74,7 +74,7 @@ impl ApiClient {
     /// - returns Closed:
     ///    - if read 0 bytes
     ///    - if on error
-    fn readAll(selfId: &str, stream: &mut TcpStream) -> ConnectionStatus<Vec<u8>> {
+    fn readAll(selfId: &str, stream: &mut TcpStream) -> ConnectionStatus<Vec<u8>, String> {
         let mut buf = [0; Self::BUF_LEN];
         let mut result = vec![];
         loop {
@@ -84,7 +84,7 @@ impl ApiClient {
                     result.append(& mut buf[..len].into());
                     if len < Self::BUF_LEN {
                         if len == 0 {
-                            return ConnectionStatus::Closed;
+                            return ConnectionStatus::Closed(format!("{}.readAll | tcp stream closed", selfId));
                         } else {
                             return ConnectionStatus::Active(result)
                         }
@@ -93,31 +93,32 @@ impl ApiClient {
                 Err(err) => {
                     warn!("{}.readAll | error reading from socket: {:?}", selfId, err);
                     warn!("{}.readAll | error kind: {:?}", selfId, err.kind());
+                    let status = ConnectionStatus::Closed(format!("{}.readAll | tcp stream error: {:?}", selfId, err));
                     return match err.kind() {
-                        std::io::ErrorKind::NotFound => todo!(),
-                        std::io::ErrorKind::PermissionDenied => ConnectionStatus::Closed,
-                        std::io::ErrorKind::ConnectionRefused => ConnectionStatus::Closed,
-                        std::io::ErrorKind::ConnectionReset => ConnectionStatus::Closed,
-                        // std::io::ErrorKind::HostUnreachable => ConnectionStatus::Closed,
-                        // std::io::ErrorKind::NetworkUnreachable => ConnectionStatus::Closed,
-                        std::io::ErrorKind::ConnectionAborted => ConnectionStatus::Closed,
-                        std::io::ErrorKind::NotConnected => ConnectionStatus::Closed,
-                        std::io::ErrorKind::AddrInUse => ConnectionStatus::Closed,
-                        std::io::ErrorKind::AddrNotAvailable => ConnectionStatus::Closed,
-                        // std::io::ErrorKind::NetworkDown => ConnectionStatus::Closed,
-                        std::io::ErrorKind::BrokenPipe => ConnectionStatus::Closed,
-                        std::io::ErrorKind::AlreadyExists => todo!(),
-                        std::io::ErrorKind::WouldBlock => ConnectionStatus::Closed,
+                        std::io::ErrorKind::NotFound => status,
+                        std::io::ErrorKind::PermissionDenied => status,
+                        std::io::ErrorKind::ConnectionRefused => status,
+                        std::io::ErrorKind::ConnectionReset => status,
+                        // std::io::ErrorKind::HostUnreachable => status,
+                        // std::io::ErrorKind::NetworkUnreachable => status,
+                        std::io::ErrorKind::ConnectionAborted => status,
+                        std::io::ErrorKind::NotConnected => status,
+                        std::io::ErrorKind::AddrInUse => status,
+                        std::io::ErrorKind::AddrNotAvailable => status,
+                        // std::io::ErrorKind::NetworkDown => status,
+                        std::io::ErrorKind::BrokenPipe => status,
+                        std::io::ErrorKind::AlreadyExists => status,
+                        std::io::ErrorKind::WouldBlock => status,
                         // std::io::ErrorKind::NotADirectory => todo!(),
                         // std::io::ErrorKind::IsADirectory => todo!(),
                         // std::io::ErrorKind::DirectoryNotEmpty => todo!(),
                         // std::io::ErrorKind::ReadOnlyFilesystem => todo!(),
                         // std::io::ErrorKind::FilesystemLoop => todo!(),
                         // std::io::ErrorKind::StaleNetworkFileHandle => todo!(),
-                        std::io::ErrorKind::InvalidInput => todo!(),
-                        std::io::ErrorKind::InvalidData => todo!(),
-                        std::io::ErrorKind::TimedOut => todo!(),
-                        std::io::ErrorKind::WriteZero => todo!(),
+                        std::io::ErrorKind::InvalidInput => status,
+                        std::io::ErrorKind::InvalidData => status,
+                        std::io::ErrorKind::TimedOut => status,
+                        std::io::ErrorKind::WriteZero => status,
                         // std::io::ErrorKind::StorageFull => todo!(),
                         // std::io::ErrorKind::NotSeekable => todo!(),
                         // std::io::ErrorKind::FilesystemQuotaExceeded => todo!(),
@@ -129,14 +130,13 @@ impl ApiClient {
                         // std::io::ErrorKind::TooManyLinks => todo!(),
                         // std::io::ErrorKind::InvalidFilename => todo!(),
                         // std::io::ErrorKind::ArgumentListTooLong => todo!(),
-                        std::io::ErrorKind::Interrupted => todo!(),
-                        std::io::ErrorKind::Unsupported => todo!(),
-                        std::io::ErrorKind::UnexpectedEof => todo!(),
-                        std::io::ErrorKind::OutOfMemory => todo!(),
-                        std::io::ErrorKind::Other => todo!(),
-                        _ => ConnectionStatus::Closed,
+                        std::io::ErrorKind::Interrupted => status,
+                        std::io::ErrorKind::Unsupported => status,
+                        std::io::ErrorKind::UnexpectedEof => status,
+                        std::io::ErrorKind::OutOfMemory => status,
+                        std::io::ErrorKind::Other => status,
+                        _ => status,
                     }
-                    // return ConnectionStatus::Closed;
                 },
             };
         }
@@ -213,7 +213,7 @@ impl Service for ApiClient {
                                                         buffer.popFirst();
                                                     }
                                                 },
-                                                ConnectionStatus::Closed => {
+                                                ConnectionStatus::Closed(_) => {
                                                     isConnected = false;
                                                     break;
                                                 },

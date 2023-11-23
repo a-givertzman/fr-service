@@ -93,7 +93,7 @@ mod tests {
                                         break 'read;
                                     }
                                 },
-                                ConnectionStatus::Closed => {
+                                ConnectionStatus::Closed(err) => {
                                     break 'read;
                                 },
                             }
