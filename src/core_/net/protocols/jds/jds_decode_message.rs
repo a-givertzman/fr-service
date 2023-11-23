@@ -35,18 +35,18 @@ impl JdsDecodeMessage {
     }
     ///
     /// Reads sequence of bytes from TcpStream
-    pub fn read(&mut self) -> ConnectionStatus<Vec<u8>> {
+    pub fn read(&mut self) -> ConnectionStatus<Vec<u8>, String> {
         let mut bytes = self.buffer.clone();
         match Self::readAll(&self.id, &mut bytes, &mut self.stream) {
-            Status::Active => {
+            ConnectionStatus::Active(_) => {
                 self.buffer.clear();
                 ConnectionStatus::Active(bytes)
             },
-            Status::Closed => {
+            ConnectionStatus::Closed(err) => {
                 if !bytes.is_empty() {
                     self.buffer = bytes;
                 }
-                ConnectionStatus::Closed
+                ConnectionStatus::Closed(err)
             },
         }
     }
@@ -56,14 +56,14 @@ impl JdsDecodeMessage {
     /// - returns Closed:
     ///    - if read 0 bytes
     ///    - if on error
-    fn readAll(selfId: &str, bytes: &mut Vec<u8>, stream: &mut BufReader<TcpStream>) -> Status {
+    fn readAll(selfId: &str, bytes: &mut Vec<u8>, stream: &mut BufReader<TcpStream>) -> ConnectionStatus<(), String> {
         for byte in stream.bytes() {
             match byte {
                 Ok(byte) => {
                     // debug!("{}.readAll |     read len: {:?}", selfId, len);
                     match byte {
                         JDS_END_OF_TRANSMISSION => {
-                            return Status::Active;
+                            return ConnectionStatus::Active(());
                         },
                         _ => {
                             bytes.push(byte);
@@ -73,11 +73,12 @@ impl JdsDecodeMessage {
                 Err(err) => {
                     warn!("{}.readAll | error reading from socket: {:?}", selfId, err);
                     warn!("{}.readAll | error kind: {:?}", selfId, err.kind());
-                    return Self::matchErrorKind(err.kind())
+                    Self::matchErrorKind(err.kind());
+                    return ConnectionStatus::Closed(format!("{}.readAll | tcp socket error : {:?}", selfId, err))
                 },
             };
         };
-        Status::Closed
+        ConnectionStatus::Active(())
     }
     ///
     /// 

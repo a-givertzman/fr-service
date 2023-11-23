@@ -80,15 +80,21 @@ mod tests {
                 Ok(mut stream) => {
                     'inner: while sent.load(Ordering::SeqCst) < count {
                         match tcpStreamWrite.write(&mut stream) {
-                            Ok(sentBytes) => {
-                                sent.fetch_add(1, Ordering::SeqCst);
-                                warn!("sent: {}/{} \t bytes: {}", sent.load(Ordering::SeqCst), count, sentBytes);
+                            ConnectionStatus::Active(result) => {
+                                match result {
+                                    Ok(sentBytes) => {
+                                        sent.fetch_add(1, Ordering::SeqCst);
+                                        warn!("sent: {}/{} \t bytes: {}", sent.load(Ordering::SeqCst), count, sentBytes);
+                                    },
+                                    Err(err) => {
+                                        warn!("sent: {}/{}, socket write error: {}", sent.load(Ordering::SeqCst), count, err);
+                                    },
+                                }
                             },
-                            Err(err) => {
-                                warn!("sent: {}/{}, socket write error: {}", sent.load(Ordering::SeqCst), count, err);
-                                // panic!("sent: {}/{}, error: {}", sent, count, err);
+                            ConnectionStatus::Closed(err) => {
+                                warn!("sent: {}/{}, socket closed, error: {}", sent.load(Ordering::SeqCst), count, err);
                                 break 'inner;
-                            },
+                            }
                         };
                     }
                 },

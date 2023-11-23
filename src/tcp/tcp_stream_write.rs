@@ -74,7 +74,7 @@ impl TcpStreamWrite {
                 if log::max_level() == LevelFilter::Trace {
                     warn!("{}", message);
                 }
-                Err(message)
+                ConnectionStatus::Active(Err(message))
             },
         }
     }

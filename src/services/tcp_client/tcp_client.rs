@@ -91,16 +91,21 @@ impl TcpClient {
             let mut streamWrite = streamWrite.lock().unwrap();
             loop {
                 match streamWrite.write(&mut tcpStream) {
-                    Ok(_) => {},
-                    Err(err) => {
-                        warn!("{}.writeSocket | error: {:?}", selfId, err);
+                    ConnectionStatus::Active(result) => {
+                        match result {
+                            Ok(_) => {},
+                            Err(err) => {
+                                warn!("{}.writeSocket | error: {:?}", selfId, err);
+                            },
+                        }
+                    },
+                    ConnectionStatus::Closed(err) => {
                         isConnected.store(false, Ordering::SeqCst);
-                        break;
+                        if exit.load(Ordering::SeqCst) {
+                            break;
+                        }
                     },
                 };
-                if exit.load(Ordering::SeqCst) {
-                    break;
-                }
             }
         }).unwrap();
         _hW
