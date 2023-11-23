@@ -3,19 +3,19 @@
 
 
 mod tests {
-    use log::{info, debug, warn};
+    use log::{info, debug, warn, error};
     use rand::Rng;
-    use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener};
+    use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::Write};
     use crate::{
         core_::{
             debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
             testing::test_session::TestSession,
             point::point_type::{ToPoint, PointType}, 
-            net::{protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}, 
+            net::{protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_serialize::JdsSerialize, jds_encode_message::JdsEncodeMessage}, 
             connection_status::ConnectionStatus}, 
         },
         conf::tcp_client_config::TcpClientConfig,  
-        services::{tcp_client::tcp_client::TcpClient, services::Services, service::Service}, tests::unit::tcp_client::mock_multiqueue::MockMultiqueue,
+        services::{tcp_client::tcp_client::TcpClient, services::Services, service::Service}, tests::unit::tcp_client::mock_multiqueue::MockMultiqueue, tcp::steam_read::StreamRead,
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -60,12 +60,12 @@ mod tests {
     
     #[test]
     fn test_TcpClient_read() {
-        DebugSession::init(LogLevel::Info, Backtrace::Short);
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
         info!("test_TcpClient READ");
-        let mut rnd = rand::thread_rng();
+        // let mut rnd = rand::thread_rng();
         let path = "./src/tests/unit/tcp_client/tcp_client.yaml";
         let mut conf = TcpClientConfig::read(path);
         let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
@@ -79,7 +79,7 @@ mod tests {
         services.lock().unwrap().insert(multiQueueServiceId, multiQueue.clone());
 
         let maxTestDuration = Duration::from_secs(10);
-        let count = 10000;
+        let iterations = 100;
         let testData = vec![
             Value::Int(7),
             Value::Float(1.3),
@@ -89,12 +89,13 @@ mod tests {
             Value::String("test2".to_owned()),
         ];
         let testDataLen = testData.len();
+        let totalCount = testDataLen * iterations;
 
-        let mut sent = vec![];
-        let received = Arc::new(Mutex::new(vec![]));
+        let sent = Arc::new(Mutex::new(vec![]));
+        // let received = Arc::new(Mutex::new(vec![]));
 
 
-        mockTcpServer(addr.to_string(), count, testData.clone(), received.clone());
+        mockTcpServer(addr.to_string(), iterations, testData.clone(), sent.clone(), multiQueue.clone());
         thread::sleep(Duration::from_micros(100));
 
         debug!("Getting services...");
@@ -105,96 +106,100 @@ mod tests {
         let tcpClient = services.get(tcpClientServiceId);
         debug!("Getting service {} - ok", tcpClientServiceId);
 
-        debug!("Running service {}...", tcpClientServiceId);
         drop(services);
+        debug!("Running service {}...", multiQueueServiceId);
         multiQueue.lock().unwrap().run();
+        debug!("Running service {} - ok", multiQueueServiceId);
+        debug!("Running service {}...", tcpClientServiceId);
         tcpClient.lock().unwrap().run();
         debug!("Running service {} - ok", tcpClientServiceId);
         let timer = Instant::now();
-        // let send = tcpClient.lock().unwrap().getLink("link");
-        // let send = multiQueue.lock().unwrap().getLink("in-link");
         debug!("Test - setup - ok");
-        // debug!("Sending points...");
-        // for _ in 0..count {
-        //     let index = rnd.gen_range(0..testDataLen);
-        //     let value = testData.get(index).unwrap();
-        //     let point = value.toPoint("teset");
-        //     send.send(point.clone()).unwrap();
-        //     sent.push(point);
-        // }
         let waitDuration = Duration::from_millis(10);
         let mut waitAttempts = maxTestDuration.as_micros() / waitDuration.as_micros();
-        while multiQueue.lock().unwrap().received().len() < count {
-            debug!("waiting while all data beeng received {}/{}...", received.lock().unwrap().len(), count);
+        // let received = multiQueue.lock().unwrap().received();
+        while multiQueue.lock().unwrap().received().lock().unwrap().len() < totalCount {
+            debug!("waiting while all data beeng received {}/{}...", multiQueue.lock().unwrap().received().lock().unwrap().len(), totalCount);
             thread::sleep(waitDuration);
             waitAttempts -= 1;
-            assert!(waitAttempts > 0, "Transfering {}/{} points taks too mach time {:?} of {:?}", received.lock().unwrap().len(), count, timer.elapsed(), maxTestDuration);
+            assert!(waitAttempts > 0, "Transfering {}/{} points taks too mach time {:?} of {:?}", multiQueue.lock().unwrap().received().lock().unwrap().len(), totalCount, timer.elapsed(), maxTestDuration);
         }
+        let mut sent = sent.lock().unwrap();
         println!("elapsed: {:?}", timer.elapsed());
-        println!("total test events: {:?}", count);
+        println!("total test events: {:?}", totalCount);
         println!("sent events: {:?}", sent.len());
-        let received = received.lock().unwrap();
+        let mq = multiQueue.lock().unwrap();
+        let received = mq.received();
+        let mut received = received.lock().unwrap();
         println!("recv events: {:?}", received.len());
-        assert!(sent.len() == count, "sent: {:?}\ntarget: {:?}", sent.len(), count);
-        assert!(received.len() == count, "received: {:?}\ntarget: {:?}", received.len(), count);
-        // while &sent.len() > &0 {
-        //     let target = sent.pop().unwrap();
-        //     let result = received.pop().unwrap();
-        //     let result = result.as_object().unwrap().get("sql").unwrap().as_object().unwrap().get("sql").unwrap().as_str().unwrap();
-        //     debug!("\nresult({}): {:?}\ntarget({}): {:?}", received.len(), result, sent.len(), target);
-        //     assert!(result == &target, "\nresult: {:?}\ntarget: {:?}", result, target);
-        // }
+        assert!(sent.len() == totalCount, "sent: {:?}\ntarget: {:?}", sent.len(), totalCount);
+        assert!(received.len() == totalCount, "received: {:?}\ntarget: {:?}", received.len(), totalCount);
+        while &sent.len() > &0 {
+            let target = sent.pop().unwrap();
+            let result = received.pop().unwrap();
+            // let result = result.as_object().unwrap().get("sql").unwrap().as_object().unwrap().get("sql").unwrap().as_str().unwrap();
+            debug!("\nresult({}): {:?}\ntarget({}): {:?}", received.len(), result, sent.len(), target);
+            assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
+        }
     }
     ///
     /// TcpServer setup
-    fn mockTcpServer(addr: String, count: usize, testData: Vec<Value>, received: Arc<Mutex<Vec<PointType>>>) {
-        let mut sent = 0;
+    fn mockTcpServer(addr: String, count: usize, testData: Vec<Value>, sent: Arc<Mutex<Vec<PointType>>>, multiqueue: Arc<Mutex<MockMultiqueue>>) {
         thread::spawn(move || {
             info!("TCP server | Preparing test server...");
             let mut rng = rand::thread_rng();
+            let (send, recv) = std::sync::mpsc::channel();
+            let mut jds = JdsEncodeMessage::new(
+                "test", 
+                JdsSerialize::new(
+                    "test", 
+                    recv,
+                ),
+            );
             match TcpListener::bind(addr) {
                 Ok(listener) => {
                     info!("TCP server | Preparing test server - ok");
-                    let mut acceptCount = 2;
-                    let mut maxReadErrors = 3;
-                    while acceptCount > 0 {
-                        acceptCount -= 1;
-                        match listener.accept() {
-                            Ok((mut _socket, addr)) => {
-                                info!("TCP server | accept connection - ok\n\t{:?}", addr);
-                                let mut jds = JdsDeserialize::new(
-                                    "test", 
-                                    JdsDecodeMessage::new("test", _socket),
-                                );
-                                for _ in 0..count {
+                    // let mut acceptCount = 2;
+                    // let mut maxReadErrors = 3;
+                    match listener.accept() {
+                        Ok((mut socket, addr)) => {
+                            info!("TCP server | accept connection - ok\n\t{:?}", addr);
+                            for _ in 0..count {
+                                for value in &testData {
+                                    let point = value.toPoint("test");
+                                    send.send(point.clone()).unwrap();
                                     match jds.read() {
-                                        ConnectionStatus::Active(point) => {
-                                            match point {
-                                                Ok(point) => {
-                                                    received.lock().unwrap().push(point);
+                                        Ok(bytes) => {
+                                            match socket.write(&bytes) {
+                                                Ok(_) => {
+                                                    sent.lock().unwrap().push(point);
                                                 },
                                                 Err(err) => {
-                                                    warn!("{:?}", err);
+                                                    warn!("TCP server | socket.wrtite error: {:?}", err);
                                                 },
                                             }
                                         },
-                                        ConnectionStatus::Closed => {
-                                            
+                                        Err(err) => {
+                                            error!("TCP server | error: {:?}", err);
                                         },
                                     }
-
                                 }
-                                info!("TCP server | all sent: {:?}", sent);
-                                while received.lock().unwrap().len() < count {
-                                    thread::sleep(Duration::from_micros(100));
-                                }
-                                // while received.len() < count {}
-                            },
-                            Err(err) => {
-                                warn!("incoming connection - error: {:?}", err);
-                            },
-                        }
+                            }
+                            info!("TCP server | all sent: {:?}", sent.lock().unwrap().len());
+                            let received = multiqueue.lock().unwrap().received();
+                            while received.lock().unwrap().len() < count {
+                                thread::sleep(Duration::from_micros(100));
+                            }
+                            // while received.len() < count {}
+                        },
+                        Err(err) => {
+                            warn!("incoming connection - error: {:?}", err);
+                        },
                     }
+                    // while acceptCount > 0 {
+                    //     // acceptCount -= 1;
+                    //     acceptCount = -1;
+                    // }
                 },
                 Err(err) => {
                     // connectExit.send(true).unwrap();
@@ -203,5 +208,6 @@ mod tests {
                 },
             };
         });
-    }    
+        info!("TCP server | Started");
+    }
 }

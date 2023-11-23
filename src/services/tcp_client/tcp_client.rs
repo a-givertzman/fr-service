@@ -172,13 +172,13 @@ impl Service for TcpClient {
                                     stream.try_clone().unwrap(),
                                 ),
                             );
-                            // let handleR = Self::readSocket(
-                            //     selfId.clone(),
-                            //     streamR,
-                            //     send,
-                            //     exitRW.clone(),
-                            //     isConnected.clone()
-                            // );
+                            let handleR = Self::readSocket(
+                                selfId.clone(),
+                                streamR,
+                                outSend,
+                                exitRW.clone(),
+                                isConnected.clone()
+                            );
                             let handleW = Self::writeSocket(
                                 selfId.clone(),
                                 tcpStreamWrite.clone(),
@@ -186,7 +186,7 @@ impl Service for TcpClient {
                                 exitRW.clone(),
                                 isConnected.clone()
                             );
-                            // handleR.join().unwrap();
+                            handleR.join().unwrap();
                             handleW.join().unwrap();
                         },
                         None => {
