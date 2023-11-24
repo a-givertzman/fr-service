@@ -2,7 +2,7 @@
 #[cfg(test)]
 mod tests {
     use log::{warn, info, debug};
-    use std::{sync::{Once, atomic::{AtomicBool, Ordering}, Arc}, time::Duration, thread, net::TcpListener};
+    use std::{sync::{Once, atomic::{AtomicBool, Ordering}, Arc, Mutex}, time::Duration, thread, net::TcpListener};
     use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_session::TestSession}, tcp::tcp_socket_client_connect::TcpSocketClientConnect}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -41,9 +41,10 @@ mod tests {
         let ok = Arc::new(AtomicBool::new(false));
         let okRef = ok.clone();
 
-        let connectExit = connect.exit();
+        // let connectExit = connect.exit();
         thread::spawn(move || {
             info!("Preparing test TCP server...");
+            thread::sleep(Duration::from_millis(1000));
             match TcpListener::bind(addr) {
                 Ok(listener) => {
                     info!("Preparing test TCP server - ok");
@@ -57,13 +58,12 @@ mod tests {
                     }
                 },
                 Err(err) => {
-                    connectExit.send(true).unwrap();
+                    // connectExit.send(true);
                     okRef.store(false, Ordering::SeqCst);
                     panic!("Preparing test TCP server - error: {:?}", err);
                 },
             };
         });
-
         let connectExit = connect.exit();
         let okRef = ok.clone();
         thread::spawn(move || {
@@ -75,11 +75,23 @@ mod tests {
             connectExit.send(true).unwrap();
         });
         info!("Connecting...");
-        let tcpStream = connect.connect(Duration::from_millis(1000));
-        if tcpStream.is_some() {
-            ok.store(true, Ordering::SeqCst);
-            info!("connected: {:?}", tcpStream);
+        let mut attempts = 3;
+        let maxAttempts = attempts;
+        loop {
+            match connect.connect(false, Duration::from_millis(500)) {
+                Ok(tcpStream) => {
+                    ok.store(true, Ordering::SeqCst);
+                    info!("connected: {:?}", tcpStream);
+                    break;
+                },
+                Err(err) => {
+                    warn!("not connected, error: {:?}", err);
+                    assert!(attempts > 0, "Not connected after {} attempts", maxAttempts);
+                },
+            };
+            attempts -= 1;
         }
+        connect.exit().send(true).unwrap();
         assert!(ok.load(Ordering::SeqCst) == true, "\nresult: {:?}\ntarget: {:?}", ok, true);
     }
 
@@ -101,15 +113,20 @@ mod tests {
             thread::sleep(timeout);
             okRef.store(false, Ordering::SeqCst);
             warn!("Tcp socket was not connected in {:?}", timeout);
-            debug!("stopping...");
+            debug!("Thread | stopping...");
             connectExit.send(true).unwrap();
+            debug!("Thread | stopping - ok");
         });
         info!("Connecting...");
-        let tcpStream = connect.connect(Duration::from_millis(1000));
-        if tcpStream.is_some() {
-            ok.store(true, Ordering::SeqCst);
-            info!("connected: {:?}", tcpStream);
-        }
+        match connect.connect(false, Duration::from_millis(500)) {
+            Ok(tcpStream) => {
+                ok.store(true, Ordering::SeqCst);
+                info!("connected: {:?}", tcpStream);
+            },
+            Err(err) => {
+                warn!("not connected, error: {:?}", err);
+            },
+        };
         assert!(ok.load(Ordering::SeqCst) == false, "\nresult: {:?}\ntarget: {:?}", ok, false);
     }
 

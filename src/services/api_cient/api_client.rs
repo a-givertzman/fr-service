@@ -172,12 +172,12 @@ impl Service for ApiClient {
             let mut buffer = RetainBuffer::new(&selfId, "", Some(conf.recvQueueMaxLength as usize));
             let mut cycle = ServiceCycle::new(cycleInterval);
             let mut connect = TcpSocketClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address);
-            let mut stream = None;
+            let mut stream: Result<TcpStream, String> = Err(format!("{}.run | TcpStream - not connected", selfId));
             'main: loop {
                 if !isConnected {
-                    stream = connect.connect(reconnect);
+                    stream = connect.connect(true, reconnect);
                     match &stream {
-                        Some(stream) => {
+                        Ok(stream) => {
                             match stream.set_read_timeout(Some(Duration::from_secs(10))) {
                                 Ok(_) => {},
                                 Err(err) => {
@@ -185,11 +185,13 @@ impl Service for ApiClient {
                                 },
                             };
                         },
-                        None => {},
+                        Err(err) => {
+                            debug!("{}.run | TcpStream.connection error: {:?}", selfId, err);
+                        },
                     }
                 }
                 match &mut stream {
-                    Some(stream) => {
+                    Ok(stream) => {
                         isConnected = true;
                         cycle.start();
                         trace!("{}.run | step...", selfId);
@@ -238,7 +240,7 @@ impl Service for ApiClient {
                             cycle.wait();
                         }
                     },
-                    None => {
+                    Err(err) => {
                         isConnected = false;
                     },
                 }

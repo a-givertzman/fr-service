@@ -166,12 +166,12 @@ impl Service for TcpClient {
             )));
             // let mut cycle = ServiceCycle::new(cycleInterval);
             let mut connect = TcpSocketClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address);
-            let mut tcpStream = None;
+            let mut tcpStream;
             'main: loop {
                 if !isConnected.load(Ordering::SeqCst) {
-                    tcpStream = connect.connect(reconnect);
+                    tcpStream = connect.connect(true, reconnect);
                     match tcpStream {
-                        Some(stream) => {
+                        Ok(stream) => {
                             if let Err(err) = stream.set_read_timeout(Some(Duration::from_secs(10))) {
                                 debug!("{}.run | TcpStream.set_timeout error: {:?}", selfId, err);
                             };
@@ -201,7 +201,8 @@ impl Service for TcpClient {
                             handleR.join().unwrap();
                             handleW.join().unwrap();
                         },
-                        None => {
+                        Err(err) => {
+                            info!("{}.run | connection error: {:?}", selfId, err);
                             isConnected.store(false, Ordering::SeqCst);
                         },
                     }
