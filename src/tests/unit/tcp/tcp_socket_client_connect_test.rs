@@ -36,7 +36,7 @@ mod tests {
         info!("success connection");
         let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
         let timeout = Duration::from_millis(3500); // ms
-        let mut connect = TcpSocketClientConnect::new("test", &addr);
+        let mut connect = TcpSocketClientConnect::new("test", &addr, Duration::from_millis(500));
 
         let ok = Arc::new(AtomicBool::new(false));
         let okRef = ok.clone();
@@ -75,7 +75,7 @@ mod tests {
             connectExit.send(true).unwrap();
         });
         info!("Connecting...");
-        match connect.connect(false, Duration::from_millis(500)) {
+        match connect.connect(false) {
             Ok(tcpStream) => {
                 ok.store(true, Ordering::SeqCst);
                 info!("connected: {:?}", tcpStream);
@@ -97,7 +97,7 @@ mod tests {
         info!("failure connection");
         let timeout = Duration::from_millis(1500); // ms
         let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
-        let mut connect = TcpSocketClientConnect::new("test", &addr);
+        let mut connect = TcpSocketClientConnect::new("test", &addr, Duration::from_millis(500));
         let connectExit = connect.exit();
         let ok = Arc::new(AtomicBool::new(false));
         let okRef = ok.clone();
@@ -111,7 +111,7 @@ mod tests {
             debug!("Thread | stopping - ok");
         });
         info!("Connecting...");
-        match connect.connect(false, Duration::from_millis(500)) {
+        match connect.connect(false) {
             Ok(tcpStream) => {
                 ok.store(true, Ordering::SeqCst);
                 info!("connected: {:?}", tcpStream);
