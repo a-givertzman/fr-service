@@ -2,7 +2,7 @@
 
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread::{JoinHandle, self}};
 
-use log::warn;
+use log::{warn, info};
 
 use crate::{
     core_::net::connection_status::ConnectionStatus,
@@ -34,16 +34,20 @@ impl TcpSendAlive {
     ///
     /// 
     pub fn run(&self) -> JoinHandle<()> {
+        info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
         let connect = self.socketClientConnect.clone();
         let streamWrite = self.streamWrite.clone();
+        info!("{}.run | Preparing thread...", self.id);
         let handle = thread::Builder::new().name(format!("{} - Write", selfId.clone())).spawn(move || {
+            info!("{}.run | Preparing thread - ok", selfId);
             let mut connectionClosed = false;
             let mut streamWrite = streamWrite.lock().unwrap();
             'main: loop {
                 match connect.lock().unwrap().connect(connectionClosed) {
                     Ok(mut tcpStream) => {
+                        info!("{}.run | connected: {:?}", selfId, tcpStream);
                         loop {
                             match streamWrite.write(&mut tcpStream) {
                                 ConnectionStatus::Active(result) => {
@@ -74,6 +78,7 @@ impl TcpSendAlive {
                 }
             }
         }).unwrap();
+        info!("{}.run | started", self.id);
         handle
     }
     ///

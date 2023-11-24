@@ -2,7 +2,7 @@
 
 use std::{net::{TcpStream, SocketAddr, ToSocketAddrs}, time::Duration, sync::{Arc, atomic::{AtomicBool, Ordering, AtomicUsize}, Mutex, mpsc::{Sender, Receiver, self}}, thread};
 
-use log::{warn, LevelFilter, debug};
+use log::{warn, LevelFilter, debug, info};
 
 use crate::services::task::task_cycle::ServiceCycle;
 
@@ -126,6 +126,7 @@ impl TcpSocketClientConnect {
                     cycle.start();
                     match TcpStream::connect(addr) {
                         Ok(tcpStream) => {
+                            info!("TcpSocketClientConnect({}).connect | connected to: \n\t{:?}", id, tcpStream);
                             selfStream.lock().unwrap().push(tcpStream);
                             state.store(ConnectState::Connected.value(), Ordering::SeqCst);
                             break;
