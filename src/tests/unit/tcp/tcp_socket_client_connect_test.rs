@@ -44,7 +44,7 @@ mod tests {
         // let connectExit = connect.exit();
         thread::spawn(move || {
             info!("Preparing test TCP server...");
-            thread::sleep(Duration::from_millis(1000));
+            thread::sleep(Duration::from_millis(300));
             match TcpListener::bind(addr) {
                 Ok(listener) => {
                     info!("Preparing test TCP server - ok");
@@ -75,24 +75,17 @@ mod tests {
             connectExit.send(true).unwrap();
         });
         info!("Connecting...");
-        let mut attempts = 3;
-        let maxAttempts = attempts;
-        loop {
-            match connect.connect(false, Duration::from_millis(500)) {
-                Ok(tcpStream) => {
-                    ok.store(true, Ordering::SeqCst);
-                    info!("connected: {:?}", tcpStream);
-                    break;
-                },
-                Err(err) => {
-                    warn!("not connected, error: {:?}", err);
-                    assert!(attempts > 0, "Not connected after {} attempts", maxAttempts);
-                },
-            };
-            attempts -= 1;
-        }
+        match connect.connect(false, Duration::from_millis(500)) {
+            Ok(tcpStream) => {
+                ok.store(true, Ordering::SeqCst);
+                info!("connected: {:?}", tcpStream);
+            },
+            Err(err) => {
+                warn!("not connected, error: {:?}", err);
+            },
+        };
         connect.exit().send(true).unwrap();
-        assert!(ok.load(Ordering::SeqCst) == true, "\nresult: {:?}\ntarget: {:?}", ok, true);
+        assert!(ok.load(Ordering::SeqCst) == true, "\nresult: connected - {:?}\ntarget: connected - {:?}", ok, true);
     }
 
     #[test]
@@ -127,7 +120,7 @@ mod tests {
                 warn!("not connected, error: {:?}", err);
             },
         };
-        assert!(ok.load(Ordering::SeqCst) == false, "\nresult: {:?}\ntarget: {:?}", ok, false);
+        assert!(ok.load(Ordering::SeqCst) == false, "\nresult: connected - {:?}\ntarget: connected - {:?}", ok, false);
     }
 
 }
