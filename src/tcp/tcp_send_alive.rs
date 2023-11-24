@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{JoinHandle, self}};
+use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread::{JoinHandle, self}};
 
 use log::warn;
 
@@ -13,6 +13,7 @@ use crate::{
 pub struct TcpSendAlive {
     id: String,
     socketClientConnect: Arc<Mutex<TcpSocketClientConnect>>,
+    socketClientConnectExit: Sender<bool>,
     streamWrite: Arc<Mutex<TcpStreamWrite>>,
     exit: Arc<AtomicBool>,
 }
@@ -21,9 +22,11 @@ impl TcpSendAlive {
     /// Creates new instance of [TcpSendAlive]
     /// - [parent] - the ID if the parent entity
     pub fn new(parent: impl Into<String>, socketClientConnect: Arc<Mutex<TcpSocketClientConnect>>, streamWrite: Arc<Mutex<TcpStreamWrite>>) -> Self {
+        let socketClientConnectExit = socketClientConnect.lock().unwrap().exit();
         Self {
             id: format!("{}/TcpSendAlive", parent.into()),
             socketClientConnect,
+            socketClientConnectExit,
             streamWrite,
             exit: Arc::new(AtomicBool::new(false)),
         }
@@ -77,5 +80,6 @@ impl TcpSendAlive {
     /// 
     pub fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
+        self.socketClientConnectExit.send(true).unwrap();
     }
 }

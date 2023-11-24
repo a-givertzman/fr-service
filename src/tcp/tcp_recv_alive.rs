@@ -13,6 +13,7 @@ use crate::{
 pub struct TcpRecvAlive {
     id: String,
     socketClientConnect: Arc<Mutex<TcpSocketClientConnect>>,
+    socketClientConnectExit: Sender<bool>,
     send: Arc<Mutex<Sender<PointType>>>,
     exit: Arc<AtomicBool>,
 }
@@ -21,9 +22,11 @@ impl TcpRecvAlive {
     /// Creates new instance of [TcpRecvAlive]
     /// - [parent] - the ID if the parent entity
     pub fn new(parent: impl Into<String>, socketClientConnect: Arc<Mutex<TcpSocketClientConnect>>, send: Arc<Mutex<Sender<PointType>>>) -> Self {
+        let socketClientConnectExit = socketClientConnect.lock().unwrap().exit();
         Self {
             id: format!("{}/TcpRecvAlive", parent.into()),
             socketClientConnect,
+            socketClientConnectExit,
             send,
             exit: Arc::new(AtomicBool::new(false)),
         }
@@ -91,5 +94,6 @@ impl TcpRecvAlive {
     /// 
     pub fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
+        self.socketClientConnectExit.send(true).unwrap();
     }
 }    
