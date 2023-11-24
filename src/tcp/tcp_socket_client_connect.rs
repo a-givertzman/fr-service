@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{net::{TcpStream, SocketAddr, ToSocketAddrs}, time::Duration, sync::{Arc, atomic::{AtomicBool, Ordering, AtomicUsize}, Mutex, mpsc::{Sender, Receiver, self}}, thread};
+use std::{net::{TcpStream, SocketAddr, ToSocketAddrs}, time::Duration, sync::{Arc, atomic::{AtomicBool, Ordering, AtomicUsize}, Mutex, mpsc::{Sender, Receiver, self}, Once}, thread};
 
 use log::{warn, LevelFilter, debug, info};
 
@@ -36,7 +36,7 @@ impl ConnectState {
 ///
 /// Opens a TCP connection to a remote host
 /// - returns connected Result<TcpStream, Err>
-pub struct TcpSocketClientConnect {
+pub struct TcpClientConnect {
     id: String,
     addr: SocketAddr,
     state: Arc<AtomicUsize>,
@@ -44,42 +44,51 @@ pub struct TcpSocketClientConnect {
     reconnect: Duration,
     exitSend: Sender<bool>,
     exitRecv: Arc<Mutex<Receiver<bool>>>,
+    once: Once,
 }
 ///
 /// Opens a TCP connection to a remote host
-impl TcpSocketClientConnect {
+impl TcpClientConnect {
     ///
-    /// Creates a new instance of TcpSocketClientConnect
-    pub fn new(parent: impl Into<String>, addr: impl ToSocketAddrs + std::fmt::Debug, reconnect: Duration) -> TcpSocketClientConnect {
+    /// Creates a new instance of TcpClientConnect
+    pub fn new(parent: impl Into<String>, addr: impl ToSocketAddrs + std::fmt::Debug, reconnect: Duration) -> TcpClientConnect {
         let addr = match addr.to_socket_addrs() {
             Ok(mut addrIter) => {
                 match addrIter.next() {
                     Some(addr) => addr,
-                    None => panic!("TcpSocketClientConnect({}).connect | Empty address found: {:?}", parent.into(), addr),
+                    None => panic!("TcpClientConnect({}).connect | Empty address found: {:?}", parent.into(), addr),
                 }
             },
-            Err(err) => panic!("TcpSocketClientConnect({}).connect | Address parsing error: \n\t{:?}", parent.into(), err),
+            Err(err) => panic!("TcpClientConnect({}).connect | Address parsing error: \n\t{:?}", parent.into(), err),
         };
         let (send, recv) = mpsc::channel();
         Self {
-            id: format!("{}/TcpSocketClientConnect", parent.into()),
+            id: format!("{}/TcpClientConnect", parent.into()),
             addr,
             state: Arc::new(AtomicUsize::new(ConnectState::Closed.value())),
             stream: Arc::new(Mutex::new(Vec::new())),
             reconnect,
             exitSend: send,
             exitRecv: Arc::new(Mutex::new(recv)),
+            once: Once::new(),
         }
     }
     ///
     /// Opens a TCP connection to a remote host until succeed.
     pub fn connect(&mut self, closed: bool) -> Result<TcpStream, String> {
+        info!("TcpClientConnect({}).connect | state: {:?}...", self.id, ConnectState::from( self.state.load(Ordering::Relaxed) ));
         match ConnectState::from( self.state.load(Ordering::Relaxed) ) {
             ConnectState::Closed => {
+                if self.once.is_completed() {
+                    self.once = Once::new();
+                }
                 self.inner_connect(self.reconnect);
             },
             ConnectState::Connected => {
                 if closed {
+                    if self.once.is_completed() {
+                        self.once = Once::new();
+                    }
                     self.state.store(ConnectState::Closed.value(), Ordering::SeqCst);
                     self.inner_connect(self.reconnect);
                 }
@@ -95,7 +104,7 @@ impl TcpSocketClientConnect {
                         Ok(stream)
                     },
                     Err(err) => {
-                        let message = format!("TcpSocketClientConnect({}).connect | TcpSream.try_clone error: {:?}", self.id, err);
+                        let message = format!("TcpClientConnect({}).connect | TcpSream.try_clone error: {:?}", self.id, err);
                         warn!("{}", message);
                         Err(message)
                     },
@@ -103,7 +112,7 @@ impl TcpSocketClientConnect {
             },
             _ => {
                 let state = ConnectState::from( self.state.load(Ordering::Relaxed) );
-                let message = format!("TcpSocketClientConnect({}).connect | State: {:?}", self.id, state);
+                let message = format!("TcpClientConnect({}).connect | State: {:?}", self.id, state);
                 debug!("{}", message);
                 Err(message)
             },
@@ -112,36 +121,43 @@ impl TcpSocketClientConnect {
     /// 
     /// Opens a TCP connection to a remote host until succeed.
     fn inner_connect(&mut self, cycle: Duration) {
-        if ConnectState::from( self.state.load(Ordering::Relaxed) ) == ConnectState::Closed {
+        self.once.call_once(|| {
             self.state.store(ConnectState::Connecting.value(), Ordering::SeqCst);
             let id = self.id.clone();
             let addr = self.addr.clone();
+            info!("TcpClientConnect({}).inner_connect | connecting to: {:?}...", id, addr);
             let state = self.state.clone();
             let selfStream = self.stream.clone();
             let exit = self.exitRecv.clone();
-            let handle = thread::spawn(move || {
+            let _handle = thread::spawn(move || {
                 let exit = exit.lock().unwrap();
                 let mut cycle = ServiceCycle::new(cycle);
                 loop {
                     cycle.start();
-                    match TcpStream::connect(addr) {
-                        Ok(tcpStream) => {
-                            info!("TcpSocketClientConnect({}).connect | connected to: \n\t{:?}", id, tcpStream);
-                            selfStream.lock().unwrap().push(tcpStream);
-                            state.store(ConnectState::Connected.value(), Ordering::SeqCst);
-                            break;
-                        },
-                        Err(err) => {
-                            state.store(ConnectState::Closed.value(), Ordering::SeqCst);
-                            if log::max_level() == LevelFilter::Debug {
-                                warn!("TcpSocketClientConnect({}).connect | connection error: \n\t{:?}", id, err);
+                    if ConnectState::from( state.load(Ordering::Relaxed) ) != ConnectState::Connected {
+                        match TcpStream::connect(addr) {
+                            Ok(tcpStream) => {
+                                selfStream.lock().unwrap().push(tcpStream);
+                                state.store(ConnectState::Connected.value(), Ordering::SeqCst);
+                                info!("TcpClientConnect({}).inner_connect | connected to: \n\t{:?}", id, selfStream.lock().unwrap().first().unwrap());
+                                break;
+                            },
+                            Err(err) => {
+                                state.store(ConnectState::Closed.value(), Ordering::SeqCst);
+                                if log::max_level() == LevelFilter::Debug {
+                                    warn!("TcpClientConnect({}).inner_connect | connection error: \n\t{:?}", id, err);
+                                }
                             }
-                        }
-                    };
+                        };
+                    }
                     match exit.try_recv() {
                         Ok(exit) => {
-                            debug!("TcpSocketClientConnect({}).connect | exit: {}", id, exit);
+                            debug!("TcpClientConnect({}).inner_connect | exit: {}", id, exit);
                             if exit {
+                                match ConnectState::from( state.load(Ordering::Relaxed) ) {
+                                    ConnectState::Connecting => state.store(ConnectState::Closed.value(), Ordering::SeqCst),
+                                    _ => {},
+                                };
                                 break;
                             }
                         },
@@ -149,10 +165,12 @@ impl TcpSocketClientConnect {
                     }
                     cycle.wait();
                 }
-                debug!("TcpSocketClientConnect({}).connect | exit", id);
+                debug!("TcpClientConnect({}).inner_connect | exit", id);
             });
-            // handle.join().unwrap();
-        }
+        });
+        // if ConnectState::from( self.state.load(Ordering::Relaxed) ) == ConnectState::Closed {
+        //     // handle.join().unwrap();
+        // }
     }
     // ///
     // /// Opens a TCP connection to a remote host
@@ -169,14 +187,14 @@ impl TcpSocketClientConnect {
     //             },
     //             Err(err) => {
     //                 if log::max_level() == LevelFilter::Trace {
-    //                     warn!("TcpSocketClientConnect({}).connect_attempts | attempt {}/{} connection error: \n\t{:?}", attempt, attempts, self.id, err);
+    //                     warn!("TcpClientConnect({}).connect_attempts | attempt {}/{} connection error: \n\t{:?}", attempt, attempts, self.id, err);
     //                 }
     //                 result = Some(Err(err));
     //             }
     //         }
     //         match exit.try_recv() {
     //             Ok(exit) => {
-    //                 debug!("TcpSocketClientConnect({}).connect | exit: {}", self.id, exit);
+    //                 debug!("TcpClientConnect({}).connect | exit: {}", self.id, exit);
     //                 if exit {
     //                     result = None;
     //                     break;

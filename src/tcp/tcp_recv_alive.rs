@@ -6,13 +6,13 @@ use log::{warn, info};
 
 use crate::{
     core_::{net::{connection_status::ConnectionStatus, protocols::jds::{jds_deserialize::JdsDeserialize, jds_decode_message::JdsDecodeMessage}}, point::point_type::PointType},
-    tcp::tcp_socket_client_connect::TcpSocketClientConnect, 
+    tcp::tcp_socket_client_connect::TcpClientConnect, 
 };
 
 
 pub struct TcpRecvAlive {
     id: String,
-    socketClientConnect: Arc<Mutex<TcpSocketClientConnect>>,
+    socketClientConnect: Arc<Mutex<TcpClientConnect>>,
     socketClientConnectExit: Sender<bool>,
     send: Arc<Mutex<Sender<PointType>>>,
     exit: Arc<AtomicBool>,
@@ -21,7 +21,7 @@ impl TcpRecvAlive {
     ///
     /// Creates new instance of [TcpRecvAlive]
     /// - [parent] - the ID if the parent entity
-    pub fn new(parent: impl Into<String>, socketClientConnect: Arc<Mutex<TcpSocketClientConnect>>, send: Arc<Mutex<Sender<PointType>>>) -> Self {
+    pub fn new(parent: impl Into<String>, socketClientConnect: Arc<Mutex<TcpClientConnect>>, send: Arc<Mutex<Sender<PointType>>>) -> Self {
         let socketClientConnectExit = socketClientConnect.lock().unwrap().exit();
         Self {
             id: format!("{}/TcpRecvAlive", parent.into()),

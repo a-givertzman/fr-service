@@ -9,7 +9,7 @@ use crate::{
     conf::tcp_client_config::TcpClientConfig,
     services::{service::Service, services::Services}, 
     tcp::{
-        tcp_socket_client_connect::TcpSocketClientConnect, 
+        tcp_socket_client_connect::TcpClientConnect, 
         tcp_stream_write::TcpStreamWrite, 
         tcp_send_alive::TcpSendAlive, 
         tcp_recv_alive::TcpRecvAlive
@@ -87,7 +87,7 @@ impl Service for TcpClient {
         // };
         let reconnect = if conf.reconnectCycle.is_some() {conf.reconnectCycle.unwrap()} else {Duration::from_secs(3)};
         let _queueMaxLength = conf.recvQueueMaxLength;
-        let connect = Arc::new(Mutex::new(TcpSocketClientConnect::new(
+        let connect = Arc::new(Mutex::new(TcpClientConnect::new(
             selfId.clone(), 
             conf.address, 
             reconnect,

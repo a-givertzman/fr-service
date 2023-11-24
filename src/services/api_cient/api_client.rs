@@ -8,7 +8,7 @@ use crate::{
     core_::{point::point_type::PointType, net::connection_status::ConnectionStatus, retain_buffer::retain_buffer::RetainBuffer}, 
     conf::api_client_config::ApiClientConfig,
     services::{task::task_cycle::ServiceCycle, api_cient::api_reply::SqlReply, service::Service}, 
-    tcp::tcp_socket_client_connect::TcpSocketClientConnect, 
+    tcp::tcp_socket_client_connect::TcpClientConnect, 
 };
 
 use super::api_query::ApiQuery;
@@ -171,7 +171,7 @@ impl Service for ApiClient {
             let mut isConnected = false;
             let mut buffer = RetainBuffer::new(&selfId, "", Some(conf.recvQueueMaxLength as usize));
             let mut cycle = ServiceCycle::new(cycleInterval);
-            let mut connect = TcpSocketClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address, reconnect);
+            let mut connect = TcpClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address, reconnect);
             let mut stream: Result<TcpStream, String> = Err(format!("{}.run | TcpStream - not connected", selfId));
             'main: loop {
                 if !isConnected {

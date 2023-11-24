@@ -6,13 +6,13 @@ use log::{warn, info};
 
 use crate::{
     core_::net::connection_status::ConnectionStatus,
-    tcp::{tcp_socket_client_connect::TcpSocketClientConnect, tcp_stream_write::TcpStreamWrite}, 
+    tcp::{tcp_socket_client_connect::TcpClientConnect, tcp_stream_write::TcpStreamWrite}, 
 };
 
 
 pub struct TcpSendAlive {
     id: String,
-    socketClientConnect: Arc<Mutex<TcpSocketClientConnect>>,
+    socketClientConnect: Arc<Mutex<TcpClientConnect>>,
     socketClientConnectExit: Sender<bool>,
     streamWrite: Arc<Mutex<TcpStreamWrite>>,
     exit: Arc<AtomicBool>,
@@ -21,7 +21,7 @@ impl TcpSendAlive {
     ///
     /// Creates new instance of [TcpSendAlive]
     /// - [parent] - the ID if the parent entity
-    pub fn new(parent: impl Into<String>, socketClientConnect: Arc<Mutex<TcpSocketClientConnect>>, streamWrite: Arc<Mutex<TcpStreamWrite>>) -> Self {
+    pub fn new(parent: impl Into<String>, socketClientConnect: Arc<Mutex<TcpClientConnect>>, streamWrite: Arc<Mutex<TcpStreamWrite>>) -> Self {
         let socketClientConnectExit = socketClientConnect.lock().unwrap().exit();
         Self {
             id: format!("{}/TcpSendAlive", parent.into()),

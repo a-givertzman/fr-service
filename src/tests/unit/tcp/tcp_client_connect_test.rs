@@ -2,8 +2,8 @@
 #[cfg(test)]
 mod tests {
     use log::{warn, info, debug};
-    use std::{sync::{Once, atomic::{AtomicBool, Ordering}, Arc, Mutex}, time::Duration, thread, net::TcpListener};
-    use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_session::TestSession}, tcp::tcp_socket_client_connect::TcpSocketClientConnect}; 
+    use std::{sync::{Once, atomic::{AtomicBool, Ordering}, Arc}, time::Duration, thread, net::TcpListener};
+    use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_session::TestSession}, tcp::tcp_socket_client_connect::TcpClientConnect}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -36,7 +36,7 @@ mod tests {
         info!("success connection");
         let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
         let timeout = Duration::from_millis(3500); // ms
-        let mut connect = TcpSocketClientConnect::new("test", &addr, Duration::from_millis(500));
+        let mut connect = TcpClientConnect::new("test", &addr, Duration::from_millis(500));
 
         let ok = Arc::new(AtomicBool::new(false));
         let okRef = ok.clone();
@@ -75,16 +75,20 @@ mod tests {
             connectExit.send(true).unwrap();
         });
         info!("Connecting...");
-        match connect.connect(false) {
-            Ok(tcpStream) => {
-                ok.store(true, Ordering::SeqCst);
-                info!("connected: {:?}", tcpStream);
-            },
-            Err(err) => {
-                warn!("not connected, error: {:?}", err);
-            },
-        };
-        connect.exit().send(true).unwrap();
+        for _ in 0..10 {
+            match connect.connect(false) {
+                Ok(tcpStream) => {
+                    ok.store(true, Ordering::SeqCst);
+                    info!("connected: {:?}", tcpStream);
+                    connect.exit().send(true).unwrap();
+                    break;
+                },
+                Err(err) => {
+                    warn!("not connected, error: {:?}", err);
+                },
+            };
+            thread::sleep(Duration::from_millis(100));
+        }
         assert!(ok.load(Ordering::SeqCst) == true, "\nresult: connected - {:?}\ntarget: connected - {:?}", ok, true);
     }
 
@@ -97,7 +101,7 @@ mod tests {
         info!("failure connection");
         let timeout = Duration::from_millis(1500); // ms
         let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
-        let mut connect = TcpSocketClientConnect::new("test", &addr, Duration::from_millis(500));
+        let mut connect = TcpClientConnect::new("test", &addr, Duration::from_millis(500));
         let connectExit = connect.exit();
         let ok = Arc::new(AtomicBool::new(false));
         let okRef = ok.clone();

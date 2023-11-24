@@ -33,7 +33,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_fn_config_new_valid() {
-    DebugSession::init(LogLevel::I, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_fn_config_new_valid");
