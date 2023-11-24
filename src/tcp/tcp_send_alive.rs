@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread::{JoinHandle, self}};
+use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread::{JoinHandle, self}, time::Duration};
 
 use log::{warn, info};
 
@@ -44,38 +44,48 @@ impl TcpSendAlive {
             info!("{}.run | Preparing thread - ok", selfId);
             let mut connectionClosed = false;
             let mut streamWrite = streamWrite.lock().unwrap();
+            info!("{}.run | Starting main loop...", selfId);
             'main: loop {
-                match connect.lock().unwrap().connect(connectionClosed) {
-                    Ok(mut tcpStream) => {
-                        info!("{}.run | connected: {:?}", selfId, tcpStream);
-                        loop {
-                            match streamWrite.write(&mut tcpStream) {
-                                ConnectionStatus::Active(result) => {
-                                    match result {
-                                        Ok(_) => {},
-                                        Err(err) => {
-                                            warn!("{}.run | error: {:?}", selfId, err);
+                info!("{}.run | connect.try_lock()...", selfId);
+                match connect.try_lock() {
+                    Ok(mut connect) => {
+                        match connect.connect(connectionClosed) {
+                            Ok(mut tcpStream) => {
+                                info!("{}.run | connected: {:?}", selfId, tcpStream);
+                                loop {
+                                    match streamWrite.write(&mut tcpStream) {
+                                        ConnectionStatus::Active(result) => {
+                                            match result {
+                                                Ok(_) => {},
+                                                Err(err) => {
+                                                    warn!("{}.run | error: {:?}", selfId, err);
+                                                },
+                                            }
                                         },
+                                        ConnectionStatus::Closed(err) => {
+                                            warn!("{}.run | error: {:?}", selfId, err);
+                                            connectionClosed = true;
+                                            break;
+                                        },
+                                    };
+                                    if exit.load(Ordering::SeqCst) {
+                                        break;
                                     }
-                                },
-                                ConnectionStatus::Closed(err) => {
-                                    warn!("{}.run | error: {:?}", selfId, err);
-                                    connectionClosed = true;
-                                    break;
-                                },
-                            };
-                            if exit.load(Ordering::SeqCst) {
-                                break;
-                            }
+                                }
+                            },
+                            Err(err) => {
+                                warn!("{}.run | error: {:?}", selfId, err);
+                            },
                         }
                     },
                     Err(err) => {
-                        warn!("{}.run | error: {:?}", selfId, err);
+                        warn!("{}.run | connect.try_lock() error: {:?}", selfId, err);
                     },
                 }
                 if exit.load(Ordering::SeqCst) {
                     break 'main;
                 }
+                thread::sleep(Duration::from_millis(10));
             }
         }).unwrap();
         info!("{}.run | started", self.id);

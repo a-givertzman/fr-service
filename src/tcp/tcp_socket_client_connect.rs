@@ -151,7 +151,7 @@ impl TcpSocketClientConnect {
                 }
                 debug!("TcpSocketClientConnect({}).connect | exit", id);
             });
-            handle.join().unwrap();
+            // handle.join().unwrap();
         }
     }
     // ///
