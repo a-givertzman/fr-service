@@ -41,6 +41,7 @@ pub struct TcpSocketClientConnect {
     addr: SocketAddr,
     state: Arc<AtomicUsize>,
     stream: Arc<Mutex<Vec<TcpStream>>>,
+    reconnect: Duration,
     exitSend: Sender<bool>,
     exitRecv: Arc<Mutex<Receiver<bool>>>,
 }
@@ -49,37 +50,38 @@ pub struct TcpSocketClientConnect {
 impl TcpSocketClientConnect {
     ///
     /// Creates a new instance of TcpSocketClientConnect
-    pub fn new(id: impl Into<String>, addr: impl ToSocketAddrs + std::fmt::Debug) -> TcpSocketClientConnect {
+    pub fn new(parent: impl Into<String>, addr: impl ToSocketAddrs + std::fmt::Debug, reconnect: Duration) -> TcpSocketClientConnect {
         let addr = match addr.to_socket_addrs() {
             Ok(mut addrIter) => {
                 match addrIter.next() {
                     Some(addr) => addr,
-                    None => panic!("TcpSocketClientConnect({}).connect | Empty address found: {:?}", id.into(), addr),
+                    None => panic!("TcpSocketClientConnect({}).connect | Empty address found: {:?}", parent.into(), addr),
                 }
             },
-            Err(err) => panic!("TcpSocketClientConnect({}).connect | Address parsing error: \n\t{:?}", id.into(), err),
+            Err(err) => panic!("TcpSocketClientConnect({}).connect | Address parsing error: \n\t{:?}", parent.into(), err),
         };
         let (send, recv) = mpsc::channel();
-        Self { 
-            id: id.into(), 
+        Self {
+            id: format!("{}/TcpSocketClientConnect", parent.into()),
             addr,
             state: Arc::new(AtomicUsize::new(ConnectState::Closed.value())),
             stream: Arc::new(Mutex::new(Vec::new())),
+            reconnect,
             exitSend: send,
             exitRecv: Arc::new(Mutex::new(recv)),
         }
     }
     ///
     /// Opens a TCP connection to a remote host until succeed.
-    pub fn connect(&mut self, closed: bool, cycle: Duration) -> Result<TcpStream, String> {
+    pub fn connect(&mut self, closed: bool) -> Result<TcpStream, String> {
         match ConnectState::from( self.state.load(Ordering::Relaxed) ) {
             ConnectState::Closed => {
-                self.inner_connect(cycle);
+                self.inner_connect(self.reconnect);
             },
             ConnectState::Connected => {
                 if closed {
                     self.state.store(ConnectState::Closed.value(), Ordering::SeqCst);
-                    self.inner_connect(cycle);
+                    self.inner_connect(self.reconnect);
                 }
             },
             _ => {},

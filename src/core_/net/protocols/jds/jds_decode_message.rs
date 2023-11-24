@@ -18,33 +18,33 @@ enum Status {
 /// returns Result<Vec, Err>
 pub struct JdsDecodeMessage {
     id: String,
-    stream: BufReader<TcpStream>,
-    buffer: Vec<u8>,
+    tcpStream: BufReader<TcpStream>,
+    remainder: Vec<u8>,
 }
 ///
 /// 
 impl JdsDecodeMessage {
     ///
     /// Creates new instance of the JdsDecodeMessage
-    pub fn new(parent: impl Into<String>, stream: TcpStream) -> Self {
+    pub fn new(parent: impl Into<String>, tcpStream: TcpStream) -> Self {
         Self {
             id: format!("{}/JdsMessage", parent.into()),
-            stream: BufReader::new(stream),
-            buffer: Vec::new(),
+            tcpStream: BufReader::new(tcpStream),
+            remainder: Vec::new(),
         }
     }
     ///
     /// Reads sequence of bytes from TcpStream
     pub fn read(&mut self) -> ConnectionStatus<Vec<u8>, String> {
-        let mut bytes = self.buffer.clone();
-        match Self::readAll(&self.id, &mut bytes, &mut self.stream) {
+        let mut bytes = self.remainder.clone();
+        match Self::readAll(&self.id, &mut bytes, &mut self.tcpStream) {
             ConnectionStatus::Active(_) => {
-                self.buffer.clear();
+                self.remainder.clear();
                 ConnectionStatus::Active(bytes)
             },
             ConnectionStatus::Closed(err) => {
                 if !bytes.is_empty() {
-                    self.buffer = bytes;
+                    self.remainder = bytes;
                 }
                 ConnectionStatus::Closed(err)
             },
