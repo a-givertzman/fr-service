@@ -50,7 +50,7 @@ impl Node {
 
 #[test]
 fn test_config_tree_valid() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_config_tree_valid");
@@ -223,7 +223,7 @@ enum TypedValue<'a> {
 
 #[test]
 fn test_config_tree_as_type() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_config_tree_valid");

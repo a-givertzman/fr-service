@@ -44,7 +44,7 @@ mod tests {
 
     #[test]
     fn test_bool() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         info!("test_bool");
         let input = initEach(false.toPoint("bool"));
@@ -83,7 +83,7 @@ mod tests {
 
     #[test]
     fn test_int() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         info!("test_int");
         let input = initEach(false.toPoint("bool"));
@@ -119,7 +119,7 @@ mod tests {
 
     #[test]
     fn test_float() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         info!("test_float");
         let input = initEach(false.toPoint("bool"));

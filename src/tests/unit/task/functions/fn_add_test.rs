@@ -41,7 +41,7 @@ mod tests {
 
     #[test]
     fn test_bool() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         info!("test_bool");
         let mut value1Stored = false.toPoint("bool");
@@ -85,7 +85,7 @@ mod tests {
 
     #[test]
     fn test_int() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         info!("test_int");
         let mut value1Stored = 0.toPoint("int");

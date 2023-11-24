@@ -37,7 +37,7 @@ mod tests {
 
     // #[test]
     fn test_point_from_json_bytes() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         println!("");

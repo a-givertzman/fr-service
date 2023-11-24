@@ -51,6 +51,7 @@ impl TcpSendAlive {
                     Ok(mut connect) => {
                         match connect.connect(connectionClosed) {
                             Ok(mut tcpStream) => {
+                                drop(connect);
                                 info!("{}.run | connected: {:?}", selfId, tcpStream);
                                 loop {
                                     match streamWrite.write(&mut tcpStream) {

@@ -60,7 +60,7 @@ mod tests {
     
     #[test]
     fn test_TcpClient_read() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         println!("");

@@ -51,6 +51,7 @@ impl TcpRecvAlive {
                     Ok(mut connect) => {
                         match connect.connect(connectionClosed) {
                             Ok(tcpStream) => {
+                                drop(connect);
                                 info!("{}.run | connected: {:?}", selfId, tcpStream);
                                 let mut jdsStream = JdsDeserialize::new(
                                     selfId.clone(),

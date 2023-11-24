@@ -33,7 +33,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_create_valid() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     initEach();
     println!("test_create_valid");
@@ -62,7 +62,7 @@ fn test_create_valid() {
 
 #[test]
 fn test_create_invalid() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_create_invalid");

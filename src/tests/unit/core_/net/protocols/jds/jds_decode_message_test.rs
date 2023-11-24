@@ -43,7 +43,7 @@ mod tests {
 
     #[test]
     fn test_jds_decode_message() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         println!("");

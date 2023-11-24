@@ -41,7 +41,7 @@ fn initEach(initial: PointType) -> FnInOutRef {
 
 #[test]
 fn test_int() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_int");
     let input = initEach(0.toPoint("int"));
@@ -74,7 +74,7 @@ fn test_int() {
 
 #[test]
 fn test_bool() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_bool");
     let input = initEach(false.toPoint("bool"));
@@ -109,7 +109,7 @@ fn test_bool() {
 
 #[test]
 fn test_float() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_float");
     let input = initEach(0.0.toPoint("float"));
@@ -145,7 +145,7 @@ fn test_float() {
 
 #[test]
 fn test_string() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_string");
     let input = initEach("0".toPoint("string"));

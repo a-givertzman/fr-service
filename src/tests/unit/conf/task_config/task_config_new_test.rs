@@ -35,7 +35,7 @@ mod tests {
     
     #[test]
     fn test_fn_config_new_valid() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         info!("test_task_config_new_valid");

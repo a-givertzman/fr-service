@@ -31,7 +31,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_simple_name() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_bool");
@@ -56,7 +56,7 @@ fn test_simple_name() {
 
 #[test]
 fn test_name_sufix() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_name_sufix");
@@ -91,7 +91,7 @@ fn test_name_sufix() {
 
 #[test]
 fn test_prepare() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_prepare");
