@@ -31,18 +31,22 @@ impl JdsDeserialize {
     /// Reads single point from TcpStream
     pub fn read(&mut self, tcpStream: &mut BufReader<TcpStream>) -> ConnectionStatus<Result<PointType, String>, String> {
         match self.stream.read(tcpStream) {
-            ConnectionStatus::Active(bytes) => {
-                match Self::deserialize(bytes) {
-                    Ok(point) => {
-                        ConnectionStatus::Active(Ok(point))
-                    },
-                    Err(err) => {
-                        if log::max_level() == LevelFilter::Debug {
-                            warn!("{}", err);
+            ConnectionStatus::Active(result) => {
+                match result {
+                    Ok(bytes) => {
+                        match Self::deserialize(&self.id, bytes) {
+                            Ok(point) => {
+                                ConnectionStatus::Active(Ok(point))
+                            },
+                            Err(err) => {
+                                if log::max_level() == LevelFilter::Debug {
+                                    warn!("{}", err);
+                                }
+                                ConnectionStatus::Active(Err(err))
+                            },
                         }
-
-                        ConnectionStatus::Active(Err(err))
                     },
+                    Err(err) => ConnectionStatus::Active(Err(err)),
                 }
             },
             ConnectionStatus::Closed(err) => {
@@ -52,7 +56,7 @@ impl JdsDeserialize {
     }
     ///
     /// 
-    pub fn deserialize(bytes: Vec<u8>) -> Result<PointType, String> {
+    pub fn deserialize(selfId: &str, bytes: Vec<u8>) -> Result<PointType, String> {
         // bytes.is_empty()
         match serde_json::from_slice(&bytes) {
             Ok(value) => {
@@ -115,21 +119,21 @@ impl JdsDeserialize {
                                         )))
                                     },
                                     _ => {
-                                        let message = format!("JdsDeserialize.parse | Unknown point type: {}", type_);
+                                        let message = format!("{}.parse | Unknown point type: {}", selfId, type_);
                                         trace!("{}", message);
                                         Err(message)
                                     }
                                 }
                             },
                             None => {
-                                let message = format!("JdsDeserialize.parse | JSON convertion error: mapping not found in the JSON: {}", value);
+                                let message = format!("{}.parse | JSON convertion error: mapping not found in the JSON: {}", selfId, value);
                                 trace!("{}", message);
                                 Err(message)        
                             },
                         }
                     },
                     None => {
-                        let message = format!("JdsDeserialize.parse | JSON convertion error: mapping not found in the JSON: {}", value);
+                        let message = format!("{}.parse | JSON convertion error: mapping not found in the JSON: {}", selfId, value);
                         trace!("{}", message);
                         Err(message)
                     },

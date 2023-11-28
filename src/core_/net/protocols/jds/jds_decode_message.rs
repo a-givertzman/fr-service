@@ -2,7 +2,7 @@
 
 use std::{net::TcpStream, io::{Read, BufReader, ErrorKind}};
 
-use log::{warn, debug};
+use log::{warn, debug, trace};
 
 use crate::core_::net::{connection_status::ConnectionStatus, protocols::jds::jds_define::JDS_END_OF_TRANSMISSION};
 
@@ -35,12 +35,17 @@ impl JdsDecodeMessage {
     }
     ///
     /// Reads sequence of bytes from TcpStream
-    pub fn read(&mut self, tcpStream: &mut BufReader<TcpStream>) -> ConnectionStatus<Vec<u8>, String> {
+    pub fn read(&mut self, tcpStream: &mut BufReader<TcpStream>) -> ConnectionStatus<Result<Vec<u8>, String>, String> {
         let mut bytes = self.remainder.clone();
         match Self::readAll(&self.id, &mut bytes, tcpStream) {
-            ConnectionStatus::Active(_) => {
-                self.remainder.clear();
-                ConnectionStatus::Active(bytes)
+            ConnectionStatus::Active(result) => {
+                match result {
+                    Ok(_) => {
+                        self.remainder.clear();
+                        ConnectionStatus::Active(Ok(bytes))
+                    },
+                    Err(err) => ConnectionStatus::Active(Err(err)),
+                }
             },
             ConnectionStatus::Closed(err) => {
                 if !bytes.is_empty() {
@@ -78,7 +83,7 @@ impl JdsDecodeMessage {
                 },
             };
         };
-        debug!("{}.readAll | read bytes: {:?}", selfId, bytes);
+        trace!("{}.readAll | read bytes: {:?}", selfId, bytes);
         ConnectionStatus::Active(Err(format!("{}.readAll | tcp stream is empty", selfId)))
     }
     ///
