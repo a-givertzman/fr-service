@@ -8,7 +8,7 @@ use crate::{
     core_::{point::point_type::PointType, net::connection_status::ConnectionStatus, retain_buffer::retain_buffer::RetainBuffer}, 
     conf::api_client_config::ApiClientConfig,
     services::{task::task_cycle::ServiceCycle, api_cient::api_reply::SqlReply, service::Service}, 
-    tcp::tcp_socket_client_connect::TcpClientConnect, 
+    tcp::tcp_client_connect::TcpClientConnect, 
 };
 
 use super::api_query::ApiQuery;
@@ -168,82 +168,77 @@ impl Service for ApiClient {
         let reconnect = if conf.reconnectCycle.is_some() {conf.reconnectCycle.unwrap()} else {Duration::from_secs(3)};
         let _queueMaxLength = conf.recvQueueMaxLength;
         let _h = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
-            let mut isConnected = false;
             let mut buffer = RetainBuffer::new(&selfId, "", Some(conf.recvQueueMaxLength as usize));
             let mut cycle = ServiceCycle::new(cycleInterval);
             let mut connect = TcpClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address, reconnect);
-            let mut stream: Result<TcpStream, String> = Err(format!("{}.run | TcpStream - not connected", selfId));
+            let mut connectionClosed = false;
             'main: loop {
-                if !isConnected {
-                    stream = connect.connect(true);
-                    match &stream {
-                        Ok(stream) => {
-                            match stream.set_read_timeout(Some(Duration::from_secs(10))) {
-                                Ok(_) => {},
-                                Err(err) => {
-                                    debug!("{}.run | TcpStream.set_timeout error: {:?}", selfId, err);
-                                },
-                            };
-                        },
-                        Err(err) => {
-                            debug!("{}.run | TcpStream.connection error: {:?}", selfId, err);
-                        },
-                    }
-                }
-                match &mut stream {
-                    Ok(stream) => {
-                        isConnected = true;
-                        cycle.start();
-                        trace!("{}.run | step...", selfId);
-                        Self::readQueue(&selfId, &recv, &mut buffer);
-                        let mut count = buffer.len();
-                        while count > 0 {
-                            match buffer.first() {
-                                Some(point) => {
-                                    let sql = point.asString().value;
-                                    match Self::send(&selfId, sql, stream) {
-                                        Ok(_) => {
-                                            match Self::readAll(&selfId, stream) {
-                                                ConnectionStatus::Active(bytes) => {
-                                                    let reply = String::from_utf8(bytes).unwrap();
-                                                    debug!("{}.run | API reply: {:?}", selfId, reply);
-                                                    let reply: SqlReply = serde_json::from_str(&reply).unwrap();
-                                                    if reply.hasError() {
-                                                        warn!("{}.run | API reply has error: {:?}", selfId, reply.error);
-                                                        // break;
-                                                    } else {
-                                                        buffer.popFirst();
-                                                    }
-                                                },
-                                                ConnectionStatus::Closed(_) => {
-                                                    isConnected = false;
-                                                    break;
-                                                },
-                                            };
-                                        },
-                                        Err(err) => {
-                                            isConnected = false;
-                                            warn!("{}.run | error sending API: {:?}", selfId, err);
-                                            break;
-                                        },
-                                    }
-                                },
-                                None => {break;},
-                            };
-                            count -=1;
-                        }
-                        if exit.load(Ordering::SeqCst) {
-                            break 'main;
-                        }
-                        trace!("{}.run | step - done ({:?})", selfId, cycle.elapsed());
-                        if cyclic {
-                            cycle.wait();
-                        }
+                match connect.connect() {
+                    Some(mut stream) => {
+                        connectionClosed = false;
+                        match stream.set_read_timeout(Some(Duration::from_secs(10))) {
+                            Ok(_) => {},
+                            Err(err) => {
+                                debug!("{}.run | TcpStream.set_timeout error: {:?}", selfId, err);
+                            },
+                        };
+                        'send: loop {
+                            cycle.start();
+                            trace!("{}.run | step...", selfId);
+                            Self::readQueue(&selfId, &recv, &mut buffer);
+                            let mut count = buffer.len();
+                            while count > 0 {
+                                match buffer.first() {
+                                    Some(point) => {
+                                        let sql = point.asString().value;
+                                        match Self::send(&selfId, sql, &mut stream) {
+                                            Ok(_) => {
+                                                match Self::readAll(&selfId, &mut stream) {
+                                                    ConnectionStatus::Active(bytes) => {
+                                                        let reply = String::from_utf8(bytes).unwrap();
+                                                        debug!("{}.run | API reply: {:?}", selfId, reply);
+                                                        let reply: SqlReply = serde_json::from_str(&reply).unwrap();
+                                                        if reply.hasError() {
+                                                            warn!("{}.run | API reply has error: {:?}", selfId, reply.error);
+                                                        } else {
+                                                            buffer.popFirst();
+                                                        }
+                                                    },
+                                                    ConnectionStatus::Closed(err) => {
+                                                        connectionClosed = true;
+                                                        warn!("{}.run | API read error: {:?}", selfId, err);
+                                                        break 'send;
+                                                    },
+                                                };
+                                            },
+                                            Err(err) => {
+                                                connectionClosed = true;
+                                                warn!("{}.run | API sending error: {:?}", selfId, err);
+                                                break 'send;
+                                            },
+                                        }
+                                    },
+                                    None => {break;},
+                                };
+                                count -=1;
+                            }
+                            if exit.load(Ordering::SeqCst) | connectionClosed {
+                                break 'main;
+                            }
+                            trace!("{}.run | step - done ({:?})", selfId, cycle.elapsed());
+                            if cyclic {
+                                cycle.wait();
+                            }
+                        };
                     },
-                    Err(err) => {
-                        isConnected = false;
+                    None => {
+                        debug!("{}.run | Not connection", selfId);
                     },
                 }
+                if exit.load(Ordering::SeqCst) {
+                    break 'main;
+                }
+                thread::sleep(Duration::from_millis(100));
             };
             info!("{}.run | stopped", selfId);
         }).unwrap();

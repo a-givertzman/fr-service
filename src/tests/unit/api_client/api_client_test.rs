@@ -5,7 +5,7 @@ mod tests {
     use rand::Rng;
     use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::{Read, Write}};
     use crate::{
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::{ToPoint, PointType}},
+        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::{ToPoint, PointType}, testing::test_session::TestSession},
         conf::api_client_config::ApiClientConfig,  
         services::{api_cient::{api_client::ApiClient, api_reply::SqlReply, api_error::ApiError}, service::Service},
     }; 
@@ -58,8 +58,11 @@ mod tests {
         info!("test_ApiClient");
         let mut rnd = rand::thread_rng();
         let path = "./src/tests/unit/api_client/api_client.yaml";
-        let conf = ApiClientConfig::read(path);
-        let addr = conf.address.clone();
+        let mut conf = ApiClientConfig::read(path);
+        // let addr = conf.address.clone();
+        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
+        conf.address = addr.parse().unwrap();
+
         let mut apiClient = ApiClient::new("test ApiClient", conf);
 
         let maxTestDuration = Duration::from_secs(10);

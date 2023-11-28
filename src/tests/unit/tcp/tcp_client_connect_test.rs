@@ -3,7 +3,7 @@
 mod tests {
     use log::{warn, info, debug};
     use std::{sync::{Once, atomic::{AtomicBool, Ordering}, Arc}, time::Duration, thread, net::TcpListener};
-    use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_session::TestSession}, tcp::tcp_socket_client_connect::TcpClientConnect}; 
+    use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_session::TestSession}, tcp::tcp_client_connect::TcpClientConnect}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -76,15 +76,15 @@ mod tests {
         });
         info!("Connecting...");
         for _ in 0..10 {
-            match connect.connect(false) {
-                Ok(tcpStream) => {
+            match connect.connect() {
+                Some(tcpStream) => {
                     ok.store(true, Ordering::SeqCst);
                     info!("connected: {:?}", tcpStream);
                     connect.exit().send(true).unwrap();
                     break;
                 },
-                Err(err) => {
-                    warn!("not connected, error: {:?}", err);
+                None => {
+                    warn!("not connected");
                 },
             };
             thread::sleep(Duration::from_millis(100));
@@ -115,13 +115,13 @@ mod tests {
             debug!("Thread | stopping - ok");
         });
         info!("Connecting...");
-        match connect.connect(false) {
-            Ok(tcpStream) => {
+        match connect.connect() {
+            Some(tcpStream) => {
                 ok.store(true, Ordering::SeqCst);
                 info!("connected: {:?}", tcpStream);
             },
-            Err(err) => {
-                warn!("not connected, error: {:?}", err);
+            None => {
+                warn!("not connected");
             },
         };
         assert!(ok.load(Ordering::SeqCst) == false, "\nresult: connected - {:?}\ntarget: connected - {:?}", ok, false);

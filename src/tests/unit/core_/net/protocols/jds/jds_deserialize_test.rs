@@ -4,7 +4,7 @@ mod tests {
     use chrono::{DateTime, Utc};
     use log::{info, debug, trace, error};
     use rand::Rng;
-    use std::{sync::{Once, atomic::{AtomicUsize, Ordering}, Arc}, time::{Duration, Instant}, net::{TcpStream, TcpListener}, thread, io::Write};
+    use std::{sync::{Once, atomic::{AtomicUsize, Ordering}, Arc}, time::{Duration, Instant}, net::{TcpStream, TcpListener}, thread, io::{Write, BufReader}};
     use crate::core_::{
         types::bool::Bool, 
         debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
@@ -78,13 +78,14 @@ mod tests {
             let time = Instant::now();
             'main: loop {
                 match TcpStream::connect(&addr) {
-                    Ok(stream) => {
+                    Ok(tcpStream) => {
+                        let mut tcpStream = BufReader::new(tcpStream);
                         let mut stream = JdsDeserialize::new(
                             "test", 
-                            JdsDecodeMessage::new("test", stream)
+                            JdsDecodeMessage::new("test")
                         );
                         'read: loop {
-                            match stream.read() {
+                            match stream.read(&mut tcpStream) {
                                 ConnectionStatus::Active(point) => {
                                     match point {
                                         Ok(point) => {

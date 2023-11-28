@@ -7,7 +7,7 @@ use crate::{services::service::Service, core_::point::point_type::PointType};
 mod tests {
     use log::{info, debug, warn};
     use rand::Rng;
-    use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener};
+    use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::BufReader};
     use crate::{
         core_::{
             debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
@@ -167,13 +167,14 @@ mod tests {
                         acceptCount -= 1;
                         match listener.accept() {
                             Ok((mut _socket, addr)) => {
+                                let mut tcpStream = BufReader::new(_socket);
                                 info!("TCP server | accept connection - ok\n\t{:?}", addr);
                                 let mut jds = JdsDeserialize::new(
                                     "test", 
-                                    JdsDecodeMessage::new("test", _socket),
+                                    JdsDecodeMessage::new("test"),
                                 );
                                 for _ in 0..count {
-                                    match jds.read() {
+                                    match jds.read(&mut tcpStream) {
                                         ConnectionStatus::Active(point) => {
                                             match point {
                                                 Ok(point) => {

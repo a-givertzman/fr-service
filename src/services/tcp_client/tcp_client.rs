@@ -9,7 +9,7 @@ use crate::{
     conf::tcp_client_config::TcpClientConfig,
     services::{service::Service, services::Services}, 
     tcp::{
-        tcp_socket_client_connect::TcpClientConnect, 
+        tcp_client_connect::TcpClientConnect, 
         tcp_stream_write::TcpStreamWrite, 
         tcp_send_alive::TcpSendAlive, 
         tcp_recv_alive::TcpRecvAlive
@@ -31,6 +31,7 @@ pub struct TcpClient {
     services: Arc<Mutex<Services>>,
     tcpRecvAlive: Option<Arc<Mutex<TcpRecvAlive>>>,
     tcpSendAlive: Option<Arc<Mutex<TcpSendAlive>>>,
+    exit: Arc<AtomicBool>,
 }
 ///
 /// 
@@ -48,6 +49,7 @@ impl TcpClient {
             services,
             tcpRecvAlive: None,
             tcpSendAlive: None,
+            exit: Arc::new(AtomicBool::new(false)),
         }
     }
 }
@@ -68,6 +70,7 @@ impl Service for TcpClient {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let conf = self.conf.clone();
+        let exit = self.exit.clone();
         info!("{}.run | in queue name: {:?}", self.id, conf.recvQueue);
         info!("{}.run | out queue name: {:?}", self.id, conf.sendQueue);
         let recvQueueParts: Vec<&str> = conf.sendQueue.split(".").collect();
@@ -87,19 +90,17 @@ impl Service for TcpClient {
         // };
         let reconnect = if conf.reconnectCycle.is_some() {conf.reconnectCycle.unwrap()} else {Duration::from_secs(3)};
         let _queueMaxLength = conf.recvQueueMaxLength;
-        let connect = Arc::new(Mutex::new(TcpClientConnect::new(
+        let mut tcpClientConnect = TcpClientConnect::new(
             selfId.clone(), 
             conf.address, 
             reconnect,
-        )));
+        );
         let tcpRecvAlive = TcpRecvAlive::new(
             &selfId,
-            connect.clone(),
             outSend,
         );
         let tcpSendAlive = TcpSendAlive::new(
             &selfId,
-            connect,
             Arc::new(Mutex::new(TcpStreamWrite::new(
                 &selfId,
                 buffered,
@@ -113,13 +114,26 @@ impl Service for TcpClient {
                 )),
             ))),
         );
-        tcpRecvAlive.run();
-        tcpSendAlive.run();
+        loop {
+            match tcpClientConnect.connect() {
+                Some(tcpStream) => {
+                    let hR = tcpRecvAlive.run(tcpStream.try_clone().unwrap());
+                    let hW = tcpSendAlive.run(tcpStream);
+                    hR.join().unwrap();
+                    hW.join().unwrap();
+                },
+                None => {},
+            };
+            if exit.load(Ordering::SeqCst) {
+                break;
+            }
+        }
         info!("{}.run | started", self.id);
     }
     ///
     /// 
     fn exit(&self) {
+        self.exit.store(true, Ordering::SeqCst);
         match &self.tcpRecvAlive {
             Some(tcpRecvAlive) => {
                 tcpRecvAlive.lock().unwrap().exit()

@@ -29,8 +29,8 @@ impl JdsDeserialize {
     }
     ///
     /// Reads single point from TcpStream
-    pub fn read(&mut self) -> ConnectionStatus<Result<PointType, String>, String> {
-        match self.stream.read() {
+    pub fn read(&mut self, tcpStream: &mut BufReader<TcpStream>) -> ConnectionStatus<Result<PointType, String>, String> {
+        match self.stream.read(tcpStream) {
             ConnectionStatus::Active(bytes) => {
                 match Self::deserialize(bytes) {
                     Ok(point) => {
