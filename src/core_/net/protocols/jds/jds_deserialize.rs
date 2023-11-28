@@ -57,7 +57,6 @@ impl JdsDeserialize {
     ///
     /// 
     pub fn deserialize(selfId: &str, bytes: Vec<u8>) -> Result<PointType, String> {
-        // bytes.is_empty()
         match serde_json::from_slice(&bytes) {
             Ok(value) => {
                 let value: serde_json::Value = value;
