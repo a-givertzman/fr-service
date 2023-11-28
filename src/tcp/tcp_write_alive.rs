@@ -1,17 +1,18 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread::{JoinHandle, self}, time::Duration, net::TcpStream};
+use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{JoinHandle, self}, net::TcpStream, time::Duration};
 
 use log::{warn, info};
 
 use crate::{
     core_::net::connection_status::ConnectionStatus,
-    tcp::{tcp_client_connect::TcpClientConnect, tcp_stream_write::TcpStreamWrite}, services::task::task_cycle::ServiceCycle, 
+    tcp::tcp_stream_write::TcpStreamWrite, services::task::task_cycle::ServiceCycle, 
 };
 
 
 pub struct TcpWriteAlive {
     id: String,
+    cycle: Duration,
     streamWrite: Arc<Mutex<TcpStreamWrite>>,
     exit: Arc<AtomicBool>,
 }
@@ -19,9 +20,10 @@ impl TcpWriteAlive {
     ///
     /// Creates new instance of [TcpWriteAlive]
     /// - [parent] - the ID if the parent entity
-    pub fn new(parent: impl Into<String>, streamWrite: Arc<Mutex<TcpStreamWrite>>) -> Self {
+    pub fn new(parent: impl Into<String>, cycle: Duration, streamWrite: Arc<Mutex<TcpStreamWrite>>) -> Self {
         Self {
             id: format!("{}/TcpWriteAlive", parent.into()),
+            cycle,
             streamWrite,
             exit: Arc::new(AtomicBool::new(false)),
         }
@@ -32,8 +34,7 @@ impl TcpWriteAlive {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
-        let cycleInterval = Duration::from_millis(1000);
-        let mut cycle = ServiceCycle::new(cycleInterval);
+        let mut cycle = ServiceCycle::new(self.cycle);
         let streamWrite = self.streamWrite.clone();
         info!("{}.run | Preparing thread...", self.id);
         let handle = thread::Builder::new().name(format!("{} - Write", selfId.clone())).spawn(move || {

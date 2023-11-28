@@ -102,6 +102,7 @@ impl Service for TcpClient {
         );
         let tcpSendAlive = TcpWriteAlive::new(
             &selfId,
+            Duration::from_millis(10),
             Arc::new(Mutex::new(TcpStreamWrite::new(
                 &selfId,
                 buffered,

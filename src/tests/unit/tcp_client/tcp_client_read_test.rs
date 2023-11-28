@@ -59,7 +59,7 @@ mod tests {
     
     #[test]
     fn test_TcpClient_read() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
@@ -78,7 +78,7 @@ mod tests {
         services.lock().unwrap().insert(multiQueueServiceId, multiQueue.clone());
 
         let maxTestDuration = Duration::from_secs(10);
-        let iterations = 1;
+        let iterations = 100;
         let testData = vec![
             Value::Int(7),
             Value::Float(1.3),
