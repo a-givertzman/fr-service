@@ -17,7 +17,7 @@ use super::conf_keywd::ConfKind;
 ///     address: 127.0.0.1:8080
 ///     in queue link:
 ///         max-length: 10000
-///     out queue: MultiQueuue.queue
+///     out queue: MultiQueue.queue
 ///                         ...
 #[derive(Debug, PartialEq, Clone)]
 pub struct TcpClientConfig {
@@ -41,7 +41,7 @@ impl TcpClientConfig {
     ///     address: 127.0.0.1:8080
     ///     in queue link:
     ///         max-length: 10000
-    ///     out queue: MultiQueuue.queue
+    ///     out queue: MultiQueue.queue
     ///                     ...
     pub fn new(confTree: &mut ConfTree) -> TcpClientConfig {
         println!("\n");

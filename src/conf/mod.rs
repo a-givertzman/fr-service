@@ -8,3 +8,4 @@ pub mod conf_duration;
 pub mod api_client_config;
 pub mod conf_keywd;
 pub mod tcp_client_config;
+pub mod multi_queue_config;

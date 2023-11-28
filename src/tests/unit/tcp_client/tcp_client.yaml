@@ -4,4 +4,4 @@ service TcpClient:
     address: 127.0.0.1:8080
     in queue link:
         max-length: 10000
-    out queue: MultiQueuue.queue
+    out queue: MultiQueue.queue

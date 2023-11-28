@@ -83,7 +83,7 @@ mod tests {
         let services = Arc::new(Mutex::new(Services::new("test")));
         let multiQueue = Arc::new(Mutex::new(MockMultiqueue::new()));
         let tcpClient = Arc::new(Mutex::new(TcpClient::new("test TcpClient", conf, services.clone())));
-        let multiQueueServiceId = "MultiQueuue";
+        let multiQueueServiceId = "MultiQueue";
         let tcpClientServiceId = "TcpClient";
         services.lock().unwrap().insert(tcpClientServiceId, tcpClient.clone());
         services.lock().unwrap().insert(multiQueueServiceId, multiQueue.clone());

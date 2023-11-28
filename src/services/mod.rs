@@ -5,3 +5,4 @@ pub mod queues;
 pub mod task;
 pub mod service;
 pub mod services;
+pub mod multi_queue;
