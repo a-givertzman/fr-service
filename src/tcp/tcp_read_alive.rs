@@ -14,13 +14,14 @@ pub struct TcpReadAlive {
     id: String,
     jdsStream: Arc<Mutex<JdsDeserialize>>,
     send: Arc<Mutex<Sender<PointType>>>,
+    cycle: Duration,
     exit: Arc<AtomicBool>,
 }
 impl TcpReadAlive {
     ///
     /// Creates new instance of [TcpReadAlive]
     /// - [parent] - the ID if the parent entity
-    pub fn new(parent: impl Into<String>, send: Arc<Mutex<Sender<PointType>>>) -> Self {
+    pub fn new(parent: impl Into<String>, send: Arc<Mutex<Sender<PointType>>>, cycle: Duration) -> Self {
         let selfId = format!("{}/TcpReadAlive", parent.into());
         Self {
             id: selfId.clone(),
@@ -31,6 +32,7 @@ impl TcpReadAlive {
                 ),
             ))),
             send,
+            cycle,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -40,8 +42,7 @@ impl TcpReadAlive {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
-        let cycleInterval = Duration::from_millis(1000);
-        let mut cycle = ServiceCycle::new(cycleInterval);
+        let mut cycle = ServiceCycle::new(self.cycle);
         let send = self.send.clone();
         let jdsStream = self.jdsStream.clone();
         info!("{}.run | Preparing thread...", self.id);

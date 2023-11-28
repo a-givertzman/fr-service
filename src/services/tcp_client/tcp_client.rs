@@ -98,6 +98,7 @@ impl Service for TcpClient {
         let tcpRecvAlive = TcpReadAlive::new(
             &selfId,
             outSend,
+            Duration::from_millis(10),
         );
         let tcpSendAlive = TcpWriteAlive::new(
             &selfId,
