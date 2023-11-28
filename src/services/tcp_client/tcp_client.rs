@@ -95,12 +95,12 @@ impl Service for TcpClient {
             conf.address, 
             reconnect,
         );
-        let tcpRecvAlive = TcpReadAlive::new(
+        let tcpReadAlive = TcpReadAlive::new(
             &selfId,
             outSend,
             Duration::from_millis(10),
         );
-        let tcpSendAlive = TcpWriteAlive::new(
+        let tcpWriteAlive = TcpWriteAlive::new(
             &selfId,
             Duration::from_millis(10),
             Arc::new(Mutex::new(TcpStreamWrite::new(
@@ -122,8 +122,8 @@ impl Service for TcpClient {
             loop {
                 match tcpClientConnect.connect() {
                     Some(tcpStream) => {
-                        let hR = tcpRecvAlive.run(tcpStream.try_clone().unwrap());
-                        let hW = tcpSendAlive.run(tcpStream);
+                        let hR = tcpReadAlive.run(tcpStream.try_clone().unwrap());
+                        let hW = tcpWriteAlive.run(tcpStream);
                         hR.join().unwrap();
                         hW.join().unwrap();
                     },

@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{net::TcpStream, io::Write};
+use std::{net::TcpStream, io::{Write, Read}};
 
 use log::{warn, LevelFilter, debug, trace};
 
@@ -37,7 +37,7 @@ impl TcpStreamWrite {
     }
     ///
     /// 
-    pub fn write(&mut self, tcpStream: &mut TcpStream) -> ConnectionStatus<Result<usize, String>, String> {
+    pub fn write(&mut self, mut tcpStream: impl Write) -> ConnectionStatus<Result<usize, String>, String> {
         match self.stream.read() {
             Ok(bytes) => {
                 while let Some(bytes) = self.buffer.first() {
