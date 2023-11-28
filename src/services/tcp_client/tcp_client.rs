@@ -114,20 +114,24 @@ impl Service for TcpClient {
                 )),
             ))),
         );
-        loop {
-            match tcpClientConnect.connect() {
-                Some(tcpStream) => {
-                    let hR = tcpRecvAlive.run(tcpStream.try_clone().unwrap());
-                    let hW = tcpSendAlive.run(tcpStream);
-                    hR.join().unwrap();
-                    hW.join().unwrap();
-                },
-                None => {},
-            };
-            if exit.load(Ordering::SeqCst) {
-                break;
+        info!("{}.run | Preparing thread...", selfId);
+        let _handle = thread::Builder::new().name(format!("{} - Read", selfId.clone())).spawn(move || {
+            info!("{}.run | Preparing thread - ok", selfId);
+            loop {
+                match tcpClientConnect.connect() {
+                    Some(tcpStream) => {
+                        let hR = tcpRecvAlive.run(tcpStream.try_clone().unwrap());
+                        let hW = tcpSendAlive.run(tcpStream);
+                        hR.join().unwrap();
+                        hW.join().unwrap();
+                    },
+                    None => {},
+                };
+                if exit.load(Ordering::SeqCst) {
+                    break;
+                }
             }
-        }
+        }).unwrap();
         info!("{}.run | started", self.id);
     }
     ///
