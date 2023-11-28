@@ -6,7 +6,8 @@ mod tests {
     use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, env, time::Instant};
     
     use crate::{
-        core_::{conf::task_config::TaskConfig, debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::PointType}, 
+        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::PointType}, 
+        conf::task_config::TaskConfig, 
         services::{task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}, queues::queues::Queues},
     };
     
@@ -36,7 +37,7 @@ mod tests {
 
     #[test]
     fn test_task_struct() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         info!("test_task_struct");
@@ -62,7 +63,7 @@ mod tests {
         let mut producer = TaskTestProducer::new(iterations, vec![send]);
         producer.run();
     
-        let mut task = Task::new(config, queues);
+        let mut task = Task::new("test", config, queues);
         trace!("task tuning...");
         let time = Instant::now();
         task.run();
@@ -84,7 +85,7 @@ mod tests {
 
     // #[test]
     fn test_task_tranfer() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         info!("test_task_transfer");
@@ -110,7 +111,7 @@ mod tests {
         let mut producer = TaskTestProducer::new(iterations, vec![send]);
         producer.run();
     
-        let mut task = Task::new(config, queues);
+        let mut task = Task::new("test", config, queues);
         trace!("task tuning...");
         let time = Instant::now();
         task.run();

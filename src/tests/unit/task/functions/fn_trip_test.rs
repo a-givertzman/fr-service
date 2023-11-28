@@ -35,7 +35,7 @@ fn initEach(initial: PointType) -> FnInOutRef {
 
 #[test]
 fn test_single_int() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_single");
 
@@ -76,7 +76,7 @@ fn test_single_int() {
 
 #[test]
 fn test_multiple_int() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_single");
 
@@ -121,7 +121,7 @@ fn test_multiple_int() {
 
 #[test]
 fn test_multiple_float() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_single");
 

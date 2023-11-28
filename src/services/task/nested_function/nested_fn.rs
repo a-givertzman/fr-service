@@ -5,8 +5,9 @@ use std::{rc::Rc, cell::RefCell, str::FromStr, sync::mpsc::Sender};
 use crate::{
     core_::{
         point::point_type::{PointType, ToPoint},
-        conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType}, types::fn_in_out_ref::FnInOutRef, 
+        types::fn_in_out_ref::FnInOutRef, 
     }, 
+    conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType}, 
     services::{task::{nested_function::{metric_builder::MetricBuilder, fn_var::FnVar}, task_nodes::TaskNodes}, queues::queues::Queues}
 };
 

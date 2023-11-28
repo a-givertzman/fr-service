@@ -3,7 +3,7 @@ use std::{rc::Rc, cell::RefCell};
 use log::debug;
 
 use crate::{
-    core_::conf::fn_config::FnConfig, 
+    conf::fn_config::FnConfig, 
     services::{task::{nested_function::metric_select::MetricSelect, task_nodes::TaskNodes}, queues::queues::Queues},
 };
 

@@ -2,8 +2,8 @@
 
 use std::str::FromStr;
 
-use chrono::DateTime;
-use log::trace;
+use chrono::{DateTime, Utc};
+use log::{trace, warn};
 use regex::RegexBuilder;
 
 use crate::core_::types::bool::Bool;
@@ -50,7 +50,11 @@ pub enum PointType {
     Float(Point<f64>),
     String(Point<String>)
 }
+///
+/// 
 impl PointType {
+    ///
+    /// 
     pub fn new<T: ToPoint>(name: &str, value: T) -> Self {
         value.toPoint(name)
     }
@@ -103,7 +107,8 @@ impl PointType {
         }
     }
 }
-
+///
+/// 
 impl FromStr for PointType {
     type Err = String;
     fn from_str(input: &str) -> Result<PointType, String> {

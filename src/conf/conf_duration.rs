@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use std::{str::FromStr, time::Duration};
-use log::{trace, warn};
+use log::trace;
 use regex::RegexBuilder;
 use serde::Deserialize;
 

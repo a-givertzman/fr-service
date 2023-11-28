@@ -4,7 +4,10 @@ use indexmap::IndexMap;
 use log::{debug, info};
 use std::sync::Once;
 
-use crate::core_::{debug::debug_session::*, conf::conf_tree::ConfTree};
+use crate::{
+    core_::debug::debug_session::*,
+    conf::conf_tree::ConfTree,
+};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -47,7 +50,7 @@ impl Node {
 
 #[test]
 fn test_config_tree_valid() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_config_tree_valid");
@@ -220,7 +223,7 @@ enum TypedValue<'a> {
 
 #[test]
 fn test_config_tree_as_type() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_config_tree_valid");

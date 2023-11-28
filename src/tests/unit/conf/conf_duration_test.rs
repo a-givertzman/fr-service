@@ -3,7 +3,10 @@
 use log::{debug, info};
 use std::{sync::Once, str::FromStr};
 
-use crate::core_::{conf::{fn_conf_keywd::{FnConfKeywd, FnConfKeywdValue, FnConfPointType}, conf_duration::{ConfDuration, ConfDurationUnit}}, debug::debug_session::*};
+use crate::{
+    core_::debug::debug_session::*,
+    conf::{fn_conf_keywd::FnConfKeywd, conf_duration::{ConfDuration, ConfDurationUnit}}, 
+};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -30,7 +33,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_create_valid() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     initEach();
     println!("test_create_valid");
@@ -59,7 +62,7 @@ fn test_create_valid() {
 
 #[test]
 fn test_create_invalid() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_create_invalid");

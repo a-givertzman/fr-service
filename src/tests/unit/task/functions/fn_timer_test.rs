@@ -41,7 +41,7 @@ fn initEach(initial: PointType) -> FnInOutRef {
 
 #[test]
 fn test_elapsed_repeat_false() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_elapsed_repeat_false");
     let mut input = initEach(false.toPoint("bool"));
@@ -104,7 +104,7 @@ fn test_elapsed_repeat_false() {
 
 #[test]
 fn test_total_elapsed_repeat() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_total_elapsed_repeat");
     let mut input = initEach(false.toPoint("bool"));
@@ -162,7 +162,7 @@ fn test_total_elapsed_repeat() {
 
 #[test]
 fn test_total_elapsed_repeat_reset() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_total_elapsed_repeat_reset");
     let mut input = initEach(false.toPoint("bool"));
@@ -228,7 +228,7 @@ fn test_total_elapsed_repeat_reset() {
 
 #[test]
 fn test_initial_repeat() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_initial_repeat");
     let initial = 123.1234;

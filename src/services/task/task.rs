@@ -9,7 +9,7 @@ use std::{
 use log::{info, debug, warn, trace};
 
 use crate::services::task::task_nodes::TaskNodes;
-use crate::core_::conf::task_config::TaskConfig;
+use crate::conf::task_config::TaskConfig;
 use crate::services::queues::queues::Queues;
 use crate::services::task::task_cycle::ServiceCycle;
 
@@ -19,7 +19,6 @@ use crate::services::task::task_cycle::ServiceCycle;
 ///  - has some number of functions / variables / metrics or additional entities
 pub struct Task {
     id: String,
-    cycle: Option<Duration>,
     conf: TaskConfig,
     queues: Vec<Queues>,
     exit: Arc<AtomicBool>,
@@ -28,59 +27,58 @@ pub struct Task {
 /// 
 impl Task {
     ///
-    /// 
-    pub fn new(cfg: TaskConfig, queues: Queues) -> Task {
+    /// Creates new instance of [Task]
+    /// - [parent] - the ID if the parent entity
+    pub fn new(parent: impl Into<String>, conf: TaskConfig, queues: Queues) -> Task {
         Task {
-            id: cfg.name.clone(),
-            cycle: cfg.cycle.clone(),
+            id: format!("{}/Task({})", parent.into(), conf.name),
             queues: vec![queues],
-            conf: cfg,
+            conf,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
     ///
     /// Tasck main execution loop spawned in the separate thread
     pub fn run(&mut self) {
-        info!("Task({}).run | starting...", self.id);
-        let selfName = self.id.clone();
+        info!("{}.run | starting...", self.id);
+        let selfId = self.id.clone();
         let exit = self.exit.clone();
-        let cycleInterval = self.cycle;
-        let (cyclic, cycleInterval) = match cycleInterval {
+        let conf = self.conf.clone();
+        let mut queues = self.queues.pop().unwrap();
+        let (cyclic, cycleInterval) = match conf.cycle {
             Some(interval) => (interval > Duration::ZERO, interval),
             None => (false, Duration::ZERO),
         };
-        let conf = self.conf.clone();
-        let mut queues = self.queues.pop().unwrap();
-        let recvQueue = queues.getRecvQueue(&self.conf.recvQueue);
-        let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
+        let recvQueue = queues.getRecvQueue(&conf.recvQueue);
+        let _h = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
             let mut cycle = ServiceCycle::new(cycleInterval);
-            let mut taskNodes = TaskNodes::new(&selfName);
+            let mut taskNodes = TaskNodes::new(&selfId);
             taskNodes.buildNodes(conf, &mut queues);
-            debug!("Task({}).run | taskNodes: {:?}", selfName, taskNodes);
+            debug!("{}.run | taskNodes: {:?}", selfId, taskNodes);
             'main: loop {
                 cycle.start();
-                trace!("Task({}).run | calculation step...", selfName);
+                trace!("{}.run | calculation step...", selfId);
                 match recvQueue.recv() {
                     Ok(point) => {
-                        debug!("Task({}).run | point: {:?}", selfName, &point);
+                        debug!("{}.run | point: {:?}", selfId, &point);
                         taskNodes.eval(point);
                     },
                     Err(err) => {
-                        warn!("Task({}).run | Error receiving from queue: {:?}", selfName, err);
+                        warn!("{}.run | Error receiving from queue: {:?}", selfId, err);
                         break 'main;
                     },
                 };
                 if exit.load(Ordering::SeqCst) {
                     break 'main;
                 }
-                trace!("Task({}).run | calculation step - done ({:?})", selfName, cycle.elapsed());
+                trace!("{}.run | calculation step - done ({:?})", selfId, cycle.elapsed());
                 if cyclic {
                     cycle.wait();
                 }
             };
-            info!("Task({}).run | stopped", selfName);
+            info!("{}.run | stopped", selfId);
         }).unwrap();
-        info!("Task({}).run | started", self.id);
+        info!("{}.run | started", self.id);
         // h.join().unwrap();
     }
     ///

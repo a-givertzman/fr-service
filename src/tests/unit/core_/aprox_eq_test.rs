@@ -29,7 +29,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_f32() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_f32");
@@ -55,7 +55,7 @@ fn test_f32() {
 
 #[test]
 fn test_f64() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_f64");

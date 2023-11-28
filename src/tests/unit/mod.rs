@@ -7,3 +7,5 @@ pub mod task;
 pub mod api_client;
 
 pub mod tcp;
+
+pub mod tcp_client;

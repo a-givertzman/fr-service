@@ -30,7 +30,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_api_query() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     initEach();
     println!("");

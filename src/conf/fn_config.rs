@@ -1,10 +1,10 @@
 #![allow(non_snake_case)]
 
 use indexmap::IndexMap;
-use log::{trace, debug, error};
+use log::{trace, debug};
 use std::{fs, str::FromStr};
 
-use crate::core_::{conf::fn_conf_keywd::FnConfKeywd, conf::conf_tree::ConfTree};
+use crate::{conf::fn_conf_keywd::FnConfKeywd, conf::conf_tree::ConfTree};
 
 use super::{fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType};
 

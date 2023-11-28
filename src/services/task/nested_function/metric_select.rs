@@ -8,10 +8,10 @@ use log::{debug, trace};
 use crate::{
     core_::{
         types::fn_in_out_ref::FnInOutRef,
-        conf::fn_config::FnConfig, 
         point::{point_type::{PointType, ToPoint}, point::Point}, 
         format::format::Format, 
     }, 
+    conf::fn_config::FnConfig, 
     services::{task::task_nodes::TaskNodes, queues::queues::Queues},
 };
 

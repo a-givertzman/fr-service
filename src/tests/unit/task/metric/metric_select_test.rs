@@ -38,7 +38,7 @@ fn initEach(conf: &mut FnConfig, taskNodes: &mut TaskNodes) -> FnInOutRef {
 
 #[test]
 fn test_int() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_int");
     let path = "./src/tests/unit/task/metric/metric_select_int_test.yaml";
@@ -108,7 +108,7 @@ fn test_int() {
 
 #[test]
 fn test_float() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_float");
     let path = "./src/tests/unit/task/metric/metric_select_float_test.yaml";

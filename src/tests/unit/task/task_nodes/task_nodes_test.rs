@@ -5,9 +5,10 @@ use log::{info, debug, trace};
 use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, collections::HashMap};
 use crate::{
     core_::{
-        debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-        conf::task_config::TaskConfig, point::point_type::{ToPoint, PointType},
-    }, 
+        debug::debug_session::{DebugSession, LogLevel, Backtrace},
+        point::point_type::{ToPoint, PointType},
+    },
+    conf::task_config::TaskConfig, 
     services::{task::{task_nodes::TaskNodes, nested_function::{fn_kind::FnKind, fn_count::{self}, fn_ge}}, queues::queues::Queues},
 }; 
 
@@ -36,7 +37,7 @@ fn initEach() {
 
 #[test]
 fn test_task_nodes() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     initEach();
     println!("");

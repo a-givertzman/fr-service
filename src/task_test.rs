@@ -2,6 +2,7 @@
 // #[cfg(test)]
 // mod tests;
 mod core_;
+mod conf;
 mod services;
 mod tcp;
 
@@ -9,7 +10,11 @@ use log::{trace, info, debug};
 use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, env, time::{Instant, Duration}, fs, thread};
 
 
-use crate::{core_::{conf::task_config::TaskConfig, debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::PointType}, services::{task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}, queues::queues::Queues}};
+use crate::{
+    core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::PointType}, 
+    conf::task_config::TaskConfig, 
+    services::{task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}, queues::queues::Queues},
+};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -74,7 +79,7 @@ fn main() {
     producer2.run();
     producer3.run();
 
-    let mut task = Task::new(config, queues);
+    let mut task = Task::new("test", config, queues);
     info!("task runing...");
     let time = Instant::now();
     task.run();

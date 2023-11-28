@@ -38,7 +38,7 @@ fn initEach(initial: PointType) -> FnInOutRef {
 
 #[test]
 fn test_single() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_single");
     let input = initEach(false.toPoint("bool"));
@@ -77,7 +77,7 @@ fn test_single() {
 
 #[test]
 fn test_multiple() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_multiple");
     let input = initEach(false.toPoint("bool"));
@@ -115,7 +115,7 @@ fn test_multiple() {
 
 #[test]
 fn test_multiple_reset() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_multiple_reset");
     let input = initEach(false.toPoint("bool"));

@@ -4,7 +4,11 @@ mod tests {
     use log::{info, debug, error};
     use rand::Rng;
     use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::{Read, Write}};
-    use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, conf::api_client_config::ApiClientConfig, point::point_type::{ToPoint, PointType}}, services::api_cient::{api_client::ApiClient, api_reply::SqlReply, api_error::ApiError}}; 
+    use crate::{
+        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::{ToPoint, PointType}, testing::test_session::TestSession},
+        conf::api_client_config::ApiClientConfig,  
+        services::{api_cient::{api_client::ApiClient, api_reply::SqlReply, api_error::ApiError}, service::Service},
+    }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -47,16 +51,19 @@ mod tests {
     
     #[test]
     fn test_ApiClient() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
         info!("test_ApiClient");
         let mut rnd = rand::thread_rng();
         let path = "./src/tests/unit/api_client/api_client.yaml";
-        let conf = ApiClientConfig::read(path);
-        let addr = conf.address.clone();
-        let apiClient = Arc::new(Mutex::new(ApiClient::new("test ApiClient", conf)));
+        let mut conf = ApiClientConfig::read(path);
+        // let addr = conf.address.clone();
+        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
+        conf.address = addr.parse().unwrap();
+
+        let mut apiClient = ApiClient::new("test ApiClient", conf);
 
         let maxTestDuration = Duration::from_secs(10);
         let count = 300;
@@ -165,9 +172,9 @@ mod tests {
 
 
 
-        apiClient.lock().unwrap().run();
+        apiClient.run();
         let timer = Instant::now();
-        let send = apiClient.lock().unwrap().getLink("api-link");
+        let send = apiClient.getLink("api-link");
         for _ in 0..count {
             let index = rnd.gen_range(0..testDataLen);
             let value = testData.get(index).unwrap();
@@ -197,7 +204,5 @@ mod tests {
             debug!("\nresult({}): {:?}\ntarget({}): {:?}", received.len(), result, sent.len(), target);
             assert!(result == &target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
-        // assert!(false)
-        // assert!(result == target, "result: {:?}\ntarget: {:?}", result, target);
     }
 }

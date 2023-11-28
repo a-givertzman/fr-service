@@ -3,7 +3,7 @@
 mod tests {
     use log::{warn, info, debug};
     use std::{sync::{Once, atomic::{AtomicBool, Ordering}, Arc}, time::Duration, thread, net::TcpListener};
-    use crate::{core_::debug::debug_session::{DebugSession, LogLevel, Backtrace}, tcp::tcp_socket_client_connect::TcpSocketClientConnect}; 
+    use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_session::TestSession}, tcp::tcp_client_connect::TcpClientConnect}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -29,21 +29,22 @@ mod tests {
     
     #[test]
     fn test_success() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
         info!("success connection");
-        let addr = "127.0.0.1:9999";
+        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
         let timeout = Duration::from_millis(3500); // ms
-        let mut connect = TcpSocketClientConnect::new("test", addr);
+        let mut connect = TcpClientConnect::new("test", &addr, Duration::from_millis(500));
 
         let ok = Arc::new(AtomicBool::new(false));
         let okRef = ok.clone();
 
-        let connectExit = connect.exit();
+        // let connectExit = connect.exit();
         thread::spawn(move || {
             info!("Preparing test TCP server...");
+            thread::sleep(Duration::from_millis(300));
             match TcpListener::bind(addr) {
                 Ok(listener) => {
                     info!("Preparing test TCP server - ok");
@@ -57,13 +58,12 @@ mod tests {
                     }
                 },
                 Err(err) => {
-                    connectExit.send(true).unwrap();
+                    // connectExit.send(true);
                     okRef.store(false, Ordering::SeqCst);
                     panic!("Preparing test TCP server - error: {:?}", err);
                 },
             };
         });
-
         let connectExit = connect.exit();
         let okRef = ok.clone();
         thread::spawn(move || {
@@ -75,23 +75,33 @@ mod tests {
             connectExit.send(true).unwrap();
         });
         info!("Connecting...");
-        let tcpStream = connect.connect(Duration::from_millis(1000));
-        if tcpStream.is_some() {
-            ok.store(true, Ordering::SeqCst);
-            info!("connected: {:?}", tcpStream);
+        for _ in 0..10 {
+            match connect.connect() {
+                Some(tcpStream) => {
+                    ok.store(true, Ordering::SeqCst);
+                    info!("connected: {:?}", tcpStream);
+                    connect.exit().send(true).unwrap();
+                    break;
+                },
+                None => {
+                    warn!("not connected");
+                },
+            };
+            thread::sleep(Duration::from_millis(100));
         }
-        assert!(ok.load(Ordering::SeqCst) == true, "\nresult: {:?}\ntarget: {:?}", ok, true);
+        assert!(ok.load(Ordering::SeqCst) == true, "\nresult: connected - {:?}\ntarget: connected - {:?}", ok, true);
     }
 
     #[test]
     fn test_failure() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
         info!("failure connection");
         let timeout = Duration::from_millis(1500); // ms
-        let mut connect = TcpSocketClientConnect::new("test", "127.0.0.1:9999");
+        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
+        let mut connect = TcpClientConnect::new("test", &addr, Duration::from_millis(500));
         let connectExit = connect.exit();
         let ok = Arc::new(AtomicBool::new(false));
         let okRef = ok.clone();
@@ -100,16 +110,21 @@ mod tests {
             thread::sleep(timeout);
             okRef.store(false, Ordering::SeqCst);
             warn!("Tcp socket was not connected in {:?}", timeout);
-            debug!("stopping...");
+            debug!("Thread | stopping...");
             connectExit.send(true).unwrap();
+            debug!("Thread | stopping - ok");
         });
         info!("Connecting...");
-        let tcpStream = connect.connect(Duration::from_millis(1000));
-        if tcpStream.is_some() {
-            ok.store(true, Ordering::SeqCst);
-            info!("connected: {:?}", tcpStream);
-        }
-        assert!(ok.load(Ordering::SeqCst) == false, "\nresult: {:?}\ntarget: {:?}", ok, false);
+        match connect.connect() {
+            Some(tcpStream) => {
+                ok.store(true, Ordering::SeqCst);
+                info!("connected: {:?}", tcpStream);
+            },
+            None => {
+                warn!("not connected");
+            },
+        };
+        assert!(ok.load(Ordering::SeqCst) == false, "\nresult: connected - {:?}\ntarget: connected - {:?}", ok, false);
     }
 
 }

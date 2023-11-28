@@ -6,8 +6,8 @@ mod tests {
     use log::{trace, info};
     use std::{sync::Once, env, time::Duration};
     
-    use crate::core_::{
-        debug::debug_session::*, 
+    use crate::{
+        core_::debug::debug_session::*, 
         conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType, task_config::TaskConfig}, 
     };
     
@@ -35,7 +35,7 @@ mod tests {
     
     #[test]
     fn test_fn_config_read_valid() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         info!("test_task_config_read_valid");

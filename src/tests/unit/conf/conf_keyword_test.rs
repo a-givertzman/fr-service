@@ -4,7 +4,7 @@ mod tests {
     use log::debug;
     use std::{sync::Once, str::FromStr};
     
-    use crate::core_::{conf::conf_keywd::{ConfKeywd, ConfKeywdValue, ConfKind}, debug::debug_session::*};
+    use crate::{conf::conf_keywd::{ConfKeywd, ConfKeywdValue, ConfKind}, core_::debug::debug_session::*};
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -31,7 +31,7 @@ mod tests {
     
     #[test]
     fn test_create_valid() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         println!("test_create_valid");
@@ -56,7 +56,7 @@ mod tests {
     
     // #[test]
     // fn test_create_invalid() {
-    //     DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    //     DebugSession::init(LogLevel::Info, Backtrace::Short);
     //     initOnce();
     //     initEach();
     //     info!("test_create_invalid");

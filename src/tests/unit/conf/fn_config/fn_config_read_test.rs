@@ -4,8 +4,8 @@ use indexmap::IndexMap;
 use log::{trace, info};
 use std::{sync::Once, env};
 
-use crate::core_::{
-    debug::debug_session::*,
+use crate::{
+    core_::debug::debug_session::*,
     conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType},
 };
 
@@ -33,7 +33,7 @@ fn initEach() -> () {
 
 #[test]
 fn test_fn_config_read_valid() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     initEach();
     info!("test_fn_config_read_valid");
