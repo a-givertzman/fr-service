@@ -3,7 +3,7 @@
 use std::{io::BufReader, net::TcpStream};
 
 use chrono::{DateTime, Utc};
-use log::{warn, error, trace};
+use log::{warn, error, trace, LevelFilter};
 
 use crate::core_::{net::connection_status::ConnectionStatus, point::{point_type::PointType, point::Point}, types::bool::Bool};
 
@@ -37,7 +37,10 @@ impl JdsDeserialize {
                         ConnectionStatus::Active(Ok(point))
                     },
                     Err(err) => {
-                        error!("{}", err);
+                        if log::max_level() == LevelFilter::Debug {
+                            warn!("{}", err);
+                        }
+
                         ConnectionStatus::Active(Err(err))
                     },
                 }
@@ -50,6 +53,7 @@ impl JdsDeserialize {
     ///
     /// 
     pub fn deserialize(bytes: Vec<u8>) -> Result<PointType, String> {
+        // bytes.is_empty()
         match serde_json::from_slice(&bytes) {
             Ok(value) => {
                 let value: serde_json::Value = value;
