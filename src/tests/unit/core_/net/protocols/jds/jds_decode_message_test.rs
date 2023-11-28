@@ -2,7 +2,7 @@
 #[cfg(test)]
 mod tests {
     use chrono::{DateTime, Utc};
-    use log::{info, debug, trace, error};
+    use log::{info, debug, trace, error, warn};
     use rand::Rng;
     use std::{sync::{Once, atomic::{AtomicUsize, Ordering}, Arc}, time::{Duration, Instant}, net::{TcpStream, TcpListener}, thread, io::{Write, BufReader}};
     use crate::core_::{
@@ -83,18 +83,25 @@ mod tests {
                         let mut stream = JdsDecodeMessage::new("test");
                         'read: loop {
                             match stream.read(&mut tcpStream) {
-                                ConnectionStatus::Active(bytes) => {
-                                    received.fetch_add(1, Ordering::SeqCst);
-                                    let msg = String::from_utf8(bytes).unwrap();
-                                    let recvIndex = (received.load(Ordering::SeqCst) - 1) % testDataLen;
-                                    trace!("socket read - received[{}]: {:?}", recvIndex, msg);
-                                    assert!(msg == testData[recvIndex].0);
-                                    // debug!("socket read - received: {:?}", received.load(Ordering::SeqCst));
+                                ConnectionStatus::Active(result) => {
+                                    match result {
+                                        Ok(bytes) => {
+                                            received.fetch_add(1, Ordering::SeqCst);
+                                            let msg = String::from_utf8(bytes).unwrap();
+                                            let recvIndex = (received.load(Ordering::SeqCst) - 1) % testDataLen;
+                                            trace!("socket read - received[{}]: {:?}", recvIndex, msg);
+                                            assert!(msg == testData[recvIndex].0);
+                                            // debug!("socket read - received: {:?}", received.load(Ordering::SeqCst));
+                                        },
+                                        Err(err) => {
+                                            warn!("socket read - received error: {:?}", err);
+                                        },
+                                    }
                                     if received.load(Ordering::SeqCst) >= total {
                                         break 'read;
                                     }
                                 },
-                                ConnectionStatus::Closed(err) => {
+                                ConnectionStatus::Closed(_err) => {
                                     break 'read;
                                 },
                             }
