@@ -11,8 +11,8 @@ use crate::{
     tcp::{
         tcp_client_connect::TcpClientConnect, 
         tcp_stream_write::TcpStreamWrite, 
-        tcp_send_alive::TcpSendAlive, 
-        tcp_recv_alive::TcpRecvAlive
+        tcp_write_alive::TcpWriteAlive, 
+        tcp_read_alive::TcpReadAlive
     }, 
 };
 
@@ -29,8 +29,8 @@ pub struct TcpClient {
     inSend: HashMap<String, Sender<PointType>>,
     conf: TcpClientConfig,
     services: Arc<Mutex<Services>>,
-    tcpRecvAlive: Option<Arc<Mutex<TcpRecvAlive>>>,
-    tcpSendAlive: Option<Arc<Mutex<TcpSendAlive>>>,
+    tcpRecvAlive: Option<Arc<Mutex<TcpReadAlive>>>,
+    tcpSendAlive: Option<Arc<Mutex<TcpWriteAlive>>>,
     exit: Arc<AtomicBool>,
 }
 ///
@@ -95,11 +95,11 @@ impl Service for TcpClient {
             conf.address, 
             reconnect,
         );
-        let tcpRecvAlive = TcpRecvAlive::new(
+        let tcpRecvAlive = TcpReadAlive::new(
             &selfId,
             outSend,
         );
-        let tcpSendAlive = TcpSendAlive::new(
+        let tcpSendAlive = TcpWriteAlive::new(
             &selfId,
             Arc::new(Mutex::new(TcpStreamWrite::new(
                 &selfId,

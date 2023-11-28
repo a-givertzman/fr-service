@@ -4,24 +4,24 @@ use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thre
 
 use log::{warn, info};
 
-use crate::{
-    core_::{net::{connection_status::ConnectionStatus, protocols::jds::{jds_deserialize::JdsDeserialize, jds_decode_message::JdsDecodeMessage}}, point::point_type::PointType},
-    tcp::tcp_client_connect::TcpClientConnect, 
-};
+use crate::{core_::{
+    net::{connection_status::ConnectionStatus, protocols::jds::{jds_deserialize::JdsDeserialize, jds_decode_message::JdsDecodeMessage}}, 
+    point::point_type::PointType,
+}, services::task::task_cycle::ServiceCycle};
 
 
-pub struct TcpRecvAlive {
+pub struct TcpReadAlive {
     id: String,
     jdsStream: Arc<Mutex<JdsDeserialize>>,
     send: Arc<Mutex<Sender<PointType>>>,
     exit: Arc<AtomicBool>,
 }
-impl TcpRecvAlive {
+impl TcpReadAlive {
     ///
-    /// Creates new instance of [TcpRecvAlive]
+    /// Creates new instance of [TcpReadAlive]
     /// - [parent] - the ID if the parent entity
     pub fn new(parent: impl Into<String>, send: Arc<Mutex<Sender<PointType>>>) -> Self {
-        let selfId = format!("{}/TcpRecvAlive", parent.into());
+        let selfId = format!("{}/TcpReadAlive", parent.into());
         Self {
             id: selfId.clone(),
             jdsStream: Arc::new(Mutex::new(JdsDeserialize::new(
@@ -35,11 +35,13 @@ impl TcpRecvAlive {
         }
     }
     ///
-    /// Main loop of the [TcpRecvAlive]
+    /// Main loop of the [TcpReadAlive]
     pub fn run(&self, tcpStream: TcpStream) -> JoinHandle<()> {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
+        let cycleInterval = Duration::from_millis(1000);
+        let mut cycle = ServiceCycle::new(cycleInterval);
         let send = self.send.clone();
         let jdsStream = self.jdsStream.clone();
         info!("{}.run | Preparing thread...", self.id);
@@ -50,6 +52,7 @@ impl TcpRecvAlive {
             let mut jdsStream = jdsStream.lock().unwrap();
             info!("{}.run | Starting main loop...", selfId);
             loop {
+                cycle.start();
                 match jdsStream.read(&mut tcpStream) {
                     ConnectionStatus::Active(point) => {
                         match point {
@@ -74,6 +77,7 @@ impl TcpRecvAlive {
                 if exit.load(Ordering::SeqCst) {
                     break;
                 }
+                cycle.wait();
             }
         }).unwrap();
         handle

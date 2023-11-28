@@ -6,22 +6,22 @@ use log::{warn, info};
 
 use crate::{
     core_::net::connection_status::ConnectionStatus,
-    tcp::{tcp_client_connect::TcpClientConnect, tcp_stream_write::TcpStreamWrite}, 
+    tcp::{tcp_client_connect::TcpClientConnect, tcp_stream_write::TcpStreamWrite}, services::task::task_cycle::ServiceCycle, 
 };
 
 
-pub struct TcpSendAlive {
+pub struct TcpWriteAlive {
     id: String,
     streamWrite: Arc<Mutex<TcpStreamWrite>>,
     exit: Arc<AtomicBool>,
 }
-impl TcpSendAlive {
+impl TcpWriteAlive {
     ///
-    /// Creates new instance of [TcpSendAlive]
+    /// Creates new instance of [TcpWriteAlive]
     /// - [parent] - the ID if the parent entity
     pub fn new(parent: impl Into<String>, streamWrite: Arc<Mutex<TcpStreamWrite>>) -> Self {
         Self {
-            id: format!("{}/TcpSendAlive", parent.into()),
+            id: format!("{}/TcpWriteAlive", parent.into()),
             streamWrite,
             exit: Arc::new(AtomicBool::new(false)),
         }
@@ -32,6 +32,8 @@ impl TcpSendAlive {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
+        let cycleInterval = Duration::from_millis(1000);
+        let mut cycle = ServiceCycle::new(cycleInterval);
         let streamWrite = self.streamWrite.clone();
         info!("{}.run | Preparing thread...", self.id);
         let handle = thread::Builder::new().name(format!("{} - Write", selfId.clone())).spawn(move || {
@@ -39,6 +41,7 @@ impl TcpSendAlive {
             let mut streamWrite = streamWrite.lock().unwrap();
             info!("{}.run | Starting main loop...", selfId);
             'main: loop {
+                cycle.start();
                 match streamWrite.write(&mut tcpStream) {
                     ConnectionStatus::Active(result) => {
                         match result {
@@ -50,16 +53,13 @@ impl TcpSendAlive {
                     },
                     ConnectionStatus::Closed(err) => {
                         warn!("{}.run | error: {:?}", selfId, err);
-                        break;
+                        break 'main;
                     },
                 };
                 if exit.load(Ordering::SeqCst) {
-                    break;
-                }
-                if exit.load(Ordering::SeqCst) {
                     break 'main;
                 }
-                thread::sleep(Duration::from_millis(10));
+                cycle.wait();
             }
         }).unwrap();
         info!("{}.run | started", self.id);

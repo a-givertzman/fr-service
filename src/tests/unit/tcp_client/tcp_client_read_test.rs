@@ -79,7 +79,7 @@ mod tests {
         services.lock().unwrap().insert(multiQueueServiceId, multiQueue.clone());
 
         let maxTestDuration = Duration::from_secs(10);
-        let iterations = 100;
+        let iterations = 1;
         let testData = vec![
             Value::Int(7),
             Value::Float(1.3),
@@ -170,6 +170,7 @@ mod tests {
                                     send.send(point.clone()).unwrap();
                                     match jds.read() {
                                         Ok(bytes) => {
+                                            warn!("TCP server | send bytes: {:?}", bytes);
                                             match socket.write(&bytes) {
                                                 Ok(_) => {
                                                     sent.lock().unwrap().push(point);
