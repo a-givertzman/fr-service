@@ -22,12 +22,12 @@ use super::conf_keywd::ConfKind;
 #[derive(Debug, PartialEq, Clone)]
 pub struct MultiQueueConfig {
     pub(crate) name: String,
-    pub(crate) address: SocketAddr,
-    pub(crate) cycle: Option<Duration>,
-    pub(crate) reconnectCycle: Option<Duration>,
+    // pub(crate) address: SocketAddr,
+    // pub(crate) cycle: Option<Duration>,
+    // pub(crate) reconnectCycle: Option<Duration>,
     pub(crate) recvQueue: String,
     pub(crate) recvQueueMaxLength: i64,
-    pub(crate) sendQueue: String,
+    pub(crate) sendQueue: Vec<String>,
 }
 ///
 /// 
@@ -62,35 +62,38 @@ impl MultiQueueConfig {
                     Err(err) => panic!("MultiQueueConfig.new | Unknown keyword in {:?}\n\tdetales: {:?}", &selfConf.key, err),
                 };
                 trace!("MultiQueueConfig.new | selfName: {:?}", selfName);
-                let selfAddress = Self::getParam(&mut selfConf, &mut selfNodeNames, "address").unwrap();
-                let selfAddress = selfAddress.as_str().unwrap().parse().unwrap();
-                debug!("MultiQueueConfig.new | selfAddress: {:?}", selfAddress);
-                let selfCycle = Self::getDuration(&mut selfConf, &mut selfNodeNames, "cycle");
-                let selfReconnectCycle = Self::getDuration(&mut selfConf, &mut selfNodeNames, "reconnect");
-                debug!("MultiQueueConfig.new | selfCycle: {:?}", selfCycle);
+                // let selfAddress = Self::getParam(&mut selfConf, &mut selfNodeNames, "address").unwrap();
+                // let selfAddress = selfAddress.as_str().unwrap().parse().unwrap();
+                // debug!("MultiQueueConfig.new | selfAddress: {:?}", selfAddress);
+                // let selfCycle = Self::getDuration(&mut selfConf, &mut selfNodeNames, "cycle");
+                // let selfReconnectCycle = Self::getDuration(&mut selfConf, &mut selfNodeNames, "reconnect");
+                // debug!("MultiQueueConfig.new | selfCycle: {:?}", selfCycle);
                 let (selfRecvQueue, selfRecvQueueMaxLength) = match Self::getParamByKeyword(&mut selfConf, &mut selfNodeNames, "in", ConfKind::Queue) {
-                    Some((keyword, mut selfRecvQueue)) => {
+                    Some((keyword, mut queueConf)) => {
                         let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
-                        debug!("MultiQueueConfig.new | self in-queue params {}: {:?}", name, selfRecvQueue);
-                        let maxLength = Self::getParam(&mut selfRecvQueue, &mut vec![String::from("max-length")], "max-length").unwrap().as_i64().unwrap();
+                        debug!("MultiQueueConfig.new | self in-queue params {}: {:?}", name, queueConf);
+                        let maxLength = Self::getParam(&mut queueConf, &mut vec![String::from("max-length")], "max-length").unwrap().as_i64().unwrap();
                         (keyword.name(), maxLength)
                     },
                     None => panic!("MultiQueueConfig.new | in queue - not found in : {:?}", selfConf),
                 };
                 let selfSendQueue = match Self::getParamByKeyword(&mut selfConf, &mut selfNodeNames, "out", ConfKind::Queue) {
-                    Some((keyword, selfRecvQueue)) => {
+                    Some((keyword, queueConf)) => {
                         let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
-                        debug!("MultiQueueConfig.new | self out-queue param {}: {:?}", name, selfRecvQueue);
-                        selfRecvQueue.conf.as_str().unwrap().to_owned()
+                        debug!("MultiQueueConfig.new | self out-queue param {}: {:?}", name, queueConf);
+                        let queues: Vec<String> = queueConf.conf.as_sequence().unwrap().iter().map(|value| {
+                            value.as_str().unwrap().to_owned()
+                        }).collect();
+                        queues
                     },
                     None => panic!("MultiQueueConfig.new | in queue - not found in : {:?}", selfConf),
                 };
                 debug!("MultiQueueConfig.new | selfRecvQueue: {},\tmax-length: {}", selfRecvQueue, selfRecvQueueMaxLength);
                 MultiQueueConfig {
                     name: selfName,
-                    address: selfAddress,
-                    cycle: selfCycle,
-                    reconnectCycle: selfReconnectCycle,
+                    // address: selfAddress,
+                    // cycle: selfCycle,
+                    // reconnectCycle: selfReconnectCycle,
                     recvQueue: selfRecvQueue,
                     recvQueueMaxLength: selfRecvQueueMaxLength,
                     sendQueue: selfSendQueue,

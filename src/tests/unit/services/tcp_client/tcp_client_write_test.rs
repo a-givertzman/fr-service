@@ -17,7 +17,7 @@ mod tests {
             connection_status::ConnectionStatus}, 
         },
         conf::tcp_client_config::TcpClientConfig,  
-        services::{tcp_client::tcp_client::TcpClient, services::Services}, tests::unit::tcp_client::tcp_client_write_test::MockMultiqueue,
+        services::{tcp_client::tcp_client::TcpClient, services::Services}, tests::unit::services::tcp_client::tcp_client_write_test::MockMultiqueue,
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -76,7 +76,7 @@ mod tests {
         println!("");
         info!("test_TcpClient WRITE");
         let mut rnd = rand::thread_rng();
-        let path = "./src/tests/unit/tcp_client/tcp_client.yaml";
+        let path = "./src/tests/unit/services/tcp_client/tcp_client.yaml";
         let mut conf = TcpClientConfig::read(path);
         let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
         conf.address = addr.parse().unwrap();

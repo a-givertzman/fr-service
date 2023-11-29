@@ -42,7 +42,7 @@ fn test_task_nodes() {
     initEach();
     println!("");
     info!("test_task_nodes");
-    let path = "./src/tests/unit/task/task_nodes/task.yaml";
+    let path = "./src/tests/unit/services/task/task_nodes/task.yaml";
     let mut queues = Queues::new();
     let (apiSend, _apiRecv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
     // queues.addRecvQueue("recv-queue", recv);

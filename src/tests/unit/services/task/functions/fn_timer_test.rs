@@ -44,7 +44,7 @@ fn test_elapsed_repeat_false() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_elapsed_repeat_false");
-    let mut input = initEach(false.toPoint("bool"));
+    let input = initEach(false.toPoint("bool"));
     let mut fnTimer = FnTimer::new(
         "id", 
         0,
@@ -107,7 +107,7 @@ fn test_total_elapsed_repeat() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_total_elapsed_repeat");
-    let mut input = initEach(false.toPoint("bool"));
+    let input = initEach(false.toPoint("bool"));
     let mut fnTimer = FnTimer::new(
         "id", 
         0,
@@ -165,7 +165,7 @@ fn test_total_elapsed_repeat_reset() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_total_elapsed_repeat_reset");
-    let mut input = initEach(false.toPoint("bool"));
+    let input = initEach(false.toPoint("bool"));
     let mut fnTimer = FnTimer::new(
         "id",
         0, 
@@ -232,7 +232,7 @@ fn test_initial_repeat() {
     initOnce();
     info!("test_initial_repeat");
     let initial = 123.1234;
-    let mut input = initEach(false.toPoint("bool"));
+    let input = initEach(false.toPoint("bool"));
     let mut fnTimer = FnTimer::new(
         "id",
         initial, 

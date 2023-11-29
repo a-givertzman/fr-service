@@ -8,8 +8,8 @@ mod tests {
     use crate::{
         core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
         point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
-        services::task::nested_function::{fn_::{FnInOut, FnOut}, 
-        fn_input::FnInput, fn_var::FnVar, fn_add::FnAdd},
+        services::task::nested_function::{fn_::FnOut, 
+        fn_input::FnInput, fn_add::FnAdd},
     };
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.

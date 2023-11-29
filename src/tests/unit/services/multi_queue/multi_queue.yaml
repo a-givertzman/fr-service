@@ -1,0 +1,15 @@
+service MultiQueue:
+    in queue in-queue:
+        max-length: 10000
+    out queue:
+        - task1.recv-queue
+        - CmaClient.in-queue
+        - CmaServer.in-queue
+
+# service TcpClient:
+#     cycle: 1 ms
+#     reconnect: 1 s  # default 3 s
+#     address: 127.0.0.1:8080
+#     in queue link:
+#         max-length: 10000
+#     out queue: MultiQueue.queue

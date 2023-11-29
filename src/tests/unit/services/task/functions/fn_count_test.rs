@@ -6,7 +6,7 @@ use std::{sync::Once, rc::Rc, cell::RefCell};
 use crate::{
     core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
     point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
-    services::task::nested_function::{fn_::{FnInOut, FnOut}, 
+    services::task::nested_function::{fn_::FnOut, 
     fn_count::{FnCount, self}, fn_input::FnInput},
 };
 

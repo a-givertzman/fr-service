@@ -3,7 +3,7 @@
 mod tests {
     use log::{warn, info, debug};
     use std::{sync::Once, time::{Duration, Instant}};
-    use crate::core_::debug::debug_session::{DebugSession, LogLevel, Backtrace}; 
+    use crate::{core_::debug::debug_session::{DebugSession, LogLevel, Backtrace}, conf::multi_queue_config::MultiQueueConfig}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -28,12 +28,16 @@ mod tests {
     }
     
     #[test]
-    fn test_task_cycle() {
+    fn test_multi_queue() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test_task_cycle");
-        assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
+        info!("test_multi_queue");
+
+        let path = "./src/tests/unit/services/multi_queue/multi_queue.yaml";
+        let mqConf = MultiQueueConfig::read(path);
+        debug!("mqConf: {:?}", mqConf);
+        // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
     }
 }

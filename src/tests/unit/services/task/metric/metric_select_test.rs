@@ -41,7 +41,7 @@ fn test_int() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_int");
-    let path = "./src/tests/unit/task/metric/metric_select_int_test.yaml";
+    let path = "./src/tests/unit/services/task/metric/metric_select_int_test.yaml";
     let mut conf = FnConfig::read(path);
     debug!("conf: {:?}", conf);
     let mut queues = Queues::new();
@@ -111,7 +111,7 @@ fn test_float() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_float");
-    let path = "./src/tests/unit/task/metric/metric_select_float_test.yaml";
+    let path = "./src/tests/unit/services/task/metric/metric_select_float_test.yaml";
     let mut conf = FnConfig::read(path);
     debug!("conf: {:?}", conf);
     let mut queues = Queues::new();

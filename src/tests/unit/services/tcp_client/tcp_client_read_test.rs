@@ -4,7 +4,6 @@
 
 mod tests {
     use log::{info, debug, warn, error};
-    use rand::Rng;
     use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::Write};
     use crate::{
         core_::{
@@ -14,7 +13,9 @@ mod tests {
             net::protocols::jds::{jds_serialize::JdsSerialize, jds_encode_message::JdsEncodeMessage}, 
         },
         conf::tcp_client_config::TcpClientConfig,  
-        services::{tcp_client::tcp_client::TcpClient, services::Services, service::Service}, tests::unit::tcp_client::mock_multiqueue::MockMultiqueue, tcp::steam_read::StreamRead,
+        services::{tcp_client::tcp_client::TcpClient, services::Services, service::Service}, 
+        tests::unit::services::tcp_client::mock_multiqueue::MockMultiqueue, 
+        tcp::steam_read::StreamRead, 
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -65,7 +66,7 @@ mod tests {
         println!("");
         info!("test_TcpClient READ");
         // let mut rnd = rand::thread_rng();
-        let path = "./src/tests/unit/tcp_client/tcp_client.yaml";
+        let path = "./src/tests/unit/services/tcp_client/tcp_client.yaml";
         let mut conf = TcpClientConfig::read(path);
         let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
         conf.address = addr.parse().unwrap();

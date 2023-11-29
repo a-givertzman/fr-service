@@ -45,7 +45,7 @@ mod tests {
         let iterations = 10;
         
         trace!("dir: {:?}", env::current_dir());
-        let path = "./src/tests/unit/task/task_test_struct.yaml";
+        let path = "./src/tests/unit/services/task/task_test_struct.yaml";
         let config = TaskConfig::read(path);
         trace!("config: {:?}", &config);
     

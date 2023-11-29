@@ -57,7 +57,7 @@ mod tests {
         println!("");
         info!("test_ApiClient");
         let mut rnd = rand::thread_rng();
-        let path = "./src/tests/unit/api_client/api_client.yaml";
+        let path = "./src/tests/unit/services/api_client/api_client.yaml";
         let mut conf = ApiClientConfig::read(path);
         // let addr = conf.address.clone();
         let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
