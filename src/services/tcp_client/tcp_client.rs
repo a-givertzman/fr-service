@@ -25,8 +25,8 @@ use crate::{
 /// - Sent messages immediately removed from the buffer
 pub struct TcpClient {
     id: String,
-    inRecv: Vec<Receiver<PointType>>,
     inSend: HashMap<String, Sender<PointType>>,
+    inRecv: Vec<Receiver<PointType>>,
     conf: TcpClientConfig,
     services: Arc<Mutex<Services>>,
     tcpRecvAlive: Option<Arc<Mutex<TcpReadAlive>>>,
