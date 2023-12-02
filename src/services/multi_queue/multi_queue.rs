@@ -26,10 +26,11 @@ impl MultiQueue {
     /// Creates new instance of [ApiClient]
     /// - [parent] - the ID if the parent entity
     pub fn new(parent: impl Into<String>, conf: MultiQueueConfig, services: Arc<Mutex<Services>>) -> Self {
+        let selfId = format!("{}/MultiQueue", parent.into());
         let (send, recv) = mpsc::channel();
         Self {
-            id: format!("{}/MultiQueue", parent.into()),
-            subscriptions: Arc::new(Mutex::new(Subscriptions::new())),
+            id: selfId.clone(),
+            subscriptions: Arc::new(Mutex::new(Subscriptions::new(selfId))),
             inSend: HashMap::from([(conf.recvQueue, send)]),
             inRecv: vec![recv],
             exit: Arc::new(AtomicBool::new(false)),
@@ -37,14 +38,21 @@ impl MultiQueue {
     }
     ///
     /// 
-    pub fn subscribe() -> Result<(), String> {
-        Err("not implemented".to_owned())
-
+    pub fn subscribe(&mut self, receiverId: &str, points: Vec<&str>) -> Receiver<PointType> {
+        let (send, recv) = mpsc::channel();
+        if points.is_empty() {
+            panic!("{}.run | not implemented", self.id);
+        } else {
+            for pointId in points {
+                self.subscriptions.lock().unwrap().add(receiverId, pointId, send.clone());
+            }
+        }
+        recv
     }
     ///
     /// 
-    pub fn unsubscribe(receiverId: &str) -> Result<(), String> {
-        Err("not implemented".to_owned())
+    pub fn unsubscribe(&mut self, receiverId: &str, pointId: &str) -> Result<(), String> {
+        self.subscriptions.lock().unwrap().remove(receiverId, pointId)
     }
 }
 ///
