@@ -23,17 +23,17 @@ impl Subscriptions {
     }
     ///
     /// Adds subscription to Point ID with receiver ID
-    pub fn add(&mut self, receiverId: String, pointId: String, sender: Sender<PointType>) {
-        if ! self.byPoints.contains_key(&pointId) {
+    pub fn add(&mut self, receiverId: &str, pointId: &str, sender: Sender<PointType>) {
+        if ! self.byPoints.contains_key(pointId) {
             self.byPoints.insert(
-                pointId.clone(),
+                pointId.to_string(),
                 HashMap::new(),
             );
         };
-        match self.byPoints.get_mut(&pointId) {
+        match self.byPoints.get_mut(pointId) {
             Some(senders) => {
                 senders.insert(
-                    receiverId,
+                    receiverId.to_string(),
                     sender,
                 );
             },
@@ -42,15 +42,15 @@ impl Subscriptions {
     }
     ///
     /// Returns map of Senders
-    pub fn get(&self, pointId: String) -> Option<&HashMap<String, Sender<PointType>>> {
-        self.byPoints.get(&pointId)
+    pub fn get(&self, pointId: &str) -> Option<&HashMap<String, Sender<PointType>>> {
+        self.byPoints.get(pointId)
     }
     ///
     /// Removes single subscription by Point Id & receiver ID
-    pub fn remove(&mut self, receiverId: String, pointId: String) -> Option<()> {
-        match self.byPoints.get_mut(&pointId) {
+    pub fn remove(&mut self, receiverId: &str, pointId: &str) -> Option<()> {
+        match self.byPoints.get_mut(pointId) {
             Some(senders) => {
-                match senders.remove(&receiverId) {
+                match senders.remove(receiverId) {
                     Some(_) => Some(()),
                     None => None,
                 }
