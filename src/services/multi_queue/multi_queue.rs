@@ -41,10 +41,10 @@ impl MultiQueue {
     pub fn subscribe(&mut self, receiverId: &str, points: Vec<&str>) -> Receiver<PointType> {
         let (send, recv) = mpsc::channel();
         if points.is_empty() {
-            panic!("{}.run | not implemented", self.id);
+            self.subscriptions.lock().unwrap().addBroadcast(receiverId, send.clone());
         } else {
             for pointId in points {
-                self.subscriptions.lock().unwrap().add(receiverId, pointId, send.clone());
+                self.subscriptions.lock().unwrap().addMulticast(receiverId, pointId, send.clone());
             }
         }
         recv
@@ -81,20 +81,13 @@ impl Service for MultiQueue {
                 match recv.recv() {
                     Ok(point) => {
                         let pointId = point.name();
-                        match subscriptions.get(&pointId) {
-                            Some(senders) => {
-                                for (receiverId, sender) in senders {
-                                    match sender.send(point.clone()) {
-                                        Ok(_) => {},
-                                        Err(err) => {
-                                            error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", selfId, pointId, receiverId, err);
-                                        },
-                                    };
-                                }
-                            },
-                            None => {
-                                warn!("{}.run | subscriptions for point '{}' - not found", selfId, pointId);
-                            },
+                        for (receiverId, sender) in subscriptions.iter(&pointId) {
+                            match sender.send(point.clone()) {
+                                Ok(_) => {},
+                                Err(err) => {
+                                    error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", selfId, pointId, receiverId, err);
+                                },
+                            };
                         }
                     },
                     Err(err) => {
