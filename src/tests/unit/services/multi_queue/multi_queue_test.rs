@@ -57,13 +57,13 @@ mod tests {
         let mut threads = vec![];
         let mut testServices = vec![];
         let timer = Instant::now();
-        let mut recvService = MockService::new(
-            format!("tread{}", i),
-            "in-queue",//MultiQueue.
-            "MultiQueue.in-queue",
-            thdServices,
-            thdTestData
-        );
+        // let mut recvService = MockService::new(
+        //     format!("tread{}", i),
+        //     "in-queue",//MultiQueue.
+        //     "MultiQueue.in-queue",
+        //     thdServices,
+        //     thdTestData
+        // );
         for i in 0..count {
             let thdTestData = testData.clone();
             let thdServices = services.clone();

@@ -2,7 +2,7 @@
 
 use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread::{self, JoinHandle}};
 
-use log::{info, warn, error};
+use log::{info, warn, error, debug};
 
 use crate::{services::{services::Services, service::Service}, conf::multi_queue_config::MultiQueueConfig, core_::point::point_type::PointType};
 
@@ -17,6 +17,8 @@ pub struct MultiQueue {
     subscriptions: Arc<Mutex<Subscriptions>>,
     inSend: HashMap<String, Sender<PointType>>,
     inRecv: Vec<Receiver<PointType>>,
+    sendQueues: Vec<String>,
+    services: Arc<Mutex<Services>>,
     exit: Arc<AtomicBool>,
 }
 ///
@@ -28,11 +30,14 @@ impl MultiQueue {
     pub fn new(parent: impl Into<String>, conf: MultiQueueConfig, services: Arc<Mutex<Services>>) -> Self {
         let selfId = format!("{}/MultiQueue", parent.into());
         let (send, recv) = mpsc::channel();
+        let sendQueues = conf.sendQueue;
         Self {
             id: selfId.clone(),
             subscriptions: Arc::new(Mutex::new(Subscriptions::new(selfId))),
             inSend: HashMap::from([(conf.recvQueue, send)]),
             inRecv: vec![recv],
+            sendQueues,
+            services,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -74,6 +79,17 @@ impl Service for MultiQueue {
         let exit = self.exit.clone();
         let recv = self.inRecv.pop().unwrap();
         let subscriptions = self.subscriptions.clone();
+        let mut staticSubscriptions: Vec<Sender<PointType>> = vec![];
+        for sendQueue in &self.sendQueues {
+            let parts: Vec<&str> = sendQueue.split(".").collect();
+            let serviceName = parts[0];
+            let sendQueueName = parts[1];
+            debug!("{}.run | Getting services...", selfId);
+            let services = self.services.lock().unwrap();
+            debug!("{}.run | Getting services - ok", selfId);
+            let outSend = services.get(&serviceName).lock().unwrap().getLink(&sendQueueName);
+            staticSubscriptions.push(outSend);
+        }
         let _handle = thread::Builder::new().name(format!("{} - MultiQueue.run", selfId.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
             loop {
