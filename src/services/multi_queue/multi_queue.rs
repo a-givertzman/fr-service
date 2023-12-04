@@ -2,7 +2,7 @@
 
 use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread::{self, JoinHandle}};
 
-use log::{info, warn, error, debug};
+use log::{info, warn, error, debug, trace};
 
 use crate::{services::{services::Services, service::Service}, conf::multi_queue_config::MultiQueueConfig, core_::point::point_type::PointType};
 
@@ -97,7 +97,7 @@ impl Service for MultiQueue {
                 match recv.recv() {
                     Ok(point) => {
                         let pointId = point.name();
-                        debug!("{}.run | received: {:?}", selfId, point);
+                        trace!("{}.run | received: {:?}", selfId, point);
                         for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {
                             match sender.send(point.clone()) {
                                 Ok(_) => {},

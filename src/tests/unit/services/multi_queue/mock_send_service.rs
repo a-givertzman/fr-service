@@ -2,7 +2,7 @@
 
 use std::{collections::HashMap, sync::{mpsc::{Sender, Receiver, self}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}};
 
-use log::{info, warn, debug};
+use log::{info, warn, debug, trace};
 
 use crate::{core_::{point::point_type::PointType, testing::test_stuff::test_value::Value}, services::{services::Services, service::Service}};
 
@@ -10,13 +10,13 @@ use crate::{core_::{point::point_type::PointType, testing::test_stuff::test_valu
 pub struct MockSendService {
     id: String,
     inSend: HashMap<String, Sender<PointType>>,
-    inRecv: Vec<Receiver<PointType>>,
+    // inRecv: Vec<Receiver<PointType>>,
     // outSend: HashMap<String, Sender<PointType>>,
     // outRecv: Vec<Receiver<PointType>>,
     sendQueue: String,
     services: Arc<Mutex<Services>>,
     testData: Arc<Mutex<Vec<Value>>>,
-    received: Arc<Mutex<Vec<PointType>>>,
+    sent: Arc<Mutex<Vec<PointType>>>,
     exit: Arc<AtomicBool>,
 }
 ///
@@ -28,13 +28,13 @@ impl MockSendService {
         Self {
             id: selfId.clone(),
             inSend: HashMap::from([(recvQueue.to_string(), send)]),
-            inRecv: vec![recv],
+            // inRecv: vec![recv],
             // outSend: HashMap::new(),
             // outRecv: vec![],
             sendQueue: sendQueue.to_string(),
             services,
             testData,
-            received: Arc::new(Mutex::new(vec![])),
+            sent: Arc::new(Mutex::new(vec![])),
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -45,8 +45,8 @@ impl MockSendService {
     }
     ///
     /// 
-    pub fn received(&self) -> Arc<Mutex<Vec<PointType>>> {
-        self.received.clone()
+    pub fn sent(&self) -> Arc<Mutex<Vec<PointType>>> {
+        self.sent.clone()
     }
 }
 ///
@@ -75,6 +75,7 @@ impl Service for MockSendService {
         let outSendService = services.get(&outSendServiceName);
         let outSend = outSendService.lock().unwrap().getLink(&outSendQueueName);
         let testData = self.testData.clone();
+        let sent = self.sent.clone();
         let _handle = thread::Builder::new().name(format!("{} - MultiQueue.run", selfId)).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
             let testData = testData.lock().unwrap();
@@ -82,7 +83,8 @@ impl Service for MockSendService {
                 let point = value.toPoint(&format!("{}/test", selfId));
                 match outSend.send(point.clone()) {
                     Ok(_) => {
-                        debug!("{}.run | send: {:?}", selfId, point);
+                        trace!("{}.run | send: {:?}", selfId, point);
+                        sent.lock().unwrap().push(point);
                     },
                     Err(err) => {
                         warn!("{}.run | send error: {:?}", selfId, err);

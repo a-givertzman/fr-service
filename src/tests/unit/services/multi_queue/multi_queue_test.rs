@@ -55,7 +55,7 @@ mod tests {
         services.lock().unwrap().insert("MultiQueue", mqService.clone());
 
         let mut threads = vec![];
-        let mut testServices = vec![];
+        let mut recvServices = vec![];
         let timer = Instant::now();
         let sendService = Arc::new(Mutex::new(MockSendService::new(
             format!("test"),
@@ -73,10 +73,10 @@ mod tests {
                 services.clone(),
             )));
             services.lock().unwrap().insert(&format!("MockRecvService{}", i), service.clone());
-            testServices.push(service);
+            recvServices.push(service);
         }
         mqService.lock().unwrap().run().unwrap();
-        for service in &mut testServices {
+        for service in &mut recvServices {
             let handle = service.lock().unwrap().run().unwrap();
             threads.push(handle);
         }
@@ -86,17 +86,26 @@ mod tests {
         let mut received = usize::MAX;
         while received != totalCount {
             let mut allReceived = vec![];
-            for service in &testServices {
+            for service in &recvServices {
                 let r = service.lock().unwrap().received().lock().unwrap().len();
-                debug!("waiting while all data beeng received {}/{}...", r, totalCount);
                 allReceived.push(r);
+                debug!("waiting while all data beeng received {:?}/{}...", allReceived, totalCount);
             }
-            received = allReceived.iter().min().unwrap().clone();
+            received = allReceived.iter().sum::<usize>().clone();
             thread::sleep(waitDuration);
             waitAttempts -= 1;
             assert!(waitAttempts > 0, "Transfering {}/{} points taks too mach time {:?} of {:?}", received, totalCount, timer.elapsed(), maxTestDuration);
         }
-        for service in testServices {
+        println!("\nelapsed: {:?}", timer.elapsed());
+        println!("total test events: {:?}", totalCount);
+        println!("sent events: {:?}\n", sendService.lock().unwrap().sent().lock().unwrap().len());
+        let mut received = vec![];
+        for recvService in &recvServices {
+            received.push(recvService.lock().unwrap().received().lock().unwrap().len());
+        }
+        println!("recv events: {:?}", received.len());
+
+        for service in recvServices {
             service.lock().unwrap().exit();
         }
         for thd in threads {
