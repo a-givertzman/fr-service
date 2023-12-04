@@ -51,6 +51,7 @@ mod tests {
 
         let mut threads = vec![];
         let mut testServices = vec![];
+        let timer = Instant::now();
         for i in 0..count {
             let thdTestData = testData.clone();
             let thdServices = services.clone();
@@ -68,22 +69,24 @@ mod tests {
             testServices.push(service);
             threads.push(handle);
         }
+        for service in &mut testServices {
+            service.run().unwrap();
+        }
         let waitDuration = Duration::from_millis(10);
         let mut waitAttempts = maxTestDuration.as_micros() / waitDuration.as_micros();
-        let mut received = 0;
-        while received < totalCount {
-            for service in testServices {
+        let mut received = usize::MAX;
+        while received != totalCount {
+            let mut allReceived = vec![];
+            for service in &testServices {
                 let r = service.received().lock().unwrap().len();
-                if r < received {
-                    received = r;
-                }
+                debug!("waiting while all data beeng received {}/{}...", r, totalCount);
+                allReceived.push(r);
             }
-            debug!("waiting while all data beeng received {}/{}...", multiQueue.lock().unwrap().received().lock().unwrap().len(), totalCount);
+            received = allReceived.iter().min().unwrap().clone();
             thread::sleep(waitDuration);
             waitAttempts -= 1;
-            assert!(waitAttempts > 0, "Transfering {}/{} points taks too mach time {:?} of {:?}", multiQueue.lock().unwrap().received().lock().unwrap().len(), totalCount, timer.elapsed(), maxTestDuration);
+            assert!(waitAttempts > 0, "Transfering {}/{} points taks too mach time {:?} of {:?}", received, totalCount, timer.elapsed(), maxTestDuration);
         }
-
         for service in testServices {
             service.exit();
         }

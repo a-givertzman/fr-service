@@ -17,7 +17,7 @@ impl Services {
     /// Creates new instance of the ReatinBuffer
     pub fn new(parent: impl Into<String>) -> Self {
         Self {
-            id: format!("{}/RetainBuffer({})", parent.into(), "Services"),
+            id: format!("{}/Services", parent.into()),
             map: HashMap::new(),
         }
     }
