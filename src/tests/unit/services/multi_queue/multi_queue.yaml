@@ -2,8 +2,10 @@ service MultiQueue:
     in queue in-queue:
         max-length: 10000
     out queue:
+        - MockRecvService0.in-queue
+        - MockRecvService1.in-queue
+        - MockRecvService2.in-queue
         # - task1.recv-queue
-        - MockRecvService.in-queue
         # - CmaServer.in-queue
 
 # service TcpClient:
