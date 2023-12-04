@@ -2,7 +2,7 @@
 
 use std::{collections::HashMap, sync::{mpsc::{Sender, Receiver, self}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}};
 
-use log::{info, warn};
+use log::{info, warn, debug};
 
 use crate::{core_::{point::point_type::PointType, testing::test_stuff::test_value::Value}, services::{services::Services, service::Service}};
 
@@ -66,8 +66,15 @@ impl Service for MockService {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
-        let outSendService = self.services.lock().unwrap().get(&self.sendQueue);
-        let outSend = outSendService.lock().unwrap().getLink(&self.sendQueue);
+
+        let recvQueueParts: Vec<&str> = self.sendQueue.split(".").collect();
+        let outSendServiceName = recvQueueParts[0];
+        let outSendQueueName = recvQueueParts[1];
+        debug!("{}.run | Getting services...", selfId);
+        let services = self.services.lock().unwrap();
+        debug!("{}.run | Getting services - ok", selfId);
+        let outSendService = services.get(&outSendServiceName);
+        let outSend = outSendService.lock().unwrap().getLink(&outSendQueueName);
         let testData = self.testData.clone();
         let _handle = thread::Builder::new().name(format!("{} - MultiQueue.run", selfId)).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);

@@ -57,8 +57,8 @@ mod tests {
             let thdServices = services.clone();
             let mut service = MockService::new(
                 format!("tread{}", i),
-                "MultiQueue.in-queue",
-                "queue",
+                "in-queue",//MultiQueue.
+                "MultiQueue.queue",
                 thdServices,
                 thdTestData
             );
