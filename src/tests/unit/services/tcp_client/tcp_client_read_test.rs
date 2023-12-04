@@ -9,7 +9,7 @@ mod tests {
         core_::{
             debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
             testing::{test_session::TestSession, test_stuff::test_value::Value},
-            point::point_type::{ToPoint, PointType}, 
+            point::point_type::PointType, 
             net::protocols::jds::{jds_serialize::JdsSerialize, jds_encode_message::JdsEncodeMessage}, 
         },
         conf::tcp_client_config::TcpClientConfig,  
@@ -91,10 +91,10 @@ mod tests {
 
         drop(services);
         debug!("Running service {}...", multiQueueServiceId);
-        multiQueue.lock().unwrap().run();
+        multiQueue.lock().unwrap().run().unwrap();
         debug!("Running service {} - ok", multiQueueServiceId);
         debug!("Running service {}...", tcpClientServiceId);
-        tcpClient.lock().unwrap().run();
+        tcpClient.lock().unwrap().run().unwrap();
         debug!("Running service {} - ok", tcpClientServiceId);
         let timer = Instant::now();
         debug!("Test - setup - ok");
@@ -130,7 +130,7 @@ mod tests {
     fn mockTcpServer(addr: String, count: usize, testData: Vec<Value>, sent: Arc<Mutex<Vec<PointType>>>, multiqueue: Arc<Mutex<MockMultiqueue>>) {
         thread::spawn(move || {
             info!("TCP server | Preparing test server...");
-            let mut rng = rand::thread_rng();
+            // let mut rng = rand::thread_rng();
             let (send, recv) = std::sync::mpsc::channel();
             let mut jds = JdsEncodeMessage::new(
                 "test", 

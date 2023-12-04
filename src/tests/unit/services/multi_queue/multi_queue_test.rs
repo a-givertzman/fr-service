@@ -36,6 +36,9 @@ mod tests {
         info!("test_multi_queue");
 
         let count = 3;
+        let totalCount = count;
+        let maxTestDuration = Duration::from_secs(10);
+        
         let path = "./src/tests/unit/services/multi_queue/multi_queue.yaml";
         let mqConf = MultiQueueConfig::read(path);
         debug!("mqConf: {:?}", mqConf);
@@ -65,6 +68,22 @@ mod tests {
             testServices.push(service);
             threads.push(handle);
         }
+        let waitDuration = Duration::from_millis(10);
+        let mut waitAttempts = maxTestDuration.as_micros() / waitDuration.as_micros();
+        let mut received = 0;
+        while received < totalCount {
+            for service in testServices {
+                let r = service.received().lock().unwrap().len();
+                if r < received {
+                    received = r;
+                }
+            }
+            debug!("waiting while all data beeng received {}/{}...", multiQueue.lock().unwrap().received().lock().unwrap().len(), totalCount);
+            thread::sleep(waitDuration);
+            waitAttempts -= 1;
+            assert!(waitAttempts > 0, "Transfering {}/{} points taks too mach time {:?} of {:?}", multiQueue.lock().unwrap().received().lock().unwrap().len(), totalCount, timer.elapsed(), maxTestDuration);
+        }
+
         for service in testServices {
             service.exit();
         }

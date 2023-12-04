@@ -16,6 +16,7 @@ pub struct MockService {
     sendQueue: String,
     services: Arc<Mutex<Services>>,
     testData: Arc<Mutex<Vec<Value>>>,
+    received: Arc<Mutex<Vec<PointType>>>,
     exit: Arc<AtomicBool>,
 }
 ///
@@ -33,6 +34,7 @@ impl MockService {
             sendQueue: sendQueue.to_string(),
             services,
             testData,
+            received: Arc::new(Mutex::new(vec![])),
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -40,6 +42,11 @@ impl MockService {
     /// 
     pub fn id(&self) -> String {
         self.id.clone()
+    }
+    ///
+    /// 
+    pub fn received(&self) -> Arc<Mutex<Vec<PointType>>> {
+        self.received.clone()
     }
 }
 ///

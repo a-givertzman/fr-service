@@ -85,7 +85,7 @@ mod tests {
         debug!("Getting service {} - ok", tcpClientServiceId);
         debug!("Running service {}...", tcpClientServiceId);
         drop(services);
-        tcpClient.lock().unwrap().run();
+        tcpClient.lock().unwrap().run().unwrap();
         debug!("Running service {} - ok", tcpClientServiceId);
         let timer = Instant::now();
         let send = tcpClient.lock().unwrap().getLink("link");
@@ -123,16 +123,16 @@ mod tests {
     }
     ///
     /// TcpServer setup
-    fn mockTcpServer(addr: String, count: usize, testData: Vec<Value>, received: Arc<Mutex<Vec<PointType>>>) {
-        let mut sent = 0;
+    fn mockTcpServer(addr: String, count: usize, _testData: Vec<Value>, received: Arc<Mutex<Vec<PointType>>>) {
+        let sent = 0;
         thread::spawn(move || {
             info!("TCP server | Preparing test server...");
-            let mut rng = rand::thread_rng();
+            // let mut rng = rand::thread_rng();
             match TcpListener::bind(addr) {
                 Ok(listener) => {
                     info!("TCP server | Preparing test server - ok");
                     let mut acceptCount = 2;
-                    let mut maxReadErrors = 3;
+                    // let mut maxReadErrors = 3;
                     while acceptCount > 0 {
                         acceptCount -= 1;
                         match listener.accept() {
@@ -155,7 +155,7 @@ mod tests {
                                                 },
                                             }
                                         },
-                                        ConnectionStatus::Closed(err) => {
+                                        ConnectionStatus::Closed(_err) => {
                                             warn!("TCP server | connection - closed");
                                         },
                                     }
