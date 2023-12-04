@@ -57,22 +57,21 @@ mod tests {
         let mut threads = vec![];
         let mut testServices = vec![];
         let timer = Instant::now();
-        // let mut recvService = MockService::new(
-        //     format!("tread{}", i),
-        //     "in-queue",//MultiQueue.
-        //     "MultiQueue.in-queue",
-        //     thdServices,
-        //     thdTestData
-        // );
+        let recvService = Arc::new(Mutex::new(MockService::new(
+            format!("test"),
+            "in-queue",//MultiQueue.
+            "MultiQueue.in-queue",
+            services.clone(),
+            testData.clone(),
+        )));
+        services.lock().unwrap().insert("MockRecvService", recvService.clone());
         for i in 0..count {
-            let thdTestData = testData.clone();
-            let thdServices = services.clone();
             let mut service = MockService::new(
                 format!("tread{}", i),
                 "in-queue",//MultiQueue.
                 "MultiQueue.in-queue",
-                thdServices,
-                thdTestData
+                services.clone(),
+                testData.clone(),
             );
             // let handle = thread::Builder::new().name(format!("test thread #{}", i)).spawn(move || {
             //     info!("Preparing thread {} - ok", i);

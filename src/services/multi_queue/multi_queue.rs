@@ -79,7 +79,7 @@ impl Service for MultiQueue {
         let exit = self.exit.clone();
         let recv = self.inRecv.pop().unwrap();
         let subscriptions = self.subscriptions.clone();
-        let mut staticSubscriptions: Vec<Sender<PointType>> = vec![];
+        let mut staticSubscriptions: HashMap<String, Sender<PointType>> = HashMap::new();
         for sendQueue in &self.sendQueues {
             let parts: Vec<&str> = sendQueue.split(".").collect();
             let serviceName = parts[0];
@@ -88,7 +88,7 @@ impl Service for MultiQueue {
             let services = self.services.lock().unwrap();
             debug!("{}.run | Getting services - ok", selfId);
             let outSend = services.get(&serviceName).lock().unwrap().getLink(&sendQueueName);
-            staticSubscriptions.push(outSend);
+            staticSubscriptions.insert(sendQueue.to_string(), outSend);
         }
         let _handle = thread::Builder::new().name(format!("{} - MultiQueue.run", selfId.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
@@ -97,7 +97,7 @@ impl Service for MultiQueue {
                 match recv.recv() {
                     Ok(point) => {
                         let pointId = point.name();
-                        for (receiverId, sender) in subscriptions.iter(&pointId) {
+                        for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {
                             match sender.send(point.clone()) {
                                 Ok(_) => {},
                                 Err(err) => {
