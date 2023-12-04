@@ -2,7 +2,7 @@
 
 use std::{collections::HashMap, sync::{mpsc::{Sender, Receiver, self}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}, time::Duration};
 
-use log::info;
+use log::{info, debug};
 
 use crate::{core_::point::point_type::PointType, services::{services::Services, service::Service}};
 
@@ -87,6 +87,7 @@ impl Service for MockRecvService {
             loop {
                 match inRecv.recv_timeout(Duration::from_millis(100)) {
                     Ok(point) => {
+                        debug!("{}.run | received: {:?}", selfId, point);
                         received.lock().unwrap().push(point);
                     },
                     Err(_) => {},

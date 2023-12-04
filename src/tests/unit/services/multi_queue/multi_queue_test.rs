@@ -72,11 +72,9 @@ mod tests {
                 "MultiQueue.in-queue",
                 services.clone(),
             );
-            // let handle = thread::Builder::new().name(format!("test thread #{}", i)).spawn(move || {
-            //     info!("Preparing thread {} - ok", i);
-            // }).unwrap();
             testServices.push(service);
         }
+        mqService.lock().unwrap().run().unwrap();
         for service in &mut testServices {
             let handle = service.run().unwrap();
             threads.push(handle);

@@ -66,7 +66,6 @@ impl Service for MockSendService {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
-
         let recvQueueParts: Vec<&str> = self.sendQueue.split(".").collect();
         let outSendServiceName = recvQueueParts[0];
         let outSendQueueName = recvQueueParts[1];
@@ -81,8 +80,13 @@ impl Service for MockSendService {
             let testData = testData.lock().unwrap();
             for value in testData.iter() {
                 let point = value.toPoint(&format!("{}/test", selfId));
-                if let Err(err) = outSend.send(point) {
-                    warn!("{}.run | send error: {:?}", selfId, err);
+                match outSend.send(point.clone()) {
+                    Ok(_) => {
+                        debug!("{}.run | send: {:?}", selfId, point);
+                    },
+                    Err(err) => {
+                        warn!("{}.run | send error: {:?}", selfId, err);
+                    },
                 }
             }
             loop {
