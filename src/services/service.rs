@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::sync::mpsc::Sender;
+use std::{sync::mpsc::Sender, thread::JoinHandle};
 
 use crate::core_::point::point_type::PointType;
 
@@ -13,7 +13,7 @@ pub trait Service {
     fn getLink(&self, name: &str) -> Sender<PointType>;
     ///
     /// Starts service's main loop in the individual thread
-    fn run(&mut self);
+    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error>;
     ///
     /// Sends "exit" signal to the service's thread
     fn exit(&self);

@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Ordering}, Mutex}, time::Duration, collections::HashMap, thread::{self}};
+use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Ordering}, Mutex}, time::Duration, collections::HashMap, thread::{self, JoinHandle}};
 
 use log::{info, debug};
 
@@ -66,7 +66,7 @@ impl Service for TcpClient {
     }
     ///
     /// The TcpClient main loop
-    fn run(&mut self) {
+    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let conf = self.conf.clone();
@@ -117,7 +117,7 @@ impl Service for TcpClient {
             ))),
         );
         info!("{}.run | Preparing thread...", selfId);
-        let _handle = thread::Builder::new().name(format!("{} - Read", selfId.clone())).spawn(move || {
+        let handle = thread::Builder::new().name(format!("{} - Read", selfId.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
             loop {
                 match tcpClientConnect.connect() {
@@ -133,8 +133,9 @@ impl Service for TcpClient {
                     break;
                 }
             }
-        }).unwrap();
+        });
         info!("{}.run | started", self.id);
+        handle
     }
     ///
     /// 

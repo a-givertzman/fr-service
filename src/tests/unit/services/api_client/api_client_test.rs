@@ -5,7 +5,7 @@ mod tests {
     use rand::Rng;
     use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::{Read, Write}};
     use crate::{
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::{ToPoint, PointType}, testing::test_session::TestSession},
+        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::ToPoint, testing::{test_session::TestSession, test_stuff::test_value::Value}},
         conf::api_client_config::ApiClientConfig,  
         services::{api_cient::{api_client::ApiClient, api_reply::SqlReply, api_error::ApiError}, service::Service},
     }; 
@@ -32,22 +32,6 @@ mod tests {
     
     }
     
-    enum Value {
-        Bool(bool),
-        Int(i64),
-        Float(f64),
-        String(String),
-    }
-    impl Value {
-        fn toString(&self) -> String {
-            match &self {
-                Value::Bool(v) => v.to_string(),
-                Value::Int(v) => v.to_string(),
-                Value::Float(v) => v.to_string(),
-                Value::String(v) => v.to_string(),
-            }
-        }
-    }
     
     #[test]
     fn test_ApiClient() {
@@ -73,8 +57,8 @@ mod tests {
             Value::Float(1.3),
             Value::Bool(true),
             Value::Bool(false),
-            Value::String("test1".to_owned()),
-            Value::String("test2".to_owned()),
+            Value::String("test1".to_string()),
+            Value::String("test2".to_string()),
         ];
         let testDataLen = testData.len();
 

@@ -1,8 +1,4 @@
 #![allow(non_snake_case)]
-
-use std::sync::mpsc::{Sender, Receiver};
-
-use crate::{services::service::Service, core_::point::point_type::PointType};
 #[cfg(test)]
 mod tests {
     use log::{info, debug, warn};
@@ -11,13 +7,13 @@ mod tests {
     use crate::{
         core_::{
             debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-            testing::test_session::TestSession,
-            point::point_type::{ToPoint, PointType}, 
+            testing::{test_session::TestSession, test_stuff::test_value::Value},
+            point::point_type::PointType, 
             net::{protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}, 
             connection_status::ConnectionStatus}, 
         },
         conf::tcp_client_config::TcpClientConfig,  
-        services::{tcp_client::tcp_client::TcpClient, services::Services}, tests::unit::services::tcp_client::tcp_client_write_test::MockMultiqueue,
+        services::{tcp_client::tcp_client::TcpClient, services::Services}, tests::unit::services::tcp_client::mock_multiqueue::MockMultiqueue,
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -40,32 +36,6 @@ mod tests {
     ///  - ...
     fn initEach() -> () {
     
-    }
-    
-    #[derive(Clone)]
-    enum Value {
-        Bool(bool),
-        Int(i64),
-        Float(f64),
-        String(String),
-    }
-    impl Value {
-        fn toString(&self) -> String {
-            match &self {
-                Value::Bool(v) => v.to_string(),
-                Value::Int(v) => v.to_string(),
-                Value::Float(v) => v.to_string(),
-                Value::String(v) => v.to_string(),
-            }
-        }
-        fn toPoint(&self, name: &str) -> PointType {
-            match &self {
-                Value::Bool(v) => v.toPoint(name),
-                Value::Int(v) => v.toPoint(name),
-                Value::Float(v) => v.toPoint(name),
-                Value::String(v) => v.clone().toPoint(name),
-            }
-        }
     }
     
     #[test]
@@ -95,8 +65,8 @@ mod tests {
             Value::Float(1.3),
             Value::Bool(true),
             Value::Bool(false),
-            Value::String("test1".to_owned()),
-            Value::String("test2".to_owned()),
+            Value::String("test1".to_string()),
+            Value::String("test2".to_string()),
         ];
         let testDataLen = testData.len();
 
@@ -214,36 +184,36 @@ mod tests {
 }
 
 
-struct MockMultiqueue {
-    id: String,
-    send: Sender<PointType>,
-    recv: Receiver<PointType>,
-}
-impl MockMultiqueue {
-    fn new() -> Self {
-        let (send, recv) = std::sync::mpsc::channel();
-        Self {
-            id: "MockMultiqueue".to_owned(),
-            send,
-            recv,
-        }
-    }
-}
-impl Service for MockMultiqueue {
-    //
-    //
-    fn getLink(&self, name: &str) -> Sender<PointType> {
-        assert!(name == "queue", "{}.run | link '{:?}' - not found", self.id, name);
-        self.send.clone()
-    }
-    //
-    // 
-    fn run(&mut self) {
-        todo!()
-    }
-    //
-    // 
-    fn exit(&self) {
-        todo!()
-    }
-}
+// struct MockMultiqueue {
+//     id: String,
+//     send: Sender<PointType>,
+//     recv: Receiver<PointType>,
+// }
+// impl MockMultiqueue {
+//     fn new() -> Self {
+//         let (send, recv) = std::sync::mpsc::channel();
+//         Self {
+//             id: "MockMultiqueue".to_owned(),
+//             send,
+//             recv,
+//         }
+//     }
+// }
+// impl Service for MockMultiqueue {
+//     //
+//     //
+//     fn getLink(&self, name: &str) -> Sender<PointType> {
+//         assert!(name == "queue", "{}.run | link '{:?}' - not found", self.id, name);
+//         self.send.clone()
+//     }
+//     //
+//     // 
+//     fn run(&mut self) {
+//         todo!()
+//     }
+//     //
+//     // 
+//     fn exit(&self) {
+//         todo!()
+//     }
+// }

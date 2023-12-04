@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread};
+use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread::{self, JoinHandle}};
 
 use log::{info, warn, error};
 
@@ -12,7 +12,7 @@ use super::subscriptions::Subscriptions;
 /// - Receives points into the MPSC queue in the blocking mode
 /// - If new point received, immediately sends it to the all subscribed consumers
 /// - Keeps all consumers subscriptions in the single map:
-struct MultiQueue {
+pub struct MultiQueue {
     id: String,
     subscriptions: Arc<Mutex<Subscriptions>>,
     inSend: HashMap<String, Sender<PointType>>,
@@ -68,7 +68,7 @@ impl Service for MultiQueue {
     }
     //
     //
-    fn run(&mut self) {
+    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
@@ -100,6 +100,7 @@ impl Service for MultiQueue {
             }
         });
         info!("{}.run | started", self.id);
+        _handle
     }
     //
     //

@@ -8,7 +8,7 @@ mod tests {
     use crate::{
         core_::{
             debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-            testing::test_session::TestSession,
+            testing::{test_session::TestSession, test_stuff::test_value::Value},
             point::point_type::{ToPoint, PointType}, 
             net::protocols::jds::{jds_serialize::JdsSerialize, jds_encode_message::JdsEncodeMessage}, 
         },
@@ -40,23 +40,6 @@ mod tests {
     
     }
     
-    #[derive(Clone)]
-    enum Value {
-        Bool(bool),
-        Int(i64),
-        Float(f64),
-        String(String),
-    }
-    impl Value {
-        fn toPoint(&self, name: &str) -> PointType {
-            match &self {
-                Value::Bool(v) => v.toPoint(name),
-                Value::Int(v) => v.toPoint(name),
-                Value::Float(v) => v.toPoint(name),
-                Value::String(v) => v.clone().toPoint(name),
-            }
-        }
-    }
     
     #[test]
     fn test_TcpClient_read() {
@@ -85,8 +68,8 @@ mod tests {
             Value::Float(1.3),
             Value::Bool(true),
             Value::Bool(false),
-            Value::String("test1".to_owned()),
-            Value::String("test2".to_owned()),
+            Value::String("test1".to_string()),
+            Value::String("test2".to_string()),
         ];
         let testDataLen = testData.len();
         let totalCount = testDataLen * iterations;

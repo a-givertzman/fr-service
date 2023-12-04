@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{mpsc::{Sender, Receiver}, Arc, atomic::{AtomicBool, Ordering}, Mutex}, thread};
+use std::{sync::{mpsc::{Sender, Receiver}, Arc, atomic::{AtomicBool, Ordering}, Mutex}, thread::{self, JoinHandle}};
 
 use log::{warn, info};
 
@@ -37,12 +37,12 @@ impl Service for MockMultiqueue {
     }
     //
     // 
-    fn run(&mut self) {
+    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         let selfId = self.id.clone();
         let exit = self.exit.clone();
         let recv = self.recv.pop().unwrap();
         let received = self.received.clone();
-        thread::spawn(move || {
+        let handle = thread::spawn(move || {
             'main: loop {
                 match recv.recv() {
                     Ok(point) => {
@@ -58,6 +58,7 @@ impl Service for MockMultiqueue {
             }
         });
         info!("{}.run | Started", self.id);
+        Ok(handle)
     }
     //
     // 

@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering}}, time::Duration, thread, collections::HashMap, net::TcpStream, io::{Write, Read}};
+use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering}}, time::Duration, thread::{self, JoinHandle}, collections::HashMap, net::TcpStream, io::{Write, Read}};
 
 use log::{info, debug, trace, warn};
 
@@ -155,7 +155,7 @@ impl Service for ApiClient {
     }
     ///
     /// 
-    fn run(&mut self) {
+    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
@@ -167,7 +167,7 @@ impl Service for ApiClient {
         };
         let reconnect = if conf.reconnectCycle.is_some() {conf.reconnectCycle.unwrap()} else {Duration::from_secs(3)};
         let _queueMaxLength = conf.recvQueueMaxLength;
-        let _h = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
+        let _handle = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
             let mut buffer = RetainBuffer::new(&selfId, "", Some(conf.recvQueueMaxLength as usize));
             let mut cycle = ServiceCycle::new(cycleInterval);
             let mut connect = TcpClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address, reconnect);
@@ -241,9 +241,9 @@ impl Service for ApiClient {
                 thread::sleep(Duration::from_millis(100));
             };
             info!("{}.run | stopped", selfId);
-        }).unwrap();
+        });
         info!("{}.run | started", self.id);
-        // h.join().unwrap();
+        _handle
     }
     ///
     /// 
