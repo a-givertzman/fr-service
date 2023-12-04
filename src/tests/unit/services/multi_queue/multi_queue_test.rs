@@ -28,12 +28,12 @@ mod tests {
     }
     
     #[test]
-    fn test_multi_queue() {
+    fn test_multi_queue_static_single() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test_multi_queue");
+        info!("test_multi_queue - Static subscriptions - Single send");
         let testData = Arc::new(Mutex::new(vec![
             Value::Int(7),
             Value::Float(1.3),
