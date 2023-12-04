@@ -23,7 +23,7 @@ pub struct MockService {
 /// 
 impl MockService {
     pub fn new(parent: impl Into<String>, recvQueue: &str, sendQueue: &str, services: Arc<Mutex<Services>>, testData: Arc<Mutex<Vec<Value>>>) -> Self {
-        let selfId = format!("{}/MultiQueue", parent.into());
+        let selfId = format!("{}/MockService", parent.into());
         let (send, recv) = mpsc::channel::<PointType>();
         Self {
             id: selfId.clone(),
@@ -79,13 +79,13 @@ impl Service for MockService {
         let _handle = thread::Builder::new().name(format!("{} - MultiQueue.run", selfId)).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
             let testData = testData.lock().unwrap();
-            loop {
-                for value in testData.iter() {
-                    let point = value.toPoint(&format!("{}/test", selfId));
-                    if let Err(err) = outSend.send(point) {
-                        warn!("{}.run | send error: {:?}", selfId, err);
-                    }
+            for value in testData.iter() {
+                let point = value.toPoint(&format!("{}/test", selfId));
+                if let Err(err) = outSend.send(point) {
+                    warn!("{}.run | send error: {:?}", selfId, err);
                 }
+            }
+            loop {
                 if exit.load(Ordering::SeqCst) {
                     break;
                 }
