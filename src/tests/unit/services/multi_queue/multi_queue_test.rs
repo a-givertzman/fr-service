@@ -3,7 +3,7 @@
 mod tests {
     use log::{info, debug};
     use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}, thread};
-    use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::test_value::Value}, conf::multi_queue_config::MultiQueueConfig, services::{multi_queue::multi_queue::MultiQueue, services::Services, service::Service}, tests::unit::services::multi_queue::mock_service::MockService}; 
+    use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::test_value::Value}, conf::multi_queue_config::MultiQueueConfig, services::{multi_queue::multi_queue::MultiQueue, services::Services, service::Service}, tests::unit::services::multi_queue::{mock_recv_service::MockRecvService, mock_send_service::MockSendService}}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -57,7 +57,7 @@ mod tests {
         let mut threads = vec![];
         let mut testServices = vec![];
         let timer = Instant::now();
-        let recvService = Arc::new(Mutex::new(MockService::new(
+        let recvService = Arc::new(Mutex::new(MockSendService::new(
             format!("test"),
             "in-queue",//MultiQueue.
             "MultiQueue.in-queue",
@@ -66,24 +66,22 @@ mod tests {
         )));
         services.lock().unwrap().insert("MockRecvService", recvService.clone());
         for i in 0..count {
-            let mut service = MockService::new(
+            let service = MockRecvService::new(
                 format!("tread{}", i),
                 "in-queue",//MultiQueue.
                 "MultiQueue.in-queue",
                 services.clone(),
-                testData.clone(),
             );
             // let handle = thread::Builder::new().name(format!("test thread #{}", i)).spawn(move || {
             //     info!("Preparing thread {} - ok", i);
             // }).unwrap();
-            let handle = service.run().unwrap();
             testServices.push(service);
-            threads.push(handle);
         }
         for service in &mut testServices {
-            service.run().unwrap();
+            let handle = service.run().unwrap();
+            threads.push(handle);
         }
-        let waitDuration = Duration::from_millis(10);
+        let waitDuration = Duration::from_millis(1000);
         let mut waitAttempts = maxTestDuration.as_micros() / waitDuration.as_micros();
         let mut received = usize::MAX;
         while received != totalCount {
