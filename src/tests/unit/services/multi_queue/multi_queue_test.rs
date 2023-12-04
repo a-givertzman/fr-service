@@ -3,7 +3,7 @@
 mod tests {
     use log::{info, debug};
     use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}, thread};
-    use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::test_value::Value}, conf::multi_queue_config::MultiQueueConfig, services::{multi_queue::multi_queue::MultiQueue, services::Services, service::Service}, tests::unit::services::multi_queue::{mock_recv_service::MockRecvService, mock_send_service::MockSendService}}; 
+    use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::test_value::Value}, conf::{multi_queue_config::MultiQueueConfig, conf_tree::ConfTree}, services::{multi_queue::multi_queue::MultiQueue, services::Services, service::Service}, tests::unit::services::multi_queue::{mock_recv_service::MockRecvService, mock_send_service::MockSendService}}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -43,12 +43,23 @@ mod tests {
             Value::String("test2".to_string()),
         ]));
 
-        let count = 3;
+        let count = 30;
         let totalCount = count * testData.lock().unwrap().len();
         let maxTestDuration = Duration::from_secs(10);
         
-        let path = "./src/tests/unit/services/multi_queue/multi_queue.yaml";
-        let mqConf = MultiQueueConfig::read(path);
+        // let path = "./src/tests/unit/services/multi_queue/multi_queue.yaml";
+        let mut conf = r#"
+            service MultiQueue:
+                in queue in-queue:
+                    max-length: 10000
+                out queue:
+        "#.to_string();
+        for i in 0..count {
+            conf = format!("{}\n                    - MockRecvService{}.in-queue", conf, i)
+        }
+        let conf = serde_yaml::from_str(&conf).unwrap();
+        let mqConf = MultiQueueConfig::fromYamlValue(&conf);
+        // let mqConf = MultiQueueConfig::read(path);
         debug!("mqConf: {:?}", mqConf);
         let services = Arc::new(Mutex::new(Services::new("test")));
         let mqService = Arc::new(Mutex::new(MultiQueue::new("test", mqConf, services.clone())));
@@ -81,15 +92,19 @@ mod tests {
             threads.push(handle);
         }
         sendService.lock().unwrap().run().unwrap();
-        let waitDuration = Duration::from_millis(1000);
+        let waitDuration = Duration::from_micros(10);
         let mut waitAttempts = maxTestDuration.as_micros() / waitDuration.as_micros();
         let mut received = usize::MAX;
+        let mut allReceivedPrev = vec![];
         while received != totalCount {
             let mut allReceived = vec![];
             for service in &recvServices {
                 let r = service.lock().unwrap().received().lock().unwrap().len();
                 allReceived.push(r);
-                debug!("waiting while all data beeng received {:?}/{}...", allReceived, totalCount);
+                if allReceived != allReceivedPrev {
+                    debug!("waiting while all data beeng received {:?}/{}...", allReceived, totalCount);
+                    allReceivedPrev = allReceived.clone();
+                }
             }
             received = allReceived.iter().sum::<usize>().clone();
             thread::sleep(waitDuration);
@@ -98,12 +113,12 @@ mod tests {
         }
         println!("\nelapsed: {:?}", timer.elapsed());
         println!("total test events: {:?}", totalCount);
-        println!("sent events: {:?}\n", sendService.lock().unwrap().sent().lock().unwrap().len());
+        println!("sent events: {:?}\n", count * sendService.lock().unwrap().sent().lock().unwrap().len());
         let mut received = vec![];
         for recvService in &recvServices {
             received.push(recvService.lock().unwrap().received().lock().unwrap().len());
         }
-        println!("recv events: {:?}", received.len());
+        println!("recv events: {} {:?}", received.iter().sum::<usize>(), received);
 
         for service in recvServices {
             service.lock().unwrap().exit();

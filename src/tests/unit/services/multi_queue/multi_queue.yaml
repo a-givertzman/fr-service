@@ -5,6 +5,13 @@ service MultiQueue:
         - MockRecvService0.in-queue
         - MockRecvService1.in-queue
         - MockRecvService2.in-queue
+        - MockRecvService3.in-queue
+        - MockRecvService4.in-queue
+        - MockRecvService5.in-queue
+        - MockRecvService6.in-queue
+        - MockRecvService7.in-queue
+        - MockRecvService8.in-queue
+        - MockRecvService9.in-queue
         # - task1.recv-queue
         # - CmaServer.in-queue
 
