@@ -44,7 +44,7 @@ mod tests {
         ]));
 
         let count = 3;
-        let totalCount = count;
+        let totalCount = count * testData.lock().unwrap().len();
         let maxTestDuration = Duration::from_secs(10);
         
         let path = "./src/tests/unit/services/multi_queue/multi_queue.yaml";
