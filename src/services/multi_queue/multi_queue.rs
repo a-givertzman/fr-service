@@ -97,6 +97,7 @@ impl Service for MultiQueue {
                 match recv.recv() {
                     Ok(point) => {
                         let pointId = point.name();
+                        debug!("{}.run | received: {:?}", selfId, point);
                         for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {
                             match sender.send(point.clone()) {
                                 Ok(_) => {},

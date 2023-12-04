@@ -57,35 +57,37 @@ mod tests {
         let mut threads = vec![];
         let mut testServices = vec![];
         let timer = Instant::now();
-        let recvService = Arc::new(Mutex::new(MockSendService::new(
+        let sendService = Arc::new(Mutex::new(MockSendService::new(
             format!("test"),
             "in-queue",//MultiQueue.
             "MultiQueue.in-queue",
             services.clone(),
             testData.clone(),
         )));
-        services.lock().unwrap().insert("MockRecvService", recvService.clone());
+        services.lock().unwrap().insert("MockRecvService", sendService.clone());
         for i in 0..count {
-            let service = MockRecvService::new(
+            let service = Arc::new(Mutex::new(MockRecvService::new(
                 format!("tread{}", i),
                 "in-queue",//MultiQueue.
                 "MultiQueue.in-queue",
                 services.clone(),
-            );
+            )));
+            services.lock().unwrap().insert(&format!("MockRecvService{}", i), service.clone());
             testServices.push(service);
         }
         mqService.lock().unwrap().run().unwrap();
         for service in &mut testServices {
-            let handle = service.run().unwrap();
+            let handle = service.lock().unwrap().run().unwrap();
             threads.push(handle);
         }
+        sendService.lock().unwrap().run().unwrap();
         let waitDuration = Duration::from_millis(1000);
         let mut waitAttempts = maxTestDuration.as_micros() / waitDuration.as_micros();
         let mut received = usize::MAX;
         while received != totalCount {
             let mut allReceived = vec![];
             for service in &testServices {
-                let r = service.received().lock().unwrap().len();
+                let r = service.lock().unwrap().received().lock().unwrap().len();
                 debug!("waiting while all data beeng received {}/{}...", r, totalCount);
                 allReceived.push(r);
             }
@@ -95,7 +97,7 @@ mod tests {
             assert!(waitAttempts > 0, "Transfering {}/{} points taks too mach time {:?} of {:?}", received, totalCount, timer.elapsed(), maxTestDuration);
         }
         for service in testServices {
-            service.exit();
+            service.lock().unwrap().exit();
         }
         for thd in threads {
             let thdId = format!("{:?}-{:?}", thd.thread().id(), thd.thread().name());
