@@ -76,16 +76,11 @@ impl Service for TcpClient {
         let selfId = self.id.clone();
         let conf = self.conf.clone();
         let exit = self.exit.clone();
-        info!("{}.run | in queue name: {:?}", self.id, conf.rx);
-        info!("{}.run | out queue name: {:?}", self.id, conf.tx);
-        let recvQueueParts: Vec<&str> = conf.tx.split(".").collect();
-        let receiverServiceName = recvQueueParts[0];
-        let receiverQueueName = recvQueueParts[1];
+        info!("{}.run | rx queue name: {:?}", self.id, conf.rx);
+        info!("{}.run | tx queue name: {:?}", self.id, conf.tx);
         debug!("{}.run | Getting services...", selfId);
-        let services = self.services.lock().unwrap();
+        let outSend = self.services.lock().unwrap().getLink(&conf.tx);
         debug!("{}.run | Getting services - ok", selfId);
-
-        let outSend = services.get(&receiverServiceName).lock().unwrap().getLink(receiverQueueName);
         let outSend = Arc::new(Mutex::new(outSend));
         let buffered = true; // TODO Read this from config
         let inRecv = self.inRecv.pop().unwrap();

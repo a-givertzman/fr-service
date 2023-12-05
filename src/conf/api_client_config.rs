@@ -64,7 +64,7 @@ impl ApiClientConfig {
                 debug!("{}.new | cycle: {:?}", selfId, cycle);
                 let reconnectCycle = selfConf.getDuration("reconnect");
                 debug!("{}.new | reconnectCycle: {:?}", selfId, reconnectCycle);
-                let (rx, rxMaxLength) = selfConf.getQueue("in", Some("max-length")).unwrap();
+                let (rx, rxMaxLength) = selfConf.getInQueue().unwrap();
                 debug!("{}.new | RX: {},\tmax-length: {:?}", selfId, rx, rxMaxLength);
                 ApiClientConfig {
                     name: selfName,
@@ -72,7 +72,7 @@ impl ApiClientConfig {
                     cycle,
                     reconnectCycle,
                     rx,
-                    rxMaxLength: rxMaxLength.as_i64().unwrap(),
+                    rxMaxLength: rxMaxLength,
                 }
             },
             None => {

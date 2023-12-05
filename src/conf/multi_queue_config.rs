@@ -57,8 +57,8 @@ impl MultiQueueConfig {
                 trace!("{}.new | selfConf: {:?}", selfId, selfConf);
                 let selfName = selfConf.name();
                 debug!("{}.new | selfName: {:?}", selfId, selfName);
-                let (rx, rxMaxLength) = selfConf.getQueue("in", Some("max-length")).unwrap();
-                debug!("{}.new | RX: {},\tmax-length: {}", selfId, rx, rxMaxLength.as_i64().unwrap());
+                let (rx, rxMaxLength) = selfConf.getInQueue().unwrap();
+                debug!("{}.new | RX: {},\tmax-length: {}", selfId, rx, rxMaxLength);
                 let tx = match selfConf.getParamByKeyword("out", ConfKind::Queue) {
                     Ok((keyword, queueConf)) => {
                         let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
@@ -74,7 +74,7 @@ impl MultiQueueConfig {
                 MultiQueueConfig {
                     name: selfName,
                     rx,
-                    rxMaxLength: rxMaxLength.as_i64().unwrap(),
+                    rxMaxLength: rxMaxLength,
                     tx,
                 }
             },

@@ -115,21 +115,31 @@ impl ServiceConfig {
     }
     ///
     /// 
-    pub fn getQueue(&mut self, prefix: &str, subParam: Option<&str>) -> Result<(String, serde_yaml::Value), String> {
+    pub fn getInQueue(&mut self) -> Result<(String, i64), String> {
+        let prefix = "in";
+        let subParam = "max-length";
         match self.getParamByKeyword(prefix, ConfKind::Queue) {
             Ok((keyword, selfRecvQueue)) => {
                 let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
                 debug!("{}.getQueue | self in-queue params {}: {:?}", self.id, name, selfRecvQueue);
-                let subParam = match subParam {
-                    Some(name) => {
-                        match selfRecvQueue.get(name) {
-                            Some(confTree) => Ok(confTree.conf),
-                            None => Err(format!("{}.getQueue | '{}' - not found in: {:?}", self.id, name, self.conf)),
-                        }.unwrap()
-                    },
-                    None => serde_yaml::to_value(format!("{}.getQueue | '{}' queue sub parameter name is None in: {:?}", self.id, prefix, self.conf)).unwrap(),
-                };
-                Ok((keyword.name(), subParam))
+                let maxLength = match selfRecvQueue.get(subParam) {
+                    Some(confTree) => Ok(confTree.conf),
+                    None => Err(format!("{}.getQueue | '{}' - not found in: {:?}", self.id, name, self.conf)),
+                }.unwrap().as_i64().unwrap();
+                Ok((keyword.name(), maxLength))
+            },
+            Err(err) => Err(format!("{}.getQueue | {} queue - not found in: {:?}\n\terror: {:?}", self.id, prefix, self.conf, err)),
+        }        
+    }    
+    ///
+    /// 
+    pub fn getOutQueue(&mut self) -> Result<String, String> {
+        let prefix = "out";
+        match self.getParamByKeyword(prefix, ConfKind::Queue) {
+            Ok((keyword, txName)) => {
+                let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
+                debug!("{}.getQueue | self out-queue params {}: {:?}", self.id, name, txName);
+                Ok(txName.conf.as_str().unwrap().to_string())
             },
             Err(err) => Err(format!("{}.getQueue | {} queue - not found in: {:?}\n\terror: {:?}", self.id, prefix, self.conf, err)),
         }        

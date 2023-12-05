@@ -63,9 +63,9 @@ impl TcpClientConfig {
                 debug!("{}.new | cycle: {:?}", selfId, cycle);
                 let reconnectCycle = selfConf.getDuration("reconnect");
                 debug!("{}.new | reconnectCycle: {:?}", selfId, reconnectCycle);
-                let (rx, rxMaxLength) = selfConf.getQueue("in", Some("max-length")).unwrap();
-                debug!("{}.new | RX: {},\tmax-length: {}", selfId, rx, rxMaxLength.as_i64().unwrap());
-                let (tx, _) = selfConf.getQueue("out", None).unwrap();
+                let (rx, rxMaxLength) = selfConf.getInQueue().unwrap();
+                debug!("{}.new | RX: {},\tmax-length: {}", selfId, rx, rxMaxLength);
+                let tx = selfConf.getOutQueue().unwrap();
                 debug!("{}.new | TX: {}", selfId, tx);
                 TcpClientConfig {
                     name: selfName,
@@ -73,7 +73,7 @@ impl TcpClientConfig {
                     cycle,
                     reconnectCycle,
                     rx,
-                    rxMaxLength: rxMaxLength.as_i64().unwrap(),
+                    rxMaxLength: rxMaxLength,
                     tx,
                 }
             },

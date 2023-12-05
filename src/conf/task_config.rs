@@ -71,8 +71,8 @@ impl TaskConfig {
                 debug!("{}.new | name: {:?}", selfId, selfName);
                 let cycle = selfConf.getDuration("cycle");
                 debug!("{}.new | cycle: {:?}", selfId, cycle);
-                let (rx, rxMaxLength) = selfConf.getQueue("in", Some("max-length")).unwrap();
-                debug!("{}.new | RX: {},\tmax-length: {:?}", selfId, rx, rxMaxLength.as_i64());
+                let (rx, rxMaxLength) = selfConf.getInQueue().unwrap();
+                debug!("{}.new | RX: {},\tmax-length: {:?}", selfId, rx, rxMaxLength);
                 let mut nodeIndex = 0;
                 let mut nodes = IndexMap::new();
                 for key in &selfConf.keys {
@@ -89,7 +89,7 @@ impl TaskConfig {
                     name: selfName,
                     cycle,
                     rx,
-                    rxMaxLength: rxMaxLength.as_i64().unwrap(),
+                    rxMaxLength: rxMaxLength,
                     nodes,
                     vars,
                 }
