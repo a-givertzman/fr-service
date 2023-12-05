@@ -62,7 +62,7 @@ impl MultiQueueConfig {
                 let tx = match selfConf.getParamByKeyword("out", ConfKind::Queue) {
                     Ok((keyword, queueConf)) => {
                         let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
-                        trace!("{}.new | self out-queue param {}: {:?}", selfId, name, queueConf);
+                        trace!("{}.new | self tx-queue param {}: {:?}", selfId, name, queueConf);
                         let queues: Vec<String> = queueConf.conf.as_sequence().unwrap().iter().map(|value| {
                             value.as_str().unwrap().to_owned()
                         }).collect();

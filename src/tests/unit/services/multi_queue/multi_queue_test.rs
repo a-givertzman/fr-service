@@ -77,14 +77,14 @@ mod tests {
         )));
         services.lock().unwrap().insert("MockRecvService", sendService.clone());
         for i in 0..count {
-            let service = Arc::new(Mutex::new(MockRecvService::new(
+            let recvService = Arc::new(Mutex::new(MockRecvService::new(
                 format!("tread{}", i),
                 "in-queue",//MultiQueue.
                 "MultiQueue.in-queue",
                 services.clone(),
             )));
-            services.lock().unwrap().insert(&format!("MockRecvService{}", i), service.clone());
-            recvServices.push(service);
+            services.lock().unwrap().insert(&format!("MockRecvService{}", i), recvService.clone());
+            recvServices.push(recvService);
         }
         mqService.lock().unwrap().run().unwrap();
         for service in &mut recvServices {

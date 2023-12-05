@@ -84,7 +84,7 @@ mod tests {
     }
 
 
-    #[ignore = "TODO - transfered values asertion not implemented yet"]
+    #[ignore = "TODO - transfered values assertion not implemented yet"]
     #[test]
     fn test_task_tranfer() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
