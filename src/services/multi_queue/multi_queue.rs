@@ -14,7 +14,7 @@ use super::subscriptions::Subscriptions;
 /// - Keeps all consumers subscriptions in the single map:
 pub struct MultiQueue {
     id: String,
-    subscriptions: Arc<Mutex<Subscriptions>>,
+    subscriptions: Arc<Mutex<HashMap<String, Subscriptions>>>,
     rxName: String,
     // rxSend: HashMap<String, Sender<PointType>>,
     // inRecv: Vec<Receiver<PointType>>,
@@ -34,7 +34,7 @@ impl MultiQueue {
         let sendQueues = conf.tx;
         Self {
             id: selfId.clone(),
-            subscriptions: Arc::new(Mutex::new(Subscriptions::new(selfId))),
+            subscriptions: Arc::new(Mutex::new(HashMap::new())),
             rxName: conf.rx,
             // rxSend: HashMap::new(),     //HashMap::from([(conf.rx, send)]),
             // inRecv: vec![],
@@ -102,6 +102,7 @@ impl Service for MultiQueue {
         let (send, recv) = mpsc::channel();
         if name == self.rxName {
             let handle = self.serveRx(recv).unwrap();
+            self.serveRx.push(handle);
             return send
         }
         panic!("{}.run | link '{:?}' - not found", self.id, name);
