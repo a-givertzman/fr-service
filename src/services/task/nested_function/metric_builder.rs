@@ -1,10 +1,12 @@
-use std::{rc::Rc, cell::RefCell};
+#![allow(non_snake_case)]
+
+use std::{rc::Rc, cell::RefCell, sync::{Arc, Mutex}};
 
 use log::debug;
 
 use crate::{
     conf::fn_config::FnConfig, 
-    services::{task::{nested_function::metric_select::MetricSelect, task_nodes::TaskNodes}, queues::queues::Queues},
+    services::{task::{nested_function::metric_select::MetricSelect, task_nodes::TaskNodes}, services::Services},
 };
 
 use super::fn_::FnInOut;
@@ -17,7 +19,7 @@ pub struct MetricBuilder {
 ///
 /// 
 impl MetricBuilder {
-    pub fn new(conf: &mut FnConfig, taskNodes: &mut TaskNodes, queues: &mut Queues) -> Rc<RefCell<Box<(dyn FnInOut)>>> {
+    pub fn new(conf: &mut FnConfig, taskNodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> Rc<RefCell<Box<(dyn FnInOut)>>> {
         match conf.name.as_str() {
             "sqlSelectMetric" => {
                 debug!("MetricBuilder.new | fnConf: {:?}: {:?}", conf.name, conf);
@@ -26,7 +28,7 @@ impl MetricBuilder {
                         MetricSelect::new(
                             conf, 
                             taskNodes,
-                            queues,
+                            services,
                         )
                     )
                 ))

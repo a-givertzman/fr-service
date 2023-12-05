@@ -147,21 +147,16 @@ impl ApiClient {
 impl Service for ApiClient {
     //
     //
+    fn id(&self) -> &str {
+        &self.id
+    }
+    //
+    //
     fn getLink(&self, name: &str) -> Sender<PointType> {
         match self.send.get(name) {
             Some(send) => send.clone(),
             None => panic!("{}.run | link '{:?}' - not found", self.id, name),
         }
-    }
-    //
-    // 
-    fn subscribe(&mut self, receiverId: &str, points: &Vec<String>) -> Receiver<PointType> {
-        panic!("{}.subscribe | Does not support subscriptions", self.id)
-    }
-    //
-    //
-    fn unsubscribe(&mut self, receiverId: &str, points: &Vec<String>) -> Result<(), String> {
-        panic!("{}.unsubscribe | Does not support subscriptions", self.id)
     }
     //
     // 

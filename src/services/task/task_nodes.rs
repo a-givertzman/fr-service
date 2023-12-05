@@ -1,12 +1,14 @@
 #![allow(non_snake_case)]
 
+use std::sync::{Arc, Mutex};
+
 use indexmap::IndexMap;
-use log::{debug, trace, warn};
+use log::{debug, trace};
 
 use crate::{
     core_::{types::fn_in_out_ref::FnInOutRef, point::point_type::PointType}, 
     conf::{task_config::TaskConfig, fn_conf_kind::FnConfKind}, 
-    services::{queues::queues::Queues, task::nested_function::{metric_builder::MetricBuilder, nested_fn::NestedFn, fn_kind::FnKind}},
+    services::{task::nested_function::{metric_builder::MetricBuilder, nested_fn::NestedFn, fn_kind::FnKind}, services::Services},
 };
 
 use super::{task_node_vars::TaskNodeVars, task_eval_node::TaskEvalNode};
@@ -166,20 +168,20 @@ impl TaskNodes {
     }
     ///
     /// Creates all task nodes depending on it config
-    pub fn buildNodes(&mut self, conf: TaskConfig, queues: &mut Queues) {
+    pub fn buildNodes(&mut self, conf: TaskConfig, services: Arc<Mutex<Services>>) {
         for (_nodeName, mut nodeConf) in conf.nodes {
             let nodeName = nodeConf.name.clone();
             debug!("TaskNodes.nodes | node: {:?}", &nodeConf.name);
             self.newNodeVars = Some(TaskNodeVars::new());
             let out = match nodeConf.fnKind {
                 FnConfKind::Metric => {
-                    MetricBuilder::new(&mut nodeConf, self, queues)
+                    MetricBuilder::new(&mut nodeConf, self, services.clone())
                 },
                 FnConfKind::Fn => {
-                    NestedFn::new(&mut nodeConf, self, queues)
+                    NestedFn::new(&mut nodeConf, self, services.clone())
                 },
                 FnConfKind::Var => {
-                    NestedFn::new(&mut nodeConf, self, queues)
+                    NestedFn::new(&mut nodeConf, self, services.clone())
                 },
                 FnConfKind::Const => {
                     panic!("TaskNodes.buildNodes | Const is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);

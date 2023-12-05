@@ -47,6 +47,11 @@ impl MultiQueue {
 impl Service for MultiQueue {
     //
     //
+    fn id(&self) -> &str {
+        &self.id
+    }
+    //
+    //
     fn getLink(&self, name: &str) -> Sender<PointType> {
         match self.inSend.get(name) {
             Some(send) => send.clone(),
@@ -89,13 +94,9 @@ impl Service for MultiQueue {
         let subscriptions = self.subscriptions.clone();
         let mut staticSubscriptions: HashMap<String, Sender<PointType>> = HashMap::new();
         for sendQueue in &self.sendQueues {
-            let parts: Vec<&str> = sendQueue.split(".").collect();
-            let serviceName = parts[0];
-            let sendQueueName = parts[1];
             debug!("{}.run | Getting services...", selfId);
-            let services = self.services.lock().unwrap();
+            let outSend = self.services.lock().unwrap().getLink(sendQueue);
             debug!("{}.run | Getting services - ok", selfId);
-            let outSend = services.get(&serviceName).lock().unwrap().getLink(&sendQueueName);
             staticSubscriptions.insert(sendQueue.to_string(), outSend);
         }
         let _handle = thread::Builder::new().name(format!("{} - MultiQueue.run", selfId.clone())).spawn(move || {

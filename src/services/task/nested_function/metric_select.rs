@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::{Arc, Mutex}};
 
 use indexmap::IndexMap;
 use log::{debug, trace};
@@ -12,7 +12,7 @@ use crate::{
         format::format::Format, 
     }, 
     conf::fn_config::FnConfig, 
-    services::{task::task_nodes::TaskNodes, queues::queues::Queues},
+    services::{task::task_nodes::TaskNodes, services::Services},
 };
 
 use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn, fn_kind::FnKind};
@@ -35,7 +35,7 @@ pub struct MetricSelect {
 impl MetricSelect {
     //
     //
-    pub fn new(conf: &mut FnConfig, taskNodes: &mut TaskNodes, queues: &mut Queues) -> MetricSelect {
+    pub fn new(conf: &mut FnConfig, taskNodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> MetricSelect {
         let mut inputs = IndexMap::new();
         let inputConfs = conf.inputs.clone();
         let inputConfNames = inputConfs.keys().filter(|v| {
@@ -56,7 +56,7 @@ impl MetricSelect {
             let inputConf = conf.inputConf(&name);
             inputs.insert(
                 name.to_string(), 
-                NestedFn::new(inputConf, taskNodes, queues),
+                NestedFn::new(inputConf, taskNodes, services.clone()),
             );
         }
         let id = conf.name.clone();

@@ -56,16 +56,21 @@ impl TcpClient {
 ///
 /// 
 impl Service for TcpClient {
-    ///
-    /// returns sender of the TcpClient input queue by name
+    //
+    //
+    fn id(&self) -> &str {
+        &self.id
+    }
+    //
+    // 
     fn getLink(&self, name: &str) -> Sender<PointType> {
         match self.inSend.get(name) {
             Some(send) => send.clone(),
             None => panic!("{}.run | link '{:?}' - not found", self.id, name),
         }
     }
-    ///
-    /// The TcpClient main loop
+    //
+    //
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
@@ -137,8 +142,8 @@ impl Service for TcpClient {
         info!("{}.run | started", self.id);
         handle
     }
-    ///
-    /// 
+    //
+    //
     fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
         match &self.tcpRecvAlive {

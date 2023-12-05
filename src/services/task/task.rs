@@ -1,16 +1,15 @@
 #![allow(non_snake_case)]
 
 use std::{
-    sync::{Arc, atomic::{AtomicBool, Ordering}},
-    thread,
-    time::Duration,
+    sync::{Arc, atomic::{AtomicBool, Ordering}, mpsc::{Sender, Receiver, self}, Mutex},
+    thread::{self, JoinHandle},
+    time::Duration, collections::HashMap,
 };
 
 use log::{info, debug, warn, trace};
 
-use crate::services::task::task_nodes::TaskNodes;
+use crate::{services::{task::task_nodes::TaskNodes, service::Service, services::Services}, core_::point::point_type::PointType};
 use crate::conf::task_config::TaskConfig;
-use crate::services::queues::queues::Queues;
 use crate::services::task::task_cycle::ServiceCycle;
 
 /// Task implements entity, which provides cyclically (by event) executing calculations
@@ -19,8 +18,10 @@ use crate::services::task::task_cycle::ServiceCycle;
 ///  - has some number of functions / variables / metrics or additional entities
 pub struct Task {
     id: String,
+    inSend: HashMap<String, Sender<PointType>>,
+    inRecv: Vec<Receiver<PointType>>,
+    services: Arc<Mutex<Services>>,
     conf: TaskConfig,
-    queues: Vec<Queues>,
     exit: Arc<AtomicBool>,
 }
 ///
@@ -29,31 +30,49 @@ impl Task {
     ///
     /// Creates new instance of [Task]
     /// - [parent] - the ID if the parent entity
-    pub fn new(parent: impl Into<String>, conf: TaskConfig, queues: Queues) -> Task {
+    pub fn new(parent: impl Into<String>, conf: TaskConfig, services: Arc<Mutex<Services>>) -> Task {
+        let (send, recv) = mpsc::channel();
         Task {
             id: format!("{}/Task({})", parent.into(), conf.name),
-            queues: vec![queues],
+            inSend: HashMap::from([(conf.recvQueue.clone(), send)]),
+            inRecv: vec![recv],
+            services,
             conf,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
-    ///
-    /// Tasck main execution loop spawned in the separate thread
-    pub fn run(&mut self) {
+}
+impl Service for Task {
+    //
+    //
+    fn id(&self) -> &str {
+        &self.id
+    }
+    //
+    //
+    fn getLink(&self, name: &str) -> Sender<PointType> {
+        match self.inSend.get(name) {
+            Some(send) => send.clone(),
+            None => panic!("{}.run | link '{:?}' - not found", self.id, name),
+        }
+    }
+    //
+    //
+    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
         let conf = self.conf.clone();
-        let mut queues = self.queues.pop().unwrap();
+        let services = self.services.clone();
         let (cyclic, cycleInterval) = match conf.cycle {
             Some(interval) => (interval > Duration::ZERO, interval),
             None => (false, Duration::ZERO),
         };
-        let recvQueue = queues.getRecvQueue(&conf.recvQueue);
-        let _h = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
+        let recvQueue = self.inRecv.pop().unwrap();
+        let handle = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
             let mut cycle = ServiceCycle::new(cycleInterval);
             let mut taskNodes = TaskNodes::new(&selfId);
-            taskNodes.buildNodes(conf, &mut queues);
+            taskNodes.buildNodes(conf, services);
             debug!("{}.run | taskNodes: {:?}", selfId, taskNodes);
             'main: loop {
                 cycle.start();
@@ -77,13 +96,13 @@ impl Task {
                 }
             };
             info!("{}.run | stopped", selfId);
-        }).unwrap();
+        });
         info!("{}.run | started", self.id);
-        // h.join().unwrap();
+        handle
     }
-    ///
-    /// Exit thread
-    pub fn exit(&self) {
+    //
+    //
+    fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
     }
 }
