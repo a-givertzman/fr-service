@@ -63,7 +63,7 @@ impl Service for TcpClient {
     }
     //
     // 
-    fn getLink(&self, name: &str) -> Sender<PointType> {
+    fn getLink(&mut self, name: &str) -> Sender<PointType> {
         match self.inSend.get(name) {
             Some(send) => send.clone(),
             None => panic!("{}.run | link '{:?}' - not found", self.id, name),

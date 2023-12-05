@@ -57,7 +57,7 @@ impl Service for MockRecvService {
     }
     //
     //
-    fn getLink(&self, name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
+    fn getLink(&mut self, name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
         match self.inSend.get(name) {
             Some(send) => send.clone(),
             None => panic!("{}.run | link '{:?}' - not found", self.id, name),
