@@ -3,12 +3,12 @@
 
 mod tests {
     use log::{trace, info};
-    use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, env, time::Instant};
+    use std::{sync::{Once, mpsc::{Sender, Receiver, self}, Arc, Mutex}, env, time::Instant};
     
     use crate::{
         core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::PointType}, 
         conf::task_config::TaskConfig, 
-        services::{task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}, queues::queues::Queues},
+        services::{task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}, queues::queues::Queues, service::Service, services::Services},
     };
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -50,6 +50,7 @@ mod tests {
         trace!("config: {:?}", &config);
     
         let mut queues = Queues::new();
+        let services = Arc::new(Mutex::new(Services::new("test")));
         let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
         let (apiSend, apiRecv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
         queues.addRecvQueue("recv-queue", recv);
@@ -63,7 +64,7 @@ mod tests {
         let mut producer = TaskTestProducer::new(iterations, vec![send]);
         producer.run();
     
-        let mut task = Task::new("test", config, queues);
+        let mut task = Task::new("test", config, services);
         trace!("task tuning...");
         let time = Instant::now();
         task.run();
@@ -98,6 +99,7 @@ mod tests {
         trace!("config: {:?}", &config);
     
         let mut queues = Queues::new();
+        let services = Arc::new(Mutex::new(Services::new("test")));
         let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
         let (apiSend, apiRecv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
         queues.addRecvQueue("recv-queue", recv);
@@ -111,7 +113,7 @@ mod tests {
         let mut producer = TaskTestProducer::new(iterations, vec![send]);
         producer.run();
     
-        let mut task = Task::new("test", config, queues);
+        let mut task = Task::new("test", config, services);
         trace!("task tuning...");
         let time = Instant::now();
         task.run();

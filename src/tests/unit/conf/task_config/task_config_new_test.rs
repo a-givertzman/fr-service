@@ -55,7 +55,8 @@ mod tests {
             (
                 r#"task task1:
                     cycle: 100 ms
-                    recv-queue: recv-queue
+                    in queue recv-queue:
+                        max-length: 10000
                     metric sqlSelectMetric:
                         initial: 0.123      # начальное значение
                         table: table_name
@@ -75,6 +76,7 @@ mod tests {
                     name: String::from("task1"),
                     cycle: Some(Duration::from_millis(100)),
                     recvQueue: String::from("recv-queue"),
+                    recvQueueMaxLength: 10000,
                     vars: vec![String::from("VarName2")],
                     nodes: IndexMap::from([                    
                         (String::from("sqlSelectMetric-1"), FnConfig { 
@@ -116,7 +118,8 @@ mod tests {
             (
                 r#"task task1:
                     cycle: 100 ms
-                    recv-queue: recv-queue
+                    in queue recv-queue:
+                        max-length: 10000
                     let VarName2:
                         input fn functionName:
                             initial: VarName2
@@ -130,6 +133,7 @@ mod tests {
                     name: String::from("task1"),
                     cycle: Some(Duration::from_millis(100)),
                     recvQueue: String::from("recv-queue"),
+                    recvQueueMaxLength: 10000,
                     vars: vec![String::from("VarName2")],
                     nodes: IndexMap::from([                    
                         (String::from("VarName2-1"), FnConfig { 

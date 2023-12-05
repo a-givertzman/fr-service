@@ -4,7 +4,9 @@ use indexmap::IndexMap;
 use log::{trace, debug, error};
 use std::{fs, str::FromStr, time::Duration};
 
-use crate::conf::{metric_config::MetricConfig, fn_config::FnConfig, conf_tree::ConfTree, conf_duration::ConfDuration, conf_keywd::ConfKeywd};
+use crate::conf::{metric_config::MetricConfig, fn_config::FnConfig, conf_tree::ConfTree, conf_duration::ConfDuration, conf_keywd::ConfKeywd, api_client_config::ServiceConfig};
+
+use super::conf_keywd::ConfKind;
 
 
 #[derive(Debug, Clone, PartialEq)]
@@ -44,6 +46,7 @@ pub struct TaskConfig {
     pub(crate) name: String,
     pub(crate) cycle: Option<Duration>,
     pub(crate) recvQueue: String,
+    pub(crate) recvQueueMaxLength: i64,
     pub(crate) nodes: IndexMap<String, FnConfig>,
     pub(crate) vars: Vec<String>,
 }
@@ -76,12 +79,13 @@ impl TaskConfig {
         };
         let mut vars = vec![];
         match confTree.next() {
-            Some(mut selfConf) => {
+            Some(selfConf) => {
                 debug!("TaskConfig.new | MAPPING VALUE");
+                let mut selfConf = ServiceConfig::new(&format!("TaskConfig({})", selfConf.key), selfConf);
                 trace!("TaskConfig.new | selfConf: {:?}", selfConf);
-                let mut selfNodeNames: Vec<String> = selfConf.subNodes().unwrap().map(|conf| conf.key).collect();
-                trace!("TaskConfig.new | selfConf keys: {:?}", selfNodeNames);
-                debug!("TaskConfig.new | selfConf.key: {:?}", selfConf.key);
+                // let mut selfNodeNames: Vec<String> = selfConf.subNodes().unwrap().map(|conf| conf.key).collect();
+                // trace!("TaskConfig.new | selfConf keys: {:?}", selfNodeNames);
+                // debug!("TaskConfig.new | selfConf.key: {:?}", selfConf.key);
                 let selfName = match ConfKeywd::from_str(&selfConf.key) {
                     Ok(selfKeyword) => {
                         debug!("TaskConfig.new | selfKeyword: {:?}", selfKeyword);
@@ -90,29 +94,40 @@ impl TaskConfig {
                     Err(err) => panic!("TaskConfig.new | Unknown metric name in {:?}\n\tdetales: {:?}", &selfConf.key, err),
                 };
                 trace!("TaskConfig.new | selfName: {:?}", selfName);
-                let selfCycle = match Self::getParam(&mut selfConf, &mut selfNodeNames, "cycle") {
-                    Some(value) => {
-                        match value.as_str() {
-                            Some(value) => {
-                                match ConfDuration::from_str(value) {
-                                    Ok(confDuration) => {
-                                        Some(confDuration.toDuration())
-                                    },
-                                    Err(err) => panic!("TaskConfig.new | Parse cycle duration '{}' error: {:?}", &value, err),
-                                }
-                            },
-                            None => panic!("TaskConfig.new | Invalid cycle duration format: {:?} \n\tin: {:?}", &value, selfConf),
-                        }
-                    },
-                    None => None,
-                };
+                let selfCycle = selfConf.getDuration("cycle");
+                // let selfCycle = match Self::getParam(&mut selfConf, &mut selfNodeNames, "cycle") {
+                //     Some(value) => {
+                //         match value.as_str() {
+                //             Some(value) => {
+                //                 match ConfDuration::from_str(value) {
+                //                     Ok(confDuration) => {
+                //                         Some(confDuration.toDuration())
+                //                     },
+                //                     Err(err) => panic!("TaskConfig.new | Parse cycle duration '{}' error: {:?}", &value, err),
+                //                 }
+                //             },
+                //             None => panic!("TaskConfig.new | Invalid cycle duration format: {:?} \n\tin: {:?}", &value, selfConf),
+                //         }
+                //     },
+                //     None => None,
+                // };
                 trace!("TaskConfig.new | selfCycle: {:?}", selfCycle);
-                let selfRecvQueue = Self::getParam(&mut selfConf, &mut selfNodeNames, "recv-queue").unwrap();
+                let (selfRecvQueue, selfRecvQueueMaxLength) = selfConf.getInQueue();
+                // let selfRecvQueue = Self::getParam(&mut selfConf, &mut selfNodeNames, "recv-queue").unwrap();
+                // let (selfRecvQueue, selfRecvQueueMaxLength) = match Self::getParamByKeyword(&mut selfConf, &mut selfNodeNames, "in", ConfKind::Queue) {
+                //     Some((keyword, mut selfRecvQueue)) => {
+                //         let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
+                //         debug!("ApiClientConfig.new | self in-queue params {}: {:?}", name, selfRecvQueue);
+                //         let maxLength = Self::getParam(&mut selfRecvQueue, &mut vec![String::from("max-length")], "max-length").unwrap().as_i64().unwrap();
+                //         (keyword.name(), maxLength)
+                //     },
+                //     None => panic!("ApiClientConfig.new | in queue - not found in : {:?}", selfConf),
+                // };
                 trace!("TaskConfig.new | selfRecvQueue: {:?}", selfRecvQueue);
                 let mut nodeIndex = 0;
                 let mut selfNodes = IndexMap::new();
-                for selfNodeName in selfNodeNames {
-                    let selfNodeConf = selfConf.get(&selfNodeName).unwrap();
+                for key in &selfConf.keys {
+                    let selfNodeConf = selfConf.get(key).unwrap();
                     trace!("TaskConfig.new | selfNodeConf: {:?}", selfNodeConf);
                     nodeIndex += 1;
                     let nodeConf = FnConfig::new(&selfNodeConf, &mut vars);
@@ -124,7 +139,8 @@ impl TaskConfig {
                 TaskConfig {
                     name: selfName,
                     cycle: selfCycle,
-                    recvQueue: selfRecvQueue.as_str().unwrap().to_string(),
+                    recvQueue: selfRecvQueue,
+                    recvQueueMaxLength: selfRecvQueueMaxLength,
                     nodes: selfNodes,
                     vars: vars,
                 }
@@ -162,11 +178,31 @@ impl TaskConfig {
     ///
     /// 
     fn getParam(selfConf: &mut ConfTree, selfKeys: &mut Vec<String>, name: &str) -> Option<serde_yaml::Value> {
-        let index = selfKeys.iter().position(|x| *x == name).unwrap();
-        selfKeys.remove(index);
-        match selfConf.get(name) {
-            Some(confTree) => Some(confTree.conf),
+        match selfKeys.iter().position(|x| *x == name) {
+            Some(index) => {
+                selfKeys.remove(index);
+                match selfConf.get(name) {
+                    Some(confTree) => Some(confTree.conf),
+                    None => None,
+                }
+            },
             None => None,
         }
+    }
+    ///
+    /// 
+    fn getParamByKeyword(selfConf: &mut ConfTree, selfKeys: &mut Vec<String>, keywordPrefix: &str, keywordKind: ConfKind) -> Option<(ConfKeywd, ConfTree)> {
+        // let mut map = HashMap::new();
+        for node in selfConf.subNodes().unwrap() {
+            match ConfKeywd::from_str(&node.key) {
+                Ok(keyword) => {
+                    if keyword.kind() == keywordKind && keyword.prefix() == keywordPrefix {
+                        return Some((keyword, node));
+                    }
+                },
+                Err(_) => {},
+            }
+        }
+        None
     }
 }

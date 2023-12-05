@@ -68,7 +68,7 @@ impl Service for Task {
             Some(interval) => (interval > Duration::ZERO, interval),
             None => (false, Duration::ZERO),
         };
-        let recvQueue = self.inRecv.pop().unwrap();
+        let inRecv = self.inRecv.pop().unwrap();
         let handle = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
             let mut cycle = ServiceCycle::new(cycleInterval);
             let mut taskNodes = TaskNodes::new(&selfId);
@@ -77,7 +77,7 @@ impl Service for Task {
             'main: loop {
                 cycle.start();
                 trace!("{}.run | calculation step...", selfId);
-                match recvQueue.recv() {
+                match inRecv.recv() {
                     Ok(point) => {
                         debug!("{}.run | point: {:?}", selfId, &point);
                         taskNodes.eval(point);
