@@ -10,9 +10,17 @@ impl QueueName {
     /// 
     pub fn new(name: &str) -> Self {
         let parts: Vec<&str> = name.split(".").collect();
+        let service = match parts.get(0) {
+            Some(value) => value.to_owned().to_owned(),
+            None => panic!("QueueName.new | {} does not have structure 'Service.queue'", name),
+        };
+        let queue = match parts.get(1) {
+            Some(value) => value.to_owned().to_owned(),
+            None => panic!("QueueName.new | {} does not have structure 'Service.queue'", name),
+        };
         Self {
-            service: parts[0].to_string(),
-            queue: parts[1].to_string(),
+            service,
+            queue,
         }
     }
     ///

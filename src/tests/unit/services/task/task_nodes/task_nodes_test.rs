@@ -2,14 +2,14 @@
 #[cfg(test)]
 mod tests {
     use log::{info, debug, trace};
-    use std::{sync::{Once, mpsc::{Sender, Receiver, self}, Arc, Mutex}, collections::HashMap};
+    use std::{sync::{Once, mpsc::{Sender, self}, Arc, Mutex}, collections::HashMap};
     use crate::{
         core_::{
             debug::debug_session::{DebugSession, LogLevel, Backtrace},
             point::point_type::{ToPoint, PointType},
         },
         conf::task_config::TaskConfig, 
-        services::{task::{task_nodes::TaskNodes, nested_function::{fn_kind::FnKind, fn_count::{self}, fn_ge}}, services::Services},
+        services::{task::{task_nodes::TaskNodes, nested_function::{fn_kind::FnKind, fn_count::{self}, fn_ge}}, services::Services, service::Service},
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -50,6 +50,8 @@ mod tests {
         let conf = TaskConfig::read(path);
         debug!("conf: {:?}", conf);
         let services = Arc::new(Mutex::new(Services::new("test")));
+        let service = Arc::new(Mutex::new(MockService::new("test", "queue")));
+        services.lock().unwrap().insert("ApiClient", service);
         taskNodes.buildNodes(conf, services);
         let testData = vec![
             (
@@ -142,4 +144,48 @@ mod tests {
     }
     // clear && cargo test -- --test-threads=1 --show-output
     // clear && cargo test task_nodes_test -- --test-threads=1 --show-output
+    ///
+    /// 
+    struct MockService {
+        id: String,
+        links: HashMap<String, Sender<PointType>>,
+    }
+    ///
+    /// 
+    impl MockService {
+        fn new(parent: &str, linkName: &str) -> Self {
+            let (send, _recv) = mpsc::channel();
+            Self {
+                id: format!("{}/MockService", parent),
+                links: HashMap::from([
+                    (linkName.to_string(), send),
+                ]),
+            }
+        }
+    }
+    ///
+    /// 
+    impl Service for MockService {
+        fn id(&self) -> &str {
+            todo!()
+        }
+        //
+        //
+        fn getLink(&self, name: &str) -> Sender<PointType> {
+            match self.links.get(name) {
+                Some(send) => send.clone(),
+                None => panic!("{}.run | link '{:?}' - not found", self.id, name),
+            }
+        }
+        //
+        //
+        fn run(&mut self) -> Result<std::thread::JoinHandle<()>, std::io::Error> {
+            todo!()
+        }
+        //
+        //
+        fn exit(&self) {
+            todo!()
+        }
+    }
 }

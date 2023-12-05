@@ -13,7 +13,7 @@ task task1:
         input: point int '/path/Point.Name3'
 
     fn toApiQueue:
-        queue: api-queue
+        queue: ApiClient.queue
         input metric sqlSelectMetric:
             initial: 0.123      # начальное значение
             table: table_name
