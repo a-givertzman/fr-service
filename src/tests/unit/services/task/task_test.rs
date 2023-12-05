@@ -3,7 +3,7 @@
 
 mod tests {
     use log::{trace, info};
-    use std::{sync::{Once, mpsc::{Sender, Receiver, self}, Arc, Mutex}, env, time::Instant};
+    use std::{sync::{Once, mpsc::{Sender, Receiver, self}, Arc, Mutex}, env, time::Instant, collections::HashMap};
     
     use crate::{
         core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::PointType}, 
@@ -48,36 +48,43 @@ mod tests {
         let path = "./src/tests/unit/services/task/task_test_struct.yaml";
         let config = TaskConfig::read(path);
         trace!("config: {:?}", &config);
-    
-        let mut queues = Queues::new();
-        let services = Arc::new(Mutex::new(Services::new("test")));
-        let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
-        let (apiSend, apiRecv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
-        queues.addRecvQueue("recv-queue", recv);
-        queues.addSendQueue("api-queue", apiSend);
-    
-        let mut receiver = TaskTestReceiver::new();
         
-        let testValues = vec![0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0];
-        receiver.run(apiRecv, iterations, testValues);
+        // let testValues = vec![0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0];
     
-        let mut producer = TaskTestProducer::new(iterations, vec![send]);
-        producer.run();
-    
-        let mut task = Task::new("test", config, services);
-        trace!("task tuning...");
+        let services = Arc::new(Mutex::new(Services::new("test")));
+        // let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
+        // let (apiSend, apiRecv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
+        let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
+            "queue",
+            iterations,
+        )));
+        services.lock().unwrap().insert("TaskTestReceiver", receiver.clone());
+        
+        
+        let producer = Arc::new(Mutex::new(TaskTestProducer::new(
+            iterations, 
+            "Task.queue",
+            services.clone(),
+        )));
+        
+        let task = Arc::new(Mutex::new(Task::new("test", config, services.clone())));
+        services.lock().unwrap().insert("Task", task.clone());
+        
+        let receiverHandle = receiver.lock().unwrap().run().unwrap();
+        let producerHandle = producer.lock().unwrap().run().unwrap();
+        trace!("task runing...");
         let time = Instant::now();
-        task.run();
-        trace!("task tuning - ok");
-        producer.join();
-        receiver.join();
+        task.lock().unwrap().run().unwrap();
+        trace!("task runing - ok");
+        producerHandle.join().unwrap();
+        receiverHandle.join().unwrap();
         // thread::sleep(Duration::from_millis(200));
-        trace!("task stopping...");
-        task.exit();
-        receiver.exit();
-        trace!("task stopping - ok");
+        // trace!("task stopping...");
+        // task.exit();
+        // receiver.exit();
+        // trace!("task stopping - ok");
         println!("elapsed: {:?}", time.elapsed());
-        println!("received: {:?}", receiver.received());
+        println!("received: {:?}", receiver.lock().unwrap().received());
     
         // trace!("task: {:?}", &task);
         // assert_eq!(config, target);
@@ -98,38 +105,94 @@ mod tests {
         let config = TaskConfig::read(path);
         trace!("config: {:?}", &config);
     
-        let mut queues = Queues::new();
+        // let testValues = vec![0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0];
+
+        // let mut queues = Queues::new();
         let services = Arc::new(Mutex::new(Services::new("test")));
-        let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
-        let (apiSend, apiRecv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
-        queues.addRecvQueue("recv-queue", recv);
-        queues.addSendQueue("api-queue", apiSend);
-    
-        let mut receiver = TaskTestReceiver::new();
+        // let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
+        // let (apiSend, apiRecv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
+        // queues.addRecvQueue("recv-queue", recv);
+        // queues.addSendQueue("api-queue", apiSend);
+
+        let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
+            "queue",
+            iterations,
+        )));
+        services.lock().unwrap().insert("TaskTestReceiver", receiver.clone());
         
-        let testValues = vec![0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0];
-        receiver.run(apiRecv, iterations, testValues);
     
-        let mut producer = TaskTestProducer::new(iterations, vec![send]);
-        producer.run();
+        let producer = Arc::new(Mutex::new(TaskTestProducer::new(
+            iterations, 
+            "Task.queue",
+            services.clone(),
+        )));
     
-        let mut task = Task::new("test", config, services);
-        trace!("task tuning...");
+        let task = Arc::new(Mutex::new(Task::new("test", config, services.clone())));
+        services.lock().unwrap().insert("Task", task.clone());
+
+        let receiverHandle = receiver.lock().unwrap().run().unwrap();
+        let producerHandle = producer.lock().unwrap().run().unwrap();
+        trace!("task runing...");
         let time = Instant::now();
-        task.run();
-        trace!("task tuning - ok");
-        producer.join();
-        receiver.join();
+        task.lock().unwrap().run().unwrap();
+        trace!("task runing - ok");
+        producerHandle.join().unwrap();
+        receiverHandle.join().unwrap();
         // thread::sleep(Duration::from_millis(200));
-        trace!("task stopping...");
-        task.exit();
-        receiver.exit();
-        trace!("task stopping - ok");
+        // trace!("task stopping...");
+        // task.exit();
+        // receiver.exit();
+        // trace!("task stopping - ok");
         println!("elapsed: {:?}", time.elapsed());
-        println!("received: {:?}", receiver.received());
+        println!("received: {:?}", receiver.lock().unwrap().received());
     
         // trace!("task: {:?}", &task);
         // assert_eq!(config, target);
     }
+
+    ///
+    /// 
+    struct MockService {
+        id: String,
+        links: HashMap<String, Sender<PointType>>,
+    }
+    ///
+    /// 
+    impl MockService {
+        fn new(parent: &str, linkName: &str) -> Self {
+            let (send, _recv) = mpsc::channel();
+            Self {
+                id: format!("{}/MockService", parent),
+                links: HashMap::from([
+                    (linkName.to_string(), send),
+                ]),
+            }
+        }
+    }
+    ///
+    /// 
+    impl Service for MockService {
+        fn id(&self) -> &str {
+            todo!()
+        }
+        //
+        //
+        fn getLink(&self, name: &str) -> Sender<PointType> {
+            match self.links.get(name) {
+                Some(send) => send.clone(),
+                None => panic!("{}.run | link '{:?}' - not found", self.id, name),
+            }
+        }
+        //
+        //
+        fn run(&mut self) -> Result<std::thread::JoinHandle<()>, std::io::Error> {
+            todo!()
+        }
+        //
+        //
+        fn exit(&self) {
+            todo!()
+        }
+    }    
 }
 

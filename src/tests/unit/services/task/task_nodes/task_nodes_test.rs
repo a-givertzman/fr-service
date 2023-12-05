@@ -43,9 +43,6 @@ mod tests {
         println!("");
         info!("test_task_nodes");
         let path = "./src/tests/unit/services/task/task_nodes/task.yaml";
-    
-        // let (apiSend, _apiRecv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
-        // queues.addSendQueue("api-queue", apiSend);
         let mut taskNodes = TaskNodes::new("test_task_nodes");
         let conf = TaskConfig::read(path);
         debug!("conf: {:?}", conf);
@@ -142,8 +139,6 @@ mod tests {
             };
         }        
     }
-    // clear && cargo test -- --test-threads=1 --show-output
-    // clear && cargo test task_nodes_test -- --test-threads=1 --show-output
     ///
     /// 
     struct MockService {
@@ -189,3 +184,7 @@ mod tests {
         }
     }
 }
+
+
+// clear && cargo test -- --test-threads=1 --show-output
+// clear && cargo test task_nodes_test -- --test-threads=1 --show-output
