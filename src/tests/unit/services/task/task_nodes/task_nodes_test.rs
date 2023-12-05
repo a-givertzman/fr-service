@@ -2,14 +2,14 @@
 #[cfg(test)]
 
 use log::{info, debug, trace};
-use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, collections::HashMap};
+use std::{sync::{Once, mpsc::{Sender, Receiver, self}, Arc, Mutex}, collections::HashMap};
 use crate::{
     core_::{
         debug::debug_session::{DebugSession, LogLevel, Backtrace},
         point::point_type::{ToPoint, PointType},
     },
     conf::task_config::TaskConfig, 
-    services::{task::{task_nodes::TaskNodes, nested_function::{fn_kind::FnKind, fn_count::{self}, fn_ge}}, queues::queues::Queues},
+    services::{task::{task_nodes::TaskNodes, nested_function::{fn_kind::FnKind, fn_count::{self}, fn_ge}}, queues::queues::Queues, services::Services},
 }; 
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -43,14 +43,14 @@ fn test_task_nodes() {
     println!("");
     info!("test_task_nodes");
     let path = "./src/tests/unit/services/task/task_nodes/task.yaml";
-    let mut queues = Queues::new();
+    
     let (apiSend, _apiRecv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
-    // queues.addRecvQueue("recv-queue", recv);
     queues.addSendQueue("api-queue", apiSend);
     let mut taskNodes = TaskNodes::new("test_task_nodes");
     let conf = TaskConfig::read(path);
     debug!("conf: {:?}", conf);
-    taskNodes.buildNodes(conf, &mut queues);
+    let services = Arc::new(Mutex::new(Services::new("test")));
+    taskNodes.buildNodes(conf, services);
     let testData = vec![
         (
             "/path/Point.Name1", 101, 

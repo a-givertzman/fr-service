@@ -1,6 +1,10 @@
 task task1:
     cycle: 1 us
-    recv-queue: recv-queue
+    
+    in queue api-link:
+        max-length: 10000
+
+    # recv-queue: Receiver.queue
 
     let Var2:
         input: point int '/path/Point.Name2'

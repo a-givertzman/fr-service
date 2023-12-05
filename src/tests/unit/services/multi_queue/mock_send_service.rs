@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{collections::HashMap, sync::{mpsc::{Sender, Receiver, self}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}};
+use std::{collections::HashMap, sync::{mpsc::{Sender, self}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}};
 
 use log::{info, warn, debug, trace};
 
@@ -52,6 +52,11 @@ impl MockSendService {
 ///
 /// 
 impl Service for MockSendService {
+    //
+    //
+    fn id(&self) -> &str {
+        &self.id
+    }
     //
     //
     fn getLink(&self, name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {

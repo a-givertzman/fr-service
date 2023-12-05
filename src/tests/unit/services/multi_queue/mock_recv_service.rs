@@ -2,7 +2,7 @@
 
 use std::{collections::HashMap, sync::{mpsc::{Sender, Receiver, self}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}, time::Duration};
 
-use log::{info, debug, trace};
+use log::{info, trace};
 
 use crate::{core_::point::point_type::PointType, services::{services::Services, service::Service}};
 
@@ -50,6 +50,11 @@ impl MockRecvService {
 ///
 /// 
 impl Service for MockRecvService {
+    //
+    //
+    fn id(&self) -> &str {
+        &self.id
+    }
     //
     //
     fn getLink(&self, name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
