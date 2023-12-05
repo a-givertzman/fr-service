@@ -42,8 +42,8 @@ mod tests {
         let target = TaskConfig {
             name: String::from("task1"),
             cycle: Some(Duration::from_millis(100)),
-            recvQueue: String::from("recv-queue"),
-            recvQueueMaxLength: 10000,
+            rx: String::from("recv-queue"),
+            rxMaxLength: 10000,
             vars: vec![String::from("VarName2")],
             nodes: IndexMap::from([                    
                 (String::from("sqlSelectMetric-1"), FnConfig { 

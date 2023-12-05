@@ -34,7 +34,7 @@ impl Task {
         let (send, recv) = mpsc::channel();
         Task {
             id: format!("{}/Task({})", parent.into(), conf.name),
-            inSend: HashMap::from([(conf.recvQueue.clone(), send)]),
+            inSend: HashMap::from([(conf.rx.clone(), send)]),
             inRecv: vec![recv],
             services,
             conf,

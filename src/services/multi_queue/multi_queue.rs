@@ -30,11 +30,11 @@ impl MultiQueue {
     pub fn new(parent: impl Into<String>, conf: MultiQueueConfig, services: Arc<Mutex<Services>>) -> Self {
         let selfId = format!("{}/MultiQueue", parent.into());
         let (send, recv) = mpsc::channel();
-        let sendQueues = conf.sendQueue;
+        let sendQueues = conf.tx;
         Self {
             id: selfId.clone(),
             subscriptions: Arc::new(Mutex::new(Subscriptions::new(selfId))),
-            inSend: HashMap::from([(conf.recvQueue, send)]),
+            inSend: HashMap::from([(conf.rx, send)]),
             inRecv: vec![recv],
             sendQueues,
             services,

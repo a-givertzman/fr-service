@@ -272,12 +272,12 @@ impl FnConfig {
                         FnConfig::fromYamlValue(&config, &mut vars)
                     },
                     Err(err) => {
-                        panic!("Error in config: {:?}\n\terror: {:?}", yamlString, err)
+                        panic!("FnConfig.read | Error in config: {:?}\n\terror: {:?}", yamlString, err)
                     },
                 }
             },
             Err(err) => {
-                panic!("File {} reading error: {:?}", path, err)
+                panic!("FnConfig.read | File {} reading error: {:?}", path, err)
             },
         }
     }

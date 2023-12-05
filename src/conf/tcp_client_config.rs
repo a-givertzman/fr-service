@@ -1,11 +1,9 @@
 #![allow(non_snake_case)]
 
 use log::{trace, debug, error};
-use std::{fs, str::FromStr, time::Duration, net::SocketAddr};
+use std::{fs, time::Duration, net::SocketAddr};
 
-use crate::conf::{conf_tree::ConfTree, conf_duration::ConfDuration, conf_keywd::ConfKeywd};
-
-use super::conf_keywd::ConfKind;
+use crate::conf::{conf_tree::ConfTree, service_config::ServiceConfig};
 
 
 ///
@@ -25,9 +23,9 @@ pub struct TcpClientConfig {
     pub(crate) address: SocketAddr,
     pub(crate) cycle: Option<Duration>,
     pub(crate) reconnectCycle: Option<Duration>,
-    pub(crate) recvQueue: String,
-    pub(crate) recvQueueMaxLength: i64,
-    pub(crate) sendQueue: String,
+    pub(crate) rx: String,
+    pub(crate) rxMaxLength: i64,
+    pub(crate) tx: String,
 }
 ///
 /// 
@@ -52,48 +50,31 @@ impl TcpClientConfig {
             error!("TcpClientConfig.new | FnConf must have single item, additional items was ignored: {:?}", confTree)
         };
         match confTree.next() {
-            Some(mut selfConf) => {
-                debug!("TcpClientConfig.new | MAPPING VALUE");
-                trace!("TcpClientConfig.new | selfConf: {:?}", selfConf);
-                let mut selfNodeNames: Vec<String> = selfConf.subNodes().unwrap().map(|conf| conf.key).collect();
-                trace!("TcpClientConfig.new | selfConf keys: {:?}", selfNodeNames);
-                let selfName = match ConfKeywd::from_str(&selfConf.key) {
-                    Ok(selfKeyword) => selfKeyword.name(),
-                    Err(err) => panic!("TcpClientConfig.new | Unknown keyword in {:?}\n\tdetales: {:?}", &selfConf.key, err),
-                };
-                trace!("TcpClientConfig.new | selfName: {:?}", selfName);
-                let selfAddress = Self::getParam(&mut selfConf, &mut selfNodeNames, "address").unwrap();
-                let selfAddress = selfAddress.as_str().unwrap().parse().unwrap();
-                debug!("TcpClientConfig.new | selfAddress: {:?}", selfAddress);
-                let selfCycle = Self::getDuration(&mut selfConf, &mut selfNodeNames, "cycle");
-                let selfReconnectCycle = Self::getDuration(&mut selfConf, &mut selfNodeNames, "reconnect");
-                debug!("TcpClientConfig.new | selfCycle: {:?}", selfCycle);
-                let (selfRecvQueue, selfRecvQueueMaxLength) = match Self::getParamByKeyword(&mut selfConf, &mut selfNodeNames, "in", ConfKind::Queue) {
-                    Some((keyword, mut selfRecvQueue)) => {
-                        let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
-                        debug!("TcpClientConfig.new | self in-queue params {}: {:?}", name, selfRecvQueue);
-                        let maxLength = Self::getParam(&mut selfRecvQueue, &mut vec![String::from("max-length")], "max-length").unwrap().as_i64().unwrap();
-                        (keyword.name(), maxLength)
-                    },
-                    None => panic!("TcpClientConfig.new | in queue - not found in : {:?}", selfConf),
-                };
-                let selfSendQueue = match Self::getParamByKeyword(&mut selfConf, &mut selfNodeNames, "out", ConfKind::Queue) {
-                    Some((keyword, selfRecvQueue)) => {
-                        let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
-                        debug!("TcpClientConfig.new | self out-queue param {}: {:?}", name, selfRecvQueue);
-                        selfRecvQueue.conf.as_str().unwrap().to_owned()
-                    },
-                    None => panic!("TcpClientConfig.new | in queue - not found in : {:?}", selfConf),
-                };
-                debug!("TcpClientConfig.new | selfRecvQueue: {},\tmax-length: {}", selfRecvQueue, selfRecvQueueMaxLength);
+            Some(selfConf) => {
+                let selfId = format!("TcpClientConfig({})", selfConf.key);
+                trace!("{}.new | MAPPING VALUE", selfId);
+                let mut selfConf = ServiceConfig::new(&selfId, selfConf);
+                trace!("{}.new | selfConf: {:?}", selfId, selfConf);
+                let selfName = selfConf.name();
+                debug!("{}.new | name: {:?}", selfId, selfName);
+                let selfAddress: SocketAddr = selfConf.getParam("address").unwrap().as_str().unwrap().parse().unwrap();
+                debug!("{}.new | address: {:?}", selfId, selfAddress);
+                let cycle = selfConf.getDuration("cycle");
+                debug!("{}.new | cycle: {:?}", selfId, cycle);
+                let reconnectCycle = selfConf.getDuration("reconnect");
+                debug!("{}.new | reconnectCycle: {:?}", selfId, reconnectCycle);
+                let (rx, rxMaxLength) = selfConf.getQueue("in", Some("max-length")).unwrap();
+                debug!("{}.new | RX: {},\tmax-length: {}", selfId, rx, rxMaxLength.as_i64().unwrap());
+                let (tx, _) = selfConf.getQueue("out", None).unwrap();
+                debug!("{}.new | TX: {}", selfId, tx);
                 TcpClientConfig {
                     name: selfName,
                     address: selfAddress,
-                    cycle: selfCycle,
-                    reconnectCycle: selfReconnectCycle,
-                    recvQueue: selfRecvQueue,
-                    recvQueueMaxLength: selfRecvQueueMaxLength,
-                    sendQueue: selfSendQueue,
+                    cycle,
+                    reconnectCycle,
+                    rx,
+                    rxMaxLength: rxMaxLength.as_i64().unwrap(),
+                    tx,
                 }
             },
             None => {
@@ -117,71 +98,13 @@ impl TcpClientConfig {
                         TcpClientConfig::fromYamlValue(&config)
                     },
                     Err(err) => {
-                        panic!("Error in config: {:?}\n\terror: {:?}", yamlString, err)
+                        panic!("TcpClientConfig.read | Error in config: {:?}\n\terror: {:?}", yamlString, err)
                     },
                 }
             },
             Err(err) => {
-                panic!("File {} reading error: {:?}", path, err)
+                panic!("TcpClientConfig.read | File {} reading error: {:?}", path, err)
             },
         }
-    }
-    ///
-    /// 
-    fn getParam(selfConf: &mut ConfTree, selfKeys: &mut Vec<String>, name: &str) -> Result<serde_yaml::Value, String> {
-        match selfKeys.iter().position(|x| *x == name) {
-            Some(index) => {
-                selfKeys.remove(index);
-                match selfConf.get(name) {
-                    Some(confTree) => Ok(confTree.conf),
-                    None => Err(format!("TcpClientConfig.getParam | '{}' - not found in: {:?}", name, selfConf)),
-                }
-            },
-            None => Err(format!("TcpClientConfig.getParam | '{}' - not found in: {:?}", name, selfConf)),
-        }
-    }
-    fn getDuration(selfConf: &mut ConfTree, selfKeys: &mut Vec<String>, name: &str) -> Option<Duration> {
-        match Self::getParam(selfConf, selfKeys, name) {
-            Ok(value) => {
-                match value.as_str() {
-                    Some(value) => {
-                        match ConfDuration::from_str(value) {
-                            Ok(confDuration) => {
-                                Some(confDuration.toDuration())
-                            },
-                            Err(err) => panic!("TcpClientConfig.new | Parse {} duration '{}' error: {:?}", &name, &value, err),
-                        }
-                    },
-                    None => panic!("TcpClientConfig.new | Invalid reconnect {} duration format: {:?} \n\tin: {:?}", &name, &value, selfConf),
-                }
-            },
-            Err(_) => None,
-        }
-    }
-    ///
-    /// 
-    fn getParamByKeyword(selfConf: &mut ConfTree, selfKeys: &mut Vec<String>, keywordPrefix: &str, keywordKind: ConfKind) -> Option<(ConfKeywd, ConfTree)> {
-        // let mut map = HashMap::new();
-        for node in selfConf.subNodes().unwrap() {
-            match ConfKeywd::from_str(&node.key) {
-                Ok(keyword) => {
-                    if keyword.kind() == keywordKind && keyword.prefix() == keywordPrefix {
-                        return Some((keyword, node));
-                    }
-                },
-                Err(_) => {},
-            }
-        }
-        None
-        // match selfKeys.iter().position(|x| *x == name) {
-        //     Some(index) => {
-        //         selfKeys.remove(index);
-        //         match selfConf.get(name) {
-        //             Some(confTree) => Ok(confTree.conf),
-        //             None => Err(format!("TcpClientConfig.getParam | '{}' - not found in: {:?}", name, selfConf)),
-        //         }
-        //     },
-        //     None => Err(format!("TcpClientConfig.getParam | '{}' - not found in: {:?}", name, selfConf)),
-        // }
     }
 }

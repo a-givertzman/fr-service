@@ -36,7 +36,7 @@ impl ApiClient {
         Self {
             id: format!("{}/ApiClient({})", parent.into(), conf.name),
             recv: vec![recv],
-            send: HashMap::from([(conf.recvQueue.clone(), send)]),
+            send: HashMap::from([(conf.rx.clone(), send)]),
             conf: conf.clone(),
             exit: Arc::new(AtomicBool::new(false)),
         }
@@ -171,9 +171,9 @@ impl Service for ApiClient {
             None => (false, Duration::ZERO),
         };
         let reconnect = if conf.reconnectCycle.is_some() {conf.reconnectCycle.unwrap()} else {Duration::from_secs(3)};
-        let _queueMaxLength = conf.recvQueueMaxLength;
+        let _queueMaxLength = conf.rxMaxLength;
         let _handle = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
-            let mut buffer = RetainBuffer::new(&selfId, "", Some(conf.recvQueueMaxLength as usize));
+            let mut buffer = RetainBuffer::new(&selfId, "", Some(conf.rxMaxLength as usize));
             let mut cycle = ServiceCycle::new(cycleInterval);
             let mut connect = TcpClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address, reconnect);
             let mut connectionClosed = false;

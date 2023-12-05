@@ -113,12 +113,12 @@ impl MetricConfig {
                         MetricConfig::fromYamlValue(&config, &mut vars)
                     },
                     Err(err) => {
-                        panic!("Error in config: {:?}\n\terror: {:?}", yamlString, err)
+                        panic!("MetricConfig.read | Error in config: {:?}\n\terror: {:?}", yamlString, err)
                     },
                 }
             },
             Err(err) => {
-                panic!("File {} reading error: {:?}", path, err)
+                panic!("MetricConfig.read | File {} reading error: {:?}", path, err)
             },
         }
     }

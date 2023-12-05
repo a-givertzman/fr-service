@@ -25,8 +25,8 @@ pub struct ApiClientConfig {
     pub(crate) address: SocketAddr,
     pub(crate) cycle: Option<Duration>,
     pub(crate) reconnectCycle: Option<Duration>,
-    pub(crate) recvQueue: String,
-    pub(crate) recvQueueMaxLength: i64,
+    pub(crate) rx: String,
+    pub(crate) rxMaxLength: i64,
 }
 ///
 /// 
@@ -57,22 +57,22 @@ impl ApiClientConfig {
                 let mut selfConf = ServiceConfig::new(&selfId, selfConf);
                 trace!("{}.new | selfConf: {:?}", selfId, selfConf);
                 let selfName = selfConf.name();
-                debug!("{}.new | selfName: {:?}", selfId, selfName);
-                let selfAddress: SocketAddr = selfConf.getParam("address").unwrap().as_str().unwrap().parse().unwrap();
-                debug!("{}.new | selfAddress: {:?}", selfId, selfAddress);
-                let selfCycle = selfConf.getDuration("cycle");
-                debug!("{}.new | selfCycle: {:?}", selfId, selfCycle);
-                let selfReconnectCycle = selfConf.getDuration("reconnect");
-                debug!("{}.new | selfReconnectCycle: {:?}", selfId, selfReconnectCycle);
-                let (selfRecvQueue, selfRecvQueueMaxLength) = selfConf.getInQueue().unwrap();
-                debug!("{}.new | selfRecvQueue: {},\tmax-length: {}", selfId, selfRecvQueue, selfRecvQueueMaxLength);
+                debug!("{}.new | name: {:?}", selfId, selfName);
+                let address: SocketAddr = selfConf.getParam("address").unwrap().as_str().unwrap().parse().unwrap();
+                debug!("{}.new | address: {:?}", selfId, address);
+                let cycle = selfConf.getDuration("cycle");
+                debug!("{}.new | cycle: {:?}", selfId, cycle);
+                let reconnectCycle = selfConf.getDuration("reconnect");
+                debug!("{}.new | reconnectCycle: {:?}", selfId, reconnectCycle);
+                let (rx, rxMaxLength) = selfConf.getQueue("in", Some("max-length")).unwrap();
+                debug!("{}.new | RX: {},\tmax-length: {:?}", selfId, rx, rxMaxLength);
                 ApiClientConfig {
                     name: selfName,
-                    address: selfAddress,
-                    cycle: selfCycle,
-                    reconnectCycle: selfReconnectCycle,
-                    recvQueue: selfRecvQueue,
-                    recvQueueMaxLength: selfRecvQueueMaxLength,
+                    address,
+                    cycle,
+                    reconnectCycle,
+                    rx,
+                    rxMaxLength: rxMaxLength.as_i64().unwrap(),
                 }
             },
             None => {
@@ -95,78 +95,13 @@ impl ApiClientConfig {
                         ApiClientConfig::fromYamlValue(&config)
                     },
                     Err(err) => {
-                        panic!("Error in config: {:?}\n\terror: {:?}", yamlString, err)
+                        panic!("ApiClientConfig.read | Error in config: {:?}\n\terror: {:?}", yamlString, err)
                     },
                 }
             },
             Err(err) => {
-                panic!("File {} reading error: {:?}", path, err)
+                panic!("ApiClientConfig.read | File {} reading error: {:?}", path, err)
             },
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // ///
-    // /// 
-    // fn getParam(selfConf: &mut ConfTree, selfKeys: &mut Vec<String>, name: &str) -> Result<serde_yaml::Value, String> {
-    //     match selfKeys.iter().position(|x| *x == name) {
-    //         Some(index) => {
-    //             selfKeys.remove(index);
-    //             match selfConf.get(name) {
-    //                 Some(confTree) => Ok(confTree.conf),
-    //                 None => Err(format!("ApiClientConfig.getParam | '{}' - not found in: {:?}", name, selfConf)),
-    //             }
-    //         },
-    //         None => Err(format!("ApiClientConfig.getParam | '{}' - not found in: {:?}", name, selfConf)),
-    //     }
-    // }
-    // fn getDuration(selfConf: &mut ConfTree, selfKeys: &mut Vec<String>, name: &str) -> Option<Duration> {
-    //     match Self::getParam(selfConf, selfKeys, name) {
-    //         Ok(value) => {
-    //             match value.as_str() {
-    //                 Some(value) => {
-    //                     match ConfDuration::from_str(value) {
-    //                         Ok(confDuration) => {
-    //                             Some(confDuration.toDuration())
-    //                         },
-    //                         Err(err) => panic!("ApiClientConfig.new | Parse {} duration '{}' error: {:?}", &name, &value, err),
-    //                     }
-    //                 },
-    //                 None => panic!("ApiClientConfig.new | Invalid reconnect {} duration format: {:?} \n\tin: {:?}", &name, &value, selfConf),
-    //             }
-    //         },
-    //         Err(_) => None,
-    //     }
-    // }
-    // ///
-    // /// 
-    // fn getParamByKeyword(selfConf: &mut ConfTree, selfKeys: &mut Vec<String>, keywordPrefix: &str, keywordKind: ConfKind) -> Option<(ConfKeywd, ConfTree)> {
-    //     // let mut map = HashMap::new();
-    //     for node in selfConf.subNodes().unwrap() {
-    //         match ConfKeywd::from_str(&node.key) {
-    //             Ok(keyword) => {
-    //                 if keyword.kind() == keywordKind && keyword.prefix() == keywordPrefix {
-    //                     return Some((keyword, node));
-    //                 }
-    //             },
-    //             Err(_) => {},
-    //         }
-    //     }
-    //     None
-    // }

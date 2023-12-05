@@ -115,18 +115,23 @@ impl ServiceConfig {
     }
     ///
     /// 
-    pub fn getInQueue(&mut self) -> Result<(String, i64), String> {
-        match self.getParamByKeyword("in", ConfKind::Queue) {
+    pub fn getQueue(&mut self, prefix: &str, subParam: Option<&str>) -> Result<(String, serde_yaml::Value), String> {
+        match self.getParamByKeyword(prefix, ConfKind::Queue) {
             Ok((keyword, selfRecvQueue)) => {
                 let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
-                debug!("ApiClientConfig.new | self in-queue params {}: {:?}", name, selfRecvQueue);
-                let maxLength = match selfRecvQueue.get("max-length") {
-                    Some(confTree) => Ok(confTree.conf),
-                    None => Err(format!("ServiceConfig.getParam | '{}' - not found in: {:?}", name, self.conf)),
-                }.unwrap().as_i64().unwrap();
-                Ok((keyword.name(), maxLength))
+                debug!("{}.getQueue | self in-queue params {}: {:?}", self.id, name, selfRecvQueue);
+                let subParam = match subParam {
+                    Some(name) => {
+                        match selfRecvQueue.get(name) {
+                            Some(confTree) => Ok(confTree.conf),
+                            None => Err(format!("{}.getQueue | '{}' - not found in: {:?}", self.id, name, self.conf)),
+                        }.unwrap()
+                    },
+                    None => serde_yaml::to_value(format!("{}.getQueue | '{}' queue sub parameter name is None in: {:?}", self.id, prefix, self.conf)).unwrap(),
+                };
+                Ok((keyword.name(), subParam))
             },
-            Err(err) => Err(format!("ApiClientConfig.new | in queue - not found in : {:?}\n\terror: {:?}", self.conf, err)),
+            Err(err) => Err(format!("{}.getQueue | {} queue - not found in: {:?}\n\terror: {:?}", self.id, prefix, self.conf, err)),
         }        
     }    
 }

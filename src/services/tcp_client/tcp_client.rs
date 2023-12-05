@@ -44,7 +44,7 @@ impl TcpClient {
         Self {
             id: format!("{}/TcpClient({})", parent.into(), conf.name),
             inRecv: vec![recv],
-            inSend: HashMap::from([(conf.recvQueue.clone(), send)]),
+            inSend: HashMap::from([(conf.rx.clone(), send)]),
             conf: conf.clone(),
             services,
             tcpRecvAlive: None,
@@ -76,9 +76,9 @@ impl Service for TcpClient {
         let selfId = self.id.clone();
         let conf = self.conf.clone();
         let exit = self.exit.clone();
-        info!("{}.run | in queue name: {:?}", self.id, conf.recvQueue);
-        info!("{}.run | out queue name: {:?}", self.id, conf.sendQueue);
-        let recvQueueParts: Vec<&str> = conf.sendQueue.split(".").collect();
+        info!("{}.run | in queue name: {:?}", self.id, conf.rx);
+        info!("{}.run | out queue name: {:?}", self.id, conf.tx);
+        let recvQueueParts: Vec<&str> = conf.tx.split(".").collect();
         let receiverServiceName = recvQueueParts[0];
         let receiverQueueName = recvQueueParts[1];
         debug!("{}.run | Getting services...", selfId);
@@ -94,7 +94,7 @@ impl Service for TcpClient {
         //     None => (false, Duration::ZERO),
         // };
         let reconnect = if conf.reconnectCycle.is_some() {conf.reconnectCycle.unwrap()} else {Duration::from_secs(3)};
-        let _queueMaxLength = conf.recvQueueMaxLength;
+        let _queueMaxLength = conf.rxMaxLength;
         let mut tcpClientConnect = TcpClientConnect::new(
             selfId.clone(), 
             conf.address, 
@@ -111,7 +111,7 @@ impl Service for TcpClient {
             Arc::new(Mutex::new(TcpStreamWrite::new(
                 &selfId,
                 buffered,
-                Some(conf.recvQueueMaxLength as usize),
+                Some(conf.rxMaxLength as usize),
                 Box::new(JdsEncodeMessage::new(
                     &selfId,
                     JdsSerialize::new(
