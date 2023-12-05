@@ -41,9 +41,21 @@ impl MultiQueue {
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
+}
+///
+/// 
+impl Service for MultiQueue {
+    //
+    //
+    fn getLink(&self, name: &str) -> Sender<PointType> {
+        match self.inSend.get(name) {
+            Some(send) => send.clone(),
+            None => panic!("{}.run | link '{:?}' - not found", self.id, name),
+        }
+    }
     ///
     /// 
-    pub fn subscribe(&mut self, receiverId: &str, points: Vec<&str>) -> Receiver<PointType> {
+    fn subscribe(&mut self, receiverId: &str, points: &Vec<String>) -> Receiver<PointType> {
         let (send, recv) = mpsc::channel();
         if points.is_empty() {
             self.subscriptions.lock().unwrap().addBroadcast(receiverId, send.clone());
@@ -56,20 +68,16 @@ impl MultiQueue {
     }
     ///
     /// 
-    pub fn unsubscribe(&mut self, receiverId: &str, pointId: &str) -> Result<(), String> {
-        self.subscriptions.lock().unwrap().remove(receiverId, pointId)
-    }
-}
-///
-/// 
-impl Service for MultiQueue {
-    //
-    //
-    fn getLink(&self, name: &str) -> Sender<PointType> {
-        match self.inSend.get(name) {
-            Some(send) => send.clone(),
-            None => panic!("{}.run | link '{:?}' - not found", self.id, name),
+    fn unsubscribe(&mut self, receiverId: &str, points: &Vec<String>) -> Result<(), String> {
+        for pointId in points {
+            match self.subscriptions.lock().unwrap().remove(receiverId, pointId) {
+                Ok(_) => {},
+                Err(err) => {
+                    return Err(err)
+                },
+            }
         }
+        Ok(())
     }
     //
     //

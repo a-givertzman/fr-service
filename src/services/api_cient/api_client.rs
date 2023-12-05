@@ -145,16 +145,26 @@ impl ApiClient {
 ///
 /// 
 impl Service for ApiClient {
-    ///
-    /// returns sender of the ApiClient queue by name
+    //
+    //
     fn getLink(&self, name: &str) -> Sender<PointType> {
         match self.send.get(name) {
             Some(send) => send.clone(),
             None => panic!("{}.run | link '{:?}' - not found", self.id, name),
         }
     }
-    ///
-    /// 
+    //
+    // 
+    fn subscribe(&mut self, receiverId: &str, points: &Vec<String>) -> Receiver<PointType> {
+        panic!("{}.subscribe | Does not support subscriptions", self.id)
+    }
+    //
+    //
+    fn unsubscribe(&mut self, receiverId: &str, points: &Vec<String>) -> Result<(), String> {
+        panic!("{}.unsubscribe | Does not support subscriptions", self.id)
+    }
+    //
+    // 
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
@@ -245,8 +255,8 @@ impl Service for ApiClient {
         info!("{}.run | started", self.id);
         _handle
     }
-    ///
-    /// 
+    //
+    // 
     fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
     }
