@@ -55,7 +55,7 @@ mod tests {
         // let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
         // let (apiSend, apiRecv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
-            "queue",
+            "in-queue",
             iterations,
         )));
         services.lock().unwrap().insert("TaskTestReceiver", receiver.clone());
@@ -63,7 +63,7 @@ mod tests {
         
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             iterations, 
-            "Task.queue",
+            "Task.recv-queue",
             services.clone(),
         )));
         
@@ -83,11 +83,13 @@ mod tests {
         // task.exit();
         // receiver.exit();
         // trace!("task stopping - ok");
+        let target = iterations;
+        let result = receiver.lock().unwrap().received().lock().unwrap().len();
         println!("elapsed: {:?}", time.elapsed());
-        println!("received: {:?}", receiver.lock().unwrap().received());
+        println!("received: {:?}", result);
+        assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
     
         // trace!("task: {:?}", &task);
-        // assert_eq!(config, target);
     }
 
 

@@ -31,7 +31,7 @@ task task1:
     #             input2: const float 0.07
 
     fn toApiQueue:
-        queue: ApiClient.queue
+        queue: TaskTestReceiver.in-queue
         input metric sqlSelectMetric:
             initial: 0.123      # начальное значение
             table: table_name
