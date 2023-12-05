@@ -164,15 +164,5 @@ impl ApiClientConfig {
             }
         }
         None
-        // match selfKeys.iter().position(|x| *x == name) {
-        //     Some(index) => {
-        //         selfKeys.remove(index);
-        //         match selfConf.get(name) {
-        //             Some(confTree) => Ok(confTree.conf),
-        //             None => Err(format!("ApiClientConfig.getParam | '{}' - not found in: {:?}", name, selfConf)),
-        //         }
-        //     },
-        //     None => Err(format!("ApiClientConfig.getParam | '{}' - not found in: {:?}", name, selfConf)),
-        // }
     }
 }
