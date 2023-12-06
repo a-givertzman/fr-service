@@ -37,7 +37,7 @@ mod tests {
     
     #[test]
     fn test_task_nodes() {
-        DebugSession::init(LogLevel::Info, Backtrace::Short);
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");

@@ -1,11 +1,13 @@
+#![allow(non_snake_case)]
+
 use std::{env, sync::Once};
 
-use env_logger::{Builder, WriteStyle};
-
+#[allow(dead_code)]
 static INIT: Once = Once::new();
 
 ///
 /// 
+#[allow(dead_code)]
 pub enum LogLevel {
     Off,
     Error,
@@ -16,6 +18,7 @@ pub enum LogLevel {
 }
 ///
 /// 
+#[allow(dead_code)]
 pub enum Backtrace {
     Full,
     Short,
@@ -23,11 +26,17 @@ pub enum Backtrace {
 
 ///
 /// Call DebugSession::init() to initialize logging
+#[allow(dead_code)]
 pub struct DebugSession {}
-
+///
+/// 
 impl DebugSession {
+    ///
+    /// Initialize debug session on first call, all next will be ignored
+    #[allow(dead_code)]
     pub fn init(logLevel: LogLevel, backtrace: Backtrace) {
         INIT.call_once(|| {
+            let logStyle = "always";
             let logLevel = match logLevel {
                 LogLevel::Off => "off",
                 LogLevel::Error => "error",
@@ -42,15 +51,18 @@ impl DebugSession {
                 Backtrace::Short => "short",
             };
             env::set_var("RUST_LOG", logLevel);  // off / error / warn / info / debug / trace
-            // env::set_var("RUST_BACKTRACE", "1");
+            assert_eq!(env::var("RUST_LOG"), Ok(logLevel.to_string()), "Set env RUST_LOG={} failed", logLevel);
             env::set_var("RUST_BACKTRACE", backtrace);
-            env::set_var("RUST_LOG_STYLE", "always");     // auto / always / never
-            // let mut builder = Builder::from_default_env();
-            // match env_logger::builder().is_test(true).try_init() {
+            assert_eq!(env::var("RUST_BACKTRACE"), Ok(backtrace.to_string()), "Set env RUST_BACKTRACE={} failed", backtrace);
+            env::set_var("RUST_LOG_STYLE", logStyle);     // auto / always / never
+            assert_eq!(env::var("RUST_LOG_STYLE"), Ok(logStyle.to_string()), "Set env RUST_LOG_STYLE={} failed", logStyle);
             match env_logger::builder().is_test(true).try_init() {
             // match builder.is_test(true).try_init() {
                 Ok(_) => {
-                    println!("DebugSession.init | Ok\n")
+                    println!("DebugSession.init | Ok\n");
+                    println!("DebugSession.init | {:?}", env::var("RUST_LOG"));
+                    println!("DebugSession.init | {:?}", env::var("RUST_BACKTRACE"));
+                    println!("DebugSession.init | {:?}", env::var("RUST_LOG_STYLE"));
                 },
                 Err(err) => {
                     println!("DebugSession.init | error: {:?}", err)

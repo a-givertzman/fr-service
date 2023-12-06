@@ -93,7 +93,15 @@ mod tests {
                                             received.fetch_add(1, Ordering::SeqCst);
                                             let recvIndex = (received.load(Ordering::SeqCst) - 1) % testDataLen;
                                             trace!("socket read - received[{}]: {:?}", recvIndex, point);
-                                            assert!(point == testData[recvIndex].1);
+                                            assert!(point.name() == testData[recvIndex].1.name(), "\nreceived: {:?}\nexpected: {:?}", point.name(), testData[recvIndex].1.name());
+                                            assert!(point.status() == testData[recvIndex].1.status(), "\nreceived: {:?}\nexpected: {:?}", point.status(), testData[recvIndex].1.status());
+                                            assert!(point.timestamp() == testData[recvIndex].1.timestamp(), "\nreceived: {:?}\nexpected: {:?}", point.timestamp(), testData[recvIndex].1.timestamp());
+                                            match point {
+                                                PointType::Bool(point) => assert!(point.value == testData[recvIndex].1.asBool().value, "\nreceived: {:?}\nexpected: {:?}", point.value, testData[recvIndex].1.asBool().value),
+                                                PointType::Int(point) => assert!(point.value == testData[recvIndex].1.asInt().value, "\nreceived: {:?}\nexpected: {:?}", point.value, testData[recvIndex].1.asInt().value),
+                                                PointType::Float(point) => assert!(point.value == testData[recvIndex].1.asFloat().value, "\nreceived: {:?}\nexpected: {:?}", point.value, testData[recvIndex].1.asFloat().value),
+                                                PointType::String(point) => assert!(point.value == testData[recvIndex].1.asString().value, "\nreceived: {:?}\nexpected: {:?}", point.value, testData[recvIndex].1.asString().value),
+                                            }
                                             // debug!("socket read - received: {:?}", received.load(Ordering::SeqCst));
                                             if received.load(Ordering::SeqCst) >= total {
                                                 break 'read;
@@ -104,7 +112,7 @@ mod tests {
                                         },
                                     }
                                 },
-                                ConnectionStatus::Closed(err) => {
+                                ConnectionStatus::Closed(_err) => {
                                     break 'read;
                                 },
                             }
