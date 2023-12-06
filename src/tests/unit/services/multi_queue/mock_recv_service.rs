@@ -71,24 +71,8 @@ impl Service for MockRecvService {
         let exit = self.exit.clone();
         let inRecv = self.inRecv.pop().unwrap();
         let received = self.received.clone();
-        // let parts: Vec<&str> = self.sendQueue.split(".").collect();
-        // let outSendServiceName = parts[0];
-        // let outSendQueueName = parts[1];
-        // debug!("{}.run | Getting services...", selfId);
-        // let services = self.services.lock().unwrap();
-        // debug!("{}.run | Getting services - ok", selfId);
-        // let outSendService = services.get(&outSendServiceName);
-        // let outSend = outSendService.lock().unwrap().getLink(&outSendQueueName);
-        // let testData = self.testData.clone();
         let _handle = thread::Builder::new().name(format!("{} - MultiQueue.run", selfId)).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
-            // let testData = testData.lock().unwrap();
-            // for value in testData.iter() {
-            //     let point = value.toPoint(&format!("{}/test", selfId));
-            //     if let Err(err) = outSend.send(point) {
-            //         warn!("{}.run | send error: {:?}", selfId, err);
-            //     }
-            // }
             loop {
                 match inRecv.recv_timeout(Duration::from_millis(100)) {
                     Ok(point) => {
