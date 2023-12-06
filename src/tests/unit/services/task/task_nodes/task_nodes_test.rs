@@ -49,7 +49,7 @@ mod tests {
         let services = Arc::new(Mutex::new(Services::new("test")));
         let service = Arc::new(Mutex::new(MockService::new("test", "queue")));
         services.lock().unwrap().insert("ApiClient", service);
-        taskNodes.buildNodes(conf, services);
+        taskNodes.buildNodes("test", conf, services);
         let testData = vec![
             (
                 "/path/Point.Name1", 101, 

@@ -18,10 +18,10 @@ impl Value {
     }
     pub fn toPoint(&self, name: &str) -> PointType {
         match self {
-            Value::Bool(value) => value.toPoint(name),
-            Value::Int(value) => value.toPoint(name),
-            Value::Float(value) => value.toPoint(name),
-            Value::String(value) => value.clone().toPoint(name),
+            Value::Bool(value) => value.toPoint(0, name),
+            Value::Int(value) => value.toPoint(0, name),
+            Value::Float(value) => value.toPoint(0, name),
+            Value::String(value) => value.clone().toPoint(0, name),
         }
     }
 }

@@ -26,8 +26,8 @@ pub struct SqlMetric {
     txId: usize,
     kind: FnKind,
     inputs: IndexMap<String, FnInOutRef>,
-    initial: f64,
-    table: String,
+    // initial: f64,
+    // table: String,
     sql: Format,
     sqlNames: HashMap<String, (String, Option<String>)>,
 }
@@ -63,7 +63,7 @@ impl SqlMetric {
             );
         }
         let id = conf.name.clone();
-        let initial = conf.param("initial").name.parse().unwrap();
+        // let initial = conf.param("initial").name.parse().unwrap();
         let table = conf.param("table").name.clone();
         let mut sql = Format::new(&conf.param("sql").name);
         sql.insert("id", id.clone().toPoint(txId, ""));
@@ -79,8 +79,8 @@ impl SqlMetric {
             txId,
             kind: FnKind::Fn,
             inputs: inputs,
-            initial: initial,
-            table: table,
+            // initial: initial,
+            // table: table,
             sql,
             sqlNames: sqlNames,
         }
@@ -89,7 +89,7 @@ impl SqlMetric {
 ///
 /// 
 impl FnIn for SqlMetric {
-    fn add(&mut self, point: PointType) {
+    fn add(&mut self, _point: PointType) {
         panic!("{}.add | method is not used", self.id)
     }
 }
@@ -114,7 +114,7 @@ impl FnOut for SqlMetric {
     }
     //
     fn out(&mut self) -> PointType {
-        let selfId = self.id;
+        let selfId = self.id.clone();
         for (fullName, (name, sufix)) in &self.sqlNames {
             trace!("{}.out | name: {:?}, sufix: {:?}", selfId, name, sufix);
             match self.inputs.get(name) {
