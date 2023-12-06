@@ -60,9 +60,9 @@ impl DebugSession {
             // match builder.is_test(true).try_init() {
                 Ok(_) => {
                     println!("DebugSession.init | Ok\n");
-                    println!("DebugSession.init | {:?}", env::var("RUST_LOG"));
-                    println!("DebugSession.init | {:?}", env::var("RUST_BACKTRACE"));
-                    println!("DebugSession.init | {:?}", env::var("RUST_LOG_STYLE"));
+                    println!("DebugSession.init | RUST_LOG = {:?}", env::var("RUST_LOG"));
+                    println!("DebugSession.init | RUST_BACKTRACE = {:?}", env::var("RUST_BACKTRACE"));
+                    println!("DebugSession.init | RUST_LOG_STYLE = {:?}", env::var("RUST_LOG_STYLE"));
                 },
                 Err(err) => {
                     println!("DebugSession.init | error: {:?}", err)
