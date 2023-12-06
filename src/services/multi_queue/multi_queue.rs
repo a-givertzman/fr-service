@@ -110,12 +110,17 @@ impl Service for MultiQueue {
                         let pointId = point.name();
                         trace!("{}.run | received: {:?}", selfId, point);
                         for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {
-                            match sender.send(point.clone()) {
-                                Ok(_) => {},
-                                Err(err) => {
-                                    error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", selfId, pointId, receiverId, err);
+                            match receiverId != &point.txId() {
+                                true => {
+                                    match sender.send(point.clone()) {
+                                        Ok(_) => {},
+                                        Err(err) => {
+                                            error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", selfId, pointId, receiverId, err);
+                                        },
+                                    };
                                 },
-                            };
+                                false => {},
+                            }
                         }
                     },
                     Err(err) => {
