@@ -66,10 +66,10 @@ impl FnOut for FnToApiQueue {
             self.state = sql.clone();
             match self.txSend.send(point.clone()) {
                 Ok(_) => {
-                    trace!("FnToApiQueue.out | sent sql: {}", sql);
+                    trace!("FnToApiQueue.out | Sent sql: {}", sql);
                 },
                 Err(err) => {
-                    error!("FnToApiQueue.out | Error sending to queue sql: {}\n\terror: {:?}", &sql, err);
+                    error!("FnToApiQueue.out | Send error: {:?}\n\tsql: {:?}", err, sql);
                 },
             };
         }
