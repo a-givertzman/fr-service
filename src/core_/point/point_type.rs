@@ -126,6 +126,16 @@ impl PointType {
             PointType::String(point) => point.timestamp,
         }
     }
+    ///
+    /// 
+    pub fn cmpValue(&self, other: &PointType) -> bool {
+        match self {
+            PointType::Bool(point) => point.value == other.asBool().value,
+            PointType::Int(point) => point.value == other.asInt().value,
+            PointType::Float(point) => point.value == other.asFloat().value,
+            PointType::String(point) => point.value == other.asString().value,
+        }
+    }
 }
 // ///
 // /// 

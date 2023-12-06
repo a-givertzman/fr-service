@@ -46,22 +46,26 @@ mod tests {
         let mut taskNodes = TaskNodes::new("test");
         let conf = TaskConfig::read(path);
         debug!("conf: {:?}", conf);
-        let services = Arc::new(Mutex::new(Services::new("test")));
-        let mockService = Arc::new(Mutex::new(MockService::new("test", "queue")));
+        let selfId = "test";
+        let outName = format!("{}/SqlMetric", selfId);
+        let outName = outName.as_str();
+        debug!("outName: {:?}", outName);
+        let services = Arc::new(Mutex::new(Services::new(selfId)));
+        let mockService = Arc::new(Mutex::new(MockService::new(selfId, "queue")));
         services.lock().unwrap().insert("ApiClient", mockService.clone());
         taskNodes.buildNodes("test", conf, services);
         let testData = vec![
             (
                 "/path/Point.Name1", 101, 
                 HashMap::from([
-                    ("MetricSelect.out", "101, 1102, 0, 0"),
+                    (outName, "101, 1102, 0, 0"),
                     ("FnCount1.out", "101"),
                 ])
             ),
             (
                 "/path/Point.Name1", 201, 
                 HashMap::from([
-                    ("MetricSelect.out", "201, 1202, 0, 0"),
+                    (outName, "201, 1202, 0, 0"),
                     ("FnCount1.out", "302"),
                 ])
                 
@@ -69,7 +73,7 @@ mod tests {
             (
                 "/path/Point.Name1", 301, 
                 HashMap::from([
-                    ("MetricSelect.out", "301, 1302, 0, 0"),
+                    (outName, "301, 1302, 0, 0"),
                     ("FnCount1.out", "603"),
                 ])
                 
@@ -77,7 +81,7 @@ mod tests {
             (
                 "/path/Point.Name2", 202, 
                 HashMap::from([
-                    ("MetricSelect.out", "301, 1302, 202, 0"),
+                    (outName, "301, 1302, 202, 0"),
                     ("FnGe1.out", "true"),
                 ])
                 
@@ -85,7 +89,7 @@ mod tests {
             (
                 "/path/Point.Name3", 303, 
                 HashMap::from([
-                    ("MetricSelect.out", "301, 1302, 202, 303"),
+                    (outName, "301, 1302, 202, 303"),
                     ("FnGe1.out", "false"),
                 ])
                 
@@ -93,7 +97,7 @@ mod tests {
             (
                 "/path/Point.Name3", 304, 
                 HashMap::from([
-                    ("MetricSelect.out", "301, 1302, 202, 304"),
+                    (outName, "301, 1302, 202, 304"),
                     ("FnGe1.out", "false"),
                 ])
                 
@@ -125,15 +129,18 @@ mod tests {
                             PointType::String(point) => point.value.clone(),
                         };
                         debug!("TaskEvalNode.eval | evalNode '{}' out - '{}': {:?}", evalNode.name(), evalNodeOut.borrow().id(), out);
-                        if evalNodeOut.borrow().kind() != &FnKind::Var {
+                        // if evalNodeOut.borrow().kind() != &FnKind::Var {
                             if evalNodeOut.borrow().kind() != &FnKind::Var {
                                 let outName = out.name();
                                 let outName = outName.as_str();
                                 debug!("TaskEvalNode.eval | out.name: '{}'", outName);
-                                let target = targetValue.get(&outName).unwrap().to_string();
+                                let target = match targetValue.get(outName) {
+                                    Some(target) => target.to_string(),
+                                    None => panic!("TaskEvalNode.eval | out.name '{}' - not foind in {:?}", outName, targetValue),
+                                };
                                 assert!(outValue == target, "\n   outValue: {} \ntargetValue: {}", outValue, target);
                             }
-                        }
+                        // }
                     };
                 },
                 None => {

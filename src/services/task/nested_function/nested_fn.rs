@@ -2,6 +2,8 @@
 
 use std::{rc::Rc, cell::RefCell, str::FromStr, sync::{mpsc::Sender, Arc, Mutex}};
 
+use log::LevelFilter;
+
 use crate::{
     core_::{
         point::point_type::{PointType, ToPoint},
@@ -145,7 +147,9 @@ impl NestedFn {
                 let pointName = conf.name.clone();
                 taskNodes.addInput(&pointName, Self::fnInput(&pointName, initial));
                 let input = taskNodes.getInput(&pointName).unwrap();
-                println!("NestedFn.function | input (Point): {:?}", input);
+                if log::max_level() == LevelFilter::Trace {
+                    println!("NestedFn.function | input (Point): {:?}", input);
+                }
                 input
             },
             FnConfKind::Metric => {
