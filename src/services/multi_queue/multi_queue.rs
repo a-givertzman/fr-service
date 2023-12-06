@@ -124,7 +124,7 @@ impl Service for MultiQueue {
                 }
                 if exit.load(Ordering::SeqCst) {
                     break;
-                }                
+                }
             }
         });
         info!("{}.run | started", self.id);

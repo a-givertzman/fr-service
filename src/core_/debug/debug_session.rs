@@ -59,10 +59,11 @@ impl DebugSession {
             match env_logger::builder().is_test(true).try_init() {
             // match builder.is_test(true).try_init() {
                 Ok(_) => {
-                    println!("DebugSession.init | Ok\n");
+                    println!("DebugSession.init | Ok");
                     println!("DebugSession.init | RUST_LOG = {:?}", env::var("RUST_LOG"));
                     println!("DebugSession.init | RUST_BACKTRACE = {:?}", env::var("RUST_BACKTRACE"));
                     println!("DebugSession.init | RUST_LOG_STYLE = {:?}", env::var("RUST_LOG_STYLE"));
+                    println!("");
                 },
                 Err(err) => {
                     println!("DebugSession.init | error: {:?}", err)

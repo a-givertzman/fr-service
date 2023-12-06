@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
 mod tests {
-    use log::{info, debug, trace};
-    use std::{sync::{Once, mpsc::{Sender, self}, Arc, Mutex}, collections::HashMap};
+    use log::{info, debug, trace, warn};
+    use std::{sync::{Once, mpsc::{Sender, self, Receiver}, Arc, Mutex, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread};
     use crate::{
         core_::{
             debug::debug_session::{DebugSession, LogLevel, Backtrace},
@@ -47,8 +47,8 @@ mod tests {
         let conf = TaskConfig::read(path);
         debug!("conf: {:?}", conf);
         let services = Arc::new(Mutex::new(Services::new("test")));
-        let service = Arc::new(Mutex::new(MockService::new("test", "queue")));
-        services.lock().unwrap().insert("ApiClient", service);
+        let mockService = Arc::new(Mutex::new(MockService::new("test", "queue")));
+        services.lock().unwrap().insert("ApiClient", mockService.clone());
         taskNodes.buildNodes("test", conf, services);
         let testData = vec![
             (
@@ -99,6 +99,7 @@ mod tests {
                 
             ),
         ];
+        mockService.lock().unwrap().run().unwrap();
         for (name, value, targetValue) in testData {
             let point = value.toPoint(0, name);
             // let inputName = &point.name();
@@ -126,8 +127,10 @@ mod tests {
                         debug!("TaskEvalNode.eval | evalNode '{}' out - '{}': {:?}", evalNode.name(), evalNodeOut.borrow().id(), out);
                         if evalNodeOut.borrow().kind() != &FnKind::Var {
                             if evalNodeOut.borrow().kind() != &FnKind::Var {
-                                debug!("TaskEvalNode.eval | out.name: '{}'", out.name());
-                                let target = targetValue.get(&out.name().as_str()).unwrap().to_string();
+                                let outName = out.name();
+                                let outName = outName.as_str();
+                                debug!("TaskEvalNode.eval | out.name: '{}'", outName);
+                                let target = targetValue.get(&outName).unwrap().to_string();
                                 assert!(outValue == target, "\n   outValue: {} \ntargetValue: {}", outValue, target);
                             }
                         }
@@ -137,24 +140,29 @@ mod tests {
                     panic!("input {:?} - not found in the current taskStuff", &name)
                 },
             };
-        }        
+        } 
+        mockService.lock().unwrap().exit();
     }
     ///
     /// 
     struct MockService {
         id: String,
         links: HashMap<String, Sender<PointType>>,
+        rxRecv: Vec<Receiver<PointType>>,
+        exit: Arc<AtomicBool>,
     }
     ///
     /// 
     impl MockService {
         fn new(parent: &str, linkName: &str) -> Self {
-            let (send, _recv) = mpsc::channel();
+            let (send, recv) = mpsc::channel();
             Self {
                 id: format!("{}/MockService", parent),
                 links: HashMap::from([
                     (linkName.to_string(), send),
                 ]),
+                rxRecv: vec![recv],
+                exit: Arc::new(AtomicBool::new(false)),
             }
         }
     }
@@ -175,12 +183,32 @@ mod tests {
         //
         //
         fn run(&mut self) -> Result<std::thread::JoinHandle<()>, std::io::Error> {
-            todo!()
+            info!("{}.run | starting...", self.id);
+            let selfId = self.id.clone();
+            let exit = self.exit.clone();
+            let rxRecv = self.rxRecv.pop().unwrap();
+            let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
+                loop {
+                    match rxRecv.recv() {
+                        Ok(point) => {
+                            debug!("{}.run | received: {:?}", selfId, point);
+                        },
+                        Err(err) => {
+                            warn!("{}.run | error: {:?}", selfId, err);
+                        },
+                    }
+                    if exit.load(Ordering::SeqCst) {
+                        break;
+                    }
+                }
+            });
+            info!("{}.run | started", self.id);
+            handle
         }
         //
         //
         fn exit(&self) {
-            todo!()
+            self.exit.store(true, Ordering::SeqCst);
         }
     }
 }
