@@ -42,7 +42,7 @@ mod tests {
         // let (initial, switches) = initEach();
         let testData = [
             // (
-            //     r#"metric sqlSelectMetric:
+            //     r#"metric SqlMetric:
             //         table: "table_name"
             //         sql: "select * from {table}"
             //         inputs:
@@ -57,7 +57,7 @@ mod tests {
                     cycle: 100 ms
                     in queue recv-queue:
                         max-length: 10000
-                    metric sqlSelectMetric:
+                    metric SqlMetric:
                         initial: 0.123      # начальное значение
                         table: table_name
                         sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
@@ -79,10 +79,10 @@ mod tests {
                     rxMaxLength: 10000,
                     vars: vec![String::from("VarName2")],
                     nodes: IndexMap::from([                    
-                        (String::from("sqlSelectMetric-1"), FnConfig { 
+                        (String::from("SqlMetric-1"), FnConfig { 
                                 fnKind: FnConfKind::Metric,
                                 type_: FnConfPointType::Unknown,
-                                name: String::from("sqlSelectMetric"), 
+                                name: String::from("SqlMetric"), 
                                 // vars: vec![String::from("VarName2")],
                                 inputs: IndexMap::from([
                                     (String::from("initial"), FnConfig { fnKind: FnConfKind::Param, name: String::from("0.123"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() }),

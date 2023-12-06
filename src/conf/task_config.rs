@@ -22,7 +22,7 @@ use crate::conf::{fn_config::FnConfig, conf_tree::ConfTree, service_config::Serv
 ///                     fn functionName:
 ///                         ...
 ///                 input2:
-///                     metric sqlSelectMetric:
+///                     metric SqlMetric:
 ///                         ...
 #[derive(Debug, PartialEq, Clone)]
 pub struct TaskConfig {
@@ -50,7 +50,7 @@ impl TaskConfig {
     ///                 fn functionName:
     ///                     ...
     ///             input2:
-    ///                 metric sqlSelectMetric:
+    ///                 metric SqlMetric:
     ///                     ...
     pub fn new(confTree: &mut ConfTree) -> TaskConfig {
         println!("\n");

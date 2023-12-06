@@ -6,7 +6,7 @@ use log::debug;
 
 use crate::{
     conf::fn_config::FnConfig, 
-    services::{task::{nested_function::metric_select::MetricSelect, task_nodes::TaskNodes}, services::Services},
+    services::{task::{nested_function::metric_select::SqlMetric, task_nodes::TaskNodes}, services::Services},
 };
 
 use super::fn_::FnInOut;
@@ -19,13 +19,14 @@ pub struct MetricBuilder {
 ///
 /// 
 impl MetricBuilder {
-    pub fn new(conf: &mut FnConfig, taskNodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> Rc<RefCell<Box<(dyn FnInOut)>>> {
+    pub fn new(parent: &str, conf: &mut FnConfig, taskNodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> Rc<RefCell<Box<(dyn FnInOut)>>> {
         match conf.name.as_str() {
-            "sqlSelectMetric" => {
+            "SqlMetric" => {
                 debug!("MetricBuilder.new | fnConf: {:?}: {:?}", conf.name, conf);
                 Rc::new(RefCell::new(                    
                     Box::new(
-                        MetricSelect::new(
+                        SqlMetric::new(
+                            parent,
                             conf, 
                             taskNodes,
                             services,

@@ -40,7 +40,7 @@ fn test_metric_config_new_valid() {
     // let (initial, switches) = initEach();
     let testData = [
         // (
-        //     r#"metric sqlSelectMetric:
+        //     r#"metric SqlMetric:
         //         table: "table_name"
         //         sql: "select * from {table}"
         //         inputs:
@@ -51,7 +51,7 @@ fn test_metric_config_new_valid() {
         //     ]) }
         // ),
         (
-            r#"metric sqlSelectMetric:
+            r#"metric SqlMetric:
                 initial: 0.123      # начальное значение
                 table: table_name
                 sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
@@ -69,7 +69,7 @@ fn test_metric_config_new_valid() {
                         const 1
             "#, 
             MetricConfig { 
-                name: String::from("sqlSelectMetric"), 
+                name: String::from("SqlMetric"), 
                 table: String::from("table_name"), 
                 sql: String::from("UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"), 
                 initial: 0.123, 

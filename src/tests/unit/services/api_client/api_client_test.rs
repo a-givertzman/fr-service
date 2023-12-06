@@ -162,7 +162,7 @@ mod tests {
         for _ in 0..count {
             let index = rnd.gen_range(0..testDataLen);
             let value = testData.get(index).unwrap();
-            let point = format!("select from table where id = {}", value.toString()).toPoint("teset");
+            let point = format!("select from table where id = {}", value.toString()).toPoint(0, "teset");
             send.send(point.clone()).unwrap();
             sent.push(point.asString().value);
         }

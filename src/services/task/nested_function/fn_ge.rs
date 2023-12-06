@@ -78,6 +78,11 @@ impl FnOut for FnGe {
         let point2 = self.input2.borrow_mut().out();    
         let value = self.toFloat(&point1) >= self.toFloat(&point2);
         debug!("{}.out | input.out: {:?}", self.id, &value);
+        let txId = match point1.timestamp().cmp(&point2.timestamp()) {
+            std::cmp::Ordering::Less => point2.txId(),
+            std::cmp::Ordering::Equal => point1.txId(),
+            std::cmp::Ordering::Greater => point1.txId(),
+        };
         let status = match point1.status().cmp(&point2.status()) {
             std::cmp::Ordering::Less => point2.status(),
             std::cmp::Ordering::Equal => point1.status(),
@@ -90,6 +95,7 @@ impl FnOut for FnGe {
         };
         PointType::Bool(
             Point::<Bool> {
+                txId,
                 name: String::from(format!("{}.out", self.id)),
                 value: Bool(value),
                 status: status,

@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{collections::{HashMap, hash_map::Iter}, sync::mpsc::Sender};
+use std::{collections::HashMap, sync::mpsc::Sender};
 
 use crate::core_::point::point_type::PointType;
 
@@ -10,9 +10,9 @@ use crate::core_::point::point_type::PointType;
 /// - Where Sender - is pair of String ID & Sender<PointType>
 pub struct Subscriptions {
     id: String,
-    multicast: HashMap<String, HashMap<String, Sender<PointType>>>,
-    broadcast: HashMap<String, Sender<PointType>>,
-    empty: HashMap<String, Sender<PointType>>,
+    multicast: HashMap<String, HashMap<usize, Sender<PointType>>>,
+    broadcast: HashMap<usize, Sender<PointType>>,
+    empty: HashMap<usize, Sender<PointType>>,
 }
 ///
 /// 
@@ -29,7 +29,7 @@ impl Subscriptions {
     }
     ///
     /// Adds subscription to Point ID with receiver ID
-    pub fn addMulticast(&mut self, receiverId: &str, pointId: &str, sender: Sender<PointType>) {
+    pub fn addMulticast(&mut self, receiverId: usize, pointId: &str, sender: Sender<PointType>) {
         if ! self.multicast.contains_key(pointId) {
             self.multicast.insert(
                 pointId.to_string(),
@@ -39,7 +39,7 @@ impl Subscriptions {
         match self.multicast.get_mut(pointId) {
             Some(senders) => {
                 senders.insert(
-                    receiverId.to_string(),
+                    receiverId,
                     sender,
                 );
             },
@@ -48,15 +48,15 @@ impl Subscriptions {
     }
     ///
     /// 
-    pub fn addBroadcast(&mut self, receiverId: &str, sender: Sender<PointType>) {
+    pub fn addBroadcast(&mut self, receiverId: usize, sender: Sender<PointType>) {
         self.broadcast.insert(
-            receiverId.to_string(),
+            receiverId,
             sender,
         );
     }
     ///
     /// Returns map of Senders
-    pub fn iter(&self, pointId: &str) -> impl Iterator<Item = (&String, &Sender<PointType>)> {   //HashMap<String, Sender<PointType>>
+    pub fn iter(&self, pointId: &str) -> impl Iterator<Item = (&usize, &Sender<PointType>)> {   //HashMap<String, Sender<PointType>>
         match self.multicast.get(pointId) {
             Some(multicast) => {
                 multicast.iter().chain(&self.broadcast)
@@ -68,7 +68,7 @@ impl Subscriptions {
     }
     ///
     /// Removes single subscription by Point Id & receiver ID
-    pub fn remove(&mut self, receiverId: &str, pointId: &str) -> Result<(), String> {
+    pub fn remove(&mut self, receiverId: &usize, pointId: &str) -> Result<(), String> {
         match self.multicast.get_mut(pointId) {
             Some(senders) => {
                 match senders.remove(receiverId) {

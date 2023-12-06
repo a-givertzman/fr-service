@@ -100,7 +100,7 @@ mod tests {
             ),
         ];
         for (name, value, targetValue) in testData {
-            let point = value.toPoint(name);
+            let point = value.toPoint(0, name);
             // let inputName = &point.name();
             debug!("input point name: {:?}  value: {:?}", name, value);
             match &taskNodes.getEvalNode(&name) {

@@ -72,6 +72,7 @@ impl FnOut for FnCount {
         trace!("FnCount.out | input.out: {:?}   | state: {:?}", &value, self.count);
         PointType::Float(
             Point {
+                txId: point.txId(),
                 name: String::from(format!("{}.out", self.id)),
                 value: self.count,
                 status: point.status(),

@@ -14,7 +14,7 @@ task task1:
 
     fn toApiQueue:
         queue: ApiClient.queue
-        input metric sqlSelectMetric:
+        input metric SqlMetric:
             initial: 0.123      # начальное значение
             table: table_name
             sql: "{input.value}, {input1.value}, {input2.value}, {input3.value}"

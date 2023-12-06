@@ -42,7 +42,7 @@ mod tests {
             Value::String("test1".to_string()),
             Value::String("test2".to_string()),
         ]));
-
+        let testDataLen = testData.lock().unwrap().len();
         let count = 30;
         let totalCount = count * testData.lock().unwrap().len();
         let maxTestDuration = Duration::from_secs(10);
@@ -115,8 +115,11 @@ mod tests {
         println!("total test events: {:?}", totalCount);
         println!("sent events: {:?}\n", count * sendService.lock().unwrap().sent().lock().unwrap().len());
         let mut received = vec![];
+        let target = testDataLen;
         for recvService in &recvServices {
-            received.push(recvService.lock().unwrap().received().lock().unwrap().len());
+            let len = recvService.lock().unwrap().received().lock().unwrap().len();
+            assert!(len == target, "\nresult: {:?}\ntarget: {:?}", len, target);
+            received.push(len);
         }
         println!("recv events: {} {:?}", received.iter().sum::<usize>(), received);
 

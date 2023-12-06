@@ -46,8 +46,8 @@ mod tests {
             rxMaxLength: 10000,
             vars: vec![String::from("VarName2")],
             nodes: IndexMap::from([                    
-                (String::from("sqlSelectMetric-1"), FnConfig { 
-                        name: String::from("sqlSelectMetric"), 
+                (String::from("SqlMetric-1"), FnConfig { 
+                        name: String::from("SqlMetric"), 
                         fnKind: FnConfKind::Metric,
                         type_: FnConfPointType::Unknown,
                         // table: String::from("table_name"), 

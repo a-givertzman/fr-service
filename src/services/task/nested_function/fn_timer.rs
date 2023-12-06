@@ -160,6 +160,7 @@ impl FnOut for FnTimer {
         };
         PointType::Float(
             Point {
+                txId: point.txId(),
                 name: String::from("FnTimer"),
                 value: self.totalElapsed + self.sessionElapsed,
                 status: point.status(),

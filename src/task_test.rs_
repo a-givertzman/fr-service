@@ -106,7 +106,7 @@ fn main() {
                                 let target = format!(
                                     "insert into {} (id, value, timestamp) values ({}, {}, {});", 
                                     "table_name", 
-                                    "sqlSelectMetric", 
+                                    "SqlMetric", 
                                     point.value + 0.2 + 0.05,
                                     point.value + 2.224,
                                 );

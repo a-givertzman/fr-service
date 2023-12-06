@@ -5,7 +5,7 @@ use rand::Rng;
 
 use log::{debug, warn, info};
 
-use crate::{core_::point::point_type::{PointType, ToPoint}, services::{service::Service, services::Services}};
+use crate::{core_::point::{point_type::{PointType, ToPoint}, point_tx_id::PointTxId}, services::{service::Service, services::Services}};
 
 
 ///
@@ -59,6 +59,7 @@ impl Service for TaskTestProducer {
     // 
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         let selfId = self.id.clone();
+        let txId = PointTxId::fromStr(&selfId);
         let iterations = self.iterations;
         let outSend = self.services.lock().unwrap().getLink(&self.link);
         let sent = self.sent.clone();
@@ -69,7 +70,7 @@ impl Service for TaskTestProducer {
             // let mut sent = 0;
             for _ in 0..iterations {
                 let value = random.gen_range(0.0..max);
-                let point = value.toPoint("/path/Point.Name");
+                let point = value.toPoint(txId, "/path/Point.Name");
                 match outSend.send(point.clone()) {
                     Ok(_) => {
                         sent.lock().unwrap().push(point);

@@ -2,7 +2,7 @@
 #     input:
 #         fn functionName:
 #             input: point '/path/Point.Name/'
-metric sqlSelectMetric:
+metric SqlMetric:
     initial: 0.123      # начальное значение
     table: SelectMetric_test_table_name
     sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    

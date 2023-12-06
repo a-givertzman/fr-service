@@ -40,8 +40,8 @@ fn test_single_int() {
     info!("test_single");
 
     // let (initial, switches) = initEach();
-    let input1 = initEach(0.toPoint("point1"));
-    let input2 = initEach(0.toPoint("point2"));
+    let input1 = initEach(0.toPoint(0, "point1"));
+    let input2 = initEach(0.toPoint(0, "point2"));
     let mut fnTrip = FnGe::new(
         "test",
         input1.clone(),
@@ -62,8 +62,8 @@ fn test_single_int() {
         (-1, 0, false),
     ];
     for (value1, value2, targetState) in testData {
-        let point1 = value1.toPoint("point1");
-        let point2 = value2.toPoint("point2");
+        let point1 = value1.toPoint(0, "point1");
+        let point2 = value2.toPoint(0, "point2");
         input1.borrow_mut().add(point1);
         input2.borrow_mut().add(point2);
         // debug!("input: {:?}", &input);
@@ -81,8 +81,8 @@ fn test_multiple_int() {
     info!("test_single");
 
     // let (initial, switches) = initEach();
-    let input1 = initEach(0.toPoint("point1"));
-    let input2 = initEach(0.toPoint("point2"));
+    let input1 = initEach(0.toPoint(0, "point1"));
+    let input2 = initEach(0.toPoint(0, "point2"));
     let mut fnTrip = FnGe::new(
         "test",
         input1.clone(),
@@ -107,8 +107,8 @@ fn test_multiple_int() {
         (0, 1, false),
     ];
     for (value1, value2, targetState) in testData {
-        let point1 = value1.toPoint("point1");
-        let point2 = value2.toPoint("point2");
+        let point1 = value1.toPoint(0, "point1");
+        let point2 = value2.toPoint(0, "point2");
         input1.borrow_mut().add(point1);
         input2.borrow_mut().add(point2);
         // debug!("input: {:?}", &input);
@@ -126,8 +126,8 @@ fn test_multiple_float() {
     info!("test_single");
 
     // let (initial, switches) = initEach();
-    let input1 = initEach(0.0.toPoint("point1"));
-    let input2 = initEach(0.0.toPoint("point2"));
+    let input1 = initEach(0.0.toPoint(0, "point1"));
+    let input2 = initEach(0.0.toPoint(0, "point2"));
     let mut fnTrip = FnGe::new(
         "test",
         input1.clone(),
@@ -152,8 +152,8 @@ fn test_multiple_float() {
         (-0.1, 0.0, false),
     ];
     for (value1, value2, targetState) in testData {
-        let point1 = value1.toPoint("point1");
-        let point2 = value2.toPoint("point2");
+        let point1 = value1.toPoint(0, "point1");
+        let point2 = value2.toPoint(0, "point2");
         input1.borrow_mut().add(point1);
         input2.borrow_mut().add(point2);
         // debug!("input: {:?}", &input);

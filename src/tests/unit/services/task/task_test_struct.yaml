@@ -32,7 +32,7 @@ task task1:
 
     fn toApiQueue:
         queue: TaskTestReceiver.in-queue
-        input metric sqlSelectMetric:
+        input metric SqlMetric:
             initial: 0.123      # начальное значение
             table: table_name
             # sql: "UPDATE {table} SET kind = '{input1.value}' WHERE id = '{input2.value}';"
