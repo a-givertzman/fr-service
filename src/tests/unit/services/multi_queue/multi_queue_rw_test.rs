@@ -73,14 +73,6 @@ mod tests {
         let mut threads = vec![];
         let mut rsServices = vec![];
         let timer = Instant::now();
-        // let sendService = Arc::new(Mutex::new(MockRecvSendService::new(
-        //     format!("test"),
-        //     "in-queue",//MultiQueue.
-        //     "MultiQueue.in-queue",
-        //     services.clone(),
-        //     testData.clone(),
-        // )));
-        // services.lock().unwrap().insert("MockRecvService", sendService.clone());
         for i in 0..count {
             let rsService = Arc::new(Mutex::new(MockRecvSendService::new(
                 format!("tread{}", i),
@@ -118,8 +110,8 @@ mod tests {
         }
         println!("\nelapsed: {:?}", timer.elapsed());
         println!("total test events: {:?}", totalCount);
-        for rsService in &rsServices {
-            println!("sent events: {:?}\n", rsService.lock().unwrap().sent().lock().unwrap().len());
+        for service in &rsServices {
+            println!("sent events: {:?}\n", service.lock().unwrap().sent().lock().unwrap().len());
         }
         let mut received = vec![];
         let target = testDataLen;

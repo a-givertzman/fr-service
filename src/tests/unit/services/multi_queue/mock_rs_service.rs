@@ -4,7 +4,7 @@ use std::{collections::HashMap, sync::{mpsc::{Sender, self, Receiver}, Arc, Mute
 
 use log::{info, warn, debug, trace};
 
-use crate::{core_::{point::point_type::PointType, testing::test_stuff::test_value::Value}, services::{services::Services, service::Service}};
+use crate::{core_::{point::{point_type::PointType, point_tx_id::PointTxId}, testing::test_stuff::test_value::Value}, services::{services::Services, service::Service}};
 
 
 pub struct MockRecvSendService {
@@ -90,9 +90,10 @@ impl Service for MockRecvSendService {
         let sent = self.sent.clone();
         let _handle = thread::Builder::new().name(format!("{} - MultiQueue.run", selfId)).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
+            let txId = PointTxId::fromStr(&selfId);
             let testData = testData.lock().unwrap();
             for value in testData.iter() {
-                let point = value.toPoint(&format!("{}/test", selfId));
+                let point = value.toPoint(txId,&format!("{}/test", selfId));
                 match outSend.send(point.clone()) {
                     Ok(_) => {
                         trace!("{}.run | send: {:?}", selfId, point);

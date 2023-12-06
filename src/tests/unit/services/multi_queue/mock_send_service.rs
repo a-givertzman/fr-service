@@ -85,7 +85,7 @@ impl Service for MockSendService {
             info!("{}.run | Preparing thread - ok", selfId);
             let testData = testData.lock().unwrap();
             for value in testData.iter() {
-                let point = value.toPoint(&format!("{}/test", selfId));
+                let point = value.toPoint(0,&format!("{}/test", selfId));
                 match outSend.send(point.clone()) {
                     Ok(_) => {
                         trace!("{}.run | send: {:?}", selfId, point);

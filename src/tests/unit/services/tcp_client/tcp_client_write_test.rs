@@ -94,7 +94,7 @@ mod tests {
         for _ in 0..count {
             let index = rnd.gen_range(0..testDataLen);
             let value = testData.get(index).unwrap();
-            let point = value.toPoint("teset");
+            let point = value.toPoint(0, "teset");
             send.send(point.clone()).unwrap();
             sent.push(point);
         }

@@ -143,7 +143,7 @@ mod tests {
                             info!("TCP server | accept connection - ok\n\t{:?}", addr);
                             for _ in 0..count {
                                 for value in &testData {
-                                    let point = value.toPoint("test");
+                                    let point = value.toPoint(0, "test");
                                     send.send(point.clone()).unwrap();
                                     match jds.read() {
                                         Ok(bytes) => {
