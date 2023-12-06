@@ -42,8 +42,8 @@ mod tests {
         initEach();
         println!("");
         info!("test_task_nodes");
-        let path = "./src/tests/unit/services/task/task_nodes/task.yaml";
-        let mut taskNodes = TaskNodes::new("test_task_nodes");
+        let path = "./src/tests/unit/services/task/task_nodes/task_nodes.yaml";
+        let mut taskNodes = TaskNodes::new("test");
         let conf = TaskConfig::read(path);
         debug!("conf: {:?}", conf);
         let services = Arc::new(Mutex::new(Services::new("test")));
