@@ -72,7 +72,7 @@ impl Service for Task {
         let handle = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
             let mut cycle = ServiceCycle::new(cycleInterval);
             let mut taskNodes = TaskNodes::new(&selfId);
-            taskNodes.buildNodes(conf, services);
+            taskNodes.buildNodes(&selfId, conf, services);
             debug!("{}.run | taskNodes: {:?}", selfId, taskNodes);
             'main: loop {
                 cycle.start();

@@ -6,7 +6,7 @@ use indexmap::IndexMap;
 use log::{debug, trace};
 
 use crate::{
-    core_::{types::fn_in_out_ref::FnInOutRef, point::point_type::PointType}, 
+    core_::{types::fn_in_out_ref::FnInOutRef, point::{point_type::PointType, point_tx_id::PointTxId}}, 
     conf::{task_config::TaskConfig, fn_conf_kind::FnConfKind}, 
     services::{task::nested_function::{metric_builder::MetricBuilder, nested_fn::NestedFn, fn_kind::FnKind}, services::Services},
 };
@@ -168,20 +168,21 @@ impl TaskNodes {
     }
     ///
     /// Creates all task nodes depending on it config
-    pub fn buildNodes(&mut self, conf: TaskConfig, services: Arc<Mutex<Services>>) {
+    pub fn buildNodes(&mut self, parent: &str, conf: TaskConfig, services: Arc<Mutex<Services>>) {
+        let txId = PointTxId::fromStr(parent);
         for (_nodeName, mut nodeConf) in conf.nodes {
             let nodeName = nodeConf.name.clone();
             debug!("TaskNodes.nodes | node: {:?}", &nodeConf.name);
             self.newNodeVars = Some(TaskNodeVars::new());
             let out = match nodeConf.fnKind {
                 FnConfKind::Metric => {
-                    MetricBuilder::new(&mut nodeConf, self, services.clone())
+                    MetricBuilder::new(parent, &mut nodeConf, self, services.clone())
                 },
                 FnConfKind::Fn => {
-                    NestedFn::new(&mut nodeConf, self, services.clone())
+                    NestedFn::new(parent, txId, &mut nodeConf, self, services.clone())
                 },
                 FnConfKind::Var => {
-                    NestedFn::new(&mut nodeConf, self, services.clone())
+                    NestedFn::new(parent, txId, &mut nodeConf, self, services.clone())
                 },
                 FnConfKind::Const => {
                     panic!("TaskNodes.buildNodes | Const is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);

@@ -38,6 +38,7 @@ impl SqlMetric {
     //
     pub fn new(parent: &str, conf: &mut FnConfig, taskNodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> SqlMetric {
         let selfId = format!("{}/{}", parent, conf.name.clone());
+        let txId = PointTxId::fromStr(&selfId);
         let mut inputs = IndexMap::new();
         let inputConfs = conf.inputs.clone();
         let inputConfNames = inputConfs.keys().filter(|v| {
@@ -58,11 +59,10 @@ impl SqlMetric {
             let inputConf = conf.inputConf(&name);
             inputs.insert(
                 name.to_string(), 
-                NestedFn::new(inputConf, taskNodes, services.clone()),
+                NestedFn::new(&selfId, txId, inputConf, taskNodes, services.clone()),
             );
         }
         let id = conf.name.clone();
-        let txId = PointTxId::fromStr(&selfId);
         let initial = conf.param("initial").name.parse().unwrap();
         let table = conf.param("table").name.clone();
         let mut sql = Format::new(&conf.param("sql").name);
