@@ -3,9 +3,9 @@
 use crate::tcp::steam_read::StreamRead;
 #[cfg(test)]
 mod tests {
-    use log::{warn, info, debug, error};
+    use log::{warn, info, debug};
     use rand::Rng;
-    use std::{sync::{Once, Arc, Mutex, atomic::{AtomicUsize, Ordering, AtomicU8}}, time::{Duration, Instant}, thread, net::{TcpListener, TcpStream}, io::Read};
+    use std::{sync::{Once, Arc, Mutex, atomic::{AtomicUsize, Ordering}}, time::{Duration, Instant}, thread, net::{TcpListener, TcpStream}, io::Read};
     use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, net::connection_status::ConnectionStatus, testing::test_session::TestSession}, tcp::tcp_stream_write::TcpStreamWrite, tests::unit::tcp::tcp_stream_write_test::MockStreamRead}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -29,18 +29,16 @@ mod tests {
     fn initEach() -> () {
     
     }
-    static index: AtomicU8 = AtomicU8::new(0);
+    static INDEX: AtomicUsize = AtomicUsize::new(0);
     fn randomBytes(len: usize) -> Vec<u8> {
         let mut rnd = rand::thread_rng();
         let mut bytes = vec![];
-        // for _ in 0..len {
-        //     bytes.push(rnd.gen_range(0..255));
-        // }
-        let ix = index.load(Ordering::SeqCst);
-        for i in ix..ix + 10 {
-            bytes.push(i);
+        let ix = INDEX.load(Ordering::SeqCst);
+        for _ in ix..ix + len {
+            let b = rnd.gen_range(0..255);
+            bytes.push(b);
         }
-        index.fetch_add(10, Ordering::SeqCst);
+        INDEX.fetch_add(10, Ordering::SeqCst);
         bytes
     }
 
@@ -51,7 +49,7 @@ mod tests {
         initEach();
         println!("");
         info!("test_");
-        let count = 10;
+        let count = 1000;
         let maxTestDuration = Duration::from_secs(10);
         let sent = Arc::new(AtomicUsize::new(0));
         let received = Arc::new(Mutex::new(vec![]));
@@ -69,7 +67,7 @@ mod tests {
         );
         let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
 
-        mockTcpServer(addr.clone(), count, messageLen, sent.clone(), received.clone());
+        mockTcpServer(addr.clone(), count, messageLen, received.clone());
         thread::sleep(Duration::from_micros(100));
 
         let timer = Instant::now();
@@ -136,10 +134,9 @@ mod tests {
     }
     ///
     /// TcpServer setup
-    fn mockTcpServer(addr: String, count: usize, messageLen: usize, sent: Arc<AtomicUsize>, received: Arc<Mutex<Vec<Vec<u8>>>>) {
+    fn mockTcpServer(addr: String, count: usize, messageLen: usize, received: Arc<Mutex<Vec<Vec<u8>>>>) {
         thread::spawn(move || {
             info!("TCP server | Preparing test server...");
-            let mut state = 0;
             match TcpListener::bind(&addr) {
                 Ok(listener) => {
                     info!("TCP server | Preparing test server - ok ({})", addr);
@@ -161,15 +158,6 @@ mod tests {
                                                 let v = buffer.drain(0..messageLen).collect();
                                                 debug!("TCP server | received: {:?}", v);
                                                 received.lock().unwrap().push(v);
-                                                // if (state == 0) && sent.load(Ordering::SeqCst) as f64 / count as f64 > 0.333 {
-                                                //     state = 1;
-                                                //     let duration = Duration::from_millis(500);
-                                                //     debug!("TCP server | beaking socket connection for {:?}", duration);
-                                                //     _socket.shutdown(std::net::Shutdown::Both).unwrap();
-                                                //     thread::sleep(duration);
-                                                //     debug!("TCP server | beaking socket connection for {:?} - elapsed, restoring...", duration);
-                                                //     break;
-                                                // }
                                             }
                                         },
                                         Err(err) => {
@@ -178,12 +166,6 @@ mod tests {
                                     }
                                 }
                                 info!("TCP server | all received: {:?}", received.lock().unwrap().len());
-                                // if state > 0 {
-                                //     while received.lock().unwrap().len() < count {
-                                //         info!("TCP server | await while all being received: {:?}", received.lock().unwrap().len());
-                                //         thread::sleep(Duration::from_millis(200));
-                                //     }
-                                // }
                             },
                             Err(err) => {
                                 warn!("TCP server | incoming connection - error: {:?}", err);
