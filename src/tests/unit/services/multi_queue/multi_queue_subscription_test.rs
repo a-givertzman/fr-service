@@ -32,7 +32,7 @@ mod tests {
     }
     
     #[test]
-    fn test_multi_queue_static_single() {
+    fn test_multi_queue_subscribtions() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();

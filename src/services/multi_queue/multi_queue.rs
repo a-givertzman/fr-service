@@ -104,12 +104,15 @@ impl Service for MultiQueue {
         let recv = self.rxRecv.pop().unwrap();
         let subscriptionsRef = self.subscriptions.clone();
         let subscriptionsChanged = self.subscriptionsChanged.clone();
-        let mut staticSubscriptions: HashMap<usize, Sender<PointType>> = HashMap::new();
-        for sendQueue in &self.sendQueues {
+        // let mut staticSubscriptions: HashMap<usize, Sender<PointType>> = HashMap::new();
+        for receiverId in &self.sendQueues {
             debug!("{}.run | Getting services...", selfId);
-            let outSend = self.services.lock().unwrap().getLink(sendQueue);
+            let send = self.services.lock().unwrap().getLink(receiverId);
             debug!("{}.run | Getting services - ok", selfId);
-            staticSubscriptions.insert(PointTxId::fromStr(sendQueue), outSend);
+            let innerReceiverId = PointTxId::fromStr(receiverId);
+            self.subscriptions.lock().unwrap().addBroadcast(innerReceiverId, send.clone());
+
+            // staticSubscriptions.insert(PointTxId::fromStr(sendQueue), outSend);
         }
         let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
@@ -123,7 +126,8 @@ impl Service for MultiQueue {
                     Ok(point) => {
                         let pointId = point.name();
                         trace!("{}.run | received: {:?}", selfId, point);
-                        for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {
+                        for (receiverId, sender) in subscriptions.iter(&pointId) {
+                            // for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {
                             match receiverId != &point.txId() {
                                 true => {
                                     match sender.send(point.clone()) {

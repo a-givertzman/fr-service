@@ -4,11 +4,10 @@ use std::{collections::HashMap, sync::mpsc::Sender};
 
 use log::warn;
 
-use crate::core_::point::{point_type::PointType, point_tx_id::PointTxId};
+use crate::core_::point::point_type::PointType;
 
 type ReceiverId = usize;
-type PointName = String;
-type PointId = usize; 
+type PointId = String; 
 
 ///
 /// Contains map of Sender's
@@ -18,7 +17,6 @@ pub struct Subscriptions {
     multicast: HashMap<PointId, HashMap<ReceiverId, Sender<PointType>>>,
     broadcast: HashMap<ReceiverId, Sender<PointType>>,
     empty: HashMap<ReceiverId, Sender<PointType>>,
-    dictionary: HashMap<PointId, PointName>,
 }
 ///
 /// 
@@ -31,24 +29,18 @@ impl Subscriptions {
             multicast: HashMap::new(),
             broadcast: HashMap::new(),
             empty: HashMap::new(),
-            dictionary: HashMap::new(),
         }
     }
     ///
     /// Adds subscription to Point ID with receiver ID
-    pub fn addMulticast(&mut self, receiverId: usize, pointName: &str, sender: Sender<PointType>) {
-        let pointId = PointTxId::fromStr(pointName);
-        if ! self.multicast.contains_key(&pointId) {
+    pub fn addMulticast(&mut self, receiverId: usize, pointId: &str, sender: Sender<PointType>) {
+        if ! self.multicast.contains_key(pointId) {
             self.multicast.insert(
-                pointId,
+                pointId.to_string(),
                 HashMap::new(),
             );
-            self.dictionary.insert(
-                pointId,
-                pointName.to_string(),
-            );
         };
-        match self.multicast.get_mut(&pointId) {
+        match self.multicast.get_mut(pointId) {
             Some(senders) => {
                 senders.insert(
                     receiverId,
@@ -56,7 +48,7 @@ impl Subscriptions {
                 );
             },
             None => {
-                warn!("{}.addMulticast | Subscription '{}' - not found", self.id, pointName);
+                warn!("{}.addMulticast | Subscription '{}' - not found", self.id, pointId);
             },
         }
     }
@@ -70,9 +62,8 @@ impl Subscriptions {
     }
     ///
     /// Returns map of Senders
-    pub fn iter(&self, pointName: &str) -> impl Iterator<Item = (&usize, &Sender<PointType>)> {
-        let pointId = PointTxId::fromStr(pointName);
-        match self.multicast.get(&pointId) {
+    pub fn iter(&self, pointId: &str) -> impl Iterator<Item = (&usize, &Sender<PointType>)> {
+        match self.multicast.get(pointId) {
             Some(multicast) => {
                 multicast.iter().chain(&self.broadcast)
             },
@@ -83,21 +74,15 @@ impl Subscriptions {
     }
     ///
     /// Removes single subscription by Point Id & receiver ID
-    pub fn remove(&mut self, receiverId: &usize, pointName: &str) -> Result<(), String> {
-        let pointId = PointTxId::fromStr(pointName);
-        match self.multicast.get_mut(&pointId) {
+    pub fn remove(&mut self, receiverId: &usize, pointId: &str) -> Result<(), String> {
+        match self.multicast.get_mut(pointId) {
             Some(senders) => {
                 match senders.remove(receiverId) {
                     Some(_) => Ok(()),
-                    None => Err(format!("{}.run | Subscription '{}', receiver '{}' - not found", self.id, pointName, receiverId)),
+                    None => Err(format!("{}.run | Subscription '{}', receiver '{}' - not found", self.id, pointId, receiverId)),
                 }
             },
-            None => Err(format!("{}.run | Subscription '{}' - not found", self.id, pointName)),
+            None => Err(format!("{}.run | Subscription '{}' - not found", self.id, pointId)),
         }
-    }
-    ///
-    /// Returns Point name by it's ID
-    pub fn pointName(&self, pointId: usize) -> Option<&String> {
-        self.dictionary.get(&pointId)
     }
 }
