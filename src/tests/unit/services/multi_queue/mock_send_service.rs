@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{collections::HashMap, sync::{mpsc::{Sender, self}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}};
+use std::{collections::HashMap, sync::{mpsc::{Sender, self}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}, time::Duration};
 
 use log::{info, warn, debug, trace};
 
@@ -17,12 +17,13 @@ pub struct MockSendService {
     services: Arc<Mutex<Services>>,
     testData: Vec<Value>,
     sent: Arc<Mutex<Vec<PointType>>>,
+    delay: Option<Duration>,
     exit: Arc<AtomicBool>,
 }
 ///
 /// 
 impl MockSendService {
-    pub fn new(parent: impl Into<String>, recvQueue: &str, sendQueue: &str, services: Arc<Mutex<Services>>, testData: Vec<Value>) -> Self {
+    pub fn new(parent: impl Into<String>, recvQueue: &str, sendQueue: &str, services: Arc<Mutex<Services>>, testData: Vec<Value>, delay: Option<Duration>) -> Self {
         let selfId = format!("{}/MockSendService", parent.into());
         let (send, recv) = mpsc::channel::<PointType>();
         Self {
@@ -35,6 +36,7 @@ impl MockSendService {
             services,
             testData,
             sent: Arc::new(Mutex::new(vec![])),
+            delay,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -77,9 +79,9 @@ impl Service for MockSendService {
         let txSend = services.getLink(&self.sendQueue);
         let testData = self.testData.clone();
         let sent = self.sent.clone();
+        let delay = self.delay.clone();
         let _handle = thread::Builder::new().name(format!("{}.run", selfId)).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
-            // let mut testData = testData.lock().unwrap();
             for value in testData {
                 let point = value.toPoint(0,&format!("{}/test", selfId));
                 match txSend.send(point.clone()) {
@@ -93,6 +95,12 @@ impl Service for MockSendService {
                 }
                 if exit.load(Ordering::SeqCst) {
                     break;
+                }
+                match delay {
+                    Some(duration) => {
+                        thread::sleep(duration);
+                    },
+                    None => {},
                 }
             }
         });

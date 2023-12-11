@@ -2,7 +2,7 @@
 #[cfg(test)]
 mod tests {
     use log::{info, debug};
-    use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}};
+    use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}, thread};
     use crate::{
         core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::MaxTestDuration}}, 
         conf::multi_queue_config::MultiQueueConfig, services::{multi_queue::multi_queue::MultiQueue, services::Services, service::Service}, 
@@ -40,7 +40,7 @@ mod tests {
         info!("test_multi_queue - Static subscriptions - Single send");
 
         let selfId = "test";
-        let iterations = 10;
+        let iterations = 1000;
         let testData = RandomTestValues::new(
             selfId, 
             vec![
@@ -68,7 +68,7 @@ mod tests {
         );
         let testData: Vec<Value> = testData.collect();
         let testDataLen = testData.len();
-        let count = 30;
+        let count = 3;
         let totalCount = count * testData.len();
         let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
         maxTestDuration.run().unwrap();
@@ -97,6 +97,7 @@ mod tests {
             "MultiQueue.in-queue",
             services.clone(),
             testData.clone(),
+            Some(Duration::from_millis(1))
         )));
         services.lock().unwrap().insert("MockRecvService", sendService.clone());
         for i in 0..count {
@@ -114,6 +115,19 @@ mod tests {
             recvHandles.push(handle);
         }
         sendService.lock().unwrap().run().unwrap();
+        {
+            thread::sleep(Duration::from_millis(100));
+            for i in 0..3 {
+                let recvService = Arc::new(Mutex::new(MockRecvService::new(
+                    format!("dynamic tread{}", i),
+                    "in-queue",
+                    Some(iterations),
+                )));
+                services.lock().unwrap().insert(&format!("MockRecvService{}", i), recvService.clone());
+                let handle = recvService.lock().unwrap().run().unwrap();
+                recvHandles.push(handle);
+            }
+        }
         for thd in recvHandles {
             let thdId = format!("{:?}-{:?}", thd.thread().id(), thd.thread().name());
             info!("Waiting for service: {:?}...", thdId);

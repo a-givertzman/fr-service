@@ -97,6 +97,7 @@ mod tests {
             "MultiQueue.in-queue",
             services.clone(),
             testData.clone(),
+            None,
         )));
         services.lock().unwrap().insert("MockRecvService", sendService.clone());
         for i in 0..count {

@@ -119,7 +119,7 @@ mod tests {
         }
 
         for i in 0..producerCount {
-            let mut prod = MockSendService::new(selfId, "queue", "MultiQueue.rx-queue", services.clone(), testData.clone());
+            let mut prod = MockSendService::new(selfId, "queue", "MultiQueue.rx-queue", services.clone(), testData.clone(), None);
             prod.run().unwrap();
             producers.insert(format!("MockSendService{}", i), prod);
         }
@@ -215,7 +215,7 @@ mod tests {
         }
 
         for i in 0..producerCount {
-            let mut prod = MockSendService::new(selfId, "queue", "MultiQueue.rx-queue", services.clone(), testData.clone());
+            let mut prod = MockSendService::new(selfId, "queue", "MultiQueue.rx-queue", services.clone(), testData.clone(), None);
             prod.run().unwrap();
             producers.insert(format!("MockSendService{}", i), prod);
         }
