@@ -9,11 +9,9 @@ use crate::{core_::{point::{point_type::PointType, point_tx_id::PointTxId}, test
 
 pub struct MockRecvSendService {
     id: String,
-    inSend: HashMap<String, Sender<PointType>>,
-    inRecv: Vec<Receiver<PointType>>,
-    // outSend: HashMap<String, Sender<PointType>>,
-    // outRecv: Vec<Receiver<PointType>>,
-    sendQueue: String,
+    rxSend: HashMap<String, Sender<PointType>>,
+    rxRecv: Vec<Receiver<PointType>>,
+    txQueue: String,
     services: Arc<Mutex<Services>>,
     testData: Vec<Value>,
     sent: Arc<Mutex<Vec<PointType>>>,
@@ -24,16 +22,14 @@ pub struct MockRecvSendService {
 ///
 /// 
 impl MockRecvSendService {
-    pub fn new(parent: impl Into<String>, recvQueue: &str, sendQueue: &str, services: Arc<Mutex<Services>>, testData: Vec<Value>, recvLimit: Option<usize>) -> Self {
+    pub fn new(parent: impl Into<String>, rxQueue: &str, txQueue: &str, services: Arc<Mutex<Services>>, testData: Vec<Value>, recvLimit: Option<usize>) -> Self {
         let selfId = format!("{}/MockRecvSendService", parent.into());
         let (send, recv) = mpsc::channel::<PointType>();
         Self {
             id: selfId.clone(),
-            inSend: HashMap::from([(recvQueue.to_string(), send)]),
-            inRecv: vec![recv],
-            // outSend: HashMap::new(),
-            // outRecv: vec![],
-            sendQueue: sendQueue.to_string(),
+            rxSend: HashMap::from([(rxQueue.to_string(), send)]),
+            rxRecv: vec![recv],
+            txQueue: txQueue.to_string(),
             services,
             testData,
             sent: Arc::new(Mutex::new(vec![])),
@@ -69,7 +65,7 @@ impl Service for MockRecvSendService {
     //
     //
     fn getLink(&mut self, name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
-        match self.inSend.get(name) {
+        match self.rxSend.get(name) {
             Some(send) => send.clone(),
             None => panic!("{}.run | link '{:?}' - not found", self.id, name),
         }
@@ -80,22 +76,22 @@ impl Service for MockRecvSendService {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
-        let recvQueueParts: Vec<&str> = self.sendQueue.split(".").collect();
+        let recvQueueParts: Vec<&str> = self.txQueue.split(".").collect();
         let outSendServiceName = recvQueueParts[0];
         let outSendQueueName = recvQueueParts[1];
         debug!("{}.run | Getting services...", selfId);
         let services = self.services.lock().unwrap();
         debug!("{}.run | Getting services - ok", selfId);
         let outSendService = services.get(&outSendServiceName);
-        let outSend = outSendService.lock().unwrap().getLink(&outSendQueueName);
+        let txSend = outSendService.lock().unwrap().getLink(&outSendQueueName);
         let testData = self.testData.clone();
         let sent = self.sent.clone();
-        let _handle = thread::Builder::new().name(format!("{} - MultiQueue.run", selfId)).spawn(move || {
-            info!("{}.run | Preparing thread - ok", selfId);
+        let _handle = thread::Builder::new().name(format!("{}.run | Send", selfId)).spawn(move || {
+            info!("{}.run | Preparing thread Send - ok", selfId);
             let txId = PointTxId::fromStr(&selfId);
             for value in testData.iter() {
                 let point = value.toPoint(txId,&format!("{}/test", selfId));
-                match outSend.send(point.clone()) {
+                match txSend.send(point.clone()) {
                     Ok(_) => {
                         trace!("{}.run | send: {:?}", selfId, point);
                         sent.lock().unwrap().push(point);
@@ -104,25 +100,23 @@ impl Service for MockRecvSendService {
                         warn!("{}.run | send error: {:?}", selfId, err);
                     },
                 }
-                loop {
-                    if exit.load(Ordering::SeqCst) {
-                        break;
-                    }
+                if exit.load(Ordering::SeqCst) {
+                    break;
                 }
             }
         });
         let selfId = self.id.clone();
         let exit = self.exit.clone();
-        let inRecv = self.inRecv.pop().unwrap();
+        let rxRecv = self.rxRecv.pop().unwrap();
         let received = self.received.clone();
         let recvLimit = self.recvLimit.clone();
-        let handle = thread::Builder::new().name(format!("{} - MultiQueue.run", selfId)).spawn(move || {
-            info!("{}.run | Preparing thread - ok", selfId);
+        let handle = thread::Builder::new().name(format!("{}.run | Recv", selfId)).spawn(move || {
+            info!("{}.run | Preparing thread Recv - ok", selfId);
             match recvLimit {
                 Some(recvLimit) => {
                     let mut receivedCount = 0;
                     loop {
-                        match inRecv.recv_timeout(Duration::from_millis(100)) {
+                        match rxRecv.recv_timeout(Duration::from_millis(1000)) {
                             Ok(point) => {
                                 trace!("{}.run | received: {:?}", selfId, point);
                                 received.lock().unwrap().push(point);
@@ -140,7 +134,7 @@ impl Service for MockRecvSendService {
                 },
                 None => {
                     loop {
-                        match inRecv.recv_timeout(Duration::from_millis(100)) {
+                        match rxRecv.recv_timeout(Duration::from_millis(100)) {
                             Ok(point) => {
                                 trace!("{}.run | received: {:?}", selfId, point);
                                 received.lock().unwrap().push(point);

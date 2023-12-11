@@ -91,8 +91,6 @@ impl Service for MockSendService {
                         warn!("{}.run | send error: {:?}", selfId, err);
                     },
                 }
-            }
-            loop {
                 if exit.load(Ordering::SeqCst) {
                     break;
                 }

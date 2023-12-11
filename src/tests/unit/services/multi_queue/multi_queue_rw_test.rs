@@ -56,7 +56,7 @@ mod tests {
         let testData: Vec<Value> = testData.collect();
         let testDataLen = testData.len();
         let count = 3;
-        let totalCount = count * testData.len();
+        let totalCount = count * testDataLen;
         let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
         maxTestDuration.run().unwrap();
         let mut conf = r#"
@@ -85,6 +85,7 @@ mod tests {
                 "MultiQueue.in-queue",
                 services.clone(),
                 testData.clone(),
+                Some(totalCount),
             )));
             services.lock().unwrap().insert(&format!("MockRecvSendService{}", i), rsService.clone());
             rsServices.push(rsService);
@@ -107,7 +108,7 @@ mod tests {
             println!("sent events: {:?}\n", service.lock().unwrap().sent().lock().unwrap().len());
         }
         let mut received = vec![];
-        let target = testDataLen;
+        let target = totalCount;
         for recvService in &rsServices {
             let len = recvService.lock().unwrap().received().lock().unwrap().len();
             assert!(len == target, "\nresult: {:?}\ntarget: {:?}", len, target);
