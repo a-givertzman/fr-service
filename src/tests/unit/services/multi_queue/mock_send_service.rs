@@ -4,30 +4,30 @@ use std::{collections::HashMap, sync::{mpsc::{Sender, self}, Arc, Mutex, atomic:
 
 use log::{info, warn, debug, trace};
 
-use crate::{core_::{point::point_type::PointType, testing::test_stuff::test_value::Value}, services::{services::Services, service::Service}};
+use crate::{core_::{point::point_type::PointType, testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues}}, services::{services::Services, service::Service}};
 
 
 pub struct MockSendService {
     id: String,
-    inSend: HashMap<String, Sender<PointType>>,
+    rxSend: HashMap<String, Sender<PointType>>,
     // inRecv: Vec<Receiver<PointType>>,
     // outSend: HashMap<String, Sender<PointType>>,
     // outRecv: Vec<Receiver<PointType>>,
     sendQueue: String,
     services: Arc<Mutex<Services>>,
-    testData: Arc<Mutex<Vec<Value>>>,
+    testData: Vec<Value>,
     sent: Arc<Mutex<Vec<PointType>>>,
     exit: Arc<AtomicBool>,
 }
 ///
 /// 
 impl MockSendService {
-    pub fn new(parent: impl Into<String>, recvQueue: &str, sendQueue: &str, services: Arc<Mutex<Services>>, testData: Arc<Mutex<Vec<Value>>>) -> Self {
+    pub fn new(parent: impl Into<String>, recvQueue: &str, sendQueue: &str, services: Arc<Mutex<Services>>, testData: Vec<Value>) -> Self {
         let selfId = format!("{}/MockSendService", parent.into());
         let (send, recv) = mpsc::channel::<PointType>();
         Self {
             id: selfId.clone(),
-            inSend: HashMap::from([(recvQueue.to_string(), send)]),
+            rxSend: HashMap::from([(recvQueue.to_string(), send)]),
             // inRecv: vec![recv],
             // outSend: HashMap::new(),
             // outRecv: vec![],
@@ -60,7 +60,7 @@ impl Service for MockSendService {
     //
     //
     fn getLink(&mut self, name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
-        match self.inSend.get(name) {
+        match self.rxSend.get(name) {
             Some(send) => send.clone(),
             None => panic!("{}.run | link '{:?}' - not found", self.id, name),
         }
@@ -71,22 +71,18 @@ impl Service for MockSendService {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
-        let recvQueueParts: Vec<&str> = self.sendQueue.split(".").collect();
-        let outSendServiceName = recvQueueParts[0];
-        let outSendQueueName = recvQueueParts[1];
         debug!("{}.run | Getting services...", selfId);
         let services = self.services.lock().unwrap();
         debug!("{}.run | Getting services - ok", selfId);
-        let outSendService = services.get(&outSendServiceName);
-        let outSend = outSendService.lock().unwrap().getLink(&outSendQueueName);
+        let txSend = services.getLink(&self.sendQueue);
         let testData = self.testData.clone();
         let sent = self.sent.clone();
-        let _handle = thread::Builder::new().name(format!("{} - MultiQueue.run", selfId)).spawn(move || {
+        let _handle = thread::Builder::new().name(format!("{}.run", selfId)).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
-            let testData = testData.lock().unwrap();
-            for value in testData.iter() {
+            // let mut testData = testData.lock().unwrap();
+            for value in testData {
                 let point = value.toPoint(0,&format!("{}/test", selfId));
-                match outSend.send(point.clone()) {
+                match txSend.send(point.clone()) {
                     Ok(_) => {
                         trace!("{}.run | send: {:?}", selfId, point);
                         sent.lock().unwrap().push(point);

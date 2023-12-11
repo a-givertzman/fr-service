@@ -40,7 +40,7 @@ mod tests {
         ts.to_rfc3339()
     }
 
-    #[ignore = "run this test by hand to compare performance of different methods socket reading"]
+    #[ignore = "Performance test | run this test to compare performance of different methods socket reading"]
     #[test]
     fn test_read_bytes_performance() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);

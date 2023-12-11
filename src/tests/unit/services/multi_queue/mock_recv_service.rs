@@ -9,30 +9,26 @@ use crate::{core_::point::point_type::PointType, services::{services::Services, 
 
 pub struct MockRecvService {
     id: String,
-    inSend: HashMap<String, Sender<PointType>>,
-    inRecv: Vec<Receiver<PointType>>,
-    // outSend: HashMap<String, Sender<PointType>>,
-    // outRecv: Vec<Receiver<PointType>>,
-    // sendQueue: String,
+    rxSend: HashMap<String, Sender<PointType>>,
+    rxRecv: Vec<Receiver<PointType>>,
     services: Arc<Mutex<Services>>,
     received: Arc<Mutex<Vec<PointType>>>,
+    recvlimit: Option<usize>,
     exit: Arc<AtomicBool>,
 }
 ///
 /// 
 impl MockRecvService {
-    pub fn new(parent: impl Into<String>, recvQueue: &str, sendQueue: &str, services: Arc<Mutex<Services>>) -> Self {
+    pub fn new(parent: impl Into<String>, rxQueue: &str, services: Arc<Mutex<Services>>, recvLimit: Option<usize>) -> Self {
         let selfId = format!("{}/MockRecvService", parent.into());
         let (send, recv) = mpsc::channel::<PointType>();
         Self {
             id: selfId.clone(),
-            inSend: HashMap::from([(recvQueue.to_string(), send)]),
-            inRecv: vec![recv],
-            // outSend: HashMap::new(),
-            // outRecv: vec![],
-            // sendQueue: sendQueue.to_string(),
+            rxSend: HashMap::from([(rxQueue.to_string(), send)]),
+            rxRecv: vec![recv],
             services,
             received: Arc::new(Mutex::new(vec![])),
+            recvlimit: recvLimit,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -58,7 +54,7 @@ impl Service for MockRecvService {
     //
     //
     fn getLink(&mut self, name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
-        match self.inSend.get(name) {
+        match self.rxSend.get(name) {
             Some(send) => send.clone(),
             None => panic!("{}.run | link '{:?}' - not found", self.id, name),
         }
@@ -69,21 +65,45 @@ impl Service for MockRecvService {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
-        let inRecv = self.inRecv.pop().unwrap();
+        let inRecv = self.rxRecv.pop().unwrap();
         let received = self.received.clone();
-        let _handle = thread::Builder::new().name(format!("{} - MultiQueue.run", selfId)).spawn(move || {
+        let recvLimit = self.recvlimit.clone();
+        let _handle = thread::Builder::new().name(format!("{}.run", selfId)).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
-            loop {
-                match inRecv.recv_timeout(Duration::from_millis(100)) {
-                    Ok(point) => {
-                        trace!("{}.run | received: {:?}", selfId, point);
-                        received.lock().unwrap().push(point);
-                    },
-                    Err(_) => {},
-                };
-                if exit.load(Ordering::SeqCst) {
-                    break;
-                }
+            match recvLimit {
+                Some(recvLimit) => {
+                    let mut receivedCount = 0;
+                    loop {
+                        match inRecv.recv_timeout(Duration::from_millis(100)) {
+                            Ok(point) => {
+                                trace!("{}.run | received: {:?}", selfId, point);
+                                received.lock().unwrap().push(point);
+                                receivedCount += 1;
+                            },
+                            Err(_) => {},
+                        };
+                        if receivedCount >= recvLimit {
+                            break;
+                        }
+                        if exit.load(Ordering::SeqCst) {
+                            break;
+                        }
+                    }
+                },
+                None => {
+                    loop {
+                        match inRecv.recv_timeout(Duration::from_millis(100)) {
+                            Ok(point) => {
+                                trace!("{}.run | received: {:?}", selfId, point);
+                                received.lock().unwrap().push(point);
+                            },
+                            Err(_) => {},
+                        };
+                        if exit.load(Ordering::SeqCst) {
+                            break;
+                        }
+                    }
+                },
             }
         });
         _handle
