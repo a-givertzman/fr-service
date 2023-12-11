@@ -116,6 +116,7 @@ impl Service for MultiQueue {
             let mut subscriptions = subscriptionsRef.lock().unwrap();
             loop {
                 if subscriptionsChanged.load(Ordering::Relaxed) == true {
+                    subscriptionsChanged.store(false, Ordering::SeqCst);
                     subscriptions = subscriptionsRef.lock().unwrap();
                 }
                 match recv.recv() {
