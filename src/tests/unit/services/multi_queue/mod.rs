@@ -15,3 +15,5 @@ pub mod mock_multi_queue;
 pub mod mock_multi_queue_match;
 
 pub mod multi_queue_subscription_test;
+
+pub mod mock_tcp_server;

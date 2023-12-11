@@ -6,7 +6,7 @@ mod tests {
     use crate::{
         core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::MaxTestDuration}}, 
         conf::multi_queue_config::MultiQueueConfig, services::{multi_queue::multi_queue::MultiQueue, services::Services, service::Service}, 
-        tests::unit::services::multi_queue::{mock_recv_service::MockRecvService, mock_send_service::MockSendService},
+        tests::unit::services::multi_queue::{mock_recv_service::MockRecvService, mock_send_service::MockSendService, mock_tcp_server::MockTcpServer},
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -100,12 +100,12 @@ mod tests {
             Some(Duration::from_millis(1))
         )));
         services.lock().unwrap().insert("MockRecvService", sendService.clone());
+        let recvService = Arc::new(Mutex::new(MockTcpServer::new(
+            format!("tread{}", i),
+            "in-queue",
+            Some(iterations),
+        )));
         for i in 0..count {
-            let recvService = Arc::new(Mutex::new(MockRecvService::new(
-                format!("tread{}", i),
-                "in-queue",
-                Some(iterations),
-            )));
             services.lock().unwrap().insert(&format!("MockRecvService{}", i), recvService.clone());
             recvServices.push(recvService);
         }
