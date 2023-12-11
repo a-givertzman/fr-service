@@ -15,7 +15,7 @@ pub struct MockRecvSendService {
     // outRecv: Vec<Receiver<PointType>>,
     sendQueue: String,
     services: Arc<Mutex<Services>>,
-    testData: Arc<Mutex<Vec<Value>>>,
+    testData: Vec<Value>,
     sent: Arc<Mutex<Vec<PointType>>>,
     received: Arc<Mutex<Vec<PointType>>>,
     exit: Arc<AtomicBool>,
@@ -23,7 +23,7 @@ pub struct MockRecvSendService {
 ///
 /// 
 impl MockRecvSendService {
-    pub fn new(parent: impl Into<String>, recvQueue: &str, sendQueue: &str, services: Arc<Mutex<Services>>, testData: Arc<Mutex<Vec<Value>>>) -> Self {
+    pub fn new(parent: impl Into<String>, recvQueue: &str, sendQueue: &str, services: Arc<Mutex<Services>>, testData: Vec<Value>) -> Self {
         let selfId = format!("{}/MockRecvSendService", parent.into());
         let (send, recv) = mpsc::channel::<PointType>();
         Self {
@@ -91,7 +91,6 @@ impl Service for MockRecvSendService {
         let _handle = thread::Builder::new().name(format!("{} - MultiQueue.run", selfId)).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
             let txId = PointTxId::fromStr(&selfId);
-            let testData = testData.lock().unwrap();
             for value in testData.iter() {
                 let point = value.toPoint(txId,&format!("{}/test", selfId));
                 match outSend.send(point.clone()) {
@@ -103,10 +102,10 @@ impl Service for MockRecvSendService {
                         warn!("{}.run | send error: {:?}", selfId, err);
                     },
                 }
-            }
-            loop {
-                if exit.load(Ordering::SeqCst) {
-                    break;
+                loop {
+                    if exit.load(Ordering::SeqCst) {
+                        break;
+                    }
                 }
             }
         });

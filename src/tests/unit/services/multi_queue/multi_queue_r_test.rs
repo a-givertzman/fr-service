@@ -2,7 +2,7 @@
 #[cfg(test)]
 mod tests {
     use log::{info, debug};
-    use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}, thread};
+    use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}};
     use crate::{
         core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::MaxTestDuration}}, 
         conf::multi_queue_config::MultiQueueConfig, services::{multi_queue::multi_queue::MultiQueue, services::Services, service::Service}, 
@@ -59,7 +59,6 @@ mod tests {
         let totalCount = count * testData.len();
         let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
         maxTestDuration.run().unwrap();
-        // let path = "./src/tests/unit/services/multi_queue/multi_queue.yaml";
         let mut conf = r#"
             service MultiQueue:
                 in queue in-queue:
@@ -71,7 +70,6 @@ mod tests {
         }
         let conf = serde_yaml::from_str(&conf).unwrap();
         let mqConf = MultiQueueConfig::fromYamlValue(&conf);
-        // let mqConf = MultiQueueConfig::read(path);
         debug!("mqConf: {:?}", mqConf);
         let services = Arc::new(Mutex::new(Services::new("test")));
         let mqService = Arc::new(Mutex::new(MultiQueue::new("test", mqConf, services.clone())));
@@ -92,8 +90,7 @@ mod tests {
             let recvService = Arc::new(Mutex::new(MockRecvService::new(
                 format!("tread{}", i),
                 "in-queue",
-                services.clone(),
-                Some(totalCount),
+                Some(iterations),
             )));
             services.lock().unwrap().insert(&format!("MockRecvService{}", i), recvService.clone());
             recvServices.push(recvService);
@@ -104,32 +101,12 @@ mod tests {
             recvHandles.push(handle);
         }
         sendService.lock().unwrap().run().unwrap();
-        // let waitDuration = Duration::from_micros(10);
-        // let mut waitAttempts = maxTestDuration.as_micros() / waitDuration.as_micros();
-        // let mut received = usize::MAX;
-        // let mut allReceivedPrev = vec![];
         for thd in recvHandles {
             let thdId = format!("{:?}-{:?}", thd.thread().id(), thd.thread().name());
             info!("Waiting for service: {:?}...", thdId);
             thd.join().unwrap();
             info!("Waiting for thread: {:?} - finished", thdId);
         }
-
-        // while received != totalCount {
-        //     let mut allReceived = vec![];
-        //     for service in &recvServices {
-        //         let r = service.lock().unwrap().received().lock().unwrap().len();
-        //         allReceived.push(r);
-        //         if allReceived != allReceivedPrev {
-        //             debug!("waiting while all data beeng received {:?}/{}...", allReceived, totalCount);
-        //             allReceivedPrev = allReceived.clone();
-        //         }
-        //     }
-        //     received = allReceived.iter().sum::<usize>().clone();
-        //     thread::sleep(waitDuration);
-        //     waitAttempts -= 1;
-        //     assert!(waitAttempts > 0, "Transfering {}/{} points taks too mach time {:?} of {:?}", received, totalCount, timer.elapsed(), maxTestDuration);
-        // }
         println!("\nelapsed: {:?}", timer.elapsed());
         println!("total test events: {:?}", totalCount);
         println!("sent events: {:?}\n", count * sendService.lock().unwrap().sent().lock().unwrap().len());

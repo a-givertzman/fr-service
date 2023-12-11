@@ -1,10 +1,13 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
 mod tests {
-    use log::{warn, info, debug};
-    use rand::{rngs::ThreadRng, Rng};
-    use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}, collections::HashMap, thread::{self, JoinHandle}};
-    use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::MaxTestDuration}, point::point_type::PointType}, tests::unit::services::multi_queue::{mock_send_service::MockSendService, mock_multi_queue::MockMultiQueue, mock_recv_service::MockRecvService, mock_multi_queue_match::MockMultiQueueMatch}, services::{services::Services, service::Service}}; 
+    use log::info;
+    use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}, collections::HashMap};
+    use crate::{
+        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::MaxTestDuration}}, 
+        tests::unit::services::multi_queue::{mock_send_service::MockSendService, mock_multi_queue::MockMultiQueue, mock_recv_service::MockRecvService, mock_multi_queue_match::MockMultiQueueMatch}, 
+        services::{services::Services, service::Service},
+    }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -56,7 +59,6 @@ mod tests {
             let receiver = Arc::new(Mutex::new(MockRecvService::new(
                 selfId, 
                 "rx-queue", 
-                services.clone(),
                 Some(totalCount)
             )));
             let receiverId = format!("Receiver{}", i + 1);
@@ -127,7 +129,7 @@ mod tests {
     }
     ///
     /// 
-    // #[ignore = "Performance test | run this test to compare performance of multiqueue with matching producer's id vs without matching"]
+    #[ignore = "Performance test | run this test to compare performance of multiqueue with matching producer's id vs without matching"]
     #[test]
     fn test_multi_queue_match_performance() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -153,7 +155,6 @@ mod tests {
             let receiver = Arc::new(Mutex::new(MockRecvService::new(
                 selfId, 
                 "rx-queue", 
-                services.clone(),
                 Some(totalCount)
             )));
             let receiverId = format!("Receiver{}", i + 1);

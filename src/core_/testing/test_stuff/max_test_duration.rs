@@ -2,6 +2,8 @@
 
 use std::{time::{Duration, Instant}, thread::{JoinHandle, self}, sync::{Arc, atomic::{AtomicBool, Ordering}}};
 
+use log::error;
+
 ///
 /// If maximum test turation will be exceeded, then panics
 pub struct MaxTestDuration {
@@ -38,7 +40,8 @@ impl MaxTestDuration {
                     break;
                 }
                 if timer.elapsed() > duration {
-                    panic!("{}.run | Maximum test duration ({:?}) exceeded", selfId, duration);
+                    error!("{}.run | Maximum test duration ({:?}) exceeded", selfId, duration);
+                    std::process::exit(70);   // SOFTWARE: ExitCode = 70
                 }
 
             }
