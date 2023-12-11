@@ -8,7 +8,7 @@ mod tests {
     use crate::{
         core_::{
             debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-            testing::{test_session::TestSession, test_stuff::test_value::Value},
+            testing::{test_session::TestSession, test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::MaxTestDuration}},
             point::point_type::PointType, 
             net::protocols::jds::{jds_serialize::JdsSerialize, jds_encode_message::JdsEncodeMessage}, 
         },
@@ -48,30 +48,52 @@ mod tests {
         initEach();
         println!("");
         info!("test_TcpClient READ");
+        let selfId = "test";
         let path = "./src/tests/unit/services/tcp_client/tcp_client.yaml";
+        let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
+        maxTestDuration.run().unwrap();
         let mut conf = TcpClientConfig::read(path);
         let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
         conf.address = addr.parse().unwrap();
-        let services = Arc::new(Mutex::new(Services::new("test")));
-        let multiQueue = Arc::new(Mutex::new(MockMultiqueue::new()));
-        let tcpClient = Arc::new(Mutex::new(TcpClient::new("test TcpClient", conf, services.clone())));
+
+        let iterations = 100;
+        let testData = RandomTestValues::new(
+            selfId, 
+            vec![
+                Value::Int(i64::MIN),
+                Value::Int(i64::MAX),
+                Value::Int(-7),
+                Value::Int(0),
+                Value::Int(12),
+                Value::Float(f64::MAX),
+                Value::Float(f64::MIN),
+                Value::Float(f64::MIN_POSITIVE),
+                Value::Float(-f64::MIN_POSITIVE),
+                Value::Float(0.0),
+                Value::Float(1.33),
+                Value::Bool(true),
+                Value::Bool(false),
+                Value::Bool(false),
+                Value::Bool(true),
+                Value::String("test1".to_string()),
+                Value::String("test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1".to_string()),
+                Value::String("test2".to_string()),
+                Value::String("test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2".to_string()),
+            ], 
+            iterations, 
+        );
+        let testData: Vec<Value> = testData.collect();
+        let totalCount = testData.len();
+
+        let services = Arc::new(Mutex::new(Services::new(selfId)));
+        let multiQueue = Arc::new(Mutex::new(MockMultiqueue::new(Some(totalCount))));
+        let tcpClient = Arc::new(Mutex::new(TcpClient::new(selfId, conf, services.clone())));
         let multiQueueServiceId = "MultiQueue";
         let tcpClientServiceId = "TcpClient";
         services.lock().unwrap().insert(tcpClientServiceId, tcpClient.clone());
         services.lock().unwrap().insert(multiQueueServiceId, multiQueue.clone());
+        let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
 
-        let maxTestDuration = Duration::from_secs(10);
-        let iterations = 10;
-        let testData = vec![
-            Value::Int(7),
-            Value::Float(1.3),
-            Value::Bool(true),
-            Value::Bool(false),
-            Value::String("test1".to_string()),
-            Value::String("test2".to_string()),
-        ];
-        let testDataLen = testData.len();
-        let totalCount = testDataLen * iterations;
         let sent = Arc::new(Mutex::new(vec![]));
         debug!("Getting services...");
         let services = services.lock().unwrap();
@@ -81,7 +103,7 @@ mod tests {
         debug!("Getting service {} - ok", tcpClientServiceId);
         drop(services);
         debug!("Running service {}...", multiQueueServiceId);
-        multiQueue.lock().unwrap().run().unwrap();
+        let handle = multiQueue.lock().unwrap().run().unwrap();
         debug!("Running service {} - ok", multiQueueServiceId);
         debug!("Running service {}...", tcpClientServiceId);
         tcpClient.lock().unwrap().run().unwrap();
@@ -91,14 +113,15 @@ mod tests {
         
         let timer = Instant::now();
         debug!("Test - setup - ok");
-        let waitDuration = Duration::from_millis(100);
-        let mut waitAttempts = maxTestDuration.as_micros() / waitDuration.as_micros();
-        while multiQueue.lock().unwrap().received().lock().unwrap().len() < totalCount {
-            debug!("waiting while all data beeng received {}/{}...", multiQueue.lock().unwrap().received().lock().unwrap().len(), totalCount);
-            thread::sleep(waitDuration);
-            waitAttempts -= 1;
-            assert!(waitAttempts > 0, "Transfering {}/{} points taks too mach time {:?} of {:?}", multiQueue.lock().unwrap().received().lock().unwrap().len(), totalCount, timer.elapsed(), maxTestDuration);
-        }
+        handle.join().unwrap();
+        // let waitDuration = Duration::from_millis(100);
+        // let mut waitAttempts = maxTestDuration.as_micros() / waitDuration.as_micros();
+        // while multiQueue.lock().unwrap().received().lock().unwrap().len() < totalCount {
+        //     debug!("waiting while all data beeng received {}/{}...", multiQueue.lock().unwrap().received().lock().unwrap().len(), totalCount);
+        //     thread::sleep(waitDuration);
+        //     waitAttempts -= 1;
+        //     assert!(waitAttempts > 0, "Transfering {}/{} points taks too mach time {:?} of {:?}", multiQueue.lock().unwrap().received().lock().unwrap().len(), totalCount, timer.elapsed(), maxTestDuration);
+        // }
         let mut sent = sent.lock().unwrap();
         println!("elapsed: {:?}", timer.elapsed());
         println!("total test events: {:?}", totalCount);
@@ -118,13 +141,13 @@ mod tests {
             assert!(result.timestamp() == target.timestamp(), "\nresult: {:?}\ntarget: {:?}", result, target);
             assert!(result.cmpValue(&target), "\nresult: {:?}\ntarget: {:?}", result, target);
         }
+        maxTestDuration.exit();
     }
     ///
     /// TcpServer setup
     fn mockTcpServer(addr: String, count: usize, testData: Vec<Value>, sent: Arc<Mutex<Vec<PointType>>>, multiqueue: Arc<Mutex<MockMultiqueue>>) {
         thread::spawn(move || {
             info!("TCP server | Preparing test server...");
-            // let mut rng = rand::thread_rng();
             let (send, recv) = std::sync::mpsc::channel();
             let mut jds = JdsEncodeMessage::new(
                 "test", 
@@ -136,31 +159,27 @@ mod tests {
             match TcpListener::bind(addr) {
                 Ok(listener) => {
                     info!("TCP server | Preparing test server - ok");
-                    // let mut acceptCount = 2;
-                    // let mut maxReadErrors = 3;
                     match listener.accept() {
                         Ok((mut socket, addr)) => {
                             info!("TCP server | accept connection - ok\n\t{:?}", addr);
-                            for _ in 0..count {
-                                for value in &testData {
-                                    let point = value.toPoint(0, "test");
-                                    send.send(point.clone()).unwrap();
-                                    match jds.read() {
-                                        Ok(bytes) => {
-                                            trace!("TCP server | send bytes: {:?}", bytes);
-                                            match socket.write(&bytes) {
-                                                Ok(_) => {
-                                                    sent.lock().unwrap().push(point);
-                                                },
-                                                Err(err) => {
-                                                    warn!("TCP server | socket.wrtite error: {:?}", err);
-                                                },
-                                            }
-                                        },
-                                        Err(err) => {
-                                            error!("TCP server | error: {:?}", err);
-                                        },
-                                    }
+                            for value in &testData {
+                                let point = value.toPoint(0, "test");
+                                send.send(point.clone()).unwrap();
+                                match jds.read() {
+                                    Ok(bytes) => {
+                                        trace!("TCP server | send bytes: {:?}", bytes);
+                                        match socket.write(&bytes) {
+                                            Ok(_) => {
+                                                sent.lock().unwrap().push(point);
+                                            },
+                                            Err(err) => {
+                                                warn!("TCP server | socket.wrtite error: {:?}", err);
+                                            },
+                                        }
+                                    },
+                                    Err(err) => {
+                                        error!("TCP server | error: {:?}", err);
+                                    },
                                 }
                             }
                             info!("TCP server | all sent: {:?}", sent.lock().unwrap().len());
@@ -168,20 +187,13 @@ mod tests {
                             while received.lock().unwrap().len() < count {
                                 thread::sleep(Duration::from_millis(100));
                             }
-                            // while received.len() < count {}
                         },
                         Err(err) => {
                             warn!("incoming connection - error: {:?}", err);
                         },
                     }
-                    // while acceptCount > 0 {
-                    //     // acceptCount -= 1;
-                    //     acceptCount = -1;
-                    // }
                 },
                 Err(err) => {
-                    // connectExit.send(true).unwrap();
-                    // okRef.store(false, Ordering::SeqCst);
                     panic!("Preparing test TCP server - error: {:?}", err);
                 },
             };

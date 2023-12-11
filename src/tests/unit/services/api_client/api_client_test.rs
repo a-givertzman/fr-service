@@ -2,10 +2,9 @@
 #[cfg(test)]
 mod tests {
     use log::{info, debug, error};
-    use rand::Rng;
     use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::{Read, Write}};
     use crate::{
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::ToPoint, testing::{test_session::TestSession, test_stuff::test_value::Value}},
+        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::ToPoint, testing::{test_session::TestSession, test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::MaxTestDuration}}},
         conf::api_client_config::ApiClientConfig,  
         services::{api_cient::{api_client::ApiClient, api_reply::SqlReply, api_error::ApiError}, service::Service},
     }; 
@@ -40,8 +39,10 @@ mod tests {
         initEach();
         println!("");
         info!("test_ApiClient");
-        let mut rnd = rand::thread_rng();
+        let selfId = "test";
         let path = "./src/tests/unit/services/api_client/api_client.yaml";
+        let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
+        maxTestDuration.run().unwrap();
         let mut conf = ApiClientConfig::read(path);
         // let addr = conf.address.clone();
         let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
@@ -49,25 +50,42 @@ mod tests {
 
         let mut apiClient = ApiClient::new("test ApiClient", conf);
 
-        let maxTestDuration = Duration::from_secs(10);
+        // let maxTestDuration = Duration::from_secs(10);
         let count = 300;
         let mut state = 0;
-        let testData = vec![
-            Value::Int(7),
-            Value::Float(1.3),
-            Value::Bool(true),
-            Value::Bool(false),
-            Value::String("test1".to_string()),
-            Value::String("test2".to_string()),
-        ];
-        let testDataLen = testData.len();
+        let testData = RandomTestValues::new(
+            selfId, 
+            vec![
+                Value::Int(i64::MIN),
+                Value::Int(i64::MAX),
+                Value::Int(-7),
+                Value::Int(0),
+                Value::Int(12),
+                Value::Float(f64::MAX),
+                Value::Float(f64::MIN),
+                Value::Float(f64::MIN_POSITIVE),
+                Value::Float(-f64::MIN_POSITIVE),
+                Value::Float(0.0),
+                Value::Float(1.33),
+                Value::Bool(true),
+                Value::Bool(false),
+                Value::Bool(false),
+                Value::Bool(true),
+                Value::String("test1".to_string()),
+                Value::String("test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1".to_string()),
+                Value::String("test2".to_string()),
+                Value::String("test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2".to_string()),
+            ], 
+            count, 
+        );
+        let testData: Vec<Value> = testData.collect();
 
         let mut sent = vec![];
         let received = Arc::new(Mutex::new(vec![]));
         let receivedRef = received.clone();
         let mut buf = [0; 1024 * 4];
 
-        thread::spawn(move || {
+        let receiverHandle = thread::spawn(move || {
             let mut received = receivedRef.lock().unwrap();
             info!("TCP server | Preparing test server...");
             match TcpListener::bind(addr) {
@@ -156,24 +174,15 @@ mod tests {
 
 
 
-        apiClient.run();
+        apiClient.run().unwrap();
         let timer = Instant::now();
         let send = apiClient.getLink("api-link");
-        for _ in 0..count {
-            let index = rnd.gen_range(0..testDataLen);
-            let value = testData.get(index).unwrap();
+        for value in testData {
             let point = format!("select from table where id = {}", value.toString()).toPoint(0, "teset");
             send.send(point.clone()).unwrap();
             sent.push(point.asString().value);
         }
-        let waitDuration = Duration::from_millis(10);
-        let mut waitAttempts = maxTestDuration.as_micros() / waitDuration.as_micros();
-        while received.lock().unwrap().len() < count {
-            debug!("waiting while all data beeng received {}/{}...", received.lock().unwrap().len(), count);
-            thread::sleep(waitDuration);
-            waitAttempts -= 1;
-            assert!(waitAttempts > 0, "Transfering {}/{} points taks too mach time {:?} of {:?}", received.lock().unwrap().len(), count, timer.elapsed(), maxTestDuration);
-        }
+        receiverHandle.join().unwrap();
         println!("elapsed: {:?}", timer.elapsed());
         println!("total test events: {:?}", count);
         println!("sent events: {:?}", sent.len());
@@ -188,5 +197,6 @@ mod tests {
             debug!("\nresult({}): {:?}\ntarget({}): {:?}", received.len(), result, sent.len(), target);
             assert!(result == &target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
+        maxTestDuration.exit();
     }
 }
