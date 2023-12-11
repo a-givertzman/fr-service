@@ -12,7 +12,7 @@ pub struct MockRecvService {
     rxSend: HashMap<String, Sender<PointType>>,
     rxRecv: Vec<Receiver<PointType>>,
     received: Arc<Mutex<Vec<PointType>>>,
-    recvlimit: Option<usize>,
+    recvLimit: Option<usize>,
     exit: Arc<AtomicBool>,
 }
 ///
@@ -26,7 +26,7 @@ impl MockRecvService {
             rxSend: HashMap::from([(rxQueue.to_string(), send)]),
             rxRecv: vec![recv],
             received: Arc::new(Mutex::new(vec![])),
-            recvlimit: recvLimit,
+            recvLimit,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -65,8 +65,8 @@ impl Service for MockRecvService {
         let exit = self.exit.clone();
         let inRecv = self.rxRecv.pop().unwrap();
         let received = self.received.clone();
-        let recvLimit = self.recvlimit.clone();
-        let _handle = thread::Builder::new().name(format!("{}.run", selfId)).spawn(move || {
+        let recvLimit = self.recvLimit.clone();
+        let handle = thread::Builder::new().name(format!("{}.run", selfId)).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
             match recvLimit {
                 Some(recvLimit) => {
@@ -104,7 +104,7 @@ impl Service for MockRecvService {
                 },
             }
         });
-        _handle
+        handle
     }
     //
     //

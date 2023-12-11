@@ -76,8 +76,8 @@ mod tests {
         let mqService = Arc::new(Mutex::new(MultiQueue::new("test", mqConf, services.clone())));
         services.lock().unwrap().insert("MultiQueue", mqService.clone());
 
-        let mut rsServices = vec![];
         let timer = Instant::now();
+        let mut rsServices = vec![];
         for i in 0..count {
             let rsService = Arc::new(Mutex::new(MockRecvSendService::new(
                 format!("tread{}", i),

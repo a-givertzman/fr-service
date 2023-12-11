@@ -18,12 +18,13 @@ pub struct MockRecvSendService {
     testData: Vec<Value>,
     sent: Arc<Mutex<Vec<PointType>>>,
     received: Arc<Mutex<Vec<PointType>>>,
+    recvLimit: Option<usize>,
     exit: Arc<AtomicBool>,
 }
 ///
 /// 
 impl MockRecvSendService {
-    pub fn new(parent: impl Into<String>, recvQueue: &str, sendQueue: &str, services: Arc<Mutex<Services>>, testData: Vec<Value>) -> Self {
+    pub fn new(parent: impl Into<String>, recvQueue: &str, sendQueue: &str, services: Arc<Mutex<Services>>, testData: Vec<Value>, recvLimit: Option<usize>) -> Self {
         let selfId = format!("{}/MockRecvSendService", parent.into());
         let (send, recv) = mpsc::channel::<PointType>();
         Self {
@@ -37,6 +38,7 @@ impl MockRecvSendService {
             testData,
             sent: Arc::new(Mutex::new(vec![])),
             received: Arc::new(Mutex::new(vec![])),
+            recvLimit,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -113,19 +115,43 @@ impl Service for MockRecvSendService {
         let exit = self.exit.clone();
         let inRecv = self.inRecv.pop().unwrap();
         let received = self.received.clone();
+        let recvLimit = self.recvLimit.clone();
         let handle = thread::Builder::new().name(format!("{} - MultiQueue.run", selfId)).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
-            loop {
-                match inRecv.recv_timeout(Duration::from_millis(100)) {
-                    Ok(point) => {
-                        trace!("{}.run | received: {:?}", selfId, point);
-                        received.lock().unwrap().push(point);
-                    },
-                    Err(_) => {},
-                };
-                if exit.load(Ordering::SeqCst) {
-                    break;
-                }
+            match recvLimit {
+                Some(recvLimit) => {
+                    let mut receivedCount = 0;
+                    loop {
+                        match inRecv.recv_timeout(Duration::from_millis(100)) {
+                            Ok(point) => {
+                                trace!("{}.run | received: {:?}", selfId, point);
+                                received.lock().unwrap().push(point);
+                                receivedCount += 1;
+                            },
+                            Err(_) => {},
+                        };
+                        if receivedCount >= recvLimit {
+                            break;
+                        }
+                        if exit.load(Ordering::SeqCst) {
+                            break;
+                        }
+                    }
+                },
+                None => {
+                    loop {
+                        match inRecv.recv_timeout(Duration::from_millis(100)) {
+                            Ok(point) => {
+                                trace!("{}.run | received: {:?}", selfId, point);
+                                received.lock().unwrap().push(point);
+                            },
+                            Err(_) => {},
+                        };
+                        if exit.load(Ordering::SeqCst) {
+                            break;
+                        }
+                    }
+                },
             }
         });
         handle
