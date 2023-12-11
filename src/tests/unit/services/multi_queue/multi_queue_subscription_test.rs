@@ -120,9 +120,9 @@ mod tests {
             thd.join().unwrap();
             info!("Waiting for thread: {:?} - finished", thdId);
         }
-        println!("\nelapsed: {:?}", timer.elapsed());
-        println!("total test events: {:?}", totalCount);
-        println!("sent events: {:?}\n", count * sendService.lock().unwrap().sent().lock().unwrap().len());
+        println!("\n Elapsed: {:?}", timer.elapsed());
+        println!(" Total test events: {:?}", totalCount);
+        println!(" Sent events: {:?}\n", count * sendService.lock().unwrap().sent().lock().unwrap().len());
         let mut received = vec![];
         let target = testDataLen;
         for recvService in &recvServices {
@@ -130,7 +130,7 @@ mod tests {
             assert!(len == target, "\nresult: {:?}\ntarget: {:?}", len, target);
             received.push(len);
         }
-        println!("recv events: {} {:?}", received.iter().sum::<usize>(), received);
+        println!(" Recv events: {} {:?}", received.iter().sum::<usize>(), received);
 
         for service in recvServices {
             service.lock().unwrap().exit();

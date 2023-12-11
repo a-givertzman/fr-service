@@ -15,10 +15,12 @@ use super::subscriptions::Subscriptions;
 pub struct MultiQueue {
     id: String,
     subscriptions: Arc<Mutex<Subscriptions>>,
+    subscriptionsChanged: Arc<AtomicBool>,
     rxSend: HashMap<String, Sender<PointType>>,
     rxRecv: Vec<Receiver<PointType>>,
     sendQueues: Vec<String>,
     services: Arc<Mutex<Services>>,
+    receiverDictionary: HashMap<usize, String>,
     exit: Arc<AtomicBool>,
 }
 ///
@@ -34,10 +36,12 @@ impl MultiQueue {
         Self {
             id: selfId.clone(),
             subscriptions: Arc::new(Mutex::new(Subscriptions::new(selfId))),
+            subscriptionsChanged: Arc::new(AtomicBool::new(false)),
             rxSend: HashMap::from([(conf.rx, send)]),
             rxRecv: vec![recv],
             sendQueues,
             services,
+            receiverDictionary: HashMap::new(),
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -62,14 +66,16 @@ impl Service for MultiQueue {
     //
     fn subscribe(&mut self, receiverId: &str, points: &Vec<String>) -> Receiver<PointType> {
         let (send, recv) = mpsc::channel();
-        let receiverId = PointTxId::fromStr(receiverId);
+        let innerReceiverId = PointTxId::fromStr(receiverId);
+        self.receiverDictionary.insert(innerReceiverId, receiverId.to_string());
         if points.is_empty() {
-            self.subscriptions.lock().unwrap().addBroadcast(receiverId, send.clone());
+            self.subscriptions.lock().unwrap().addBroadcast(innerReceiverId, send.clone());
         } else {
             for pointId in points {
-                self.subscriptions.lock().unwrap().addMulticast(receiverId, pointId, send.clone());
+                self.subscriptions.lock().unwrap().addMulticast(innerReceiverId, pointId, send.clone());
             }
         }
+        self.subscriptionsChanged.store(true, Ordering::SeqCst);
         recv
     }
     //
@@ -78,7 +84,10 @@ impl Service for MultiQueue {
         let receiverId = PointTxId::fromStr(receiverId);
         for pointId in points {
             match self.subscriptions.lock().unwrap().remove(&receiverId, pointId) {
-                Ok(_) => {},
+                Ok(_) => {
+                    self.receiverDictionary.remove(&receiverId);
+                    self.subscriptionsChanged.store(true, Ordering::SeqCst);
+                },
                 Err(err) => {
                     return Err(err)
                 },
@@ -93,7 +102,8 @@ impl Service for MultiQueue {
         let selfId = self.id.clone();
         let exit = self.exit.clone();
         let recv = self.rxRecv.pop().unwrap();
-        let subscriptions = self.subscriptions.clone();
+        let subscriptionsRef = self.subscriptions.clone();
+        let subscriptionsChanged = self.subscriptionsChanged.clone();
         let mut staticSubscriptions: HashMap<usize, Sender<PointType>> = HashMap::new();
         for sendQueue in &self.sendQueues {
             debug!("{}.run | Getting services...", selfId);
@@ -103,8 +113,11 @@ impl Service for MultiQueue {
         }
         let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
+            let mut subscriptions = subscriptionsRef.lock().unwrap();
             loop {
-                let subscriptions = subscriptions.lock().unwrap();
+                if subscriptionsChanged.load(Ordering::Relaxed) == true {
+                    subscriptions = subscriptionsRef.lock().unwrap();
+                }
                 match recv.recv() {
                     Ok(point) => {
                         let pointId = point.name();
@@ -141,65 +154,3 @@ impl Service for MultiQueue {
         self.exit.store(true, Ordering::SeqCst);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // //
-    // //
-    // fn serveRx(&mut self, recv: Receiver<PointType>) -> Result<JoinHandle<()>, std::io::Error> {
-    //     info!("{}.run | starting...", self.id);
-    //     let selfId = self.id.clone();
-    //     let exit = self.exit.clone();
-    //     let subscriptions = self.subscriptions.clone();
-    //     let mut staticSubscriptions: HashMap<String, Sender<PointType>> = HashMap::new();
-    //     for sendQueue in &self.sendQueues {
-    //         debug!("{}.run | Getting services...", selfId);
-    //         let outSend = self.services.lock().unwrap().getLink(sendQueue);
-    //         debug!("{}.run | Getting services - ok", selfId);
-    //         staticSubscriptions.insert(sendQueue.to_string(), outSend);
-    //     }
-    //     let _handle = thread::Builder::new().name(format!("{} - MultiQueue.run", selfId.clone())).spawn(move || {
-    //         info!("{}.run | Preparing thread - ok", selfId);
-    //         loop {
-    //             let subscriptions = subscriptions.lock().unwrap();
-    //             match recv.recv() {
-    //                 Ok(point) => {
-    //                     let pointId = point.name();
-    //                     trace!("{}.run | received: {:?}", selfId, point);
-    //                     for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {
-    //                         match sender.send(point.clone()) {
-    //                             Ok(_) => {},
-    //                             Err(err) => {
-    //                                 error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", selfId, pointId, receiverId, err);
-    //                             },
-    //                         };
-    //                     }
-    //                 },
-    //                 Err(err) => {
-    //                     warn!("{}.run | recv error: {:?}", selfId, err);
-    //                 },
-    //             }
-    //             if exit.load(Ordering::SeqCst) {
-    //                 break;
-    //             }                
-    //         }
-    //     });
-    //     info!("{}.run | started", self.id);
-    //     _handle
-    // }
