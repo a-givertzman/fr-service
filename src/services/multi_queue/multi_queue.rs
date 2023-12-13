@@ -110,17 +110,23 @@ impl Service for MultiQueue {
             let send = self.services.lock().unwrap().getLink(receiverId);
             debug!("{}.run | Lock services - ok", selfId);
             let innerReceiverId = PointTxId::fromStr(receiverId);
+            debug!("{}.run | Lock subscriptions...", selfId);
             self.subscriptions.lock().unwrap().addBroadcast(innerReceiverId, send.clone());
+            debug!("{}.run | Lock subscriptions - ok", selfId);
 
             // staticSubscriptions.insert(PointTxId::fromStr(sendQueue), outSend);
         }
         let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
+            debug!("{}.run | Lock subscriptions...", selfId);
             let mut subscriptions = subscriptionsRef.lock().unwrap().clone();
+            debug!("{}.run | Lock subscriptions - ok", selfId);
             loop {
                 if subscriptionsChanged.load(Ordering::Relaxed) == true {
                     subscriptionsChanged.store(false, Ordering::SeqCst);
+                    debug!("{}.run | Lock subscriptions...", selfId);
                     subscriptions = subscriptionsRef.lock().unwrap().clone();
+                    debug!("{}.run | Lock subscriptions - ok", selfId);
                 }
                 match recv.recv() {
                     Ok(point) => {

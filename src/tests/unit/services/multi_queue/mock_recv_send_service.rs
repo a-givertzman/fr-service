@@ -143,6 +143,7 @@ impl Service for MockRecvSendService {
                 }
             }
         });
+        info!("{}.run | starting - ok", self.id);
         handle
     }
     //
