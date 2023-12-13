@@ -95,14 +95,14 @@ mod tests {
         let handle = mockTcpServer(addr.to_string(), iterations, received.clone());
         thread::sleep(Duration::from_micros(100));
 
-        debug!("Getting services...");
+        debug!("Lock services...");
         let services = services.lock().unwrap();
-        debug!("Getting services - ok");
-        debug!("Getting service {}...", tcpClientServiceId);
+        debug!("Lock services - ok");
+        debug!("Lock service {}...", tcpClientServiceId);
         let tcpClient = services.get(tcpClientServiceId);
-        debug!("Getting service {} - ok", tcpClientServiceId);
-        debug!("Running service {}...", tcpClientServiceId);
+        debug!("Lock service {} - ok", tcpClientServiceId);
         drop(services);
+        debug!("Running service {}...", tcpClientServiceId);
         tcpClient.lock().unwrap().run().unwrap();
         debug!("Running service {} - ok", tcpClientServiceId);
         let timer = Instant::now();

@@ -95,12 +95,12 @@ mod tests {
         let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
 
         let sent = Arc::new(Mutex::new(vec![]));
-        debug!("Getting services...");
+        debug!("Lock services...");
         let services = services.lock().unwrap();
-        debug!("Getting services - ok");
-        debug!("Getting service {}...", tcpClientServiceId);
+        debug!("Lock services - ok");
+        debug!("Lock service {}...", tcpClientServiceId);
         let tcpClient = services.get(tcpClientServiceId);
-        debug!("Getting service {} - ok", tcpClientServiceId);
+        debug!("Lock service {} - ok", tcpClientServiceId);
         drop(services);
         debug!("Running service {}...", multiQueueServiceId);
         let handle = multiQueue.lock().unwrap().run().unwrap();

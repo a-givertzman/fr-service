@@ -97,9 +97,9 @@ impl Service for MockMultiQueue {
         let subscriptions = self.subscriptions.clone();
         let mut staticSubscriptions: HashMap<usize, Sender<PointType>> = HashMap::new();
         for sendQueue in &self.sendQueues {
-            debug!("{}.run | Getting services...", selfId);
+            debug!("{}.run | Lock services...", selfId);
             let outSend = self.services.lock().unwrap().getLink(sendQueue);
-            debug!("{}.run | Getting services - ok", selfId);
+            debug!("{}.run | Lock services - ok", selfId);
             staticSubscriptions.insert(PointTxId::fromStr(sendQueue), outSend);
         }
         let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
@@ -165,9 +165,9 @@ impl Service for MockMultiQueue {
     //     let subscriptions = self.subscriptions.clone();
     //     let mut staticSubscriptions: HashMap<String, Sender<PointType>> = HashMap::new();
     //     for sendQueue in &self.sendQueues {
-    //         debug!("{}.run | Getting services...", selfId);
+    //         debug!("{}.run | Lock services...", selfId);
     //         let outSend = self.services.lock().unwrap().getLink(sendQueue);
-    //         debug!("{}.run | Getting services - ok", selfId);
+    //         debug!("{}.run | Lock services - ok", selfId);
     //         staticSubscriptions.insert(sendQueue.to_string(), outSend);
     //     }
     //     let _handle = thread::Builder::new().name(format!("{} - MockMultiQueue.run", selfId.clone())).spawn(move || {

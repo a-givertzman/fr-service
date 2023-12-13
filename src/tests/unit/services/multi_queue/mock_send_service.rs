@@ -73,9 +73,9 @@ impl Service for MockSendService {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
-        debug!("{}.run | Getting services...", selfId);
+        debug!("{}.run | Lock services...", selfId);
         let services = self.services.lock().unwrap();
-        debug!("{}.run | Getting services - ok", selfId);
+        debug!("{}.run | Lock services - ok", selfId);
         let txSend = services.getLink(&self.sendQueue);
         let testData = self.testData.clone();
         let sent = self.sent.clone();

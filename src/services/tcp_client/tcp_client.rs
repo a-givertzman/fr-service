@@ -78,9 +78,9 @@ impl Service for TcpClient {
         let exit = self.exit.clone();
         info!("{}.run | rx queue name: {:?}", self.id, conf.rx);
         info!("{}.run | tx queue name: {:?}", self.id, conf.tx);
-        debug!("{}.run | Getting services...", selfId);
+        debug!("{}.run | Lock services...", selfId);
         let outSend = self.services.lock().unwrap().getLink(&conf.tx);
-        debug!("{}.run | Getting services - ok", selfId);
+        debug!("{}.run | Lock services - ok", selfId);
         let outSend = Arc::new(Mutex::new(outSend));
         let buffered = true; // TODO Read this from config
         let inRecv = self.inRecv.pop().unwrap();

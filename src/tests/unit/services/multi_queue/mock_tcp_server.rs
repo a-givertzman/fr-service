@@ -77,10 +77,9 @@ impl Service for MockTcpServer {
         let exit = self.exit.clone();
         let mqServiceName = QueueName::new(&self.multiQueue);
         let mqServiceName = mqServiceName.service();
-        debug!("{}.run | Getting services...", selfId);
-        let mqService = self.services.lock().unwrap().get(mqServiceName);
-        debug!("{}.run | Getting services - ok", selfId);
-        let rxRecv = mqService.lock().unwrap().subscribe(&selfId, &vec![]);
+        debug!("{}.run | Lock services...", selfId);
+        let rxRecv = self.services.lock().unwrap().subscribe(mqServiceName, &selfId, &vec![]);
+        debug!("{}.run | Lock services - ok", selfId);
         let received = self.received.clone();
         let recvLimit = self.recvLimit.clone();
         let handle = thread::Builder::new().name(format!("{}.run | Recv", selfId)).spawn(move || {
@@ -123,9 +122,9 @@ impl Service for MockTcpServer {
         });
         let selfId = self.id.clone();
         let exit = self.exit.clone();
-        debug!("{}.run | Getting services...", selfId);
+        debug!("{}.run | Lock services...", selfId);
         let txSend = self.services.lock().unwrap().getLink(&self.multiQueue);
-        debug!("{}.run | Getting services - ok", selfId);
+        debug!("{}.run | Lock services - ok", selfId);
         let testData = self.testData.clone();
         let sent = self.sent.clone();
         let _handle = thread::Builder::new().name(format!("{}.run | Send", selfId)).spawn(move || {

@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
 mod tests {
-    use log::{info, debug};
-    use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}, thread};
+    use log::{info, debug, error};
+    use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}, thread::{self, JoinHandle}, any::Any};
     use crate::{
         core_::{
             debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
@@ -43,7 +43,7 @@ mod tests {
         info!("test_multi_queue - Static subscriptions - Single send");
 
         let selfId = "test";
-        let count = 3;                // count of the MockRecvSendService & MockTcpServer instances
+        let count = 3;              // count of the MockRecvSendService & MockTcpServer instances
         let iterations = 1000;      // test data length
         let staticTestData = RandomTestValues::new(
             selfId, 
@@ -72,7 +72,7 @@ mod tests {
                 out queue:
         "#.to_string();
         for i in 0..count {
-            conf = format!("{}\n                    - MockRecvService{}.in-queue", conf, i)
+            conf = format!("{}\n                    - MockRecvSendService{}.in-queue", conf, i)
         }
         let conf = serde_yaml::from_str(&conf).unwrap();
         let mqConf = MultiQueueConfig::fromYamlValue(&conf);
@@ -80,13 +80,12 @@ mod tests {
         let services = Arc::new(Mutex::new(Services::new("test")));
         let mqService = Arc::new(Mutex::new(MultiQueue::new("test", mqConf, services.clone())));
         services.lock().unwrap().insert("MultiQueue", mqService.clone());
-
         let mut handles = vec![];
         let mut rsServices = vec![];
         for i in 0..count {
             let rsService = Arc::new(Mutex::new(MockRecvSendService::new(
                 format!("tread{}", i),
-                "in-queue",//MultiQueue.
+                "in-queue",     //MultiQueue.
                 "MultiQueue.in-queue",
                 services.clone(),
                 staticTestData.clone(),
@@ -100,6 +99,10 @@ mod tests {
             let h = rsService.lock().unwrap().run().unwrap();
             handles.push(h);
         }
+        for thd in handles {
+            waitForThread(thd).unwrap();
+        }
+        println!("All MockRecvSendService threads - finished");
         let mut tcpServerServices = vec![];
         for i in 0..count {
             let tcpServerService = Arc::new(Mutex::new(MockTcpServer::new(
@@ -112,8 +115,8 @@ mod tests {
             services.lock().unwrap().insert(&format!("MockTcpServer{}", i), tcpServerService.clone());
             tcpServerServices.push(tcpServerService.clone());
             thread::sleep(Duration::from_millis(100));
-            let h = tcpServerService.lock().unwrap().run().unwrap();
-            handles.push(h);
+            let thd = tcpServerService.lock().unwrap().run().unwrap();
+            waitForThread(thd).unwrap();
             for rsService in &rsServices {
                 let result = rsService.lock().unwrap().received().lock().unwrap().len();
                 assert!(result == dynamicTestDataLen, "\nresult: {:?}\ntarget: {:?}", result, dynamicTestDataLen);
@@ -122,28 +125,8 @@ mod tests {
                 let result = tcpServerService.lock().unwrap().received().lock().unwrap().len();
                 assert!(result == dynamicTestDataLen, "\nresult: {:?}\ntarget: {:?}", result, dynamicTestDataLen);
             }
+            tcpServerServices.push(tcpServerService.clone());
         }
-
-
-
-        // for thd in handles {
-        //     let thdId = format!("{:?}-{:?}", thd.thread().id(), thd.thread().name());
-        //     info!("Waiting for service: {:?}...", thdId);
-        //     thd.join().unwrap();
-        //     info!("Waiting for thread: {:?} - finished", thdId);
-        // }
-        // println!("\n Elapsed: {:?}", timer.elapsed());
-        // println!(" Total test events: {:?}", totalCount);
-        // println!(" Sent events: {:?}\n", count * sendService.lock().unwrap().sent().lock().unwrap().len());
-        // let mut received = vec![];
-        // let target = testDataLen;
-        // for recvService in &recvServices {
-        //     let len = recvService.lock().unwrap().received().lock().unwrap().len();
-        //     assert!(len == target, "\nresult: {:?}\ntarget: {:?}", len, target);
-        //     received.push(len);
-        // }
-        // println!(" Recv events: {} {:?}", received.iter().sum::<usize>(), received);
-
         for rsService in rsServices {
             rsService.lock().unwrap().exit();
         }
@@ -152,5 +135,21 @@ mod tests {
         }
         maxTestDuration.exit();
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
+    }
+    ///
+    /// 
+    fn waitForThread(thd: JoinHandle<()>) -> Result<(), Box<dyn Any + Send>>{
+        let thdId = format!("{:?}-{:?}", thd.thread().id(), thd.thread().name());
+        info!("Waiting for service: {:?}...", thdId);
+        let r = thd.join();
+        match &r {
+            Ok(_) => {
+                info!("Waiting for thread: '{}' - finished", thdId);
+            },
+            Err(err) => {
+                error!("Waiting for thread '{}' error: {:?}", thdId, err);                
+            },
+        }
+        r
     }
 }

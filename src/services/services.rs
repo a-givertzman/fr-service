@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{collections::HashMap, sync::{Arc, Mutex, mpsc::Sender}};
+use std::{collections::HashMap, sync::{Arc, Mutex, mpsc::{Sender, Receiver}}};
 
 use crate::core_::point::point_type::PointType;
 
@@ -46,6 +46,14 @@ impl Services {
         match self.map.get(name.service()) {
             Some(srvc) => srvc.lock().unwrap().getLink(name.queue()),
             None => panic!("{}.get | service '{:?}' - not found", self.id, name),
+        }
+    }
+    ///
+    /// Returns Receiver
+    pub fn subscribe(&mut self, service: &str, receiverId: &str, points: &Vec<String>) -> Receiver<PointType> {
+        match self.map.get(service) {
+            Some(srvc) => srvc.lock().unwrap().subscribe(receiverId, points),
+            None => panic!("{}.get | service '{:?}' - not found", self.id, service),
         }
     }
     // ///

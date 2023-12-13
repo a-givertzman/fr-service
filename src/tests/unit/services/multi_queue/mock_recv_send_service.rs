@@ -119,9 +119,9 @@ impl Service for MockRecvSendService {
         });        
         let selfId = self.id.clone();
         let exit = self.exit.clone();
-        debug!("{}.run | Getting services...", selfId);
+        debug!("{}.run | Lock services...", selfId);
         let txSend = self.services.lock().unwrap().getLink(&self.txQueue);
-        debug!("{}.run | Getting services - ok", selfId);
+        debug!("{}.run | Lock services - ok", selfId);
         let testData = self.testData.clone();
         let sent = self.sent.clone();
         let _handle = thread::Builder::new().name(format!("{}.run | Send", selfId)).spawn(move || {
