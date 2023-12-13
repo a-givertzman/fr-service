@@ -85,7 +85,7 @@ impl Service for MockTcpServer {
         debug!("{}.run | Lock services - ok", selfId);
         let received = self.received.clone();
         let recvLimit = self.recvLimit.clone();
-        let handle = thread::Builder::new().name(format!("{}.run | Recv", selfId)).spawn(move || {
+        let _handle = thread::Builder::new().name(format!("{}.run | Recv", selfId)).spawn(move || {
             info!("{}.run | Preparing thread Recv - ok", selfId);
             match recvLimit {
                 Some(recvLimit) => {
@@ -130,7 +130,7 @@ impl Service for MockTcpServer {
         debug!("{}.run | Lock services - ok", selfId);
         let testData = self.testData.clone();
         let sent = self.sent.clone();
-        let _handle = thread::Builder::new().name(format!("{}.run | Send", selfId)).spawn(move || {
+        let handle = thread::Builder::new().name(format!("{}.run | Send", selfId)).spawn(move || {
             info!("{}.run | Preparing thread Send - ok", selfId);
             let txId = PointTxId::fromStr(&selfId);
             for value in testData.iter() {
