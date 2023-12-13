@@ -4,14 +4,13 @@ use std::{collections::HashMap, sync::{mpsc::{Sender, self, Receiver}, Arc, Mute
 
 use log::{info, warn, debug, trace};
 
-use crate::{core_::{point::{point_type::PointType, point_tx_id::PointTxId}, testing::test_stuff::test_value::Value}, services::{services::Services, service::Service}};
+use crate::{core_::{point::{point_type::PointType, point_tx_id::PointTxId}, testing::test_stuff::test_value::Value}, services::{services::Services, service::Service, queue_name::QueueName}};
 
 
 pub struct MockTcpServer {
     id: String,
     rxSend: HashMap<String, Sender<PointType>>,
-    rxRecv: Vec<Receiver<PointType>>,
-    txQueue: String,
+    multiQueue: String,
     services: Arc<Mutex<Services>>,
     testData: Vec<Value>,
     sent: Arc<Mutex<Vec<PointType>>>,
@@ -24,12 +23,11 @@ pub struct MockTcpServer {
 impl MockTcpServer {
     pub fn new(parent: impl Into<String>, multiQueue: &str, services: Arc<Mutex<Services>>, testData: Vec<Value>, recvLimit: Option<usize>) -> Self {
         let selfId = format!("{}/MockTcpServer", parent.into());
-        let (send, recv) = mpsc::channel::<PointType>();
+        // let (send, recv) = mpsc::channel::<PointType>();
         Self {
             id: selfId.clone(),
-            rxSend: HashMap::from([(rxQueue.to_string(), send)]),
-            rxRecv: vec![recv],
-            txQueue: txQueue.to_string(),
+            rxSend: HashMap::new(),
+            multiQueue: multiQueue.to_string(),
             services,
             testData,
             sent: Arc::new(Mutex::new(vec![])),
@@ -65,10 +63,11 @@ impl Service for MockTcpServer {
     //
     //
     fn getLink(&mut self, name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
-        match self.rxSend.get(name) {
-            Some(send) => send.clone(),
-            None => panic!("{}.run | link '{:?}' - not found", self.id, name),
-        }
+        panic!("{}.getLink | Does not support static producer", self.id())
+        // match self.rxSend.get(name) {
+        //     Some(send) => send.clone(),
+        //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
+        // }
     }
     //
     //
@@ -76,38 +75,12 @@ impl Service for MockTcpServer {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
-        let recvQueueParts: Vec<&str> = self.txQueue.split(".").collect();
-        let outSendServiceName = recvQueueParts[0];
-        let outSendQueueName = recvQueueParts[1];
+        let mqServiceName = QueueName::new(&self.multiQueue);
+        let mqServiceName = mqServiceName.service();
         debug!("{}.run | Getting services...", selfId);
-        let services = self.services.lock().unwrap();
+        let mqService = self.services.lock().unwrap().get(mqServiceName);
         debug!("{}.run | Getting services - ok", selfId);
-        let outSendService = services.get(&outSendServiceName);
-        let txSend = outSendService.lock().unwrap().getLink(&outSendQueueName);
-        let testData = self.testData.clone();
-        let sent = self.sent.clone();
-        let _handle = thread::Builder::new().name(format!("{}.run | Send", selfId)).spawn(move || {
-            info!("{}.run | Preparing thread Send - ok", selfId);
-            let txId = PointTxId::fromStr(&selfId);
-            for value in testData.iter() {
-                let point = value.toPoint(txId,&format!("{}/test", selfId));
-                match txSend.send(point.clone()) {
-                    Ok(_) => {
-                        trace!("{}.run | send: {:?}", selfId, point);
-                        sent.lock().unwrap().push(point);
-                    },
-                    Err(err) => {
-                        warn!("{}.run | send error: {:?}", selfId, err);
-                    },
-                }
-                if exit.load(Ordering::SeqCst) {
-                    break;
-                }
-            }
-        });
-        let selfId = self.id.clone();
-        let exit = self.exit.clone();
-        let rxRecv = self.rxRecv.pop().unwrap();
+        let rxRecv = mqService.lock().unwrap().subscribe(&selfId, &vec![]);
         let received = self.received.clone();
         let recvLimit = self.recvLimit.clone();
         let handle = thread::Builder::new().name(format!("{}.run | Recv", selfId)).spawn(move || {
@@ -146,6 +119,32 @@ impl Service for MockTcpServer {
                         }
                     }
                 },
+            }
+        });
+        let selfId = self.id.clone();
+        let exit = self.exit.clone();
+        debug!("{}.run | Getting services...", selfId);
+        let txSend = self.services.lock().unwrap().getLink(&self.multiQueue);
+        debug!("{}.run | Getting services - ok", selfId);
+        let testData = self.testData.clone();
+        let sent = self.sent.clone();
+        let _handle = thread::Builder::new().name(format!("{}.run | Send", selfId)).spawn(move || {
+            info!("{}.run | Preparing thread Send - ok", selfId);
+            let txId = PointTxId::fromStr(&selfId);
+            for value in testData.iter() {
+                let point = value.toPoint(txId,&format!("{}/test", selfId));
+                match txSend.send(point.clone()) {
+                    Ok(_) => {
+                        trace!("{}.run | send: {:?}", selfId, point);
+                        sent.lock().unwrap().push(point);
+                    },
+                    Err(err) => {
+                        warn!("{}.run | send error: {:?}", selfId, err);
+                    },
+                }
+                if exit.load(Ordering::SeqCst) {
+                    break;
+                }
             }
         });
         handle

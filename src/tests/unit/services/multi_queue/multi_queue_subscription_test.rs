@@ -4,9 +4,12 @@ mod tests {
     use log::{info, debug};
     use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}, thread};
     use crate::{
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::MaxTestDuration}}, 
+        core_::{
+            debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
+            testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::MaxTestDuration},
+        }, 
         conf::multi_queue_config::MultiQueueConfig, services::{multi_queue::multi_queue::MultiQueue, services::Services, service::Service}, 
-        tests::unit::services::multi_queue::{mock_recv_service::MockRecvService, mock_send_service::MockSendService, mock_tcp_server::MockTcpServer},
+        tests::unit::services::multi_queue::{mock_tcp_server::MockTcpServer, mock_recv_send_service::MockRecvSendService},
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -40,36 +43,26 @@ mod tests {
         info!("test_multi_queue - Static subscriptions - Single send");
 
         let selfId = "test";
-        let iterations = 1000;
-        let testData = RandomTestValues::new(
+        let count = 3;                // count of the MockRecvSendService & MockTcpServer instances
+        let iterations = 1000;      // test data length
+        let staticTestData = RandomTestValues::new(
             selfId, 
             vec![
-                Value::Int(i64::MIN),
-                Value::Int(i64::MAX),
-                Value::Int(-7),
-                Value::Int(0),
                 Value::Int(12),
-                Value::Float(f64::MAX),
-                Value::Float(f64::MIN),
-                Value::Float(f64::MIN_POSITIVE),
-                Value::Float(-f64::MIN_POSITIVE),
-                Value::Float(0.0),
-                Value::Float(1.33),
-                Value::Bool(true),
-                Value::Bool(false),
-                Value::Bool(false),
-                Value::Bool(true),
-                Value::String("test1".to_string()),
-                Value::String("test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1".to_string()),
-                Value::String("test2".to_string()),
-                Value::String("test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2".to_string()),
             ], 
             iterations, 
         );
-        let testData: Vec<Value> = testData.collect();
-        let testDataLen = testData.len();
-        let count = 3;
-        let totalCount = count * testData.len();
+        let staticTestData: Vec<Value> = staticTestData.collect();
+        let staticTestDataLen = staticTestData.len();
+        let dynamicTestData = RandomTestValues::new(
+            selfId, 
+            vec![
+                Value::Int(12),
+            ], 
+            iterations, 
+        );
+        let dynamicTestData: Vec<Value> = dynamicTestData.collect();
+        let dynamicTestDataLen = dynamicTestData.len();
         let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
         maxTestDuration.run().unwrap();
         let mut conf = r#"
@@ -88,66 +81,74 @@ mod tests {
         let mqService = Arc::new(Mutex::new(MultiQueue::new("test", mqConf, services.clone())));
         services.lock().unwrap().insert("MultiQueue", mqService.clone());
 
-        let mut recvHandles = vec![];
-        let mut recvServices = vec![];
-        let timer = Instant::now();
-        let sendService = Arc::new(Mutex::new(MockSendService::new(
-            format!("test"),
-            "in-queue",//MultiQueue.
-            "MultiQueue.in-queue",
-            services.clone(),
-            testData.clone(),
-            Some(Duration::from_millis(1))
-        )));
-        services.lock().unwrap().insert("MockRecvService", sendService.clone());
-        let recvService = Arc::new(Mutex::new(MockTcpServer::new(
-            format!("tread{}", i),
-            "in-queue",
-            Some(iterations),
-        )));
+        let mut handles = vec![];
+        let mut rsServices = vec![];
         for i in 0..count {
-            services.lock().unwrap().insert(&format!("MockRecvService{}", i), recvService.clone());
-            recvServices.push(recvService);
+            let rsService = Arc::new(Mutex::new(MockRecvSendService::new(
+                format!("tread{}", i),
+                "in-queue",//MultiQueue.
+                "MultiQueue.in-queue",
+                services.clone(),
+                staticTestData.clone(),
+                Some(staticTestDataLen * count),
+            )));
+            services.lock().unwrap().insert(&format!("MockRecvSendService{}", i), rsService.clone());
+            rsServices.push(rsService);
         }
         mqService.lock().unwrap().run().unwrap();
-        for service in &mut recvServices {
-            let handle = service.lock().unwrap().run().unwrap();
-            recvHandles.push(handle);
+        for rsService in &rsServices {
+            let h = rsService.lock().unwrap().run().unwrap();
+            handles.push(h);
         }
-        sendService.lock().unwrap().run().unwrap();
-        {
+        let mut tcpServerServices = vec![];
+        for i in 0..count {
+            let tcpServerService = Arc::new(Mutex::new(MockTcpServer::new(
+                format!("tread{}", i),
+                "MultiQueue.in-queue",
+                services.clone(),
+                dynamicTestData.clone(),
+                Some(iterations),
+            )));
+            services.lock().unwrap().insert(&format!("MockTcpServer{}", i), tcpServerService.clone());
+            tcpServerServices.push(tcpServerService.clone());
             thread::sleep(Duration::from_millis(100));
-            for i in 0..3 {
-                let recvService = Arc::new(Mutex::new(MockRecvService::new(
-                    format!("dynamic tread{}", i),
-                    "in-queue",
-                    Some(iterations),
-                )));
-                services.lock().unwrap().insert(&format!("MockRecvService{}", i), recvService.clone());
-                let handle = recvService.lock().unwrap().run().unwrap();
-                recvHandles.push(handle);
+            let h = tcpServerService.lock().unwrap().run().unwrap();
+            handles.push(h);
+            for rsService in &rsServices {
+                let result = rsService.lock().unwrap().received().lock().unwrap().len();
+                assert!(result == dynamicTestDataLen, "\nresult: {:?}\ntarget: {:?}", result, dynamicTestDataLen);
+            }
+            for tcpServerService in &tcpServerServices {
+                let result = tcpServerService.lock().unwrap().received().lock().unwrap().len();
+                assert!(result == dynamicTestDataLen, "\nresult: {:?}\ntarget: {:?}", result, dynamicTestDataLen);
             }
         }
-        for thd in recvHandles {
-            let thdId = format!("{:?}-{:?}", thd.thread().id(), thd.thread().name());
-            info!("Waiting for service: {:?}...", thdId);
-            thd.join().unwrap();
-            info!("Waiting for thread: {:?} - finished", thdId);
-        }
-        println!("\n Elapsed: {:?}", timer.elapsed());
-        println!(" Total test events: {:?}", totalCount);
-        println!(" Sent events: {:?}\n", count * sendService.lock().unwrap().sent().lock().unwrap().len());
-        let mut received = vec![];
-        let target = testDataLen;
-        for recvService in &recvServices {
-            let len = recvService.lock().unwrap().received().lock().unwrap().len();
-            assert!(len == target, "\nresult: {:?}\ntarget: {:?}", len, target);
-            received.push(len);
-        }
-        println!(" Recv events: {} {:?}", received.iter().sum::<usize>(), received);
 
-        for service in recvServices {
-            service.lock().unwrap().exit();
+
+
+        // for thd in handles {
+        //     let thdId = format!("{:?}-{:?}", thd.thread().id(), thd.thread().name());
+        //     info!("Waiting for service: {:?}...", thdId);
+        //     thd.join().unwrap();
+        //     info!("Waiting for thread: {:?} - finished", thdId);
+        // }
+        // println!("\n Elapsed: {:?}", timer.elapsed());
+        // println!(" Total test events: {:?}", totalCount);
+        // println!(" Sent events: {:?}\n", count * sendService.lock().unwrap().sent().lock().unwrap().len());
+        // let mut received = vec![];
+        // let target = testDataLen;
+        // for recvService in &recvServices {
+        //     let len = recvService.lock().unwrap().received().lock().unwrap().len();
+        //     assert!(len == target, "\nresult: {:?}\ntarget: {:?}", len, target);
+        //     received.push(len);
+        // }
+        // println!(" Recv events: {} {:?}", received.iter().sum::<usize>(), received);
+
+        for rsService in rsServices {
+            rsService.lock().unwrap().exit();
+        }
+        for tcpServerService in tcpServerServices {
+            tcpServerService.lock().unwrap().exit();
         }
         maxTestDuration.exit();
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);

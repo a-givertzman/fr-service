@@ -76,37 +76,6 @@ impl Service for MockRecvSendService {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
-        let recvQueueParts: Vec<&str> = self.txQueue.split(".").collect();
-        let outSendServiceName = recvQueueParts[0];
-        let outSendQueueName = recvQueueParts[1];
-        debug!("{}.run | Getting services...", selfId);
-        let services = self.services.lock().unwrap();
-        debug!("{}.run | Getting services - ok", selfId);
-        let outSendService = services.get(&outSendServiceName);
-        let txSend = outSendService.lock().unwrap().getLink(&outSendQueueName);
-        let testData = self.testData.clone();
-        let sent = self.sent.clone();
-        let _handle = thread::Builder::new().name(format!("{}.run | Send", selfId)).spawn(move || {
-            info!("{}.run | Preparing thread Send - ok", selfId);
-            let txId = PointTxId::fromStr(&selfId);
-            for value in testData.iter() {
-                let point = value.toPoint(txId,&format!("{}/test", selfId));
-                match txSend.send(point.clone()) {
-                    Ok(_) => {
-                        trace!("{}.run | send: {:?}", selfId, point);
-                        sent.lock().unwrap().push(point);
-                    },
-                    Err(err) => {
-                        warn!("{}.run | send error: {:?}", selfId, err);
-                    },
-                }
-                if exit.load(Ordering::SeqCst) {
-                    break;
-                }
-            }
-        });
-        let selfId = self.id.clone();
-        let exit = self.exit.clone();
         let rxRecv = self.rxRecv.pop().unwrap();
         let received = self.received.clone();
         let recvLimit = self.recvLimit.clone();
@@ -146,6 +115,32 @@ impl Service for MockRecvSendService {
                         }
                     }
                 },
+            }
+        });        
+        let selfId = self.id.clone();
+        let exit = self.exit.clone();
+        debug!("{}.run | Getting services...", selfId);
+        let txSend = self.services.lock().unwrap().getLink(&self.txQueue);
+        debug!("{}.run | Getting services - ok", selfId);
+        let testData = self.testData.clone();
+        let sent = self.sent.clone();
+        let _handle = thread::Builder::new().name(format!("{}.run | Send", selfId)).spawn(move || {
+            info!("{}.run | Preparing thread Send - ok", selfId);
+            let txId = PointTxId::fromStr(&selfId);
+            for value in testData.iter() {
+                let point = value.toPoint(txId,&format!("{}/test", selfId));
+                match txSend.send(point.clone()) {
+                    Ok(_) => {
+                        trace!("{}.run | send: {:?}", selfId, point);
+                        sent.lock().unwrap().push(point);
+                    },
+                    Err(err) => {
+                        warn!("{}.run | send error: {:?}", selfId, err);
+                    },
+                }
+                if exit.load(Ordering::SeqCst) {
+                    break;
+                }
             }
         });
         handle
