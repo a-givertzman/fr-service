@@ -1,15 +1,18 @@
 #![allow(non_snake_case)]
 
-use std::{collections::HashMap, sync::{mpsc::{Sender, self, Receiver}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}, time::Duration};
+use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}, time::Duration};
 
 use log::{info, warn, debug, trace};
 
-use crate::{core_::{point::{point_type::PointType, point_tx_id::PointTxId}, testing::test_stuff::test_value::Value}, services::{services::Services, service::Service, queue_name::QueueName}};
+use crate::{
+    core_::{point::{point_type::PointType, point_tx_id::PointTxId}, testing::test_stuff::test_value::Value}, 
+    services::{services::Services, service::Service, queue_name::QueueName},
+};
 
 
 pub struct MockTcpServer {
     id: String,
-    rxSend: HashMap<String, Sender<PointType>>,
+    // rxSend: HashMap<String, Sender<PointType>>,
     multiQueue: String,
     services: Arc<Mutex<Services>>,
     testData: Vec<Value>,
@@ -26,7 +29,7 @@ impl MockTcpServer {
         // let (send, recv) = mpsc::channel::<PointType>();
         Self {
             id: selfId.clone(),
-            rxSend: HashMap::new(),
+            // rxSend: HashMap::new(),
             multiQueue: multiQueue.to_string(),
             services,
             testData,

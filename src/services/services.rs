@@ -2,6 +2,8 @@
 
 use std::{collections::HashMap, sync::{Arc, Mutex, mpsc::{Sender, Receiver}}};
 
+use log::debug;
+
 use crate::core_::point::point_type::PointType;
 
 use super::{service::Service, queue_name::QueueName};
@@ -52,7 +54,12 @@ impl Services {
     /// Returns Receiver
     pub fn subscribe(&mut self, service: &str, receiverId: &str, points: &Vec<String>) -> Receiver<PointType> {
         match self.map.get(service) {
-            Some(srvc) => srvc.lock().unwrap().subscribe(receiverId, points),
+            Some(srvc) => {
+                debug!("{}.subscribe | Lock service '{:?}'...", self.id, service);
+                let r = srvc.lock().unwrap().subscribe(receiverId, points);
+                debug!("{}.subscribe | Lock service '{:?}' - ok", self.id, service);
+                r
+            },
             None => panic!("{}.get | service '{:?}' - not found", self.id, service),
         }
     }

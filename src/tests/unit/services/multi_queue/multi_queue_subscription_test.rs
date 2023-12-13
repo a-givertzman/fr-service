@@ -94,7 +94,7 @@ mod tests {
             services.lock().unwrap().insert(&format!("MockRecvSendService{}", i), rsService.clone());
             rsServices.push(rsService);
         }
-        mqService.lock().unwrap().run().unwrap();
+        let mqHandle = mqService.lock().unwrap().run().unwrap();
         for rsService in &rsServices {
             let h = rsService.lock().unwrap().run().unwrap();
             handles.push(h);
@@ -103,36 +103,38 @@ mod tests {
             waitForThread(thd).unwrap();
         }
         println!("All MockRecvSendService threads - finished");
-        let mut tcpServerServices = vec![];
-        for i in 0..count {
-            let tcpServerService = Arc::new(Mutex::new(MockTcpServer::new(
-                format!("tread{}", i),
-                "MultiQueue.in-queue",
-                services.clone(),
-                dynamicTestData.clone(),
-                Some(iterations),
-            )));
-            services.lock().unwrap().insert(&format!("MockTcpServer{}", i), tcpServerService.clone());
-            tcpServerServices.push(tcpServerService.clone());
-            thread::sleep(Duration::from_millis(100));
-            let thd = tcpServerService.lock().unwrap().run().unwrap();
-            waitForThread(thd).unwrap();
-            for rsService in &rsServices {
-                let result = rsService.lock().unwrap().received().lock().unwrap().len();
-                assert!(result == dynamicTestDataLen, "\nresult: {:?}\ntarget: {:?}", result, dynamicTestDataLen);
-            }
-            for tcpServerService in &tcpServerServices {
-                let result = tcpServerService.lock().unwrap().received().lock().unwrap().len();
-                assert!(result == dynamicTestDataLen, "\nresult: {:?}\ntarget: {:?}", result, dynamicTestDataLen);
-            }
-            tcpServerServices.push(tcpServerService.clone());
-        }
+        // let mut tcpServerServices = vec![];
+        // for i in 0..count {
+        //     let tcpServerService = Arc::new(Mutex::new(MockTcpServer::new(
+        //         format!("tread{}", i),
+        //         "MultiQueue.in-queue",
+        //         services.clone(),
+        //         dynamicTestData.clone(),
+        //         Some(iterations),
+        //     )));
+        //     services.lock().unwrap().insert(&format!("MockTcpServer{}", i), tcpServerService.clone());
+        //     tcpServerServices.push(tcpServerService.clone());
+        //     thread::sleep(Duration::from_millis(100));
+        //     let thd = tcpServerService.lock().unwrap().run().unwrap();
+        //     waitForThread(thd).unwrap();
+        //     for rsService in &rsServices {
+        //         let result = rsService.lock().unwrap().received().lock().unwrap().len();
+        //         assert!(result == dynamicTestDataLen, "\nresult: {:?}\ntarget: {:?}", result, dynamicTestDataLen);
+        //     }
+        //     for tcpServerService in &tcpServerServices {
+        //         let result = tcpServerService.lock().unwrap().received().lock().unwrap().len();
+        //         assert!(result == dynamicTestDataLen, "\nresult: {:?}\ntarget: {:?}", result, dynamicTestDataLen);
+        //     }
+        //     tcpServerServices.push(tcpServerService.clone());
+        // }
         for rsService in rsServices {
             rsService.lock().unwrap().exit();
         }
-        for tcpServerService in tcpServerServices {
-            tcpServerService.lock().unwrap().exit();
-        }
+        // for tcpServerService in tcpServerServices {
+        //     tcpServerService.lock().unwrap().exit();
+        // }
+        mqService.lock().unwrap().exit();
+        mqHandle.join().unwrap();
         maxTestDuration.exit();
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
     }

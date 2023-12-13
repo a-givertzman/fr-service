@@ -116,11 +116,11 @@ impl Service for MultiQueue {
         }
         let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
-            let mut subscriptions = subscriptionsRef.lock().unwrap();
+            let mut subscriptions = subscriptionsRef.lock().unwrap().clone();
             loop {
                 if subscriptionsChanged.load(Ordering::Relaxed) == true {
                     subscriptionsChanged.store(false, Ordering::SeqCst);
-                    subscriptions = subscriptionsRef.lock().unwrap();
+                    subscriptions = subscriptionsRef.lock().unwrap().clone();
                 }
                 match recv.recv() {
                     Ok(point) => {

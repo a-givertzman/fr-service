@@ -12,6 +12,7 @@ type PointId = String;
 ///
 /// Contains map of Sender's
 /// - Where Sender - is pair of String ID & Sender<PointType>
+#[derive(Debug, Clone)]
 pub struct Subscriptions {
     id: String,
     multicast: HashMap<PointId, HashMap<ReceiverId, Sender<PointType>>>,
