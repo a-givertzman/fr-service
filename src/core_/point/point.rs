@@ -89,20 +89,15 @@ impl Point<String> {
 impl<T: std::ops::Add<Output = T> + Clone> std::ops::Add for Point<T> {
     type Output = Point<T>;
     fn add(self, rhs: Self) -> Self::Output {
-        let txId = match self.timestamp.cmp(&rhs.timestamp) {
-            std::cmp::Ordering::Less => rhs.txId,
-            std::cmp::Ordering::Equal => self.txId,
-            std::cmp::Ordering::Greater => self.txId,
-        };
         let status = match self.status.cmp(&rhs.status) {
             std::cmp::Ordering::Less => rhs.status,
             std::cmp::Ordering::Equal => self.status,
             std::cmp::Ordering::Greater => self.status,
         };
-        let timestamp = match self.timestamp.cmp(&rhs.timestamp) {
-            std::cmp::Ordering::Less => rhs.timestamp,
-            std::cmp::Ordering::Equal => self.timestamp,
-            std::cmp::Ordering::Greater => self.timestamp,
+        let (txId, timestamp) = match self.timestamp.cmp(&rhs.timestamp) {
+            std::cmp::Ordering::Less => (rhs.txId, rhs.timestamp),
+            std::cmp::Ordering::Equal => (self.txId, self.timestamp),
+            std::cmp::Ordering::Greater => (self.txId, self.timestamp),
         };
         Point {
             txId,
@@ -118,20 +113,15 @@ impl<T: std::ops::Add<Output = T> + Clone> std::ops::Add for Point<T> {
 impl<T: std::ops::BitOr<Output = T>> std::ops::BitOr for Point<T> {
     type Output = Point<T>;
     fn bitor(self, rhs: Self) -> Self::Output {
-        let txId = match self.timestamp.cmp(&rhs.timestamp) {
-            std::cmp::Ordering::Less => rhs.txId,
-            std::cmp::Ordering::Equal => self.txId,
-            std::cmp::Ordering::Greater => self.txId,
-        };
         let status = match self.status.cmp(&rhs.status) {
             std::cmp::Ordering::Less => rhs.status,
             std::cmp::Ordering::Equal => self.status,
             std::cmp::Ordering::Greater => self.status,
         };
-        let timestamp = match self.timestamp.cmp(&rhs.timestamp) {
-            std::cmp::Ordering::Less => rhs.timestamp,
-            std::cmp::Ordering::Equal => self.timestamp,
-            std::cmp::Ordering::Greater => self.timestamp,
+        let (txId, timestamp) = match self.timestamp.cmp(&rhs.timestamp) {
+            std::cmp::Ordering::Less => (rhs.txId, rhs.timestamp),
+            std::cmp::Ordering::Equal => (self.txId, self.timestamp),
+            std::cmp::Ordering::Greater => (self.txId, self.timestamp),
         };
         Point {
             txId,

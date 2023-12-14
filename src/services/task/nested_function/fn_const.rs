@@ -11,15 +11,17 @@ use super::{fn_::{FnIn, FnOut, FnInOut}, fn_kind::FnKind};
 #[derive(Debug, Clone)]
 pub struct FnConst {
     id: String,
+    txId: usize,
     kind: FnKind,
     point: PointType,
 }
 ///
 /// 
 impl FnConst {
-    pub fn new(id: &str, value: PointType) -> Self {
+    pub fn new(id: &str, txId: usize, value: PointType) -> Self {
         Self {
             id: id.into(), 
+            txId,
             kind: FnKind::Input,
             point: value
         }
