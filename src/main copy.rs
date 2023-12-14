@@ -231,7 +231,7 @@ fn main() {
         //     fn functionName:
         // "#,
         // r#"
-        //     metric sqlSelectMetric:
+        //     metric SqlMetric:
         //         initial: const 0      # начальное значение
         // "#,
 
@@ -245,7 +245,7 @@ fn main() {
         //                 inputConst2: newVar1
         // "#),
         // serde_yaml::from_str(r#"
-        //     metric sqlSelectMetric:
+        //     metric SqlMetric:
         //         initial: const 0
         //         sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
         //         inputs:

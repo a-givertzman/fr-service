@@ -30,7 +30,8 @@
 
 task task1:
     cycle: 1 ms
-    recv-queue: recv-queue
+    in queue recv-queue:
+        max-length: 10000
     let Var1:
         input fn add:
             input1: point float '/path/Point.Name1'
@@ -46,7 +47,7 @@ task task1:
 
     fn toApiQueue:
         queue: api-queue
-        input metric sqlSelectMetric:
+        input metric SqlMetric:
             initial: 0.123      # начальное значение
             table: table_name
             # sql: "UPDATE {table} SET kind = '{input1.value}' WHERE id = '{input2.value}';"

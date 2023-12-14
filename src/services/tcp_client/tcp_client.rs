@@ -44,7 +44,7 @@ impl TcpClient {
         Self {
             id: format!("{}/TcpClient({})", parent.into(), conf.name),
             inRecv: vec![recv],
-            inSend: HashMap::from([(conf.recvQueue.clone(), send)]),
+            inSend: HashMap::from([(conf.rx.clone(), send)]),
             conf: conf.clone(),
             services,
             tcpRecvAlive: None,
@@ -56,31 +56,31 @@ impl TcpClient {
 ///
 /// 
 impl Service for TcpClient {
-    ///
-    /// returns sender of the TcpClient input queue by name
-    fn getLink(&self, name: &str) -> Sender<PointType> {
+    //
+    //
+    fn id(&self) -> &str {
+        &self.id
+    }
+    //
+    // 
+    fn getLink(&mut self, name: &str) -> Sender<PointType> {
         match self.inSend.get(name) {
             Some(send) => send.clone(),
             None => panic!("{}.run | link '{:?}' - not found", self.id, name),
         }
     }
-    ///
-    /// The TcpClient main loop
+    //
+    //
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let conf = self.conf.clone();
         let exit = self.exit.clone();
-        info!("{}.run | in queue name: {:?}", self.id, conf.recvQueue);
-        info!("{}.run | out queue name: {:?}", self.id, conf.sendQueue);
-        let recvQueueParts: Vec<&str> = conf.sendQueue.split(".").collect();
-        let receiverServiceName = recvQueueParts[0];
-        let receiverQueueName = recvQueueParts[1];
-        debug!("{}.run | Getting services...", selfId);
-        let services = self.services.lock().unwrap();
-        debug!("{}.run | Getting services - ok", selfId);
-
-        let outSend = services.get(&receiverServiceName).lock().unwrap().getLink(receiverQueueName);
+        info!("{}.run | rx queue name: {:?}", self.id, conf.rx);
+        info!("{}.run | tx queue name: {:?}", self.id, conf.tx);
+        debug!("{}.run | Lock services...", selfId);
+        let outSend = self.services.lock().unwrap().getLink(&conf.tx);
+        debug!("{}.run | Lock services - ok", selfId);
         let outSend = Arc::new(Mutex::new(outSend));
         let buffered = true; // TODO Read this from config
         let inRecv = self.inRecv.pop().unwrap();
@@ -89,7 +89,7 @@ impl Service for TcpClient {
         //     None => (false, Duration::ZERO),
         // };
         let reconnect = if conf.reconnectCycle.is_some() {conf.reconnectCycle.unwrap()} else {Duration::from_secs(3)};
-        let _queueMaxLength = conf.recvQueueMaxLength;
+        let _queueMaxLength = conf.rxMaxLength;
         let mut tcpClientConnect = TcpClientConnect::new(
             selfId.clone(), 
             conf.address, 
@@ -106,7 +106,7 @@ impl Service for TcpClient {
             Arc::new(Mutex::new(TcpStreamWrite::new(
                 &selfId,
                 buffered,
-                Some(conf.recvQueueMaxLength as usize),
+                Some(conf.rxMaxLength as usize),
                 Box::new(JdsEncodeMessage::new(
                     &selfId,
                     JdsSerialize::new(
@@ -137,8 +137,8 @@ impl Service for TcpClient {
         info!("{}.run | started", self.id);
         handle
     }
-    ///
-    /// 
+    //
+    //
     fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
         match &self.tcpRecvAlive {

@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{collections::HashMap, sync::{mpsc::{Sender, Receiver, self}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}};
+use std::{collections::HashMap, sync::{mpsc::{Sender, self}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}, time::Duration};
 
 use log::{info, warn, debug, trace};
 
@@ -9,25 +9,26 @@ use crate::{core_::{point::point_type::PointType, testing::test_stuff::test_valu
 
 pub struct MockSendService {
     id: String,
-    inSend: HashMap<String, Sender<PointType>>,
+    rxSend: HashMap<String, Sender<PointType>>,
     // inRecv: Vec<Receiver<PointType>>,
     // outSend: HashMap<String, Sender<PointType>>,
     // outRecv: Vec<Receiver<PointType>>,
     sendQueue: String,
     services: Arc<Mutex<Services>>,
-    testData: Arc<Mutex<Vec<Value>>>,
+    testData: Vec<Value>,
     sent: Arc<Mutex<Vec<PointType>>>,
+    delay: Option<Duration>,
     exit: Arc<AtomicBool>,
 }
 ///
 /// 
 impl MockSendService {
-    pub fn new(parent: impl Into<String>, recvQueue: &str, sendQueue: &str, services: Arc<Mutex<Services>>, testData: Arc<Mutex<Vec<Value>>>) -> Self {
+    pub fn new(parent: impl Into<String>, recvQueue: &str, sendQueue: &str, services: Arc<Mutex<Services>>, testData: Vec<Value>, delay: Option<Duration>) -> Self {
         let selfId = format!("{}/MockSendService", parent.into());
         let (send, recv) = mpsc::channel::<PointType>();
         Self {
             id: selfId.clone(),
-            inSend: HashMap::from([(recvQueue.to_string(), send)]),
+            rxSend: HashMap::from([(recvQueue.to_string(), send)]),
             // inRecv: vec![recv],
             // outSend: HashMap::new(),
             // outRecv: vec![],
@@ -35,6 +36,7 @@ impl MockSendService {
             services,
             testData,
             sent: Arc::new(Mutex::new(vec![])),
+            delay,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -54,8 +56,13 @@ impl MockSendService {
 impl Service for MockSendService {
     //
     //
-    fn getLink(&self, name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
-        match self.inSend.get(name) {
+    fn id(&self) -> &str {
+        &self.id
+    }
+    //
+    //
+    fn getLink(&mut self, name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
+        match self.rxSend.get(name) {
             Some(send) => send.clone(),
             None => panic!("{}.run | link '{:?}' - not found", self.id, name),
         }
@@ -66,22 +73,18 @@ impl Service for MockSendService {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
-        let recvQueueParts: Vec<&str> = self.sendQueue.split(".").collect();
-        let outSendServiceName = recvQueueParts[0];
-        let outSendQueueName = recvQueueParts[1];
-        debug!("{}.run | Getting services...", selfId);
+        debug!("{}.run | Lock services...", selfId);
         let services = self.services.lock().unwrap();
-        debug!("{}.run | Getting services - ok", selfId);
-        let outSendService = services.get(&outSendServiceName);
-        let outSend = outSendService.lock().unwrap().getLink(&outSendQueueName);
+        debug!("{}.run | Lock services - ok", selfId);
+        let txSend = services.getLink(&self.sendQueue);
         let testData = self.testData.clone();
         let sent = self.sent.clone();
-        let _handle = thread::Builder::new().name(format!("{} - MultiQueue.run", selfId)).spawn(move || {
+        let delay = self.delay.clone();
+        let _handle = thread::Builder::new().name(format!("{}.run", selfId)).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
-            let testData = testData.lock().unwrap();
-            for value in testData.iter() {
-                let point = value.toPoint(&format!("{}/test", selfId));
-                match outSend.send(point.clone()) {
+            for value in testData {
+                let point = value.toPoint(0,&format!("{}/test", selfId));
+                match txSend.send(point.clone()) {
                     Ok(_) => {
                         trace!("{}.run | send: {:?}", selfId, point);
                         sent.lock().unwrap().push(point);
@@ -90,10 +93,14 @@ impl Service for MockSendService {
                         warn!("{}.run | send error: {:?}", selfId, err);
                     },
                 }
-            }
-            loop {
                 if exit.load(Ordering::SeqCst) {
                     break;
+                }
+                match delay {
+                    Some(duration) => {
+                        thread::sleep(duration);
+                    },
+                    None => {},
                 }
             }
         });

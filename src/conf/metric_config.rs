@@ -18,7 +18,7 @@ use crate::conf::{fn_config::FnConfig, conf_tree::ConfTree, fn_conf_keywd::FnCon
 ///             fn functionName:
 ///                 ...
 ///         input2:
-///             metric sqlSelectMetric:
+///             metric SqlMetric:
 ///                 ...
 #[derive(Debug, Clone, PartialEq)]
 pub struct MetricConfig {
@@ -44,7 +44,7 @@ impl MetricConfig {
     ///             fn functionName:
     ///                 ...
     ///         input2:
-    ///             metric sqlSelectMetric:
+    ///             metric SqlMetric:
     ///                 ...
     pub fn new(confTree: &ConfTree, vars: &mut Vec<String>) -> MetricConfig {
         println!("\n");
@@ -113,12 +113,12 @@ impl MetricConfig {
                         MetricConfig::fromYamlValue(&config, &mut vars)
                     },
                     Err(err) => {
-                        panic!("Error in config: {:?}\n\terror: {:?}", yamlString, err)
+                        panic!("MetricConfig.read | Error in config: {:?}\n\terror: {:?}", yamlString, err)
                     },
                 }
             },
             Err(err) => {
-                panic!("File {} reading error: {:?}", path, err)
+                panic!("MetricConfig.read | File {} reading error: {:?}", path, err)
             },
         }
     }

@@ -44,8 +44,8 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         info!("test_bool");
-        let mut value1Stored = false.toPoint("bool");
-        let mut value2Stored = false.toPoint("bool");
+        let mut value1Stored = false.toPoint(0, "bool");
+        let mut value2Stored = false.toPoint(0, "bool");
         let mut target: PointType;
         let input1 = initEach(value1Stored.clone());
         let input2 = initEach(value2Stored.clone());
@@ -64,8 +64,8 @@ mod tests {
             (false, false),
         ];
         for (value1, value2) in testData {
-            let point1 = value1.toPoint("test");
-            let point2 = value2.toPoint("test");
+            let point1 = value1.toPoint(0, "test");
+            let point2 = value2.toPoint(0, "test");
             input1.borrow_mut().add(point1.clone());
             let state = fnAdd.out();
             debug!("value1: {:?}   |   state: {:?}", value1, state);
@@ -88,8 +88,8 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         info!("test_int");
-        let mut value1Stored = 0.toPoint("int");
-        let mut value2Stored = 0.toPoint("int");
+        let mut value1Stored = 0.toPoint(0, "int");
+        let mut value2Stored = 0.toPoint(0, "int");
         let mut target: PointType;
         let input1 = initEach(value1Stored.clone());
         let input2 = initEach(value2Stored.clone());
@@ -113,8 +113,8 @@ mod tests {
             (0, i64::MAX),
         ];
         for (value1, value2) in testData {
-            let point1 = value1.toPoint("test");
-            let point2 = value2.toPoint("test");
+            let point1 = value1.toPoint(0, "test");
+            let point2 = value2.toPoint(0, "test");
             input1.borrow_mut().add(point1.clone());
             let state = fnAdd.out();
             debug!("value1: {:?}   |   state: {:?}", value1, state);

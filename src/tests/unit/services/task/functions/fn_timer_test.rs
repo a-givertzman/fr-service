@@ -44,7 +44,7 @@ fn test_elapsed_repeat_false() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_elapsed_repeat_false");
-    let input = initEach(false.toPoint("bool"));
+    let input = initEach(false.toPoint(0, "bool"));
     let mut fnTimer = FnTimer::new(
         "id", 
         0,
@@ -91,7 +91,7 @@ fn test_elapsed_repeat_false() {
             }
         }
         target = elapsedTotal + elapsed;
-        let point = value.toPoint("test");
+        let point = value.toPoint(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let fnTimerElapsed = fnTimer.out().asFloat().value;
@@ -107,7 +107,7 @@ fn test_total_elapsed_repeat() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_total_elapsed_repeat");
-    let input = initEach(false.toPoint("bool"));
+    let input = initEach(false.toPoint(0, "bool"));
     let mut fnTimer = FnTimer::new(
         "id", 
         0,
@@ -149,7 +149,7 @@ fn test_total_elapsed_repeat() {
             }
         }
         target = elapsedTotal + elapsed;
-        let point = value.toPoint("test");
+        let point = value.toPoint(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let fnTimerElapsed = fnTimer.out().asFloat().value;
@@ -165,7 +165,7 @@ fn test_total_elapsed_repeat_reset() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_total_elapsed_repeat_reset");
-    let input = initEach(false.toPoint("bool"));
+    let input = initEach(false.toPoint(0, "bool"));
     let mut fnTimer = FnTimer::new(
         "id",
         0, 
@@ -214,7 +214,7 @@ fn test_total_elapsed_repeat_reset() {
             }
         }
         target = elapsedTotal + elapsedSession;
-        let point = value.toPoint("test");
+        let point = value.toPoint(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let fnTimerElapsed = fnTimer.out().asFloat().value;
@@ -232,7 +232,7 @@ fn test_initial_repeat() {
     initOnce();
     info!("test_initial_repeat");
     let initial = 123.1234;
-    let input = initEach(false.toPoint("bool"));
+    let input = initEach(false.toPoint(0, "bool"));
     let mut fnTimer = FnTimer::new(
         "id",
         initial, 
@@ -274,7 +274,7 @@ fn test_initial_repeat() {
             }
         }
         target = elapsedTotal + elapsed;
-        let point = value.toPoint("test");
+        let point = value.toPoint(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let fnTimerElapsed = fnTimer.out().asFloat().value;

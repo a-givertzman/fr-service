@@ -2,7 +2,7 @@
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use log::{trace, debug};
+use log::debug;
 
 use crate::core_::{point::{point_type::PointType, point::Point}, types::{type_of::DebugTypeOf, bool::Bool, fn_in_out_ref::FnInOutRef}};
 
@@ -83,13 +83,14 @@ impl FnOut for FnGe {
             std::cmp::Ordering::Equal => point1.status(),
             std::cmp::Ordering::Greater => point1.status(),
         };
-        let timestamp = match point1.timestamp().cmp(&point2.timestamp()) {
-            std::cmp::Ordering::Less => point2.timestamp(),
-            std::cmp::Ordering::Equal => point1.timestamp(),
-            std::cmp::Ordering::Greater => point1.timestamp(),
+        let (txId, timestamp) = match point1.timestamp().cmp(&point2.timestamp()) {
+            std::cmp::Ordering::Less => (point2.txId(), point2.timestamp()),
+            std::cmp::Ordering::Equal => (point1.txId(), point1.timestamp()),
+            std::cmp::Ordering::Greater => (point1.txId(), point1.timestamp()),
         };
         PointType::Bool(
             Point::<Bool> {
+                txId: *txId,
                 name: String::from(format!("{}.out", self.id)),
                 value: Bool(value),
                 status: status,

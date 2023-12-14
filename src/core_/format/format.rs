@@ -32,6 +32,8 @@ pub struct Format {
 ///
 /// 
 impl Format {
+    ///
+    /// 
     pub fn new(input: &str) -> Self {
         let re = r#"\{(.*?)\}"#;
         let re = RegexBuilder::new(re).multi_line(true).build().unwrap();
@@ -49,9 +51,13 @@ impl Format {
             values: HashMap::new(),
         }
     }
+    ///
+    /// 
     pub fn insert(&mut self, key: &str, value: PointType) {
         self.values.insert(key.into(), value);
     }
+    ///
+    /// 
     pub fn out(&self) -> String {
         let mut input = self.input.clone();
         for (fullName, (name, sufix)) in &self.names {

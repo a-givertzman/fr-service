@@ -3,12 +3,12 @@
 
 mod tests {
     use log::{trace, info};
-    use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, env, time::Instant};
+    use std::{sync::{Once, Arc, Mutex}, env, time::Instant};
     
     use crate::{
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::PointType}, 
+        core_::debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
         conf::task_config::TaskConfig, 
-        services::{task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}, queues::queues::Queues},
+        services::{task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}, service::Service, services::Services},
     };
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -48,42 +48,44 @@ mod tests {
         let path = "./src/tests/unit/services/task/task_test_struct.yaml";
         let config = TaskConfig::read(path);
         trace!("config: {:?}", &config);
-    
-        let mut queues = Queues::new();
-        let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
-        let (apiSend, apiRecv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
-        queues.addRecvQueue("recv-queue", recv);
-        queues.addSendQueue("api-queue", apiSend);
-    
-        let mut receiver = TaskTestReceiver::new();
         
-        let testValues = vec![0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0];
-        receiver.run(apiRecv, iterations, testValues);
-    
-        let mut producer = TaskTestProducer::new(iterations, vec![send]);
-        producer.run();
-    
-        let mut task = Task::new("test", config, queues);
-        trace!("task tuning...");
+        let services = Arc::new(Mutex::new(Services::new("test")));
+        let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
+            "in-queue",
+            iterations,
+        )));
+        services.lock().unwrap().insert("TaskTestReceiver", receiver.clone());
+        
+        
+        let producer = Arc::new(Mutex::new(TaskTestProducer::new(
+            iterations, 
+            "Task.recv-queue",
+            services.clone(),
+        )));
+        
+        let task = Arc::new(Mutex::new(Task::new("test", config, services.clone())));
+        services.lock().unwrap().insert("Task", task.clone());
+        
+        let receiverHandle = receiver.lock().unwrap().run().unwrap();
+        let producerHandle = producer.lock().unwrap().run().unwrap();
+        trace!("task runing...");
         let time = Instant::now();
-        task.run();
-        trace!("task tuning - ok");
-        producer.join();
-        receiver.join();
-        // thread::sleep(Duration::from_millis(200));
-        trace!("task stopping...");
-        task.exit();
-        receiver.exit();
-        trace!("task stopping - ok");
-        println!("elapsed: {:?}", time.elapsed());
-        println!("received: {:?}", receiver.received());
-    
-        // trace!("task: {:?}", &task);
-        // assert_eq!(config, target);
+        task.lock().unwrap().run().unwrap();
+        trace!("task runing - ok");
+        producerHandle.join().unwrap();
+        receiverHandle.join().unwrap();
+        let sent = producer.lock().unwrap().sent().lock().unwrap().len();
+        let result = receiver.lock().unwrap().received().lock().unwrap().len();
+        println!(" elapsed: {:?}", time.elapsed());
+        println!("    sent: {:?}", sent);
+        println!("received: {:?}", result);
+        assert!(sent == iterations, "\nresult: {:?}\ntarget: {:?}", sent, iterations);
+        assert!(result == iterations, "\nresult: {:?}\ntarget: {:?}", result, iterations);
     }
 
 
-    // #[test]
+    #[ignore = "TODO - transfered values assertion not implemented yet"]
+    #[test]
     fn test_task_tranfer() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
@@ -93,41 +95,48 @@ mod tests {
         let iterations = 10;
         
         trace!("dir: {:?}", env::current_dir());
-        let path = "./src/tests/unit/task/task_test.yaml";
+        let path = "./src/tests/unit/services/task/task_test_struct.yaml";
+        // let path = "./src/tests/unit/task/task_test.yaml";
         let config = TaskConfig::read(path);
         trace!("config: {:?}", &config);
     
-        let mut queues = Queues::new();
-        let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
-        let (apiSend, apiRecv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
-        queues.addRecvQueue("recv-queue", recv);
-        queues.addSendQueue("api-queue", apiSend);
-    
-        let mut receiver = TaskTestReceiver::new();
+        let services = Arc::new(Mutex::new(Services::new("test")));
+        let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
+            "in-queue",
+            iterations,
+        )));
+        services.lock().unwrap().insert("TaskTestReceiver", receiver.clone());
         
-        let testValues = vec![0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0];
-        receiver.run(apiRecv, iterations, testValues);
+        let producer = Arc::new(Mutex::new(TaskTestProducer::new(
+            iterations, 
+            "Task.recv-queue",
+            services.clone(),
+        )));
     
-        let mut producer = TaskTestProducer::new(iterations, vec![send]);
-        producer.run();
-    
-        let mut task = Task::new("test", config, queues);
-        trace!("task tuning...");
+        let task = Arc::new(Mutex::new(Task::new("test", config, services.clone())));
+        services.lock().unwrap().insert("Task", task.clone());
+
+        let receiverHandle = receiver.lock().unwrap().run().unwrap();
+        let producerHandle = producer.lock().unwrap().run().unwrap();
+        trace!("task runing...");
         let time = Instant::now();
-        task.run();
-        trace!("task tuning - ok");
-        producer.join();
-        receiver.join();
-        // thread::sleep(Duration::from_millis(200));
-        trace!("task stopping...");
-        task.exit();
-        receiver.exit();
-        trace!("task stopping - ok");
-        println!("elapsed: {:?}", time.elapsed());
-        println!("received: {:?}", receiver.received());
-    
-        // trace!("task: {:?}", &task);
-        // assert_eq!(config, target);
+        task.lock().unwrap().run().unwrap();
+        trace!("task runing - ok");
+        producerHandle.join().unwrap();
+        receiverHandle.join().unwrap();
+        let producerSent = producer.lock().unwrap().sent();
+        let sent = producerSent.lock().unwrap();
+        let receiverReceived = receiver.lock().unwrap().received();
+        let mut received = receiverReceived.lock().unwrap();
+        println!(" elapsed: {:?}", time.elapsed());
+        println!("    sent: {:?}", sent.len());
+        println!("received: {:?}", received.len());
+        assert!(sent.len() == iterations, "\nresult: {:?}\ntarget: {:?}", sent.len(), iterations);
+        assert!(received.len() == iterations, "\nresult: {:?}\ntarget: {:?}", received.len(), iterations);
+        for sentPoint in sent.iter() {
+            let recvPoint = received.pop().unwrap();
+            assert!(&recvPoint == sentPoint, "\nresult: {:?}\ntarget: {:?}", recvPoint, sentPoint);
+        }
     }
 }
 

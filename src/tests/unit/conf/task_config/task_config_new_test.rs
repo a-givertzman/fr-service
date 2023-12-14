@@ -35,14 +35,14 @@ mod tests {
     
     #[test]
     fn test_fn_config_new_valid() {
-        DebugSession::init(LogLevel::Info, Backtrace::Short);
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         info!("test_task_config_new_valid");
         // let (initial, switches) = initEach();
         let testData = [
             // (
-            //     r#"metric sqlSelectMetric:
+            //     r#"metric SqlMetric:
             //         table: "table_name"
             //         sql: "select * from {table}"
             //         inputs:
@@ -55,8 +55,9 @@ mod tests {
             (
                 r#"task task1:
                     cycle: 100 ms
-                    recv-queue: recv-queue
-                    metric sqlSelectMetric:
+                    in queue recv-queue:
+                        max-length: 10000
+                    metric SqlMetric:
                         initial: 0.123      # начальное значение
                         table: table_name
                         sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
@@ -74,13 +75,14 @@ mod tests {
                 TaskConfig {
                     name: String::from("task1"),
                     cycle: Some(Duration::from_millis(100)),
-                    recvQueue: String::from("recv-queue"),
+                    rx: String::from("recv-queue"),
+                    rxMaxLength: 10000,
                     vars: vec![String::from("VarName2")],
                     nodes: IndexMap::from([                    
-                        (String::from("sqlSelectMetric-1"), FnConfig { 
+                        (String::from("SqlMetric-1"), FnConfig { 
                                 fnKind: FnConfKind::Metric,
                                 type_: FnConfPointType::Unknown,
-                                name: String::from("sqlSelectMetric"), 
+                                name: String::from("SqlMetric"), 
                                 // vars: vec![String::from("VarName2")],
                                 inputs: IndexMap::from([
                                     (String::from("initial"), FnConfig { fnKind: FnConfKind::Param, name: String::from("0.123"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() }),
@@ -116,7 +118,8 @@ mod tests {
             (
                 r#"task task1:
                     cycle: 100 ms
-                    recv-queue: recv-queue
+                    in queue recv-queue:
+                        max-length: 10000
                     let VarName2:
                         input fn functionName:
                             initial: VarName2
@@ -129,7 +132,8 @@ mod tests {
                 TaskConfig {
                     name: String::from("task1"),
                     cycle: Some(Duration::from_millis(100)),
-                    recvQueue: String::from("recv-queue"),
+                    rx: String::from("recv-queue"),
+                    rxMaxLength: 10000,
                     vars: vec![String::from("VarName2")],
                     nodes: IndexMap::from([                    
                         (String::from("VarName2-1"), FnConfig { 

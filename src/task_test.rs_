@@ -7,13 +7,13 @@ mod services;
 mod tcp;
 
 use log::{trace, info, debug};
-use std::{sync::{Once, mpsc::{Sender, Receiver, self}}, env, time::{Instant, Duration}, fs, thread};
+use std::{sync::{Once, mpsc::{Sender, Receiver, self}, Arc, Mutex}, env, time::{Instant, Duration}, fs, thread};
 
 
 use crate::{
     core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::PointType}, 
     conf::task_config::TaskConfig, 
-    services::{task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}, queues::queues::Queues},
+    services::{task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}, queues::queues::Queues, services::Services, service::Service},
 };
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -62,6 +62,7 @@ fn main() {
     // debug!("config: {:?}", &config);
 
     let mut queues = Queues::new();
+    let services = Arc::new(Mutex::new(Services::new("test")));
     let (send1, recv1): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
     let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
     let (apiSend, apiRecv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
@@ -79,7 +80,7 @@ fn main() {
     producer2.run();
     producer3.run();
 
-    let mut task = Task::new("test", config, queues);
+    let mut task = Task::new("test", config, services);
     info!("task runing...");
     let time = Instant::now();
     task.run();
@@ -105,7 +106,7 @@ fn main() {
                                 let target = format!(
                                     "insert into {} (id, value, timestamp) values ({}, {}, {});", 
                                     "table_name", 
-                                    "sqlSelectMetric", 
+                                    "SqlMetric", 
                                     point.value + 0.2 + 0.05,
                                     point.value + 2.224,
                                 );

@@ -1,6 +1,10 @@
 task task1:
     cycle: 1 us
-    recv-queue: recv-queue
+    
+    in queue api-link:
+        max-length: 10000
+
+    # recv-queue: Receiver.queue
 
     let Var2:
         input: point int '/path/Point.Name2'
@@ -9,8 +13,8 @@ task task1:
         input: point int '/path/Point.Name3'
 
     fn toApiQueue:
-        queue: api-queue
-        input metric sqlSelectMetric:
+        queue: ApiClient.queue
+        input metric SqlMetric:
             initial: 0.123      # начальное значение
             table: table_name
             sql: "{input.value}, {input1.value}, {input2.value}, {input3.value}"
