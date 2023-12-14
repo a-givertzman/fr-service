@@ -15,7 +15,6 @@ use super::{fn_::{FnInOut, FnIn, FnOut}, fn_kind::FnKind};
 #[derive(Debug)]
 pub struct FnGe {
     id: String,
-    txId: usize,
     kind: FnKind,
     input1: FnInOutRef,
     input2: FnInOutRef,
@@ -24,12 +23,11 @@ pub struct FnGe {
 /// 
 impl FnGe {
     #[allow(dead_code)]
-    pub fn new(id: impl Into<String>, txId: usize, input1: FnInOutRef, input2: FnInOutRef) -> Self {
+    pub fn new(id: impl Into<String>, input1: FnInOutRef, input2: FnInOutRef) -> Self {
         COUNT.fetch_add(1, Ordering::SeqCst);
         let id = "FnGe";
         Self { 
             id: format!("{}{}", id, COUNT.load(Ordering::Relaxed)),
-            txId,
             kind: FnKind::Fn,
             input1,
             input2,
@@ -85,14 +83,14 @@ impl FnOut for FnGe {
             std::cmp::Ordering::Equal => point1.status(),
             std::cmp::Ordering::Greater => point1.status(),
         };
-        let timestamp = match point1.timestamp().cmp(&point2.timestamp()) {
-            std::cmp::Ordering::Less => point2.timestamp(),
-            std::cmp::Ordering::Equal => point1.timestamp(),
-            std::cmp::Ordering::Greater => point1.timestamp(),
+        let (txId, timestamp) = match point1.timestamp().cmp(&point2.timestamp()) {
+            std::cmp::Ordering::Less => (point2.txId(), point2.timestamp()),
+            std::cmp::Ordering::Equal => (point1.txId(), point1.timestamp()),
+            std::cmp::Ordering::Greater => (point1.txId(), point1.timestamp()),
         };
         PointType::Bool(
             Point::<Bool> {
-                txId: self.txId,
+                txId: *txId,
                 name: String::from(format!("{}.out", self.id)),
                 value: Bool(value),
                 status: status,
