@@ -56,12 +56,12 @@ impl PointType {
     }
     ///
     /// Returns transmitter ID of the containing Point
-    pub fn txId(&self) -> usize {
+    pub fn txId(&self) -> &usize {
         match self {
-            PointType::Bool(point) => point.txId,
-            PointType::Int(point) => point.txId,
-            PointType::Float(point) => point.txId,
-            PointType::String(point) => point.txId,
+            PointType::Bool(point) => &point.txId,
+            PointType::Int(point) => &point.txId,
+            PointType::Float(point) => &point.txId,
+            PointType::String(point) => &point.txId,
         }
     }
     ///

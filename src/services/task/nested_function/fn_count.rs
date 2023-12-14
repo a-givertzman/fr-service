@@ -17,6 +17,7 @@ use super::{fn_::{FnInOut, FnOut, FnIn}, fn_kind::FnKind};
 #[derive(Debug)]
 pub struct FnCount {
     id: String,
+    txId: usize,
     kind: FnKind,
     input: FnInOutRef,
     count: f64,
@@ -28,11 +29,12 @@ impl FnCount {
     ///
     /// Creates new instance of the FnCount
     #[allow(dead_code)]
-    pub fn new(id: impl Into<String>, initial: f64, input: FnInOutRef) -> Self {
+    pub fn new(id: impl Into<String>, txId: usize, initial: f64, input: FnInOutRef) -> Self {
         COUNT.fetch_add(1, Ordering::SeqCst);
         let id = "FnCount";
         Self { 
             id: format!("{}{}", id, COUNT.load(Ordering::Relaxed)),
+            txId,
             kind:FnKind::Fn,
             input,
             count: initial.clone(),
@@ -72,7 +74,7 @@ impl FnOut for FnCount {
         trace!("FnCount.out | input.out: {:?}   | state: {:?}", &value, self.count);
         PointType::Float(
             Point {
-                txId: point.txId(),
+                txId: self.txId,
                 name: String::from(format!("{}.out", self.id)),
                 value: self.count,
                 status: point.status(),

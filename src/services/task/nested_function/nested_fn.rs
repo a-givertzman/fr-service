@@ -52,7 +52,7 @@ impl NestedFn {
                         let name = "input";
                         let inputConf = conf.inputConf(name);
                         let input = Self::function(parent, txId, name, inputConf, taskNodes, services);
-                        Self::fnCount(inputName, initial, input)
+                        Self::fnCount(inputName, txId, initial, input)
                     }
                     Functions::Add => {
                         let name = "input1";
@@ -67,7 +67,7 @@ impl NestedFn {
                         let name = "input1";
                         let conf = conf.inputs.get_mut(name).unwrap();
                         let input = Self::function(parent, txId, name, conf, taskNodes, services);
-                        Self::fnTimer(inputName, 0.0, input, true)
+                        Self::fnTimer(inputName, txId, 0.0, input, true)
                     },
                     Functions::ToApiQueue => {
                         let name = "input";
@@ -86,7 +86,7 @@ impl NestedFn {
                         let name = "input2";
                         let inputConf = conf.inputConf(name);
                         let input2 = Self::function(parent, txId, name, inputConf, taskNodes, services);
-                        Self::fnGe(fnName.name(), input1, input2)
+                        Self::fnGe(fnName.name(), txId, input1, input2)
                     }
                     _ => panic!("NestedFn.function | Unknown function name: {:?}", conf.name)
                 }
@@ -165,9 +165,9 @@ impl NestedFn {
     /// 
     /// 
     /// 
-    fn fnCount(id: impl Into<String>, initial: f64, input: FnInOutRef,) -> FnInOutRef {
+    fn fnCount(id: impl Into<String>, txId: usize, initial: f64, input: FnInOutRef,) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(                
-            FnCount::new(id, initial, input),
+            FnCount::new(id, txId, initial, input),
         )))
     }
     /// 
@@ -213,6 +213,7 @@ impl NestedFn {
     // /// 
     fn fnTimer(
         id: &str, 
+        txId: usize,
         initial: impl Into<f64> + Clone,
         input: FnInOutRef, 
         repeat: bool,
@@ -221,6 +222,7 @@ impl NestedFn {
             Box::new(        
                 FnTimer::new(
                     id,
+                    txId,
                     initial, 
                     input, 
                     repeat
@@ -232,11 +234,12 @@ impl NestedFn {
     // /// 
     fn fnGe(
         id: &str, 
+        txId: usize,
         input1: FnInOutRef, 
         input2: FnInOutRef
     ) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(        
-            FnGe::new(id, input1, input2)
+            FnGe::new(id, txId, input1, input2)
         )))
     }    
 }

@@ -2,7 +2,7 @@
 
 use std::{collections::HashMap, sync::mpsc::Sender};
 
-use log::warn;
+use log::{warn, debug, trace};
 
 use crate::core_::point::point_type::PointType;
 
@@ -66,15 +66,17 @@ impl Subscriptions {
     pub fn iter(&self, pointId: &str) -> impl Iterator<Item = (&usize, &Sender<PointType>)> {
         match self.multicast.get(pointId) {
             Some(multicast) => {
+                trace!("{}.iter | \n\t Multicast: {:?} \n\t Broadcast: {:?}", self.id, multicast, self.broadcast);
                 multicast.iter().chain(&self.broadcast)
             },
             None => {
+                trace!("{}.iter | \n\t Broadcast: {:?}", self.id, self.broadcast);
                 self.broadcast.iter().chain(&self.empty)
             },
         }
     }
     ///
-    /// Removes single subscription by Point Id & receiver ID
+    /// Removes single subscription by Point Id for receiver ID
     pub fn remove(&mut self, receiverId: &usize, pointId: &str) -> Result<(), String> {
         match self.multicast.get_mut(pointId) {
             Some(senders) => {
@@ -84,6 +86,43 @@ impl Subscriptions {
                 }
             },
             None => Err(format!("{}.run | Subscription '{}' - not found", self.id, pointId)),
+        }
+    }
+    ///
+    /// Removes all subscriptions for receiver ID
+    pub fn removeAll(&mut self, receiverId: &usize) -> Result<(), String> {
+        let mut changed = false;
+        let mut messages = vec![];
+        let keys: Vec<String> = self.multicast.keys().map(|v| v.clone()).collect();
+        for pointId in keys {
+            match self.multicast.get_mut(&pointId) {
+                Some(senders) => {
+                    match senders.remove(receiverId) {
+                        Some(_) => {
+                            changed = changed | true;
+                        },
+                        None => {
+                            messages.push(format!("{}.run | Multicast Subscription '{}', receiver '{}' - not found", self.id, pointId, receiverId));
+                        },
+                    }
+                },
+                None => {
+                    messages.push(format!("{}.run | Multicast Subscription '{}' - not found", self.id, pointId));
+                }
+            }
+        }
+        match self.broadcast.remove(receiverId) {
+            Some(_) => {
+                changed = changed | true;
+            },
+            None => {
+                messages.push(format!("{}.run | Broadcast Subscription by receiver '{}' - not found", self.id, receiverId));
+            },
+        }
+        if changed {
+            Ok(())
+        } else {
+            Err(messages.join("\n"))
         }
     }
 }

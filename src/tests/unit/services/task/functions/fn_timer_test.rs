@@ -48,6 +48,7 @@ fn test_elapsed_repeat_false() {
     let mut fnTimer = FnTimer::new(
         "id", 
         0,
+        0,
         input.clone(),
         false,
     );
@@ -111,6 +112,7 @@ fn test_total_elapsed_repeat() {
     let mut fnTimer = FnTimer::new(
         "id", 
         0,
+        0,
         input.clone(),
         true,
     );
@@ -168,6 +170,7 @@ fn test_total_elapsed_repeat_reset() {
     let input = initEach(false.toPoint(0, "bool"));
     let mut fnTimer = FnTimer::new(
         "id",
+        0, 
         0, 
         input.clone(),
         true,
@@ -235,6 +238,7 @@ fn test_initial_repeat() {
     let input = initEach(false.toPoint(0, "bool"));
     let mut fnTimer = FnTimer::new(
         "id",
+        0,
         initial, 
         input.clone(),
         true,

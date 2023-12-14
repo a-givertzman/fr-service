@@ -2,11 +2,11 @@
 #[cfg(test)]
 mod tests {
     use log::{info, debug, error};
-    use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}, thread::{self, JoinHandle}, any::Any};
+    use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}, thread::{self, JoinHandle}, any::Any, collections::HashMap};
     use crate::{
         core_::{
             debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-            testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::MaxTestDuration},
+            testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::MaxTestDuration}, point::point_type::PointType,
         }, 
         conf::multi_queue_config::MultiQueueConfig, services::{multi_queue::multi_queue::MultiQueue, services::Services, service::Service}, 
         tests::unit::services::multi_queue::{mock_tcp_server::MockTcpServer, mock_recv_send_service::MockRecvSendService},
@@ -44,7 +44,7 @@ mod tests {
 
         let selfId = "test";
         let count = 3;              // count of the MockRecvSendService & MockTcpServer instances
-        let iterations = 10;      // test data length
+        let iterations = 1000;      // test data length
         let staticTestData = RandomTestValues::new(
             selfId, 
             vec![
@@ -53,16 +53,6 @@ mod tests {
             iterations, 
         );
         let staticTestData: Vec<Value> = staticTestData.collect();
-        let staticTestDataLen = staticTestData.len();
-        let dynamicTestData = RandomTestValues::new(
-            selfId, 
-            vec![
-                Value::String(String::from("dynamic")),
-            ], 
-            iterations, 
-        );
-        let dynamicTestData: Vec<Value> = dynamicTestData.collect();
-        let dynamicTestDataLen = dynamicTestData.len();
         let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
         maxTestDuration.run().unwrap();
         let mut conf = r#"
@@ -101,7 +91,17 @@ mod tests {
         }
         println!("All MockRecvSendService threads - finished");
         let mut tcpServerServices: Vec<Arc<Mutex<MockTcpServer>>> = vec![];
+        let mut dynamicTarget: HashMap<i32, usize> = HashMap::new();
         for i in 0..count {
+            let pointContent = format!("dynamic{}", i);
+            let dynamicTestData = RandomTestValues::new(
+                selfId, 
+                vec![
+                    Value::String(String::from(&pointContent)),
+                ], 
+                iterations, 
+            );
+            let dynamicTestData: Vec<Value> = dynamicTestData.collect();
             let tcpServerService = Arc::new(Mutex::new(MockTcpServer::new(
                 format!("tread{}", i),
                 "MultiQueue.in-queue",
@@ -112,46 +112,33 @@ mod tests {
             services.lock().unwrap().insert(&format!("MockTcpServer{}", i), tcpServerService.clone());
             let thdHandle = tcpServerService.lock().unwrap().run().unwrap();
             waitForThread(thdHandle).unwrap();
-            let mut received = 0;
-            for point in tcpServerService.lock().unwrap().received().lock().unwrap().iter() {
-                match point {
-                    crate::core_::point::point_type::PointType::Bool(point) => {},
-                    crate::core_::point::point_type::PointType::Int(point) => {},
-                    crate::core_::point::point_type::PointType::Float(point) => {},
-                    crate::core_::point::point_type::PointType::String(point) => {
-                        if point.value == "dynamic" {
-                            received += 1;
-                        }
-                    },
-                }
-            }
-            let target = dynamicTestDataLen * (i + 1);
-            let result = received;
-            assert!(result == 0, "\nresult: {:?}\ntarget: {:?}", result, 0);
+            thread::sleep(Duration::from_millis(100));
+            let target = 0;
+            let result = pointsCount(tcpServerService.lock().unwrap().received().lock().unwrap().iter(), &pointContent);
+            assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
             for rsService in &rsServices {
                 let result = rsService.lock().unwrap().received().lock().unwrap().len();
-                println!("Static service Received: {}", result);
+                println!("Static service Received( {} ): {}", rsService.lock().unwrap().id(), result);
                 // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
             }
-            for tcpServerService in &tcpServerServices {
-                let mut result = 0;
-                for point in tcpServerService.lock().unwrap().received().lock().unwrap().iter() {
-                    match point {
-                        crate::core_::point::point_type::PointType::Bool(point) => {},
-                        crate::core_::point::point_type::PointType::Int(point) => {},
-                        crate::core_::point::point_type::PointType::Float(point) => {},
-                        crate::core_::point::point_type::PointType::String(point) => {
-                            if point.value == "dynamic" {
-                                result += 1;
-                            }
-                        },
-                    }
-                }
-                println!("Dynamic service Received: {}", result);
+            for (index, tcpServerService) in tcpServerServices.iter().enumerate() {
+                let result = pointsCount(tcpServerService.lock().unwrap().received().lock().unwrap().iter(), &pointContent);
+                println!("Dynamic service Received( {} ): {}", tcpServerService.lock().unwrap().id(), result);
                 // let result = tcpServerService.lock().unwrap().received().lock().unwrap().len();
-                // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
+                match dynamicTarget.get_mut(&(index as i32)) {
+                    Some(value) => {
+                        *value += iterations;
+                    },
+                    None => {
+                        panic!("index {} - not found", index)
+                    },
+                };
+                let target = dynamicTarget.get(&(index as i32)).unwrap();
+                assert!(&result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
             }
+            println!("Dynamic service Received( {} ): {}", tcpServerService.lock().unwrap().id(), result);
             tcpServerServices.push(tcpServerService.clone());
+            dynamicTarget.insert(i, 0);
         }
         for rsService in rsServices {
             rsService.lock().unwrap().exit();
@@ -183,4 +170,23 @@ mod tests {
         }
         r
     }
+    ///
+    /// 
+    fn pointsCount<'a, T>(points: T, value: &str) -> usize 
+        where T: Iterator<Item = &'a PointType>{
+        let mut result = 0;
+        for point in points {
+            match point {
+                PointType::Bool(_point) => {},
+                PointType::Int(_point) => {},
+                PointType::Float(_point) => {},
+                PointType::String(point) => {
+                    result += 1;
+                    if point.value == value {
+                    }
+                },
+            }
+        }
+        result
+    }    
 }

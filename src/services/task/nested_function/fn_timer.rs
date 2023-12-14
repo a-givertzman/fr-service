@@ -28,6 +28,7 @@ enum FnTimerState {
 #[derive(Debug)]
 pub struct FnTimer {
     id: String,
+    txId: usize,
     kind: FnKind,
     input: FnInOutRef,
     state: SwitchState<FnTimerState, bool>,
@@ -40,7 +41,7 @@ pub struct FnTimer {
 /// 
 impl FnTimer {
     #[allow(dead_code)]
-    pub fn new(id: &str, initial: impl Into<f64> + Clone, input: FnInOutRef, repeat: bool) -> Self {
+    pub fn new(id: &str, txId: usize, initial: impl Into<f64> + Clone, input: FnInOutRef, repeat: bool) -> Self {
         let switches = vec![
             Switch{
                 state: FnTimerState::Off,
@@ -93,6 +94,7 @@ impl FnTimer {
         ];
         Self { 
             id: id.into(),
+            txId,
             kind: FnKind::Fn,
             input,
             state: SwitchState::new(FnTimerState::Off, switches),
@@ -160,7 +162,7 @@ impl FnOut for FnTimer {
         };
         PointType::Float(
             Point {
-                txId: point.txId(),
+                txId: self.txId,
                 name: String::from("FnTimer"),
                 value: self.totalElapsed + self.sessionElapsed,
                 status: point.status(),

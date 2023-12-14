@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread::{self, JoinHandle}};
+use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread::{self, JoinHandle}, time::Duration};
 
 use log::{info, warn, error, debug, trace};
 
@@ -69,11 +69,13 @@ impl Service for MultiQueue {
         let innerReceiverId = PointTxId::fromStr(receiverId);
         self.receiverDictionary.insert(innerReceiverId, receiverId.to_string());
         if points.is_empty() {
-            self.subscriptions.lock().unwrap().addBroadcast(innerReceiverId, send.clone());
+            self.subscriptions.lock().unwrap().addBroadcast(innerReceiverId, send);
+            debug!("{}.subscribe | Broadcast subscription registered, receiver: {} ({})", self.id, receiverId, innerReceiverId);
         } else {
             for pointId in points {
                 self.subscriptions.lock().unwrap().addMulticast(innerReceiverId, pointId, send.clone());
             }
+            debug!("{}.subscribe | Multicast subscription registered, receiver: {} ({})", self.id, receiverId, innerReceiverId);
         }
         self.subscriptionsChanged.store(true, Ordering::SeqCst);
         recv
@@ -81,17 +83,35 @@ impl Service for MultiQueue {
     //
     //
     fn unsubscribe(&mut self, receiverId: &str, points: &Vec<String>) -> Result<(), String> {
-        let receiverId = PointTxId::fromStr(receiverId);
-        for pointId in points {
-            match self.subscriptions.lock().unwrap().remove(&receiverId, pointId) {
+        let mut changed = false;
+        let innerReceiverId = PointTxId::fromStr(receiverId);
+        if points.is_empty() {
+            match self.subscriptions.lock().unwrap().removeAll(&innerReceiverId) {
                 Ok(_) => {
-                    self.receiverDictionary.remove(&receiverId);
-                    self.subscriptionsChanged.store(true, Ordering::SeqCst);
+                    self.receiverDictionary.remove(&innerReceiverId);
+                    changed = changed | true;
+                    debug!("{}.unsubscribe | Broadcast subscription removed, receiver: {} ({})", self.id, receiverId, innerReceiverId);
                 },
                 Err(err) => {
                     return Err(err)
                 },
             }
+        } else {
+            for pointId in points {
+                match self.subscriptions.lock().unwrap().remove(&innerReceiverId, pointId) {
+                    Ok(_) => {
+                        self.receiverDictionary.remove(&innerReceiverId);
+                        changed = changed | true;
+                        debug!("{}.unsubscribe | Multicat subscription '{}' removed, receiver: {} ({})", self.id, pointId, receiverId, innerReceiverId);
+                    },
+                    Err(err) => {
+                        return Err(err)
+                    },
+                }
+            }
+        }
+        if changed {
+            self.subscriptionsChanged.store(true, Ordering::SeqCst);
         }
         Ok(())
     }
@@ -124,17 +144,18 @@ impl Service for MultiQueue {
             loop {
                 if subscriptionsChanged.load(Ordering::Relaxed) == true {
                     subscriptionsChanged.store(false, Ordering::SeqCst);
+                    debug!("{}.run | Subscriptions changes detected", selfId);
                     debug!("{}.run | Lock subscriptions...", selfId);
                     subscriptions = subscriptionsRef.lock().unwrap().clone();
                     debug!("{}.run | Lock subscriptions - ok", selfId);
                 }
-                match recv.recv() {
+                match recv.recv_timeout(Duration::from_millis(100)) {
                     Ok(point) => {
                         let pointId = point.name();
                         trace!("{}.run | received: {:?}", selfId, point);
                         for (receiverId, sender) in subscriptions.iter(&pointId) {
                             // for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {
-                            match receiverId != &point.txId() {
+                            match receiverId != point.txId() {
                                 true => {
                                     match sender.send(point.clone()) {
                                         Ok(_) => {},
@@ -148,13 +169,14 @@ impl Service for MultiQueue {
                         }
                     },
                     Err(err) => {
-                        warn!("{}.run | recv error: {:?}", selfId, err);
+                        trace!("{}.run | recv timeout: {:?}", selfId, err);
                     },
                 }
                 if exit.load(Ordering::SeqCst) {
                     break;
                 }
             }
+            info!("{}.run | Exit", selfId);
         });
         info!("{}.run | started", self.id);
         handle

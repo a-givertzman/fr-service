@@ -82,6 +82,7 @@ impl Service for MockTcpServer {
         let mqServiceName = mqServiceName.service();
         debug!("{}.run | Lock services...", selfId);
         let rxRecv = self.services.lock().unwrap().subscribe(mqServiceName, &selfId, &vec![]);
+        let txSend = self.services.lock().unwrap().getLink(&self.multiQueue);
         debug!("{}.run | Lock services - ok", selfId);
         let received = self.received.clone();
         let recvLimit = self.recvLimit.clone();
@@ -122,17 +123,15 @@ impl Service for MockTcpServer {
                     }
                 },
             }
+            info!("{}.run | Exit thread Recv", selfId);
         });
         let selfId = self.id.clone();
+        let txId = PointTxId::fromStr(&selfId);
         let exit = self.exit.clone();
-        debug!("{}.run | Lock services...", selfId);
-        let txSend = self.services.lock().unwrap().getLink(&self.multiQueue);
-        debug!("{}.run | Lock services - ok", selfId);
         let testData = self.testData.clone();
         let sent = self.sent.clone();
         let handle = thread::Builder::new().name(format!("{}.run | Send", selfId)).spawn(move || {
             info!("{}.run | Preparing thread Send - ok", selfId);
-            let txId = PointTxId::fromStr(&selfId);
             for value in testData.iter() {
                 let point = value.toPoint(txId,&format!("{}/test", selfId));
                 match txSend.send(point.clone()) {
@@ -148,6 +147,7 @@ impl Service for MockTcpServer {
                     break;
                 }
             }
+            info!("{}.run | Exit thread Send", selfId);
         });
         handle
     }

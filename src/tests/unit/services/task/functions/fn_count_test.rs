@@ -44,6 +44,7 @@ fn test_single() {
     let input = initEach(false.toPoint(0, "bool"));
     let mut fnCount = FnCount::new(
         "test",
+        0,
         0.0, 
         input.clone(),
     );
@@ -83,6 +84,7 @@ fn test_multiple() {
     let input = initEach(false.toPoint(0, "bool"));
     let mut fnCount = FnCount::new(
         "test",
+        0,
         0.0, 
         input.clone(),
     );
@@ -121,6 +123,7 @@ fn test_multiple_reset() {
     let input = initEach(false.toPoint(0, "bool"));
     let mut fnCount = FnCount::new(
         "test",
+        0,
         0.0, 
         input.clone(),
     );
