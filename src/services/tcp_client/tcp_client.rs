@@ -117,7 +117,7 @@ impl Service for TcpClient {
             ))),
         );
         info!("{}.run | Preparing thread...", selfId);
-        let handle = thread::Builder::new().name(format!("{} - Read", selfId.clone())).spawn(move || {
+        let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
             loop {
                 match tcpClientConnect.connect() {
