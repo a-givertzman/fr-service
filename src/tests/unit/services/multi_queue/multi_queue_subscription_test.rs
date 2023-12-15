@@ -2,7 +2,7 @@
 #[cfg(test)]
 mod tests {
     use log::{info, debug, error};
-    use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}, thread::{self, JoinHandle}, any::Any, collections::HashMap};
+    use std::{sync::{Once, Arc, Mutex}, time::Duration, thread::{self, JoinHandle}, any::Any, collections::HashMap};
     use crate::{
         core_::{
             debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
