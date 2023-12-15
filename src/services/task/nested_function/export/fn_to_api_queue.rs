@@ -13,7 +13,7 @@ pub struct FnToApiQueue {
     id: String,
     kind: FnKind,
     input: FnInOutRef,
-    sendQueue: Sender<PointType>,
+    txSend: Sender<PointType>,
     state: String,
 }
 static COUNT: AtomicUsize = AtomicUsize::new(0);
@@ -30,7 +30,7 @@ impl FnToApiQueue {
             id: format!("{}{}", id.into(), COUNT.load(Ordering::Relaxed)),
             kind: FnKind::Fn,
             input,
-            sendQueue: send,
+            txSend: send,
             state: String::new(),
         }
     }
@@ -64,12 +64,12 @@ impl FnOut for FnToApiQueue {
         let sql = point.asString().value;
         if sql != self.state {
             self.state = sql.clone();
-            match self.sendQueue.send(point.clone()) {
+            match self.txSend.send(point.clone()) {
                 Ok(_) => {
-                    trace!("FnToApiQueue.out | sql sent to queueu successfully");
+                    trace!("FnToApiQueue.out | Sent sql: {}", sql);
                 },
                 Err(err) => {
-                    error!("FnToApiQueue.out | Error sending to queue sql: {}\n\terror: {:?}", &sql, err);
+                    error!("FnToApiQueue.out | Send error: {:?}\n\tsql: {:?}", err, sql);
                 },
             };
         }

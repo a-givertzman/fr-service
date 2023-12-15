@@ -50,19 +50,20 @@ mod tests {
         info!("test_jds_deserialize");
         let name = "/server/line1/ied1/test1";
         let ts = ts();
+        let txId = 0;
         // debug!("timestamp: {:?}", ts);j
         let testData = [
-            (format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": false,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Bool(Point::new(name, Bool(false), 0, ts))),
-            (format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": true,    "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Bool(Point::new(name, Bool(true),  0, ts))),
-            (format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": 1,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Int(Point::new(name, 1, 0, ts))),
-            (format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": -9223372036854775808,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Int(Point::new(name, -9223372036854775808, 0, ts))),
-            (format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value":  9223372036854775807,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Int(Point::new(name,  9223372036854775807, 0, ts))),
-            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  0.0, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(name,  0.0, 0, ts))),
-            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value": -1.1, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(name, -1.1, 0, ts))),
-            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  1.1, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(name,  1.1, 0, ts))),
-            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value": -1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(name, -1.7976931348623157e308, 0, ts))),
-            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(name,  1.7976931348623157e308, 0, ts))),
-            (format!(r#"{{"id": "1", "type": "String","name": "{}", "value": "~!@#$%^&*()_+`1234567890-=","status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::String(Point::new(name, "~!@#$%^&*()_+`1234567890-=".to_string(), 0, ts))),
+            (format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": false,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Bool(Point::new(txId, name, Bool(false), 0, ts))),
+            (format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": true,    "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Bool(Point::new(txId, name, Bool(true),  0, ts))),
+            (format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": 1,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Int(Point::new(txId, name, 1, 0, ts))),
+            (format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": -9223372036854775808,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Int(Point::new(txId, name, -9223372036854775808, 0, ts))),
+            (format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value":  9223372036854775807,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Int(Point::new(txId, name,  9223372036854775807, 0, ts))),
+            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  0.0, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(txId, name,  0.0, 0, ts))),
+            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value": -1.1, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(txId, name, -1.1, 0, ts))),
+            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  1.1, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(txId, name,  1.1, 0, ts))),
+            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value": -1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(txId, name, -1.7976931348623157e308, 0, ts))),
+            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(txId, name,  1.7976931348623157e308, 0, ts))),
+            (format!(r#"{{"id": "1", "type": "String","name": "{}", "value": "~!@#$%^&*()_+`1234567890-=","status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::String(Point::new(txId, name, "~!@#$%^&*()_+`1234567890-=".to_string(), 0, ts))),
         ];
         //
         //
@@ -92,7 +93,15 @@ mod tests {
                                             received.fetch_add(1, Ordering::SeqCst);
                                             let recvIndex = (received.load(Ordering::SeqCst) - 1) % testDataLen;
                                             trace!("socket read - received[{}]: {:?}", recvIndex, point);
-                                            assert!(point == testData[recvIndex].1);
+                                            assert!(point.name() == testData[recvIndex].1.name(), "\nreceived: {:?}\nexpected: {:?}", point.name(), testData[recvIndex].1.name());
+                                            assert!(point.status() == testData[recvIndex].1.status(), "\nreceived: {:?}\nexpected: {:?}", point.status(), testData[recvIndex].1.status());
+                                            assert!(point.timestamp() == testData[recvIndex].1.timestamp(), "\nreceived: {:?}\nexpected: {:?}", point.timestamp(), testData[recvIndex].1.timestamp());
+                                            match point {
+                                                PointType::Bool(point) => assert!(point.value == testData[recvIndex].1.asBool().value, "\nreceived: {:?}\nexpected: {:?}", point.value, testData[recvIndex].1.asBool().value),
+                                                PointType::Int(point) => assert!(point.value == testData[recvIndex].1.asInt().value, "\nreceived: {:?}\nexpected: {:?}", point.value, testData[recvIndex].1.asInt().value),
+                                                PointType::Float(point) => assert!(point.value == testData[recvIndex].1.asFloat().value, "\nreceived: {:?}\nexpected: {:?}", point.value, testData[recvIndex].1.asFloat().value),
+                                                PointType::String(point) => assert!(point.value == testData[recvIndex].1.asString().value, "\nreceived: {:?}\nexpected: {:?}", point.value, testData[recvIndex].1.asString().value),
+                                            }
                                             // debug!("socket read - received: {:?}", received.load(Ordering::SeqCst));
                                             if received.load(Ordering::SeqCst) >= total {
                                                 break 'read;
@@ -103,7 +112,7 @@ mod tests {
                                         },
                                     }
                                 },
-                                ConnectionStatus::Closed(err) => {
+                                ConnectionStatus::Closed(_err) => {
                                     break 'read;
                                 },
                             }

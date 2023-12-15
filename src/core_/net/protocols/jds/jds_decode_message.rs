@@ -35,7 +35,7 @@ impl JdsDecodeMessage {
     }
     ///
     /// Reads sequence of bytes from TcpStream
-    pub fn read(&mut self, tcpStream: &mut BufReader<TcpStream>) -> ConnectionStatus<Result<Vec<u8>, String>, String> {
+    pub fn read(&mut self, tcpStream: impl Read) -> ConnectionStatus<Result<Vec<u8>, String>, String> {
         let mut bytes = self.remainder.clone();
         match Self::readAll(&self.id, &mut bytes, tcpStream) {
             ConnectionStatus::Active(result) => {
@@ -61,7 +61,7 @@ impl JdsDecodeMessage {
     /// - returns Closed:
     ///    - if read 0 bytes
     ///    - if on error
-    fn readAll(selfId: &str, bytes: &mut Vec<u8>, stream: &mut BufReader<TcpStream>) -> ConnectionStatus<Result<(), String>, String> {
+    fn readAll(selfId: &str, bytes: &mut Vec<u8>, stream: impl Read) -> ConnectionStatus<Result<(), String>, String> {
         for byte in stream.bytes() {
             match byte {
                 Ok(byte) => {

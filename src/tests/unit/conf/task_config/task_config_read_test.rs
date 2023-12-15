@@ -42,11 +42,12 @@ mod tests {
         let target = TaskConfig {
             name: String::from("task1"),
             cycle: Some(Duration::from_millis(100)),
-            recvQueue: String::from("recv-queue"),
+            rx: String::from("recv-queue"),
+            rxMaxLength: 10000,
             vars: vec![String::from("VarName2")],
             nodes: IndexMap::from([                    
-                (String::from("sqlSelectMetric-1"), FnConfig { 
-                        name: String::from("sqlSelectMetric"), 
+                (String::from("SqlMetric-1"), FnConfig { 
+                        name: String::from("SqlMetric"), 
                         fnKind: FnConfKind::Metric,
                         type_: FnConfPointType::Unknown,
                         // table: String::from("table_name"), 

@@ -1,11 +1,11 @@
 #![allow(non_snake_case)]
 
-use std::{io::BufReader, net::TcpStream};
+use std::{io::{BufReader, Read}, net::TcpStream};
 
 use chrono::{DateTime, Utc};
 use log::{warn, error, trace, LevelFilter};
 
-use crate::core_::{net::connection_status::ConnectionStatus, point::{point_type::PointType, point::Point}, types::bool::Bool};
+use crate::core_::{net::connection_status::ConnectionStatus, point::{point_type::PointType, point::Point, point_tx_id::PointTxId}, types::bool::Bool};
 
 use super::jds_decode_message::JdsDecodeMessage;
 
@@ -29,7 +29,7 @@ impl JdsDeserialize {
     }
     ///
     /// Reads single point from TcpStream
-    pub fn read(&mut self, tcpStream: &mut BufReader<TcpStream>) -> ConnectionStatus<Result<PointType, String>, String> {
+    pub fn read(&mut self, tcpStream: impl Read) -> ConnectionStatus<Result<PointType, String>, String> {
         match self.stream.read(tcpStream) {
             ConnectionStatus::Active(result) => {
                 match result {
@@ -60,6 +60,7 @@ impl JdsDeserialize {
         match serde_json::from_slice(&bytes) {
             Ok(value) => {
                 let value: serde_json::Value = value;
+                let txId = PointTxId::fromStr(selfId);
                 match value.as_object() {
                     Some(obj) => {
                         match obj.get("type") {
@@ -72,6 +73,7 @@ impl JdsDeserialize {
                                         let timestamp = obj.get("timestamp").unwrap().as_str().unwrap();
                                         let timestamp: DateTime<Utc> = chrono::DateTime::parse_from_rfc3339(timestamp).unwrap().with_timezone(&Utc);
                                         Ok(PointType::Bool(Point::new(
+                                            txId,
                                             name,
                                             Bool(value),
                                             status as u8,
@@ -85,6 +87,7 @@ impl JdsDeserialize {
                                         let timestamp = obj.get("timestamp").unwrap().as_str().unwrap();
                                         let timestamp: DateTime<Utc> = chrono::DateTime::parse_from_rfc3339(timestamp).unwrap().with_timezone(&Utc);
                                         Ok(PointType::Int(Point::new(
+                                            txId,
                                             name,
                                             value,
                                             status as u8,
@@ -98,6 +101,7 @@ impl JdsDeserialize {
                                         let timestamp = obj.get("timestamp").unwrap().as_str().unwrap();
                                         let timestamp: DateTime<Utc> = chrono::DateTime::parse_from_rfc3339(timestamp).unwrap().with_timezone(&Utc);
                                         Ok(PointType::Float(Point::new(
+                                            txId,
                                             name,
                                             value,
                                             status as u8,
@@ -111,6 +115,7 @@ impl JdsDeserialize {
                                         let timestamp = obj.get("timestamp").unwrap().as_str().unwrap();
                                         let timestamp: DateTime<Utc> = chrono::DateTime::parse_from_rfc3339(timestamp).unwrap().with_timezone(&Utc);
                                         Ok(PointType::String(Point::new(
+                                            txId,
                                             name,
                                             value.to_owned(),
                                             status as u8,

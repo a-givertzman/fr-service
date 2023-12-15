@@ -106,7 +106,7 @@ service CmaClient:
     auth:                   // some auth credentials
     in queue in-queue:
         max-length: 10000
-    out queue: MultiQueuue.in-queue
+    out queue: MultiQueue.in-queue
 
 service ApiClient:
     cycle: 1 ms
@@ -114,7 +114,7 @@ service ApiClient:
     address: 127.0.0.1:8080
     in queue api-link:
         max-length: 10000
-    out queue: MultiQueuue.in-queue
+    out queue: MultiQueue.in-queue
 
 service MultiQueue:
     in queue in-queue:

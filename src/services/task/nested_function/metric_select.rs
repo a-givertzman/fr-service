@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::{Arc, Mutex}};
 
 use indexmap::IndexMap;
 use log::{debug, trace};
@@ -8,11 +8,11 @@ use log::{debug, trace};
 use crate::{
     core_::{
         types::fn_in_out_ref::FnInOutRef,
-        point::{point_type::{PointType, ToPoint}, point::Point}, 
+        point::{point_type::{PointType, ToPoint}, point::Point, point_tx_id::PointTxId}, 
         format::format::Format, 
     }, 
     conf::fn_config::FnConfig, 
-    services::{task::task_nodes::TaskNodes, queues::queues::Queues},
+    services::{task::task_nodes::TaskNodes, services::Services},
 };
 
 use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn, fn_kind::FnKind};
@@ -21,21 +21,24 @@ use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn, fn_kind::FnKind};
 ///
 /// Counts number of raised fronts of boolean input
 #[derive(Debug)]
-pub struct MetricSelect {
+pub struct SqlMetric {
     id: String,
+    txId: usize,
     kind: FnKind,
     inputs: IndexMap<String, FnInOutRef>,
-    initial: f64,
-    table: String,
+    // initial: f64,
+    // table: String,
     sql: Format,
     sqlNames: HashMap<String, (String, Option<String>)>,
 }
 ///
 /// 
-impl MetricSelect {
+impl SqlMetric {
     //
     //
-    pub fn new(conf: &mut FnConfig, taskNodes: &mut TaskNodes, queues: &mut Queues) -> MetricSelect {
+    pub fn new(parent: &str, conf: &mut FnConfig, taskNodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> SqlMetric {
+        let selfId = format!("{}/{}", parent, conf.name.clone());
+        let txId = PointTxId::fromStr(&selfId);
         let mut inputs = IndexMap::new();
         let inputConfs = conf.inputs.clone();
         let inputConfNames = inputConfs.keys().filter(|v| {
@@ -52,31 +55,32 @@ impl MetricSelect {
         // inputConfs.remove("table");
         // inputConfs.remove("sql");
         for name in inputConfNames {
-            debug!("MetricSelect.new | input name: {:?}", name);
+            debug!("{}.new | input name: {:?}", selfId, name);
             let inputConf = conf.inputConf(&name);
             inputs.insert(
                 name.to_string(), 
-                NestedFn::new(inputConf, taskNodes, queues),
+                NestedFn::new(&selfId, txId, inputConf, taskNodes, services.clone()),
             );
         }
         let id = conf.name.clone();
-        let initial = conf.param("initial").name.parse().unwrap();
+        // let initial = conf.param("initial").name.parse().unwrap();
         let table = conf.param("table").name.clone();
         let mut sql = Format::new(&conf.param("sql").name);
-        sql.insert("id", id.clone().toPoint(""));
-        sql.insert("table", table.clone().toPoint(""));
+        sql.insert("id", id.clone().toPoint(txId, ""));
+        sql.insert("table", table.clone().toPoint(txId, ""));
         sql.prepare();
         let mut sqlNames = sql.names();
         sqlNames.remove("initial");
         sqlNames.remove("table");
         sqlNames.remove("sql");
         sqlNames.remove("id");
-        MetricSelect {
-            id: id,
+        SqlMetric {
+            id: selfId,
+            txId,
             kind: FnKind::Fn,
             inputs: inputs,
-            initial: initial,
-            table: table,
+            // initial: initial,
+            // table: table,
             sql,
             sqlNames: sqlNames,
         }
@@ -84,14 +88,14 @@ impl MetricSelect {
 }
 ///
 /// 
-impl FnIn for MetricSelect {
-    fn add(&mut self, point: PointType) {
-        panic!("MetricSelect.add | method is not used")
+impl FnIn for SqlMetric {
+    fn add(&mut self, _point: PointType) {
+        panic!("{}.add | method is not used", self.id)
     }
 }
 ///
 /// 
-impl FnOut for MetricSelect {
+impl FnOut for SqlMetric {
     //
     fn id(&self) -> String {
         self.id.clone()
@@ -110,22 +114,24 @@ impl FnOut for MetricSelect {
     }
     //
     fn out(&mut self) -> PointType {
+        let selfId = self.id.clone();
         for (fullName, (name, sufix)) in &self.sqlNames {
-            trace!("MetricSelect.out | name: {:?}, sufix: {:?}", &name, &sufix);
+            trace!("{}.out | name: {:?}, sufix: {:?}", selfId, name, sufix);
             match self.inputs.get(name) {
                 Some(input) => {
-                    trace!("MetricSelect.out | input: {:?} - found", &name);
+                    trace!("{}.out | input: {:?} - found", selfId, name);
                     let point = input.borrow_mut().out();
                     self.sql.insert(&fullName, point);
                 },
                 None => {
-                    panic!("MetricSelect.out | input: {:?} - not found", &name);
+                    panic!("{}.out | input: {:?} - not found", selfId, name);
                 },
             };
         }
-        debug!("MetricSelect.out | sql: {:?}", self.sql.out());
+        debug!("{}.out | sql: {:?}", selfId, self.sql.out());
         PointType::String(Point::newString(
-            "MetricSelect.out", 
+            self.txId,
+            &selfId, 
             self.sql.out(),
         ))
     }
@@ -136,4 +142,4 @@ impl FnOut for MetricSelect {
 }
 ///
 /// 
-impl FnInOut for MetricSelect {}
+impl FnInOut for SqlMetric {}

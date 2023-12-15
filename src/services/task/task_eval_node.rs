@@ -68,8 +68,9 @@ impl TaskEvalNode {
     }
     ///
     /// 
-    pub fn name(&self) ->String {
-        format!("{}/{}", self.parentName, self.name)
+    pub fn name(&self) -> String {
+        // format!("{}/{}", self.parentName, self.name)
+        self.name.clone()
     }
     ///
     /// 

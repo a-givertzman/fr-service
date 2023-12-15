@@ -5,7 +5,7 @@ use log::{debug, info};
 use std::sync::Once;
 
 use crate::{
-    core_::debug::debug_session::*,
+    core_::{debug::debug_session::*, testing::test_stuff::test_value::Value},
     conf::conf_tree::ConfTree,
 };
 
@@ -127,7 +127,7 @@ fn test_config_tree_valid() {
         ),
         // (
         //     r#"
-        //         metric sqlSelectMetric:
+        //         metric SqlMetric:
         //             initial: const 0
         //             sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
         //             inputs:
@@ -213,13 +213,6 @@ fn inputs(confTree: &ConfTree) -> Node {
 }
 
 
-enum TypedValue<'a> {
-    Bool(bool),
-    Int(i64),
-    Float(f64),
-    String(&'a str),
-}
-
 
 #[test]
 fn test_config_tree_as_type() {
@@ -228,7 +221,7 @@ fn test_config_tree_as_type() {
     initEach();
     info!("test_config_tree_valid");
     // let (initial, switches) = initEach();
-    let testData: Vec<(&str, IndexMap<&str, TypedValue>)> = vec![
+    let testData: Vec<(&str, IndexMap<&str, Value>)> = vec![
         (
             r#"
                 boolTrue: true
@@ -242,15 +235,15 @@ fn test_config_tree_as_type() {
                 string3: "/Path/Point.Name/"
             "#,
             IndexMap::from([
-                ("boolTrue", TypedValue::Bool(true)),
-                ("boolFalse", TypedValue::Bool(false)),
-                ("int1", TypedValue::Int(177)),
-                ("int2", TypedValue::Int(-177)),
-                ("float1", TypedValue::Float(177.3)),
-                ("float2", TypedValue::Float(-177.3)),
-                ("string1", TypedValue::String("/Path/Point.Name/")),
-                ("string2", TypedValue::String("/Path/Point.Name/")),
-                ("string3", TypedValue::String("/Path/Point.Name/")),
+                ("boolTrue", Value::Bool(true)),
+                ("boolFalse", Value::Bool(false)),
+                ("int1", Value::Int(177)),
+                ("int2", Value::Int(-177)),
+                ("float1", Value::Float(177.3)),
+                ("float2", Value::Float(-177.3)),
+                ("string1", Value::String("/Path/Point.Name/".to_string())),
+                ("string2", Value::String("/Path/Point.Name/".to_string())),
+                ("string3", Value::String("/Path/Point.Name/".to_string())),
             ])
         ),
 
@@ -262,10 +255,10 @@ fn test_config_tree_as_type() {
         let confTree = ConfTree::newRoot(conf);
         for (key, target) in targets {
             match target {
-                TypedValue::Bool(targetValue) => assert_eq!(confTree.asBool(key).unwrap(), targetValue),
-                TypedValue::Int(targetValue) => assert_eq!(confTree.asI64(key).unwrap(), targetValue),
-                TypedValue::Float(targetValue) => assert_eq!(confTree.asF64(key).unwrap(), targetValue),
-                TypedValue::String(targetValue) => assert_eq!(confTree.asStr(key).unwrap(), targetValue),
+                Value::Bool(targetValue) => assert_eq!(confTree.asBool(key).unwrap(), targetValue),
+                Value::Int(targetValue) => assert_eq!(confTree.asI64(key).unwrap(), targetValue),
+                Value::Float(targetValue) => assert_eq!(confTree.asF64(key).unwrap(), targetValue),
+                Value::String(targetValue) => assert_eq!(confTree.asStr(key).unwrap(), targetValue),
             }
         }
     }

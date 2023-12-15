@@ -38,7 +38,7 @@ mod tests {
         // let (initial, switches) = initEach();
         let testData = vec![
             ("service ApiClient", ConfKeywd::Service( ConfKeywdValue {prefix: String::new(), kind: ConfKind::Service, name: String::from("ApiClient")} )),
-            ("service MultiQueuue", ConfKeywd::Service( ConfKeywdValue {prefix: String::new(), kind: ConfKind::Service, name: String::from("MultiQueuue")} )),
+            ("service MultiQueue", ConfKeywd::Service( ConfKeywdValue {prefix: String::new(), kind: ConfKind::Service, name: String::from("MultiQueue")} )),
             ("task Task1", ConfKeywd::Task( ConfKeywdValue {prefix: String::new(), kind: ConfKind::Task, name: String::from("Task1")} )),
             ("task task1", ConfKeywd::Task( ConfKeywdValue {prefix: String::new(), kind: ConfKind::Task, name: String::from("task1")} )),
             ("in queue queue", ConfKeywd::Queue( ConfKeywdValue {prefix: String::from("in"), kind: ConfKind::Queue, name: String::from("queue")} )),

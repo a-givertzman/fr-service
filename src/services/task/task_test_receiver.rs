@@ -1,61 +1,87 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering, AtomicUsize}}, thread::{self, JoinHandle}};
+use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering, AtomicUsize}, Mutex}, thread::{self, JoinHandle}, collections::HashMap};
 
-use log::{info, debug, warn, trace};
+use log::{info, warn, trace};
 
-use crate::core_::point::point_type::PointType;
+use crate::{core_::point::point_type::PointType, services::service::Service};
 
 
 pub struct TaskTestReceiver {
+    id: String,
+    iterations: usize, 
+    inSend: HashMap<String, Sender<PointType>>,
+    inRecv: Vec<Receiver<PointType>>,
+    received: Arc<Mutex<Vec<PointType>>>,
     exit: Arc<AtomicBool>,
-    received: Arc<AtomicUsize>,
-    handle: Vec<JoinHandle<()>>,
-    recv: Vec<Receiver<PointType>>
 }
 
 impl TaskTestReceiver {
-    pub fn new() -> Self {
+    ///
+    /// 
+    pub fn new(recvQueue: &str, iterations: usize) -> Self {
+        let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
         Self {
+            id: String::from("TaskTestReceiver"),
+            iterations,
+            inSend: HashMap::from([(recvQueue.to_string(), send)]),
+            inRecv: vec![recv],
+            received: Arc::new(Mutex::new(vec![])),
             exit: Arc::new(AtomicBool::new(false)),
-            received: Arc::new(AtomicUsize::new(0)),
-            handle: vec![],
-            recv: vec![],
         }
     }
-    pub fn run(&mut self, recvQueue: Receiver<PointType>, iterations: usize, testValues: Vec<f64>) {
-        info!("TaskTestReceiver.run | starting...");
+    ///
+    /// 
+    pub fn received(&self) -> Arc<Mutex<Vec<PointType>>> {
+        self.received.clone()
+    }
+}
+///
+/// 
+impl Service for TaskTestReceiver {
+    fn id(&self) -> &str {
+        &self.id
+    }
+    //
+    //
+    fn getLink(&mut self, name: &str) -> Sender<PointType> {
+        match self.inSend.get(name) {
+            Some(send) => send.clone(),
+            None => panic!("{}.run | link '{:?}' - not found", self.id, name),
+        }        
+    }
+    //
+    //
+    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
+        let selfId = self.id.clone();
+        info!("{}.run | starting...", selfId);
         let exit = self.exit.clone();
         let received = self.received.clone();
-        // let mut testValues = testValues.clone();
         let mut count = 0;
         let mut errorCount = 0;
-        let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
-        self.recv.push(recv);
-        let _h = thread::Builder::new().name("name".to_owned()).spawn(move || {
+        let inRecv = self.inRecv.pop().unwrap();
+        let iterations = self.iterations;
+        thread::Builder::new().name("name".to_owned()).spawn(move || {
             // info!("Task({}).run | prepared", name);
             'inner: loop {
-                // TODO impl mathematics here...
                 if exit.load(Ordering::Relaxed) {
                     break 'inner;
                 }
-                match recvQueue.recv() {
-                    Ok(sql) => {
+                match inRecv.recv() {
+                    Ok(point) => {
                         count += 1;
-                        received.store(count, Ordering::Relaxed);
+                        received.lock().unwrap().push(point.clone());
                         if count >= iterations {
                             break 'inner;
                         }
-                        let _r = send.send(sql.clone());
-                        trace!("TaskTestReceiver.run | received SQL: {:?}", sql.asString().value);
-                        // debug!("TaskTestReceiver.run | value: {}\treceived SQL: {:?}", value, sql);
-                        // assert!()
+                        trace!("{}.run | received SQL: {:?}", selfId, point.asString().value);
+                        // debug!("{}.run | value: {}\treceived SQL: {:?}", value, sql);
                     },
                     Err(err) => {
-                        warn!("TaskTestReceiver.run | Error receiving from queue: {:?}", err);
+                        warn!("{}.run | Error receiving from queue: {:?}", selfId, err);
                         errorCount += 1;
                         if errorCount > 10 {
-                            warn!("TaskTestReceiver.run | Error receiving count > 10, exit...");
+                            warn!("{}.run | Error receiving count > 10, exit...", selfId);
                             break 'inner;
                         }        
                     },
@@ -64,27 +90,17 @@ impl TaskTestReceiver {
                     break 'inner;
                 }
             };
-            info!("TaskTestReceiver.run | received {} SQL's", count);
-            info!("TaskTestReceiver.run | stopped");
+            info!("{}.run | received {} SQL's", selfId, count);
+            info!("{}.run | stopped", selfId);
             // thread::sleep(Duration::from_secs_f32(2.1));
-        }).unwrap();
-        self.handle.push(_h);
+        })
     }
-    pub fn exit(&mut self) {
+    //
+    //
+    fn exit(&self) {
         self.exit.store(true, Ordering::Relaxed);
     }
-    pub fn received(&self) -> usize {
-        self.received.load(Ordering::Relaxed)
-    }
-    pub fn join(&mut self) {
-        match self.handle.pop() {
-            Some(handle) => {
-            handle.join().unwrap()
-            },
-            None => {},
-        };
-    }
-    pub fn getInputValues(&mut self) -> Receiver<PointType> {
-        self.recv.pop().unwrap()
-    }
+    // pub fn getInputValues(&mut self) -> Receiver<PointType> {
+    //     self.recv.pop().unwrap()
+    // }
 }

@@ -1,14 +1,18 @@
 #![allow(non_snake_case)]
 
-use std::{collections::HashMap, sync::{Arc, Mutex}};
+use std::{collections::HashMap, sync::{Arc, Mutex, mpsc::{Sender, Receiver}}};
 
-use super::service::Service;
+use log::debug;
+
+use crate::core_::point::point_type::PointType;
+
+use super::{service::Service, queue_name::QueueName};
 
 ///
 /// Holds a map of the all services in app by there names
 pub struct Services {
     id: String,
-    map: HashMap<String, Arc<Mutex<dyn Service>>>,
+    map: HashMap<String, Arc<Mutex<dyn Service + Send>>>,
 }
 ///
 /// 
@@ -17,24 +21,46 @@ impl Services {
     /// Creates new instance of the ReatinBuffer
     pub fn new(parent: impl Into<String>) -> Self {
         Self {
-            id: format!("{}/RetainBuffer({})", parent.into(), "Services"),
+            id: format!("{}/Services", parent.into()),
             map: HashMap::new(),
         }
     }
     ///
     /// 
-    pub fn insert(&mut self, id:&str, service: Arc<Mutex<dyn Service>>) {
+    pub fn insert(&mut self, id:&str, service: Arc<Mutex<dyn Service + Send>>) {
         if self.map.contains_key(id) {
             panic!("{}.insert | Duplicated service name '{:?}'", self.id, id);
         }
         self.map.insert(id.to_string(), service);
     }
     ///
-    /// 
+    /// Returns Service's link
     pub fn get(&self, name: &str) -> Arc<Mutex<dyn Service>> {
         match self.map.get(name) {
             Some(srvc) => srvc.clone(),
             None => panic!("{}.get | service '{:?}' - not found", self.id, name),
+        }
+    }
+    ///
+    /// Returns copy of the Sender - service's incoming queue
+    pub fn getLink(&self, name: &str) -> Sender<PointType> {
+        let name = QueueName::new(name);
+        match self.map.get(name.service()) {
+            Some(srvc) => srvc.lock().unwrap().getLink(name.queue()),
+            None => panic!("{}.get | service '{:?}' - not found", self.id, name),
+        }
+    }
+    ///
+    /// Returns Receiver
+    pub fn subscribe(&mut self, service: &str, receiverId: &str, points: &Vec<String>) -> Receiver<PointType> {
+        match self.map.get(service) {
+            Some(srvc) => {
+                debug!("{}.subscribe | Lock service '{:?}'...", self.id, service);
+                let r = srvc.lock().unwrap().subscribe(receiverId, points);
+                debug!("{}.subscribe | Lock service '{:?}' - ok", self.id, service);
+                r
+            },
+            None => panic!("{}.get | service '{:?}' - not found", self.id, service),
         }
     }
     // ///
