@@ -1,11 +1,11 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread::{self, JoinHandle}, net::{TcpListener, TcpStream}, io::Read};
+use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread::{self, JoinHandle}, net::{TcpListener, TcpStream}, io::Read, time::Duration};
 
 use log::{info, warn, debug};
 
 use crate::{
-    services::{services::Services, service::Service}, 
+    services::{services::Services, service::Service, task::task_cycle::ServiceCycle}, 
     conf::tcp_server_config::TcpServerConfig, core_::point::point_type::PointType,
 };
 
@@ -83,10 +83,13 @@ impl Service for TcpServer {
         let selfId = self.id.clone();
         let conf = self.conf.clone();
         let exit = self.exit.clone();
+        let reconnectCycle = conf.reconnectCycle.unwrap_or(Duration::ZERO);
         info!("{}.run | Preparing thread...", selfId);
         let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
+            let mut cycle = ServiceCycle::new(reconnectCycle);
             let mut handles = vec![];
             loop {
+                cycle.start();
                 match TcpListener::bind(conf.address) {
                     Ok(listener) => {
                         for stream in listener.incoming() {
@@ -112,8 +115,12 @@ impl Service for TcpServer {
                     },
                 };
                 if exit.load(Ordering::SeqCst) {
+                    for handle in handles {
+                        handle.join().unwrap();
+                    }
                     break;
                 }
+                cycle.wait();
             }
         });
         info!("{}.run | started", self.id);
