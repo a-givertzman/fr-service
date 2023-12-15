@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread::{self, JoinHandle}};
+use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread::{self, JoinHandle}, net::TcpListener};
 
-use log::info;
+use log::{info, warn};
 
 use crate::{
     services::{services::Services, service::Service}, 
@@ -11,7 +11,7 @@ use crate::{
 
 
 ///
-/// Binds TCP socket server
+/// Bounds TCP socket server
 /// Listening socket for incoming connections
 /// Verified incoming connections handles in the separate thread
 pub struct TcpServer {
@@ -60,6 +60,14 @@ impl Service for TcpServer {
         info!("{}.run | Preparing thread...", selfId);
         let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
             loop {
+                match TcpListener::bind("127.0.0.1:80") {
+                    Ok(listener) => {
+                        
+                    },
+                    Err(err) => {
+                        warn!("{}.run | Preparing thread...", selfId);
+                    },
+                };
                 if exit.load(Ordering::SeqCst) {
                     break;
                 }
