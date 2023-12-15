@@ -2,7 +2,7 @@
 #[cfg(test)]
 mod tests {
     use log::{warn, info, debug};
-    use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}};
+    use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}, thread};
     use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::max_test_duration::MaxTestDuration}, conf::tcp_server_config::TcpServerConfig, services::{tcp_server::tcp_server::TcpServer, services::Services, service::Service}}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -51,6 +51,7 @@ mod tests {
         let services = Arc::new(Mutex::new(Services::new(selfId)));
         let mut tcpServer = TcpServer::new(selfId, conf, services);
         let handle = tcpServer.run().unwrap();
+        // thread::sleep(Duration::from_millis(1000));
         tcpServer.exit();
         handle.join().unwrap();
         let target = true;
