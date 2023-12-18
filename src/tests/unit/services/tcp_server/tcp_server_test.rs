@@ -3,7 +3,7 @@
 mod tests {
     use log::{warn, info, debug};
     use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}, thread};
-    use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::max_test_duration::MaxTestDuration}, conf::tcp_server_config::TcpServerConfig, services::{tcp_server::tcp_server::TcpServer, services::Services, service::Service}}; 
+    use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::max_test_duration::MaxTestDuration}, conf::tcp_server_config::TcpServerConfig, services::{tcp_server::tcp_server::TcpServer, services::Services, service::Service}, tests::unit::services::tcp_server::mock_tcp_client::MockTcpClient}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -49,10 +49,18 @@ mod tests {
         let conf = serde_yaml::from_str(conf).unwrap();
         let conf = TcpServerConfig::fromYamlValue(&conf);
         let services = Arc::new(Mutex::new(Services::new(selfId)));
-        let mut tcpServer = TcpServer::new(selfId, conf, services);
-        let handle = tcpServer.run().unwrap();
-        // thread::sleep(Duration::from_millis(1000));
-        tcpServer.exit();
+        let tcpServer = Arc::new(Mutex::new(TcpServer::new(selfId, conf, services.clone())));
+        let mockTcpClient = Arc::new(Mutex::new(MockTcpClient::new(
+            selfId,
+            "MultiQueue.queue",
+            services.clone(),
+            testData,
+            Some(iterations),
+        )));
+        services.lock().unwrap().insert("TcpServer", tcpServer.clone());
+        let handle = tcpServer.lock().unwrap().run().unwrap();
+        thread::sleep(Duration::from_millis(1000));
+        tcpServer.lock().unwrap().exit();
         handle.join().unwrap();
         let target = true;
         let result = true;

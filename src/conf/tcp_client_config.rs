@@ -24,6 +24,7 @@ pub struct TcpClientConfig {
     pub(crate) cycle: Option<Duration>,
     pub(crate) reconnectCycle: Option<Duration>,
     pub(crate) rx: String,
+    pub(crate) rxBuffered: bool,
     pub(crate) rxMaxLength: i64,
     pub(crate) tx: String,
 }
@@ -38,6 +39,7 @@ impl TcpClientConfig {
     ///     reconnect: 1 s  # default 3 s
     ///     address: 127.0.0.1:8080
     ///     in queue link:
+    ///         buffered: true
     ///         max-length: 10000
     ///     out queue: MultiQueue.queue
     ///                     ...
@@ -64,6 +66,7 @@ impl TcpClientConfig {
                 let reconnectCycle = selfConf.getDuration("reconnect");
                 debug!("{}.new | reconnectCycle: {:?}", selfId, reconnectCycle);
                 let (rx, rxMaxLength) = selfConf.getInQueue().unwrap();
+                let rxBuffered = rxMaxLength > 0;
                 debug!("{}.new | RX: {},\tmax-length: {}", selfId, rx, rxMaxLength);
                 let tx = selfConf.getOutQueue().unwrap();
                 debug!("{}.new | TX: {}", selfId, tx);
@@ -73,6 +76,7 @@ impl TcpClientConfig {
                     cycle,
                     reconnectCycle,
                     rx,
+                    rxBuffered: rxBuffered,
                     rxMaxLength: rxMaxLength,
                     tx,
                 }

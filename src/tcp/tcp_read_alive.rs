@@ -13,7 +13,7 @@ use crate::{core_::{
 pub struct TcpReadAlive {
     id: String,
     jdsStream: Arc<Mutex<JdsDeserialize>>,
-    send: Arc<Mutex<Sender<PointType>>>,
+    send: Vec<Sender<PointType>>,
     cycle: Duration,
     exit: Arc<AtomicBool>,
 }
@@ -21,7 +21,7 @@ impl TcpReadAlive {
     ///
     /// Creates new instance of [TcpReadAlive]
     /// - [parent] - the ID if the parent entity
-    pub fn new(parent: impl Into<String>, send: Arc<Mutex<Sender<PointType>>>, cycle: Duration) -> Self {
+    pub fn new(parent: impl Into<String>, send: Sender<PointType>, cycle: Duration, exit: Option<Arc<AtomicBool>>) -> Self {
         let selfId = format!("{}/TcpReadAlive", parent.into());
         Self {
             id: selfId.clone(),
@@ -31,24 +31,23 @@ impl TcpReadAlive {
                     selfId,
                 ),
             ))),
-            send,
+            send: vec![send],
             cycle,
-            exit: Arc::new(AtomicBool::new(false)),
+            exit: exit.unwrap_or(Arc::new(AtomicBool::new(false))),
         }
     }
     ///
     /// Main loop of the [TcpReadAlive]
-    pub fn run(&self, tcpStream: TcpStream) -> JoinHandle<()> {
+    pub fn run(&mut self, tcpStream: TcpStream) -> JoinHandle<()> {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
         let mut cycle = ServiceCycle::new(self.cycle);
-        let send = self.send.clone();
+        let send = self.send.pop().unwrap();
         let jdsStream = self.jdsStream.clone();
         info!("{}.run | Preparing thread...", self.id);
         let handle = thread::Builder::new().name(format!("{} - Read", selfId.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
-            let send = send.lock().unwrap();
             let mut tcpStream = BufReader::new(tcpStream);
             let mut jdsStream = jdsStream.lock().unwrap();
             info!("{}.run | Starting main loop...", selfId);

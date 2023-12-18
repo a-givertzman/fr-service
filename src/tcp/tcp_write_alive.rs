@@ -20,12 +20,12 @@ impl TcpWriteAlive {
     ///
     /// Creates new instance of [TcpWriteAlive]
     /// - [parent] - the ID if the parent entity
-    pub fn new(parent: impl Into<String>, cycle: Duration, streamWrite: Arc<Mutex<TcpStreamWrite>>) -> Self {
+    pub fn new(parent: impl Into<String>, cycle: Duration, streamWrite: Arc<Mutex<TcpStreamWrite>>, exit: Option<Arc<AtomicBool>>) -> Self {
         Self {
             id: format!("{}/TcpWriteAlive", parent.into()),
             cycle,
             streamWrite,
-            exit: Arc::new(AtomicBool::new(false)),
+            exit: exit.unwrap_or(Arc::new(AtomicBool::new(false))),
         }
     }
     ///

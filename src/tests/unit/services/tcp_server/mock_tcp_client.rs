@@ -1,16 +1,13 @@
-#![allow(non_snake_case)]
+use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{JoinHandle, self}, time::Duration};
 
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}, time::Duration};
+use log::{info, debug, trace, warn};
 
-use log::{info, warn, debug, trace};
-
-use crate::{
-    core_::{point::{point_type::PointType, point_tx_id::PointTxId}, testing::test_stuff::test_value::Value}, 
-    services::{services::Services, service::Service, queue_name::QueueName},
-};
+use crate::{services::{services::Services, service::Service, queue_name::QueueName}, core_::{testing::test_stuff::test_value::Value, point::{point_type::PointType, point_tx_id::PointTxId}}};
 
 
-pub struct MockTcpServer {
+///
+/// 
+pub struct MockTcpClient {
     id: String,
     // rxSend: HashMap<String, Sender<PointType>>,
     multiQueue: String,
@@ -23,7 +20,7 @@ pub struct MockTcpServer {
 }
 ///
 /// 
-impl MockTcpServer {
+impl MockTcpClient {
     pub fn new(parent: impl Into<String>, multiQueue: &str, services: Arc<Mutex<Services>>, testData: Vec<Value>, recvLimit: Option<usize>) -> Self {
         let selfId = format!("{}/MockTcpServer", parent.into());
         // let (send, recv) = mpsc::channel::<PointType>();
@@ -57,7 +54,7 @@ impl MockTcpServer {
 }
 ///
 /// 
-impl Service for MockTcpServer {
+impl Service for MockTcpClient {
     //
     //
     fn id(&self) -> &str {
