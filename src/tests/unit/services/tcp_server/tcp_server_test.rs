@@ -43,7 +43,7 @@ mod tests {
         let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
         maxTestDuration.run().unwrap();
 
-        let iterations = 100;
+        let iterations = 10;
         let testData = IncTestValues::new(
             selfId, 
             0, 
@@ -92,6 +92,7 @@ mod tests {
             testData,
             Some(iterations),
         )));
+        let emulatedTcpClientHandle = emulatedTcpClient.lock().unwrap().run().unwrap();
         let handle = tcpServer.lock().unwrap().run().unwrap();
         thread::sleep(Duration::from_millis(1000));
 

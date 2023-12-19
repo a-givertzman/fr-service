@@ -6,7 +6,7 @@ mod tests {
     use crate::{
         core_::{
             debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-            testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::MaxTestDuration}, point::point_type::PointType,
+            testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::MaxTestDuration, wait::WaitTread}, point::point_type::PointType,
         }, 
         conf::multi_queue_config::MultiQueueConfig, services::{multi_queue::multi_queue::MultiQueue, services::Services, service::Service}, 
         tests::unit::services::multi_queue::{mock_tcp_server::MockTcpServer, mock_recv_send_service::MockRecvSendService},
@@ -111,7 +111,7 @@ mod tests {
             )));
             services.lock().unwrap().insert(&format!("MockTcpServer{}", i), tcpServerService.clone());
             let thdHandle = tcpServerService.lock().unwrap().run().unwrap();
-            waitForThread(thdHandle).unwrap();
+            thdHandle.wait().unwrap();
             thread::sleep(Duration::from_millis(100));
             let target = 0;
             let result = pointsCount(tcpServerService.lock().unwrap().received().lock().unwrap().iter(), &pointContent);
@@ -147,28 +147,12 @@ mod tests {
             tcpServerService.lock().unwrap().exit();
         }
         for thd in handles {
-            waitForThread(thd).unwrap();
+            thd.wait().unwrap();
         }
         mqService.lock().unwrap().exit();
-        waitForThread(mqHandle).unwrap();
+        mqHandle.wait().unwrap();
         maxTestDuration.exit();
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
-    }
-    ///
-    /// 
-    fn waitForThread(thd: JoinHandle<()>) -> Result<(), Box<dyn Any + Send>>{
-        let thdId = format!("{:?}-{:?}", thd.thread().id(), thd.thread().name());
-        info!("Waiting for service: {:?}...", thdId);
-        let r = thd.join();
-        match &r {
-            Ok(_) => {
-                info!("Waiting for thread: '{}' - finished", thdId);
-            },
-            Err(err) => {
-                error!("Waiting for thread '{}' error: {:?}", thdId, err);                
-            },
-        }
-        r
     }
     ///
     /// 

@@ -6,7 +6,7 @@ mod tests {
     use std::{sync::{Once, Arc, Mutex}, env, time::Instant, thread::JoinHandle, any::Any};
     
     use crate::{
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::{random_test_values::RandomTestValues, test_value::Value}}, 
+        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::{random_test_values::RandomTestValues, test_value::Value, wait::WaitTread}}, 
         conf::task_config::TaskConfig, 
         services::{task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}, service::Service, services::Services},
     };
@@ -80,12 +80,12 @@ mod tests {
         let time = Instant::now();
         let taskHandle = task.lock().unwrap().run().unwrap();
         trace!("task runing - ok");
-        waitForThread(producerHandle).unwrap();
-        waitForThread(receiverHandle).unwrap();
+        producerHandle.wait().unwrap();
+        receiverHandle.wait().unwrap();
         debug!("task.lock.exit...");
         task.lock().unwrap().exit();
         debug!("task.lock.exit - ok");
-        waitForThread(taskHandle).unwrap();
+        taskHandle.wait().unwrap();
         let sent = producer.lock().unwrap().sent().lock().unwrap().len();
         let result = receiver.lock().unwrap().received().lock().unwrap().len();
         println!(" elapsed: {:?}", time.elapsed());
@@ -164,22 +164,6 @@ mod tests {
             let recvPoint = received.pop().unwrap();
             assert!(&recvPoint == sentPoint, "\nresult: {:?}\ntarget: {:?}", recvPoint, sentPoint);
         }
-    }
-    ///
-    /// 
-    fn waitForThread(thd: JoinHandle<()>) -> Result<(), Box<dyn Any + Send>>{
-        let thdId = format!("{:?}-{:?}", thd.thread().id(), thd.thread().name());
-        info!("Waiting for thread: {:?}...", thdId);
-        let r = thd.join();
-        match &r {
-            Ok(_) => {
-                info!("Waiting for thread: '{}' - finished", thdId);
-            },
-            Err(err) => {
-                error!("Waiting for thread '{}' error: {:?}", thdId, err);                
-            },
-        }
-        r
     }
 }
 

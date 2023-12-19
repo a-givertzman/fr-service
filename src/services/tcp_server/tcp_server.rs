@@ -6,7 +6,7 @@ use log::{info, warn, debug, error};
 
 use crate::{
     services::{services::Services, service::Service, task::task_cycle::ServiceCycle, queue_name::QueueName}, 
-    conf::tcp_server_config::TcpServerConfig, core_::{point::{point_type::PointType, point_tx_id::PointTxId}, net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}}, tcp::{tcp_read_alive::TcpReadAlive, tcp_write_alive::TcpWriteAlive, tcp_stream_write::TcpStreamWrite},
+    conf::tcp_server_config::TcpServerConfig, core_::{point::{point_type::PointType, point_tx_id::PointTxId}, net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, testing::test_stuff::wait::WaitTread}, tcp::{tcp_read_alive::TcpReadAlive, tcp_write_alive::TcpWriteAlive, tcp_stream_write::TcpStreamWrite},
 };
 
 
@@ -84,22 +84,6 @@ impl TcpServer {
         info!("{}.setupConnection | started", selfIdClone);
         handle
     }
-    ///
-    /// 
-    fn waitForThread(thd: JoinHandle<()>) -> Result<(), Box<dyn Any + Send>>{
-        let thdId = format!("{:?}-{:?}", thd.thread().id(), thd.thread().name());
-        info!("Waiting for thread: {:?}...", thdId);
-        let r = thd.join();
-        match &r {
-            Ok(_) => {
-                info!("Waiting for thread: '{}' - finished", thdId);
-            },
-            Err(err) => {
-                error!("Waiting for thread '{}' error: {:?}", thdId, err);                
-            },
-        }
-        r
-    }
 }
 ///
 /// 
@@ -138,7 +122,7 @@ impl Service for TcpServer {
                         for stream in listener.incoming() {
                             if exit.load(Ordering::SeqCst) {
                                 while handles.len() > 0 {
-                                    Self::waitForThread(handles.pop().unwrap()).unwrap();
+                                    handles.pop().unwrap().wait().unwrap();
                                 } 
                                 break;
                             }
@@ -165,14 +149,14 @@ impl Service for TcpServer {
                 };
                 if exit.load(Ordering::SeqCst) {
                     for handle in handles {
-                        Self::waitForThread(handle).unwrap();
+                        handle.wait().unwrap();
                     }
                     break;
                 }
                 cycle.wait();
                 if exit.load(Ordering::SeqCst) {
                     for handle in handles {
-                        Self::waitForThread(handle).unwrap();
+                        handle.wait().unwrap();
                     }
                     break;
                 }
