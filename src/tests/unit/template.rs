@@ -33,7 +33,7 @@ mod tests {
         initOnce();
         initEach();
         println!("");
-        info!("test_task_cycle");
+        println!("test Template");
         assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
     }
 }

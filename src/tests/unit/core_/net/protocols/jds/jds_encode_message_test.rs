@@ -36,12 +36,12 @@ mod tests {
     }
     
     #[test]
-    fn test_() {
+    fn test_JdsEncodeMessage() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test_");
+        println!("test JdsEncodeMessage");
         let name = "/server/line1/ied1/test1";
         let ts = ts();
         let txId = 0;

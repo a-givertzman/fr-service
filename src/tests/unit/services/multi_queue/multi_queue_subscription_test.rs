@@ -35,12 +35,12 @@ mod tests {
     }
     
     #[test]
-    fn test_multi_queue_subscribtions() {
+    fn test_MultiQueue_subscribtions() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test_multi_queue - Static subscriptions - Single send");
+        println!("test_multi_queue - Static subscriptions - Single send");
 
         let selfId = "test";
         let count = 3;              // count of the MockRecvSendService & MockTcpServer instances

@@ -2,7 +2,7 @@
 
 use std::{sync::{mpsc::Sender, Arc, atomic::{AtomicBool, Ordering}, Mutex}, thread::{self, JoinHandle}};
 
-use log::{debug, warn, info};
+use log::{debug, warn, info, trace};
 
 use crate::{core_::{point::{point_type::PointType, point_tx_id::PointTxId}, testing::test_stuff::test_value::Value}, services::{service::Service, services::Services}};
 
@@ -69,7 +69,8 @@ impl Service for TaskTestProducer {
                 let point = value.toPoint(txId, "/path/Point.Name");
                 match txSend.send(point.clone()) {
                     Ok(_) => {
-                        sent.lock().unwrap().push(point);
+                        sent.lock().unwrap().push(point.clone());
+                        trace!("{}.run | sent points: {:?}", selfId, sent.lock().unwrap().len());
                     },
                     Err(err) => {
                         warn!("{}.run | Error write to queue: {:?}", selfId, err);

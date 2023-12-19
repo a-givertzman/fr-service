@@ -50,7 +50,7 @@ impl TcpReadAlive {
             info!("{}.run | Preparing thread - ok", selfId);
             let mut tcpStream = BufReader::new(tcpStream);
             let mut jdsStream = jdsStream.lock().unwrap();
-            info!("{}.run | Starting main loop...", selfId);
+            info!("{}.run | Main loop started", selfId);
             loop {
                 cycle.start();
                 match jdsStream.read(&mut tcpStream) {

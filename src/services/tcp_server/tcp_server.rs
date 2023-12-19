@@ -27,7 +27,7 @@ impl TcpServer {
     /// 
     pub fn new(parent: impl Into<String>, conf: TcpServerConfig, services: Arc<Mutex<Services>>) -> Self {
         Self {
-            id: format!("{}/TcpClient({})", parent.into(), conf.name),
+            id: format!("{}/TcpServer({})", parent.into(), conf.name),
             conf: conf.clone(),
             services,
             exit: Arc::new(AtomicBool::new(false)),
@@ -95,7 +95,7 @@ impl Service for TcpServer {
     }
     //
     // 
-    fn getLink(&mut self, name: &str) -> Sender<PointType> {
+    fn getLink(&mut self, _name: &str) -> Sender<PointType> {
         panic!("{}.getLink | Does not support getLink", self.id())
         // match self.rxSend.get(name) {
         //     Some(send) => send.clone(),
@@ -117,8 +117,10 @@ impl Service for TcpServer {
             let mut handles: Vec<JoinHandle<()>> = vec![];
             loop {
                 cycle.start();
+                info!("{}.run | Open socket {}...", selfId, conf.address);
                 match TcpListener::bind(conf.address) {
                     Ok(listener) => {
+                        info!("{}.run | Done socket {} - ok", selfId, conf.address);
                         for stream in listener.incoming() {
                             if exit.load(Ordering::SeqCst) {
                                 while handles.len() > 0 {

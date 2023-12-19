@@ -47,7 +47,7 @@ mod tests {
         initOnce();
         initEach();
         println!("");
-        info!("test_jds_deserialize");
+        println!("test JdsDeserialize");
         let name = "/server/line1/ied1/test1";
         let ts = ts();
         let txId = 0;

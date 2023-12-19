@@ -32,12 +32,12 @@ mod tests {
     }
     
     #[test]
-    fn test_multi_queue_static_single() {
+    fn test_MultiQueue_static_single() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test_multi_queue - Static subscriptions - Single send");
+        println!("test_multi_queue - Static subscriptions - Single send");
 
         let selfId = "test";
         let iterations = 10;

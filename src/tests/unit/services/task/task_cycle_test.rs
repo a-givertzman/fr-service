@@ -30,12 +30,12 @@ fn initEach() -> () {
 }
 
 #[test]
-fn test_task_cycle() {
+fn test_ServiceCycle() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     initEach();
     println!("");
-    info!("test_task_cycle");
+    println!("test ServiceCycle");
     fn load(num: usize) {
         for _ in 0..num {
             let _: u128 = (1..=20).product();

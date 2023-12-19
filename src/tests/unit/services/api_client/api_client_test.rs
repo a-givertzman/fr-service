@@ -38,7 +38,7 @@ mod tests {
         initOnce();
         initEach();
         println!("");
-        info!("test_ApiClient");
+        println!("test ApiClient");
         let selfId = "test";
         let path = "./src/tests/unit/services/api_client/api_client.yaml";
         let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));

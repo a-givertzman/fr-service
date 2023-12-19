@@ -31,7 +31,7 @@ pub struct EmulatedTcpClient {
 /// 
 impl EmulatedTcpClient {
     pub fn new(parent: impl Into<String>, addr: &str, testData: Vec<Value>, recvLimit: Option<usize>) -> Self {
-        let selfId = format!("{}/MockTcpServer", parent.into());
+        let selfId = format!("{}/EmulatedTcpClient", parent.into());
         Self {
             id: selfId.clone(),
             addr: addr.parse().unwrap(),
@@ -89,6 +89,7 @@ impl Service for EmulatedTcpClient {
             'connect: loop {
                 match TcpStream::connect(addr) {
                     Ok(tcpStream) => {
+                        info!("{}.run | connected on: {:?}", selfId, addr);
                         let mut jdsDeserialize = JdsDeserialize::new(
                             selfId.clone(),
                             JdsDecodeMessage::new(
@@ -104,6 +105,7 @@ impl Service for EmulatedTcpClient {
                                             trace!("{}.run | received: {:?}", selfId, result);
                                             match result {
                                                 Ok(point) => {
+                                                    debug!("{}.run | received: {:?}", selfId, point);
                                                     received.lock().unwrap().push(point);
                                                     receivedCount += 1;
                                                 },

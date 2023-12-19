@@ -5,7 +5,7 @@ mod tests {
     use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}, thread};
     use crate::{
         tests::unit::services::tcp_server::emulated_tcp_client::EmulatedTcpClient,
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::{test_stuff::{max_test_duration::MaxTestDuration, inc_test_values::IncTestValues, test_value::Value}, test_session::TestSession}}, 
+        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::{test_stuff::{max_test_duration::MaxTestDuration, inc_test_values::IncTestValues, test_value::Value, wait::WaitTread}, test_session::TestSession}}, 
         conf::{tcp_server_config::TcpServerConfig, multi_queue_config::MultiQueueConfig}, 
         services::{tcp_server::tcp_server::TcpServer, services::Services, service::Service, task::task_test_producer::TaskTestProducer, multi_queue::multi_queue::MultiQueue}, 
     }; 
@@ -38,7 +38,7 @@ mod tests {
         initOnce();
         initEach();
         println!("");
-        info!("test TcpServer");
+        println!("test TcpServer");
         let selfId = "test";
         let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
         maxTestDuration.run().unwrap();
@@ -53,16 +53,17 @@ mod tests {
         let totalCount = testData.len();
 
         let tcpPort = TestSession::freeTcpPortStr();
+        let tcpAddr = format!("127.0.0.1:{}", tcpPort);
         let services = Arc::new(Mutex::new(Services::new(selfId)));
         let conf = format!(r#"
             service TcpServer:
                 cycle: 1 ms
                 reconnect: 1 s  # default 3 s
-                address: 127.0.0.1:{}
+                address: {}
                 in queue link:
                     max-length: 10000
-                out queue: MultiQueue.queue
-        "#, tcpPort);
+                out queue: MultiQueue.in-queue
+        "#, tcpAddr);
         let conf = serde_yaml::from_str(&conf).unwrap();
         let conf = TcpServerConfig::fromYamlValue(&conf);
         let tcpServer = Arc::new(Mutex::new(TcpServer::new(selfId, conf, services.clone())));
@@ -81,21 +82,25 @@ mod tests {
 
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             selfId,
-            "MultiQueue.queue",
+            "MultiQueue.in-queue",
             services.clone(),
             testData.clone(),
         )));
         services.lock().unwrap().insert("TaskTestProducer", producer.clone());
         let emulatedTcpClient = Arc::new(Mutex::new(EmulatedTcpClient::new(
             selfId,
-            &format!("127.0.0.1:{}", tcpPort),
+            &tcpAddr,
             testData,
             Some(iterations),
         )));
+        let mqServiceHandle = mqService.lock().unwrap().run().unwrap();
+        let tcpServerHandle = tcpServer.lock().unwrap().run().unwrap();
+        thread::sleep(Duration::from_millis(100));
         let emulatedTcpClientHandle = emulatedTcpClient.lock().unwrap().run().unwrap();
-        let handle = tcpServer.lock().unwrap().run().unwrap();
-        thread::sleep(Duration::from_millis(1000));
-
+        let producerHandle = producer.lock().unwrap().run().unwrap();
+        producerHandle.wait().unwrap();
+        emulatedTcpClientHandle.wait().unwrap();
+        
         let received = emulatedTcpClient.lock().unwrap().received();
         let received = received.lock().unwrap();
         let target = totalCount;
@@ -106,10 +111,11 @@ mod tests {
             let target = index as i64;
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
-
-
+        
         tcpServer.lock().unwrap().exit();
-        handle.join().unwrap();
+        mqService.lock().unwrap().exit();
+        tcpServerHandle.wait().unwrap();
+        mqServiceHandle.wait().unwrap();
         maxTestDuration.exit();
     }
 }

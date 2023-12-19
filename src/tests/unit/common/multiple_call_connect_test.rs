@@ -30,13 +30,14 @@ mod tests {
     
     }
     
+    #[ignore = "common - all must be ignored"]
     #[test]
     fn test_task_cycle() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test_task_cycle");
+        println!("test_task_cycle");
         let mut connect = TestConnect::new();
         let mut closed = false;
         for iteration in 0..10 {

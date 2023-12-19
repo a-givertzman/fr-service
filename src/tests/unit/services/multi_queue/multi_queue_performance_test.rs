@@ -35,12 +35,12 @@ mod tests {
     
     #[ignore = "Performance test | use to estimate performance of multiqueue without matching producer's id"]
     #[test]
-    fn test_multi_queue_performance() {
+    fn test_MultiQueue_performance() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test MultiQueue Performance");
+        println!("test MultiQueue Performance");
 
         let selfId = "test";
         let iterations = ITERATIONS;
@@ -144,12 +144,12 @@ mod tests {
     /// 
     #[ignore = "Performance test | use to estimate performance of multiqueue with matching producer's id"]
     #[test]
-    fn test_multi_queue_match_performance() {
+    fn test_MultiQueue_match_performance() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test MultiQueue Performance with matching by producer ID");
+        println!("test MultiQueue Performance with matching by producer ID");
 
         let selfId = "test";
         let iterations = ITERATIONS;

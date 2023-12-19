@@ -40,7 +40,7 @@ impl TcpWriteAlive {
         let handle = thread::Builder::new().name(format!("{} - Write", selfId.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
             let mut streamWrite = streamWrite.lock().unwrap();
-            info!("{}.run | Starting main loop...", selfId);
+            info!("{}.run | Main loop started", selfId);
             'main: loop {
                 cycle.start();
                 match streamWrite.write(&mut tcpStream) {
