@@ -33,9 +33,11 @@ impl Iterator for IncTestValues {
     fn next(&mut self) -> Option<Self::Item> {
         if self.iterations > 0 {
             self.iterations -= 1;
-            self.value = self.value + 1;
-            return Some(Value::Int(self.value))
+            let value = self.value;
+            self.value = value + 1;
+            Some(Value::Int(value))
+        } else {
+            None
         }
-        None
     }
 }

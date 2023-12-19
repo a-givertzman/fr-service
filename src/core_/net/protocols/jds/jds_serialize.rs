@@ -1,13 +1,13 @@
 #![allow(non_snake_case)]
 
-use std::sync::mpsc::Receiver;
+use std::{sync::mpsc::{Receiver, RecvTimeoutError}, time::Duration};
 
 use chrono::DateTime;
 use log::{trace, debug};
 use serde::{Serialize, ser::SerializeStruct};
 use serde_json::json;
 
-use crate::{core_::point::point_type::PointType, tcp::steam_read::StreamRead};
+use crate::{core_::{point::point_type::PointType, failure::recv_error::RecvError}, tcp::steam_read::StreamRead};
 
 
 ///
@@ -30,7 +30,7 @@ impl JdsSerialize {
     }
     ///
     /// Serialize point into json string
-    fn serialize(&self, point: PointType) -> Result<serde_json::Value, String> {
+    fn serialize(&self, point: PointType) -> Result<serde_json::Value, RecvError> {
         let value = match point {
             PointType::Bool(point) => {
                 json!(PointSerializable {
@@ -69,25 +69,26 @@ impl JdsSerialize {
                 })
             },
         };
-        debug!("{}.read | json: {:?}", self.id, value);
+        trace!("{}.read | json: {:?}", self.id, value);
         Ok(value)
     }    
 }
 ///
 /// 
-impl StreamRead<serde_json::Value, String> for JdsSerialize {
+impl StreamRead<serde_json::Value, RecvError> for JdsSerialize {
     ///
     /// Reads single point from Receiver & serialize it into json string
-    fn read(&mut self) -> Result<serde_json::Value, String> {
-        match self.stream.recv() {
+    fn read(&mut self) -> Result<serde_json::Value, RecvError> {
+        match self.stream.recv_timeout(Duration::from_millis(100)) {
             Ok(point) => {
                 trace!("{}.read | point: {:?}", self.id, &point);
                 self.serialize(point)
             },
             Err(err) => {
-                let message = format!("{}.read | error: {:?}", self.id, err);
-                trace!("{:?}", message);
-                Err(message)
+                match err {
+                    RecvTimeoutError::Timeout => Err(RecvError::Timeout),
+                    RecvTimeoutError::Disconnected => Err(RecvError::Disconnected),
+                }
             },
         }
     }

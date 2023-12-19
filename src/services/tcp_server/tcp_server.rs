@@ -5,7 +5,7 @@ use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thre
 use log::{info, warn, debug, error};
 
 use crate::{
-    services::{services::Services, service::Service, task::task_cycle::ServiceCycle, queue_name::QueueName}, 
+    services::{services::Services, service::Service, task::service_cycle::ServiceCycle, queue_name::QueueName}, 
     conf::tcp_server_config::TcpServerConfig, core_::{point::{point_type::PointType, point_tx_id::PointTxId}, net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, testing::test_stuff::wait::WaitTread}, tcp::{tcp_read_alive::TcpReadAlive, tcp_write_alive::TcpWriteAlive, tcp_stream_write::TcpStreamWrite},
 };
 
@@ -130,6 +130,17 @@ impl Service for TcpServer {
                             }
                             match stream {
                                 Ok(stream) => {
+                                    let readTimeout = Duration::from_millis(100);
+                                    match stream.set_read_timeout(Some(readTimeout)) {
+                                        Ok(_) => {
+                                            info!("{}.run | Socket set read timeout {:?} - ok", selfId, readTimeout);
+
+                                        },
+                                        Err(err) => {
+                                            warn!("{}.run | Socket set read timeout error {:?}", selfId, err);
+                                            
+                                        },
+                                    }
                                     match Self::setupConnection(selfId.clone(), stream, services.clone(), conf.clone(), exit.clone()) {
                                         Ok(handle) => {
                                             handles.push(handle);

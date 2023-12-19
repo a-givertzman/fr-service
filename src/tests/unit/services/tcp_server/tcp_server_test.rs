@@ -97,6 +97,7 @@ mod tests {
         let tcpServerHandle = tcpServer.lock().unwrap().run().unwrap();
         thread::sleep(Duration::from_millis(100));
         let emulatedTcpClientHandle = emulatedTcpClient.lock().unwrap().run().unwrap();
+        thread::sleep(Duration::from_millis(100));
         let producerHandle = producer.lock().unwrap().run().unwrap();
         producerHandle.wait().unwrap();
         emulatedTcpClientHandle.wait().unwrap();

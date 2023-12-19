@@ -2,7 +2,7 @@ pub mod functions;
 
 pub mod metric;
 
-pub mod task_cycle_test;
+pub mod service_cycle_test;
 
 pub mod task_nodes;
 

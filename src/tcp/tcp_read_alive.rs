@@ -2,12 +2,12 @@
 
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread::{JoinHandle, self}, time::Duration, net::TcpStream, io::BufReader};
 
-use log::{warn, info};
+use log::{warn, info, LevelFilter};
 
 use crate::{core_::{
     net::{connection_status::ConnectionStatus, protocols::jds::{jds_deserialize::JdsDeserialize, jds_decode_message::JdsDecodeMessage}}, 
     point::point_type::PointType,
-}, services::task::task_cycle::ServiceCycle};
+}, services::task::service_cycle::ServiceCycle};
 
 
 pub struct TcpReadAlive {
@@ -65,7 +65,9 @@ impl TcpReadAlive {
                                 };
                             },
                             Err(err) => {
-                                warn!("{}.run | error: {:?}", selfId, err);
+                                if log::max_level() == LevelFilter::Trace {
+                                    warn!("{}.run | error: {:?}", selfId, err);
+                                }
                             },
                         }
                     },
@@ -79,7 +81,9 @@ impl TcpReadAlive {
                 }
                 cycle.wait();
             }
+            info!("{}.run | Exit", selfId);
         }).unwrap();
+        info!("{}.run | started", self.id);
         handle
     }
     ///

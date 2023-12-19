@@ -10,7 +10,7 @@ use log::{info, debug, warn, trace};
 
 use crate::{services::{task::task_nodes::TaskNodes, service::Service, services::Services}, core_::point::point_type::PointType};
 use crate::conf::task_config::TaskConfig;
-use crate::services::task::task_cycle::ServiceCycle;
+use crate::services::task::service_cycle::ServiceCycle;
 
 /// Task implements entity, which provides cyclically (by event) executing calculations
 ///  - executed in the cycle mode (current impl)

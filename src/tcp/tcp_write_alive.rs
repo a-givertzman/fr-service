@@ -6,7 +6,7 @@ use log::{warn, info};
 
 use crate::{
     core_::net::connection_status::ConnectionStatus,
-    tcp::tcp_stream_write::TcpStreamWrite, services::task::task_cycle::ServiceCycle, 
+    tcp::tcp_stream_write::TcpStreamWrite, services::task::service_cycle::ServiceCycle, 
 };
 
 
@@ -62,6 +62,7 @@ impl TcpWriteAlive {
                 }
                 cycle.wait();
             }
+            info!("{}.run | Exit", selfId);
         }).unwrap();
         info!("{}.run | started", self.id);
         handle

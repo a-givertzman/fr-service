@@ -4,7 +4,7 @@ use std::{net::{TcpStream, SocketAddr, ToSocketAddrs}, time::Duration, sync::{Ar
 
 use log::{warn, LevelFilter, debug, info};
 
-use crate::services::task::task_cycle::ServiceCycle;
+use crate::services::task::service_cycle::ServiceCycle;
 
 
 // #[derive(Debug, PartialEq)]

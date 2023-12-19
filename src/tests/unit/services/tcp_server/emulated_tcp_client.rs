@@ -120,6 +120,7 @@ impl Service for EmulatedTcpClient {
                                         },
                                     };
                                     if receivedCount >= recvLimit {
+                                        exit.store(true, Ordering::SeqCst);
                                         break;
                                     }
                                     if exit.load(Ordering::SeqCst) {
