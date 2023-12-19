@@ -1,15 +1,15 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{JoinHandle, self}, time::Duration, net::{TcpStream, SocketAddr}};
+use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc}, thread::{JoinHandle, self}, time::Duration, net::{TcpStream, SocketAddr}, io::Write};
 
 use log::{info, debug, trace, warn};
 
 use crate::{
     core_::{
         testing::test_stuff::test_value::Value, point::{point_type::PointType, point_tx_id::PointTxId}, 
-        net::{protocols::jds::{jds_deserialize::JdsDeserialize, jds_decode_message::JdsDecodeMessage}, connection_status::ConnectionStatus},
+        net::{protocols::jds::{jds_deserialize::JdsDeserialize, jds_decode_message::JdsDecodeMessage, jds_serialize::JdsSerialize, jds_encode_message::JdsEncodeMessage}, connection_status::ConnectionStatus},
     },
-    services::service::Service, 
+    services::service::Service, tcp::steam_read::StreamRead, 
 };
 
 
@@ -82,6 +82,7 @@ impl Service for EmulatedTcpClient {
         let selfId = self.id.clone();
         let exit = self.exit.clone();
         let addr = self.addr.clone();
+        let testData = self.testData.clone();
         let received = self.received.clone();
         let recvLimit = self.recvLimit.clone();
         let handle = thread::Builder::new().name(format!("{}.run Read", selfId)).spawn(move || {
@@ -96,35 +97,38 @@ impl Service for EmulatedTcpClient {
                                 selfId.clone(),
                             ),
                         );
+                        let mut tcpStreamW = tcpStream.try_clone().unwrap();
                         match recvLimit {
                             Some(recvLimit) => {
-                                let mut receivedCount = 0;
-                                loop {
-                                    match jdsDeserialize.read(&tcpStream) {
-                                        ConnectionStatus::Active(result) => {
-                                            trace!("{}.run | received: {:?}", selfId, result);
-                                            match result {
-                                                Ok(point) => {
-                                                    debug!("{}.run | received: {:?}", selfId, point);
-                                                    received.lock().unwrap().push(point);
-                                                    receivedCount += 1;
-                                                },
-                                                Err(err) => {
-                                                    warn!("{}.run | read socket error: {:?}", selfId, err);
-                                                },
-                                            }
-                                        },
-                                        ConnectionStatus::Closed(err) => {
-                                            warn!("{}.run | socket connection closed: {:?}", selfId, err);
+                                if recvLimit > 0 {
+                                    let mut receivedCount = 0;
+                                    loop {
+                                        match jdsDeserialize.read(&tcpStream) {
+                                            ConnectionStatus::Active(result) => {
+                                                trace!("{}.run | received: {:?}", selfId, result);
+                                                match result {
+                                                    Ok(point) => {
+                                                        trace!("{}.run | received: {:?}", selfId, point);
+                                                        received.lock().unwrap().push(point);
+                                                        receivedCount += 1;
+                                                    },
+                                                    Err(err) => {
+                                                        warn!("{}.run | read socket error: {:?}", selfId, err);
+                                                    },
+                                                }
+                                            },
+                                            ConnectionStatus::Closed(err) => {
+                                                warn!("{}.run | socket connection closed: {:?}", selfId, err);
+                                                break;
+                                            },
+                                        };
+                                        if receivedCount >= recvLimit {
+                                            exit.store(true, Ordering::SeqCst);
                                             break;
-                                        },
-                                    };
-                                    if receivedCount >= recvLimit {
-                                        exit.store(true, Ordering::SeqCst);
-                                        break;
-                                    }
-                                    if exit.load(Ordering::SeqCst) {
-                                        break;
+                                        }
+                                        if exit.load(Ordering::SeqCst) {
+                                            break;
+                                        }
                                     }
                                 }
                             },
@@ -152,6 +156,36 @@ impl Service for EmulatedTcpClient {
                                     }
                                 }
                             },
+                        };
+                        let (send, recv) = mpsc::channel();
+                        let mut JdsMessage = JdsEncodeMessage::new(
+                            &selfId,
+                            JdsSerialize::new(&selfId, recv)
+                        );
+                        let txId = PointTxId::fromStr(&selfId);
+                        for value in &testData {
+                            send.send(value.toPoint(txId, "test")).unwrap();
+                            match JdsMessage.read() {
+                                Ok(bytes) => {
+                                    match &tcpStreamW.write(&bytes) {
+                                        Ok(_) => {},
+                                        Err(err) => {
+                                            warn!("{}.run | socket write error: {:?}", selfId, err);
+                                        },
+                                    }
+                                },
+                                Err(err) => {
+                                    panic!("{}.run | jdsSerialize error: {:?}", selfId, err);
+                                },
+                            };
+                        }
+                        if !testData.is_empty() {
+                            loop {
+                                thread::sleep(Duration::from_millis(100));
+                                if exit.load(Ordering::SeqCst) {
+                                    break 'connect;
+                                }
+                            }
                         }
                     },
                     Err(err) => {

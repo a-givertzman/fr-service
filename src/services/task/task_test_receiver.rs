@@ -19,10 +19,10 @@ pub struct TaskTestReceiver {
 impl TaskTestReceiver {
     ///
     /// 
-    pub fn new(recvQueue: &str, iterations: usize) -> Self {
+    pub fn new(parent: &str, recvQueue: &str, iterations: usize) -> Self {
         let (send, recv): (Sender<PointType>, Receiver<PointType>) = mpsc::channel();
         Self {
-            id: String::from("TaskTestReceiver"),
+            id: format!("{}/TaskTestReceiver", parent),
             iterations,
             inSend: HashMap::from([(recvQueue.to_string(), send)]),
             inRecv: vec![recv],

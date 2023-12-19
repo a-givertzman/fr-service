@@ -2,8 +2,8 @@
 #[cfg(test)]
 
 mod tests {
-    use log::{trace, info, error, debug};
-    use std::{sync::{Once, Arc, Mutex}, env, time::{Instant, Duration}, thread::JoinHandle, any::Any};
+    use log::{trace, info, debug};
+    use std::{sync::{Once, Arc, Mutex}, env, time::{Instant, Duration}};
     
     use crate::{
         core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::{random_test_values::RandomTestValues, test_value::Value, wait::WaitTread, max_test_duration::MaxTestDuration}}, 
@@ -54,6 +54,7 @@ mod tests {
         
         let services = Arc::new(Mutex::new(Services::new(selfId)));
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
+            selfId,
             "in-queue",
             iterations,
         )));
@@ -118,6 +119,7 @@ mod tests {
     
         let services = Arc::new(Mutex::new(Services::new(selfId)));
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
+            selfId,
             "in-queue",
             iterations,
         )));
