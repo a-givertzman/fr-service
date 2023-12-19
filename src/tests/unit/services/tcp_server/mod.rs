@@ -1,3 +1,3 @@
 pub mod tcp_server_test;
 
-pub mod mock_tcp_client;
+pub mod emulated_tcp_client;

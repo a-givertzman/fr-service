@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering, AtomicUsize}, Mutex}, thread::{self, JoinHandle}, collections::HashMap};
+use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering}, Mutex}, thread::{self, JoinHandle}, collections::HashMap};
 
-use log::{info, warn, trace};
+use log::{info, warn, trace, debug};
 
 use crate::{core_::point::point_type::PointType, services::service::Service};
 
@@ -61,7 +61,7 @@ impl Service for TaskTestReceiver {
         let mut errorCount = 0;
         let inRecv = self.inRecv.pop().unwrap();
         let iterations = self.iterations;
-        thread::Builder::new().name("name".to_owned()).spawn(move || {
+        let handle = thread::Builder::new().name(selfId.clone()).spawn(move || {
             // info!("Task({}).run | prepared", name);
             'inner: loop {
                 if exit.load(Ordering::Relaxed) {
@@ -74,6 +74,7 @@ impl Service for TaskTestReceiver {
                         if count >= iterations {
                             break 'inner;
                         }
+                        debug!("{}.run | received: {}", selfId, count);
                         trace!("{}.run | received SQL: {:?}", selfId, point.asString().value);
                         // debug!("{}.run | value: {}\treceived SQL: {:?}", value, sql);
                     },
@@ -91,9 +92,11 @@ impl Service for TaskTestReceiver {
                 }
             };
             info!("{}.run | received {} SQL's", selfId, count);
-            info!("{}.run | stopped", selfId);
+            info!("{}.run | exit", selfId);
             // thread::sleep(Duration::from_secs_f32(2.1));
-        })
+        });
+        info!("{}.run | starting - ok", self.id);
+        handle
     }
     //
     //

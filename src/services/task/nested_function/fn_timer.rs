@@ -129,7 +129,7 @@ impl FnOut for FnTimer {
             PointType::Bool(point) => point.value.0,
             PointType::Int(point) => point.value > 0,
             PointType::Float(point) => point.value > 0.0,
-            _ => panic!("FnCount.out | {:?} type is not supported: {:?}", point.typeOf(), point),
+            _ => panic!("FnCount.out | {:?} type is not supported: {:?}", point.printTypeOf(), point),
         };
         self.state.add(value);
         let state = self.state.state();
