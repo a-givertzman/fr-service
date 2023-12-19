@@ -43,12 +43,12 @@ mod tests {
     }
 
     #[test]
-    fn test_() {
+    fn test_TcpStreamWrite() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test_");
+        println!("test TcpStreamWrite");
         let count = 1000;
         let maxTestDuration = Duration::from_secs(10);
         let sent = Arc::new(AtomicUsize::new(0));
