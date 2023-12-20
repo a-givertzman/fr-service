@@ -41,7 +41,7 @@ impl TcpServer {
     }
     ///
     /// Setup thread for incomming connection
-    fn setupConnection(selfId: String, actionRecv: Receiver<Action>, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>) -> Result<JoinHandle<()>, std::io::Error> {
+    fn connection(selfId: String, actionRecv: Receiver<Action>, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.setupConnection | starting...", selfId);
         let selfIdClone = selfId.clone();
         let selfConfTx = conf.tx.clone();
@@ -117,7 +117,7 @@ impl TcpServer {
     fn newConnection(selfId: String, connectionId: String, stream: TcpStream, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>, connections: Arc<Mutex<HashMap<String, Connection>>>) {
         info!("{}.newConnection | New connection: '{}'", selfId, connectionId);
         let (send, recv) = mpsc::channel();
-        match Self::setupConnection(selfId.clone(), recv, services.clone(), conf.clone(), exit.clone()) {
+        match Self::connection(selfId.clone(), recv, services.clone(), conf.clone(), exit.clone()) {
             Ok(handle) => {
                 match send.send(Action::Continue(stream)) {
                     Ok(_) => {},
