@@ -2,10 +2,9 @@
 
 #[cfg(test)]
 mod tests {
-    use log::{warn, info, debug};
-    use rand::{thread_rng, Rng};
-    use std::{sync::{atomic::{AtomicUsize, Ordering}, Arc, Mutex}, net::TcpStream, thread};
-    use std::{sync::Once, time::{Duration, Instant}};
+    use rand::Rng;
+    use std::{sync::{atomic::{AtomicUsize, Ordering}, Arc, Mutex}, thread};
+    use std::{sync::Once, time::Duration};
     use crate::core_::debug::debug_session::{DebugSession, LogLevel, Backtrace}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.

@@ -1,13 +1,14 @@
 #![allow(non_snake_case)]
 
+use log::{info, trace, warn};
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc}, thread::{JoinHandle, self}, time::Duration, net::{TcpStream, SocketAddr}, io::Write};
-
-use log::{info, debug, trace, warn};
-
 use crate::{
     core_::{
         testing::test_stuff::test_value::Value, point::{point_type::PointType, point_tx_id::PointTxId}, 
-        net::{protocols::jds::{jds_deserialize::JdsDeserialize, jds_decode_message::JdsDecodeMessage, jds_serialize::JdsSerialize, jds_encode_message::JdsEncodeMessage}, connection_status::ConnectionStatus},
+        net::{
+            connection_status::ConnectionStatus,
+            protocols::jds::{jds_deserialize::JdsDeserialize, jds_decode_message::JdsDecodeMessage, jds_serialize::JdsSerialize, jds_encode_message::JdsEncodeMessage}, 
+        },
     },
     services::service::Service, tcp::steam_read::StreamRead, 
 };
@@ -18,6 +19,7 @@ use crate::{
 /// - all point from [testData] will be sent via socket
 /// - all received point in the received() method
 /// - if [recvLimit] is some then thread exit when riched recvLimit
+/// - [disconnect] - contains percentage of testData / iterations, where socket will be disconnected and connected again
 pub struct EmulatedTcpClient {
     id: String,
     addr: SocketAddr,
@@ -25,12 +27,13 @@ pub struct EmulatedTcpClient {
     sent: Arc<Mutex<Vec<PointType>>>,
     received: Arc<Mutex<Vec<PointType>>>,
     recvLimit: Option<usize>,
+    disconnect: Vec<i8>,
     exit: Arc<AtomicBool>,
 }
 ///
 /// 
 impl EmulatedTcpClient {
-    pub fn new(parent: impl Into<String>, addr: &str, testData: Vec<Value>, recvLimit: Option<usize>) -> Self {
+    pub fn new(parent: impl Into<String>, addr: &str, testData: Vec<Value>, recvLimit: Option<usize>, disconnect: Vec<i8>) -> Self {
         let selfId = format!("{}/EmulatedTcpClient", parent.into());
         Self {
             id: selfId.clone(),
@@ -39,6 +42,7 @@ impl EmulatedTcpClient {
             sent: Arc::new(Mutex::new(vec![])),
             received: Arc::new(Mutex::new(vec![])),
             recvLimit,
+            disconnect,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -83,6 +87,7 @@ impl Service for EmulatedTcpClient {
         let exit = self.exit.clone();
         let addr = self.addr.clone();
         let testData = self.testData.clone();
+        let sent = self.sent.clone();
         let received = self.received.clone();
         let recvLimit = self.recvLimit.clone();
         let handle = thread::Builder::new().name(format!("{}.run Read", selfId)).spawn(move || {
@@ -122,6 +127,7 @@ impl Service for EmulatedTcpClient {
                                                 break;
                                             },
                                         };
+                                        // if receivedCount 
                                         if receivedCount >= recvLimit {
                                             exit.store(true, Ordering::SeqCst);
                                             break;
@@ -164,11 +170,14 @@ impl Service for EmulatedTcpClient {
                         );
                         let txId = PointTxId::fromStr(&selfId);
                         for value in &testData {
-                            send.send(value.toPoint(txId, "test")).unwrap();
+                            let point = value.toPoint(txId, "test");
+                            send.send(point.clone()).unwrap();
                             match JdsMessage.read() {
                                 Ok(bytes) => {
                                     match &tcpStreamW.write(&bytes) {
-                                        Ok(_) => {},
+                                        Ok(_) => {
+                                            sent.lock().unwrap().push(point)
+                                        },
                                         Err(err) => {
                                             warn!("{}.run | socket write error: {:?}", selfId, err);
                                         },

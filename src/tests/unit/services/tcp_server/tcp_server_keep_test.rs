@@ -32,12 +32,12 @@ mod tests {
     }
     
     #[test]
-    fn test_TcpServer_send() {
+    fn test_TcpServer_keep_send() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        println!("test TcpServer | Send");
+        println!("test TcpServer keep lost connection | Send");
         let selfId = "test";
         let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(20));
         maxTestDuration.run().unwrap();
@@ -91,7 +91,7 @@ mod tests {
             &tcpAddr,
             vec![],
             Some(iterations),
-            vec![],
+            vec![50],
         )));
         let mqServiceHandle = mqService.lock().unwrap().run().unwrap();
         let tcpServerHandle = tcpServer.lock().unwrap().run().unwrap();
@@ -121,12 +121,12 @@ mod tests {
     }
 
     #[test]
-    fn test_TcpServer_receive() {
+    fn test_TcpServer_keep_receive() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        println!("test TcpServer | Receive");
+        println!("test TcpServer keep lost connection | Receive");
         let selfId = "test";
         let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
         maxTestDuration.run().unwrap();
@@ -180,7 +180,7 @@ mod tests {
             &tcpAddr,
             testData.clone(),
             Some(0),
-            vec![],
+            vec![50],
         )));
         let mqServiceHandle = mqService.lock().unwrap().run().unwrap();
         let tcpServerHandle = tcpServer.lock().unwrap().run().unwrap();

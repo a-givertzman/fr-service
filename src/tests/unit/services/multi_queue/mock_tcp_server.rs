@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}, time::Duration};
+use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}};
 
 use log::{info, warn, debug, trace};
 
@@ -46,9 +46,9 @@ impl MockTcpServer {
     }
     ///
     /// 
-    pub fn sent(&self) -> Arc<Mutex<Vec<PointType>>> {
-        self.sent.clone()
-    }
+    // pub fn sent(&self) -> Arc<Mutex<Vec<PointType>>> {
+    //     self.sent.clone()
+    // }
     ///
     /// 
     pub fn received(&self) -> Arc<Mutex<Vec<PointType>>> {
@@ -65,7 +65,7 @@ impl Service for MockTcpServer {
     }
     //
     //
-    fn getLink(&mut self, name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
+    fn getLink(&mut self, _name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
         panic!("{}.getLink | Does not support static producer", self.id())
         // match self.rxSend.get(name) {
         //     Some(send) => send.clone(),

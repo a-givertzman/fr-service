@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{collections::HashMap, sync::{mpsc::{Sender, Receiver, self}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}, time::Duration};
+use std::{collections::HashMap, sync::{mpsc::{Sender, Receiver, self}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}};
 
 use log::{info, trace};
 
@@ -32,9 +32,9 @@ impl MockRecvService {
     }
     ///
     /// 
-    pub fn id(&self) -> String {
-        self.id.clone()
-    }
+    // pub fn id(&self) -> String {
+    //     self.id.clone()
+    // }
     ///
     /// 
     pub fn received(&self) -> Arc<Mutex<Vec<PointType>>> {

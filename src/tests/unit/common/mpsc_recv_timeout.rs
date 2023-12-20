@@ -1,9 +1,9 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
 mod tests {
-    use log::{warn, info, debug, error};
-    use std::{sync::{Once, mpsc::{self, RecvTimeoutError}}, time::{Duration, Instant}, thread::{self, JoinHandle}, any::Any};
-    use crate::core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, types::type_of::TypeOf, constants::constants::RECV_TIMEOUT}; 
+    use log::{info, error};
+    use std::{sync::{Once, mpsc::{self, RecvTimeoutError}}, time::Duration, thread::{self, JoinHandle}, any::Any};
+    use crate::core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, constants::constants::RECV_TIMEOUT}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;

@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
 mod tests {
-    use log::{warn, info, debug};
-    use std::{sync::{Once, mpsc}, time::{Duration, Instant}};
+    use log::info;
+    use std::sync::{Once, mpsc};
     use crate::core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, constants::constants::RECV_TIMEOUT}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
