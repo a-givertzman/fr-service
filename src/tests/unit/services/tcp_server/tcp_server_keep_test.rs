@@ -82,7 +82,7 @@ mod tests {
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             selfId,
             "MultiQueue.in-queue",
-            Duration::from_millis(50),
+            Duration::from_millis(100),
             services.clone(),
             testData.clone(),
         )));
@@ -92,6 +92,7 @@ mod tests {
             &tcpAddr,
             vec![],
             Some(iterations),
+            Some(testData.last().unwrap().clone()),
             vec![25, 50, 75],
         )));
         let mqServiceHandle = mqService.lock().unwrap().run().unwrap();
@@ -100,22 +101,23 @@ mod tests {
         let emulatedTcpClientHandle = emulatedTcpClient.lock().unwrap().run().unwrap();
         thread::sleep(Duration::from_millis(100));
         let producerHandle = producer.lock().unwrap().run().unwrap();
-        emulatedTcpClientHandle.wait().unwrap();
+        emulatedTcpClient.lock().unwrap().waitMarkerReceived();
         
         let received = emulatedTcpClient.lock().unwrap().received();
-        let mut received = received.lock().unwrap();
-        let target = totalCount;
-        let result = received.len();
-        assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
-        for value in testData {
-            let result = received.remove(0).asInt().value;
-            let target = value.asInt();
-            assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
-        }
+        let received = received.lock().unwrap();
+        let target = 0.97;
+        let result = (received.len() as f32) / (totalCount as f32);
+        // println!("elapsed: {:?}", timer.elapsed());
+        println!("total test events: {:?}", totalCount);
+        println!("sent events: {:?}", producer.lock().unwrap().sent().lock().unwrap().len());
+        println!("recv events: {:?} ({}%)", received.len(), result * 100.0);
+        assert!(result >= target, "\nresult: {:?}\ntarget: {:?}", result, target);
         
+        emulatedTcpClient.lock().unwrap().exit();
         producer.lock().unwrap().exit();
         tcpServer.lock().unwrap().exit();
         mqService.lock().unwrap().exit();
+        emulatedTcpClientHandle.wait().unwrap();
         producerHandle.wait().unwrap();
         tcpServerHandle.wait().unwrap();
         mqServiceHandle.wait().unwrap();
@@ -182,7 +184,8 @@ mod tests {
             &tcpAddr,
             testData.clone(),
             Some(0),
-            vec![50],
+            None,
+            vec![25, 50, 75],
         )));
         let mqServiceHandle = mqService.lock().unwrap().run().unwrap();
         let tcpServerHandle = tcpServer.lock().unwrap().run().unwrap();

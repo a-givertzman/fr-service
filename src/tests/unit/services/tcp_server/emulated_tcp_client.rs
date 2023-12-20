@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use log::{info, trace, warn};
+use log::{info, trace, warn, debug};
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc}, thread::{JoinHandle, self}, time::Duration, net::{TcpStream, SocketAddr}, io::Write};
 use crate::{
     core_::{
@@ -27,13 +27,15 @@ pub struct EmulatedTcpClient {
     sent: Arc<Mutex<Vec<PointType>>>,
     received: Arc<Mutex<Vec<PointType>>>,
     recvLimit: Option<usize>,
+    mustReceived: Option<Value>,
     disconnect: Vec<i8>,
+    markerReceived: Arc<AtomicBool>,
     exit: Arc<AtomicBool>,
 }
 ///
 /// 
 impl EmulatedTcpClient {
-    pub fn new(parent: impl Into<String>, addr: &str, testData: Vec<Value>, recvLimit: Option<usize>, disconnect: Vec<i8>) -> Self {
+    pub fn new(parent: impl Into<String>, addr: &str, testData: Vec<Value>, recvLimit: Option<usize>, mustReceived: Option<Value>, disconnect: Vec<i8>) -> Self {
         let selfId = format!("{}/EmulatedTcpClient", parent.into());
         Self {
             id: selfId.clone(),
@@ -42,7 +44,9 @@ impl EmulatedTcpClient {
             sent: Arc::new(Mutex::new(vec![])),
             received: Arc::new(Mutex::new(vec![])),
             recvLimit,
+            mustReceived,
             disconnect,
+            markerReceived: Arc::new(AtomicBool::new(false)),
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -106,7 +110,37 @@ impl EmulatedTcpClient {
             ),
         );
         switchState
-    }    
+    }
+    ///
+    /// 
+    pub fn waitAllReceived(&self) {
+        let recvLimit = self.recvLimit.unwrap_or(0);
+        info!("{}.waitAllReceived | wait all beeng received: {}/{}", self.id(), self.received.lock().unwrap().len(), recvLimit);
+        loop {
+            if self.received.lock().unwrap().len() >= recvLimit {
+                break;
+            }
+            thread::sleep(Duration::from_millis(100));
+            trace!("{}.waitAllReceived | wait all beeng received: {}/{}", self.id(), self.received.lock().unwrap().len(), recvLimit);
+        }
+    }
+    ///
+    /// 
+    pub fn waitMarkerReceived(&self) {
+        match &self.mustReceived {
+            Some(mustReceived) => {
+                info!("{}.waitMarkerReceived | Wait for {:?} marker beeng received", self.id, mustReceived);
+                loop {
+                    if self.markerReceived.load(Ordering::SeqCst) {
+                        break;
+                    }
+                    thread::sleep(Duration::from_millis(100));
+                    trace!("{}.waitMarkerReceived | wait for {:?} marker beeng received", self.id, self.mustReceived);
+                }
+            },
+            None => {},
+        }
+    }
 }
 ///
 /// 
@@ -131,18 +165,20 @@ impl Service for EmulatedTcpClient {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
+        let markerReceived = self.markerReceived.clone();
         let addr = self.addr.clone();
         let testData = self.testData.clone();
         let sent = self.sent.clone();
         let received = self.received.clone();
         let recvLimit = self.recvLimit.clone();
+        let mustReceived = self.mustReceived.clone();
         let disconnect = self.disconnect.iter().map(|v| {(*v as f32) / 100.0}).collect();
         let handle = thread::Builder::new().name(format!("{}.run Read", selfId)).spawn(move || {
             info!("{}.run | Preparing thread Read - ok", selfId);
             let mut switchState = Self::switchState(1, disconnect, 1.0);
             'connect: loop {
                 match TcpStream::connect(addr) {
-                    Ok(tcpStream) => {
+                    Ok(mut tcpStream) => {
                         info!("{}.run | connected on: {:?}", selfId, addr);
                         let mut jdsDeserialize = JdsDeserialize::new(
                             selfId.clone(),
@@ -162,11 +198,24 @@ impl Service for EmulatedTcpClient {
                                                 trace!("{}.run | received: {:?}", selfId, result);
                                                 match result {
                                                     Ok(point) => {
-                                                        trace!("{}.run | received: {:?}", selfId, point);
-                                                        received.lock().unwrap().push(point);
+                                                        debug!("{}.run | received: {:?}", selfId, point);
+                                                        received.lock().unwrap().push(point.clone());
                                                         receivedCount += 1;
                                                         progressPercent = (receivedCount as f32) / (recvLimit as f32);
                                                         switchState.add(progressPercent);
+                                                        if let Some(mustReceived) = &mustReceived {
+                                                            let markerReceived_ = match mustReceived {
+                                                                Value::Bool(value) => value == &point.asBool().value.0,
+                                                                Value::Int(value) => value == &point.asInt().value,
+                                                                Value::Float(value) => value == &point.asFloat().value,
+                                                                Value::String(value) => value == &point.asString().value,
+                                                            };
+                                                            if markerReceived_ {
+                                                                info!("{}.run | received marker {:?}, exiting...", selfId, point);
+                                                                markerReceived.store(markerReceived_, Ordering::SeqCst);
+                                                                break;
+                                                            }
+                                                        }
                                                     },
                                                     Err(err) => {
                                                         warn!("{}.run | read socket error: {:?}", selfId, err);
@@ -180,8 +229,9 @@ impl Service for EmulatedTcpClient {
                                         };
                                         if switchState.changed() {
                                             info!("{}.run | state: {} progress percent: {}", selfId, switchState.state(), progressPercent);
-                                            tcpStreamW.flush().unwrap();
-                                            tcpStreamW.shutdown(std::net::Shutdown::Both).unwrap();
+                                            tcpStream.flush().unwrap();
+                                            tcpStream.shutdown(std::net::Shutdown::Both).unwrap();
+                                            drop(tcpStream);
                                             thread::sleep(Duration::from_millis(1000));
                                             break;
                                         } 
@@ -227,6 +277,8 @@ impl Service for EmulatedTcpClient {
                                 JdsSerialize::new(&selfId, recv)
                             );
                             let txId = PointTxId::fromStr(&selfId);
+                            let mut sentCount = 0;
+                            let mut progressPercent = 0.0;
                             for value in &testData {
                                 let point = value.toPoint(txId, "test");
                                 send.send(point.clone()).unwrap();
@@ -234,7 +286,10 @@ impl Service for EmulatedTcpClient {
                                     Ok(bytes) => {
                                         match &tcpStreamW.write(&bytes) {
                                             Ok(_) => {
-                                                sent.lock().unwrap().push(point)
+                                                sent.lock().unwrap().push(point);
+                                                sentCount += 1;
+                                                progressPercent = (sentCount as f32) / (testData.len() as f32);
+                                                switchState.add(progressPercent);
                                             },
                                             Err(err) => {
                                                 warn!("{}.run | socket write error: {:?}", selfId, err);
@@ -245,6 +300,17 @@ impl Service for EmulatedTcpClient {
                                         panic!("{}.run | jdsSerialize error: {:?}", selfId, err);
                                     },
                                 };
+                                if switchState.changed() {
+                                    info!("{}.run | state: {} progress percent: {}", selfId, switchState.state(), progressPercent);
+                                    tcpStreamW.flush().unwrap();
+                                    tcpStreamW.shutdown(std::net::Shutdown::Both).unwrap();
+                                    drop(tcpStreamW);
+                                    thread::sleep(Duration::from_millis(1000));
+                                    break;
+                                } 
+                                if exit.load(Ordering::SeqCst) {
+                                    break;
+                                }
                             }
                         }
                         // if switchState.isMax() & !testData.is_empty() {

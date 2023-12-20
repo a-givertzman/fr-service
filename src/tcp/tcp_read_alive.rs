@@ -13,7 +13,7 @@ use crate::{core_::{
 pub struct TcpReadAlive {
     id: String,
     jdsStream: Arc<Mutex<JdsDeserialize>>,
-    send: Vec<Sender<PointType>>,
+    send: Sender<PointType>,
     cycle: Duration,
     exit: Arc<AtomicBool>,
 }
@@ -31,7 +31,7 @@ impl TcpReadAlive {
                     selfId,
                 ),
             ))),
-            send: vec![send],
+            send: send,
             cycle,
             exit: exit.unwrap_or(Arc::new(AtomicBool::new(false))),
         }
@@ -43,7 +43,7 @@ impl TcpReadAlive {
         let selfId = self.id.clone();
         let exit = self.exit.clone();
         let mut cycle = ServiceCycle::new(self.cycle);
-        let send = self.send.pop().unwrap();
+        let send = self.send.clone();
         let jdsStream = self.jdsStream.clone();
         info!("{}.run | Preparing thread...", self.id);
         let handle = thread::Builder::new().name(format!("{} - Read", selfId.clone())).spawn(move || {

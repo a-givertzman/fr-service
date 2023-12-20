@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
+
 mod tests {
     use std::{sync::{Once, Arc, Mutex}, time::Duration, thread};
     use crate::{
@@ -92,6 +93,7 @@ mod tests {
             &tcpAddr,
             vec![],
             Some(iterations),
+            None,
             vec![],
         )));
         let mqServiceHandle = mqService.lock().unwrap().run().unwrap();
@@ -101,7 +103,7 @@ mod tests {
         thread::sleep(Duration::from_millis(100));
         let producerHandle = producer.lock().unwrap().run().unwrap();
         producerHandle.wait().unwrap();
-        emulatedTcpClientHandle.wait().unwrap();
+        emulatedTcpClient.lock().unwrap().waitAllReceived();
         
         let received = emulatedTcpClient.lock().unwrap().received();
         let mut received = received.lock().unwrap();
@@ -114,8 +116,10 @@ mod tests {
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
         
+        emulatedTcpClient.lock().unwrap().exit();
         tcpServer.lock().unwrap().exit();
         mqService.lock().unwrap().exit();
+        emulatedTcpClientHandle.wait().unwrap();
         tcpServerHandle.wait().unwrap();
         mqServiceHandle.wait().unwrap();
         maxTestDuration.exit();
@@ -181,6 +185,7 @@ mod tests {
             &tcpAddr,
             testData.clone(),
             Some(0),
+            None,
             vec![],
         )));
         let mqServiceHandle = mqService.lock().unwrap().run().unwrap();
@@ -190,8 +195,6 @@ mod tests {
         thread::sleep(Duration::from_millis(100));
         let receiverHandle = receiver.lock().unwrap().run().unwrap();
         receiverHandle.wait().unwrap();
-        emulatedTcpClient.lock().unwrap().exit();
-        emulatedTcpClientHandle.wait().unwrap();
         
         let received = receiver.lock().unwrap().received();
         let mut received = received.lock().unwrap();
@@ -204,8 +207,10 @@ mod tests {
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
         
+        emulatedTcpClient.lock().unwrap().exit();
         tcpServer.lock().unwrap().exit();
         mqService.lock().unwrap().exit();
+        emulatedTcpClientHandle.wait().unwrap();
         tcpServerHandle.wait().unwrap();
         mqServiceHandle.wait().unwrap();
         maxTestDuration.exit();
