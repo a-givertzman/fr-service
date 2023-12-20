@@ -4,7 +4,7 @@ use std::{collections::HashMap, sync::{mpsc::{Sender, Receiver, self}, Arc, Mute
 
 use log::{info, trace};
 
-use crate::{core_::point::point_type::PointType, services::service::Service};
+use crate::{core_::{point::point_type::PointType, constants::constants::RECV_TIMEOUT}, services::service::Service};
 
 
 pub struct MockRecvService {
@@ -72,7 +72,7 @@ impl Service for MockRecvService {
                 Some(recvLimit) => {
                     let mut receivedCount = 0;
                     loop {
-                        match inRecv.recv_timeout(Duration::from_millis(1000)) {
+                        match inRecv.recv_timeout(RECV_TIMEOUT) {
                             Ok(point) => {
                                 trace!("{}.run | received: {:?}", selfId, point);
                                 received.lock().unwrap().push(point);
@@ -90,7 +90,7 @@ impl Service for MockRecvService {
                 },
                 None => {
                     loop {
-                        match inRecv.recv_timeout(Duration::from_millis(100)) {
+                        match inRecv.recv_timeout(RECV_TIMEOUT) {
                             Ok(point) => {
                                 trace!("{}.run | received: {:?}", selfId, point);
                                 received.lock().unwrap().push(point);

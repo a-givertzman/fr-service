@@ -3,7 +3,7 @@
 mod tests {
     use log::{warn, info, debug, error};
     use std::{sync::{Once, mpsc::{self, RecvTimeoutError}}, time::{Duration, Instant}, thread::{self, JoinHandle}, any::Any};
-    use crate::core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, types::type_of::TypeOf}; 
+    use crate::core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, types::type_of::TypeOf, constants::constants::RECV_TIMEOUT}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -48,7 +48,7 @@ mod tests {
 
         let mut exit = false;
         while !exit {
-            match recv.recv_timeout(Duration::from_millis(100)) {
+            match recv.recv_timeout(RECV_TIMEOUT) {
                 Ok(value) => {
                     info!("value: {}", value);
                 },

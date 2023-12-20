@@ -42,13 +42,13 @@ impl TcpServer {
     ///
     /// Setup thread for incomming connection
     fn connection(selfId: String, actionRecv: Receiver<Action>, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>) -> Result<JoinHandle<()>, std::io::Error> {
-        info!("{}.setupConnection | starting...", selfId);
+        info!("{}.connection | starting...", selfId);
         let selfIdClone = selfId.clone();
         let selfConfTx = conf.tx.clone();
         let txQueueName = QueueName::new(&selfConfTx);
-        info!("{}.setupConnection | Preparing thread...", selfId);
-        let handle = thread::Builder::new().name(format!("{}.setupConnection", selfId.clone())).spawn(move || {
-            info!("{}.setupConnection | Preparing thread - ok", selfId);
+        info!("{}.connection | Preparing thread...", selfId);
+        let handle = thread::Builder::new().name(format!("{}.connection", selfId.clone())).spawn(move || {
+            info!("{}.connection | Preparing thread - ok", selfId);
             let send = services.lock().unwrap().getLink(&selfConfTx);
             let recv = services.lock().unwrap().subscribe(txQueueName.service(), &selfId, &vec![]);
             let buffered = conf.rxMaxLength > 0;
@@ -102,14 +102,14 @@ impl TcpServer {
                         }
                     },
                 }
-                if keepTimeout.checked_sub(duration.elapsed()).is_none() {
-                    info!("{}.setupConnection | Keeped lost connection timeout({:?}) exceeded", selfId, keepTimeout);
+                if exit.load(Ordering::SeqCst) | keepTimeout.checked_sub(duration.elapsed()).is_none() {
+                    info!("{}.connection | Keeped lost connection timeout({:?}) exceeded", selfId, keepTimeout);
                     break;
                 }
             }
-            info!("{}.setupConnection | Exit", selfId);
+            info!("{}.connection | Exit", selfId);
         });
-        info!("{}.setupConnection | started", selfIdClone);
+        info!("{}.connection | started", selfIdClone);
         handle
     }
     ///

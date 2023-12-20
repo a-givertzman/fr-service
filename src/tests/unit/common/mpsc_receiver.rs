@@ -3,7 +3,7 @@
 mod tests {
     use log::{warn, info, debug};
     use std::{sync::{Once, mpsc}, time::{Duration, Instant}};
-    use crate::core_::debug::debug_session::{DebugSession, LogLevel, Backtrace}; 
+    use crate::core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, constants::constants::RECV_TIMEOUT}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -43,7 +43,7 @@ mod tests {
         drop(send);
         let mut value = -1;
         while value < iterations {
-            value = recv.recv_timeout(Duration::from_millis(100)).unwrap();
+            value = recv.recv_timeout(RECV_TIMEOUT).unwrap();
             info!("value: {}", value);
             // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }

@@ -5,7 +5,7 @@ use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, Joi
 use log::{info, warn, debug, trace};
 
 use crate::{
-    core_::{point::{point_type::PointType, point_tx_id::PointTxId}, testing::test_stuff::test_value::Value}, 
+    core_::{point::{point_type::PointType, point_tx_id::PointTxId}, testing::test_stuff::test_value::Value, constants::constants::RECV_TIMEOUT}, 
     services::{services::Services, service::Service, queue_name::QueueName},
 };
 
@@ -92,7 +92,7 @@ impl Service for MockTcpServer {
                 Some(recvLimit) => {
                     let mut receivedCount = 0;
                     loop {
-                        match rxRecv.recv_timeout(Duration::from_millis(1000)) {
+                        match rxRecv.recv_timeout(RECV_TIMEOUT) {
                             Ok(point) => {
                                 trace!("{}.run | received: {:?}", selfId, point);
                                 received.lock().unwrap().push(point);
@@ -110,7 +110,7 @@ impl Service for MockTcpServer {
                 },
                 None => {
                     loop {
-                        match rxRecv.recv_timeout(Duration::from_millis(100)) {
+                        match rxRecv.recv_timeout(RECV_TIMEOUT) {
                             Ok(point) => {
                                 trace!("{}.run | received: {:?}", selfId, point);
                                 received.lock().unwrap().push(point);

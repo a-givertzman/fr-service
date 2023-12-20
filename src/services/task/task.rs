@@ -8,7 +8,7 @@ use std::{
 
 use log::{info, debug, warn, trace};
 
-use crate::{services::{task::task_nodes::TaskNodes, service::Service, services::Services}, core_::point::point_type::PointType};
+use crate::{services::{task::task_nodes::TaskNodes, service::Service, services::Services}, core_::{point::point_type::PointType, constants::constants::RECV_TIMEOUT}};
 use crate::conf::task_config::TaskConfig;
 use crate::services::task::service_cycle::ServiceCycle;
 
@@ -77,7 +77,7 @@ impl Service for Task {
             'main: loop {
                 cycle.start();
                 trace!("{}.run | calculation step...", selfId);
-                match inRecv.recv_timeout(Duration::from_millis(100)) {
+                match inRecv.recv_timeout(RECV_TIMEOUT) {
                     Ok(point) => {
                         debug!("{}.run | point: {:?}", selfId, &point);
                         taskNodes.eval(point);

@@ -7,7 +7,7 @@ use log::{trace, debug};
 use serde::{Serialize, ser::SerializeStruct};
 use serde_json::json;
 
-use crate::{core_::{point::point_type::PointType, failure::recv_error::RecvError}, tcp::steam_read::StreamRead};
+use crate::{core_::{point::point_type::PointType, failure::recv_error::RecvError, constants::constants::RECV_TIMEOUT}, tcp::steam_read::StreamRead};
 
 
 ///
@@ -79,7 +79,7 @@ impl StreamRead<serde_json::Value, RecvError> for JdsSerialize {
     ///
     /// Reads single point from Receiver & serialize it into json string
     fn read(&mut self) -> Result<serde_json::Value, RecvError> {
-        match self.stream.recv_timeout(Duration::from_millis(100)) {
+        match self.stream.recv_timeout(RECV_TIMEOUT) {
             Ok(point) => {
                 trace!("{}.read | point: {:?}", self.id, &point);
                 self.serialize(point)
