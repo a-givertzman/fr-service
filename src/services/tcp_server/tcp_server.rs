@@ -4,12 +4,12 @@ use log::{info, warn, debug, error};
 use std::{
     sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::{Sender, Receiver, self, SendError}}, 
     thread::{self, JoinHandle}, 
-    net::{TcpListener, TcpStream, Shutdown}, time::Duration, any::Any, collections::HashMap,
+    net::{TcpListener, TcpStream, Shutdown}, time::{Duration, Instant}, any::Any, collections::HashMap,
 };
 use crate::{
     services::{services::Services, service::Service, task::service_cycle::ServiceCycle, queue_name::QueueName}, 
     conf::tcp_server_config::TcpServerConfig, 
-    core_::{point::point_type::PointType, net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, testing::test_stuff::wait::WaitTread}, 
+    core_::{point::point_type::PointType, net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, testing::test_stuff::wait::WaitTread, constants::constants::RECV_TIMEOUT}, 
     tcp::{tcp_read_alive::TcpReadAlive, tcp_write_alive::TcpWriteAlive, tcp_stream_write::TcpStreamWrite},
 };
 
@@ -75,18 +75,36 @@ impl TcpServer {
                 ))),
                 Some(exit.clone()),
             );
-            for action in actionRecv {
-                match action {
-                    Some(tcpStream) => {
-                        let hR = tcpReadAlive.run(tcpStream.try_clone().unwrap());
-                        let hW = tcpWriteAlive.run(tcpStream);
-                        hR.join().unwrap();
-                        hW.join().unwrap();
-                        
+            let keepTimeout = conf.keepTimeout.unwrap_or(Duration::from_secs(3));
+            let mut duration = Instant::now();
+            loop {
+                match actionRecv.recv_timeout(RECV_TIMEOUT) {
+                    Ok(action) => {
+                        match action {
+                            Some(tcpStream) => {
+                                let hR = tcpReadAlive.run(tcpStream.try_clone().unwrap());
+                                let hW = tcpWriteAlive.run(tcpStream);
+                                hR.join().unwrap();
+                                hW.join().unwrap();
+                                duration = Instant::now();
+                            },
+                            None => {
+                                break;
+                            },
+                        }
                     },
-                    None => {
-                        break;
+                    Err(err) => {
+                        match err {
+                            mpsc::RecvTimeoutError::Timeout => {},
+                            mpsc::RecvTimeoutError::Disconnected => {
+                                break;
+                            },
+                        }
                     },
+                }
+                if keepTimeout.checked_sub(duration.elapsed()).is_none() {
+                    info!("{}.setupConnection | Keeped lost connection timeout({:?}) exceeded", selfId, keepTimeout);
+                    break;
                 }
             }
             info!("{}.setupConnection | Exit", selfId);

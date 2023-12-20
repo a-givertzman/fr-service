@@ -11,8 +11,9 @@ use crate::conf::{conf_tree::ConfTree, service_config::ServiceConfig};
 /// ```yaml
 /// service TcpClient:
 ///     cycle: 1 ms
-///     reconnect: 1 s  # default 3 s
 ///     address: 127.0.0.1:8080
+///     reconnect: 1 s  # default 3 s
+///     keep-timeout: 3s    // timeot keeping lost connection
 ///     in queue link:
 ///         max-length: 10000
 ///     out queue: MultiQueue.queue
@@ -20,9 +21,10 @@ use crate::conf::{conf_tree::ConfTree, service_config::ServiceConfig};
 #[derive(Debug, PartialEq, Clone)]
 pub struct TcpServerConfig {
     pub(crate) name: String,
-    pub(crate) address: SocketAddr,
     pub(crate) cycle: Option<Duration>,
+    pub(crate) address: SocketAddr,
     pub(crate) reconnectCycle: Option<Duration>,
+    pub(crate) keepTimeout: Option<Duration>,
     pub(crate) rx: String,
     pub(crate) rxMaxLength: i64,
     pub(crate) tx: String,
@@ -35,8 +37,9 @@ impl TcpServerConfig {
     /// ```yaml
     /// service TcpClient:
     ///     cycle: 1 ms
-    ///     reconnect: 1 s  # default 3 s
     ///     address: 127.0.0.1:8080
+    ///     reconnect: 1 s  # default 3 s
+    ///     keep-timeout: 3s    // timeot keeping lost connection
     ///     in queue link:
     ///         max-length: 10000
     ///     out queue: MultiQueue.queue
@@ -63,15 +66,18 @@ impl TcpServerConfig {
                 debug!("{}.new | cycle: {:?}", selfId, cycle);
                 let reconnectCycle = selfConf.getDuration("reconnect");
                 debug!("{}.new | reconnectCycle: {:?}", selfId, reconnectCycle);
+                let keepTimeout = selfConf.getDuration("keep-timeout");
+                debug!("{}.new | keepTimeout: {:?}", selfId, reconnectCycle);
                 let (rx, rxMaxLength) = selfConf.getInQueue().unwrap();
                 debug!("{}.new | RX: {},\tmax-length: {}", selfId, rx, rxMaxLength);
                 let tx = selfConf.getOutQueue().unwrap();
                 debug!("{}.new | TX: {}", selfId, tx);
                 TcpServerConfig {
                     name: selfName,
-                    address: selfAddress,
                     cycle,
+                    address: selfAddress,
                     reconnectCycle,
+                    keepTimeout,
                     rx,
                     rxMaxLength: rxMaxLength,
                     tx,
