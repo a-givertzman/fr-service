@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
+
 mod tests {
     use log::{warn, info, debug};
     use std::{sync::Once, time::{Duration, Instant}};
