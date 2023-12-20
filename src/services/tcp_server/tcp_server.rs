@@ -41,7 +41,7 @@ impl TcpServer {
     }
     ///
     /// Setup thread for incomming connection
-    fn setupConnection(selfId: String, actionRecv: Receiver<Option<TcpStream>>, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>) -> Result<JoinHandle<()>, std::io::Error> {
+    fn setupConnection(selfId: String, actionRecv: Receiver<Action>, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.setupConnection | starting...", selfId);
         let selfIdClone = selfId.clone();
         let selfConfTx = conf.tx.clone();
@@ -81,14 +81,14 @@ impl TcpServer {
                 match actionRecv.recv_timeout(RECV_TIMEOUT) {
                     Ok(action) => {
                         match action {
-                            Some(tcpStream) => {
+                            Action::Continue(tcpStream) => {
                                 let hR = tcpReadAlive.run(tcpStream.try_clone().unwrap());
                                 let hW = tcpWriteAlive.run(tcpStream);
                                 hR.join().unwrap();
                                 hW.join().unwrap();
                                 duration = Instant::now();
                             },
-                            None => {
+                            Action::Exit => {
                                 break;
                             },
                         }
@@ -122,7 +122,7 @@ impl TcpServer {
             match keys.first() {
                 Some(key) => {
                     let connection = connectionsLock.remove(key).unwrap();
-                    connection.send(None).unwrap();
+                    connection.send(Action::Exit).unwrap();
                     connection.wait().unwrap();
                 },
                 None => {
@@ -188,26 +188,38 @@ impl Service for TcpServer {
                                     }
                                     let (send, recv) = mpsc::channel();
                                     let connectionId = format!("{}({})", selfId, remIp);
-                                    match Self::setupConnection(selfId.clone(), recv, services.clone(), conf.clone(), exit.clone()) {
-                                        Ok(handle) => {
-                                            match send.send(Some(stream)) {
+                                    match connections.lock().unwrap().get(&connectionId) {
+                                        Some(conn) => {
+                                            match conn.send(Action::Continue(stream)) {
                                                 Ok(_) => {},
                                                 Err(err) => {
                                                     warn!("{}.run | Send tcpStream error {:?}", selfId, err);
                                                 },
                                             }
-                                            connections.lock().unwrap().insert(
-                                                connectionId,
-                                                Connection::new(
-                                                    handle,
-                                                    send,
-                                                )
-                                            );
                                         },
-                                        Err(err) => {
-                                            warn!("{}.run | error: {:?}", selfId, err);
+                                        None => {
+                                            match Self::setupConnection(selfId.clone(), recv, services.clone(), conf.clone(), exit.clone()) {
+                                                Ok(handle) => {
+                                                    match send.send(Action::Continue(stream)) {
+                                                        Ok(_) => {},
+                                                        Err(err) => {
+                                                            warn!("{}.run | Send tcpStream error {:?}", selfId, err);
+                                                        },
+                                                    }
+                                                    connections.lock().unwrap().insert(
+                                                        connectionId,
+                                                        Connection::new(
+                                                            handle,
+                                                            send,
+                                                        )
+                                                    );
+                                                },
+                                                Err(err) => {
+                                                    warn!("{}.run | error: {:?}", selfId, err);
+                                                },
+                                            };
                                         },
-                                    };
+                                    }
                                 },
                                 Err(err) => {
                                     warn!("{}.run | error: {:?}", selfId, err);
@@ -245,15 +257,15 @@ impl Service for TcpServer {
 ///
 /// Keep TCP Server's connection's:
 /// - thread JoinHandle
-/// - Sender<Option<TcpStream>>
+/// - Sender<Action>
 struct Connection {
     handle: JoinHandle<()>,
-    send: Sender<Option<TcpStream>>,
+    send: Sender<Action>,
 }
 ///
 /// 
 impl Connection {
-    pub fn new(handle: JoinHandle<()>, send: Sender<Option<TcpStream>>,) -> Self {
+    pub fn new(handle: JoinHandle<()>, send: Sender<Action>,) -> Self {
         Self {
             handle: handle,
             send: send,
@@ -261,7 +273,7 @@ impl Connection {
     }
     ///
     /// 
-    pub fn send(&self, action: Option<TcpStream>) -> Result<(), SendError<Option<TcpStream>>> {
+    pub fn send(&self, action: Action) -> Result<(), SendError<Action>> {
         self.send.send(action)
     }
     ///
@@ -269,4 +281,11 @@ impl Connection {
     pub fn wait(self) -> Result<(), Box<dyn Any + Send>> {
         self.handle.wait()
     }
+}
+
+///
+/// 
+enum Action {
+    Continue(TcpStream),
+    Exit,
 }
