@@ -8,7 +8,7 @@ use crate::{
         net::{
             connection_status::ConnectionStatus,
             protocols::jds::{jds_deserialize::JdsDeserialize, jds_decode_message::JdsDecodeMessage, jds_serialize::JdsSerialize, jds_encode_message::JdsEncodeMessage}, 
-        },
+        }, state::{switch_state::{SwitchState, Switch, SwitchCondition}, switch_state_changed::SwitchStateChanged},
     },
     services::service::Service, tcp::steam_read::StreamRead, 
 };
@@ -19,7 +19,7 @@ use crate::{
 /// - all point from [testData] will be sent via socket
 /// - all received point in the received() method
 /// - if [recvLimit] is some then thread exit when riched recvLimit
-/// - [disconnect] - contains percentage of testData / iterations, where socket will be disconnected and connected again
+/// - [disconnect] - contains percentage (0..100) of testData / iterations, where socket will be disconnected and connected again
 pub struct EmulatedTcpClient {
     id: String,
     addr: SocketAddr,
@@ -61,6 +61,39 @@ impl EmulatedTcpClient {
     pub fn received(&self) -> Arc<Mutex<Vec<PointType>>> {
         self.received.clone()
     }
+    ///
+    /// 
+    fn switchState<T: std::cmp::PartialOrd + Clone + 'static>(initial: u8, steps: Vec<T>) -> SwitchStateChanged<u8, T> {
+        fn switch<T: std::cmp::PartialOrd + Clone + 'static>(state: &mut u8, input: Option<T>) -> Switch<u8, T> {
+            let state_ = *state;
+            *state = *state + 1;
+            let target = state;
+            Switch{
+                state: state_,
+                conditions: vec![
+                    SwitchCondition {
+                        condition: Box::new(move |value| {
+                            match input.clone() {
+                                Some(input) => value >= input,
+                                None => false,
+                            }
+                        }),
+                        target: *target,        
+                    },
+                ],
+            }
+        }
+        let mut state: u8 = initial;
+        let mut switches: Vec<Switch<u8, T>> = steps.into_iter().map(|input| {switch(&mut state, Some(input))}).collect();
+        switches.push(switch(&mut state, None));
+        let switchState: SwitchStateChanged<u8, T> = SwitchStateChanged::new(
+            SwitchState::new(
+                initial,
+                switches,
+            ),
+        );
+        switchState
+    }    
 }
 ///
 /// 
@@ -90,8 +123,10 @@ impl Service for EmulatedTcpClient {
         let sent = self.sent.clone();
         let received = self.received.clone();
         let recvLimit = self.recvLimit.clone();
+        let disconnect = self.disconnect.iter().map(|v| {(*v as f32) / 100.0}).collect();
         let handle = thread::Builder::new().name(format!("{}.run Read", selfId)).spawn(move || {
             info!("{}.run | Preparing thread Read - ok", selfId);
+            let mut switchState = Self::switchState(1, disconnect);
             'connect: loop {
                 match TcpStream::connect(addr) {
                     Ok(tcpStream) => {
@@ -106,6 +141,7 @@ impl Service for EmulatedTcpClient {
                         match recvLimit {
                             Some(recvLimit) => {
                                 if recvLimit > 0 {
+                                    let mut progressPercent = 0.0;
                                     let mut receivedCount = 0;
                                     loop {
                                         match jdsDeserialize.read(&tcpStream) {
@@ -116,6 +152,8 @@ impl Service for EmulatedTcpClient {
                                                         trace!("{}.run | received: {:?}", selfId, point);
                                                         received.lock().unwrap().push(point);
                                                         receivedCount += 1;
+                                                        progressPercent = (receivedCount as f32) / (recvLimit as f32);
+                                                        switchState.add(progressPercent);
                                                     },
                                                     Err(err) => {
                                                         warn!("{}.run | read socket error: {:?}", selfId, err);
@@ -127,7 +165,10 @@ impl Service for EmulatedTcpClient {
                                                 break;
                                             },
                                         };
-                                        // if receivedCount 
+                                        if switchState.changed() {
+                                            info!("{}.run | state: {} progress percent: {}", selfId, switchState.state(), progressPercent);
+                                            break;
+                                        } 
                                         if receivedCount >= recvLimit {
                                             exit.store(true, Ordering::SeqCst);
                                             break;
