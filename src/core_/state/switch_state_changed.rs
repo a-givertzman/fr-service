@@ -10,7 +10,7 @@ pub struct SwitchStateChanged<TState, TInput> {
 }
 ///
 /// 
-impl<TState: std::fmt::Debug + Eq + core::hash::Hash + Clone, TInput: Clone> SwitchStateChanged<TState, TInput> {
+impl<TState: std::fmt::Debug + Eq + Ord + core::hash::Hash + Clone, TInput: Clone> SwitchStateChanged<TState, TInput> {
     ///
     /// 
     pub fn new(switchState: SwitchState<TState, TInput>) -> Self {
@@ -40,5 +40,10 @@ impl<TState: std::fmt::Debug + Eq + core::hash::Hash + Clone, TInput: Clone> Swi
         let changed = self.switchState.state() != self.prev;
         self.prev = self.switchState.state();
         changed
+    }
+    ///
+    /// 
+    pub fn isMax(&self) -> bool {
+        self.switchState.isMax()
     }
 }

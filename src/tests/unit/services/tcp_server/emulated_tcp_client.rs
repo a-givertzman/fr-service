@@ -63,7 +63,7 @@ impl EmulatedTcpClient {
     }
     ///
     /// 
-    fn switchState<T: std::cmp::PartialOrd + Clone + 'static>(initial: u8, steps: Vec<T>) -> SwitchStateChanged<u8, T> {
+    fn switchState<T: std::cmp::PartialOrd + Clone + 'static>(initial: u8, steps: Vec<T>, fin: T) -> SwitchStateChanged<u8, T> {
         fn switch<T: std::cmp::PartialOrd + Clone + 'static>(state: &mut u8, input: Option<T>) -> Switch<u8, T> {
             let state_ = *state;
             *state = *state + 1;
@@ -85,7 +85,20 @@ impl EmulatedTcpClient {
         }
         let mut state: u8 = initial;
         let mut switches: Vec<Switch<u8, T>> = steps.into_iter().map(|input| {switch(&mut state, Some(input))}).collect();
-        switches.push(switch(&mut state, None));
+            let state_ = state;
+            state = state + 1;
+            let target = state;
+        switches.push(
+            Switch{
+                state: state_,
+                conditions: vec![
+                    SwitchCondition {
+                        condition: Box::new(move |value| { value == fin}),
+                        target: target,        
+                    },
+                ],
+            }
+        );
         let switchState: SwitchStateChanged<u8, T> = SwitchStateChanged::new(
             SwitchState::new(
                 initial,
@@ -126,7 +139,7 @@ impl Service for EmulatedTcpClient {
         let disconnect = self.disconnect.iter().map(|v| {(*v as f32) / 100.0}).collect();
         let handle = thread::Builder::new().name(format!("{}.run Read", selfId)).spawn(move || {
             info!("{}.run | Preparing thread Read - ok", selfId);
-            let mut switchState = Self::switchState(1, disconnect);
+            let mut switchState = Self::switchState(1, disconnect, 1.0);
             'connect: loop {
                 match TcpStream::connect(addr) {
                     Ok(tcpStream) => {
@@ -167,6 +180,9 @@ impl Service for EmulatedTcpClient {
                                         };
                                         if switchState.changed() {
                                             info!("{}.run | state: {} progress percent: {}", selfId, switchState.state(), progressPercent);
+                                            tcpStreamW.flush().unwrap();
+                                            tcpStreamW.shutdown(std::net::Shutdown::Both).unwrap();
+                                            thread::sleep(Duration::from_millis(1000));
                                             break;
                                         } 
                                         if receivedCount >= recvLimit {
@@ -204,39 +220,41 @@ impl Service for EmulatedTcpClient {
                                 }
                             },
                         };
-                        let (send, recv) = mpsc::channel();
-                        let mut JdsMessage = JdsEncodeMessage::new(
-                            &selfId,
-                            JdsSerialize::new(&selfId, recv)
-                        );
-                        let txId = PointTxId::fromStr(&selfId);
-                        for value in &testData {
-                            let point = value.toPoint(txId, "test");
-                            send.send(point.clone()).unwrap();
-                            match JdsMessage.read() {
-                                Ok(bytes) => {
-                                    match &tcpStreamW.write(&bytes) {
-                                        Ok(_) => {
-                                            sent.lock().unwrap().push(point)
-                                        },
-                                        Err(err) => {
-                                            warn!("{}.run | socket write error: {:?}", selfId, err);
-                                        },
-                                    }
-                                },
-                                Err(err) => {
-                                    panic!("{}.run | jdsSerialize error: {:?}", selfId, err);
-                                },
-                            };
-                        }
                         if !testData.is_empty() {
-                            loop {
-                                thread::sleep(Duration::from_millis(100));
-                                if exit.load(Ordering::SeqCst) {
-                                    break 'connect;
-                                }
+                            let (send, recv) = mpsc::channel();
+                            let mut JdsMessage = JdsEncodeMessage::new(
+                                &selfId,
+                                JdsSerialize::new(&selfId, recv)
+                            );
+                            let txId = PointTxId::fromStr(&selfId);
+                            for value in &testData {
+                                let point = value.toPoint(txId, "test");
+                                send.send(point.clone()).unwrap();
+                                match JdsMessage.read() {
+                                    Ok(bytes) => {
+                                        match &tcpStreamW.write(&bytes) {
+                                            Ok(_) => {
+                                                sent.lock().unwrap().push(point)
+                                            },
+                                            Err(err) => {
+                                                warn!("{}.run | socket write error: {:?}", selfId, err);
+                                            },
+                                        }
+                                    },
+                                    Err(err) => {
+                                        panic!("{}.run | jdsSerialize error: {:?}", selfId, err);
+                                    },
+                                };
                             }
                         }
+                        // if switchState.isMax() & !testData.is_empty() {
+                        //     loop {
+                        //         thread::sleep(Duration::from_millis(100));
+                        //         if exit.load(Ordering::SeqCst) {
+                        //             break 'connect;
+                        //         }
+                        //     }
+                        // }
                     },
                     Err(err) => {
                         warn!("{}.run | connection error: {:?}", selfId, err);

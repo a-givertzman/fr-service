@@ -259,7 +259,7 @@ impl Service for TcpServer {
                             }
                             match stream {
                                 Ok(stream) => {
-                                    let remIp = stream.peer_addr().map_or("Uncnown remote IP".to_string(), |a| {a.to_string()});
+                                    let remIp = stream.peer_addr().map_or("Uncnown remote IP".to_string(), |a| {a.ip().to_string()});
                                     let connectionId = format!("{}-{}", selfId, remIp);
                                     Self::setStreamTimout(&selfId, &stream, RECV_TIMEOUT, None);
                                     match Self::repairConnection(&selfId, &connectionId, connections.clone(), stream.try_clone().unwrap()) {

@@ -71,6 +71,7 @@ mod tests {
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             selfId, 
             "Task.recv-queue",
+            Duration::ZERO,
             services.clone(),
             testData,
         )));
@@ -142,6 +143,7 @@ mod tests {
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             selfId,
             "Task.recv-queue",
+            Duration::ZERO,
             services.clone(),
             testData,
         )));

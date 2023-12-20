@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{mpsc::Sender, Arc, atomic::{AtomicBool, Ordering}, Mutex}, thread::{self, JoinHandle}};
+use std::{sync::{mpsc::Sender, Arc, atomic::{AtomicBool, Ordering}, Mutex}, thread::{self, JoinHandle}, time::Duration};
 
 use log::{debug, warn, info, trace};
 
@@ -12,6 +12,7 @@ use crate::{core_::{point::{point_type::PointType, point_tx_id::PointTxId}, test
 pub struct TaskTestProducer {
     id: String,
     link: String, 
+    cycle: Duration,
     // rxSend: HashMap<String, Sender<PointType>>,
     services: Arc<Mutex<Services>>,
     testData: Vec<Value>,
@@ -21,10 +22,11 @@ pub struct TaskTestProducer {
 ///
 /// 
 impl TaskTestProducer {
-    pub fn new(parent: &str, link: &str, services: Arc<Mutex<Services>>, testData: Vec<Value>) -> Self {
+    pub fn new(parent: &str, link: &str, cycle: Duration, services: Arc<Mutex<Services>>, testData: Vec<Value>) -> Self {
         Self {
             id: format!("{}/TaskTestProducer", parent),
             link: link.to_string(),
+            cycle,
             // rxSend: HashMap::new(),
             services,
             testData,
@@ -60,6 +62,8 @@ impl Service for TaskTestProducer {
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         let selfId = self.id.clone();
         let txId = PointTxId::fromStr(&selfId);
+        let cycle = self.cycle.clone();
+        let delayed = !cycle.is_zero();
         let txSend = self.services.lock().unwrap().getLink(&self.link);
         let sent = self.sent.clone();
         let testData = self.testData.clone();
@@ -76,7 +80,9 @@ impl Service for TaskTestProducer {
                         warn!("{}.run | Error write to queue: {:?}", selfId, err);
                     },
                 }
-                // thread::sleep(Duration::from_micros(10));
+                if delayed {
+                    thread::sleep(cycle);
+                }
             }
             info!("{}.run | All sent: {}", selfId, sent.lock().unwrap().len());
             // thread::sleep(Duration::from_secs_f32(0.1));

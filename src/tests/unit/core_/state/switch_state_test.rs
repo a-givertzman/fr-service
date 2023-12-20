@@ -7,7 +7,7 @@ mod tests {
     
     use crate::core_::{state::switch_state::{Switch, SwitchCondition, SwitchState}, debug::debug_session::{DebugSession, LogLevel, Backtrace}};
     
-    #[derive(Debug, PartialEq, Eq, Hash, Clone)]
+    #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
     enum ProcessState {
         Off,
         Start,
@@ -130,7 +130,12 @@ mod tests {
             let state = switchState.state();
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state, targetState);
-        }        
+            if state == ProcessState::Stop {
+                assert_eq!(switchState.isMax(), true);
+            } else {
+                assert_eq!(switchState.isMax(), false);
+            }
+        }
     }
     
     #[test]

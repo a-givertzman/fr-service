@@ -12,7 +12,7 @@ use crate::core_::{
 use super::{fn_::{FnInOut, FnIn, FnOut}, fn_kind::FnKind};
 
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
 // #[allow(dead_code)]
 enum FnTimerState {
     Off,

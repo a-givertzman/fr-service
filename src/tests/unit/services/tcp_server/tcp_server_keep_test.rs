@@ -82,6 +82,7 @@ mod tests {
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             selfId,
             "MultiQueue.in-queue",
+            Duration::from_millis(50),
             services.clone(),
             testData.clone(),
         )));
@@ -91,7 +92,7 @@ mod tests {
             &tcpAddr,
             vec![],
             Some(iterations),
-            vec![50],
+            vec![25, 50, 75],
         )));
         let mqServiceHandle = mqService.lock().unwrap().run().unwrap();
         let tcpServerHandle = tcpServer.lock().unwrap().run().unwrap();
@@ -99,7 +100,6 @@ mod tests {
         let emulatedTcpClientHandle = emulatedTcpClient.lock().unwrap().run().unwrap();
         thread::sleep(Duration::from_millis(100));
         let producerHandle = producer.lock().unwrap().run().unwrap();
-        producerHandle.wait().unwrap();
         emulatedTcpClientHandle.wait().unwrap();
         
         let received = emulatedTcpClient.lock().unwrap().received();
@@ -113,8 +113,10 @@ mod tests {
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
         
+        producer.lock().unwrap().exit();
         tcpServer.lock().unwrap().exit();
         mqService.lock().unwrap().exit();
+        producerHandle.wait().unwrap();
         tcpServerHandle.wait().unwrap();
         mqServiceHandle.wait().unwrap();
         maxTestDuration.exit();

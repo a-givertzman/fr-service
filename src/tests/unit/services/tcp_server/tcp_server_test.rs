@@ -82,6 +82,7 @@ mod tests {
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             selfId,
             "MultiQueue.in-queue",
+            Duration::ZERO,
             services.clone(),
             testData.clone(),
         )));
