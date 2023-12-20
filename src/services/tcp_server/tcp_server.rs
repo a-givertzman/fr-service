@@ -114,6 +114,33 @@ impl TcpServer {
     }
     ///
     /// 
+    fn newConnection(selfId: String, connectionId: String, stream: TcpStream, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>, connections: Arc<Mutex<HashMap<String, Connection>>>) {
+        info!("{}.newConnection | New connection: '{}'", selfId, connectionId);
+        let (send, recv) = mpsc::channel();
+        match Self::setupConnection(selfId.clone(), recv, services.clone(), conf.clone(), exit.clone()) {
+            Ok(handle) => {
+                match send.send(Action::Continue(stream)) {
+                    Ok(_) => {},
+                    Err(err) => {
+                        warn!("{}.run | Send tcpStream error {:?}", selfId, err);
+                    },
+                }
+                connections.lock().unwrap().insert(
+                    connectionId,
+                    Connection::new(
+                        handle,
+                        send,
+                    )
+                );
+            },
+            Err(err) => {
+                warn!("{}.run | error: {:?}", selfId, err);
+            },
+        };
+
+    }
+    ///
+    /// 
     fn waitConnections(selfId: String, connections: Arc<Mutex<HashMap<String, Connection>>>) {
         while connections.lock().unwrap().len() > 0 {
             let mut connectionsLock = connections.lock().unwrap();
@@ -186,38 +213,27 @@ impl Service for TcpServer {
                                             
                                         },
                                     }
-                                    let (send, recv) = mpsc::channel();
                                     let connectionId = format!("{}({})", selfId, remIp);
                                     match connections.lock().unwrap().get(&connectionId) {
                                         Some(conn) => {
-                                            match conn.send(Action::Continue(stream)) {
-                                                Ok(_) => {},
-                                                Err(err) => {
-                                                    warn!("{}.run | Send tcpStream error {:?}", selfId, err);
-                                                },
+                                            if conn.isActive() {
+                                                info!("{}.run | Keeped connection '{}' - found", selfId, connectionId);
+                                                match conn.send(Action::Continue(stream)) {
+                                                    Ok(_) => {
+                                                        info!("{}.run | Keeped connection '{}' repaired", selfId, connectionId);
+                                                    },
+                                                    Err(err) => {
+                                                        warn!("{}.run | Keeped connection repair error {:?}", selfId, err);
+                                                    },
+                                                }
+                                            } else {
+                                                info!("{}.run | Keeped connection '{}' - exceeded", selfId, connectionId);
+                                                Self::newConnection(selfId.clone(), connectionId, stream, services.clone(), conf.clone(), exit.clone(), connections.clone())
                                             }
                                         },
                                         None => {
-                                            match Self::setupConnection(selfId.clone(), recv, services.clone(), conf.clone(), exit.clone()) {
-                                                Ok(handle) => {
-                                                    match send.send(Action::Continue(stream)) {
-                                                        Ok(_) => {},
-                                                        Err(err) => {
-                                                            warn!("{}.run | Send tcpStream error {:?}", selfId, err);
-                                                        },
-                                                    }
-                                                    connections.lock().unwrap().insert(
-                                                        connectionId,
-                                                        Connection::new(
-                                                            handle,
-                                                            send,
-                                                        )
-                                                    );
-                                                },
-                                                Err(err) => {
-                                                    warn!("{}.run | error: {:?}", selfId, err);
-                                                },
-                                            };
+                                            info!("{}.run | Keeped connection '{}' - not found", selfId, connectionId);
+                                            Self::newConnection(selfId.clone(), connectionId, stream, services.clone(), conf.clone(), exit.clone(), connections.clone())
                                         },
                                     }
                                 },
@@ -280,6 +296,11 @@ impl Connection {
     /// 
     pub fn wait(self) -> Result<(), Box<dyn Any + Send>> {
         self.handle.wait()
+    }
+    ///
+    /// 
+    pub fn isActive(&self) -> bool {
+        !self.handle.is_finished()
     }
 }
 
