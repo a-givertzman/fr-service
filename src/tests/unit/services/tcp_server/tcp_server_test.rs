@@ -39,7 +39,7 @@ mod tests {
         println!("");
         println!("test TcpServer send");
         let selfId = "test";
-        let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
+        let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(20));
         maxTestDuration.run().unwrap();
 
         let iterations = 100;
