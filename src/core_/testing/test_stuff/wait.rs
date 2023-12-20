@@ -14,7 +14,7 @@ pub trait WaitTread {
 impl WaitTread for JoinHandle<()> {
     ///
     /// Performs JoinHandle.join() wrapped in some debuging
-    fn wait(self) -> Result<(), Box<dyn Any + Send>>{
+    fn wait(self) -> Result<(), Box<dyn Any + Send>> {
         let thdId = format!("{:?}-{:?}", self.thread().id(), self.thread().name());
         info!("Waiting for thread: {:?}...", thdId);
         let r = self.join();

@@ -1,12 +1,16 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread::{self, JoinHandle}, net::{TcpListener, TcpStream, Shutdown, SocketAddr}, io::Read, time::Duration, rc::Rc, any::Any};
-
 use log::{info, warn, debug, error};
-
+use std::{
+    sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::{Sender, Receiver, self, SendError}}, 
+    thread::{self, JoinHandle}, 
+    net::{TcpListener, TcpStream, Shutdown}, time::Duration, any::Any, collections::HashMap,
+};
 use crate::{
     services::{services::Services, service::Service, task::service_cycle::ServiceCycle, queue_name::QueueName}, 
-    conf::tcp_server_config::TcpServerConfig, core_::{point::{point_type::PointType, point_tx_id::PointTxId}, net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, testing::test_stuff::wait::WaitTread}, tcp::{tcp_read_alive::TcpReadAlive, tcp_write_alive::TcpWriteAlive, tcp_stream_write::TcpStreamWrite},
+    conf::tcp_server_config::TcpServerConfig, 
+    core_::{point::point_type::PointType, net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, testing::test_stuff::wait::WaitTread}, 
+    tcp::{tcp_read_alive::TcpReadAlive, tcp_write_alive::TcpWriteAlive, tcp_stream_write::TcpStreamWrite},
 };
 
 
@@ -17,6 +21,7 @@ use crate::{
 pub struct TcpServer {
     id: String,
     conf: TcpServerConfig,
+    connections: Arc<Mutex<HashMap<String, Connection>>>,
     services: Arc<Mutex<Services>>,
     exit: Arc<AtomicBool>,
 }
@@ -29,27 +34,21 @@ impl TcpServer {
         Self {
             id: format!("{}/TcpServer({})", parent.into(), conf.name),
             conf: conf.clone(),
+            connections: Arc::new(Mutex::new(HashMap::new())),
             services,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
     ///
     /// Setup thread for incomming connection
-    fn setupConnection(selfId: String, tcpStream: TcpStream, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>) -> Result<JoinHandle<()>, std::io::Error> {
-        let remIp = match tcpStream.peer_addr() {
-            Ok(addr) => {addr.to_string()},
-            Err(err) => {
-                warn!("{}.setupConnection | tcpStream.peer_addr error: {:?}", selfId, err);
-                "Uncnown remote IP".to_string()
-            },
-        };
-        let selfId = format!("{}({})", selfId, remIp);
+    fn setupConnection(selfId: String, actionRecv: Receiver<Option<TcpStream>>, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.setupConnection | starting...", selfId);
         let selfIdClone = selfId.clone();
         let selfConfTx = conf.tx.clone();
         let txQueueName = QueueName::new(&selfConfTx);
         info!("{}.setupConnection | Preparing thread...", selfId);
         let handle = thread::Builder::new().name(format!("{}.setupConnection", selfId.clone())).spawn(move || {
+            info!("{}.setupConnection | Preparing thread - ok", selfId);
             let send = services.lock().unwrap().getLink(&selfConfTx);
             let recv = services.lock().unwrap().subscribe(txQueueName.service(), &selfId, &vec![]);
             let buffered = conf.rxMaxLength > 0;
@@ -76,13 +75,43 @@ impl TcpServer {
                 ))),
                 Some(exit.clone()),
             );
-            let hR = tcpReadAlive.run(tcpStream.try_clone().unwrap());
-            let hW = tcpWriteAlive.run(tcpStream);
-            hR.join().unwrap();
-            hW.join().unwrap();
+            for action in actionRecv {
+                match action {
+                    Some(tcpStream) => {
+                        let hR = tcpReadAlive.run(tcpStream.try_clone().unwrap());
+                        let hW = tcpWriteAlive.run(tcpStream);
+                        hR.join().unwrap();
+                        hW.join().unwrap();
+                        
+                    },
+                    None => {
+                        break;
+                    },
+                }
+            }
+            info!("{}.setupConnection | Exit", selfId);
         });
         info!("{}.setupConnection | started", selfIdClone);
         handle
+    }
+    ///
+    /// 
+    fn waitConnections(selfId: String, connections: Arc<Mutex<HashMap<String, Connection>>>) {
+        while connections.lock().unwrap().len() > 0 {
+            let mut connectionsLock = connections.lock().unwrap();
+            let keys: Vec<String> = connectionsLock.keys().map(|k| {k.to_string()}).collect();
+            info!("{}.run | Wait for connections: {:?}", selfId, keys);
+            match keys.first() {
+                Some(key) => {
+                    let connection = connectionsLock.remove(key).unwrap();
+                    connection.send(None).unwrap();
+                    connection.wait().unwrap();
+                },
+                None => {
+                    break;
+                },
+            };
+        }
     }
 }
 ///
@@ -109,13 +138,13 @@ impl Service for TcpServer {
         let selfId = self.id.clone();
         let conf = self.conf.clone();
         let exit = self.exit.clone();
+        let connections = self.connections.clone();
         let services = self.services.clone();
         let reconnectCycle = conf.reconnectCycle.unwrap_or(Duration::ZERO);
         info!("{}.run | Preparing thread...", selfId);
         let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
             let mut cycle = ServiceCycle::new(reconnectCycle);
-            let mut handles: Vec<JoinHandle<()>> = vec![];
-            loop {
+            'main: loop {
                 cycle.start();
                 info!("{}.run | Open socket {}...", selfId, conf.address);
                 match TcpListener::bind(conf.address) {
@@ -123,13 +152,11 @@ impl Service for TcpServer {
                         info!("{}.run | Done socket {} - ok", selfId, conf.address);
                         for stream in listener.incoming() {
                             if exit.load(Ordering::SeqCst) {
-                                while handles.len() > 0 {
-                                    handles.pop().unwrap().wait().unwrap();
-                                } 
                                 break;
                             }
                             match stream {
                                 Ok(stream) => {
+                                    let remIp = stream.peer_addr().map_or("Uncnown remote IP".to_string(), |a| {a.to_string()});
                                     let readTimeout = Duration::from_millis(100);
                                     match stream.set_read_timeout(Some(readTimeout)) {
                                         Ok(_) => {
@@ -141,9 +168,23 @@ impl Service for TcpServer {
                                             
                                         },
                                     }
-                                    match Self::setupConnection(selfId.clone(), stream, services.clone(), conf.clone(), exit.clone()) {
+                                    let (send, recv) = mpsc::channel();
+                                    let connectionId = format!("{}({})", selfId, remIp);
+                                    match Self::setupConnection(selfId.clone(), recv, services.clone(), conf.clone(), exit.clone()) {
                                         Ok(handle) => {
-                                            handles.push(handle);
+                                            match send.send(Some(stream)) {
+                                                Ok(_) => {},
+                                                Err(err) => {
+                                                    warn!("{}.run | Send tcpStream error {:?}", selfId, err);
+                                                },
+                                            }
+                                            connections.lock().unwrap().insert(
+                                                connectionId,
+                                                Connection::new(
+                                                    handle,
+                                                    send,
+                                                )
+                                            );
                                         },
                                         Err(err) => {
                                             warn!("{}.run | error: {:?}", selfId, err);
@@ -161,19 +202,14 @@ impl Service for TcpServer {
                     },
                 };
                 if exit.load(Ordering::SeqCst) {
-                    for handle in handles {
-                        handle.wait().unwrap();
-                    }
-                    break;
+                    break 'main;
                 }
                 cycle.wait();
                 if exit.load(Ordering::SeqCst) {
-                    for handle in handles {
-                        handle.wait().unwrap();
-                    }
-                    break;
+                    break 'main;
                 }
             }
+            Self::waitConnections(selfId, connections);
         });
         info!("{}.run | started", self.id);
         handle
@@ -186,4 +222,33 @@ impl Service for TcpServer {
         let s = TcpStream::connect_timeout(&self.conf.address, Duration::from_millis(100)).unwrap();
         s.shutdown(Shutdown::Both).unwrap();
     }    
+}
+
+///
+/// Keep TCP Server's connection's:
+/// - thread JoinHandle
+/// - Sender<Option<TcpStream>>
+struct Connection {
+    handle: JoinHandle<()>,
+    send: Sender<Option<TcpStream>>,
+}
+///
+/// 
+impl Connection {
+    pub fn new(handle: JoinHandle<()>, send: Sender<Option<TcpStream>>,) -> Self {
+        Self {
+            handle: handle,
+            send: send,
+        }
+    }
+    ///
+    /// 
+    pub fn send(&self, action: Option<TcpStream>) -> Result<(), SendError<Option<TcpStream>>> {
+        self.send.send(action)
+    }
+    ///
+    /// 
+    pub fn wait(self) -> Result<(), Box<dyn Any + Send>> {
+        self.handle.wait()
+    }
 }
