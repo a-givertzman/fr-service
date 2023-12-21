@@ -4,7 +4,7 @@
 mod tests {
     use std::{sync::{Once, Arc, Mutex}, time::Duration, thread};
     use crate::{
-        tests::unit::services::tcp_server::emulated_tcp_client::EmulatedTcpClient,
+        tests::unit::services::tcp_server::{emulated_tcp_client_recv::EmulatedTcpClientRecv, emulated_tcp_client_send::EmulatedTcpClientSend},
         core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::{test_stuff::{max_test_duration::MaxTestDuration, inc_test_values::IncTestValues, test_value::Value, wait::WaitTread}, test_session::TestSession}}, 
         conf::{tcp_server_config::TcpServerConfig, multi_queue_config::MultiQueueConfig}, 
         services::{tcp_server::tcp_server::TcpServer, services::Services, service::Service, task::{task_test_producer::TaskTestProducer, task_test_receiver::TaskTestReceiver}, multi_queue::multi_queue::MultiQueue}, 
@@ -88,10 +88,9 @@ mod tests {
             testData.clone(),
         )));
         services.lock().unwrap().insert("TaskTestProducer", producer.clone());
-        let emulatedTcpClient = Arc::new(Mutex::new(EmulatedTcpClient::new(
+        let emulatedTcpClient = Arc::new(Mutex::new(EmulatedTcpClientRecv::new(
             selfId,
             &tcpAddr,
-            vec![],
             Some(iterations),
             None,
             vec![],
@@ -180,12 +179,10 @@ mod tests {
             iterations,
         )));
         services.lock().unwrap().insert("TaskTestReceiver", receiver.clone());
-        let emulatedTcpClient = Arc::new(Mutex::new(EmulatedTcpClient::new(
+        let emulatedTcpClient = Arc::new(Mutex::new(EmulatedTcpClientSend::new(
             selfId,
             &tcpAddr,
             testData.clone(),
-            Some(0),
-            None,
             vec![],
         )));
         let mqServiceHandle = mqService.lock().unwrap().run().unwrap();

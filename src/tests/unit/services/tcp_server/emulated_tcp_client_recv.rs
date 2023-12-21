@@ -1,16 +1,16 @@
 #![allow(non_snake_case)]
 
 use log::{info, trace, warn, debug};
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc}, thread::{JoinHandle, self}, time::Duration, net::{TcpStream, SocketAddr}, io::Write};
+use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{JoinHandle, self}, time::Duration, net::{TcpStream, SocketAddr}, io::Write};
 use crate::{
     core_::{
-        testing::test_stuff::test_value::Value, point::{point_type::PointType, point_tx_id::PointTxId}, 
+        testing::test_stuff::test_value::Value, point::point_type::PointType, 
         net::{
             connection_status::ConnectionStatus,
-            protocols::jds::{jds_deserialize::JdsDeserialize, jds_decode_message::JdsDecodeMessage, jds_serialize::JdsSerialize, jds_encode_message::JdsEncodeMessage}, 
+            protocols::jds::{jds_deserialize::JdsDeserialize, jds_decode_message::JdsDecodeMessage}, 
         }, state::{switch_state::{SwitchState, Switch, SwitchCondition}, switch_state_changed::SwitchStateChanged},
     },
-    services::service::Service, tcp::steam_read::StreamRead, 
+    services::service::Service, 
 };
 
 
@@ -20,11 +20,9 @@ use crate::{
 /// - all received point in the received() method
 /// - if [recvLimit] is some then thread exit when riched recvLimit
 /// - [disconnect] - contains percentage (0..100) of testData / iterations, where socket will be disconnected and connected again
-pub struct EmulatedTcpClient {
+pub struct EmulatedTcpClientRecv {
     id: String,
     addr: SocketAddr,
-    testData: Vec<Value>,
-    sent: Arc<Mutex<Vec<PointType>>>,
     received: Arc<Mutex<Vec<PointType>>>,
     recvLimit: Option<usize>,
     mustReceived: Option<Value>,
@@ -34,14 +32,12 @@ pub struct EmulatedTcpClient {
 }
 ///
 /// 
-impl EmulatedTcpClient {
-    pub fn new(parent: impl Into<String>, addr: &str, testData: Vec<Value>, recvLimit: Option<usize>, mustReceived: Option<Value>, disconnect: Vec<i8>) -> Self {
-        let selfId = format!("{}/EmulatedTcpClient", parent.into());
+impl EmulatedTcpClientRecv {
+    pub fn new(parent: impl Into<String>, addr: &str, recvLimit: Option<usize>, mustReceived: Option<Value>, disconnect: Vec<i8>) -> Self {
+        let selfId = format!("{}/EmulatedTcpClientRecv", parent.into());
         Self {
             id: selfId.clone(),
             addr: addr.parse().unwrap(),
-            testData,
-            sent: Arc::new(Mutex::new(vec![])),
             received: Arc::new(Mutex::new(vec![])),
             recvLimit,
             mustReceived,
@@ -54,11 +50,6 @@ impl EmulatedTcpClient {
     /// 
     pub fn id(&self) -> String {
         self.id.clone()
-    }
-    ///
-    /// 
-    pub fn sent(&self) -> Arc<Mutex<Vec<PointType>>> {
-        self.sent.clone()
     }
     ///
     /// 
@@ -144,7 +135,7 @@ impl EmulatedTcpClient {
 }
 ///
 /// 
-impl Service for EmulatedTcpClient {
+impl Service for EmulatedTcpClientRecv {
     //
     //
     fn id(&self) -> &str {
@@ -167,8 +158,6 @@ impl Service for EmulatedTcpClient {
         let exit = self.exit.clone();
         let markerReceived = self.markerReceived.clone();
         let addr = self.addr.clone();
-        let testData = self.testData.clone();
-        let sent = self.sent.clone();
         let received = self.received.clone();
         let recvLimit = self.recvLimit.clone();
         let mustReceived = self.mustReceived.clone();
@@ -186,7 +175,6 @@ impl Service for EmulatedTcpClient {
                                 selfId.clone(),
                             ),
                         );
-                        let mut tcpStreamW = tcpStream.try_clone().unwrap();
                         match recvLimit {
                             Some(recvLimit) => {
                                 if recvLimit > 0 {
@@ -270,57 +258,6 @@ impl Service for EmulatedTcpClient {
                                 }
                             },
                         };
-                        if !testData.is_empty() {
-                            let (send, recv) = mpsc::channel();
-                            let mut JdsMessage = JdsEncodeMessage::new(
-                                &selfId,
-                                JdsSerialize::new(&selfId, recv)
-                            );
-                            let txId = PointTxId::fromStr(&selfId);
-                            let mut sentCount = 0;
-                            let mut progressPercent = 0.0;
-                            for value in &testData {
-                                let point = value.toPoint(txId, "test");
-                                send.send(point.clone()).unwrap();
-                                match JdsMessage.read() {
-                                    Ok(bytes) => {
-                                        match &tcpStreamW.write(&bytes) {
-                                            Ok(_) => {
-                                                sent.lock().unwrap().push(point);
-                                                sentCount += 1;
-                                                progressPercent = (sentCount as f32) / (testData.len() as f32);
-                                                switchState.add(progressPercent);
-                                            },
-                                            Err(err) => {
-                                                warn!("{}.run | socket write error: {:?}", selfId, err);
-                                            },
-                                        }
-                                    },
-                                    Err(err) => {
-                                        panic!("{}.run | jdsSerialize error: {:?}", selfId, err);
-                                    },
-                                };
-                                if switchState.changed() {
-                                    info!("{}.run | state: {} progress percent: {}", selfId, switchState.state(), progressPercent);
-                                    tcpStreamW.flush().unwrap();
-                                    tcpStreamW.shutdown(std::net::Shutdown::Both).unwrap();
-                                    drop(tcpStreamW);
-                                    thread::sleep(Duration::from_millis(1000));
-                                    break;
-                                } 
-                                if exit.load(Ordering::SeqCst) {
-                                    break;
-                                }
-                            }
-                        }
-                        // if switchState.isMax() & !testData.is_empty() {
-                        //     loop {
-                        //         thread::sleep(Duration::from_millis(100));
-                        //         if exit.load(Ordering::SeqCst) {
-                        //             break 'connect;
-                        //         }
-                        //     }
-                        // }
                     },
                     Err(err) => {
                         warn!("{}.run | connection error: {:?}", selfId, err);

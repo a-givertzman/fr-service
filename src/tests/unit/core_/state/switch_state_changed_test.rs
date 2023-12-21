@@ -76,13 +76,36 @@ mod tests {
             switchState.add(value);
             let state = switchState.state();
             let changed = switchState.changed();
-            info!("state: {},\t changed: {},\t value: {}", state, changed, value);
+            info!("state: {},\t changed: {},\t isMax: {},\t value: {}", state, changed, switchState.isMax(), value);
             if state != prevState {
                 assert!(changed == true, "\nresult: {:?}\ntarget: {:?}", changed, true);
                 prevState = state;
             } else {
                 assert!(changed == false, "\nresult: {:?}\ntarget: {:?}", changed, false);
             }
+        }
+    }
+
+    #[test]
+    fn test_state_empty_steps() {
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        initOnce();
+        println!("");
+        println!("test SwitchState empty steps");
+
+        let steps: Vec<f64> = vec![];
+        let initial = 1;
+        let mut switchState = SwitchStateChanged::new(
+            initEach(initial, steps),
+        );
+
+        for value in 0..=100 {
+            let value = 0.01 * (value as f64);
+            switchState.add(value);
+            let state = switchState.state();
+            let changed = switchState.changed();
+            info!("state: {},\t changed: {},\t isMax: {},\t value: {}", state, changed, switchState.isMax(), value);
+            assert!(changed == false, "\nresult: {:?}\ntarget: {:?}", changed, false);
         }
     }
 }
