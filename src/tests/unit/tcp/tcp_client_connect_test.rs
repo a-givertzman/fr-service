@@ -28,12 +28,12 @@ mod tests {
     }
     
     #[test]
-    fn test_success() {
+    fn test_success_connection() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("success connection");
+        println!("test success connection");
         let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
         let timeout = Duration::from_millis(3500); // ms
         let mut connect = TcpClientConnect::new("test", &addr, Duration::from_millis(500));
@@ -93,12 +93,12 @@ mod tests {
     }
 
     #[test]
-    fn test_failure() {
+    fn test_failure_connection() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("failure connection");
+        println!("test failure connection");
         let timeout = Duration::from_millis(1500); // ms
         let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
         let mut connect = TcpClientConnect::new("test", &addr, Duration::from_millis(500));

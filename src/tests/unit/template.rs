@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
+
 mod tests {
     use log::{warn, info, debug};
     use std::{sync::Once, time::{Duration, Instant}};
@@ -33,7 +34,7 @@ mod tests {
         initOnce();
         initEach();
         println!("");
-        info!("test_task_cycle");
+        println!("test Template");
         assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
     }
 }

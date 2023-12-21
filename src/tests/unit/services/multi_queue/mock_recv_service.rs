@@ -1,10 +1,10 @@
 #![allow(non_snake_case)]
 
-use std::{collections::HashMap, sync::{mpsc::{Sender, Receiver, self}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}, time::Duration};
+use std::{collections::HashMap, sync::{mpsc::{Sender, Receiver, self}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}};
 
 use log::{info, trace};
 
-use crate::{core_::point::point_type::PointType, services::service::Service};
+use crate::{core_::{point::point_type::PointType, constants::constants::RECV_TIMEOUT}, services::service::Service};
 
 
 pub struct MockRecvService {
@@ -32,9 +32,9 @@ impl MockRecvService {
     }
     ///
     /// 
-    pub fn id(&self) -> String {
-        self.id.clone()
-    }
+    // pub fn id(&self) -> String {
+    //     self.id.clone()
+    // }
     ///
     /// 
     pub fn received(&self) -> Arc<Mutex<Vec<PointType>>> {
@@ -72,7 +72,7 @@ impl Service for MockRecvService {
                 Some(recvLimit) => {
                     let mut receivedCount = 0;
                     loop {
-                        match inRecv.recv_timeout(Duration::from_millis(1000)) {
+                        match inRecv.recv_timeout(RECV_TIMEOUT) {
                             Ok(point) => {
                                 trace!("{}.run | received: {:?}", selfId, point);
                                 received.lock().unwrap().push(point);
@@ -90,7 +90,7 @@ impl Service for MockRecvService {
                 },
                 None => {
                     loop {
-                        match inRecv.recv_timeout(Duration::from_millis(100)) {
+                        match inRecv.recv_timeout(RECV_TIMEOUT) {
                             Ok(point) => {
                                 trace!("{}.run | received: {:?}", selfId, point);
                                 received.lock().unwrap().push(point);

@@ -4,7 +4,7 @@ use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, 
 
 use log::{info, warn, error, debug, trace};
 
-use crate::{services::{services::Services, service::Service}, conf::multi_queue_config::MultiQueueConfig, core_::point::{point_type::PointType, point_tx_id::PointTxId}};
+use crate::{services::{services::Services, service::Service}, conf::multi_queue_config::MultiQueueConfig, core_::{point::{point_type::PointType, point_tx_id::PointTxId}, constants::constants::RECV_TIMEOUT}};
 
 use super::subscriptions::Subscriptions;
 
@@ -149,7 +149,7 @@ impl Service for MultiQueue {
                     subscriptions = subscriptionsRef.lock().unwrap().clone();
                     debug!("{}.run | Lock subscriptions - ok", selfId);
                 }
-                match recv.recv_timeout(Duration::from_millis(100)) {
+                match recv.recv_timeout(RECV_TIMEOUT) {
                     Ok(point) => {
                         let pointId = point.name();
                         trace!("{}.run | received: {:?}", selfId, point);

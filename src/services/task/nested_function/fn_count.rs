@@ -66,7 +66,7 @@ impl FnOut for FnCount {
             PointType::Bool(point) => if point.value.0 {1.0} else {0.0},
             PointType::Int(point) => point.value as f64,
             PointType::Float(point) => point.value,
-            _ => panic!("FnCount.out | {:?} type is not supported: {:?}", point.typeOf(), point),
+            _ => panic!("FnCount.out | {:?} type is not supported: {:?}", point.printTypeOf(), point),
         };
         self.count += value;
         trace!("FnCount.out | input.out: {:?}   | state: {:?}", &value, self.count);

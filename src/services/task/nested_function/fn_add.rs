@@ -71,7 +71,7 @@ impl FnOut for FnAdd {
             PointType::Float(value1) => {
                 PointType::Float(value1 + value2.asFloat())
             },
-            _ => panic!("FnCount.out | {:?} type is not supported: {:?}", value1.typeOf(), value1),
+            _ => panic!("FnCount.out | {:?} type is not supported: {:?}", value1.printTypeOf(), value1),
         };
         trace!("FnAdd({}).out | out: {:?}", self.id, &out);
         out

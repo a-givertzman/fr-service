@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{net::TcpStream, io::{Write, BufReader, ErrorKind, Read}, sync::atomic::AtomicBool};
+use std::{net::TcpStream, io::{Write, BufReader, Read}, sync::atomic::AtomicBool};
 
 use log::{warn, LevelFilter};
 

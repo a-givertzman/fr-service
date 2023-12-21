@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
+
 mod tests {
-    use log::info;
     use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}, collections::HashMap};
     use crate::{
         core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::MaxTestDuration}}, 
@@ -33,14 +33,14 @@ mod tests {
 
     const ITERATIONS: usize = 1_000_000;
     
-    #[ignore = "Performance test | run this test estimate performance of multiqueue without matching producer's id"]
+    #[ignore = "Performance test | use to estimate performance of multiqueue without matching producer's id"]
     #[test]
-    fn test_multi_queue_performance() {
+    fn test_MultiQueue_performance() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test MultiQueue Performance");
+        println!("test MultiQueue Performance");
 
         let selfId = "test";
         let iterations = ITERATIONS;
@@ -142,14 +142,14 @@ mod tests {
     }
     ///
     /// 
-    #[ignore = "Performance test | run this test to estimate performance of multiqueue with matching producer's id"]
+    #[ignore = "Performance test | use to estimate performance of multiqueue with matching producer's id"]
     #[test]
-    fn test_multi_queue_match_performance() {
+    fn test_MultiQueue_match_performance() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test MultiQueue Performance with matching by producer ID");
+        println!("test MultiQueue Performance with matching by producer ID");
 
         let selfId = "test";
         let iterations = ITERATIONS;

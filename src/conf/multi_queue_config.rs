@@ -1,9 +1,9 @@
 #![allow(non_snake_case)]
 
 use log::{trace, debug, error};
-use std::{fs, str::FromStr, time::Duration, net::SocketAddr};
+use std::fs;
 
-use crate::conf::{conf_tree::ConfTree, conf_duration::ConfDuration, conf_keywd::ConfKeywd, service_config::ServiceConfig};
+use crate::conf::{conf_tree::ConfTree, service_config::ServiceConfig};
 
 use super::conf_keywd::ConfKind;
 
@@ -63,9 +63,14 @@ impl MultiQueueConfig {
                     Ok((keyword, queueConf)) => {
                         let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
                         trace!("{}.new | self tx-queue param {}: {:?}", selfId, name, queueConf);
-                        let queues: Vec<String> = queueConf.conf.as_sequence().unwrap().iter().map(|value| {
-                            value.as_str().unwrap().to_owned()
-                        }).collect();
+                        let queues: Vec<String> = match queueConf.conf.as_sequence() {
+                            Some(queues) => {
+                                queues.iter().map(|value| {
+                                    value.as_str().unwrap().to_owned()
+                                }).collect()
+                        },
+                            None => vec![],
+                        };
                         queues
                     },
                     Err(err) => panic!("{}.new | out queue - not found in : {:?}\n\terror: {:?}", selfId, selfConf, err),

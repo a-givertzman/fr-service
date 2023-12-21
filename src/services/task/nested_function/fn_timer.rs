@@ -12,7 +12,7 @@ use crate::core_::{
 use super::{fn_::{FnInOut, FnIn, FnOut}, fn_kind::FnKind};
 
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
 // #[allow(dead_code)]
 enum FnTimerState {
     Off,
@@ -129,7 +129,7 @@ impl FnOut for FnTimer {
             PointType::Bool(point) => point.value.0,
             PointType::Int(point) => point.value > 0,
             PointType::Float(point) => point.value > 0.0,
-            _ => panic!("FnCount.out | {:?} type is not supported: {:?}", point.typeOf(), point),
+            _ => panic!("FnCount.out | {:?} type is not supported: {:?}", point.printTypeOf(), point),
         };
         self.state.add(value);
         let state = self.state.state();

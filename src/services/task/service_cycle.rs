@@ -1,8 +1,8 @@
 use std::{time::{Duration, Instant}, thread};
 
-use log::debug;
+use log::{debug, trace};
 ///
-/// TaskCycle - provides exact time interval in ms / us (future posible implementation)
+/// ServiceCycle - provides exact time interval in ms / us (future posible implementation)
 ///  - creates with Duration of interval
 ///  - method start() - begins countdown
 ///  - method wait() - awaiting remainder of the specified interval if not elapsed
@@ -16,7 +16,7 @@ pub struct ServiceCycle {
 /// 
 impl ServiceCycle {
     ///
-    /// creates TaskCycle with Duration of interval
+    /// creates ServiceCycle with Duration of interval
     pub fn new(interval: Duration) ->Self {
         Self {
             instant: Instant::now(),
@@ -34,7 +34,7 @@ impl ServiceCycle {
         let elapsed = self.instant.elapsed();
         if elapsed < self.interval {
             let remainder = self.interval - elapsed;
-            debug!("TaskCycle.wait | waiting: {:?}", remainder);
+            trace!("ServiceCycle.wait | waiting: {:?}", remainder);
             thread::sleep(remainder);
         }
     }

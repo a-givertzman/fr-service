@@ -1,11 +1,11 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}, time::Duration};
+use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}};
 
 use log::{info, warn, debug, trace};
 
 use crate::{
-    core_::{point::{point_type::PointType, point_tx_id::PointTxId}, testing::test_stuff::test_value::Value}, 
+    core_::{point::{point_type::PointType, point_tx_id::PointTxId}, testing::test_stuff::test_value::Value, constants::constants::RECV_TIMEOUT}, 
     services::{services::Services, service::Service, queue_name::QueueName},
 };
 
@@ -46,9 +46,9 @@ impl MockTcpServer {
     }
     ///
     /// 
-    pub fn sent(&self) -> Arc<Mutex<Vec<PointType>>> {
-        self.sent.clone()
-    }
+    // pub fn sent(&self) -> Arc<Mutex<Vec<PointType>>> {
+    //     self.sent.clone()
+    // }
     ///
     /// 
     pub fn received(&self) -> Arc<Mutex<Vec<PointType>>> {
@@ -65,7 +65,7 @@ impl Service for MockTcpServer {
     }
     //
     //
-    fn getLink(&mut self, name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
+    fn getLink(&mut self, _name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
         panic!("{}.getLink | Does not support static producer", self.id())
         // match self.rxSend.get(name) {
         //     Some(send) => send.clone(),
@@ -92,7 +92,7 @@ impl Service for MockTcpServer {
                 Some(recvLimit) => {
                     let mut receivedCount = 0;
                     loop {
-                        match rxRecv.recv_timeout(Duration::from_millis(1000)) {
+                        match rxRecv.recv_timeout(RECV_TIMEOUT) {
                             Ok(point) => {
                                 trace!("{}.run | received: {:?}", selfId, point);
                                 received.lock().unwrap().push(point);
@@ -110,7 +110,7 @@ impl Service for MockTcpServer {
                 },
                 None => {
                     loop {
-                        match rxRecv.recv_timeout(Duration::from_millis(100)) {
+                        match rxRecv.recv_timeout(RECV_TIMEOUT) {
                             Ok(point) => {
                                 trace!("{}.run | received: {:?}", selfId, point);
                                 received.lock().unwrap().push(point);

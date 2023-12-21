@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use crate::tcp::steam_read::StreamRead;
+use crate::{tcp::steam_read::StreamRead, core_::failure::recv_error::RecvError};
 #[cfg(test)]
 mod tests {
     use log::{warn, info, debug};
@@ -43,12 +43,12 @@ mod tests {
     }
 
     #[test]
-    fn test_() {
+    fn test_TcpStreamWrite() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test_");
+        println!("test TcpStreamWrite");
         let count = 1000;
         let maxTestDuration = Duration::from_secs(10);
         let sent = Arc::new(AtomicUsize::new(0));
@@ -186,11 +186,11 @@ mod tests {
 struct MockStreamRead<T> {
     buffer: Vec<T>
 }
-impl<T: Sync> StreamRead<T, String> for MockStreamRead<T> {
-    fn read(&mut self) -> Result<T, String> {
+impl<T: Sync> StreamRead<T, RecvError> for MockStreamRead<T> {
+    fn read(&mut self) -> Result<T, RecvError> {
         match self.buffer.first() {
             Some(_) => Ok(self.buffer.remove(0)),
-            None => Err(format!("Buffer is empty")),
+            None => Err(RecvError::Timeout),   //Err(format!("Buffer is empty")),
         }
     }
 }

@@ -1,16 +1,16 @@
 #![allow(non_snake_case)]
 
 use std::{
-    sync::{Arc, atomic::{AtomicBool, Ordering}, mpsc::{Sender, Receiver, self}, Mutex},
+    sync::{Arc, atomic::{AtomicBool, Ordering}, mpsc::{Sender, Receiver, self, RecvTimeoutError}, Mutex},
     thread::{self, JoinHandle},
     time::Duration, collections::HashMap,
 };
 
 use log::{info, debug, warn, trace};
 
-use crate::{services::{task::task_nodes::TaskNodes, service::Service, services::Services}, core_::point::point_type::PointType};
+use crate::{services::{task::task_nodes::TaskNodes, service::Service, services::Services}, core_::{point::point_type::PointType, constants::constants::RECV_TIMEOUT}};
 use crate::conf::task_config::TaskConfig;
-use crate::services::task::task_cycle::ServiceCycle;
+use crate::services::task::service_cycle::ServiceCycle;
 
 /// Task implements entity, which provides cyclically (by event) executing calculations
 ///  - executed in the cycle mode (current impl)
@@ -77,20 +77,27 @@ impl Service for Task {
             'main: loop {
                 cycle.start();
                 trace!("{}.run | calculation step...", selfId);
-                match inRecv.recv() {
+                match inRecv.recv_timeout(RECV_TIMEOUT) {
                     Ok(point) => {
                         debug!("{}.run | point: {:?}", selfId, &point);
                         taskNodes.eval(point);
                     },
                     Err(err) => {
-                        warn!("{}.run | Error receiving from queue: {:?}", selfId, err);
-                        break 'main;
+                        match err {
+                            RecvTimeoutError::Timeout => {
+                                debug!("{}.run | {:?}", selfId, err);
+                            },
+                            RecvTimeoutError::Disconnected => {
+                                warn!("{}.run | Error receiving from queue: {:?}", selfId, err);
+                                break 'main;
+                            },
+                        }
                     },
                 };
                 if exit.load(Ordering::SeqCst) {
                     break 'main;
                 }
-                trace!("{}.run | calculation step - done ({:?})", selfId, cycle.elapsed());
+                debug!("{}.run | calculation step - done ({:?})", selfId, cycle.elapsed());
                 if cyclic {
                     cycle.wait();
                 }
@@ -104,5 +111,6 @@ impl Service for Task {
     //
     fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
+        debug!("{}.run | exit: {}", self.id, self.exit.load(Ordering::SeqCst));
     }
 }

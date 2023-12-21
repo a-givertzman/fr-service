@@ -6,7 +6,7 @@ use log::{warn, info};
 
 use crate::{
     core_::net::connection_status::ConnectionStatus,
-    tcp::tcp_stream_write::TcpStreamWrite, services::task::task_cycle::ServiceCycle, 
+    tcp::tcp_stream_write::TcpStreamWrite, services::task::service_cycle::ServiceCycle, 
 };
 
 
@@ -20,12 +20,12 @@ impl TcpWriteAlive {
     ///
     /// Creates new instance of [TcpWriteAlive]
     /// - [parent] - the ID if the parent entity
-    pub fn new(parent: impl Into<String>, cycle: Duration, streamWrite: Arc<Mutex<TcpStreamWrite>>) -> Self {
+    pub fn new(parent: impl Into<String>, cycle: Duration, streamWrite: Arc<Mutex<TcpStreamWrite>>, exit: Option<Arc<AtomicBool>>) -> Self {
         Self {
             id: format!("{}/TcpWriteAlive", parent.into()),
             cycle,
             streamWrite,
-            exit: Arc::new(AtomicBool::new(false)),
+            exit: exit.unwrap_or(Arc::new(AtomicBool::new(false))),
         }
     }
     ///
@@ -40,7 +40,7 @@ impl TcpWriteAlive {
         let handle = thread::Builder::new().name(format!("{} - Write", selfId.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
             let mut streamWrite = streamWrite.lock().unwrap();
-            info!("{}.run | Starting main loop...", selfId);
+            info!("{}.run | Main loop started", selfId);
             'main: loop {
                 cycle.start();
                 match streamWrite.write(&mut tcpStream) {
@@ -62,6 +62,7 @@ impl TcpWriteAlive {
                 }
                 cycle.wait();
             }
+            info!("{}.run | Exit", selfId);
         }).unwrap();
         info!("{}.run | started", self.id);
         handle

@@ -1,9 +1,9 @@
 #![allow(non_snake_case)]
 
-use std::{io::{BufReader, Read}, net::TcpStream};
+use std::io::Read;
 
 use chrono::{DateTime, Utc};
-use log::{warn, error, trace, LevelFilter};
+use log::{warn, trace, LevelFilter};
 
 use crate::core_::{net::connection_status::ConnectionStatus, point::{point_type::PointType, point::Point, point_tx_id::PointTxId}, types::bool::Bool};
 
@@ -14,6 +14,7 @@ use super::jds_decode_message::JdsDecodeMessage;
 /// useng bytes -> JSON -> Point<type> PointType conversion
 pub struct JdsDeserialize {
     id: String,
+    txId: usize,
     stream: JdsDecodeMessage,
 }
 ///
@@ -22,8 +23,10 @@ impl JdsDeserialize {
     ///
     /// Creates new instance of the JdsDeserialize
     pub fn new(parent: impl Into<String>, stream: JdsDecodeMessage) -> Self {
+        let selfId = format!("{}/JdsDeserialize", parent.into());
         Self {
-            id: format!("{}/JdsDeserialize", parent.into()),
+            txId: PointTxId::fromStr(&selfId),
+            id: selfId,
             stream,
         }
     }
@@ -34,7 +37,7 @@ impl JdsDeserialize {
             ConnectionStatus::Active(result) => {
                 match result {
                     Ok(bytes) => {
-                        match Self::deserialize(&self.id, bytes) {
+                        match Self::deserialize(&self.id, self.txId, bytes) {
                             Ok(point) => {
                                 ConnectionStatus::Active(Ok(point))
                             },
@@ -56,11 +59,10 @@ impl JdsDeserialize {
     }
     ///
     /// 
-    pub fn deserialize(selfId: &str, bytes: Vec<u8>) -> Result<PointType, String> {
+    pub fn deserialize(selfId: &str, txId: usize, bytes: Vec<u8>) -> Result<PointType, String> {
         match serde_json::from_slice(&bytes) {
             Ok(value) => {
                 let value: serde_json::Value = value;
-                let txId = PointTxId::fromStr(selfId);
                 match value.as_object() {
                     Some(obj) => {
                         match obj.get("type") {

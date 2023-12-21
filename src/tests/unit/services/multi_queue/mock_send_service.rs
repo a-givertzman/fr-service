@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{collections::HashMap, sync::{mpsc::{Sender, self}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}, time::Duration};
+use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}, time::Duration};
 
 use log::{info, warn, debug, trace};
 
@@ -9,7 +9,7 @@ use crate::{core_::{point::point_type::PointType, testing::test_stuff::test_valu
 
 pub struct MockSendService {
     id: String,
-    rxSend: HashMap<String, Sender<PointType>>,
+    // rxSend: HashMap<String, Sender<PointType>>,
     // inRecv: Vec<Receiver<PointType>>,
     // outSend: HashMap<String, Sender<PointType>>,
     // outRecv: Vec<Receiver<PointType>>,
@@ -23,12 +23,12 @@ pub struct MockSendService {
 ///
 /// 
 impl MockSendService {
-    pub fn new(parent: impl Into<String>, recvQueue: &str, sendQueue: &str, services: Arc<Mutex<Services>>, testData: Vec<Value>, delay: Option<Duration>) -> Self {
+    pub fn new(parent: impl Into<String>, _recvQueue: &str, sendQueue: &str, services: Arc<Mutex<Services>>, testData: Vec<Value>, delay: Option<Duration>) -> Self {
         let selfId = format!("{}/MockSendService", parent.into());
-        let (send, recv) = mpsc::channel::<PointType>();
+        // let (send, recv) = mpsc::channel::<PointType>();
         Self {
             id: selfId.clone(),
-            rxSend: HashMap::from([(recvQueue.to_string(), send)]),
+            // rxSend: HashMap::from([(recvQueue.to_string(), send)]),
             // inRecv: vec![recv],
             // outSend: HashMap::new(),
             // outRecv: vec![],
@@ -61,11 +61,12 @@ impl Service for MockSendService {
     }
     //
     //
-    fn getLink(&mut self, name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
-        match self.rxSend.get(name) {
-            Some(send) => send.clone(),
-            None => panic!("{}.run | link '{:?}' - not found", self.id, name),
-        }
+    fn getLink(&mut self, _name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
+        panic!("{}.getLink | Does not support getLink", self.id())
+        // match self.rxSend.get(name) {
+        //     Some(send) => send.clone(),
+        //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
+        // }
     }
     //
     //

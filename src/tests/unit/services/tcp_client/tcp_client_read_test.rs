@@ -47,7 +47,7 @@ mod tests {
         initOnce();
         initEach();
         println!("");
-        info!("test_TcpClient READ");
+        println!("test TcpClient READ");
         let selfId = "test";
         let path = "./src/tests/unit/services/tcp_client/tcp_client.yaml";
         let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));

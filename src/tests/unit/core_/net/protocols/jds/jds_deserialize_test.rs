@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
+
 mod tests {
     use chrono::{DateTime, Utc};
     use log::{info, debug, trace, error};
@@ -47,7 +48,7 @@ mod tests {
         initOnce();
         initEach();
         println!("");
-        info!("test_jds_deserialize");
+        println!("test JdsDeserialize");
         let name = "/server/line1/ied1/test1";
         let ts = ts();
         let txId = 0;
