@@ -73,6 +73,7 @@ impl TcpReadAlive {
                     },
                     ConnectionStatus::Closed(err) => {
                         warn!("{}.run | error: {:?}", selfId, err);
+                        exit.store(true, Ordering::SeqCst);
                         break;
                     },
                 };

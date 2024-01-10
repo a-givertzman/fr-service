@@ -84,7 +84,8 @@ impl JdsDecodeMessage {
             };
         };
         trace!("{}.readAll | read bytes: {:?}", selfId, bytes);
-        ConnectionStatus::Active(Err(format!("{}.readAll | tcp stream is empty", selfId)))
+        // ConnectionStatus::Active(Err(format!("{}.readAll | tcp stream is empty", selfId)))
+        ConnectionStatus::Closed(format!("{}.readAll | tcp stream is closed", selfId))
     }
     ///
     /// 

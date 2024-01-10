@@ -23,12 +23,13 @@ pub struct EmulatedTcpClientSend {
     testData: Vec<Value>,
     sent: Arc<Mutex<Vec<PointType>>>,
     disconnect: Vec<i8>,
+    waitOnFinish: bool,
     exit: Arc<AtomicBool>,
 }
 ///
 /// 
 impl EmulatedTcpClientSend {
-    pub fn new(parent: impl Into<String>, addr: &str, testData: Vec<Value>, disconnect: Vec<i8>) -> Self {
+    pub fn new(parent: impl Into<String>, addr: &str, testData: Vec<Value>, disconnect: Vec<i8>, waitOnFinish: bool) -> Self {
         let selfId = format!("{}/EmulatedTcpClientSend", parent.into());
         Self {
             id: selfId.clone(),
@@ -36,6 +37,7 @@ impl EmulatedTcpClientSend {
             testData,
             sent: Arc::new(Mutex::new(vec![])),
             disconnect,
+            waitOnFinish,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -124,6 +126,7 @@ impl Service for EmulatedTcpClientSend {
         let totalCount = testData.len();
         let sent = self.sent.clone();
         let disconnect = self.disconnect.iter().map(|v| {(*v as f32) / 100.0}).collect();
+        let waitOnFinish = self.waitOnFinish;
         let handle = thread::Builder::new().name(format!("{}.run Read", selfId)).spawn(move || {
             info!("{}.run | Preparing thread Read - ok", selfId);
             let mut switchState = Self::switchState(1, disconnect, 1.0);
@@ -131,6 +134,7 @@ impl Service for EmulatedTcpClientSend {
                 match TcpStream::connect(addr) {
                     Ok(mut tcpStream) => {
                         info!("{}.run | connected on: {:?}", selfId, addr);
+                        thread::sleep(Duration::from_millis(100));
                         if !testData.is_empty() {
                             let (send, recv) = mpsc::channel();
                             let mut JdsMessage = JdsEncodeMessage::new(
@@ -163,9 +167,17 @@ impl Service for EmulatedTcpClientSend {
                                         panic!("{}.run | jdsSerialize error: {:?}", selfId, err);
                                     },
                                 };
+                                // if testData.is_empty() && waitOnFinish {
+                                //     info!("{}.run | waitOnFinish: {}", selfId, waitOnFinish);
+                                //     while !exit.load(Ordering::SeqCst) {
+                                //         thread::sleep(Duration::from_millis(100));
+                                //     }
+                                // }
                                 if switchState.changed() {
                                     info!("{}.run | state: {} progress percent: {}", selfId, switchState.state(), progressPercent);
+                                    thread::sleep(Duration::from_millis(1000));
                                     tcpStream.flush().unwrap();
+                                    thread::sleep(Duration::from_millis(1000));
                                     tcpStream.shutdown(std::net::Shutdown::Both).unwrap();
                                     drop(tcpStream);
                                     thread::sleep(Duration::from_millis(1000));
@@ -195,7 +207,7 @@ impl Service for EmulatedTcpClientSend {
                     break 'connect;
                 }
             }
-            info!("{}.run | Exit thread Recv", selfId);
+            info!("{}.run | Exit", selfId);
         });
         info!("{}.run | starting - ok", self.id);
         handle

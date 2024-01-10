@@ -2,7 +2,7 @@
 
 use chrono::DateTime;
 
-use crate::core_::types::bool::Bool;
+use crate::core_::{types::bool::Bool, testing::test_stuff::test_value::Value};
 
 use super::point::Point;
 
@@ -72,6 +72,16 @@ impl PointType {
             PointType::Int(point) => point.name.clone(),
             PointType::Float(point) => point.name.clone(),
             PointType::String(point) => point.name.clone(),
+        }
+    }
+    ///
+    /// Returns point.value wraped into the enum Value
+    pub fn value(&self) -> Value {
+        match self {
+            PointType::Bool(point) => Value::Bool(point.value.0),
+            PointType::Int(point) => Value::Int(point.value),
+            PointType::Float(point) => Value::Float(point.value),
+            PointType::String(point) => Value::String(point.value.clone()),
         }
     }
     ///

@@ -184,6 +184,7 @@ mod tests {
             &tcpAddr,
             testData.clone(),
             vec![],
+            false,
         )));
         let mqServiceHandle = mqService.lock().unwrap().run().unwrap();
         let tcpServerHandle = tcpServer.lock().unwrap().run().unwrap();

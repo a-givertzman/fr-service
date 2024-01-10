@@ -13,7 +13,7 @@ use crate::{tcp::steam_read::StreamRead, core_::{retain_buffer::retain_buffer::R
 /// Buffering - is optional
 pub struct TcpStreamWrite {
     id: String,
-    buffered: bool,
+    // buffered: bool,
     stream: Box<dyn StreamRead<Vec<u8>, RecvError> + Send>,
     buffer: RetainBuffer<Vec<u8>>,
 }
@@ -30,7 +30,7 @@ impl TcpStreamWrite {
         };
         Self {
             id: selfId,
-            buffered,
+            // buffered,
             stream,
             buffer,
         }

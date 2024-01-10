@@ -131,7 +131,7 @@ mod tests {
         println!("");
         println!("test TcpServer keep lost connection | Receive");
         let selfId = "test";
-        let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
+        let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(30));
         maxTestDuration.run().unwrap();
 
         let iterations = 100;
@@ -183,6 +183,7 @@ mod tests {
             &tcpAddr,
             testData.clone(),
             vec![25, 50, 75],
+            true,
         )));
         let mqServiceHandle = mqService.lock().unwrap().run().unwrap();
         let tcpServerHandle = tcpServer.lock().unwrap().run().unwrap();

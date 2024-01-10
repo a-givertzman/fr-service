@@ -74,7 +74,7 @@ impl Service for TaskTestReceiver {
                         if count >= iterations {
                             break 'inner;
                         }
-                        debug!("{}.run | received: {}", selfId, count);
+                        debug!("{}.run | received: {}, (value: {:?})", selfId, count, point.value());
                         trace!("{}.run | received SQL: {:?}", selfId, point.asString().value);
                         // debug!("{}.run | value: {}\treceived SQL: {:?}", value, sql);
                     },
