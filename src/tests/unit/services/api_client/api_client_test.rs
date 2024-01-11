@@ -4,7 +4,7 @@ mod tests {
     use log::{info, debug, error};
     use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::{Read, Write}};
     use crate::{
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::ToPoint, testing::{test_session::TestSession, test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::MaxTestDuration}}},
+        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::ToPoint, testing::{test_session::TestSession, test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::TestDuration}}},
         conf::api_client_config::ApiClientConfig,  
         services::{api_cient::{api_client::ApiClient, api_reply::SqlReply, api_error::ApiError}, service::Service},
     }; 
@@ -38,11 +38,11 @@ mod tests {
         initOnce();
         initEach();
         println!("");
-        println!("test ApiClient");
-        let selfId = "test";
+        let selfId = "test ApiClient";
+        println!("{}", selfId);
         let path = "./src/tests/unit/services/api_client/api_client.yaml";
-        let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
-        maxTestDuration.run().unwrap();
+        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
+        testDuration.run().unwrap();
         let mut conf = ApiClientConfig::read(path);
         // let addr = conf.address.clone();
         let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
@@ -50,7 +50,7 @@ mod tests {
 
         let mut apiClient = ApiClient::new("test ApiClient", conf);
 
-        // let maxTestDuration = Duration::from_secs(10);
+        // let testDuration = Duration::from_secs(10);
         let count = 300;
         let mut state = 0;
         let testData = RandomTestValues::new(
@@ -197,6 +197,6 @@ mod tests {
             debug!("\nresult({}): {:?}\ntarget({}): {:?}", received.len(), result, sent.len(), target);
             assert!(result == &target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
-        maxTestDuration.exit();
+        testDuration.exit();
     }
 }

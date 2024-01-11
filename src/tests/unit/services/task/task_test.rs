@@ -6,7 +6,7 @@ mod tests {
     use std::{sync::{Once, Arc, Mutex}, env, time::{Instant, Duration}};
     
     use crate::{
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::{random_test_values::RandomTestValues, test_value::Value, wait::WaitTread, max_test_duration::MaxTestDuration}}, 
+        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::{random_test_values::RandomTestValues, test_value::Value, wait::WaitTread, max_test_duration::TestDuration}}, 
         conf::task_config::TaskConfig, 
         services::{task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}, service::Service, services::Services},
     };
@@ -40,10 +40,11 @@ mod tests {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
-        info!("test_task_struct");
-        let selfId = "test";
-        let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
-        maxTestDuration.run().unwrap();
+        println!("");
+        let selfId = "test_task_struct";
+        println!("{}", selfId);
+        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
+        testDuration.run().unwrap();
 
         let iterations = 10;
         
@@ -98,7 +99,7 @@ mod tests {
         println!("received: {:?}", result);
         assert!(sent == iterations, "\nresult: {:?}\ntarget: {:?}", sent, iterations);
         assert!(result == iterations, "\nresult: {:?}\ntarget: {:?}", result, iterations);
-        maxTestDuration.exit();
+        testDuration.exit();
     }
 
 

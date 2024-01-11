@@ -6,7 +6,7 @@ mod tests {
     use crate::{
         core_::{
             debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-            testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::MaxTestDuration, wait::WaitTread}, point::point_type::PointType,
+            testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::TestDuration, wait::WaitTread}, point::point_type::PointType,
         }, 
         conf::multi_queue_config::MultiQueueConfig, services::{multi_queue::multi_queue::MultiQueue, services::Services, service::Service}, 
         tests::unit::services::multi_queue::{mock_tcp_server::MockTcpServer, mock_recv_send_service::MockRecvSendService},
@@ -40,9 +40,9 @@ mod tests {
         initOnce();
         initEach();
         println!("");
-        println!("test_multi_queue - Static subscriptions - Single send");
+        let selfId = "test_multi_queue - Static subscriptions - Single send";
+        println!("{}", selfId);
 
-        let selfId = "test";
         let count = 3;              // count of the MockRecvSendService & MockTcpServer instances
         let iterations = 1000;      // test data length
         let staticTestData = RandomTestValues::new(
@@ -53,8 +53,8 @@ mod tests {
             iterations, 
         );
         let staticTestData: Vec<Value> = staticTestData.collect();
-        let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
-        maxTestDuration.run().unwrap();
+        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
+        testDuration.run().unwrap();
         let mut conf = r#"
             service MultiQueue:
                 in queue in-queue:
@@ -151,7 +151,7 @@ mod tests {
         }
         mqService.lock().unwrap().exit();
         mqHandle.wait().unwrap();
-        maxTestDuration.exit();
+        testDuration.exit();
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
     }
     ///

@@ -4,7 +4,7 @@
 mod tests {
     use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}, collections::HashMap};
     use crate::{
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::MaxTestDuration}}, 
+        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::TestDuration}}, 
         tests::unit::services::multi_queue::{mock_send_service::MockSendService, mock_multi_queue::MockMultiQueue, mock_recv_service::MockRecvService, mock_multi_queue_match::MockMultiQueueMatch}, 
         services::{services::Services, service::Service},
     }; 
@@ -40,12 +40,11 @@ mod tests {
         initOnce();
         initEach();
         println!("");
-        println!("test MultiQueue Performance");
-
-        let selfId = "test";
+        let selfId = "test MultiQueue Performance";
+        println!("{}", selfId);
         let iterations = ITERATIONS;
-        let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
-        maxTestDuration.run().unwrap();
+        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
+        testDuration.run().unwrap();
         
         
         let receiverCount = 3;
@@ -138,7 +137,7 @@ mod tests {
         assert!(totalSent == totalCount, "\nresult: {:?}\ntarget: {:?}", totalSent, totalCount);
         assert!(totalReceived == totalCount * receiverCount, "\nresult: {:?}\ntarget: {:?}", totalReceived, totalCount * receiverCount);
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
-        maxTestDuration.exit();
+        testDuration.exit();
     }
     ///
     /// 
@@ -149,12 +148,11 @@ mod tests {
         initOnce();
         initEach();
         println!("");
-        println!("test MultiQueue Performance with matching by producer ID");
-
-        let selfId = "test";
+        let selfId = "test MultiQueue Performance with matching by producer ID";
+        println!("{}", selfId);
         let iterations = ITERATIONS;
-        let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
-        maxTestDuration.run().unwrap();
+        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
+        testDuration.run().unwrap();
         
         
         let receiverCount = 3;
@@ -234,7 +232,7 @@ mod tests {
         assert!(totalSent == totalCount, "\nresult: {:?}\ntarget: {:?}", totalSent, totalCount);
         assert!(totalReceived == totalCount * receiverCount, "\nresult: {:?}\ntarget: {:?}", totalReceived, totalCount * receiverCount);
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
-        maxTestDuration.exit();
+        testDuration.exit();
     }    
     ///
     /// 

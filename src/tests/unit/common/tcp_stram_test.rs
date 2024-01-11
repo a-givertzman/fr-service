@@ -3,7 +3,7 @@
 mod tests {
     use log::{info, warn, debug};
     use std::{sync::{Once, mpsc}, net::{TcpStream, TcpListener}, io::{Read, Write, BufReader}, thread::{self, JoinHandle}, time::Duration};
-    use crate::core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, constants::constants::RECV_TIMEOUT, testing::{test_session::TestSession, test_stuff::{wait::WaitTread, max_test_duration::MaxTestDuration}}}; 
+    use crate::core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, constants::constants::RECV_TIMEOUT, testing::{test_session::TestSession, test_stuff::{wait::WaitTread, max_test_duration::TestDuration}}}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -34,10 +34,10 @@ mod tests {
         initOnce();
         initEach();
         println!("");
-        println!("test TcpStream read on close");
-        let selfId = "test";
-        let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
-        maxTestDuration.run().unwrap();
+        let selfId = "test TcpStream read on close";
+        println!("{}", selfId);
+        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
+        testDuration.run().unwrap();
         let tcpPort = TestSession::freeTcpPortStr();
         let tcpAddr = format!("127.0.0.1:{}", tcpPort);
         let handle = server(&tcpAddr).unwrap();
@@ -63,7 +63,7 @@ mod tests {
         }
         debug!("{}.run | TcpStream::read finished", selfId);
         handle.wait().unwrap();
-        maxTestDuration.exit();
+        testDuration.exit();
     }
     ///
     /// 

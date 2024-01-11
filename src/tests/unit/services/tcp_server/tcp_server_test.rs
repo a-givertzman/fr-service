@@ -5,7 +5,7 @@ mod tests {
     use std::{sync::{Once, Arc, Mutex}, time::Duration, thread};
     use crate::{
         tests::unit::services::tcp_server::{emulated_tcp_client_recv::EmulatedTcpClientRecv, emulated_tcp_client_send::EmulatedTcpClientSend},
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::{test_stuff::{max_test_duration::MaxTestDuration, inc_test_values::IncTestValues, test_value::Value, wait::WaitTread}, test_session::TestSession}}, 
+        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::{test_stuff::{max_test_duration::TestDuration, inc_test_values::IncTestValues, test_value::Value, wait::WaitTread}, test_session::TestSession}}, 
         conf::{tcp_server_config::TcpServerConfig, multi_queue_config::MultiQueueConfig}, 
         services::{tcp_server::tcp_server::TcpServer, services::Services, service::Service, task::{task_test_producer::TaskTestProducer, task_test_receiver::TaskTestReceiver}, multi_queue::multi_queue::MultiQueue}, 
     }; 
@@ -38,10 +38,10 @@ mod tests {
         initOnce();
         initEach();
         println!("");
-        println!("test TcpServer | Send");
-        let selfId = "test";
-        let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(20));
-        maxTestDuration.run().unwrap();
+        let selfId = "test TcpServer | Send";
+        println!("{}", selfId);
+        let testDuration = TestDuration::new(selfId, Duration::from_secs(20));
+        testDuration.run().unwrap();
 
         let iterations = 100;
         let testData = IncTestValues::new(
@@ -121,7 +121,7 @@ mod tests {
         emulatedTcpClientHandle.wait().unwrap();
         tcpServerHandle.wait().unwrap();
         mqServiceHandle.wait().unwrap();
-        maxTestDuration.exit();
+        testDuration.exit();
     }
 
     #[test]
@@ -130,10 +130,10 @@ mod tests {
         initOnce();
         initEach();
         println!("");
-        println!("test TcpServer | Receive");
-        let selfId = "test";
-        let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
-        maxTestDuration.run().unwrap();
+        let selfId = "test TcpServer | Receive";
+        println!("{}", selfId);
+        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
+        testDuration.run().unwrap();
 
         let iterations = 100;
         let testData = IncTestValues::new(
@@ -211,7 +211,7 @@ mod tests {
         emulatedTcpClientHandle.wait().unwrap();
         tcpServerHandle.wait().unwrap();
         mqServiceHandle.wait().unwrap();
-        maxTestDuration.exit();
+        testDuration.exit();
     }
 }
 

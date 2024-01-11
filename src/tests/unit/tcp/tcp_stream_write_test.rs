@@ -50,7 +50,7 @@ mod tests {
         println!("");
         println!("test TcpStreamWrite");
         let count = 1000;
-        let maxTestDuration = Duration::from_secs(10);
+        let testDuration = Duration::from_secs(10);
         let sent = Arc::new(AtomicUsize::new(0));
         let received = Arc::new(Mutex::new(vec![]));
         let messageLen = 10;
@@ -101,17 +101,17 @@ mod tests {
                     thread::sleep(Duration::from_millis(100));
                 },
             };
-            assert!(timer.elapsed() < maxTestDuration, "Transfering {}/{} messages taks too mach time {:?} of {:?}", received.lock().unwrap().len(), count, timer.elapsed(), maxTestDuration);
+            assert!(timer.elapsed() < testDuration, "Transfering {}/{} messages taks too mach time {:?} of {:?}", received.lock().unwrap().len(), count, timer.elapsed(), testDuration);
             // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
             warn!("sent total: {}/{}", sent.load(Ordering::SeqCst), count);
         }
         let waitDuration = Duration::from_millis(10);
-        let mut waitAttempts = maxTestDuration.as_micros() / waitDuration.as_micros();
+        let mut waitAttempts = testDuration.as_micros() / waitDuration.as_micros();
         while received.lock().unwrap().len() < count {
             debug!("waiting while all data beeng received {}/{}...", received.lock().unwrap().len(), count);
             thread::sleep(waitDuration);
             waitAttempts -= 1;
-            assert!(waitAttempts > 0, "Transfering {}/{} messages taks too mach time {:?} of {:?}", received.lock().unwrap().len(), count, timer.elapsed(), maxTestDuration);
+            assert!(waitAttempts > 0, "Transfering {}/{} messages taks too mach time {:?} of {:?}", received.lock().unwrap().len(), count, timer.elapsed(), testDuration);
         }
         println!("elapsed: {:?}", timer.elapsed());
         println!("total test events: {:?}", count);
