@@ -2,7 +2,7 @@
 #[cfg(test)]
 mod tests {
     use log::{info, warn, debug};
-    use std::{sync::{Once, mpsc}, net::{TcpStream, TcpListener}, io::Read, thread::{self, JoinHandle}, time::Duration};
+    use std::{sync::{Once, mpsc}, net::{TcpStream, TcpListener}, io::{Read, Write, BufReader}, thread::{self, JoinHandle}, time::Duration};
     use crate::core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, constants::constants::RECV_TIMEOUT, testing::{test_session::TestSession, test_stuff::{wait::WaitTread, max_test_duration::MaxTestDuration}}}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -44,6 +44,15 @@ mod tests {
         thread::sleep(Duration::from_millis(100));
         match TcpStream::connect(tcpAddr) {
             Ok(stream) => {
+                match stream.set_read_timeout(Some(RECV_TIMEOUT)) {
+                    Ok(_) => {
+                        info!("{}.setStreamTimout | Socket set read timeout {:?} - ok", selfId, RECV_TIMEOUT);
+                    },
+                    Err(err) => {
+                        warn!("{}.setStreamTimout | Socket set read timeout error {:?}", selfId, err);
+                    },
+                }
+                let stream = BufReader::new(stream);
                 for byte in stream.bytes() {
                     debug!("{}.run | received byte: {:?}", selfId, byte);
                 }
@@ -64,7 +73,6 @@ mod tests {
         info!("{}.run | Preparing thread...", selfId);
         let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
-
             match TcpListener::bind(addr.clone()) {
                 Ok(listener) => {
                     info!("{}.run | Open socket {} - ok", selfId, addr);
@@ -89,8 +97,33 @@ mod tests {
                         //         panic!("{}.run | TcpListener::incoming error: {:?}", selfId, err);
                         //     },
                         // }
-                        thread::sleep(Duration::from_secs(3));
-                        drop(stream);
+                        match stream {
+                            Ok(mut stream) => {
+                                match stream.set_read_timeout(Some(RECV_TIMEOUT)) {
+                                    Ok(_) => {
+                                        info!("{}.setStreamTimout | Socket set read timeout {:?} - ok", selfId, RECV_TIMEOUT);
+                                    },
+                                    Err(err) => {
+                                        warn!("{}.setStreamTimout | Socket set read timeout error {:?}", selfId, err);
+                                    },
+                                }                
+                                let mut buf = vec![0, 1, 2, 3];
+                                match stream.write(&mut buf) {
+                                    Ok(len) => {
+                                        // debug!("{}.run | received {} bytes", selfId, len);
+                                        info!("{}.run | sent {} bytes - ok", selfId, len);
+                                        thread::sleep(Duration::from_secs(3));
+                                        drop(stream);
+                                    },
+                                    Err(err) => {
+                                        warn!("{}.run | TcpListener::bind error: {:?}", selfId, err);
+                                    },
+                                }
+                            },
+                            Err(err) => {
+                                panic!("{}.run | TcpListener::incoming error: {:?}", selfId, err);
+                            },
+                        }
                         break;
                     }
                 },

@@ -1,9 +1,9 @@
 #![allow(non_snake_case)]
 
-use std::{sync::mpsc::{Receiver, RecvTimeoutError}, time::Duration};
+use std::sync::mpsc::{Receiver, RecvTimeoutError};
 
 use chrono::DateTime;
-use log::{trace, debug};
+use log::trace;
 use serde::{Serialize, ser::SerializeStruct};
 use serde_json::json;
 

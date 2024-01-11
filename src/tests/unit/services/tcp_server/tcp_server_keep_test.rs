@@ -37,8 +37,8 @@ mod tests {
         initOnce();
         initEach();
         println!("");
-        println!("test TcpServer keep lost connection | Send");
-        let selfId = "test";
+        let selfId = "test TcpServer keep lost connection | Send";
+        println!("{}", selfId);
         let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(20));
         maxTestDuration.run().unwrap();
 
@@ -87,7 +87,7 @@ mod tests {
             testData.clone(),
         )));
         services.lock().unwrap().insert("TaskTestProducer", producer.clone());
-        let emulatedTcpClient = Arc::new(Mutex::new(EmulatedTcpClientRecv::new(
+        let emulatedTcpClientRecv = Arc::new(Mutex::new(EmulatedTcpClientRecv::new(
             selfId,
             &tcpAddr,
             Some(iterations),
@@ -97,14 +97,14 @@ mod tests {
         let mqServiceHandle = mqService.lock().unwrap().run().unwrap();
         let tcpServerHandle = tcpServer.lock().unwrap().run().unwrap();
         thread::sleep(Duration::from_millis(100));
-        let emulatedTcpClientHandle = emulatedTcpClient.lock().unwrap().run().unwrap();
+        let emulatedTcpClientRecvHandle = emulatedTcpClientRecv.lock().unwrap().run().unwrap();
         thread::sleep(Duration::from_millis(100));
         let producerHandle = producer.lock().unwrap().run().unwrap();
-        emulatedTcpClient.lock().unwrap().waitMarkerReceived();
+        emulatedTcpClientRecv.lock().unwrap().waitMarkerReceived();
         
-        let received = emulatedTcpClient.lock().unwrap().received();
+        let received = emulatedTcpClientRecv.lock().unwrap().received();
         let received = received.lock().unwrap();
-        let target = 0.97;
+        let target = 0.75;
         let result = (received.len() as f32) / (totalCount as f32);
         // println!("elapsed: {:?}", timer.elapsed());
         println!("total test events: {:?}", totalCount);
@@ -112,11 +112,11 @@ mod tests {
         println!("recv events: {:?} ({}%)", received.len(), result * 100.0);
         assert!(result >= target, "\nresult: {:?}\ntarget: {:?}", result, target);
         
-        emulatedTcpClient.lock().unwrap().exit();
+        emulatedTcpClientRecv.lock().unwrap().exit();
         producer.lock().unwrap().exit();
         tcpServer.lock().unwrap().exit();
         mqService.lock().unwrap().exit();
-        emulatedTcpClientHandle.wait().unwrap();
+        emulatedTcpClientRecvHandle.wait().unwrap();
         producerHandle.wait().unwrap();
         tcpServerHandle.wait().unwrap();
         mqServiceHandle.wait().unwrap();

@@ -165,6 +165,7 @@ impl Service for EmulatedTcpClientRecv {
         let handle = thread::Builder::new().name(format!("{}.run Read", selfId)).spawn(move || {
             info!("{}.run | Preparing thread Read - ok", selfId);
             let mut switchState = Self::switchState(1, disconnect, 1.0);
+            let mut switchStateChanged = false;
             'connect: loop {
                 match TcpStream::connect(addr) {
                     Ok(mut tcpStream) => {
@@ -215,13 +216,18 @@ impl Service for EmulatedTcpClientRecv {
                                                 break;
                                             },
                                         };
-                                        if switchState.changed() {
+                                        if switchStateChanged {
+                                            switchStateChanged = false;
                                             info!("{}.run | state: {} progress percent: {}", selfId, switchState.state(), progressPercent);
-                                            tcpStream.flush().unwrap();
                                             tcpStream.shutdown(std::net::Shutdown::Both).unwrap();
                                             drop(tcpStream);
                                             thread::sleep(Duration::from_millis(1000));
                                             break;
+                                        }
+                                        if switchState.changed() {
+                                            info!("{}.run | state: {} progress percent: {}", selfId, switchState.state(), progressPercent);
+                                            switchStateChanged = true;
+                                            tcpStream.flush().unwrap();
                                         } 
                                         if receivedCount >= recvLimit {
                                             exit.store(true, Ordering::SeqCst);

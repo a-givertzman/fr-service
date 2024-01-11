@@ -179,7 +179,7 @@ impl Service for EmulatedTcpClientSend {
                                     tcpStream.flush().unwrap();
                                     thread::sleep(Duration::from_millis(1000));
                                     tcpStream.shutdown(std::net::Shutdown::Both).unwrap();
-                                    drop(tcpStream);
+                                    // drop(tcpStream);
                                     thread::sleep(Duration::from_millis(1000));
                                     break;
                                 } 
@@ -187,6 +187,16 @@ impl Service for EmulatedTcpClientSend {
                                     break;
                                 }
                             }
+                        }
+                        if switchState.isMax() {
+                            info!("{}.run | switchState.isMax, exiting", selfId);
+                            break 'connect;
+                        }
+                        if testData.is_empty() {
+                            info!("{}.run | testData.is_empty, exiting", selfId);
+                            tcpStream.flush().unwrap();
+                            thread::sleep(Duration::from_millis(1000));
+                            break 'connect;
                         }
                     },
                     Err(err) => {
