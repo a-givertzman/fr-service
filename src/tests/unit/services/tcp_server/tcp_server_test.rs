@@ -60,6 +60,9 @@ mod tests {
                 cycle: 1 ms
                 reconnect: 1 s  # default 3 s
                 address: {}
+                auth: none      # auth: none / auth-secret: pass: ... / auth-ssh: path: ...
+                auth-secret: 
+                    pass: /home/scada/.ssh/ #/ auth-ssh: path: ...
                 in queue link:
                     max-length: 10000
                 out queue: MultiQueue.in-queue
@@ -152,6 +155,7 @@ mod tests {
                 cycle: 1 ms
                 reconnect: 1 s  # default 3 s
                 address: {}
+                auth: none      # auth: none / auth-secret: pass: ... / auth-ssh: path: ...
                 in queue link:
                     max-length: 10000
                 out queue: MultiQueue.in-queue

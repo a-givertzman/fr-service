@@ -63,7 +63,7 @@ impl ServiceConfig {
     }
     ///
     /// 
-    pub fn getParam(&mut self, name: &str) -> Result<serde_yaml::Value, String> {
+    pub fn getParamValue(&mut self, name: &str) -> Result<serde_yaml::Value, String> {
         match self.removeKey(name) {
             Ok(_) => {
                 match self.conf.get(name) {
@@ -76,8 +76,21 @@ impl ServiceConfig {
     }
     ///
     /// 
+    pub fn getParamConf(&mut self, name: &str) -> Result<ConfTree, String> {
+        match self.removeKey(name) {
+            Ok(_) => {
+                match self.conf.get(name) {
+                    Some(confTree) => Ok(confTree),
+                    None => Err(format!("{}.getParam | '{}' - not found in: {:?}", self.id, name, self.conf)),
+                }
+            },
+            Err(err) => Err(err),
+        }
+    }
+    ///
+    /// 
     pub fn getDuration(&mut self, name: &str) -> Option<Duration> {
-        match self.getParam(name) {
+        match self.getParamValue(name) {
             Ok(value) => {
                 match value.as_str() {
                     Some(value) => {

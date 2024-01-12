@@ -59,7 +59,7 @@ impl TcpClientConfig {
                 trace!("{}.new | selfConf: {:?}", selfId, selfConf);
                 let selfName = selfConf.name();
                 debug!("{}.new | name: {:?}", selfId, selfName);
-                let selfAddress: SocketAddr = selfConf.getParam("address").unwrap().as_str().unwrap().parse().unwrap();
+                let selfAddress: SocketAddr = selfConf.getParamValue("address").unwrap().as_str().unwrap().parse().unwrap();
                 debug!("{}.new | address: {:?}", selfId, selfAddress);
                 let cycle = selfConf.getDuration("cycle");
                 debug!("{}.new | cycle: {:?}", selfId, cycle);

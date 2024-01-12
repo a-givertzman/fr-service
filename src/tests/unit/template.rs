@@ -34,7 +34,11 @@ mod tests {
         initOnce();
         initEach();
         println!("");
-        println!("test Template");
+        let selfId = "test Template";
+        println!("{}", selfId);
+        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
+        testDuration.run().unwrap();
         assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
+        testDuration.exit();
     }
 }

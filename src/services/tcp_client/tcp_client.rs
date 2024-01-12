@@ -76,6 +76,7 @@ impl Service for TcpClient {
         let selfId = self.id.clone();
         let conf = self.conf.clone();
         let exit = self.exit.clone();
+        let exitPair = Arc::new(AtomicBool::new(false));
         info!("{}.run | rx queue name: {:?}", self.id, conf.rx);
         info!("{}.run | tx queue name: {:?}", self.id, conf.tx);
         debug!("{}.run | Lock services...", selfId);
@@ -98,6 +99,7 @@ impl Service for TcpClient {
             outSend,
             Duration::from_millis(10),
             Some(exit.clone()),
+            Some(exitPair.clone()),
         );
         let tcpWriteAlive = TcpWriteAlive::new(
             &selfId,
@@ -115,11 +117,13 @@ impl Service for TcpClient {
                 )),
             ))),
             Some(exit.clone()),
+            Some(exitPair.clone()),
         );
         info!("{}.run | Preparing thread...", selfId);
         let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
             loop {
+                exitPair.store(false, Ordering::SeqCst);
                 match tcpClientConnect.connect() {
                     Some(tcpStream) => {
                         let hR = tcpReadAlive.run(tcpStream.try_clone().unwrap());

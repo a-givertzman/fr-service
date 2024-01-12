@@ -329,7 +329,6 @@ struct TcpServerConnection {
     services: Arc<Mutex<Services>>, 
     conf: TcpServerConfig, 
     exit: Arc<AtomicBool>,
-    exitInner: Arc<AtomicBool>,
 }
 ///
 /// 
@@ -343,7 +342,6 @@ impl TcpServerConnection {
             services,
             conf,
             exit,
-            exitInner: Arc::new(AtomicBool::new(false)),
         }
     }
     ///
@@ -355,7 +353,8 @@ impl TcpServerConnection {
         let conf = self.conf.clone();
         let selfConfTx = conf.tx.clone();
         let rxMaxLength = conf.rxMaxLength;
-        let exit = self.exitInner.clone();
+        let exit = self.exit.clone();
+        let exitPair = Arc::new(AtomicBool::new(false));
         let actionRecv = self.actionRecv.pop().unwrap();
         let services = self.services.clone();
         let txQueueName = QueueName::new(&selfConfTx);
@@ -370,6 +369,7 @@ impl TcpServerConnection {
                 send,
                 Duration::from_millis(10),
                 Some(exit.clone()),
+                Some(exitPair.clone()),
             );
             let tcpWriteAlive = TcpWriteAlive::new(
                 &selfId,
@@ -387,10 +387,12 @@ impl TcpServerConnection {
                     )),
                 ))),
                 Some(exit.clone()),
+                Some(exitPair.clone()),
             );
             let keepTimeout = conf.keepTimeout.unwrap_or(Duration::from_secs(3));
             let mut duration = Instant::now();
             loop {
+                exitPair.store(false, Ordering::SeqCst);
                 match actionRecv.recv_timeout(RECV_TIMEOUT) {
                     Ok(action) => {
                         match action {

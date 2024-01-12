@@ -15,17 +15,21 @@ pub struct TcpWriteAlive {
     cycle: Duration,
     streamWrite: Arc<Mutex<TcpStreamWrite>>,
     exit: Arc<AtomicBool>,
+    exitPair: Arc<AtomicBool>,
 }
 impl TcpWriteAlive {
     ///
     /// Creates new instance of [TcpWriteAlive]
     /// - [parent] - the ID if the parent entity
-    pub fn new(parent: impl Into<String>, cycle: Duration, streamWrite: Arc<Mutex<TcpStreamWrite>>, exit: Option<Arc<AtomicBool>>) -> Self {
+    /// - [exit] - notification from parent to exit 
+    /// - [exitPair] - notification from / to sibling pair to exit 
+    pub fn new(parent: impl Into<String>, cycle: Duration, streamWrite: Arc<Mutex<TcpStreamWrite>>, exit: Option<Arc<AtomicBool>>, exitPair: Option<Arc<AtomicBool>>) -> Self {
         Self {
             id: format!("{}/TcpWriteAlive", parent.into()),
             cycle,
             streamWrite,
             exit: exit.unwrap_or(Arc::new(AtomicBool::new(false))),
+            exitPair: exitPair.unwrap_or(Arc::new(AtomicBool::new(false))),
         }
     }
     ///
@@ -34,6 +38,7 @@ impl TcpWriteAlive {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
+        let exitPair = self.exitPair.clone();
         let mut cycle = ServiceCycle::new(self.cycle);
         let streamWrite = self.streamWrite.clone();
         info!("{}.run | Preparing thread...", self.id);
@@ -54,11 +59,11 @@ impl TcpWriteAlive {
                     },
                     ConnectionStatus::Closed(err) => {
                         warn!("{}.run | error: {:?}", selfId, err);
-                        exit.store(true, Ordering::SeqCst);
+                        exitPair.store(true, Ordering::SeqCst);
                         break 'main;
                     },
                 };
-                if exit.load(Ordering::SeqCst) {
+                if exit.load(Ordering::SeqCst) | exitPair.load(Ordering::SeqCst) {
                     break 'main;
                 }
                 cycle.wait();
