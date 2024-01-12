@@ -1,3 +1,5 @@
+use log::info;
+
 use crate::{core_::auth::{secret::auth_secret::AuthSecret, ssh::auth_ssh_path::AuthSshPath}, conf::conf_tree::ConfTree};
 
 ///
@@ -14,17 +16,36 @@ impl TcpServerAuth {
     ///
     /// 
     pub fn new(value: ConfTree) -> Self {
+        info!("TcpServerAuth.new | value: {:?}", value);
+        if value.conf.is_string() {
+
+        } else if value.conf.is_mapping() {
+
+        } else {
+            panic!();
+        }
         match value.key.to_lowercase().as_str() {
-            "none" => TcpServerAuth::None,
-            "secret" => {
-                let token = value.conf.as_str().unwrap();
+            "auth" => {
+                match value.conf.as_str() {
+                    Some("none" | "None") => TcpServerAuth::None,
+                    _ => panic!("TcpServerAuth.new | Unknown value in 'auth', 'none' or 'None' expected"),
+                }
+            },
+            "auth-secret" => {
+                let token = match value.asStr("pass") {
+                    Ok(token) => token,
+                    Err(_) => panic!("TcpServerAuth.new | 'pass' - not found in 'auth-secret'"),
+                };
                 TcpServerAuth::Secret(AuthSecret::new(token))
             },
-            "ssh" => {
-                let path = value.asStr("path").unwrap();
+            "auth-ssh" => {
+                let path = match value.asStr("pass") {
+                    Ok(path) => path,
+                    Err(_) => panic!("TcpServerAuth.new | 'path' - not found in 'auth-ssh'"),
+                };
                 TcpServerAuth::Ssh(AuthSshPath::new(path))
             },
-            _ => panic!()
+            _ => panic!(),
         }
     }
     // ///
