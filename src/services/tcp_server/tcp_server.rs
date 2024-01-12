@@ -329,7 +329,7 @@ struct TcpServerConnection {
     services: Arc<Mutex<Services>>, 
     conf: TcpServerConfig, 
     exit: Arc<AtomicBool>,
-    exitInner: Arc<AtomicBool>,
+    exitPair: Arc<AtomicBool>,
 }
 ///
 /// 
@@ -343,7 +343,7 @@ impl TcpServerConnection {
             services,
             conf,
             exit,
-            exitInner: Arc::new(AtomicBool::new(false)),
+            exitPair: Arc::new(AtomicBool::new(false)),
         }
     }
     ///
@@ -356,7 +356,7 @@ impl TcpServerConnection {
         let selfConfTx = conf.tx.clone();
         let rxMaxLength = conf.rxMaxLength;
         let exit = self.exit.clone();
-        let exitInner = self.exitInner.clone();
+        let exitPair = self.exitPair.clone();
         let actionRecv = self.actionRecv.pop().unwrap();
         let services = self.services.clone();
         let txQueueName = QueueName::new(&selfConfTx);
@@ -370,7 +370,8 @@ impl TcpServerConnection {
                 &selfId,
                 send,
                 Duration::from_millis(10),
-                Some(exitInner.clone()),
+                Some(exit.clone()),
+                Some(exitPair.clone()),
             );
             let tcpWriteAlive = TcpWriteAlive::new(
                 &selfId,
@@ -387,7 +388,8 @@ impl TcpServerConnection {
                         ),
                     )),
                 ))),
-                Some(exitInner.clone()),
+                Some(exit.clone()),
+                Some(exitPair.clone()),
             );
             let keepTimeout = conf.keepTimeout.unwrap_or(Duration::from_secs(3));
             let mut duration = Instant::now();

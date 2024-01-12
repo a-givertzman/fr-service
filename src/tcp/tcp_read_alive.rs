@@ -16,12 +16,15 @@ pub struct TcpReadAlive {
     send: Sender<PointType>,
     cycle: Duration,
     exit: Arc<AtomicBool>,
+    exitPair: Arc<AtomicBool>,
 }
 impl TcpReadAlive {
     ///
     /// Creates new instance of [TcpReadAlive]
     /// - [parent] - the ID if the parent entity
-    pub fn new(parent: impl Into<String>, send: Sender<PointType>, cycle: Duration, exit: Option<Arc<AtomicBool>>) -> Self {
+    /// - [exit] - notification from parent to exit 
+    /// - [exitPair] - notification from / to sibling pair to exit 
+    pub fn new(parent: impl Into<String>, send: Sender<PointType>, cycle: Duration, exit: Option<Arc<AtomicBool>>, exitPair: Option<Arc<AtomicBool>>) -> Self {
         let selfId = format!("{}/TcpReadAlive", parent.into());
         Self {
             id: selfId.clone(),
@@ -34,6 +37,7 @@ impl TcpReadAlive {
             send: send,
             cycle,
             exit: exit.unwrap_or(Arc::new(AtomicBool::new(false))),
+            exitPair: exitPair.unwrap_or(Arc::new(AtomicBool::new(false))),
         }
     }
     ///
@@ -42,6 +46,7 @@ impl TcpReadAlive {
         info!("{}.run | starting...", self.id);
         let selfId = self.id.clone();
         let exit = self.exit.clone();
+        let exitPair = self.exitPair.clone();
         let mut cycle = ServiceCycle::new(self.cycle);
         let send = self.send.clone();
         let jdsStream = self.jdsStream.clone();
@@ -73,11 +78,11 @@ impl TcpReadAlive {
                     },
                     ConnectionStatus::Closed(err) => {
                         warn!("{}.run | error: {:?}", selfId, err);
-                        exit.store(true, Ordering::SeqCst);
+                        exitPair.store(true, Ordering::SeqCst);
                         break;
                     },
                 };
-                if exit.load(Ordering::SeqCst) {
+                if exit.load(Ordering::SeqCst) | exitPair.load(Ordering::SeqCst) {
                     break;
                 }
                 cycle.wait();
