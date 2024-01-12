@@ -72,8 +72,8 @@ impl TcpServerConfig {
                 let keepTimeout = selfConf.getDuration("keep-timeout");
                 debug!("{}.new | keepTimeout: {:?}", selfId, reconnectCycle);
 
-                let auth = selfConf.getParam("auth").unwrap();
-                let auth = TcpServerAuth::from(auth.as_str().unwrap());
+                let auth = selfConf.get("auth").unwrap();
+                let auth = TcpServerAuth::new(auth);
                 debug!("{}.new | keepTimeout: {:?}", selfId, reconnectCycle);
 
                 let (rx, rxMaxLength) = selfConf.getInQueue().unwrap();
