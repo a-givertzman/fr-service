@@ -60,6 +60,7 @@ mod tests {
                 cycle: 1 ms
                 reconnect: 1 s  # default 3 s
                 address: {}
+                auth: none      # none / secret / ssh
                 in queue link:
                     max-length: 10000
                 out queue: MultiQueue.in-queue
@@ -152,6 +153,7 @@ mod tests {
                 cycle: 1 ms
                 reconnect: 1 s  # default 3 s
                 address: {}
+                auth: none      # none / secret / ssh
                 in queue link:
                     max-length: 10000
                 out queue: MultiQueue.in-queue
