@@ -26,7 +26,7 @@ pub struct TcpServerConfig {
     pub(crate) address: SocketAddr,
     pub(crate) reconnectCycle: Option<Duration>,
     pub(crate) keepTimeout: Option<Duration>,
-    // pub(crate) auth: TcpServerAuth,
+    pub(crate) auth: TcpServerAuth,
     pub(crate) rx: String,
     pub(crate) rxMaxLength: i64,
     pub(crate) tx: String,
@@ -71,16 +71,12 @@ impl TcpServerConfig {
                 debug!("{}.new | reconnectCycle: {:?}", selfId, reconnectCycle);
                 let keepTimeout = selfConf.getDuration("keep-timeout");
                 debug!("{}.new | keepTimeout: {:?}", selfId, reconnectCycle);
-
                 let auth = selfConf.getParamConf("auth");
-                // debug!("{}.new | auth: {:?}", selfId, auth);
                 let auth = auth.or(selfConf.getParamConf("auth-secret"));
-                // debug!("{}.new | auth: {:?}", selfId, auth);
                 let auth = auth.or(selfConf.getParamConf("auth-ssh"));
                 let auth = auth.expect("{}.new | 'auth' or 'auth-secret' or 'auth-ssh' - not found");
                 let auth = TcpServerAuth::new(auth);
                 debug!("{}.new | auth: {:?}", selfId, auth);
-
                 let (rx, rxMaxLength) = selfConf.getInQueue().unwrap();
                 debug!("{}.new | RX: {},\tmax-length: {}", selfId, rx, rxMaxLength);
                 let tx = selfConf.getOutQueue().unwrap();
@@ -91,7 +87,7 @@ impl TcpServerConfig {
                     address: selfAddress,
                     reconnectCycle,
                     keepTimeout,
-                    // auth,
+                    auth,
                     rx,
                     rxMaxLength: rxMaxLength,
                     tx,
