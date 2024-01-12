@@ -157,9 +157,13 @@ impl ConfTree {
     /// removes node by it's key if exists
     /// returns Result<&Self>
     pub fn remove(&mut self, key: &str) -> Result<serde_yaml::Value, String> {
-        match self.conf.as_mapping_mut().unwrap().remove(key) {
-            Some(value) => Ok(value),
-            None => Err(format!("Key '{:?}' not found in the node '{:?}'", &key, &self.conf)),
+        if self.conf.is_mapping() {
+            match self.conf.as_mapping_mut().unwrap().remove(key) {
+                Some(value) => Ok(value),
+                None => Err(format!("Key '{:?}' not found in the node '{:?}'", &key, &self.conf)),
+            }
+        } else {
+            Err(format!("Key '{:?}' not found in the node '{:?}'", &key, &self.conf))
         }
     }
 }
