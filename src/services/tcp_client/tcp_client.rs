@@ -123,6 +123,7 @@ impl Service for TcpClient {
         let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
             loop {
+                exitPair.store(false, Ordering::SeqCst);
                 match tcpClientConnect.connect() {
                     Some(tcpStream) => {
                         let hR = tcpReadAlive.run(tcpStream.try_clone().unwrap());

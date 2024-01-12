@@ -392,6 +392,7 @@ impl TcpServerConnection {
             let keepTimeout = conf.keepTimeout.unwrap_or(Duration::from_secs(3));
             let mut duration = Instant::now();
             loop {
+                exitPair.store(false, Ordering::SeqCst);
                 match actionRecv.recv_timeout(RECV_TIMEOUT) {
                     Ok(action) => {
                         match action {
