@@ -26,7 +26,7 @@ pub struct TcpServerConfig {
     pub(crate) address: SocketAddr,
     pub(crate) reconnectCycle: Option<Duration>,
     pub(crate) keepTimeout: Option<Duration>,
-    pub(crate) auth: TcpServerAuth,
+    // pub(crate) auth: TcpServerAuth,
     pub(crate) rx: String,
     pub(crate) rxMaxLength: i64,
     pub(crate) tx: String,
@@ -63,7 +63,7 @@ impl TcpServerConfig {
                 trace!("{}.new | selfConf: {:?}", selfId, selfConf);
                 let selfName = selfConf.name();
                 debug!("{}.new | name: {:?}", selfId, selfName);
-                let selfAddress: SocketAddr = selfConf.getParam("address").unwrap().as_str().unwrap().parse().unwrap();
+                let selfAddress: SocketAddr = selfConf.getParamValue("address").unwrap().as_str().unwrap().parse().unwrap();
                 debug!("{}.new | address: {:?}", selfId, selfAddress);
                 let cycle = selfConf.getDuration("cycle");
                 debug!("{}.new | cycle: {:?}", selfId, cycle);
@@ -72,9 +72,14 @@ impl TcpServerConfig {
                 let keepTimeout = selfConf.getDuration("keep-timeout");
                 debug!("{}.new | keepTimeout: {:?}", selfId, reconnectCycle);
 
-                let auth = selfConf.get("auth").unwrap();
+                let auth = selfConf.getParamConf("auth");
+                // debug!("{}.new | auth: {:?}", selfId, auth);
+                let auth = auth.or(selfConf.getParamConf("auth-secret"));
+                // debug!("{}.new | auth: {:?}", selfId, auth);
+                let auth = auth.or(selfConf.getParamConf("auth-ssh"));
+                let auth = auth.expect("{}.new | 'auth' or 'auth-secret' or 'auth-ssh' - not found");
                 let auth = TcpServerAuth::new(auth);
-                debug!("{}.new | keepTimeout: {:?}", selfId, reconnectCycle);
+                debug!("{}.new | auth: {:?}", selfId, auth);
 
                 let (rx, rxMaxLength) = selfConf.getInQueue().unwrap();
                 debug!("{}.new | RX: {},\tmax-length: {}", selfId, rx, rxMaxLength);
@@ -86,7 +91,7 @@ impl TcpServerConfig {
                     address: selfAddress,
                     reconnectCycle,
                     keepTimeout,
-                    auth,
+                    // auth,
                     rx,
                     rxMaxLength: rxMaxLength,
                     tx,
