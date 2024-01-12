@@ -40,8 +40,9 @@ impl TcpServerConfig {
     /// service TcpClient:
     ///     cycle: 1 ms
     ///     address: 127.0.0.1:8080
-    ///     reconnect: 1 s  # default 3 s
-    ///     keep-timeout: 3s    // timeot keeping lost connection
+    ///     reconnect: 1 s      # default 3 s
+    ///     keep-timeout: 3s    # timeot keeping lost connection
+    ///     auth: none          # none / secret / ssh
     ///     in queue link:
     ///         max-length: 10000
     ///     out queue: MultiQueue.queue
