@@ -329,7 +329,6 @@ struct TcpServerConnection {
     services: Arc<Mutex<Services>>, 
     conf: TcpServerConfig, 
     exit: Arc<AtomicBool>,
-    exitPair: Arc<AtomicBool>,
 }
 ///
 /// 
@@ -343,7 +342,6 @@ impl TcpServerConnection {
             services,
             conf,
             exit,
-            exitPair: Arc::new(AtomicBool::new(false)),
         }
     }
     ///
@@ -356,7 +354,7 @@ impl TcpServerConnection {
         let selfConfTx = conf.tx.clone();
         let rxMaxLength = conf.rxMaxLength;
         let exit = self.exit.clone();
-        let exitPair = self.exitPair.clone();
+        let exitPair = Arc::new(AtomicBool::new(false));
         let actionRecv = self.actionRecv.pop().unwrap();
         let services = self.services.clone();
         let txQueueName = QueueName::new(&selfConfTx);
