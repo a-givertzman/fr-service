@@ -1,4 +1,4 @@
-use log::info;
+use log::debug;
 
 use crate::{core_::auth::{secret::auth_secret::AuthSecret, ssh::auth_ssh_path::AuthSshPath}, conf::conf_tree::ConfTree};
 
@@ -16,7 +16,7 @@ impl TcpServerAuth {
     ///
     /// 
     pub fn new(value: ConfTree) -> Self {
-        info!("TcpServerAuth.new | value: {:?}", value);
+        debug!("TcpServerAuth.new | value: {:?}", value);
         match value.key.to_lowercase().as_str() {
             "auth" => {
                 match value.conf.as_str() {
