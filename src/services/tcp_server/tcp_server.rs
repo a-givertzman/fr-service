@@ -355,7 +355,8 @@ impl TcpServerConnection {
         let conf = self.conf.clone();
         let selfConfTx = conf.tx.clone();
         let rxMaxLength = conf.rxMaxLength;
-        let exit = self.exitInner.clone();
+        let exit = self.exit.clone();
+        let exitInner = self.exitInner.clone();
         let actionRecv = self.actionRecv.pop().unwrap();
         let services = self.services.clone();
         let txQueueName = QueueName::new(&selfConfTx);
@@ -369,7 +370,7 @@ impl TcpServerConnection {
                 &selfId,
                 send,
                 Duration::from_millis(10),
-                Some(exit.clone()),
+                Some(exitInner.clone()),
             );
             let tcpWriteAlive = TcpWriteAlive::new(
                 &selfId,
@@ -386,7 +387,7 @@ impl TcpServerConnection {
                         ),
                     )),
                 ))),
-                Some(exit.clone()),
+                Some(exitInner.clone()),
             );
             let keepTimeout = conf.keepTimeout.unwrap_or(Duration::from_secs(3));
             let mut duration = Instant::now();
