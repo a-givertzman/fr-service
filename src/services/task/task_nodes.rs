@@ -17,7 +17,7 @@ use super::{task_node_vars::TaskNodeVars, task_eval_node::TaskEvalNode};
 /// TaskNodes - holds the IndexMap<String, TaskNode> in the following structure:
 ///   ```
 ///   {
-///       inputName1: TaskNode {
+///       inputName1: TaskEvalNode {
 ///           input: FnInOutRef,
 ///           outs: [
 ///               var1
@@ -28,7 +28,7 @@ use super::{task_node_vars::TaskNodeVars, task_eval_node::TaskEvalNode};
 ///               metric...
 ///           ]
 ///       },
-///       inputName1: TaskNode {
+///       inputName2: TaskEvalNode {
 ///           ...
 ///       },
 ///   }
