@@ -75,7 +75,7 @@ pub struct PointConfigAddress {
 /// 
 impl PointConfigAddress {
     pub fn empty() -> Self {
-        Self { offset: Some(0), bit: Some(0) }
+        Self { offset: None, bit: None }
     }
 }
 
