@@ -13,3 +13,5 @@ pub mod conf_duration_test;
 pub mod conf_keyword_test;
 
 pub mod tcp_server_config;
+
+pub mod point_config_test;
