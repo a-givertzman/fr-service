@@ -8,7 +8,7 @@ mod tests {
             debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
             testing::test_stuff::max_test_duration::TestDuration,
         }, 
-        conf::point_config::{point_config::PointConfig, point_config_type::PointConfigType, point_config_address::PointConfigAddress},
+        conf::point_config::{point_config::PointConfig, point_config_type::PointConfigType, point_config_address::PointConfigAddress, point_config_filters::PointConfigFilters},
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -52,12 +52,15 @@ mod tests {
                         address:
                             offset: 0   # 0..65535
                             bit: 0      # 0..255
+                        filters:
+                            threshold: 5    # 5% threshold
                         comment: Test Point Bool"#, 
                 PointConfig { 
                     name: String::from("PointName0"),
                     _type: PointConfigType::Bool, 
                     history: Some(0), alarm: Some(0), 
                     address: PointConfigAddress { offset: Some(0), bit: Some(0) }, 
+                    filters: Some(PointConfigFilters { threshold: Some(5) }),
                     comment: Some(String::from("Test Point Bool")),
                 },
             ),
@@ -73,6 +76,7 @@ mod tests {
                     _type: PointConfigType::Int, 
                     history: Some(1), alarm: None, 
                     address: PointConfigAddress { offset: Some(0), bit: None }, 
+                    filters: None,
                     comment: Some(String::from("Test Point")),
                 },
             ),
@@ -88,6 +92,7 @@ mod tests {
                     _type: PointConfigType::Int, 
                     history: None, alarm: Some(4), 
                     address: PointConfigAddress { offset: Some(0), bit: None }, 
+                    filters: None,
                     comment: Some(String::from("Test Point")),
                 },
             ),
@@ -102,6 +107,7 @@ mod tests {
                     _type: PointConfigType::Int, 
                     history: None, alarm: None, 
                     address: PointConfigAddress { offset: Some(12), bit: None }, 
+                    filters: None,
                     comment: Some(String::from("Test Point")),
                 },
             ),
@@ -134,12 +140,15 @@ mod tests {
                         address:
                             offset: 0   # 0..65535
                             bit: 0      # 0..255
+                        filters:
+                            threshold: 5    # 5% threshold
                         comment: Test Point Bool"#, 
                 PointConfig { 
                     name: String::from("PointName0"),
                     _type: PointConfigType::Bool, 
                     history: Some(0), alarm: Some(0), 
                     address: PointConfigAddress { offset: Some(0), bit: Some(0) }, 
+                    filters: Some(PointConfigFilters { threshold: Some(5) }),
                     comment: Some(String::from("Test Point Bool")),
                 },
             ),
@@ -155,6 +164,7 @@ mod tests {
                     _type: PointConfigType::Int, 
                     history: Some(1), alarm: None, 
                     address: PointConfigAddress { offset: Some(0), bit: None }, 
+                    filters: None,
                     comment: Some(String::from("Test Point")),
                 },
             ),
@@ -170,6 +180,7 @@ mod tests {
                     _type: PointConfigType::Int, 
                     history: None, alarm: Some(4), 
                     address: PointConfigAddress { offset: Some(0), bit: None }, 
+                    filters: None,
                     comment: Some(String::from("Test Point")),
                 },
             ),
@@ -184,6 +195,7 @@ mod tests {
                     _type: PointConfigType::Int, 
                     history: None, alarm: None, 
                     address: PointConfigAddress { offset: Some(12), bit: None }, 
+                    filters: None,
                     comment: Some(String::from("Test Point")),
                 },
             ),

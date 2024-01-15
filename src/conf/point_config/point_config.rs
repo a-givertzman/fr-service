@@ -10,6 +10,7 @@ use crate::conf::{
     point_config::{
         point_config_type::PointConfigType,
         point_config_address::PointConfigAddress,
+        point_config_filters::PointConfigFilters,
     }
 };
 
@@ -27,6 +28,8 @@ pub struct PointConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub alarm: Option<u8>,
     pub address: PointConfigAddress,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub filters: Option<PointConfigFilters>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
     
