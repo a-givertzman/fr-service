@@ -1,13 +1,17 @@
 #![allow(non_snake_case)]
 
-use log::trace;
+use log::{trace, debug};
 use serde::{Serialize, Deserialize};
+
+use super::conf_tree::ConfTree;
 
 ///
 /// 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PointConfig {
-    // #[serde(flatten)]
+    #[serde(skip)]
+    pub name: String,
+    #[serde(alias = "type", alias = "Type")]
     pub _type: PointConfigType,
     pub history: Option<u8>,
     pub alarm: Option<u8>,
@@ -28,20 +32,19 @@ impl PointConfig {
     ///     address:
     ///         offset: 0..65535
     ///         bit: 0..255
-    // pub fn new(confTree: &ConfTree) -> PointConfig {
-    //     println!("\n");
-    //     trace!("MetricConfig.new | confTree: {:?}", confTree);
-    //     // self conf from first sub node
-    //     //  - if additional sub nodes presents hit warning, FnConf must have single item
-    //     if confTree.isMapping() {
-    //     }
-    // }    
+    ///     comment: Test Point 
+    pub fn new(confTree: &ConfTree) -> PointConfig {
+        println!("\n");
+        trace!("MetricConfig.new | confTree: {:?}", confTree);
+        let mut pc: PointConfig = serde_yaml::from_value(confTree.conf.clone()).unwrap();
+        pc.name = confTree.key.clone();
+        pc
+    }    
     ///
     /// creates config from serde_yaml::Value of following format:
     pub(crate) fn fromYamlValue(value: &serde_yaml::Value) -> PointConfig {
-        let pc: PointConfig = serde_yaml::from_value(value.clone()).unwrap();
-        pc
-        // Self::new(&ConfTree::newRoot(value.clone()).next().unwrap())
+        debug!("PointConfig.fromYamlValue | value: {:?}", value);
+        Self::new(&ConfTree::newRoot(value.clone()).next().unwrap())
     }
 
 }
@@ -67,10 +70,15 @@ impl PointConfigAddress {
 /// 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum PointConfigType {
+    #[serde(alias = "bool", alias = "Bool")]
     Bool,
+    #[serde(alias = "int", alias = "Int")]
     Int,
+    #[serde(alias = "float", alias = "Float")]
     Float,
+    #[serde(alias = "string", alias = "String")]
     String,
+    #[serde(alias = "json", alias = "Json")]
     Json,
 }
 ///
