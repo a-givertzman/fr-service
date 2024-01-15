@@ -30,7 +30,9 @@ pub trait Service {
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error>;
     ///
     /// Returns list of points configurations
-    fn points(&self) -> Vec<PointConfig>;
+    fn points(&self) -> Vec<PointConfig> {
+        vec![]
+    }
     ///
     /// Sends "exit" signal to the service's thread
     fn exit(&self);

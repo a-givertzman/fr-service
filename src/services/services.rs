@@ -4,7 +4,7 @@ use std::{collections::HashMap, sync::{Arc, Mutex, mpsc::{Sender, Receiver}}};
 
 use log::debug;
 
-use crate::core_::point::point_type::PointType;
+use crate::{core_::point::point_type::PointType, conf::point_config::point_config::PointConfig};
 
 use super::{service::Service, queue_name::QueueName};
 
@@ -62,6 +62,16 @@ impl Services {
             },
             None => panic!("{}.get | service '{:?}' - not found", self.id, service),
         }
+    }
+    ///
+    /// Returns list of point configurations over the all services
+    pub fn points(&self) -> Vec<PointConfig> {
+        let mut points = vec![];
+        for service in self.map.values() {
+            let mut servicePoints = service.lock().unwrap().points();
+            points.append(&mut servicePoints);
+        };
+        points
     }
     // ///
     // /// 
