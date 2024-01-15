@@ -147,37 +147,10 @@ impl PointType {
         }
     }
 }
-// ///
-// /// 
-// impl FromStr for PointType {
-//     type Err = String;
-//     fn from_str(input: &str) -> Result<PointType, String> {
-//         trace!("PointType.from_str | input: {}", input);
-//         let re = r#"(bool|int|float){1}"#;
-//         let re = RegexBuilder::new(re).multi_line(false).build().unwrap();
-//         match re.captures(input) {
-//             Some(caps) => {
-//                 match &caps.get(1) {
-//                     Some(keyword) => {
-//                         match keyword.as_str() {
-//                             "bool"  => Ok( false.toPoint("bool") ),
-//                             "int"  => Ok( PointType::Int(Point::newInt("int", 0)) ),
-//                             "float"  => Ok( PointType::Float(Point::newFloat("float", 0.0)) ),
-//                             "string"  => Ok( PointType::String(Point::newString("string", String::new())) ),
-//                             _      => Err(format!("Unknown keyword '{}'", input)),
-//                         }
-//                     },
-//                     None => {
-//                         Err(format!("Unknown keyword '{}'", input))
-//                     },
-//                 }
-//             },
-//             None => {
-//                 Err(format!("Unknown keyword '{}'", input))
-//             },
-//         }
-//     }
-// }
+
+
+
+
 
 
 // impl PartialEq for PointType {

@@ -23,3 +23,5 @@ pub mod multi_queue_config;
 pub mod service_config;
 
 pub mod tcp_server_config;
+
+pub mod point_config;
