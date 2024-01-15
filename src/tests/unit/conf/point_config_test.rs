@@ -44,7 +44,7 @@ mod tests {
         let testData = [
             (r#"
                     PointName0:
-                        type: bool      # Bool / Int / Float / String / Json
+                        type: Bool      # Bool / Int / Float / String / Json
                         history: 0      # 0 / 1
                         alarm: 0        # 0..15
                         address:

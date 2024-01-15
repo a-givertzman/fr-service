@@ -16,9 +16,12 @@ pub struct PointConfig {
     #[serde(rename = "type")]
     #[serde(alias = "type", alias = "Type")]
     pub _type: PointConfigType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub history: Option<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub alarm: Option<u8>,
     pub address: PointConfigAddress,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
     
 }
@@ -63,7 +66,9 @@ impl PointConfig {
 /// 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PointConfigAddress {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub offset: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub bit: Option<u8>,
 }
 ///
@@ -80,14 +85,19 @@ impl PointConfigAddress {
 /// 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum PointConfigType {
+    #[serde(rename = "Bool")]
     #[serde(alias = "bool", alias = "Bool")]
     Bool,
+    #[serde(rename = "Int")]
     #[serde(alias = "int", alias = "Int")]
     Int,
+    #[serde(rename = "Float")]
     #[serde(alias = "float", alias = "Float")]
     Float,
+    #[serde(rename = "String")]
     #[serde(alias = "string", alias = "String")]
     String,
+    #[serde(rename = "Json")]
     #[serde(alias = "json", alias = "Json")]
     Json,
 }
