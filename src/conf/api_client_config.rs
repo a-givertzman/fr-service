@@ -1,11 +1,9 @@
 #![allow(non_snake_case)]
 
 use log::{trace, debug, error};
-use std::{fs, str::FromStr, time::Duration, net::SocketAddr};
+use std::{fs, time::Duration, net::SocketAddr};
 
-use crate::conf::{conf_tree::ConfTree, conf_duration::ConfDuration, conf_keywd::ConfKeywd, service_config::ServiceConfig};
-
-use super::conf_keywd::ConfKind;
+use crate::conf::{conf_tree::ConfTree, service_config::ServiceConfig};
 
 
 ///
@@ -58,7 +56,7 @@ impl ApiClientConfig {
                 trace!("{}.new | selfConf: {:?}", selfId, selfConf);
                 let selfName = selfConf.name();
                 debug!("{}.new | name: {:?}", selfId, selfName);
-                let address: SocketAddr = selfConf.getParam("address").unwrap().as_str().unwrap().parse().unwrap();
+                let address: SocketAddr = selfConf.getParamValue("address").unwrap().as_str().unwrap().parse().unwrap();
                 debug!("{}.new | address: {:?}", selfId, address);
                 let cycle = selfConf.getDuration("cycle");
                 debug!("{}.new | cycle: {:?}", selfId, cycle);

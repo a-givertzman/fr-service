@@ -1,10 +1,10 @@
 #![allow(non_snake_case)]
 
-use std::{net::{TcpStream, SocketAddr, ToSocketAddrs}, time::Duration, sync::{Arc, atomic::{AtomicBool, Ordering, AtomicUsize}, Mutex, mpsc::{Sender, Receiver, self}, Once, MutexGuard}, thread};
+use std::{net::{TcpStream, SocketAddr, ToSocketAddrs}, time::Duration, sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}}, thread};
 
 use log::{warn, LevelFilter, debug, info};
 
-use crate::services::task::task_cycle::ServiceCycle;
+use crate::services::task::service_cycle::ServiceCycle;
 
 
 // #[derive(Debug, PartialEq)]
@@ -113,39 +113,6 @@ impl TcpClientConnect {
         let mut tcpStream = self.stream.lock().unwrap();
         tcpStream.pop()
     }
-    // ///
-    // /// Opens a TCP connection to a remote host
-    // /// - tries to connect [attempts] times
-    // pub fn connect_attempts(&mut self, attempts: u8) -> Result<TcpStream, std::io::Error> {
-    //     let exit = self.exitRecv.clone();
-    //     let exit = exit.lock().unwrap();
-    //     let mut result: Option<Result<TcpStream, std::io::Error>> = None;
-    //     for attempt in 0..=attempts {
-    //         let r = TcpStream::connect(self.addr);
-    //         match r {
-    //             Ok(_) => {
-    //                 result = Some(r)
-    //             },
-    //             Err(err) => {
-    //                 if log::max_level() == LevelFilter::Trace {
-    //                     warn!("TcpClientConnect({}).connect_attempts | attempt {}/{} connection error: \n\t{:?}", attempt, attempts, self.id, err);
-    //                 }
-    //                 result = Some(Err(err));
-    //             }
-    //         }
-    //         match exit.try_recv() {
-    //             Ok(exit) => {
-    //                 debug!("TcpClientConnect({}).connect | exit: {}", self.id, exit);
-    //                 if exit {
-    //                     result = None;
-    //                     break;
-    //                 }
-    //             },
-    //             Err(_) => {},
-    //         }
-    //     }
-    //     result.unwrap()
-    // }
     ///
     /// Opens a TCP connection to a remote host with a timeout.
     pub fn connect_timeout(&self, timeout: Duration) -> Result<TcpStream, std::io::Error> {

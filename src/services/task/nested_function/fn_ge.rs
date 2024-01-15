@@ -46,7 +46,7 @@ impl FnGe {
             PointType::Float(point) => {
                 point.value
             },
-            _ => panic!("FnCount.out | {:?} type is not supported: {:?}", point.typeOf(), point),
+            _ => panic!("FnCount.out | {:?} type is not supported: {:?}", point.printTypeOf(), point),
         }
     }
 }

@@ -76,29 +76,30 @@ impl Service for TcpClient {
         let selfId = self.id.clone();
         let conf = self.conf.clone();
         let exit = self.exit.clone();
+        let exitPair = Arc::new(AtomicBool::new(false));
         info!("{}.run | rx queue name: {:?}", self.id, conf.rx);
         info!("{}.run | tx queue name: {:?}", self.id, conf.tx);
         debug!("{}.run | Lock services...", selfId);
         let outSend = self.services.lock().unwrap().getLink(&conf.tx);
         debug!("{}.run | Lock services - ok", selfId);
-        let outSend = Arc::new(Mutex::new(outSend));
-        let buffered = true; // TODO Read this from config
+        let buffered = conf.rxBuffered; // TODO Read this from config
         let inRecv = self.inRecv.pop().unwrap();
         // let (cyclic, cycleInterval) = match conf.cycle {
         //     Some(interval) => (interval > Duration::ZERO, interval),
         //     None => (false, Duration::ZERO),
         // };
-        let reconnect = if conf.reconnectCycle.is_some() {conf.reconnectCycle.unwrap()} else {Duration::from_secs(3)};
-        let _queueMaxLength = conf.rxMaxLength;
+        let reconnect = conf.reconnectCycle.unwrap_or(Duration::from_secs(3));
         let mut tcpClientConnect = TcpClientConnect::new(
             selfId.clone(), 
             conf.address, 
             reconnect,
         );
-        let tcpReadAlive = TcpReadAlive::new(
+        let mut tcpReadAlive = TcpReadAlive::new(
             &selfId,
             outSend,
             Duration::from_millis(10),
+            Some(exit.clone()),
+            Some(exitPair.clone()),
         );
         let tcpWriteAlive = TcpWriteAlive::new(
             &selfId,
@@ -115,11 +116,14 @@ impl Service for TcpClient {
                     ),
                 )),
             ))),
+            Some(exit.clone()),
+            Some(exitPair.clone()),
         );
         info!("{}.run | Preparing thread...", selfId);
-        let handle = thread::Builder::new().name(format!("{} - Read", selfId.clone())).spawn(move || {
+        let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
             loop {
+                exitPair.store(false, Ordering::SeqCst);
                 match tcpClientConnect.connect() {
                     Some(tcpStream) => {
                         let hR = tcpReadAlive.run(tcpStream.try_clone().unwrap());

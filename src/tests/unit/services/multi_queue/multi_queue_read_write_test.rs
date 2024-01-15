@@ -4,7 +4,7 @@ mod tests {
     use log::{info, debug};
     use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}};
     use crate::{
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::{test_value::Value, max_test_duration::MaxTestDuration, random_test_values::RandomTestValues}}, 
+        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::{test_value::Value, max_test_duration::TestDuration, random_test_values::RandomTestValues}}, 
         conf::multi_queue_config::MultiQueueConfig, 
         services::{multi_queue::multi_queue::MultiQueue, services::Services, service::Service}, 
         tests::unit::services::multi_queue::mock_recv_send_service::MockRecvSendService,
@@ -33,13 +33,13 @@ mod tests {
     }
     
     #[test]
-    fn test_multi_queue_static_single() {
+    fn test_MultiQueue_static_single() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test_multi_queue - Static subscriptions - Single send");
-        let selfId = "test";
+        let selfId = "test_multi_queue - Static subscriptions - Single send";
+        println!("{}", selfId);
         let iterations = 10;
         let testData = RandomTestValues::new(
             selfId, 
@@ -70,8 +70,8 @@ mod tests {
         let testDataLen = testData.len();
         let count = 3;
         let totalCount = count * testDataLen;
-        let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
-        maxTestDuration.run().unwrap();
+        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
+        testDuration.run().unwrap();
         let mut conf = r#"
             service MultiQueue:
                 in queue in-queue:
@@ -133,6 +133,6 @@ mod tests {
             service.lock().unwrap().exit();
         }
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
-        maxTestDuration.exit();
+        testDuration.exit();
     }
 }

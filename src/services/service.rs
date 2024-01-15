@@ -14,6 +14,7 @@ pub trait Service {
     ///
     /// Returns copy of the Sender - service's incoming queue
     fn getLink(&mut self, name: &str) -> Sender<PointType>;
+    // panic!("{}.getLink | Does not support getLink", self.id())
     ///
     /// Returns Receiver
     fn subscribe(&mut self, receiverId: &str, points: &Vec<String>) -> Receiver<PointType> {

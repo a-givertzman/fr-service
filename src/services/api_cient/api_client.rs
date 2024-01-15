@@ -7,7 +7,7 @@ use log::{info, debug, trace, warn};
 use crate::{
     core_::{point::point_type::PointType, net::connection_status::ConnectionStatus, retain_buffer::retain_buffer::RetainBuffer}, 
     conf::api_client_config::ApiClientConfig,
-    services::{task::task_cycle::ServiceCycle, api_cient::api_reply::SqlReply, service::Service}, 
+    services::{task::service_cycle::ServiceCycle, api_cient::api_reply::SqlReply, service::Service}, 
     tcp::tcp_client_connect::TcpClientConnect, 
 };
 

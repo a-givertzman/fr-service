@@ -6,19 +6,19 @@ use log::error;
 
 ///
 /// If maximum test turation will be exceeded, then panics
-pub struct MaxTestDuration {
+pub struct TestDuration {
     id: String,
     duration: Duration,
     exit: Arc<AtomicBool>,
 }
 ///
 /// 
-impl MaxTestDuration {
+impl TestDuration {
     ///
     /// 
     pub fn new(parent: impl Into<String>, duration: Duration) -> Self {
         Self {
-            id: format!("{}/MaxTestDuration", parent.into()),
+            id: format!("{}/TestDuration", parent.into()),
             duration,
             exit: Arc::new(AtomicBool::new(false)),
         }

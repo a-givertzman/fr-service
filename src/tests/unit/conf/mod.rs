@@ -11,3 +11,5 @@ pub mod task_config;
 pub mod conf_duration_test;
 
 pub mod conf_keyword_test;
+
+pub mod tcp_server_config;

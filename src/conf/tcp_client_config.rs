@@ -24,6 +24,7 @@ pub struct TcpClientConfig {
     pub(crate) cycle: Option<Duration>,
     pub(crate) reconnectCycle: Option<Duration>,
     pub(crate) rx: String,
+    pub(crate) rxBuffered: bool,
     pub(crate) rxMaxLength: i64,
     pub(crate) tx: String,
 }
@@ -38,6 +39,7 @@ impl TcpClientConfig {
     ///     reconnect: 1 s  # default 3 s
     ///     address: 127.0.0.1:8080
     ///     in queue link:
+    ///         buffered: true
     ///         max-length: 10000
     ///     out queue: MultiQueue.queue
     ///                     ...
@@ -57,13 +59,14 @@ impl TcpClientConfig {
                 trace!("{}.new | selfConf: {:?}", selfId, selfConf);
                 let selfName = selfConf.name();
                 debug!("{}.new | name: {:?}", selfId, selfName);
-                let selfAddress: SocketAddr = selfConf.getParam("address").unwrap().as_str().unwrap().parse().unwrap();
+                let selfAddress: SocketAddr = selfConf.getParamValue("address").unwrap().as_str().unwrap().parse().unwrap();
                 debug!("{}.new | address: {:?}", selfId, selfAddress);
                 let cycle = selfConf.getDuration("cycle");
                 debug!("{}.new | cycle: {:?}", selfId, cycle);
                 let reconnectCycle = selfConf.getDuration("reconnect");
                 debug!("{}.new | reconnectCycle: {:?}", selfId, reconnectCycle);
                 let (rx, rxMaxLength) = selfConf.getInQueue().unwrap();
+                let rxBuffered = rxMaxLength > 0;
                 debug!("{}.new | RX: {},\tmax-length: {}", selfId, rx, rxMaxLength);
                 let tx = selfConf.getOutQueue().unwrap();
                 debug!("{}.new | TX: {}", selfId, tx);
@@ -73,6 +76,7 @@ impl TcpClientConfig {
                     cycle,
                     reconnectCycle,
                     rx,
+                    rxBuffered: rxBuffered,
                     rxMaxLength: rxMaxLength,
                     tx,
                 }

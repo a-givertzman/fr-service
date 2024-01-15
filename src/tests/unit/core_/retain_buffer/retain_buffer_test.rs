@@ -1,8 +1,7 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
 mod tests {
-    use log::{warn, info, debug};
-    use std::{sync::Once, time::{Duration, Instant}};
+    use std::sync::Once;
     use crate::core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, retain_buffer::retain_buffer::RetainBuffer}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -28,12 +27,12 @@ mod tests {
     }
     
     #[test]
-    fn test_retain_buffer() {
+    fn test_RetainBuffer() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test_retain_buffer");
+        println!("test RetainBuffer");
         let mut buffer = RetainBuffer::new("test", "", Some(3));
         buffer.push(11);
         buffer.push(12);
@@ -53,12 +52,12 @@ mod tests {
     }
 
     #[test]
-    fn test_retain_buffer_capacity() {
+    fn test_RetainBuffer_capacity() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test_retain_buffer");
+        println!("test RetainBuffer capacity");
         let mut buffer = RetainBuffer::new("test", "", Some(3));
         buffer.push(11);
         let result = buffer.len();

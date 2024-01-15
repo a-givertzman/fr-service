@@ -36,12 +36,12 @@ mod tests {
     }
     
     #[test]
-    fn test_task_nodes() {
+    fn test_TaskNodes() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test_task_nodes");
+        println!("test TaskNodes");
         let path = "./src/tests/unit/services/task/task_nodes/task_nodes.yaml";
         let mut taskNodes = TaskNodes::new("test");
         let conf = TaskConfig::read(path);

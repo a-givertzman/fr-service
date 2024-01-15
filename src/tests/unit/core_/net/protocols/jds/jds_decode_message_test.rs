@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
+
 mod tests {
     use chrono::{DateTime, Utc};
     use log::{info, debug, trace, error, warn};
@@ -47,7 +48,7 @@ mod tests {
         initOnce();
         initEach();
         println!("");
-        info!("test_jds_decode_message");
+        println!("test_jds_decode_message");
         let name = "/server/line1/ied1/test1";
         let ts = ts();
         let txId = 0;

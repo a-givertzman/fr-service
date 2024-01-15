@@ -2,11 +2,11 @@
 #[cfg(test)]
 mod tests {
     use log::{info, debug, error};
-    use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}, thread::{self, JoinHandle}, any::Any, collections::HashMap};
+    use std::{sync::{Once, Arc, Mutex}, time::Duration, thread::{self, JoinHandle}, any::Any, collections::HashMap};
     use crate::{
         core_::{
             debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-            testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::MaxTestDuration}, point::point_type::PointType,
+            testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::TestDuration, wait::WaitTread}, point::point_type::PointType,
         }, 
         conf::multi_queue_config::MultiQueueConfig, services::{multi_queue::multi_queue::MultiQueue, services::Services, service::Service}, 
         tests::unit::services::multi_queue::{mock_tcp_server::MockTcpServer, mock_recv_send_service::MockRecvSendService},
@@ -35,14 +35,14 @@ mod tests {
     }
     
     #[test]
-    fn test_multi_queue_subscribtions() {
+    fn test_MultiQueue_subscribtions() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test_multi_queue - Static subscriptions - Single send");
+        let selfId = "test_multi_queue - Static subscriptions - Single send";
+        println!("{}", selfId);
 
-        let selfId = "test";
         let count = 3;              // count of the MockRecvSendService & MockTcpServer instances
         let iterations = 1000;      // test data length
         let staticTestData = RandomTestValues::new(
@@ -53,8 +53,8 @@ mod tests {
             iterations, 
         );
         let staticTestData: Vec<Value> = staticTestData.collect();
-        let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
-        maxTestDuration.run().unwrap();
+        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
+        testDuration.run().unwrap();
         let mut conf = r#"
             service MultiQueue:
                 in queue in-queue:
@@ -111,7 +111,7 @@ mod tests {
             )));
             services.lock().unwrap().insert(&format!("MockTcpServer{}", i), tcpServerService.clone());
             let thdHandle = tcpServerService.lock().unwrap().run().unwrap();
-            waitForThread(thdHandle).unwrap();
+            thdHandle.wait().unwrap();
             thread::sleep(Duration::from_millis(100));
             let target = 0;
             let result = pointsCount(tcpServerService.lock().unwrap().received().lock().unwrap().iter(), &pointContent);
@@ -147,28 +147,12 @@ mod tests {
             tcpServerService.lock().unwrap().exit();
         }
         for thd in handles {
-            waitForThread(thd).unwrap();
+            thd.wait().unwrap();
         }
         mqService.lock().unwrap().exit();
-        waitForThread(mqHandle).unwrap();
-        maxTestDuration.exit();
+        mqHandle.wait().unwrap();
+        testDuration.exit();
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
-    }
-    ///
-    /// 
-    fn waitForThread(thd: JoinHandle<()>) -> Result<(), Box<dyn Any + Send>>{
-        let thdId = format!("{:?}-{:?}", thd.thread().id(), thd.thread().name());
-        info!("Waiting for service: {:?}...", thdId);
-        let r = thd.join();
-        match &r {
-            Ok(_) => {
-                info!("Waiting for thread: '{}' - finished", thdId);
-            },
-            Err(err) => {
-                error!("Waiting for thread '{}' error: {:?}", thdId, err);                
-            },
-        }
-        r
     }
     ///
     /// 

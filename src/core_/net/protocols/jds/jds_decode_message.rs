@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 
-use std::{net::TcpStream, io::{Read, BufReader, ErrorKind}};
+use std::io::{Read, ErrorKind};
 
-use log::{warn, debug, trace};
+use log::{warn, trace};
 
 use crate::core_::net::{connection_status::ConnectionStatus, protocols::jds::jds_define::JDS_END_OF_TRANSMISSION};
 
@@ -28,7 +28,7 @@ impl JdsDecodeMessage {
     /// Creates new instance of the JdsDecodeMessage
     pub fn new(parent: impl Into<String>) -> Self {
         Self {
-            id: format!("{}/JdsMessage", parent.into()),
+            id: format!("{}/JdsDecodeMessage", parent.into()),
             // tcpStream: BufReader::new(tcpStream),
             remainder: Vec::new(),
         }
@@ -78,13 +78,20 @@ impl JdsDecodeMessage {
                 Err(err) => {
                     warn!("{}.readAll | error reading from socket: {:?}", selfId, err);
                     warn!("{}.readAll | error kind: {:?}", selfId, err.kind());
-                    Self::matchErrorKind(err.kind());
-                    return ConnectionStatus::Closed(format!("{}.readAll | tcp socket error : {:?}", selfId, err))
+                    match Self::matchErrorKind(err.kind()) {
+                        Status::Active => {
+                            return ConnectionStatus::Active(Err(format!("{}.readAll | tcp stream is empty", selfId)));
+                        },
+                        Status::Closed => {
+                            return ConnectionStatus::Closed(format!("{}.readAll | tcp stream is closed, error: {:?}", selfId, err));
+                        },
+                    }
                 },
             };
         };
         trace!("{}.readAll | read bytes: {:?}", selfId, bytes);
-        ConnectionStatus::Active(Err(format!("{}.readAll | tcp stream is empty", selfId)))
+        ConnectionStatus::Closed(format!("{}.readAll | tcp stream is closed", selfId))
+        // ConnectionStatus::Active(Err(format!("{}.readAll | tcp stream is empty", selfId)))
     }
     ///
     /// 
@@ -103,7 +110,7 @@ impl JdsDecodeMessage {
             // std::io::ErrorKind::NetworkDown => Status::Closed,
             std::io::ErrorKind::BrokenPipe => Status::Closed,
             std::io::ErrorKind::AlreadyExists => todo!(),
-            std::io::ErrorKind::WouldBlock => Status::Closed,
+            std::io::ErrorKind::WouldBlock => Status::Active,
             // std::io::ErrorKind::NotADirectory => todo!(),
             // std::io::ErrorKind::IsADirectory => todo!(),
             // std::io::ErrorKind::DirectoryNotEmpty => todo!(),

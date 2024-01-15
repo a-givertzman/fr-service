@@ -1,34 +1,35 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{mpsc::Sender, Arc, atomic::{AtomicBool, Ordering}, Mutex}, thread::{self, JoinHandle}, collections::HashMap};
-use rand::Rng;
+use std::{sync::{mpsc::Sender, Arc, atomic::{AtomicBool, Ordering}, Mutex}, thread::{self, JoinHandle}, time::Duration};
 
-use log::{debug, warn, info};
+use log::{debug, warn, info, trace};
 
-use crate::{core_::point::{point_type::{PointType, ToPoint}, point_tx_id::PointTxId}, services::{service::Service, services::Services}};
+use crate::{core_::{point::{point_type::PointType, point_tx_id::PointTxId}, testing::test_stuff::test_value::Value}, services::{service::Service, services::Services}};
 
 
 ///
 /// 
 pub struct TaskTestProducer {
     id: String,
-    iterations: usize,
     link: String, 
-    inSend: HashMap<String, Sender<PointType>>,
+    cycle: Duration,
+    // rxSend: HashMap<String, Sender<PointType>>,
     services: Arc<Mutex<Services>>,
+    testData: Vec<Value>,
     sent: Arc<Mutex<Vec<PointType>>>,
     exit: Arc<AtomicBool>,
 }
 ///
 /// 
 impl TaskTestProducer {
-    pub fn new(iterations: usize, link: &str, services: Arc<Mutex<Services>>) -> Self {
+    pub fn new(parent: &str, link: &str, cycle: Duration, services: Arc<Mutex<Services>>, testData: Vec<Value>) -> Self {
         Self {
-            id: String::from("TaskTestProducer"),
-            iterations,
+            id: format!("{}/TaskTestProducer", parent),
             link: link.to_string(),
-            inSend: HashMap::new(),
+            cycle,
+            // rxSend: HashMap::new(),
             services,
+            testData,
             sent: Arc::new(Mutex::new(vec![])),
             exit: Arc::new(AtomicBool::new(false)),
         }
@@ -50,38 +51,40 @@ impl Service for TaskTestProducer {
     //
     //
     fn getLink(&mut self, name: &str) -> Sender<PointType> {
-        match self.inSend.get(name) {
-            Some(send) => send.clone(),
-            None => panic!("{}.run | link '{:?}' - not found", self.id, name),
-        }        
+        panic!("{}.getLink | Does not support getLink", self.id())
+        // match self.rxSend.get(name) {
+        //     Some(send) => send.clone(),
+        //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
+        // }        
     }
     //
     // 
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         let selfId = self.id.clone();
         let txId = PointTxId::fromStr(&selfId);
-        let iterations = self.iterations;
-        let outSend = self.services.lock().unwrap().getLink(&self.link);
+        let cycle = self.cycle.clone();
+        let delayed = !cycle.is_zero();
+        let txSend = self.services.lock().unwrap().getLink(&self.link);
         let sent = self.sent.clone();
-        thread::Builder::new().name("name".to_owned()).spawn(move || {
+        let testData = self.testData.clone();
+        thread::Builder::new().name(selfId.clone()).spawn(move || {
             debug!("{}.run | calculating step...", selfId);
-            let mut random = rand::thread_rng();
-            let max = 1.0;
-            // let mut sent = 0;
-            for _ in 0..iterations {
-                let value = random.gen_range(0.0..max);
+            for value in testData {
                 let point = value.toPoint(txId, "/path/Point.Name");
-                match outSend.send(point.clone()) {
+                match txSend.send(point.clone()) {
                     Ok(_) => {
-                        sent.lock().unwrap().push(point);
+                        sent.lock().unwrap().push(point.clone());
+                        trace!("{}.run | sent points: {:?}", selfId, sent.lock().unwrap().len());
                     },
                     Err(err) => {
                         warn!("{}.run | Error write to queue: {:?}", selfId, err);
                     },
                 }
-                // thread::sleep(Duration::from_micros(10));
+                if delayed {
+                    thread::sleep(cycle);
+                }
             }
-            info!("{}.run | Sent points: {}", selfId, sent.lock().unwrap().len());
+            info!("{}.run | All sent: {}", selfId, sent.lock().unwrap().len());
             // thread::sleep(Duration::from_secs_f32(0.1));
             // debug!("TaskTestProducer({}).run | calculating step - done ({:?})", name, cycle.elapsed());
         })

@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use log::debug;
+use log::trace;
 use std::{collections::HashMap, fmt::Debug, hash::Hash};
 
 pub struct Switch<TState, TInput> {
@@ -36,14 +36,14 @@ pub struct SwitchState<TState, TInput> {
     switches: HashMap<TState, Switch<TState, TInput>>,
 }
 
-impl<TState: Debug + Eq + Hash + Clone, TInput: Clone> SwitchState<TState, TInput> {
+impl<TState: Debug + Eq + Ord + Hash + Clone, TInput: Clone> SwitchState<TState, TInput> {
     pub fn new(initial: TState, switches: Vec<Switch<TState, TInput>>) -> Self {
         let mut switchesSet = HashMap::new();
         for switch in switches {
             // let key = format!("{:?}", switch.state);
             switchesSet.insert(switch.state.clone(), switch);
         }
-        debug!("SwitchState{{switches: {:?}}}", &switchesSet);
+        trace!("SwitchState{{switches: {:?}}}", &switchesSet);
         Self { 
             initial: initial.clone(),
             state: initial,
@@ -70,5 +70,15 @@ impl<TState: Debug + Eq + Hash + Clone, TInput: Clone> SwitchState<TState, TInpu
     /// resets current state to initial
     pub fn reset(&mut self) {
         self.state = self.initial.clone();
+    }
+    ///
+    /// 
+    pub fn isMax(&self) -> bool {
+        match self.switches.keys().max() {
+            Some(max) => {
+                self.state == *max
+            },
+            None => panic!("SwitchState.isMax | switches collection is empty"),
+        }
     }
 }

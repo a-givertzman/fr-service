@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use crate::tcp::steam_read::StreamRead;
+use crate::{tcp::steam_read::StreamRead, core_::failure::recv_error::RecvError};
 
 use super::{jds_serialize::JdsSerialize, jds_define::JDS_END_OF_TRANSMISSION};
 
@@ -27,10 +27,10 @@ impl JdsEncodeMessage {
 }
 ///
 /// 
-impl StreamRead<Vec<u8>, String> for JdsEncodeMessage {
+impl StreamRead<Vec<u8>, RecvError> for JdsEncodeMessage {
     ///
     /// Returns sequence of bytes representing encoded single PointType, ends with Jds.endOfTransmission = 4
-    fn read(&mut self) -> Result<Vec<u8>, String> {
+    fn read(&mut self) -> Result<Vec<u8>, RecvError> {
         let mut bytes = Vec::new();
         match self.stream.read() {
             Ok(value) => {
@@ -39,7 +39,7 @@ impl StreamRead<Vec<u8>, String> for JdsEncodeMessage {
                         bytes.push(JDS_END_OF_TRANSMISSION);
                         Ok(bytes)
                     },
-                    Err(err) => Err(format!("{}.read | error: {:?}", self.id, err)),
+                    Err(err) => Err(RecvError::Error(format!("{}.read | error: {:?}", self.id, err))),
                 }
             },
             Err(err) => Err(err),

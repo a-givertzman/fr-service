@@ -8,7 +8,7 @@ mod tests {
     use crate::{
         core_::{
             debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-            testing::{test_session::TestSession, test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::MaxTestDuration}},
+            testing::{test_session::TestSession, test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::TestDuration}},
             point::point_type::PointType, 
             net::protocols::jds::{jds_serialize::JdsSerialize, jds_encode_message::JdsEncodeMessage}, 
         },
@@ -47,11 +47,11 @@ mod tests {
         initOnce();
         initEach();
         println!("");
-        info!("test_TcpClient READ");
-        let selfId = "test";
+        let selfId = "test TcpClient READ";
+        println!("{}", selfId);
         let path = "./src/tests/unit/services/tcp_client/tcp_client.yaml";
-        let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
-        maxTestDuration.run().unwrap();
+        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
+        testDuration.run().unwrap();
         let mut conf = TcpClientConfig::read(path);
         let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
         conf.address = addr.parse().unwrap();
@@ -92,7 +92,6 @@ mod tests {
         let tcpClientServiceId = "TcpClient";
         services.lock().unwrap().insert(tcpClientServiceId, tcpClient.clone());
         services.lock().unwrap().insert(multiQueueServiceId, multiQueue.clone());
-        let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
 
         let sent = Arc::new(Mutex::new(vec![]));
         debug!("Lock services...");
@@ -115,12 +114,12 @@ mod tests {
         debug!("Test - setup - ok");
         handle.join().unwrap();
         // let waitDuration = Duration::from_millis(100);
-        // let mut waitAttempts = maxTestDuration.as_micros() / waitDuration.as_micros();
+        // let mut waitAttempts = testDuration.as_micros() / waitDuration.as_micros();
         // while multiQueue.lock().unwrap().received().lock().unwrap().len() < totalCount {
         //     debug!("waiting while all data beeng received {}/{}...", multiQueue.lock().unwrap().received().lock().unwrap().len(), totalCount);
         //     thread::sleep(waitDuration);
         //     waitAttempts -= 1;
-        //     assert!(waitAttempts > 0, "Transfering {}/{} points taks too mach time {:?} of {:?}", multiQueue.lock().unwrap().received().lock().unwrap().len(), totalCount, timer.elapsed(), maxTestDuration);
+        //     assert!(waitAttempts > 0, "Transfering {}/{} points taks too mach time {:?} of {:?}", multiQueue.lock().unwrap().received().lock().unwrap().len(), totalCount, timer.elapsed(), testDuration);
         // }
         let mut sent = sent.lock().unwrap();
         println!("elapsed: {:?}", timer.elapsed());
@@ -141,7 +140,7 @@ mod tests {
             assert!(result.timestamp() == target.timestamp(), "\nresult: {:?}\ntarget: {:?}", result, target);
             assert!(result.cmpValue(&target), "\nresult: {:?}\ntarget: {:?}", result, target);
         }
-        maxTestDuration.exit();
+        testDuration.exit();
     }
     ///
     /// TcpServer setup

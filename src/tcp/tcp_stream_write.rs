@@ -1,10 +1,10 @@
 #![allow(non_snake_case)]
 
-use std::{net::TcpStream, io::{Write, Read}};
+use std::io::Write;
 
-use log::{warn, LevelFilter, debug, trace};
+use log::{warn, LevelFilter, trace};
 
-use crate::{tcp::steam_read::StreamRead, core_::{retain_buffer::retain_buffer::RetainBuffer, net::connection_status::ConnectionStatus}};
+use crate::{tcp::steam_read::StreamRead, core_::{retain_buffer::retain_buffer::RetainBuffer, net::connection_status::ConnectionStatus, failure::recv_error::RecvError}};
 
 ///
 /// Received from in queue sequences of bites adds into the end of local buffer
@@ -13,8 +13,8 @@ use crate::{tcp::steam_read::StreamRead, core_::{retain_buffer::retain_buffer::R
 /// Buffering - is optional
 pub struct TcpStreamWrite {
     id: String,
-    buffered: bool,
-    stream: Box<dyn StreamRead<Vec<u8>, String> + Send>,
+    // buffered: bool,
+    stream: Box<dyn StreamRead<Vec<u8>, RecvError> + Send>,
     buffer: RetainBuffer<Vec<u8>>,
 }
 ///
@@ -22,7 +22,7 @@ pub struct TcpStreamWrite {
 impl TcpStreamWrite {
     ///
     /// Creates new instance of [TcpStreamWrite]
-    pub fn new(parent: impl Into<String>, buffered: bool, bufferLength: Option<usize>, stream: Box<dyn StreamRead<Vec<u8>, String> + Send>) -> Self {
+    pub fn new(parent: impl Into<String>, buffered: bool, bufferLength: Option<usize>, stream: Box<dyn StreamRead<Vec<u8>, RecvError> + Send>) -> Self {
         let selfId = format!("{}/TcpStreamWrite", parent.into());
         let buffer = match buffered {
             true => RetainBuffer::new(&selfId, "", bufferLength),
@@ -30,7 +30,7 @@ impl TcpStreamWrite {
         };
         Self {
             id: selfId,
-            buffered,
+            // buffered,
             stream,
             buffer,
         }
@@ -70,11 +70,19 @@ impl TcpStreamWrite {
                 }
             },
             Err(err) => {
-                let message = format!("{}.write | error: {:?}", self.id, err);
-                if log::max_level() == LevelFilter::Trace {
-                    warn!("{}", message);
+                match err {
+                    RecvError::Error(err) => {
+                        let message = format!("{}.write | error: {:?}", self.id, err);
+                        if log::max_level() == LevelFilter::Trace {
+                            warn!("{}", message);
+                        }
+                        ConnectionStatus::Active(Err(message))
+                    },
+                    RecvError::Timeout => ConnectionStatus::Active(Ok(0)),
+                    RecvError::Disconnected => {
+                        panic!("{}.write | channel disconnected, error: {:?}", self.id, err);
+                    },
                 }
-                ConnectionStatus::Active(Err(message))
             },
         }
     }

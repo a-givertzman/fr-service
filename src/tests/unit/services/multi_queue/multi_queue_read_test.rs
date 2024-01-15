@@ -4,7 +4,7 @@ mod tests {
     use log::{info, debug};
     use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}};
     use crate::{
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::MaxTestDuration}}, 
+        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::TestDuration}}, 
         conf::multi_queue_config::MultiQueueConfig, services::{multi_queue::multi_queue::MultiQueue, services::Services, service::Service}, 
         tests::unit::services::multi_queue::{mock_recv_service::MockRecvService, mock_send_service::MockSendService},
     }; 
@@ -32,14 +32,14 @@ mod tests {
     }
     
     #[test]
-    fn test_multi_queue_static_single() {
+    fn test_MultiQueue_static_single() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test_multi_queue - Static subscriptions - Single send");
+        let selfId = "test_multi_queue - Static subscriptions - Single send";
+        println!("{}", selfId);
 
-        let selfId = "test";
         let iterations = 10;
         let testData = RandomTestValues::new(
             selfId, 
@@ -70,8 +70,8 @@ mod tests {
         let testDataLen = testData.len();
         let count = 30;
         let totalCount = count * testData.len();
-        let maxTestDuration = MaxTestDuration::new(selfId, Duration::from_secs(10));
-        maxTestDuration.run().unwrap();
+        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
+        testDuration.run().unwrap();
         let mut conf = r#"
             service MultiQueue:
                 in queue in-queue:
@@ -136,7 +136,7 @@ mod tests {
         for service in recvServices {
             service.lock().unwrap().exit();
         }
-        maxTestDuration.exit();
+        testDuration.exit();
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
     }
 }

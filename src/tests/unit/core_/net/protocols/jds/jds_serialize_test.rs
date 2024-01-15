@@ -2,9 +2,7 @@
 #[cfg(test)]
 mod tests {
     use chrono::{DateTime, Utc};
-    use log::{warn, info, debug};
-    use serde_json::json;
-    use std::{sync::{Once, mpsc}, time::{Duration, Instant}};
+    use std::sync::{Once, mpsc};
     use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::{point_type::PointType, point::Point}, types::bool::Bool, net::protocols::jds::jds_serialize::JdsSerialize}, tcp::steam_read::StreamRead}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -36,12 +34,12 @@ mod tests {
     }
     
     #[test]
-    fn test_() {
+    fn test_JdsSerialize() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        info!("test_");
+        println!("test JdsSerialize");
         let name = "/server/line1/ied1/test1";
         let ts = ts();
         let txId = 0;

@@ -47,7 +47,7 @@ mod tests {
         initOnce();
         initEach();
         println!("");
-        info!("test_read_bytes_performance");
+        println!("test read bytes from socket performance");
         let name = "/server/line1/ied1/test1";
         let ts = ts();
         // debug!("timestamp: {:?}", ts);j
