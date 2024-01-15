@@ -1,5 +1,7 @@
 #![allow(non_snake_case)]
 
+use std::collections::HashMap;
+
 use log::{trace, debug};
 use serde::{Serialize, Deserialize};
 
@@ -11,6 +13,7 @@ use super::conf_tree::ConfTree;
 pub struct PointConfig {
     #[serde(skip)]
     pub name: String,
+    #[serde(rename = "type")]
     #[serde(alias = "type", alias = "Type")]
     pub _type: PointConfigType,
     pub history: Option<u8>,
@@ -46,7 +49,14 @@ impl PointConfig {
         debug!("PointConfig.fromYamlValue | value: {:?}", value);
         Self::new(&ConfTree::newRoot(value.clone()).next().unwrap())
     }
-
+    ///
+    /// Returns yaml representation
+    pub fn asYaml(&self) -> serde_yaml::Value {
+        let result: serde_yaml::Value = serde_yaml::to_value(&self).unwrap();
+        let mut wrap = HashMap::new();
+        wrap.insert(self.name.clone(), result);
+        serde_yaml::to_value(wrap).unwrap()
+    }
 }
 
 ///
