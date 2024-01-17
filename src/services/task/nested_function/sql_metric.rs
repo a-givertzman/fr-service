@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{collections::HashMap, sync::{Arc, Mutex}};
+use std::{collections::HashMap, sync::{Arc, Mutex, atomic::{AtomicUsize, Ordering}}};
 
 use indexmap::IndexMap;
 use log::{debug, trace};
@@ -37,7 +37,8 @@ impl SqlMetric {
     //
     //
     pub fn new(parent: &str, conf: &mut FnConfig, taskNodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> SqlMetric {
-        let selfId = format!("{}/SqlMetric({})", parent, conf.name.clone());
+        COUNT.fetch_add(1, Ordering::SeqCst);
+        let selfId = format!("{}/SqlMetric{}", parent, COUNT.load(Ordering::Relaxed));
         let txId = PointTxId::fromStr(&selfId);
         let mut inputs = IndexMap::new();
         let inputConfs = conf.inputs.clone();
@@ -143,3 +144,6 @@ impl FnOut for SqlMetric {
 ///
 /// 
 impl FnInOut for SqlMetric {}
+///
+/// 
+pub static COUNT: AtomicUsize = AtomicUsize::new(0);

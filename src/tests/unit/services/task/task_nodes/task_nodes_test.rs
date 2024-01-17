@@ -9,7 +9,7 @@ mod tests {
             point::point_type::{ToPoint, PointType},
         },
         conf::task_config::TaskConfig, 
-        services::{task::{task_nodes::TaskNodes, nested_function::{fn_kind::FnKind, fn_count::{self}, fn_ge, reset_counter::AtomicReset}}, services::Services, service::Service},
+        services::{task::{task_nodes::TaskNodes, nested_function::{fn_kind::FnKind, fn_count::{self}, fn_ge, reset_counter::AtomicReset, sql_metric}}, services::Services, service::Service},
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -31,8 +31,9 @@ mod tests {
     /// returns:
     ///  - Rc<RefCell<Box<dyn FnInOut>>>...
     fn initEach() {
-        fn_ge::COUNT.reset();
-        fn_count::COUNT.reset();
+        // fn_ge::COUNT.reset();
+        // fn_count::COUNT.reset();
+        // sql_metric::COUNT.reset();
     }
     
     #[test]
@@ -47,9 +48,9 @@ mod tests {
         let conf = TaskConfig::read(path);
         debug!("conf: {:?}", conf);
         let selfId = "test";
-        let outName = format!("{}/SqlMetric", selfId);
-        let outName = outName.as_str();
-        debug!("outName: {:?}", outName);
+        // let outName = format!("{}/SqlMetric1", selfId);
+        // let outName = outName.as_str();
+        // debug!("outName: {:?}", outName);
         let services = Arc::new(Mutex::new(Services::new(selfId)));
         let mockService = Arc::new(Mutex::new(MockService::new(selfId, "queue")));
         services.lock().unwrap().insert("ApiClient", mockService.clone());
@@ -58,47 +59,47 @@ mod tests {
             (
                 "/path/Point.Name1", 101, 
                 HashMap::from([
-                    (outName, "101, 1102, 0, 0"),
-                    ("FnCount1.out", "101"),
+                    (format!("{}/SqlMetric{}", selfId, sql_metric::COUNT.load(Ordering::SeqCst)), "101, 1102, 0, 0"),
+                    (format!("{}/FnCount{}.out", selfId, fn_count::COUNT.load(Ordering::SeqCst)), "101"),
                 ])
             ),
             (
                 "/path/Point.Name1", 201, 
                 HashMap::from([
-                    (outName, "201, 1202, 0, 0"),
-                    ("FnCount1.out", "302"),
+                    (format!("{}/SqlMetric{}", selfId, sql_metric::COUNT.load(Ordering::SeqCst)), "201, 1202, 0, 0"),
+                    (format!("{}/FnCount{}.out", selfId, fn_count::COUNT.load(Ordering::SeqCst)), "302"),
                 ])
                 
             ),
             (
                 "/path/Point.Name1", 301, 
                 HashMap::from([
-                    (outName, "301, 1302, 0, 0"),
-                    ("FnCount1.out", "603"),
+                    (format!("{}/SqlMetric{}", selfId, sql_metric::COUNT.load(Ordering::SeqCst)), "301, 1302, 0, 0"),
+                    (format!("{}/FnCount{}.out", selfId, fn_count::COUNT.load(Ordering::SeqCst)), "603"),
                 ])
                 
             ),
             (
                 "/path/Point.Name2", 202, 
                 HashMap::from([
-                    (outName, "301, 1302, 202, 0"),
-                    ("FnGe1.out", "true"),
+                    (format!("{}/SqlMetric{}", selfId, sql_metric::COUNT.load(Ordering::SeqCst)), "301, 1302, 202, 0"),
+                    (format!("{}/FnGe{}.out", selfId, fn_ge::COUNT.load(Ordering::SeqCst)), "true"),
                 ])
                 
             ),
             (
                 "/path/Point.Name3", 303, 
                 HashMap::from([
-                    (outName, "301, 1302, 202, 303"),
-                    ("FnGe1.out", "false"),
+                    (format!("{}/SqlMetric{}", selfId, sql_metric::COUNT.load(Ordering::SeqCst)), "301, 1302, 202, 303"),
+                    (format!("{}/FnGe{}.out", selfId, fn_ge::COUNT.load(Ordering::SeqCst)), "false"),
                 ])
                 
             ),
             (
                 "/path/Point.Name3", 304, 
                 HashMap::from([
-                    (outName, "301, 1302, 202, 304"),
-                    ("FnGe1.out", "false"),
+                    (format!("{}/SqlMetric{}", selfId, sql_metric::COUNT.load(Ordering::SeqCst)), "301, 1302, 202, 304"),
+                    (format!("{}/FnGe{}.out", selfId, fn_ge::COUNT.load(Ordering::SeqCst)), "false"),
                 ])
                 
             ),
@@ -132,9 +133,8 @@ mod tests {
                         // if evalNodeOut.borrow().kind() != &FnKind::Var {
                             if evalNodeOut.borrow().kind() != &FnKind::Var {
                                 let outName = out.name();
-                                let outName = outName.as_str();
                                 debug!("TaskEvalNode.eval | out.name: '{}'", outName);
-                                let target = match targetValue.get(outName) {
+                                let target = match targetValue.get(outName.as_str()) {
                                     Some(target) => target.to_string(),
                                     None => panic!("TaskEvalNode.eval | out.name '{}' - not foind in {:?}", outName, targetValue),
                                 };

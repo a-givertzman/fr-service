@@ -51,7 +51,7 @@ impl NestedFn {
                         let name = "input";
                         let inputConf = conf.inputConf(name);
                         let input = Self::function(parent, txId, name, inputConf, taskNodes, services);
-                        Self::fnCount(inputName, initial, input)
+                        Self::fnCount(parent, initial, input)
                     }
                     Functions::Add => {
                         let name = "input1";
@@ -60,13 +60,13 @@ impl NestedFn {
                         let name = "input2";
                         let inputConf = conf.inputConf(name);
                         let input2 = Self::function(parent, txId, name, inputConf, taskNodes, services);
-                        Self::fnAdd(inputName, input1, input2)
+                        Self::fnAdd(parent, input1, input2)
                     }
                     Functions::Timer => {
                         let name = "input1";
                         let conf = conf.inputs.get_mut(name).unwrap();
                         let input = Self::function(parent, txId, name, conf, taskNodes, services);
-                        Self::fnTimer(inputName, 0.0, input, true)
+                        Self::fnTimer(parent, 0.0, input, true)
                     },
                     Functions::ToApiQueue => {
                         let name = "input";
@@ -75,7 +75,7 @@ impl NestedFn {
                         let queueName = conf.param("queue").name.clone();
                         let servicesLock = services.lock();
                         let sendQueue = servicesLock.unwrap().getLink(&queueName);
-                        Self::toApiQueue(fnName.name(), input, sendQueue)
+                        Self::toApiQueue(parent, input, sendQueue)
                         // Self::toApiQueue(inputName, queue, input)
                     },
                     Functions::Ge => {
@@ -85,7 +85,7 @@ impl NestedFn {
                         let name = "input2";
                         let inputConf = conf.inputConf(name);
                         let input2 = Self::function(parent, txId, name, inputConf, taskNodes, services);
-                        Self::fnGe(fnName.name(), input1, input2)
+                        Self::fnGe(parent, input1, input2)
                     }
                     _ => panic!("NestedFn.function | Unknown function name: {:?}", conf.name)
                 }
@@ -164,54 +164,54 @@ impl NestedFn {
     /// 
     /// 
     /// 
-    fn fnCount(id: impl Into<String>, initial: f64, input: FnInOutRef,) -> FnInOutRef {
+    fn fnCount(parent: impl Into<String>, initial: f64, input: FnInOutRef,) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(                
-            FnCount::new(id, initial, input),
+            FnCount::new(parent, initial, input),
         )))
     }
     /// 
     /// 
-    fn fnVar(id: impl Into<String>, input: FnInOutRef,) -> FnInOutRef {
+    fn fnVar(parent: impl Into<String>, input: FnInOutRef,) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(                
-            FnVar::new(id, input),
+            FnVar::new(parent, input),
         )))
     }
     /// 
     /// 
-    fn toApiQueue(id: impl Into<String>, input: FnInOutRef, sendQueue: Sender<PointType>) -> FnInOutRef {
+    fn toApiQueue(parent: impl Into<String>, input: FnInOutRef, sendQueue: Sender<PointType>) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
-            FnToApiQueue::new(id, input, sendQueue)
+            FnToApiQueue::new(parent, input, sendQueue)
         )))
     }
     // ///
     // /// 
-    fn fnConst(id: &str, value: PointType) -> FnInOutRef {
+    fn fnConst(parent: &str, value: PointType) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
-            FnConst::new(id, value)
+            FnConst::new(parent, value)
         )))
     }
     // ///
     // /// 
-    fn fnInput(id: &str, initial: PointType) -> FnInOutRef {
+    fn fnInput(parent: &str, initial: PointType) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
-            FnInput::new(id, initial)
+            FnInput::new(parent, initial)
         )))
     }
     // ///
     // /// 
     fn fnAdd(
-        id: &str, 
+        parent: &str, 
         input1: FnInOutRef, 
         input2: FnInOutRef
     ) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(        
-            FnAdd::new(id, input1, input2)
+            FnAdd::new(parent, input1, input2)
         )))
     }    
     // ///
     // /// 
     fn fnTimer(
-        id: &str, 
+        parent: &str, 
         initial: impl Into<f64> + Clone,
         input: FnInOutRef, 
         repeat: bool,
@@ -219,7 +219,7 @@ impl NestedFn {
         Rc::new(RefCell::new(
             Box::new(        
                 FnTimer::new(
-                    id,
+                    parent,
                     initial, 
                     input, 
                     repeat
@@ -230,12 +230,12 @@ impl NestedFn {
     // ///
     // /// 
     fn fnGe(
-        id: &str, 
+        parent: &str, 
         input1: FnInOutRef, 
         input2: FnInOutRef
     ) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(        
-            FnGe::new(id, input1, input2)
+            FnGe::new(parent, input1, input2)
         )))
     }    
 }
