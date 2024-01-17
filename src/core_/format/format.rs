@@ -71,11 +71,11 @@ impl Format {
                                 "value" => Self::pointValueToString(point),
                                 "timestamp" => point.timestamp().to_string(),
                                 "status" => point.status().to_string(),
-                                _ => panic!("MetricSelect.out | Unknown input sufix in: {:?}, allowed: .value or .timestamp", &name),
+                                _ => panic!("Format.out | Unknown input sufix in: {:?}, allowed: .value or .timestamp", &name),
                             }
                         },
                         None => {
-                            trace!("MetricSelect.out | name: {:?}, sufix: None, taking point.value by default", &name);
+                            trace!("Format.out | name: {:?}, sufix: None, taking point.value by default", &name);
                             Self::pointValueToString(point)
                         },
                     };

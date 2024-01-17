@@ -130,17 +130,15 @@ mod tests {
                             PointType::String(point) => point.value.clone(),
                         };
                         debug!("TaskEvalNode.eval | evalNode '{}' out - '{}': {:?}", evalNode.name(), evalNodeOut.borrow().id(), out);
-                        // if evalNodeOut.borrow().kind() != &FnKind::Var {
-                            if evalNodeOut.borrow().kind() != &FnKind::Var {
-                                let outName = out.name();
-                                debug!("TaskEvalNode.eval | out.name: '{}'", outName);
-                                let target = match targetValue.get(outName.as_str()) {
-                                    Some(target) => target.to_string(),
-                                    None => panic!("TaskEvalNode.eval | out.name '{}' - not foind in {:?}", outName, targetValue),
-                                };
-                                assert!(outValue == target, "\n   outValue: {} \ntargetValue: {}", outValue, target);
-                            }
-                        // }
+                        if evalNodeOut.borrow().kind() != &FnKind::Var {
+                            let outName = out.name();
+                            debug!("TaskEvalNode.eval | out.name: '{}'", outName);
+                            let target = match targetValue.get(outName.as_str()) {
+                                Some(target) => target.to_string(),
+                                None => panic!("TaskEvalNode.eval | out.name '{}' - not foind in {:?}", outName, targetValue),
+                            };
+                            assert!(outValue == target, "\n   outValue: {} \ntargetValue: {}", outValue, target);
+                        }
                     };
                 },
                 None => {

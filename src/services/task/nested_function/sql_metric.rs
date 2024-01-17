@@ -19,7 +19,24 @@ use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn, fn_kind::FnKind};
 
 
 ///
-/// Counts number of raised fronts of boolean input
+/// Function | SqlMetric
+///     - values received from the [input]s puts into the target sql query
+///     - sql query buit by replacing markers with current values:
+///         - table = 'point_values'
+///         - input1.name = 'test-point'
+///         - input1.value = 123.456
+///         - inpur1.timestamp = '20'
+///         - input1.status = 
+///         - "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    =>  UPDATE table SET kind = input1 WHERE id = '{input2}';
+/// ```
+/// metric SqlMetric:
+///     initial: 0.123      # начальное значение
+///     table: SelectMetric_test_table_name
+///     sql: "UPDATE {table} SET value = '{input1}' WHERE id = '{input2}';"
+///     input1 point int '/path/Point.Name'
+///     input2: const int 11
+///     
+/// ```
 #[derive(Debug)]
 pub struct SqlMetric {
     id: String,
@@ -51,10 +68,6 @@ impl SqlMetric {
             };
             !delete
         });
-        // let v: Vec<&String> = inputConfNames.collect();
-        // inputConfs.remove("initial");
-        // inputConfs.remove("table");
-        // inputConfs.remove("sql");
         for name in inputConfNames {
             debug!("{}.new | input name: {:?}", selfId, name);
             let inputConf = conf.inputConf(&name);

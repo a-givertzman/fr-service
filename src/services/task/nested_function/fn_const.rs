@@ -9,7 +9,7 @@ use crate::core_::point::point_type::PointType;
 use super::{fn_::{FnIn, FnOut, FnInOut}, fn_kind::FnKind};
 
 ///
-/// 
+/// Function | Constant value
 #[derive(Debug, Clone)]
 pub struct FnConst {
     id: String,
@@ -19,6 +19,10 @@ pub struct FnConst {
 ///
 /// 
 impl FnConst {
+    ///
+    /// Creates new instance of function [Const] value
+    ///     - [parent] - name of the parent object
+    ///     - [value] - PointType, contains point with constant value
     pub fn new(parent: &str, value: PointType) -> Self {
         COUNT.fetch_add(1, Ordering::SeqCst);
         Self {

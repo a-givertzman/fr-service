@@ -1,1 +1,1 @@
-// pub mod metric_select_test;
+pub mod sql_metric_test;

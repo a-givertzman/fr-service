@@ -35,7 +35,7 @@ use super::{task_node_vars::TaskNodeVars, task_eval_node::TaskEvalNode};
 ///   ```
 #[derive(Debug)]
 pub struct TaskNodes {
-    name: String,
+    id: String,
     inputs: IndexMap<String, TaskEvalNode>,
     vars: IndexMap<String, FnInOutRef>,
     newNodeVars: Option<TaskNodeVars>,
@@ -45,9 +45,9 @@ pub struct TaskNodes {
 impl TaskNodes {
     ///
     /// Creates new empty instance 
-    pub fn new(name: impl Into<String>) ->Self {
+    pub fn new(id: impl Into<String>) ->Self {
         Self {
-            name: name.into(),
+            id: id.into(),
             inputs: IndexMap::new(),
             vars: IndexMap::new(),
             newNodeVars: None,
@@ -86,7 +86,7 @@ impl TaskNodes {
                     trace!("TaskNodes.addInput | adding input {:?}: {:?}", &name, &input);
                     self.inputs.insert(
                         name.clone().into(), 
-                        TaskEvalNode::new(self.name.clone(), name.clone(), input),
+                        TaskEvalNode::new(self.id.clone(), name.clone(), input),
                     );
                 }
             },
@@ -200,7 +200,7 @@ impl TaskNodes {
     ///
     /// 
     pub fn eval(&mut self, point: PointType) {
-        let selfName = self.name.clone();
+        let selfName = self.id.clone();
         let pointName = point.name();
         match self.getEvalNode(&pointName) {
             Some(evalNode) => {
