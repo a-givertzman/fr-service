@@ -6,7 +6,7 @@ use std::{fs, str::FromStr};
 
 use crate::{conf::fn_conf_keywd::FnConfKeywd, conf::conf_tree::ConfTree};
 
-use super::{fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType};
+use super::{fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType, point_config::point_config::PointConfig};
 
 
 // enum ValueType<'a> {
@@ -298,5 +298,10 @@ impl FnConfig {
                 panic!("FnConfig.param | parameter {:?} not fount in the {:?}", name, self.name);
             },
         }
+    }
+    ///
+    /// Returns list of configurations of the defined points
+    pub fn points(&self) -> Vec<PointConfig> {
+        vec![]
     }
 }
