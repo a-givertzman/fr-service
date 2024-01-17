@@ -117,8 +117,7 @@ impl Service for Task {
     //
     //
     fn points(&self) -> Vec<PointConfig> {
-        let mut points = vec![];
-        points
+        self.conf.points()
     }
     //
     //
