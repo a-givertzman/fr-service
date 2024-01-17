@@ -8,7 +8,7 @@ mod tests {
     use crate::{
         core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
         point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
-        services::task::nested_function::{fn_::{FnInOut, FnOut}, 
+        services::task::nested_function::{fn_::FnOut, 
         fn_input::FnInput, fn_var::FnVar},
     };
     
@@ -31,11 +31,8 @@ mod tests {
     /// returns:
     ///  - ...
     fn initEach(initial: PointType) -> FnInOutRef {
-        fn boxFnInput(input: FnInput) -> Box<(dyn FnInOut)> {
-            Box::new(input)
-        }
         Rc::new(RefCell::new(
-            boxFnInput(
+            Box::new(
                 FnInput::new("test", initial)
             )
         ))
