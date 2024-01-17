@@ -9,7 +9,7 @@ mod tests {
             point::point_type::{ToPoint, PointType},
         },
         conf::task_config::TaskConfig, 
-        services::{task::{task_nodes::TaskNodes, nested_function::{fn_kind::FnKind, fn_count::{self}, fn_ge}}, services::Services, service::Service},
+        services::{task::{task_nodes::TaskNodes, nested_function::{fn_kind::FnKind, fn_count::{self}, fn_ge, reset_counter::AtomicReset}}, services::Services, service::Service},
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -31,8 +31,8 @@ mod tests {
     /// returns:
     ///  - Rc<RefCell<Box<dyn FnInOut>>>...
     fn initEach() {
-        fn_ge::resetCount();
-        fn_count::resetCount();
+        fn_ge::COUNT.reset();
+        fn_count::COUNT.reset();
     }
     
     #[test]

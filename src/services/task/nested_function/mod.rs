@@ -12,7 +12,9 @@ pub mod fn_const;
 pub mod nested_fn;
 
 pub mod metric_builder;
-pub mod metric_select;
+pub mod sql_metric;
 
 pub mod export;
 pub mod import;
+
+pub mod reset_counter;

@@ -23,11 +23,10 @@ pub struct FnGe {
 /// 
 impl FnGe {
     #[allow(dead_code)]
-    pub fn new(id: impl Into<String>, input1: FnInOutRef, input2: FnInOutRef) -> Self {
+    pub fn new(parent: impl Into<String>, input1: FnInOutRef, input2: FnInOutRef) -> Self {
         COUNT.fetch_add(1, Ordering::SeqCst);
-        let id = "FnGe";
         Self { 
-            id: format!("{}{}", id, COUNT.load(Ordering::Relaxed)),
+            id: format!("{}/FnGe{}", parent.into(), COUNT.load(Ordering::Relaxed)),
             kind: FnKind::Fn,
             input1,
             input2,
@@ -46,7 +45,7 @@ impl FnGe {
             PointType::Float(point) => {
                 point.value
             },
-            _ => panic!("FnCount.out | {:?} type is not supported: {:?}", point.printTypeOf(), point),
+            _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, point.printTypeOf(), point),
         }
     }
 }
@@ -91,7 +90,7 @@ impl FnOut for FnGe {
         PointType::Bool(
             Point::<Bool> {
                 txId: *txId,
-                name: String::from(format!("{}.out", self.id)),
+                name: format!("{}.out", self.id),
                 value: Bool(value),
                 status: status,
                 timestamp: timestamp,
@@ -109,7 +108,4 @@ impl FnOut for FnGe {
 impl FnInOut for FnGe {}
 ///
 /// 
-static COUNT: AtomicUsize = AtomicUsize::new(0);
-pub fn resetCount() {
-    COUNT.store(0, Ordering::SeqCst)
-}
+pub static COUNT: AtomicUsize = AtomicUsize::new(0);

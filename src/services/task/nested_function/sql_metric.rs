@@ -37,7 +37,7 @@ impl SqlMetric {
     //
     //
     pub fn new(parent: &str, conf: &mut FnConfig, taskNodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> SqlMetric {
-        let selfId = format!("{}/{}", parent, conf.name.clone());
+        let selfId = format!("{}/SqlMetric({})", parent, conf.name.clone());
         let txId = PointTxId::fromStr(&selfId);
         let mut inputs = IndexMap::new();
         let inputConfs = conf.inputs.clone();

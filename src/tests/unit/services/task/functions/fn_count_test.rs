@@ -7,7 +7,7 @@ use crate::{
     core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
     point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
     services::task::nested_function::{fn_::FnOut, 
-    fn_count::{FnCount, self}, fn_input::FnInput},
+    fn_count::{FnCount, self}, fn_input::FnInput, reset_counter::AtomicReset},
 };
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -29,7 +29,7 @@ fn initOnce() {
 /// returns:
 ///  - ...
 fn initEach(initial: PointType) -> FnInOutRef {
-    fn_count::resetCount();
+    fn_count::COUNT.reset();
     Rc::new(RefCell::new(Box::new(
         FnInput::new("test", initial)
     )))

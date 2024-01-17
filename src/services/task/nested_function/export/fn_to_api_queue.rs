@@ -24,10 +24,10 @@ impl FnToApiQueue {
     /// creates new instance of the FnToApiQueue
     /// - id - just for proper debugging
     /// - input - incoming points
-    pub fn new(id: impl Into<String>, input: FnInOutRef, send: Sender<PointType>) -> Self {
+    pub fn new(parent: impl Into<String>, input: FnInOutRef, send: Sender<PointType>) -> Self {
         COUNT.fetch_add(1, Ordering::SeqCst);
         Self {  
-            id: format!("{}{}", id.into(), COUNT.load(Ordering::Relaxed)),
+            id: format!("{}/FnToApiQueue{}", parent.into(), COUNT.load(Ordering::Relaxed)),
             kind: FnKind::Fn,
             input,
             txSend: send,
@@ -40,7 +40,7 @@ impl FnToApiQueue {
 impl FnIn for FnToApiQueue {
     //
     fn add(&mut self, _: PointType) {
-        panic!("FnToApiQueue.add | method is not used");
+        panic!("{}.add | method is not used", self.id);
     }
 }
 ///
@@ -66,10 +66,10 @@ impl FnOut for FnToApiQueue {
             self.state = sql.clone();
             match self.txSend.send(point.clone()) {
                 Ok(_) => {
-                    trace!("FnToApiQueue.out | Sent sql: {}", sql);
+                    trace!("{}.out | Sent sql: {}", self.id, sql);
                 },
                 Err(err) => {
-                    error!("FnToApiQueue.out | Send error: {:?}\n\tsql: {:?}", err, sql);
+                    error!("{}.out | Send error: {:?}\n\tsql: {:?}", self.id, err, sql);
                 },
             };
         }

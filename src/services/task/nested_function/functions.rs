@@ -4,12 +4,14 @@ use std::str::FromStr;
 
 use log::trace;
 
-const INPUT: &str = "input";
-const COUNT: &str = "count";
 const ADD: &str = "add";
-const TO_API_QUEUE: &str = "toApiQueue";
-const TIMER: &str = "timer";
+const CONST: &str = "const";
+const COUNT: &str = "count";
 const GE: &str = "ge";
+const INPUT: &str = "input";
+const TIMER: &str = "timer";
+const VAR: &str = "var";
+const TO_API_QUEUE: &str = "toApiQueue";
 
 
 ///
@@ -17,24 +19,28 @@ const GE: &str = "ge";
 /// supported by NestedFn builder
 #[derive(Debug)]
 pub enum Functions {
-    Input,
-    Count,
     Add,
-    ToApiQueue,
-    Timer,
+    Const,
+    Count,
     Ge,
+    Input,
+    Timer,
+    Var,
+    ToApiQueue,
 }
 ///
 /// 
 impl Functions {
     pub fn name(&self) -> &str {
         match self {
-            Functions::Input => INPUT,
-            Functions::Count => COUNT,
             Functions::Add => ADD,
-            Functions::ToApiQueue => TO_API_QUEUE,
-            Functions::Timer => TIMER,
+            Functions::Const => CONST,
+            Functions::Count => COUNT,
             Functions::Ge => GE,
+            Functions::Input => INPUT,
+            Functions::Timer => TIMER,
+            Functions::Var => VAR,
+            Functions::ToApiQueue => TO_API_QUEUE,
         }
     }
 }
@@ -46,12 +52,14 @@ impl FromStr for Functions {
     fn from_str(input: &str) -> Result<Functions, String> {
         trace!("Functions.from_str | input: {}", input);
         match input {
-            INPUT           => Ok( Functions::Input),
-            COUNT           => Ok( Functions::Count),
             ADD             => Ok( Functions::Add),
-            TO_API_QUEUE    => Ok( Functions::ToApiQueue),
-            TIMER           => Ok( Functions::Timer ),
+            CONST           => Ok( Functions::Const),
+            COUNT           => Ok( Functions::Count),
             GE              => Ok( Functions::Ge ),
+            INPUT           => Ok( Functions::Input),
+            TIMER           => Ok( Functions::Timer ),
+            VAR             => Ok( Functions::Var ),
+            TO_API_QUEUE    => Ok( Functions::ToApiQueue),
             _ => Err(format!("Functions.from_str | Unknown function name '{}'", &input)),
         }
     }

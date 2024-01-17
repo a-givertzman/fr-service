@@ -40,7 +40,7 @@ pub struct FnTimer {
 /// 
 impl FnTimer {
     #[allow(dead_code)]
-    pub fn new(id: &str, initial: impl Into<f64> + Clone, input: FnInOutRef, repeat: bool) -> Self {
+    pub fn new(parent: &str, initial: impl Into<f64> + Clone, input: FnInOutRef, repeat: bool) -> Self {
         let switches = vec![
             Switch{
                 state: FnTimerState::Off,
@@ -91,8 +91,9 @@ impl FnTimer {
                 conditions: vec![],
             },
         ];
+        COUNT.fetch_add(1, Ordering::SeqCst);
         Self { 
-            id: id.into(),
+            id: format!("{}/FnTimer{}", parent, COUNT.load(Ordering::Relaxed)),
             kind: FnKind::Fn,
             input,
             state: SwitchState::new(FnTimerState::Off, switches),
@@ -123,17 +124,17 @@ impl FnOut for FnTimer {
     }
     ///
     fn out(&mut self) -> PointType {
-        // trace!("FnTimer.out | input: {:?}", self.input.print());
+        // trace!("{}.out | input: {:?}", self.id, self.input.print());
         let point = self.input.borrow_mut().out();
         let value = match &point {
             PointType::Bool(point) => point.value.0,
             PointType::Int(point) => point.value > 0,
             PointType::Float(point) => point.value > 0.0,
-            _ => panic!("FnCount.out | {:?} type is not supported: {:?}", point.printTypeOf(), point),
+            _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, point.printTypeOf(), point),
         };
         self.state.add(value);
         let state = self.state.state();
-        debug!("FnTimer.out | input.out: {:?}   |   state: {:?}", &value, &state);
+        debug!("{}.out | input.out: {:?}   |   state: {:?}", self.id, &value, &state);
         match state {
             FnTimerState::Off => {},
             FnTimerState::Start => {
@@ -161,7 +162,7 @@ impl FnOut for FnTimer {
         PointType::Float(
             Point {
                 txId: *point.txId(),
-                name: String::from("FnTimer"),
+                name: format!("{}.out", self.id),
                 value: self.totalElapsed + self.sessionElapsed,
                 status: point.status(),
                 timestamp: point.timestamp(),
@@ -184,6 +185,3 @@ impl FnInOut for FnTimer {}
 ///
 /// 
 static COUNT: AtomicUsize = AtomicUsize::new(0);
-pub fn resetCount() {
-    COUNT.store(0, Ordering::SeqCst)
-}

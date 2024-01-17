@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use log::trace;
-use std::fmt::Debug;
+use std::{fmt::Debug, sync::atomic::{AtomicUsize, Ordering}};
 
 use crate::core_::point::point_type::PointType;
 
@@ -19,9 +19,10 @@ pub struct FnInput {
 ///
 /// 
 impl FnInput {
-    pub fn new(id: &str, initial: PointType) -> Self {
+    pub fn new(parent: &str, initial: PointType) -> Self {
+        COUNT.fetch_add(1, Ordering::SeqCst);
         Self {
-            id: id.into(), 
+            id: format!("{}/FnInput{}", parent, COUNT.load(Ordering::Relaxed)),
             kind: FnKind::Input,
             point: initial.clone(), 
             initial
@@ -33,7 +34,7 @@ impl FnInput {
 impl FnIn for FnInput {
     fn add(&mut self, point: PointType) {
         self.point = point;
-        trace!("FnInput({}).add | value: {:?}", self.id, &self.point);
+        trace!("{}.add | value: {:?}", self.id, &self.point);
     }
 }
 ///
@@ -53,7 +54,7 @@ impl FnOut for FnInput {
     }
     //
     fn out(&mut self) -> PointType {
-        trace!("FnInput({}).out | value: {:?}", self.id, &self.point);
+        trace!("{}.out | value: {:?}", self.id, &self.point);
         self.point.clone()
     }
     //
@@ -64,3 +65,6 @@ impl FnOut for FnInput {
 ///
 /// 
 impl FnInOut for FnInput {}
+///
+/// 
+static COUNT: AtomicUsize = AtomicUsize::new(0);

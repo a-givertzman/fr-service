@@ -8,7 +8,7 @@ use crate::{
     conf::fn_config::FnConfig, 
     services::{
         services::Services,
-        task::{nested_function::metric_select::SqlMetric, task_nodes::TaskNodes}, 
+        task::{nested_function::sql_metric::SqlMetric, task_nodes::TaskNodes}, 
     }, 
     core_::types::fn_in_out_ref::FnInOutRef,
 };
