@@ -29,7 +29,7 @@ pub trait Service {
     /// Starts service's main loop in the individual thread
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error>;
     ///
-    /// Returns list of points configurations
+    /// Returns list of configurations of the defined points
     fn points(&self) -> Vec<PointConfig> {
         vec![]
     }
