@@ -102,7 +102,7 @@ class CMA green
 ```yaml
 service CmaClient:
     addres: 127.0.0.1:8881  // Self local addres
-    cycle: 1 ms           // operating cycle time of the module
+    cycle: 1 ms             // operating cycle time of the module
     auth:                   // some auth credentials
     in queue in-queue:
         max-length: 10000
@@ -124,36 +124,69 @@ service MultiQueue:
         - CmaClient.in-queue
         - CmaServer.in-queue
 
+task CoreTask:
+    cycle: 1 ms
+    in queue api-link:
+        max-length: 10000
+
+    fn toMultiQueue:            # values will be produced as regular Points to the MultiQueue
+        point CraneMovement.BoomDown:           # /AppName/CoreTask/CraneMovement.BoomDown
+            type: 'Int'
+            offset: 14
+            comment: 'Индикация опускания рукояти'
+            input:
+                const float 0.05
+
+
 task OperatingCycle:
     cycle: 500 ms       // operating cycle time of the task
-    outputQueue: operatingCycleQueue
-    metrics:
-        metric MetricName1:
-            initial: 0      # начальное значение
-            input: 
-                var VarName1:
-                    fn count:
-                        input: 
-                            - /line1/ied1/db1/Dev1.State
-        metric MetricName2:
-            initial: 0      # начальное значение
-            input: 
-                var VarName2:
-                    fn timer:
-                        initial: VarName1
-                        input:
-                            fn or:
-                                input: 
-                                    - /line1/ied1/db1/Dev2.State
-                                    - /line1/ied1/db1/Dev3.State
-                                    - /line1/ied1/db1/Dev4.State
+    in queue api-link:
+        max-length: 10000
+
+    fn toApiQueue:              # Metric 1
+        queue: api-queue
+        input metric SqlMetric:
+            initial: 0.123      # начальное значение
+            table: table_name
+            sql: "insert into {table} (id, value, timestamp) values ({id}, {input.value}, {input3.value});"
+            input let Var3:
+                    input fn add:
+                        input1 fn add:
+                            input1: const float 0.2
+                            input2: point float '/path/Point.Name'
+                        input2:
+                            const float 0.05
+            input3 fn add:
+                input1:
+                    var0
+                input2: point float '/path/Point.Name'
+
+    fn toApiQueue:              # Metric 2
+        queue: api-queue
+        input metric SqlMetric:
+            initial: 0.123      # начальное значение
+            table: table_name
+            sql: "insert into {table} (id, value, timestamp) values ({id}, {input.value}, {input3.value});"
+            input: point float '/path/Point.Name'
+
+    fn toApiQueue:              # Metric 3
+        queue: api-queue
+        input metric SqlMetric:
+            initial: 0.123      # начальное значение
+            table: table_name
+            sql: "insert into {table} (id, value, timestamp) values ({id}, {input.value}, {input3.value});"
+            input fn or:
+                input1: point float '/path/Point.Name1'
+                input1: point float '/path/Point.Name2'
+                input1: point float '/path/Point.Name3'
+
 task FaultDetection:
     cycle: 100 ms       // operating cycle time of the module
     outputQueue: operatingCycleQueue
-    metrics:
-        metric MetricName1:
+    fn toApiQueue:              # Metric 1
+        input1: ...
             ...
-        metric MetricName2:
+        input2: ...
             ...
 ```
 

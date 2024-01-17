@@ -1,6 +1,6 @@
 pub mod functions;
 
-pub mod metric;
+pub mod sql_metric;
 
 pub mod service_cycle_test;
 
