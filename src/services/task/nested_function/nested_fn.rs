@@ -15,7 +15,6 @@ use crate::{
 
 use super::{
     functions::Functions, 
-    fn_::FnInOut, 
     fn_input::FnInput, 
     fn_add::FnAdd, 
     fn_timer::FnTimer, 
@@ -179,7 +178,7 @@ impl NestedFn {
     }
     /// 
     /// 
-    fn toApiQueue(id: impl Into<String>, input: FnInOutRef, sendQueue: Sender<PointType>) -> Rc<RefCell<Box<(dyn FnInOut)>>> {
+    fn toApiQueue(id: impl Into<String>, input: FnInOutRef, sendQueue: Sender<PointType>) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
             FnToApiQueue::new(id, input, sendQueue)
         )))

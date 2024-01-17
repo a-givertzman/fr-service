@@ -2,7 +2,7 @@
 
 use std::{sync::mpsc::{Sender, Receiver}, thread::JoinHandle};
 
-use crate::core_::point::point_type::PointType;
+use crate::{core_::point::point_type::PointType, conf::point_config::point_config::PointConfig};
 
 ///
 /// Interface for application service
@@ -28,6 +28,11 @@ pub trait Service {
     ///
     /// Starts service's main loop in the individual thread
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error>;
+    ///
+    /// Returns list of points configurations
+    fn points(&self) -> Vec<PointConfig> {
+        vec![]
+    }
     ///
     /// Sends "exit" signal to the service's thread
     fn exit(&self);

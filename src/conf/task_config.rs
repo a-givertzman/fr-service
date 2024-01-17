@@ -4,7 +4,10 @@ use indexmap::IndexMap;
 use log::{trace, debug, error};
 use std::{fs, time::Duration};
 
-use crate::conf::{fn_config::FnConfig, conf_tree::ConfTree, service_config::ServiceConfig};
+use crate::conf::{
+    fn_config::FnConfig, conf_tree::ConfTree, service_config::ServiceConfig,
+    point_config::point_config::PointConfig,
+};
 
 
 ///
@@ -123,5 +126,13 @@ impl TaskConfig {
                 panic!("TaskConfig.read | File {} reading error: {:?}", path, err)
             },
         }
+    }
+    ///
+    /// Returns list of configurations of the defined points
+    pub fn points(&self) -> Vec<PointConfig> {
+        self.nodes.iter().fold(vec![], |mut points, (_nodeName, nodeConf)| {
+            points.extend(nodeConf.points());
+            points
+        })
     }
 }

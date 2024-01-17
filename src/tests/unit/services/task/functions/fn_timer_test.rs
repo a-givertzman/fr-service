@@ -6,7 +6,7 @@ use std::{sync::Once, time::{Instant, Duration}, thread,rc::Rc, cell::RefCell};
 use crate::{
     core_::{aprox_eq::aprox_eq::AproxEq, debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::{PointType, ToPoint}, 
     types::fn_in_out_ref::FnInOutRef}, 
-    services::task::nested_function::{fn_::{FnInOut, FnOut}, fn_timer::FnTimer, fn_input::FnInput},
+    services::task::nested_function::{fn_::FnOut, fn_timer::FnTimer, fn_input::FnInput},
 };
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -28,11 +28,8 @@ fn initOnce() {
 /// returns:
 ///  - ...
 fn initEach(initial: PointType) -> FnInOutRef {
-    fn boxFnInput(input: FnInput) -> Box<(dyn FnInOut)> {
-        Box::new(input)
-    }
     Rc::new(RefCell::new(
-        boxFnInput(
+        Box::new(
             FnInput::new("test", initial)
         )
     ))

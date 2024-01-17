@@ -10,7 +10,7 @@ use super::fn_kind::FnKind;
 /// Used for generic access to the different kinde of functions
 /// for adding new value on input side
 pub trait FnIn: std::fmt::Debug {
-    fn add(&mut self, point: PointType) {
+    fn add(&mut self, _point: PointType) {
         panic!("FnIn.add | don't use this method, used only for FnInput")
     }
 }

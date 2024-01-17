@@ -8,7 +8,7 @@ use std::{
 
 use log::{info, debug, warn, trace};
 
-use crate::{services::{task::task_nodes::TaskNodes, service::Service, services::Services}, core_::{point::point_type::PointType, constants::constants::RECV_TIMEOUT}};
+use crate::{services::{task::task_nodes::TaskNodes, service::Service, services::Services}, core_::{point::point_type::PointType, constants::constants::RECV_TIMEOUT}, conf::point_config::point_config::PointConfig};
 use crate::conf::task_config::TaskConfig;
 use crate::services::task::service_cycle::ServiceCycle;
 
@@ -22,6 +22,7 @@ pub struct Task {
     inRecv: Vec<Receiver<PointType>>,
     services: Arc<Mutex<Services>>,
     conf: TaskConfig,
+    points: Arc<Mutex<Vec<PointConfig>>>,
     exit: Arc<AtomicBool>,
 }
 ///
@@ -38,8 +39,14 @@ impl Task {
             inRecv: vec![recv],
             services,
             conf,
+            points: Arc::new(Mutex::new(vec![])),
             exit: Arc::new(AtomicBool::new(false)),
         }
+    }
+    ///
+    /// 
+    fn points(taskNodes: &TaskNodes) {
+        
     }
 }
 impl Service for Task {
@@ -106,6 +113,12 @@ impl Service for Task {
         });
         info!("{}.run | started", self.id);
         handle
+    }
+    //
+    //
+    fn points(&self) -> Vec<PointConfig> {
+        let mut points = vec![];
+        points
     }
     //
     //

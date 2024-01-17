@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
 mod tests {
-    use log::{info, debug, error};
-    use std::{sync::{Once, Arc, Mutex}, time::Duration, thread::{self, JoinHandle}, any::Any, collections::HashMap};
+    use log::debug;
+    use std::{sync::{Once, Arc, Mutex}, time::Duration, thread::{self}, collections::HashMap};
     use crate::{
         core_::{
             debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
