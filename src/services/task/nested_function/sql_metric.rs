@@ -29,7 +29,7 @@ use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn, fn_kind::FnKind};
 ///         - input1.status = 
 ///         - "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    =>  UPDATE table SET kind = input1 WHERE id = '{input2}';
 /// ```
-/// metric SqlMetric:
+/// fn SqlMetric:
 ///     initial: 0.123      # начальное значение
 ///     table: SelectMetric_test_table_name
 ///     sql: "UPDATE {table} SET value = '{input1}' WHERE id = '{input2}';"

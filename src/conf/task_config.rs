@@ -18,7 +18,7 @@ use super::fn_conf_kind::FnConfKind;
 /// task operatingMetric:
 ///     cycle: 100 ms
 ///     metrics:
-///         metric sqlUpdateMetric:
+///         fn sqlUpdateMetric:
 ///             table: "TableName"
 ///             sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"
 ///             initial: 123.456
@@ -27,7 +27,7 @@ use super::fn_conf_kind::FnConfKind;
 ///                     fn functionName:
 ///                         ...
 ///                 input2:
-///                     metric SqlMetric:
+///                     fn SqlMetric:
 ///                         ...
 #[derive(Debug, PartialEq, Clone)]
 pub struct TaskConfig {
@@ -46,7 +46,7 @@ impl TaskConfig {
     /// ```yaml
     /// task taskName:
     ///     cycle: 100  // ms
-    ///     metric sqlUpdateMetric:
+    ///     fn sqlUpdateMetric:
     ///         table: "TableName"
     ///         sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"
     ///         initial: 123.456
@@ -55,7 +55,7 @@ impl TaskConfig {
     ///                 fn functionName:
     ///                     ...
     ///             input2:
-    ///                 metric SqlMetric:
+    ///                 fn SqlMetric:
     ///                     ...
     pub fn new(confTree: &mut ConfTree) -> TaskConfig {
         println!("\n");

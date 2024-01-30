@@ -123,7 +123,7 @@ fn test_fn_config_new_valid() {
         //     ]) }
         // ),
         // (
-        //     r#"metric metricName1:
+        //     r#"fn metricName1:
         //         initial: 0.123
         //         table: SelectMetric_test_table_name
         //         sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    

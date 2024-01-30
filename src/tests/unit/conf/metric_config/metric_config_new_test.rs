@@ -40,7 +40,7 @@ fn test_metric_config_new_valid() {
     // let (initial, switches) = initEach();
     let testData = [
         // (
-        //     r#"metric SqlMetric:
+        //     r#"fn SqlMetric:
         //         table: "table_name"
         //         sql: "select * from {table}"
         //         inputs:
