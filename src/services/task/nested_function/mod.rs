@@ -11,7 +11,6 @@ pub mod fn_const;
 
 pub mod nested_fn;
 
-pub mod metric_builder;
 pub mod sql_metric;
 
 pub mod export;

@@ -59,13 +59,11 @@ fn test_fn_config_new_valid() {
                             const float 0.05
 
             "#,
-            FnConfKind::Fn(
-                FnConfig { name: "toMultiQueue".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+            FnConfKind::Fn( FnConfig { name: "toMultiQueue".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                     ("point".to_string(), FnConfKind::Point( FnConfig { name: "CraneMovement.BoomDown".to_string(), type_: FnConfPointType::Int, inputs: IndexMap::from([
                         ("input".to_string(), FnConfKind::Const( FnConfig { name: "0.05".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::new()}))
                     ]) })),
-                ]) }
-            ),
+            ]) } ),
         )
         // (
         //     r#"let newVar:
