@@ -11,7 +11,8 @@ const GE: &str = "ge";
 const INPUT: &str = "input";
 const TIMER: &str = "timer";
 const VAR: &str = "var";
-const TO_API_QUEUE: &str = "toApiQueue";
+const TO_API_QUEUE: &str = "ToApiQueue";
+const TO_MULTI_QUEUE: &str = "ToMultiQueue";
 const SQL_METRIC: &str = "SqlMetric";
 
 
@@ -28,6 +29,7 @@ pub enum Functions {
     Timer,
     Var,
     ToApiQueue,
+    ToMultiQueue,
     SqlMetric,
 }
 ///
@@ -43,6 +45,7 @@ impl Functions {
             Functions::Timer => TIMER,
             Functions::Var => VAR,
             Functions::ToApiQueue => TO_API_QUEUE,
+            Functions::ToMultiQueue => TO_MULTI_QUEUE,
             Functions::SqlMetric => SQL_METRIC,
         }
     }
@@ -63,6 +66,7 @@ impl FromStr for Functions {
             TIMER           => Ok( Functions::Timer ),
             VAR             => Ok( Functions::Var ),
             TO_API_QUEUE    => Ok( Functions::ToApiQueue),
+            TO_MULTI_QUEUE  => Ok( Functions::ToMultiQueue),
             SQL_METRIC      => Ok( Functions::SqlMetric ),
             _ => Err(format!("Functions.from_str | Unknown function name '{}'", &input)),
         }

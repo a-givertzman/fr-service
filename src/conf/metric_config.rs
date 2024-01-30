@@ -11,7 +11,7 @@ use super::{fn_conf_kind::FnConfKind, point_config::point_config::PointConfig};
 ///
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
-/// metric sqlUpdateMetric:
+/// fn sqlUpdateMetric:
 ///     table: "TableName"
 ///     sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"
 ///     initial: 123.456
@@ -20,7 +20,7 @@ use super::{fn_conf_kind::FnConfKind, point_config::point_config::PointConfig};
 ///             fn functionName:
 ///                 ...
 ///         input2:
-///             metric SqlMetric:
+///             fn SqlMetric:
 ///                 ...
 #[derive(Debug, Clone, PartialEq)]
 pub struct MetricConfig {
@@ -37,7 +37,7 @@ impl MetricConfig {
     ///
     /// creates config from serde_yaml::Value of following format:
     /// ```yaml
-    /// metric sqlUpdateMetric:
+    /// fn sqlUpdateMetric:
     ///     table: "TableName"
     ///     sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"
     ///     initial: 123.456
@@ -46,7 +46,7 @@ impl MetricConfig {
     ///             fn functionName:
     ///                 ...
     ///         input2:
-    ///             metric SqlMetric:
+    ///             fn SqlMetric:
     ///                 ...
     pub fn new(confTree: &ConfTree, vars: &mut Vec<String>) -> MetricConfig {
         println!("\n");

@@ -19,7 +19,7 @@ fn main() {
                         inputConst2: newVar1
         "#,
         // serde_yaml::from_str(r#"
-        //     metric SqlMetric:
+        //     fn SqlMetric:
         //         initial: const 0
         //         sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
         //         inputs:

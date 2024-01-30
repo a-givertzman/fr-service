@@ -25,9 +25,9 @@ task task1:
                 input1: point float '/path/Point.Name2'
                 input2: const float 0.07
 
-    fn toApiQueue:
+    fn ToApiQueue:
         queue: api-queue
-        input metric SqlMetric:
+        input fn SqlMetric:
             initial: 0.123      # начальное значение
             table: table_name
             # sql: "UPDATE {table} SET kind = '{input1.value}' WHERE id = '{input2.value}';"

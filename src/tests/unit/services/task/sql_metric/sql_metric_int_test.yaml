@@ -6,7 +6,7 @@ task task1:
     cycle: 1 us
     in queue api-link:
         max-length: 10000
-    metric SqlMetric:
+    fn SqlMetric:
         initial: 0.123      # начальное значение
         table: SelectMetric_test_table_name
         sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    

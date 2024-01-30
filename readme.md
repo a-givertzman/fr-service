@@ -129,7 +129,7 @@ task CoreTask:
     in queue api-link:
         max-length: 10000
 
-    fn toMultiQueue:            # values will be produced as regular Points to the MultiQueue
+    fn ToMultiQueue:            # values will be produced as regular Points to the MultiQueue
         point CraneMovement.BoomDown:           # /AppName/CoreTask/CraneMovement.BoomDown
             type: 'Int'
             offset: 14
@@ -143,9 +143,9 @@ task OperatingCycle:
     in queue api-link:
         max-length: 10000
 
-    fn toApiQueue:              # Metric 1
+    fn ToApiQueue:              # Metric 1
         queue: api-queue
-        input metric SqlMetric:
+        input fn SqlMetric:
             initial: 0.123      # начальное значение
             table: table_name
             sql: "insert into {table} (id, value, timestamp) values ({id}, {input.value}, {input3.value});"
@@ -161,17 +161,17 @@ task OperatingCycle:
                     var0
                 input2: point float '/path/Point.Name'
 
-    fn toApiQueue:              # Metric 2
+    fn ToApiQueue:              # Metric 2
         queue: api-queue
-        input metric SqlMetric:
+        input fn SqlMetric:
             initial: 0.123      # начальное значение
             table: table_name
             sql: "insert into {table} (id, value, timestamp) values ({id}, {input.value}, {input3.value});"
             input: point float '/path/Point.Name'
 
-    fn toApiQueue:              # Metric 3
+    fn ToApiQueue:              # Metric 3
         queue: api-queue
-        input metric SqlMetric:
+        input fn SqlMetric:
             initial: 0.123      # начальное значение
             table: table_name
             sql: "insert into {table} (id, value, timestamp) values ({id}, {input.value}, {input3.value});"
@@ -183,7 +183,7 @@ task OperatingCycle:
 task FaultDetection:
     cycle: 100 ms       // operating cycle time of the module
     outputQueue: operatingCycleQueue
-    fn toApiQueue:              # Metric 1
+    fn ToApiQueue:              # Metric 1
         input1: ...
             ...
         input2: ...
@@ -226,14 +226,14 @@ tasks:
         cycle: 500 ms       // operating cycle time of the task
         outputQueue: operatingCycleQueue
         metrics:
-            metric MetricName1:
+            fn MetricName1:
                 initial: 0      # начальное значение
                 input: 
                     var VarName1:
                         fn count:
                             input: 
                                 - /line1/ied1/db1/Dev1.State
-            metric MetricName2:
+            fn MetricName2:
                 initial: 0      # начальное значение
                 input: 
                     var VarName2:
@@ -249,9 +249,9 @@ tasks:
         cycle: 100 ms       // operating cycle time of the module
         outputQueue: operatingCycleQueue
         metrics:
-            metric MetricName1:
+            fn MetricName1:
                 ...
-            metric MetricName2:
+            fn MetricName2:
                 ...
 ```
 

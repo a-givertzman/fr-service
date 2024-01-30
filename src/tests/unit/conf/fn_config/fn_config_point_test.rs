@@ -50,14 +50,13 @@ fn test_fn_config_new_valid() {
         ),
         (
             r#"
-                fn toMultiQueue:
+                fn ToMultiQueue:
                     point CraneMovement.BoomDown: 
                         type: 'Int'
                         offset: 14
                         comment: 'Индикация опускания рукояти'
                         input:
                             const float 0.05
-
             "#,
             FnConfKind::Fn( FnConfig { name: "toMultiQueue".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                     ("point".to_string(), FnConfKind::Point( FnConfig { name: "CraneMovement.BoomDown".to_string(), type_: FnConfPointType::Int, inputs: IndexMap::from([

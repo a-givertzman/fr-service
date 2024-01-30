@@ -5,7 +5,7 @@ use log::{trace, warn};
 use regex::RegexBuilder;
 use serde::Deserialize;
 
-use super::fn_conf_kind::FnConfKind;
+// use super::fn_conf_kind::FnConfKind;
 
 ///
 /// Represents type of Point / Const in the configuration
@@ -16,14 +16,6 @@ pub enum FnConfPointType {
     Float,
     String,
     Unknown,
-}
-
-pub enum FnConfKeywdKind {
-    Fn,
-    Var,
-    Const,
-    Point,
-    Metric,
 }
 
 #[derive(Debug, Deserialize, PartialEq, Clone)]
@@ -52,7 +44,7 @@ pub enum FnConfKeywd {
     Var(FnConfKeywdValue),
     Const(FnConfKeywdValue),
     Point(FnConfKeywdValue),
-    Metric(FnConfKeywdValue),
+    // Metric(FnConfKeywdValue),
 }
 ///
 /// 
@@ -63,7 +55,6 @@ impl FnConfKeywd {
             FnConfKeywd::Var(v) => v.input.clone(),
             FnConfKeywd::Const(v) => v.input.clone(),
             FnConfKeywd::Point(v) => v.input.clone(),
-            FnConfKeywd::Metric(v) => v.input.clone(),
         }
     }
     // pub fn kind(&self) -> FnConfKind {
@@ -72,7 +63,6 @@ impl FnConfKeywd {
     //         FnConfKeywd::Var(_) => FnConfKind::Var,
     //         FnConfKeywd::Const(_) => FnConfKind::Const,
     //         FnConfKeywd::Point(_) => FnConfKind::Point,
-    //         FnConfKeywd::Metric(_) => FnConfKind::Metric,
     //     }
     // }
     pub fn type_(&self) -> FnConfPointType {
@@ -81,7 +71,6 @@ impl FnConfKeywd {
             FnConfKeywd::Var(v) => v.type_.clone(),
             FnConfKeywd::Const(v) => v.type_.clone(),
             FnConfKeywd::Point(v) => v.type_.clone(),
-            FnConfKeywd::Metric(v) => v.type_.clone(),
         }
     }
     pub fn data(&self) -> String {
@@ -90,7 +79,6 @@ impl FnConfKeywd {
             FnConfKeywd::Var(v) => v.data.clone(),
             FnConfKeywd::Const(v) => v.data.clone(),
             FnConfKeywd::Point(v) => v.data.clone(),
-            FnConfKeywd::Metric(v) => v.data.clone(),
         }
     }
     fn matchType(typeName: &str) -> Result<FnConfPointType, String> {
@@ -108,7 +96,8 @@ impl FromStr for FnConfKeywd {
     type Err = String;
     fn from_str(input: &str) -> Result<FnConfKeywd, String> {
         trace!("FnConfKeywd.from_str | input: {}", input);
-        let re = r#"[ \t]*(?:(\w+)[ \t]+)*(?:(let|fn|const|point|metric){1}(?:[ \t](bool|int|float|string))*(?:$|(?:[ \t]+['"]*([\w/.]+)['"]*)))"#;
+        let re = r#"[ \t]*(?:(\w+)[ \t]+)*(?:(let|fn|const|point){1}(?:[ \t](bool|int|float|string))*(?:$|(?:[ \t]+['"]*([\w/.]+)['"]*)))"#;
+        // let re = r#"[ \t]*(?:(\w+)[ \t]+)*(?:(let|fn|const|point|metric){1}(?:[ \t](bool|int|float|string))*(?:$|(?:[ \t]+['"]*([\w/.]+)['"]*)))"#;
         let re = RegexBuilder::new(re).multi_line(true).build().unwrap();
         let groupInput = 1;
         let groupKind = 2;
@@ -153,7 +142,6 @@ impl FromStr for FnConfKeywd {
                                     "let"  => Ok( FnConfKeywd::Var( FnConfKeywdValue { input: input, type_: type_, data } )),
                                     "const"  => Ok( FnConfKeywd::Const( FnConfKeywdValue { input: input, type_: type_, data } )),
                                     "point" => Ok( FnConfKeywd::Point( FnConfKeywdValue { input: input, type_: type_, data } )),
-                                    "metric" => Ok( FnConfKeywd::Metric( FnConfKeywdValue { input: input, type_: type_, data } )),
                                     _      => Err(format!("Unknown keyword '{}'", &input)),
                                 }
                             },

@@ -107,15 +107,6 @@ impl FnConfig {
                                 }
                             )
                         },
-                        FnConfKeywd::Metric(value) => {
-                            FnConfKind::Fn(
-                                FnConfig {
-                                    name: value.data,
-                                    inputs: Self::buildInputs(confTree, vars),
-                                    type_: value.type_,
-                                }
-                            )
-                        },
                     }
                 },
                 // no keyword 

@@ -51,7 +51,7 @@ fn test_metric_config_new_valid() {
         //     ]) }
         // ),
         (
-            r#"metric SqlMetric:
+            r#"fn SqlMetric:
                 initial: 0.123      # начальное значение
                 table: table_name
                 sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
