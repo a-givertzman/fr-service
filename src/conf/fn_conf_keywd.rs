@@ -116,7 +116,7 @@ impl FromStr for FnConfKeywd {
                     Some(arg) => {
                         match FnConfKeywd::matchType(&arg.as_str().to_lowercase()) {
                             Ok(type_) => type_,
-                            Err(err) => {
+                            Err(_err) => {
                                 warn!("ConfKeywd.from_str | Error reading type of keyword '{}'", &input);
                                 FnConfPointType::Unknown
                             },

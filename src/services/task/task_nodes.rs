@@ -191,7 +191,7 @@ impl TaskNodes {
                     panic!("TaskNodes.buildNodes | Point is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
                 },
                 FnConfKind::Param => {
-                    panic!("TaskNodes.buildNodes | custom parameter: {:?}: {:?}", nodeName, &nodeConf);
+                    panic!("TaskNodes.buildNodes | Param (custom parameter) is not supported in the root of the Task, config: {:?}: {:?} - ", nodeName, &nodeConf);
                 },
             };
             self.finishNewNode(out);
