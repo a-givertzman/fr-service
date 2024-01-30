@@ -78,8 +78,8 @@ impl SqlMetric {
         }
         let id = conf.name.clone();
         // let initial = conf.param("initial").name.parse().unwrap();
-        let table = conf.param("table").name.clone();
-        let mut sql = Format::new(&conf.param("sql").name);
+        let table = conf.param("table").name();
+        let mut sql = Format::new(&conf.param("sql").name());
         sql.insert("id", id.clone().toPoint(txId, ""));
         sql.insert("table", table.clone().toPoint(txId, ""));
         sql.prepare();

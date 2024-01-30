@@ -2,15 +2,15 @@
 
 use std::{rc::Rc, cell::RefCell, str::FromStr, sync::{mpsc::Sender, Arc, Mutex}};
 
-use log::LevelFilter;
+use log::{debug, LevelFilter};
 
 use crate::{
     core_::{
         point::point_type::{PointType, ToPoint},
         types::fn_in_out_ref::FnInOutRef, 
     }, 
-    conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType}, 
-    services::{task::{nested_function::{metric_builder::MetricBuilder, fn_var::FnVar}, task_nodes::TaskNodes}, services::Services}
+    conf::{fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType}, 
+    services::{task::{nested_function::{fn_var::FnVar, metric_builder::MetricBuilder, sql_metric::SqlMetric}, task_nodes::TaskNodes}, services::Services}
 };
 
 use super::{
@@ -30,14 +30,14 @@ pub struct NestedFn {}
 impl NestedFn {
     ///
     /// Creates nested functions tree from it config
-    pub fn new(parent: &str, txId: usize, conf: &mut FnConfig, taskNodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> FnInOutRef {
+    pub fn new(parent: &str, txId: usize, conf: &mut FnConfKind, taskNodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> FnInOutRef {
         Self::function(parent, txId, "", conf, taskNodes, services)
     }
     ///
     /// 
-    fn function(parent: &str, txId: usize, inputName: &str, conf: &mut FnConfig, taskNodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> FnInOutRef {
-        match conf.fnKind {
-            FnConfKind::Fn => {
+    fn function(parent: &str, txId: usize, inputName: &str, conf: &mut FnConfKind, taskNodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> FnInOutRef {
+        match conf {
+            FnConfKind::Fn(conf) => {
                 println!("NestedFn.function | Fn {:?}: {:?}...", inputName, conf.name.clone());
                 let c = conf.name.clone();
                 let fnName= c.clone();
@@ -72,7 +72,7 @@ impl NestedFn {
                         let name = "input";
                         let inputConf = conf.inputConf(name);
                         let input = Self::function(parent, txId, name, inputConf, taskNodes ,services.clone());
-                        let queueName = conf.param("queue").name.clone();
+                        let queueName = conf.param("queue").name();
                         let servicesLock = services.lock();
                         let sendQueue = servicesLock.unwrap().getLink(&queueName);
                         Self::toApiQueue(parent, input, sendQueue)
@@ -86,11 +86,24 @@ impl NestedFn {
                         let inputConf = conf.inputConf(name);
                         let input2 = Self::function(parent, txId, name, inputConf, taskNodes, services);
                         Self::fnGe(parent, input1, input2)
+                    },
+                    Functions::SqlMetric => {
+                        debug!("MetricBuilder.new | fnConf: {:?}: {:?}", conf.name, conf);
+                        Rc::new(RefCell::new(                    
+                            Box::new(
+                                SqlMetric::new(
+                                    parent,
+                                    conf, 
+                                    taskNodes,
+                                    services,
+                                )
+                            )
+                        ))        
                     }
                     _ => panic!("NestedFn.function | Unknown function name: {:?}", conf.name)
                 }
             },
-            FnConfKind::Var => {
+            FnConfKind::Var(conf) => {
                 let varName = conf.name.clone();
                 println!("NestedFn.function | Var: {:?}...", varName);
                 match conf.inputs.iter_mut().next() {
@@ -118,7 +131,7 @@ impl NestedFn {
                     },
                 }
             },
-            FnConfKind::Const => {
+            FnConfKind::Const(conf) => {
                 let value = conf.name.trim().to_lowercase();
                 let name = format!("const {:?} '{}'", conf.type_, value);
                 println!("NestedFn.function | Const: {:?}...", &name);
@@ -134,7 +147,7 @@ impl NestedFn {
                 println!("NestedFn.function | Const: {:?} - done", fnConst);
                 fnConst
             },
-            FnConfKind::Point => {                
+            FnConfKind::Point(conf) => {                
                 println!("NestedFn.function | Input (Point): {:?} ({:?})...", inputName, conf.name);
                 let initial = match conf.type_.clone() {
                     FnConfPointType::Bool => false.toPoint(txId, &conf.name),
@@ -151,11 +164,11 @@ impl NestedFn {
                 }
                 input
             },
-            FnConfKind::Metric => {
-                println!("NestedFn.function | Metric {:?}", &conf.name);
-                MetricBuilder::new(parent, conf, taskNodes, services)
-            },
-            FnConfKind::Param => {
+            // FnConfKind::Metric(conf) => {
+            //     println!("NestedFn.function | Metric {:?}", &conf.name);
+            //     MetricBuilder::new(parent, conf, taskNodes, services)
+            // },
+            FnConfKind::Param(_conf) => {
                 panic!("NestedFn.function | Custom parameters are not supported in the nested functions");
             }
         }

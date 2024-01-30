@@ -18,6 +18,14 @@ pub enum FnConfPointType {
     Unknown,
 }
 
+pub enum FnConfKeywdKind {
+    Fn,
+    Var,
+    Const,
+    Point,
+    Metric,
+}
+
 #[derive(Debug, Deserialize, PartialEq, Clone)]
 pub struct FnConfKeywdValue {
     pub input: String,
@@ -58,15 +66,15 @@ impl FnConfKeywd {
             FnConfKeywd::Metric(v) => v.input.clone(),
         }
     }
-    pub fn kind(&self) -> FnConfKind {
-        match self {
-            FnConfKeywd::Fn(_) => FnConfKind::Fn,
-            FnConfKeywd::Var(_) => FnConfKind::Var,
-            FnConfKeywd::Const(_) => FnConfKind::Const,
-            FnConfKeywd::Point(_) => FnConfKind::Point,
-            FnConfKeywd::Metric(_) => FnConfKind::Metric,
-        }
-    }
+    // pub fn kind(&self) -> FnConfKind {
+    //     match self {
+    //         FnConfKeywd::Fn(_) => FnConfKind::Fn,
+    //         FnConfKeywd::Var(_) => FnConfKind::Var,
+    //         FnConfKeywd::Const(_) => FnConfKind::Const,
+    //         FnConfKeywd::Point(_) => FnConfKind::Point,
+    //         FnConfKeywd::Metric(_) => FnConfKind::Metric,
+    //     }
+    // }
     pub fn type_(&self) -> FnConfPointType {
         match self {
             FnConfKeywd::Fn(v) => v.type_.clone(),

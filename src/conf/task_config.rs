@@ -9,6 +9,8 @@ use crate::conf::{
     point_config::point_config::PointConfig,
 };
 
+use super::fn_conf_kind::FnConfKind;
+
 
 ///
 /// creates config from serde_yaml::Value of following format:
@@ -33,7 +35,7 @@ pub struct TaskConfig {
     pub(crate) cycle: Option<Duration>,
     pub(crate) rx: String,
     pub(crate) rxMaxLength: i64,
-    pub(crate) nodes: IndexMap<String, FnConfig>,
+    pub(crate) nodes: IndexMap<String, FnConfKind>,
     pub(crate) vars: Vec<String>,
 }
 ///
@@ -84,7 +86,7 @@ impl TaskConfig {
                     nodeIndex += 1;
                     let nodeConf = FnConfig::new(&nodeConf, &mut vars);
                     nodes.insert(
-                        format!("{}-{}", nodeConf.name, nodeIndex),
+                        format!("{}-{}", nodeConf.name(), nodeIndex),
                         nodeConf,
                     );
                 }

@@ -42,9 +42,11 @@ fn test_fn_config_new_valid() {
             r#"let newVar:
                 input: const '13.55'
             "#, 
-            FnConfig { fnKind: FnConfKind::Var, name: "newVar".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-                ("input".to_string(), FnConfig { fnKind: FnConfKind::Const, name: "13.55".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::new() }),
-            ]) },
+            FnConfKind::Var(
+                FnConfig { name: "newVar".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                    ("input".to_string(), FnConfKind::Const( FnConfig { name: "13.55".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::new() })),
+                ]) }
+            ),
         ),
         (
             r#"
@@ -57,11 +59,13 @@ fn test_fn_config_new_valid() {
                             const float 0.05
 
             "#,
-            FnConfig { fnKind: FnConfKind::Fn, name: "toMultiQueue".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-                ("point".to_string(), FnConfig { fnKind: FnConfKind::Point, name: "CraneMovement.BoomDown".to_string(), type_: FnConfPointType::Int, inputs: IndexMap::from([
-                    ("input".to_string(), FnConfig { fnKind: FnConfKind::Const, name: "0.05".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::new()})
-                ]) }),
-            ]) },
+            FnConfKind::Fn(
+                FnConfig { name: "toMultiQueue".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                    ("point".to_string(), FnConfKind::Point( FnConfig { name: "CraneMovement.BoomDown".to_string(), type_: FnConfPointType::Int, inputs: IndexMap::from([
+                        ("input".to_string(), FnConfKind::Const( FnConfig { name: "0.05".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::new()}))
+                    ]) })),
+                ]) }
+            ),
         )
         // (
         //     r#"let newVar:

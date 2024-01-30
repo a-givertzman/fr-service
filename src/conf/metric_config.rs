@@ -6,6 +6,8 @@ use std::{fs, str::FromStr};
 
 use crate::conf::{fn_config::FnConfig, conf_tree::ConfTree, fn_conf_keywd::FnConfKeywd};
 
+use super::{fn_conf_kind::FnConfKind, point_config::point_config::PointConfig};
+
 ///
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
@@ -26,7 +28,7 @@ pub struct MetricConfig {
     pub(crate) table: String,
     pub(crate) sql: String,
     pub(crate) initial: f64,
-    pub(crate) inputs: IndexMap<String, FnConfig>,
+    pub(crate) inputs: IndexMap<String, FnConfKind>,
     pub(crate) vars: Vec<String>,
 }
 ///
@@ -122,5 +124,9 @@ impl MetricConfig {
             },
         }
     }
-
+    ///
+    /// Returns list of configurations of the defined points
+    pub fn points(&self) -> Vec<PointConfig> {
+        vec![]
+    }
 }

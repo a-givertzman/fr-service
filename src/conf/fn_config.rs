@@ -28,9 +28,9 @@ use super::{fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType, point_conf
 ///                 input: point '/path/Point.Name/'```
 #[derive(Debug, PartialEq, Clone)]
 pub struct FnConfig {
-    pub fnKind: FnConfKind,
+    // pub fnKind: FnConfKind,
     pub name: String,
-    pub inputs: IndexMap<String, FnConfig>,
+    pub inputs: IndexMap<String, FnConfKind>,
     pub type_: FnConfPointType,
 }
 ///
@@ -47,7 +47,7 @@ impl FnConfig {
     ///             input2: point '/path/Point.Name/'
     ///             input fn functionName:
     ///                 input: point '/path/Point.Name/'```
-    pub fn new(confTree: &ConfTree, vars: &mut Vec<String>) -> FnConfig {
+    pub fn new(confTree: &ConfTree, vars: &mut Vec<String>) -> FnConfKind {
         println!("\n");
         trace!("FnConfig.new | confTree: {:?}", confTree);
         // self conf from first sub node
@@ -64,32 +64,58 @@ impl FnConfig {
                     // parse sub nodes
                     // let mut inputs = IndexMap::new();
                     trace!("FnConfig.new | build inputs...");
-                    let fnName: String;
-                    let inputs: IndexMap<String, FnConfig>;
-                    match selfKeyword.kind() {
-                        FnConfKind::Const => {
-                            fnName = if selfKeyword.data().is_empty() {
+                    match selfKeyword {
+                        FnConfKeywd::Const(value) => {
+                            let fnName = if value.data.is_empty() {
                                 confTree.conf.as_str().unwrap().to_string()
                             } else {
-                                selfKeyword.data()
+                                value.data
                             };
-                            inputs = IndexMap::new();
+                            FnConfKind::Const(
+                                FnConfig {
+                                    name: fnName,
+                                    inputs: IndexMap::new(),
+                                    type_: value.type_,
+                                }        
+                            )
                         },
-                        FnConfKind::Var => {
-                            vars.push(selfKeyword.data());
-                            fnName = selfKeyword.data();
-                            inputs = Self::buildInputs(confTree, vars);
+                        FnConfKeywd::Var(value) => {
+                            vars.push(value.data.clone());
+                            FnConfKind::Var(
+                                FnConfig {
+                                    name: value.data,
+                                    inputs: Self::buildInputs(confTree, vars),
+                                    type_: value.type_,
+                                }
+                            )        
                         },
-                        _ => {
-                            fnName = selfKeyword.data();
-                            inputs = Self::buildInputs(confTree, vars);
+                        FnConfKeywd::Fn(value) => {
+                            FnConfKind::Fn(
+                                FnConfig {
+                                    name: value.data,
+                                    inputs: Self::buildInputs(confTree, vars),
+                                    type_: value.type_,
+                                }
+                            )
                         },
-                    }
-                    FnConfig {
-                        fnKind: selfKeyword.kind(),
-                        name: fnName,
-                        inputs: inputs,
-                        type_: selfKeyword.type_(),
+                        FnConfKeywd::Point(value) => {
+                            FnConfKind::Point(
+                                FnConfig {
+                                    name: value.data,
+                                    inputs: Self::buildInputs(confTree, vars),
+                                    type_: value.type_,
+                                }
+                            )
+                        },
+                        FnConfKeywd::Metric(value) => {
+                            FnConfKind::Fn(
+                                FnConfig {
+                                    name: value.data,
+                                    inputs: Self::buildInputs(confTree, vars),
+                                    type_: value.type_,
+                                }
+                            )
+                        },
                     }
                 },
                 // no keyword 
@@ -109,26 +135,23 @@ impl FnConfig {
                     //  - take input name and input Value / Fn from the keyword
                     Ok(fnKeyword) => {
                         match fnKeyword {
-                            // ConfKeywd::Var(_) => {
-                                
-                            // },
-                            FnConfKeywd::Const(_) => {
-                                FnConfig {
-                                    fnKind: fnKeyword.kind(),
-                                    name: fnKeyword.data(),
-                                    inputs: IndexMap::new(),
-                                    type_: fnKeyword.type_(),
-                                }
-    
+                            FnConfKeywd::Const(value) => {
+                                FnConfKind::Const(
+                                    FnConfig {
+                                        name: value.data,
+                                        inputs: IndexMap::new(),
+                                        type_: value.type_,
+                                    }
+                                )
                             },
-                            FnConfKeywd::Point(_) => {
-                                FnConfig {
-                                    fnKind: fnKeyword.kind(),
-                                    name: fnKeyword.data(),
-                                    inputs: IndexMap::new(),
-                                    type_: fnKeyword.type_(),
-                                }
-    
+                            FnConfKeywd::Point(value) => {
+                                FnConfKind::Point(
+                                    FnConfig {
+                                        name: value.data,
+                                        inputs: IndexMap::new(),
+                                        type_: value.type_,
+                                    }
+                                )
                             },
                             _ => {
                                 panic!("FnConfig.new | Unknown keyword: {:?}", confTree.conf)
@@ -143,20 +166,16 @@ impl FnConfig {
                         debug!("FnConfig.new | trying to find Variable: {:?} in vars: \n\t{:?}", &varName, &vars);
                         if vars.contains(&varName) {
                             debug!("FnConfig.new | Variable declared - ok: {:?}", confTree.conf);
-                            FnConfig { 
-                                fnKind: FnConfKind::Var, 
-                                name: varName, 
-                                inputs: IndexMap::new(),
-                                type_: FnConfPointType::Unknown,
-                            }
+                            FnConfKind::Var(
+                                FnConfig { 
+                                    name: varName, 
+                                    inputs: IndexMap::new(),
+                                    type_: FnConfPointType::Unknown,
+                                }
+                            )
                         } else {
                             debug!("FnConfig.new | Custom parameter declared: {:?}", confTree.conf);
-                            FnConfig { 
-                                fnKind: FnConfKind::Param, 
-                                name: varName, 
-                                inputs: IndexMap::new(),
-                                type_: FnConfPointType::Unknown,
-                            }
+                            FnConfKind::Param(varName)
                             // panic!("FnConfig.new | Variable not declared: {:?}", confTree.conf)
                         }
                     }
@@ -164,30 +183,15 @@ impl FnConfig {
             } else if confTree.conf.is_bool() {
                 debug!("FnConfig.new | Custom parameter declared: {:?}", confTree.conf);
                 let varName = confTree.conf.as_bool().unwrap().to_string();
-                FnConfig { 
-                    fnKind: FnConfKind::Param, 
-                    name: varName, 
-                    inputs: IndexMap::new(),
-                    type_: FnConfPointType::Unknown,
-                }
+                FnConfKind::Param(varName)
             } else if confTree.conf.is_i64() {
                 debug!("FnConfig.new | Custom parameter declared: {:?}", confTree.conf);
                 let varName = confTree.conf.as_i64().unwrap().to_string();
-                FnConfig { 
-                    fnKind: FnConfKind::Param, 
-                    name: varName, 
-                    inputs: IndexMap::new(),
-                    type_: FnConfPointType::Unknown,
-                }
+                FnConfKind::Param(varName)
             } else if confTree.conf.is_f64() {
                 debug!("FnConfig.new | Custom parameter declared: {:?}", confTree.conf);
                 let varName = confTree.conf.as_f64().unwrap().to_string();
-                FnConfig { 
-                    fnKind: FnConfKind::Param, 
-                    name: varName, 
-                    inputs: IndexMap::new(),
-                    type_: FnConfPointType::Unknown,
-                }
+                FnConfKind::Param(varName)
             } else {
                 panic!("FnConfig.new | Custom parameter of unknown type declared, but : {:?}", confTree.conf);
             }
@@ -195,7 +199,7 @@ impl FnConfig {
     }
     ///
     /// 
-    fn buildInputs(confTree: &ConfTree, vars: &mut Vec<String>) ->IndexMap<String, FnConfig> {
+    fn buildInputs(confTree: &ConfTree, vars: &mut Vec<String>) -> IndexMap<String, FnConfKind> {
         let mut inputs = IndexMap::new();
         match confTree.subNodes() {
             // has inputs in mapping
@@ -248,7 +252,7 @@ impl FnConfig {
     }
     ///
     /// creates config from serde_yaml::Value of following format:
-    pub fn fromYamlValue(value: &serde_yaml::Value, vars: &mut Vec<String>) -> FnConfig {
+    pub fn fromYamlValue(value: &serde_yaml::Value, vars: &mut Vec<String>) -> FnConfKind {
         Self::new(&ConfTree::newRoot(value.clone()).next().unwrap(), vars)
     }
     ///
@@ -263,7 +267,7 @@ impl FnConfig {
     ///             input fn functionName:
     ///                 input: point '/path/Point.Name/'```
     #[allow(dead_code)]
-    pub fn read(path: &str) -> FnConfig {
+    pub fn read(path: &str) -> FnConfKind {
         let mut vars = vec![];
         match fs::read_to_string(&path) {
             Ok(yamlString) => {
@@ -283,7 +287,7 @@ impl FnConfig {
     }
     ///
     /// returns input config by itc name
-    pub fn inputConf<'a>(&'a mut self, inputName: &str) -> &'a mut FnConfig {
+    pub fn inputConf<'a>(&'a mut self, inputName: &str) -> &'a mut FnConfKind {
         match self.inputs.get_mut(inputName) {
             Some(conf) => conf,
             None => panic!("FnConfig.inputConf | function {:?} must have {:?}", self.name, inputName),
@@ -291,7 +295,7 @@ impl FnConfig {
     }
     ///
     /// returns custom parameter by it's name if exists, else none
-    pub fn param(&self, name: &str) -> &FnConfig {
+    pub fn param(&self, name: &str) -> &FnConfKind {
         match self.inputs.get(name) {
             Some(param) => param,
             None => {

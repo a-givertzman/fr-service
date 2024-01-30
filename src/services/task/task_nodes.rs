@@ -171,27 +171,24 @@ impl TaskNodes {
     pub fn buildNodes(&mut self, parent: &str, conf: TaskConfig, services: Arc<Mutex<Services>>) {
         let txId = PointTxId::fromStr(parent);
         for (_nodeName, mut nodeConf) in conf.nodes {
-            let nodeName = nodeConf.name.clone();
-            debug!("TaskNodes.nodes | node: {:?}", &nodeConf.name);
+            let nodeName = nodeConf.name();
+            debug!("TaskNodes.buildNodes | node: {:?}", nodeName);
             self.newNodeVars = Some(TaskNodeVars::new());
-            let out = match nodeConf.fnKind {
-                FnConfKind::Metric => {
-                    MetricBuilder::new(parent, &mut nodeConf, self, services.clone())
-                },
-                FnConfKind::Fn => {
+            let out = match nodeConf {
+                FnConfKind::Fn(_) => {
                     NestedFn::new(parent, txId, &mut nodeConf, self, services.clone())
                 },
-                FnConfKind::Var => {
+                FnConfKind::Var(_) => {
                     NestedFn::new(parent, txId, &mut nodeConf, self, services.clone())
                 },
-                FnConfKind::Const => {
-                    panic!("TaskNodes.buildNodes | Const is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
+                FnConfKind::Const(conf) => {
+                    panic!("TaskNodes.buildNodes | Const is not supported in the root of the Task, config: {:?}: {:?}", nodeName, conf);
                 },
-                FnConfKind::Point => {
-                    panic!("TaskNodes.buildNodes | Point is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
+                FnConfKind::Point(conf) => {
+                    panic!("TaskNodes.buildNodes | Point is not supported in the root of the Task, config: {:?}: {:?}", nodeName, conf);
                 },
-                FnConfKind::Param => {
-                    panic!("TaskNodes.buildNodes | Param (custom parameter) is not supported in the root of the Task, config: {:?}: {:?} - ", nodeName, &nodeConf);
+                FnConfKind::Param(conf) => {
+                    panic!("TaskNodes.buildNodes | Param (custom parameter) is not supported in the root of the Task, config: {:?}: {:?} - ", nodeName, conf);
                 },
             };
             self.finishNewNode(out);
