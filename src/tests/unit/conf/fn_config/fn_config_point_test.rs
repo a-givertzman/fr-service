@@ -39,6 +39,7 @@ fn test_fn_config_new_valid() {
     info!("test_fn_config_new_valid");
     let testData = [
         (
+            0,
             r#"let newVar:
                 input: const '13.55'
             "#, 
@@ -49,6 +50,7 @@ fn test_fn_config_new_valid() {
             ),
         ),
         (
+            2,
             r#"
                 fn ToMultiQueue:
                     in1 point CraneMovement.BoomUp: 
@@ -91,13 +93,16 @@ fn test_fn_config_new_valid() {
             ]) } ),
         ),
     ];
-    for (value, target) in testData {
+    for (pointsTarget, value, target) in testData {
         debug!("test value: {:?}", value);
         let conf: serde_yaml::Value = serde_yaml::from_str(value).unwrap();
         debug!("value: {:?}   |   conf: {:?}   |   target: {:?}", "_", conf, target);
         let mut vars = vec![];
         let fnConfig = FnConfig::fromYamlValue(&conf, &mut vars);
+        let points = fnConfig.points();
         debug!("\tfnConfig: {:?}", fnConfig);
+        debug!("\tpoints: {:?}", points);
         assert_eq!(fnConfig, target);
+        assert_eq!(points.len(), pointsTarget);
     }
 }

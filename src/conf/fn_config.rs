@@ -29,11 +29,9 @@ use crate::conf::{
 ///                 input: point '/path/Point.Name/'```
 #[derive(Debug, PartialEq, Clone)]
 pub struct FnConfig {
-    // pub fnKind: FnConfKind,
     pub name: String,
     pub inputs: IndexMap<String, FnConfKind>,
     pub type_: FnConfPointType,
-    // pub points: IndexMap<String, FnPointConfig>,
 }
 ///
 /// 
@@ -295,6 +293,11 @@ impl FnConfig {
     ///
     /// Returns list of configurations of the defined points
     pub fn points(&self) -> Vec<PointConfig> {
-        vec![]
+        let mut points = vec![];
+        for (_, inputKind) in &self.inputs {
+            let mut inputPoints = inputKind.points();
+            points.append(&mut inputPoints);
+        }
+        points
     }
 }
