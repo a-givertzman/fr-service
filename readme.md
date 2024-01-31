@@ -115,6 +115,7 @@ service ProfinetClient:
     in queue in-queue:
         max-length: 10000
     out queue: MultiQueue.in-queue
+
     device Ied01:
         protocol: 'profinet'
         description: 'S7-IED-01.01'
@@ -133,24 +134,19 @@ service ProfinetClient:
                 point Drive.OutputVoltage: 
                     type: 'Real'
                     offset: 4
-                point Drive.DCVoltage: 
-                    type: 'Real'
-                    offset: 8
-                point Drive.Current: 
-                    type: 'Real'
-                    offset: 12
-                point Drive.Torque: 
-                    type: 'Real'
-                    offset: 16
-                point Drive.positionFromMru: 
-                    type: 'Real'
-                    offset: 20
-                point Drive.positionFromHoist: 
-                    type: 'Real'
-                    offset: 24
-                point Capacitor.Capacity: 
-                    type: 'Int'
-                    offset: 28
+    
+    device Ied02:
+        protocol: 'profinet'
+        description: 'S7-IED-01.01'
+        ip: '192.168.100.243'
+        rack: 0
+        slot: 1
+            db db899: 
+                description: 'db899 | Exhibit - drive data'
+                number: 899
+                offset: 0
+                size: 34
+                delay: 10
                 point ChargeIn.On: 
                     type: 'Bool'
                     offset: 30
