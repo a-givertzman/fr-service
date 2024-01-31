@@ -109,9 +109,7 @@ service CmaClient:
     out queue: MultiQueue.in-queue
 
 service ProfinetClient:
-    addres: 127.0.0.1:8881  // Self local addres
     cycle: 1 ms             // operating cycle time of the module
-    auth:                   // some auth credentials
     in queue in-queue:
         max-length: 10000
     out queue: MultiQueue.in-queue

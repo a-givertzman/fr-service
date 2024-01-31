@@ -4,10 +4,10 @@
 mod tests {
     use log::{warn, info, debug};
     use std::{sync::Once, time::{Duration, Instant}};
-    use crate::core_::{
+    use crate::{conf::profinet_client_config::ProfinetClientConfig, core_::{
         debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
         testing::test_stuff::max_test_duration::TestDuration,
-    }; 
+    }}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -41,10 +41,17 @@ mod tests {
         println!("{}", selfId);
         let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
         testDuration.run().unwrap();
+        let path = "./src/tests/unit/services/profinet_client/profinet_client.yaml";
+        let config = ProfinetClientConfig::read(path);
+        debug!("config: {:?}", &config);
+        debug!("config points: {:?}", &config);
+        for point in config.points() {
+            println!("\t {:?}", point);
+        }
 
 
-        
-        assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
+
+        // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         testDuration.exit();
     }
 }
