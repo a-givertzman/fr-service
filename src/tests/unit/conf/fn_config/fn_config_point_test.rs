@@ -38,37 +38,55 @@ fn test_fn_config_new_valid() {
     initEach();
     info!("test_fn_config_new_valid");
     let testData = [
-        // (
-        //     r#"let newVar:
-        //         input: const '13.55'
-        //     "#, 
-        //     FnConfKind::Var(
-        //         FnConfig { name: "newVar".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-        //             ("input".to_string(), FnConfKind::Const( FnConfig { name: "13.55".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::new() })),
-        //         ]) }
-        //     ),
-        // ),
+        (
+            r#"let newVar:
+                input: const '13.55'
+            "#, 
+            FnConfKind::Var(
+                FnConfig { name: "newVar".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                    ("input".to_string(), FnConfKind::Const( FnConfig { name: "13.55".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::new() })),
+                ]) }
+            ),
+        ),
         (
             r#"
                 fn ToMultiQueue:
-                    in point CraneMovement.BoomUp: 
+                    in1 point CraneMovement.BoomUp: 
                         type: 'Int'
                         comment: 'Some indication'
                         input:
                             const float 0.05
+                    in2 point CraneMovement.BoomDown: 
+                        type: 'Float'
+                        history: 1
+                        comment: 'Some indication'
+                        input:
+                            const float 0.07
             "#,
             FnConfKind::Fn( FnConfig { name: "ToMultiQueue".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-                    ("in".to_string(), FnConfKind::PointConf( FnPointConfig { 
+                ("in1".to_string(), FnConfKind::PointConf( FnPointConfig { 
+                    conf: PointConfig {
+                        name: "CraneMovement.BoomUp".to_string(),
+                        _type: PointConfigType::Int,
+                        history: None,
+                        alarm: None,
+                        address: None,
+                        filters: None,
+                        comment: Some("Some indication".to_string()),
+                    },
+                    input: Box::new(FnConfKind::Const( FnConfig { name: "0.05".to_string(), type_: FnConfPointType::Float, inputs: IndexMap::new()} )),
+                })),
+                ("in2".to_string(), FnConfKind::PointConf( FnPointConfig { 
                         conf: PointConfig {
-                            name: "CraneMovement.BoomUp".to_string(),
-                            _type: PointConfigType::Int,
-                            history: None,
+                            name: "CraneMovement.BoomDown".to_string(),
+                            _type: PointConfigType::Float,
+                            history: Some(1),
                             alarm: None,
                             address: None,
                             filters: None,
                             comment: Some("Some indication".to_string()),
                         },
-                        input: Box::new(FnConfKind::Const( FnConfig { name: "0.05".to_string(), type_: FnConfPointType::Float, inputs: IndexMap::new()} )),
+                        input: Box::new(FnConfKind::Const( FnConfig { name: "0.07".to_string(), type_: FnConfPointType::Float, inputs: IndexMap::new()} )),
                     })),
             ]) } ),
         )
