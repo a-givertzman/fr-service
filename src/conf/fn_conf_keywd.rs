@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::str::FromStr;
+use std::{ops::BitOr, str::FromStr};
 use log::{trace, warn};
 use regex::RegexBuilder;
 use serde::Deserialize;
@@ -16,6 +16,42 @@ pub enum FnConfPointType {
     Float,
     String,
     Unknown,
+}
+///
+/// 
+#[repr(u8)]
+#[derive(Debug, PartialEq, Clone)]
+pub enum FnConfKindName {
+    Fn = 1,
+    Var = 2,
+    Const = 4,
+    Point = 6,
+}
+
+impl BitOr<FnConfKindName> for u8 {
+    type Output = u8;
+
+    // rhs is the "right-hand side" of the expression `a | b`
+    fn bitor(self, rhs: FnConfKindName) -> Self::Output {
+        self | (rhs as u8)
+    }
+}
+
+impl BitOr<u8> for FnConfKindName {
+    type Output = u8;
+
+    // rhs is the "right-hand side" of the expression `a | b`
+    fn bitor(self, rhs: u8) -> Self::Output {
+        (self as u8) | rhs
+    }
+}
+impl BitOr for FnConfKindName {
+    type Output = u8;
+
+    // rhs is the "right-hand side" of the expression `a | b`
+    fn bitor(self, rhs: Self) -> Self::Output {
+        (self as u8) | (rhs as u8)
+    }
 }
 
 #[derive(Debug, Deserialize, PartialEq, Clone)]
@@ -44,7 +80,6 @@ pub enum FnConfKeywd {
     Var(FnConfKeywdValue),
     Const(FnConfKeywdValue),
     Point(FnConfKeywdValue),
-    // Metric(FnConfKeywdValue),
 }
 ///
 /// 
@@ -57,14 +92,14 @@ impl FnConfKeywd {
             FnConfKeywd::Point(v) => v.input.clone(),
         }
     }
-    // pub fn kind(&self) -> FnConfKind {
-    //     match self {
-    //         FnConfKeywd::Fn(_) => FnConfKind::Fn,
-    //         FnConfKeywd::Var(_) => FnConfKind::Var,
-    //         FnConfKeywd::Const(_) => FnConfKind::Const,
-    //         FnConfKeywd::Point(_) => FnConfKind::Point,
-    //     }
-    // }
+    pub fn kind(&self) -> FnConfKindName {
+        match self {
+            FnConfKeywd::Fn(_) => FnConfKindName::Fn,
+            FnConfKeywd::Var(_) => FnConfKindName::Var,
+            FnConfKeywd::Const(_) => FnConfKindName::Const,
+            FnConfKeywd::Point(_) => FnConfKindName::Point,
+        }
+    }
     pub fn type_(&self) -> FnConfPointType {
         match self {
             FnConfKeywd::Fn(v) => v.type_.clone(),

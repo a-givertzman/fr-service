@@ -2,11 +2,12 @@
 
 use indexmap::IndexMap;
 use log::{trace, debug};
-use std::{fs, str::FromStr};
+use std::{fs, ops::BitOr, str::FromStr};
 
 use crate::conf::{
         fn_conf_keywd::FnConfKeywd, conf_tree::ConfTree, fn_point_config::FnPointConfig,
         fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType, point_config::point_config::PointConfig,
+        fn_conf_keywd::FnConfKindName,
     };
 
 
@@ -76,7 +77,6 @@ impl FnConfig {
                                     name: fnName,
                                     inputs: IndexMap::new(),
                                     type_: value.type_,
-                                    // points: IndexMap::new(),
                                 }        
                             )
                         },
@@ -87,7 +87,6 @@ impl FnConfig {
                                     name: value.data,
                                     inputs: Self::buildInputs(confTree, vars),
                                     type_: value.type_,
-                                    // points: IndexMap::new(),
                                 }
                             )        
                         },
@@ -97,19 +96,28 @@ impl FnConfig {
                                     name: value.data,
                                     inputs: Self::buildInputs(confTree, vars),
                                     type_: value.type_,
-                                    // points: IndexMap::new(),
                                 }
                             )
                         },
                         FnConfKeywd::Point(value) => {
-                            debug!("FnConfig.new | keyword pint: {:?}", value);
+                            debug!("FnConfig.new | Point: {:?}", value);
+                            let result = Self::getParamByKeyword(confTree, "input", FnConfKindName::Const | FnConfKindName::Fn | FnConfKindName::Var | FnConfKindName::Point);
+                            debug!("FnConfig.new | Point input: {:?}", result);
+                            let inputConf = match result {
+                                Ok(conf) => {
+                                    // debug!("FnConfig.new | Point input keyword: {:?}", keyword);
+                                    conf
+                                    // match conf.get(&keyword.input()) {
+                                    //     Some(conf) => conf,
+                                    //     None => panic!("FnConfig.new | Point.input - can't be empty in: {:?}", confTree),
+                                    // }
+                                },
+                                Err(_) => panic!("FnConfig.new | Point.input - not found in: {:?}", confTree),
+                            };
                             FnConfKind::PointConf(
                                 FnPointConfig {
-                                    conf: PointConfig::new(confTree),            //Self::buildPointConfigs(confTree, vars),
-                                    input: Box::new(FnConfig::new(&confTree.get("input").unwrap(), vars)),
-                                    // name: value.data,
-                                    // type_: value.type_,
-                                    // points: ,
+                                    conf: PointConfig::new(confTree),
+                                    input: Box::new(FnConfig::new(&inputConf, vars)),
                                 }
                             )
                         },
@@ -138,7 +146,6 @@ impl FnConfig {
                                         name: value.data,
                                         inputs: IndexMap::new(),
                                         type_: value.type_,
-                                        // points: IndexMap::new(),
                                     }
                                 )
                             },
@@ -148,7 +155,6 @@ impl FnConfig {
                                         name: value.data,
                                         inputs: IndexMap::new(),
                                         type_: value.type_,
-                                        // points: IndexMap::new(),
                                     }
                                 )
                             },
@@ -170,7 +176,6 @@ impl FnConfig {
                                     name: varName, 
                                     inputs: IndexMap::new(),
                                     type_: FnConfPointType::Unknown,
-                                    // points: IndexMap::new(),
                                 }
                             )
                         } else {
@@ -289,6 +294,30 @@ impl FnConfig {
                 panic!("FnConfig.param | parameter {:?} not fount in the {:?}", name, self.name);
             },
         }
+    }
+    ///
+    /// 
+    fn getParamByKeyword(conf: &ConfTree, input: &str, kind: u8) -> Result<(ConfTree), String> {
+        debug!("FnConfig.getParamByKeyword | conf: {:?}", conf);
+        for node in conf.subNodes().unwrap() {
+            debug!("FnConfig.getParamByKeyword | node: {:?}", node);
+            match FnConfKeywd::from_str(&node.key) {
+                Ok(keyword) => {
+                    debug!("FnConfig.getParamByKeyword | keyword: {:?}, kind: {:?}", keyword, keyword.kind());
+                    debug!("FnConfig.getParamByKeyword | keyword.kind({}) & kind({}): {:?}", (keyword.kind() as u8), kind, (keyword.kind() as u8) & kind);
+                    if ((keyword.kind() as u8) & kind) > 0 && keyword.input() == input {
+                        return Ok(node)
+                    }
+                },
+                Err(_) => {
+                    if node.key == input {
+                        return Ok(node)
+                    }
+                },
+            };
+        };
+        // Err(format!("{}.getParamByKeyword | keyword '{} {:?}' - not found", self.id, keywordPrefix, keywordKind))
+        Err(format!("FnConfig.getParamByKeyword | keyword '{}' kind: {:?} - not found", input, kind))
     }
     ///
     /// Returns list of configurations of the defined points
