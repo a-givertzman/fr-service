@@ -4,7 +4,7 @@
 mod tests {
     use log::{warn, info, debug};
     use std::{sync::Once, time::{Duration, Instant}};
-    use crate::{conf::profinet_client_config::ProfinetClientConfig, core_::{
+    use crate::{conf::profinet_client_config::profinet_client_config::ProfinetClientConfig, core_::{
         debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
         testing::test_stuff::max_test_duration::TestDuration,
     }}; 

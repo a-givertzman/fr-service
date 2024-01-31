@@ -6,7 +6,7 @@ use log::info;
 
 use crate::{
     services::{services::Services, service::Service}, 
-    conf::{profinet_client_config::ProfinetClientConfig, tcp_server_config::TcpServerConfig}, core_::point::point_type::PointType,
+    conf::profinet_client_config::profinet_client_config::ProfinetClientConfig, core_::point::point_type::PointType,
 };
 
 

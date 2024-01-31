@@ -8,12 +8,14 @@ use crate::conf::{
     point_config::point_config::PointConfig,
 };
 
+use super::profinet_device_config::ProfinetDeviceConfig;
+
 
 ///
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
 /// service ProfinetClient:
-///    cycle: 1 ms             // operating cycle time of the module
+///    cycle: 1 ms             # operating cycle time of the module
 ///    in queue in-queue:
 ///        max-length: 10000
 ///    out queue: MultiQueue.in-queue
@@ -40,7 +42,7 @@ pub struct ProfinetClientConfig {
     pub(crate) rx: String,
     pub(crate) rxMaxLength: i64,
     pub(crate) tx: String,
-    pub(crate) devices: Vec<ProfinetDeviceConfig>
+    pub(crate) devices: Vec<ProfinetDeviceConfig>,
 }
 ///
 /// 
@@ -49,7 +51,7 @@ impl ProfinetClientConfig {
     /// creates config from serde_yaml::Value of following format:
     /// ```yaml
     /// service ProfinetClient:
-    ///    cycle: 1 ms             // operating cycle time of the module
+    ///    cycle: 1 ms             # operating cycle time of the module
     ///    in queue in-queue:
     ///        max-length: 10000
     ///    out queue: MultiQueue.in-queue
@@ -93,12 +95,14 @@ impl ProfinetClientConfig {
                 debug!("{}.new | RX: {},\tmax-length: {}", selfId, rx, rxMaxLength);
                 let tx = selfConf.getOutQueue().unwrap();
                 debug!("{}.new | TX: {}", selfId, tx);
+                let devices = vec![];
                 ProfinetClientConfig {
                     name: selfName,
                     cycle,
                     rx,
                     rxMaxLength: rxMaxLength,
                     tx,
+                    devices
                 }
             },
             None => {
@@ -134,8 +138,8 @@ impl ProfinetClientConfig {
     ///
     /// Returns list of configurations of the defined points
     pub fn points(&self) -> Vec<PointConfig> {
-        self.devices.iter().fold(vec![], |mut points, (_nodeName, nodeConf)| {
-            points.extend(nodeConf.points());
+        self.devices.iter().fold(vec![], |mut points, deviceConf| {
+            points.extend(deviceConf.points());
             points
         })
     }
