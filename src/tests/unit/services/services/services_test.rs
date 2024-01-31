@@ -8,7 +8,7 @@ mod tests {
     use crate::{
         core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::max_test_duration::TestDuration}, 
         conf::task_config::TaskConfig, 
-        services::{service::Service, services::Services, task::task::Task},
+        services::{task::task::Task, services::Services},
     };
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -36,17 +36,17 @@ mod tests {
 
 
     #[test]
-    fn test_task_points() {
+    fn services_points() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
-        let selfId = "test Task.points";
+        let selfId = "test Services.points";
         println!("{}", selfId);
         let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
         testDuration.run().unwrap();
         trace!("dir: {:?}", env::current_dir());
-        let path = "./src/tests/unit/services/task/task_test_points.yaml";
+        let path = "./src/tests/unit/services/services/services_test_points.yaml";
         let config = TaskConfig::read(path);
         trace!("config: {:?}", &config);
         println!(" points: {:?}", config.points());
@@ -54,7 +54,7 @@ mod tests {
         let task = Arc::new(Mutex::new(Task::new(selfId, config, services.clone())));
         services.lock().unwrap().insert("Task", task.clone());
         let target  = 3;
-        let points = task.lock().unwrap().points();
+        let points = services.lock().unwrap().points();
         let pointsCount = points.len();
         println!("\n");
         println!(" points count: {:?}", pointsCount);
