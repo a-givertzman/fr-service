@@ -116,13 +116,13 @@ service ProfinetClient:
         max-length: 10000
     out queue: MultiQueue.in-queue
 
-    device Ied01:
+    device Ied01:                       # device will be executed in the independent thread, must have unique name
         protocol: 'profinet'
         description: 'S7-IED-01.01'
         ip: '192.168.100.243'
         rack: 0
         slot: 1
-            db db899: 
+            db db899:                   # multiple DB blocks are allowed, must have unique namewithing parent device
                 description: 'db899 | Exhibit - drive data'
                 number: 899
                 offset: 0
@@ -135,13 +135,13 @@ service ProfinetClient:
                     type: 'Real'
                     offset: 4
     
-    device Ied02:
+    device Ied02:                       # device will be executed in the independent thread, must have unique name
         protocol: 'profinet'
         description: 'S7-IED-01.01'
         ip: '192.168.100.243'
         rack: 0
         slot: 1
-            db db899: 
+            db db899:                   # multiple DB blocks are allowed, must have unique name withing parent device
                 description: 'db899 | Exhibit - drive data'
                 number: 899
                 offset: 0
