@@ -1,7 +1,13 @@
 use crate::conf::{fn_config::FnConfig, point_config::point_config::PointConfig, fn_point_config::FnPointConfig};
 
 ///
-/// The type of the Function config, incapsulating config it self
+/// The kinde of the Function config, incapsulating config it self
+///     - Fn - some function
+///     - Var - defination of the new variable
+///     - Const - constant value
+///     - Point - input from point
+///     - PointConf - [FnPointConfig] of the generated ppoint, contains point configuration and it's source
+///     - Param - simple custom parameter
 #[derive(Debug, Clone, PartialEq)]
 pub enum FnConfKind {
     Fn(FnConfig),
