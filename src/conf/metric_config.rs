@@ -6,10 +6,12 @@ use std::{fs, str::FromStr};
 
 use crate::conf::{fn_config::FnConfig, conf_tree::ConfTree, fn_conf_keywd::FnConfKeywd};
 
+use super::{fn_conf_kind::FnConfKind, point_config::point_config::PointConfig};
+
 ///
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
-/// metric sqlUpdateMetric:
+/// fn sqlUpdateMetric:
 ///     table: "TableName"
 ///     sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"
 ///     initial: 123.456
@@ -18,7 +20,7 @@ use crate::conf::{fn_config::FnConfig, conf_tree::ConfTree, fn_conf_keywd::FnCon
 ///             fn functionName:
 ///                 ...
 ///         input2:
-///             metric SqlMetric:
+///             fn SqlMetric:
 ///                 ...
 #[derive(Debug, Clone, PartialEq)]
 pub struct MetricConfig {
@@ -26,7 +28,7 @@ pub struct MetricConfig {
     pub(crate) table: String,
     pub(crate) sql: String,
     pub(crate) initial: f64,
-    pub(crate) inputs: IndexMap<String, FnConfig>,
+    pub(crate) inputs: IndexMap<String, FnConfKind>,
     pub(crate) vars: Vec<String>,
 }
 ///
@@ -35,7 +37,7 @@ impl MetricConfig {
     ///
     /// creates config from serde_yaml::Value of following format:
     /// ```yaml
-    /// metric sqlUpdateMetric:
+    /// fn sqlUpdateMetric:
     ///     table: "TableName"
     ///     sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"
     ///     initial: 123.456
@@ -44,7 +46,7 @@ impl MetricConfig {
     ///             fn functionName:
     ///                 ...
     ///         input2:
-    ///             metric SqlMetric:
+    ///             fn SqlMetric:
     ///                 ...
     pub fn new(confTree: &ConfTree, vars: &mut Vec<String>) -> MetricConfig {
         println!("\n");
@@ -122,5 +124,9 @@ impl MetricConfig {
             },
         }
     }
-
+    ///
+    /// Returns list of configurations of the defined points
+    pub fn points(&self) -> Vec<PointConfig> {
+        vec![]
+    }
 }

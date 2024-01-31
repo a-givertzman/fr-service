@@ -13,7 +13,9 @@
 
 task task1:
     cycle: 1 ms
-    recv-queue: recv-queue
+    in queue api-link:
+        max-length: 10000
+
     let var0: 
         input: const float 2.224
     # let Var1:
@@ -29,9 +31,18 @@ task task1:
     #             input1: point float '/path/Point.Name2'
     #             input2: const float 0.07
 
-    fn toApiQueue:
+    fn toMultiQueue:
+        point CraneMovement.BoomDown: 
+            type: 'Int'
+            offset: 14
+            comment: 'Индикация опускания рукояти'
+            input:
+                const float 0.05
+
+
+    fn ToApiQueue:
         queue: api-queue
-        input metric SqlMetric:
+        input fn SqlMetric:
             initial: 0.123      # начальное значение
             table: table_name
             # sql: "UPDATE {table} SET kind = '{input1.value}' WHERE id = '{input2.value}';"

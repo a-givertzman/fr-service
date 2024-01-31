@@ -40,7 +40,7 @@ fn test_metric_config_new_valid() {
     // let (initial, switches) = initEach();
     let testData = [
         // (
-        //     r#"metric SqlMetric:
+        //     r#"fn SqlMetric:
         //         table: "table_name"
         //         sql: "select * from {table}"
         //         inputs:
@@ -51,7 +51,7 @@ fn test_metric_config_new_valid() {
         //     ]) }
         // ),
         (
-            r#"metric SqlMetric:
+            r#"fn SqlMetric:
                 initial: 0.123      # начальное значение
                 table: table_name
                 sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
@@ -75,29 +75,29 @@ fn test_metric_config_new_valid() {
                 initial: 0.123, 
                 vars: vec![String::from("VarName2")],
                 inputs: IndexMap::from([
-                    (String::from("input1"), FnConfig { 
-                        fnKind: FnConfKind::Var, name: String::from("VarName2"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-                            (String::from("input"), FnConfig { 
-                                fnKind: FnConfKind::Fn, name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-                                    (String::from("initial"), FnConfig { fnKind: FnConfKind::Var, name: String::from("VarName2"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() }),
-                                    (String::from("input11"), FnConfig { 
-                                        fnKind: FnConfKind::Fn, name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-                                            (String::from("input1"), FnConfig { fnKind: FnConfKind::Const, name: String::from("someValue"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() }),
-                                            (String::from("input2"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), type_: FnConfPointType::Int, inputs: IndexMap::new() }), 
-                                            (String::from("input"), FnConfig { 
-                                                fnKind: FnConfKind::Fn, name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-                                                    (String::from("input"), FnConfig { fnKind: FnConfKind::Point, name: String::from("/path/Point.Name/"), type_: FnConfPointType::Bool, inputs: IndexMap::new() }),
+                    (String::from("input1"), FnConfKind::Var( FnConfig { 
+                        name: String::from("VarName2"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                            (String::from("input"), FnConfKind::Fn( FnConfig { 
+                                name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                    (String::from("initial"), FnConfKind::Var( FnConfig { name: String::from("VarName2"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
+                                    (String::from("input11"), FnConfKind::Fn( FnConfig { 
+                                        name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                            (String::from("input1"), FnConfKind::Const( FnConfig { name: String::from("someValue"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
+                                            (String::from("input2"), FnConfKind::Point( FnConfig { name: String::from("/path/Point.Name/"), type_: FnConfPointType::Int, inputs: IndexMap::new() } )), 
+                                            (String::from("input"), FnConfKind::Fn( FnConfig { 
+                                                name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                                    (String::from("input"), FnConfKind::Point( FnConfig { name: String::from("/path/Point.Name/"), type_: FnConfPointType::Bool, inputs: IndexMap::new() } )),
                                                 ])
-                                            }), 
-                                        ]) 
-                                    }),
-                                ]) 
-                            })
-                        ]) 
-                    }), 
-                    (String::from("input2"), FnConfig { fnKind: FnConfKind::Const, name: String::from("1"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() })
+                                            } )), 
+                                        ]),
+                                    } )),
+                                ]), 
+                            } )),
+                        ]),
+                    } )), 
+                    (String::from("input2"), FnConfKind::Const( FnConfig { name: String::from("1"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
                 ]), 
-            }
+            },
         ),
     ];
     for (value, target) in testData {

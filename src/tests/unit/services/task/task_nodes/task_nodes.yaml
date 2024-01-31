@@ -12,9 +12,9 @@ task task1:
     let Var3:
         input: point int '/path/Point.Name3'
 
-    fn toApiQueue:
+    fn ToApiQueue:
         queue: ApiClient.queue
-        input metric SqlMetric:
+        input fn SqlMetric:
             initial: 0.123      # начальное значение
             table: table_name
             sql: "{input.value}, {input1.value}, {input2.value}, {input3.value}"

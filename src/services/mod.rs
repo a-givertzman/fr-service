@@ -4,7 +4,7 @@ pub mod tcp_client;
 
 pub mod profinet_client;
 
-pub mod queues;
+pub mod queue;
 
 pub mod task;
 

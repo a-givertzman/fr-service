@@ -25,16 +25,15 @@ pub struct FnPulseCount {
     initial: i64,
 }
 ///
-/// 
+///
 impl FnPulseCount {
     ///
     /// Creates new instance of the FnPulseCount
     #[allow(dead_code)]
-    pub fn new(id: impl Into<String>, initial: i64, input: FnInOutRef) -> Self {
+    pub fn new(parent: impl Into<String>, initial: i64, input: FnInOutRef) -> Self {
         COUNT.fetch_add(1, Ordering::SeqCst);
-        let id = "FnPulseCount";
         Self { 
-            id: format!("{}{}", id, COUNT.load(Ordering::Relaxed)),
+            id: format!("{}/FnPulseCount{}", parent, COUNT.load(Ordering::Relaxed)),
             kind:FnKind::Fn,
             input,
             state: SwitchState::new(
@@ -81,23 +80,23 @@ impl FnOut for FnPulseCount {
     }
     ///
     fn out(&mut self) -> PointType {
-        // trace!("FnPulseCount.out | input: {:?}", self.input.print());
+        // trace!("{}.out | input: {:?}", self.id, self.input.print());
         let point = self.input.borrow_mut().out();
         let value = match &point {
             PointType::Bool(point) => point.value.0,
             PointType::Int(point) => point.value > 0,
             PointType::Float(point) => point.value > 0.0,
-            _ => panic!("FnPulseCount.out | {:?} type is not supported: {:?}", point.typeOf(), point),
+            _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, point.typeOf(), point),
         };
         self.state.add(value);
         let state = self.state.state();
-        trace!("FnPulseCount.out | input.out: {:?}   | state: {:?}", &value, state);
+        trace!("{}.out | input.out: {:?}   | state: {:?}", self.id, &value, state);
         if state {
             self.count += 1;
         }
         PointType::Int(
             Point {
-                name: String::from(format!("{}.out", self.id)),
+                name: format!("{}.out", self.id),
                 value: self.count,
                 status: point.status(),
                 timestamp: point.timestamp(),
@@ -116,6 +115,4 @@ impl FnInOut for FnPulseCount {}
 ///
 /// 
 static COUNT: AtomicUsize = AtomicUsize::new(0);
-pub fn resetCount() {
-    COUNT.store(0, Ordering::SeqCst)
-}
+

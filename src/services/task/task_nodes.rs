@@ -8,7 +8,7 @@ use log::{debug, trace};
 use crate::{
     core_::{types::fn_in_out_ref::FnInOutRef, point::{point_type::PointType, point_tx_id::PointTxId}}, 
     conf::{task_config::TaskConfig, fn_conf_kind::FnConfKind}, 
-    services::{task::nested_function::{metric_builder::MetricBuilder, nested_fn::NestedFn, fn_kind::FnKind}, services::Services},
+    services::{task::nested_function::{nested_fn::NestedFn, fn_kind::FnKind}, services::Services},
 };
 
 use super::{task_node_vars::TaskNodeVars, task_eval_node::TaskEvalNode};
@@ -35,7 +35,7 @@ use super::{task_node_vars::TaskNodeVars, task_eval_node::TaskEvalNode};
 ///   ```
 #[derive(Debug)]
 pub struct TaskNodes {
-    name: String,
+    id: String,
     inputs: IndexMap<String, TaskEvalNode>,
     vars: IndexMap<String, FnInOutRef>,
     newNodeVars: Option<TaskNodeVars>,
@@ -45,9 +45,9 @@ pub struct TaskNodes {
 impl TaskNodes {
     ///
     /// Creates new empty instance 
-    pub fn new(name: impl Into<String>) ->Self {
+    pub fn new(id: impl Into<String>) ->Self {
         Self {
-            name: name.into(),
+            id: id.into(),
             inputs: IndexMap::new(),
             vars: IndexMap::new(),
             newNodeVars: None,
@@ -86,7 +86,7 @@ impl TaskNodes {
                     trace!("TaskNodes.addInput | adding input {:?}: {:?}", &name, &input);
                     self.inputs.insert(
                         name.clone().into(), 
-                        TaskEvalNode::new(self.name.clone(), name.clone(), input),
+                        TaskEvalNode::new(self.id.clone(), name.clone(), input),
                     );
                 }
             },
@@ -171,27 +171,27 @@ impl TaskNodes {
     pub fn buildNodes(&mut self, parent: &str, conf: TaskConfig, services: Arc<Mutex<Services>>) {
         let txId = PointTxId::fromStr(parent);
         for (_nodeName, mut nodeConf) in conf.nodes {
-            let nodeName = nodeConf.name.clone();
-            debug!("TaskNodes.nodes | node: {:?}", &nodeConf.name);
+            let nodeName = nodeConf.name();
+            debug!("TaskNodes.buildNodes | node: {:?}", nodeName);
             self.newNodeVars = Some(TaskNodeVars::new());
-            let out = match nodeConf.fnKind {
-                FnConfKind::Metric => {
-                    MetricBuilder::new(parent, &mut nodeConf, self, services.clone())
-                },
-                FnConfKind::Fn => {
+            let out = match nodeConf {
+                FnConfKind::Fn(_) => {
                     NestedFn::new(parent, txId, &mut nodeConf, self, services.clone())
                 },
-                FnConfKind::Var => {
+                FnConfKind::Var(_) => {
                     NestedFn::new(parent, txId, &mut nodeConf, self, services.clone())
                 },
-                FnConfKind::Const => {
-                    panic!("TaskNodes.buildNodes | Const is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
+                FnConfKind::Const(conf) => {
+                    panic!("TaskNodes.buildNodes | Const is not supported in the root of the Task, config: {:?}: {:?}", nodeName, conf);
                 },
-                FnConfKind::Point => {
-                    panic!("TaskNodes.buildNodes | Point is not supported in the root of the Task, config: {:?}: {:?}", nodeName, &nodeConf);
+                FnConfKind::Point(conf) => {
+                    panic!("TaskNodes.buildNodes | Point is not supported in the root of the Task, config: {:?}: {:?}", nodeName, conf);
                 },
-                FnConfKind::Param => {
-                    panic!("TaskNodes.buildNodes | custom parameter: {:?}: {:?}", nodeName, &nodeConf);
+                FnConfKind::PointConf(conf) => {
+                    panic!("TaskNodes.buildNodes | PointConf is not supported in the root of the Task, config: {:?}: {:?}", nodeName, conf);
+                },
+                FnConfKind::Param(conf) => {
+                    panic!("TaskNodes.buildNodes | Param (custom parameter) is not supported in the root of the Task, config: {:?}: {:?} - ", nodeName, conf);
                 },
             };
             self.finishNewNode(out);
@@ -200,7 +200,7 @@ impl TaskNodes {
     ///
     /// 
     pub fn eval(&mut self, point: PointType) {
-        let selfName = self.name.clone();
+        let selfName = self.id.clone();
         let pointName = point.name();
         match self.getEvalNode(&pointName) {
             Some(evalNode) => {

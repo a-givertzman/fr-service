@@ -1,6 +1,6 @@
 use std::{time::{Duration, Instant}, thread};
 
-use log::{debug, trace};
+use log::trace;
 ///
 /// ServiceCycle - provides exact time interval in ms / us (future posible implementation)
 ///  - creates with Duration of interval

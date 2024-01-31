@@ -1,5 +1,7 @@
 #![allow(non_snake_case)]
 
+use std::sync::atomic::{Ordering, AtomicUsize};
+
 use log::trace;
 
 use crate::core_::{point::point_type::PointType, types::fn_in_out_ref::FnInOutRef};
@@ -24,9 +26,10 @@ pub struct FnVar {
 ///
 /// 
 impl FnVar {
-    pub fn new(id: impl Into<String>, input: FnInOutRef) -> Self {
+    pub fn new(parent: impl Into<String>, input: FnInOutRef) -> Self {
+        COUNT.fetch_add(1, Ordering::SeqCst);
         Self {
-            id: id.into(), 
+            id: format!("{}/FnTimer{}", parent.into(), COUNT.load(Ordering::Relaxed)),
             kind: FnKind::Var,
             input: input,
             result: None, 
@@ -82,3 +85,6 @@ impl FnOut for FnVar {
 ///
 /// 
 impl FnInOut for FnVar {}
+///
+/// 
+static COUNT: AtomicUsize = AtomicUsize::new(0);

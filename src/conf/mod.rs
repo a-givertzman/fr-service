@@ -25,3 +25,5 @@ pub mod service_config;
 pub mod tcp_server_config;
 
 pub mod point_config;
+
+pub mod fn_point_config;

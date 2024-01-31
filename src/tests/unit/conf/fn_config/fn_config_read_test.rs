@@ -37,34 +37,34 @@ fn test_fn_config_read_valid() {
     initOnce();
     initEach();
     info!("test_fn_config_read_valid");
-    let target = FnConfig { 
-        fnKind: FnConfKind::Var, name: "VarName2".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-            ("input".to_string(), FnConfig { 
-                fnKind: FnConfKind::Fn, name: "functionName".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-                    ("initial".to_string(), FnConfig { 
-                        fnKind: FnConfKind::Var, name: "VarName2".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::new() 
-                    }),
-                    ("input".to_string(), FnConfig { 
-                        fnKind: FnConfKind::Fn, name: "functionName".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-                            ("input".to_string(), FnConfig { 
-                                fnKind: FnConfKind::Fn, name: "functionName".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-                                    ("input".to_string(), FnConfig { 
-                                        fnKind: FnConfKind::Point, name: "/path/Point.Name/".to_string(), type_: FnConfPointType::Bool, inputs: IndexMap::from([]) 
-                                    }),
-                                ]) 
-                            }),
-                            ("input2".to_string(), FnConfig { 
-                                fnKind: FnConfKind::Point, name: "/path/Point.Name/".to_string(), type_: FnConfPointType::Float, inputs: IndexMap::from([]) 
-                            }),
-                            ("input1".to_string(), FnConfig { 
-                                fnKind: FnConfKind::Const, name: "someValue".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([]) 
-                            }),
-                        ]) 
-                    }),
-                ]) 
-            }),
-        ]) 
-    };
+    let target = FnConfKind::Var( FnConfig { 
+        name: "VarName2".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+            ("input".to_string(), FnConfKind::Fn( FnConfig { 
+                name: "functionName".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                    ("initial".to_string(), FnConfKind::Var( FnConfig { 
+                        name: "VarName2".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::new() 
+                    } )),
+                    ("input".to_string(), FnConfKind::Fn( FnConfig { 
+                        name: "functionName".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                            ("input".to_string(), FnConfKind::Fn( FnConfig { 
+                                name: "functionName".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                    ("input".to_string(), FnConfKind::Point( FnConfig { 
+                                        name: "/path/Point.Name/".to_string(), type_: FnConfPointType::Bool, inputs: IndexMap::from([]) 
+                                    } )),
+                                ]),
+                            } )),
+                            ("input2".to_string(), FnConfKind::Point( FnConfig { 
+                                name: "/path/Point.Name/".to_string(), type_: FnConfPointType::Float, inputs: IndexMap::from([]) 
+                            } )),
+                            ("input1".to_string(), FnConfKind::Const( FnConfig { 
+                                name: "someValue".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([]) 
+                            } )),
+                        ]),
+                    } )),
+                ]),
+            } )),
+        ]),
+    } );
     
     // let (initial, switches) = initEach();
     trace!("dir: {:?}", env::current_dir());

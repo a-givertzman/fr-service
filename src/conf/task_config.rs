@@ -9,6 +9,8 @@ use crate::conf::{
     point_config::point_config::PointConfig,
 };
 
+use super::fn_conf_kind::FnConfKind;
+
 
 ///
 /// creates config from serde_yaml::Value of following format:
@@ -16,7 +18,7 @@ use crate::conf::{
 /// task operatingMetric:
 ///     cycle: 100 ms
 ///     metrics:
-///         metric sqlUpdateMetric:
+///         fn sqlUpdateMetric:
 ///             table: "TableName"
 ///             sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"
 ///             initial: 123.456
@@ -25,7 +27,7 @@ use crate::conf::{
 ///                     fn functionName:
 ///                         ...
 ///                 input2:
-///                     metric SqlMetric:
+///                     fn SqlMetric:
 ///                         ...
 #[derive(Debug, PartialEq, Clone)]
 pub struct TaskConfig {
@@ -33,7 +35,7 @@ pub struct TaskConfig {
     pub(crate) cycle: Option<Duration>,
     pub(crate) rx: String,
     pub(crate) rxMaxLength: i64,
-    pub(crate) nodes: IndexMap<String, FnConfig>,
+    pub(crate) nodes: IndexMap<String, FnConfKind>,
     pub(crate) vars: Vec<String>,
 }
 ///
@@ -44,7 +46,7 @@ impl TaskConfig {
     /// ```yaml
     /// task taskName:
     ///     cycle: 100  // ms
-    ///     metric sqlUpdateMetric:
+    ///     fn sqlUpdateMetric:
     ///         table: "TableName"
     ///         sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"
     ///         initial: 123.456
@@ -53,7 +55,7 @@ impl TaskConfig {
     ///                 fn functionName:
     ///                     ...
     ///             input2:
-    ///                 metric SqlMetric:
+    ///                 fn SqlMetric:
     ///                     ...
     pub fn new(confTree: &mut ConfTree) -> TaskConfig {
         println!("\n");
@@ -84,7 +86,7 @@ impl TaskConfig {
                     nodeIndex += 1;
                     let nodeConf = FnConfig::new(&nodeConf, &mut vars);
                     nodes.insert(
-                        format!("{}-{}", nodeConf.name, nodeIndex),
+                        format!("{}-{}", nodeConf.name(), nodeIndex),
                         nodeConf,
                     );
                 }

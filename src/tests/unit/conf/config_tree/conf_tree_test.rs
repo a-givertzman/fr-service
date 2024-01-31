@@ -127,7 +127,7 @@ fn test_config_tree_valid() {
         ),
         // (
         //     r#"
-        //         metric SqlMetric:
+        //         fn SqlMetric:
         //             initial: const 0
         //             sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
         //             inputs:

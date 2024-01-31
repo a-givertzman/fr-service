@@ -1,12 +1,15 @@
 #![allow(non_snake_case)]
 
-use std::sync::atomic::{AtomicUsize, Ordering};
-
 use log::trace;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use crate::{
+    core_::{point::point_type::PointType, types::{type_of::DebugTypeOf, fn_in_out_ref::FnInOutRef}},
+    services::task::nested_function::{
+        fn_::{FnInOut, FnIn, FnOut},
+        fn_kind::FnKind,
+    },
+};
 
-use crate::core_::{point::point_type::PointType, types::{type_of::DebugTypeOf, fn_in_out_ref::FnInOutRef}};
-
-use super::{fn_::{FnInOut, FnIn, FnOut}, fn_kind::FnKind};
 
 ///
 /// Function do Add of input1 and input2
@@ -23,10 +26,10 @@ impl FnAdd {
     ///
     /// Creates new instance of the FnCount
     #[allow(dead_code)]
-    pub fn new(id: impl Into<String>, input1: FnInOutRef, input2: FnInOutRef) -> Self {
+    pub fn new(parent: impl Into<String>, input1: FnInOutRef, input2: FnInOutRef) -> Self {
         COUNT.fetch_add(1, Ordering::SeqCst);
         Self { 
-            id: format!("{}{}", id.into(), COUNT.load(Ordering::Relaxed)),
+            id: format!("{}/FnAdd{}", parent.into(), COUNT.load(Ordering::Relaxed)),
             kind: FnKind::Fn,
             input1,
             input2,
@@ -58,9 +61,9 @@ impl FnOut for FnAdd {
     fn out(&mut self) -> PointType {
         // TODO Add overflow check
         let value1 = self.input1.borrow_mut().out();
-        trace!("FnAdd({}).out | value1: {:?}", self.id, &value1);
+        trace!("{}.out | value1: {:?}", self.id, &value1);
         let value2 = self.input2.borrow_mut().out();
-        trace!("FnAdd({}).out | value2: {:?}", self.id, &value2);
+        trace!("{}.out | value2: {:?}", self.id, &value2);
         let out = match value1 {
             PointType::Bool(value1) => {
                 PointType::Bool(value1 + value2.asBool())
@@ -71,15 +74,16 @@ impl FnOut for FnAdd {
             PointType::Float(value1) => {
                 PointType::Float(value1 + value2.asFloat())
             },
-            _ => panic!("FnCount.out | {:?} type is not supported: {:?}", value1.printTypeOf(), value1),
+            _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, value1.printTypeOf(), value1),
         };
-        trace!("FnAdd({}).out | out: {:?}", self.id, &out);
+        trace!("{}.out | out: {:?}", self.id, &out);
         out
     }
     //
     //
     fn reset(&mut self) {
-        todo!()
+        self.input1.borrow_mut().reset();
+        self.input2.borrow_mut().reset();
     }
 }
 ///
@@ -88,29 +92,12 @@ impl FnInOut for FnAdd {}
 ///
 /// 
 static COUNT: AtomicUsize = AtomicUsize::new(0);
-pub fn resetCount() {
-    COUNT.store(0, Ordering::SeqCst)
-}
 
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-pub struct FnMul;
-pub struct FnOr;
-pub struct FnCompare;
+// pub struct FnMul;
+// pub struct FnOr;
+// pub struct FnCompare;

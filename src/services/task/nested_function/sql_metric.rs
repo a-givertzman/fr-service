@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::{collections::HashMap, sync::{Arc, Mutex}};
+use std::{collections::HashMap, sync::{Arc, Mutex, atomic::{AtomicUsize, Ordering}}};
 
 use indexmap::IndexMap;
 use log::{debug, trace};
@@ -19,7 +19,24 @@ use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn, fn_kind::FnKind};
 
 
 ///
-/// Counts number of raised fronts of boolean input
+/// Function | SqlMetric
+///     - values received from the [input]s puts into the target sql query
+///     - sql query buit by replacing markers with current values:
+///         - table = 'point_values'
+///         - input1.name = 'test-point'
+///         - input1.value = 123.456
+///         - inpur1.timestamp = '20'
+///         - input1.status = 
+///         - "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    =>  UPDATE table SET kind = input1 WHERE id = '{input2}';
+/// ```
+/// fn SqlMetric:
+///     initial: 0.123      # начальное значение
+///     table: SelectMetric_test_table_name
+///     sql: "UPDATE {table} SET value = '{input1}' WHERE id = '{input2}';"
+///     input1 point int '/path/Point.Name'
+///     input2: const int 11
+///     
+/// ```
 #[derive(Debug)]
 pub struct SqlMetric {
     id: String,
@@ -37,7 +54,8 @@ impl SqlMetric {
     //
     //
     pub fn new(parent: &str, conf: &mut FnConfig, taskNodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> SqlMetric {
-        let selfId = format!("{}/{}", parent, conf.name.clone());
+        COUNT.fetch_add(1, Ordering::SeqCst);
+        let selfId = format!("{}/SqlMetric{}", parent, COUNT.load(Ordering::Relaxed));
         let txId = PointTxId::fromStr(&selfId);
         let mut inputs = IndexMap::new();
         let inputConfs = conf.inputs.clone();
@@ -50,10 +68,6 @@ impl SqlMetric {
             };
             !delete
         });
-        // let v: Vec<&String> = inputConfNames.collect();
-        // inputConfs.remove("initial");
-        // inputConfs.remove("table");
-        // inputConfs.remove("sql");
         for name in inputConfNames {
             debug!("{}.new | input name: {:?}", selfId, name);
             let inputConf = conf.inputConf(&name);
@@ -64,8 +78,8 @@ impl SqlMetric {
         }
         let id = conf.name.clone();
         // let initial = conf.param("initial").name.parse().unwrap();
-        let table = conf.param("table").name.clone();
-        let mut sql = Format::new(&conf.param("sql").name);
+        let table = conf.param("table").name();
+        let mut sql = Format::new(&conf.param("sql").name());
         sql.insert("id", id.clone().toPoint(txId, ""));
         sql.insert("table", table.clone().toPoint(txId, ""));
         sql.prepare();
@@ -143,3 +157,6 @@ impl FnOut for SqlMetric {
 ///
 /// 
 impl FnInOut for SqlMetric {}
+///
+/// 
+pub static COUNT: AtomicUsize = AtomicUsize::new(0);

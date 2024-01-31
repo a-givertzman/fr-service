@@ -28,11 +28,10 @@ impl FnCount {
     ///
     /// Creates new instance of the FnCount
     #[allow(dead_code)]
-    pub fn new(id: impl Into<String>, initial: f64, input: FnInOutRef) -> Self {
+    pub fn new(parent: impl Into<String>, initial: f64, input: FnInOutRef) -> Self {
         COUNT.fetch_add(1, Ordering::SeqCst);
-        let id = "FnCount";
         Self { 
-            id: format!("{}{}", id, COUNT.load(Ordering::Relaxed)),
+            id: format!("{}/FnCount{}", parent.into(), COUNT.load(Ordering::Relaxed)),
             kind:FnKind::Fn,
             input,
             count: initial.clone(),
@@ -60,20 +59,20 @@ impl FnOut for FnCount {
     }
     ///
     fn out(&mut self) -> PointType {
-        // trace!("FnCount.out | input: {:?}", self.input.print());
+        // trace!("{}.out | input: {:?}", self.id, self.input.print());
         let point = self.input.borrow_mut().out();
         let value = match &point {
             PointType::Bool(point) => if point.value.0 {1.0} else {0.0},
             PointType::Int(point) => point.value as f64,
             PointType::Float(point) => point.value,
-            _ => panic!("FnCount.out | {:?} type is not supported: {:?}", point.printTypeOf(), point),
+            _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id,  point.printTypeOf(), point),
         };
         self.count += value;
-        trace!("FnCount.out | input.out: {:?}   | state: {:?}", &value, self.count);
+        trace!("{}.out | input.out: {:?}   | state: {:?}", self.id, &value, self.count);
         PointType::Float(
             Point {
                 txId: *point.txId(),
-                name: String::from(format!("{}.out", self.id)),
+                name: format!("{}.out", self.id),
                 value: self.count,
                 status: point.status(),
                 timestamp: point.timestamp(),
@@ -90,7 +89,4 @@ impl FnOut for FnCount {
 impl FnInOut for FnCount {}
 ///
 ///
-static COUNT: AtomicUsize = AtomicUsize::new(0);
-pub fn resetCount() {
-    COUNT.store(0, Ordering::SeqCst)
-}
+pub static COUNT: AtomicUsize = AtomicUsize::new(0);
