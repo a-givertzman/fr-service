@@ -44,7 +44,7 @@ mod tests {
         let path = "./src/tests/unit/services/profinet_client/profinet_client.yaml";
         let config = ProfinetClientConfig::read(path);
         debug!("config: {:?}", &config);
-        debug!("config points: {:?}", &config);
+        debug!("config points:");
         for point in config.points() {
             println!("\t {:?}", point);
         }
