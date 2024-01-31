@@ -187,6 +187,9 @@ impl TaskNodes {
                 FnConfKind::Point(conf) => {
                     panic!("TaskNodes.buildNodes | Point is not supported in the root of the Task, config: {:?}: {:?}", nodeName, conf);
                 },
+                FnConfKind::PointConf(conf) => {
+                    panic!("TaskNodes.buildNodes | PointConf is not supported in the root of the Task, config: {:?}: {:?}", nodeName, conf);
+                },
                 FnConfKind::Param(conf) => {
                     panic!("TaskNodes.buildNodes | Param (custom parameter) is not supported in the root of the Task, config: {:?}: {:?} - ", nodeName, conf);
                 },

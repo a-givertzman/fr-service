@@ -4,9 +4,10 @@ use indexmap::IndexMap;
 use log::{trace, debug};
 use std::{fs, str::FromStr};
 
-use crate::{conf::fn_conf_keywd::FnConfKeywd, conf::conf_tree::ConfTree};
-
-use super::{fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType, point_config::point_config::PointConfig};
+use crate::conf::{
+        fn_conf_keywd::FnConfKeywd, conf_tree::ConfTree, fn_point_config::FnPointConfig,
+        fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType, point_config::point_config::PointConfig,
+    };
 
 
 // enum ValueType<'a> {
@@ -32,6 +33,7 @@ pub struct FnConfig {
     pub name: String,
     pub inputs: IndexMap<String, FnConfKind>,
     pub type_: FnConfPointType,
+    // pub points: IndexMap<String, FnPointConfig>,
 }
 ///
 /// 
@@ -76,6 +78,7 @@ impl FnConfig {
                                     name: fnName,
                                     inputs: IndexMap::new(),
                                     type_: value.type_,
+                                    // points: IndexMap::new(),
                                 }        
                             )
                         },
@@ -86,6 +89,7 @@ impl FnConfig {
                                     name: value.data,
                                     inputs: Self::buildInputs(confTree, vars),
                                     type_: value.type_,
+                                    // points: IndexMap::new(),
                                 }
                             )        
                         },
@@ -95,15 +99,19 @@ impl FnConfig {
                                     name: value.data,
                                     inputs: Self::buildInputs(confTree, vars),
                                     type_: value.type_,
+                                    // points: IndexMap::new(),
                                 }
                             )
                         },
                         FnConfKeywd::Point(value) => {
-                            FnConfKind::Point(
-                                FnConfig {
-                                    name: value.data,
-                                    inputs: Self::buildInputs(confTree, vars),
-                                    type_: value.type_,
+                            debug!("FnConfig.new | keyword pint: {:?}", value);
+                            FnConfKind::PointConf(
+                                FnPointConfig {
+                                    conf: PointConfig::new(confTree),            //Self::buildPointConfigs(confTree, vars),
+                                    input: Box::new(FnConfig::new(&confTree.get("input").unwrap(), vars)),
+                                    // name: value.data,
+                                    // type_: value.type_,
+                                    // points: ,
                                 }
                             )
                         },
@@ -132,6 +140,7 @@ impl FnConfig {
                                         name: value.data,
                                         inputs: IndexMap::new(),
                                         type_: value.type_,
+                                        // points: IndexMap::new(),
                                     }
                                 )
                             },
@@ -141,6 +150,7 @@ impl FnConfig {
                                         name: value.data,
                                         inputs: IndexMap::new(),
                                         type_: value.type_,
+                                        // points: IndexMap::new(),
                                     }
                                 )
                             },
@@ -162,6 +172,7 @@ impl FnConfig {
                                     name: varName, 
                                     inputs: IndexMap::new(),
                                     type_: FnConfPointType::Unknown,
+                                    // points: IndexMap::new(),
                                 }
                             )
                         } else {
@@ -198,11 +209,6 @@ impl FnConfig {
                 trace!("FnConfig.buildInputs | sub nodes - found");
                 for subNode in subNodes {
                     trace!("FnConfig.buildInputs | sub node: {:?}", subNode);
-                    // inputs.insert(
-                    //     (&subNode).key.clone(), 
-                    //     FnConfig::new(&subNode, vars),
-                    // );
-
                     match FnConfKeywd::from_str(subNode.key.as_str()) {
                         Ok(keyword) => {
                             trace!("FnConfig.buildInputs | sub node KEYWORD parsed: {:?}", keyword);
@@ -210,13 +216,6 @@ impl FnConfig {
                                 inputs.insert(
                                     keyword.input(),
                                     FnConfig::new(&subNode, vars),
-
-                                    // FnConfig {
-                                    //     fnKind: keyword.kind(), 
-                                    //     name: keyword.data(), 
-                                    //     inputs: Self::buildInputs(&subNode, vars),
-                                    //     type_: keyword.type_(),
-                                    // },
                                 );
                             }
                         },
@@ -236,7 +235,6 @@ impl FnConfig {
                     (&confTree).key.clone(), 
                     FnConfig::new(&confTree, vars),
                 );
-                // panic!("FnConfig.buildInputs | sub node not found in confTree: {:?}", confTree);
             },
         }
         inputs

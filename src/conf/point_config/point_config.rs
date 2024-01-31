@@ -1,13 +1,12 @@
 #![allow(non_snake_case)]
 
-use std::collections::HashMap;
+use std::{collections::HashMap, str::FromStr};
 
 use log::{trace, debug};
 use serde::{Serialize, Deserialize};
 
 use crate::conf::{
-    conf_tree::ConfTree,
-    point_config::{
+    conf_tree::ConfTree, fn_conf_keywd::FnConfKeywd, point_config::{
         point_config_type::PointConfigType,
         point_config_address::PointConfigAddress,
         point_config_filters::PointConfigFilters,
@@ -27,7 +26,7 @@ pub struct PointConfig {
     pub history: Option<u8>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub alarm: Option<u8>,
-    pub address: PointConfigAddress,
+    pub address: Option<PointConfigAddress>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filters: Option<PointConfigFilters>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -50,9 +49,13 @@ impl PointConfig {
     ///     comment: Test Point 
     pub fn new(confTree: &ConfTree) -> PointConfig {
         println!("\n");
-        trace!("MetricConfig.new | confTree: {:?}", confTree);
+        debug!("PointConfig.new | confTree: {:?}", confTree);
         let mut pc: PointConfig = serde_yaml::from_value(confTree.conf.clone()).unwrap();
-        pc.name = confTree.key.clone();
+        let keyword = FnConfKeywd::from_str(&confTree.key);
+        pc.name = match keyword {
+            Ok(keyword) => keyword.data(),
+            Err(_) => confTree.key.clone(),
+        };
         pc
     }    
     ///
