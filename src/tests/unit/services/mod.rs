@@ -8,4 +8,4 @@ pub mod multi_queue;
 
 pub mod tcp_server;
 
-pub mod services_test;
+pub mod services;
