@@ -129,7 +129,7 @@ task CoreTask:
     in queue api-link:
         max-length: 10000
 
-    fn ToMultiQueue:            # values will be produced as regular Points to the MultiQueue
+    fn ToMultiQueue:            # points will be produced as regular Points to the MultiQueue
         point CraneMovement.BoomDown:           # /AppName/CoreTask/CraneMovement.BoomDown
             type: 'Int'
             offset: 14
