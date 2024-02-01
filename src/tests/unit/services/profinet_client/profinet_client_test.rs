@@ -49,7 +49,7 @@ mod tests {
             PointConfig { name: String::from("Drive.Speed"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
             PointConfig { name: String::from("Drive.OutputVoltage"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
             PointConfig { name: String::from("Drive.DCVoltage"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: String::from("Drive.Current"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: String::from("Drive.Current"), _type: PointConfigType::Float, history: Some(1), alarm: None, address: None, filters: None, comment: None },
             PointConfig { name: String::from("Drive.Torque"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
             PointConfig { name: String::from("Drive.positionFromMru"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
             PointConfig { name: String::from("Drive.positionFromHoist"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
@@ -57,12 +57,17 @@ mod tests {
             PointConfig { name: String::from("ChargeIn.On"), _type: PointConfigType::Bool, history: None, alarm: None, address: None, filters: None, comment: None },
             PointConfig { name: String::from("ChargeOut.On"), _type: PointConfigType::Bool, history: None, alarm: None, address: None, filters: None, comment: None },
         ];
-        for point in config.points() {
+        let configPoints = config.points();
+        for point in &configPoints {
             println!("\t {:?}", point);
-            let contains = targetPoints.iter().any(|p| {
-                p.name == point.name
+        }
+        for target in &targetPoints {
+            let result = configPoints.iter().find(|point| {
+                point.name == target.name
             });
-            assert!(contains == true, "\nresult: {:?}\ntarget: {:?}", contains, true);
+            assert!(result.is_some(), "result points does not contains '{}'", target.name);
+            let result = result.unwrap();
+            assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
         let result = config.points().len();
         let target = targetPoints.len();
