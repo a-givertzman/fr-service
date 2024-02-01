@@ -109,12 +109,12 @@ service CmaClient:
     out queue: MultiQueue.in-queue
 
 service ProfinetClient:
-    cycle: 1 ms             # operating cycle time of the module
     in queue in-queue:
         max-length: 10000
     out queue: MultiQueue.in-queue
 
     device Ied01:                       # device will be executed in the independent thread, must have unique name
+        cycle: 50 ms                    # operating cycle time of the device
         protocol: 'profinet'
         description: 'S7-IED-01.01'
         ip: '192.168.100.243'
@@ -134,6 +134,7 @@ service ProfinetClient:
                     offset: 4
     
     device Ied02:                       # device will be executed in the independent thread, must have unique name
+        cycle: 100 ms                   # operating cycle time of the device
         protocol: 'profinet'
         description: 'S7-IED-01.01'
         ip: '192.168.100.243'
