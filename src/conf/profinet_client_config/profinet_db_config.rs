@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 
 use log::{debug, trace};
-use std::time::Duration;
-use crate::conf::{conf_tree::ConfTree, point_config::point_config::PointConfig, service_config::ServiceConfig};
+use std::{str::FromStr, time::Duration};
+use crate::conf::{conf_tree::ConfTree, fn_conf_keywd::{FnConfKeywd, FnConfKindName}, point_config::point_config::PointConfig, service_config::ServiceConfig};
 
 ///
 /// 
@@ -24,11 +24,6 @@ impl ProfinetDbConfig {
     pub fn new(name: &str, confTree: &mut ConfTree) -> Self {
         // println!("\n");
         trace!("ProfinetDeviceConfig.new | confTree: {:?}", confTree);
-        // self conf from first sub node
-        //  - if additional sub nodes presents hit warning, FnConf must have single item
-        // if confTree.count() > 1 {
-        //     error!("ProfinetDeviceConfig.new | Device conf must have single item, additional items was ignored: {:?}", confTree)
-        // };
         let selfConf = confTree.clone();
         let selfId = format!("ProfinetDeviceConfig({})", selfConf.key);
         trace!("{}.new | MAPPING VALUE", selfId);
@@ -38,15 +33,30 @@ impl ProfinetDbConfig {
         debug!("{}.new | name: {:?}", selfId, selfName);
         let cycle = selfConf.getDuration("cycle");
         debug!("{}.new | cycle: {:?}", selfId, cycle);
-        let description = selfConf.getParamValue("description").unwrap().as_str().unwrap().to_string();
+        let description = selfConf.getParamValue("description").unwrap_or(serde_yaml::Value::String(String::new())).as_str().unwrap().to_string();
         debug!("{}.new | description: {:?}", selfId, description);
         let number = selfConf.getParamValue("number").unwrap().as_u64().unwrap();
-        debug!("{}.new | ip: {:?}", selfId, number);
+        debug!("{}.new | number: {:?}", selfId, number);
         let offset = selfConf.getParamValue("offset").unwrap().as_u64().unwrap();
-        debug!("{}.new | rack: {:?}", selfId, offset);
+        debug!("{}.new | offset: {:?}", selfId, offset);
         let size = selfConf.getParamValue("size").unwrap().as_u64().unwrap();
-        debug!("{}.new | slot: {:?}", selfId, size);
-        let points = vec![];
+        debug!("{}.new | size: {:?}", selfId, size);
+        let mut points = vec![];
+        for key in &selfConf.keys {
+            let keyword = FnConfKeywd::from_str(&confTree.key).unwrap();
+            if keyword.kind() == FnConfKindName::Point {
+                let pointName = keyword.data();
+                let deviceConf = selfConf.get(key).unwrap();
+                debug!("{}.new | DB '{}'", selfId, pointName);
+                trace!("{}.new | DB '{}'   |   conf: {:?}", selfId, pointName, deviceConf);
+                let nodeConf = PointConfig::new(&deviceConf);
+                points.push(
+                    nodeConf,
+                );
+            } else {
+                debug!("{}.new | device expected, but found {:?}", selfId, keyword);
+            }
+        }
         Self {
             name: selfName.to_string(),
             description,
@@ -56,13 +66,6 @@ impl ProfinetDbConfig {
             cycle,
             points,
         }
-        // match confTree.next() {
-        //     Some(selfConf) => {
-        //     },
-        //     None => {
-        //         panic!("ProfinetDeviceConfig.new | Configuration is empty")
-        //     },
-        // }
     }    
     ///
     /// Returns list of configurations of the defined points

@@ -108,53 +108,67 @@ service CmaClient:
         max-length: 10000
     out queue: MultiQueue.in-queue
 
-service ProfinetClient:
+service ProfinetClient Ied01:
+    cycle: 1 ms                         # operating cycle time of the module
     in queue in-queue:
         max-length: 10000
     out queue: MultiQueue.in-queue
+    # name Ied01:                       # device will be executed in the independent thread, must have unique name
+    protocol: 'profinet'
+    description: 'S7-IED-01'
+    ip: '192.168.100.243'
+    rack: 0
+    slot: 1
+    db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
+        description: 'db899 | Exhibit - drive data'
+        number: 899
+        offset: 0
+        size: 8
+        delay: 10
+        point Drive.Speed: 
+            type: 'Real'
+            offset: 0
+        point Drive.OutputVoltage: 
+            type: 'Real'
+            offset: 4
+    db db999:                       # multiple DB blocks are allowed, must have unique namewithing parent device
+        description: 'db899 | Exhibit - drive data'
+        number: 899
+        offset: 0
+        size: 6
+        delay: 10
+        point Drive.positionFromHoist: 
+            type: 'Real'
+            offset: 0
+        point Capacitor.Capacity: 
+            type: 'Int'
+            offset: 4
 
-    device Ied01:                       # device will be executed in the independent thread, must have unique name
-        cycle: 50 ms                    # operating cycle time of the device
-        protocol: 'profinet'
-        description: 'S7-IED-01.01'
-        ip: '192.168.100.243'
-        rack: 0
-        slot: 1
-            db db899:                   # multiple DB blocks are allowed, must have unique namewithing parent device
-                description: 'db899 | Exhibit - drive data'
-                number: 899
-                offset: 0
-                size: 34
-                delay: 10
-                point Drive.Speed: 
-                    type: 'Real'
-                    offset: 0
-                point Drive.OutputVoltage: 
-                    type: 'Real'
-                    offset: 4
-    
-    device Ied02:                       # device will be executed in the independent thread, must have unique name
-        cycle: 100 ms                   # operating cycle time of the device
-        protocol: 'profinet'
-        description: 'S7-IED-01.01'
-        ip: '192.168.100.243'
-        rack: 0
-        slot: 1
-            db db899:                   # multiple DB blocks are allowed, must have unique name withing parent device
-                description: 'db899 | Exhibit - drive data'
-                number: 899
-                offset: 0
-                size: 34
-                delay: 10
-                point ChargeIn.On: 
-                    type: 'Bool'
-                    offset: 30
-                    bit: 0
-                point ChargeOut.On: 
-                    type: 'Bool'
-                    offset: 32
-                    bit: 0
-
+service ProfinetClient Ied02:
+    cycle: 1 ms                         # operating cycle time of the module
+    in queue in-queue:
+        max-length: 10000
+    out queue: MultiQueue.in-queue
+    name Ied02:                       # device will be executed in the independent thread, must have unique name
+    protocol: 'profinet'
+    description: 'S7-IED-02'
+    ip: '192.168.100.243'
+    rack: 0
+    slot: 1
+    db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
+        description: 'db899 | Exhibit - drive data'
+        number: 899
+        offset: 0
+        size: 34
+        delay: 10
+        point ChargeIn.On: 
+            type: 'Bool'
+            offset: 30
+            bit: 0
+        point ChargeOut.On: 
+            type: 'Bool'
+            offset: 32
+            bit: 0
 
 
 service ApiClient:

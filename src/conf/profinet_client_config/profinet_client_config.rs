@@ -74,7 +74,6 @@ impl ProfinetClientConfig {
                 debug!("{}.new | RX: {},\tmax-length: {}", selfId, rx, rxMaxLength);
                 let tx = selfConf.getOutQueue().unwrap();
                 debug!("{}.new | TX: {}", selfId, tx);
-
                 let protocol = selfConf.getParamValue("protocol").unwrap().as_str().unwrap().to_string();
                 debug!("{}.new | protocol: {:?}", selfId, protocol);
                 let description = selfConf.getParamValue("description").unwrap().as_str().unwrap().to_string();
@@ -85,15 +84,14 @@ impl ProfinetClientConfig {
                 debug!("{}.new | rack: {:?}", selfId, rack);
                 let slot = selfConf.getParamValue("slot").unwrap().as_u64().unwrap();
                 debug!("{}.new | slot: {:?}", selfId, slot);
-        
                 let mut dbs = IndexMap::new();
                 for key in &selfConf.keys {
                     let keyword = Keywd::from_str(key).unwrap();
                     if keyword.kind() == Kind::Db {
                         let deviceName = keyword.name();
                         let mut deviceConf = selfConf.get(key).unwrap();
-                        debug!("{}.new | device '{}'", selfId, deviceName);
-                        trace!("{}.new | device '{}'   |   conf: {:?}", selfId, deviceName, deviceConf);
+                        debug!("{}.new | DB '{}'", selfId, deviceName);
+                        trace!("{}.new | DB '{}'   |   conf: {:?}", selfId, deviceName, deviceConf);
                         let nodeConf = ProfinetDbConfig::new(&deviceName, &mut deviceConf);
                         dbs.insert(
                             deviceName,
@@ -103,7 +101,6 @@ impl ProfinetClientConfig {
                         debug!("{}.new | device expected, but found {:?}", selfId, keyword);
                     }
                 }
-
                 ProfinetClientConfig {
                     name: selfName,
                     cycle,

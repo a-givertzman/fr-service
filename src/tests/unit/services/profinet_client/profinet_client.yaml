@@ -10,7 +10,7 @@ service ProfinetClient Ied01:
     rack: 0
     slot: 1
     db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
-        description: 'db899 | Exhibit - drive data'
+        # description: 'db899 | Exhibit - drive data'
         number: 899
         offset: 0
         size: 34
@@ -30,6 +30,12 @@ service ProfinetClient Ied01:
         point Drive.Torque: 
             type: 'Real'
             offset: 16
+    db db999:                       # multiple DB blocks are allowed, must have unique namewithing parent device
+        description: 'db899 | Exhibit - drive data'
+        number: 899
+        offset: 0
+        size: 34
+        delay: 10
         point Drive.positionFromMru: 
             type: 'Real'
             offset: 20
