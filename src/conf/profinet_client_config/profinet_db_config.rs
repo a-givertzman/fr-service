@@ -38,8 +38,6 @@ impl ProfinetDbConfig {
         debug!("{}.new | name: {:?}", selfId, selfName);
         let cycle = selfConf.getDuration("cycle");
         debug!("{}.new | cycle: {:?}", selfId, cycle);
-        let protocol = selfConf.getParamValue("protocol").unwrap().as_str().unwrap().to_string();
-        debug!("{}.new | protocol: {:?}", selfId, protocol);
         let description = selfConf.getParamValue("description").unwrap().as_str().unwrap().to_string();
         debug!("{}.new | description: {:?}", selfId, description);
         let number = selfConf.getParamValue("number").unwrap().as_u64().unwrap();
