@@ -2,14 +2,22 @@
 #![allow(non_upper_case_globals)]
 
 use log::{debug, error, info};
+use once_cell::sync::Lazy;
 use snap7_sys::*;
 use std::ffi::CString;
 use std::os::raw::{c_char, c_int, c_void};
 use std::thread;
 use std::time::Duration;
 
+static S7LIB: Lazy<LibSnap7> = Lazy::new(|| {
+    println!("initializing LibSnap7 lib...");
+    unsafe { LibSnap7::new("/usr/lib/libsnap7.so") }.unwrap()
+});
+
+
 #[derive(Debug)]
 pub struct S7Client {
+    pub id: String,
     ip: CString,
     handle: S7Object,
     req_len: usize,
@@ -18,10 +26,11 @@ pub struct S7Client {
     reconnectDelay: Duration,
 }
 impl S7Client {
-    pub fn new(ip: String, reconnectDelay: Option<Duration>) -> Self {
+    pub fn new(parent: impl Into<String>, ip: String, reconnectDelay: Option<Duration>) -> Self {
         Self {
+            id: format!("{}/S7Client({})", parent.into(), ip),
             ip: CString::new(ip).unwrap(),
-            handle: unsafe { Cli_Create() },
+            handle: unsafe { S7LIB.Cli_Create() },
             req_len: 0,
             neg_len: 0,
             isConnected: false,
@@ -39,8 +48,8 @@ impl S7Client {
         while !self.isConnected {
             unsafe {
                 // #[warn(temporary_cstring_as_ptr)]
-                err = Cli_ConnectTo(self.handle, self.ip.as_ptr(), 0, 1);
-                Cli_GetPduLength(self.handle, &mut req, &mut neg);
+                err = S7LIB.Cli_ConnectTo(self.handle, self.ip.as_ptr(), 0, 1);
+                S7LIB.Cli_GetPduLength(self.handle, &mut req, &mut neg);
                 self.req_len = req as usize;
                 self.neg_len = neg as usize;
             }
@@ -59,7 +68,7 @@ impl S7Client {
         buf.resize(size as usize, 0);
         let res;
         unsafe {
-            res = Cli_DBRead(
+            res = S7LIB.Cli_DBRead(
                 self.handle,
                 dbNum as c_int,
                 start as c_int,
@@ -75,7 +84,7 @@ impl S7Client {
     }
     pub fn close(&mut self) {
         unsafe {
-            Cli_Disconnect(self.handle);
+            S7LIB.Cli_Disconnect(self.handle);
         }
     }
 }
@@ -83,7 +92,7 @@ impl Drop for S7Client {
     fn drop(&mut self) {
         self.close();
         unsafe {
-            Cli_Destroy(&mut self.handle);
+            S7LIB.Cli_Destroy(&mut self.handle);
         }
     }
 }
@@ -91,7 +100,7 @@ pub fn error_text(code: i32) -> String {
     let mut err = Vec::<u8>::new();
     err.resize(1024, 0);
     unsafe {
-        Cli_ErrorText(
+        S7LIB.Cli_ErrorText(
             code as c_int,
             err.as_mut_ptr() as *mut c_char,
             err.len() as c_int,

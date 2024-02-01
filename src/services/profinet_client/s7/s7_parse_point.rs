@@ -11,7 +11,10 @@ use log::{
     // error,
 };
 
-use crate::ds::{ds_config::DsPointConf, ds_status::DsStatus};
+use crate::{
+    core_::status::status::Status,
+    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress, point_config_type::PointConfigType},
+};
 
 // #[derive(Debug, Clone)]
 // pub struct ParsePoint<T> {
@@ -36,12 +39,11 @@ pub trait ParsePoint<T> {
 #[derive(Debug, Clone)]
 pub struct S7ParsePointBool {
     pub value: bool,
-    pub status: DsStatus,
+    pub status: Status,
     isChanged: bool,
     pub path: String,
     pub name: String,
-    pub dataType: Option<String>,
-    pub vrt: Option<u8>,
+    pub dataType: PointConfigType,
     pub offset: Option<u32>,
     pub bit: Option<u8>,
     pub h: Option<u8>,
@@ -54,22 +56,21 @@ impl S7ParsePointBool {
         // dataType: DSDataType,
         path: String,
         name: String,
-        config: DsPointConf,
+        config: PointConfig,
         // filter: Filter<T>,
         // convert: Function,
     ) -> S7ParsePointBool {
         S7ParsePointBool {
             value: false,
-            status: DsStatus::Invalid,
+            status: Status::Invalid,
             isChanged: false,
             path: path,
             name: name,
-            dataType: config.dataType,
-            vrt: config.vrt,
-            offset: config.offset,
-            bit: config.bit,
-            h: config.h,
-            a: config.a,
+            dataType: config._type.clone(),
+            offset: config.clone().address.unwrap_or(PointConfigAddress::empty()).offset,
+            bit: config.clone().address.unwrap_or(PointConfigAddress::empty()).bit,
+            h: config.history,
+            a: config.alarm,
             comment: config.comment,
             timestamp: Utc::now(),
         }
@@ -89,13 +90,13 @@ impl ParsePoint<bool> for S7ParsePointBool {
             Ok(newVal) => {
                 if newVal != self.value {
                     self.value = newVal;
-                    self.status = DsStatus::Ok;
+                    self.status = Status::Ok;
                     self.timestamp = timestamp;
                     self.isChanged = true;
                 }
             }
             Err(e) => {
-                self.status = DsStatus::Invalid;
+                self.status = Status::Invalid;
                 warn!("[S7ParsePoint<bool>.addRaw] convertion error: {:?}", e);
             }
         }
@@ -133,12 +134,11 @@ impl ParsePoint<bool> for S7ParsePointBool {
 #[derive(Debug, Clone)]
 pub struct S7ParsePointInt {
     pub value: i16,
-    pub status: DsStatus,
+    pub status: Status,
     isChanged: bool,
     pub path: String,
     pub name: String,
-    pub dataType: Option<String>,
-    pub vrt: Option<u8>,
+    pub dataType: PointConfigType,
     pub offset: Option<u32>,
     pub bit: Option<u8>,
     pub h: Option<u8>,
@@ -152,22 +152,21 @@ impl S7ParsePointInt {
         // dataType: DSDataType,
         path: String,
         name: String,
-        config: DsPointConf,
+        config: PointConfig,
         // filter: Filter<T>,
         // convert: Function,
     ) -> S7ParsePointInt {
         S7ParsePointInt {
             value: 0,
-            status: DsStatus::Invalid,
+            status: Status::Invalid,
             isChanged: false,
             path: path,
             name: name,
-            dataType: config.dataType,
-            vrt: config.vrt,
-            offset: config.offset,
-            bit: config.bit,
-            h: config.h,
-            a: config.a,
+            dataType: config._type.clone(),
+            offset: config.clone().address.unwrap_or(PointConfigAddress::empty()).offset,
+            bit: config.clone().address.unwrap_or(PointConfigAddress::empty()).bit,
+            h: config.history,
+            a: config.alarm,
             comment: config.comment,
             timestamp: Utc::now(),
         }
@@ -182,13 +181,13 @@ impl ParsePoint<i16> for S7ParsePointInt {
             Ok(newVal) => {
                 if newVal != self.value {
                     self.value = newVal;
-                    self.status = DsStatus::Ok;
+                    self.status = Status::Ok;
                     self.timestamp = timestamp;
                     self.isChanged = true;
                 }
             }
             Err(e) => {
-                self.status = DsStatus::Invalid;
+                self.status = Status::Invalid;
                 warn!("[S7ParsePoint<i16>.addRaw] convertion error: {:?}", e);
             }
         }
@@ -222,12 +221,11 @@ impl ParsePoint<i16> for S7ParsePointInt {
 #[derive(Debug, Clone)]
 pub struct S7ParsePointReal {
     pub value: f32,
-    pub status: DsStatus,
+    pub status: Status,
     isChanged: bool,
     pub path: String,
     pub name: String,
-    pub dataType: Option<String>,
-    pub vrt: Option<u8>,
+    pub dataType: PointConfigType,
     pub offset: Option<u32>,
     pub bit: Option<u8>,
     pub h: Option<u8>,
@@ -242,22 +240,21 @@ impl S7ParsePointReal {
         // dataType: DSDataType,
         path: String,
         name: String,
-        config: DsPointConf,
+        config: PointConfig,
         // filter: Filter<T>,
         // convert: Function,
     ) -> S7ParsePointReal {
         S7ParsePointReal {
             value: 0.0,
-            status: DsStatus::Invalid,
+            status: Status::Invalid,
             isChanged: false,
             path: path,
             name: name,
-            dataType: config.dataType,
-            vrt: config.vrt,
-            offset: config.offset,
-            bit: config.bit,
-            h: config.h,
-            a: config.a,
+            dataType: config._type.clone(),
+            offset: config.clone().address.unwrap_or(PointConfigAddress::empty()).offset,
+            bit: config.clone().address.unwrap_or(PointConfigAddress::empty()).bit,
+            h: config.history,
+            a: config.alarm,
             comment: config.comment,
             timestamp: Utc::now(),
         }
@@ -272,13 +269,13 @@ impl ParsePoint<f32> for S7ParsePointReal {
             Ok(newVal) => {
                 if newVal != self.value {
                     self.value = newVal;
-                    self.status = DsStatus::Ok;
+                    self.status = Status::Ok;
                     self.timestamp = timestamp;
                     self.isChanged = true;
                 }
             }
             Err(e) => {
-                self.status = DsStatus::Invalid;
+                self.status = Status::Invalid;
                 warn!("[S7ParsePoint<f32>.addRaw] convertion error: {:?}", e);
             }
         }

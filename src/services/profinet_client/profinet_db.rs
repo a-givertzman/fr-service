@@ -15,9 +15,9 @@ pub struct ProfinetDb {
     id: String,
     pub name: String,
     pub description: String,
-    pub number: u64,
-    pub offset: u64,
-    pub size: u64,
+    pub number: u32,
+    pub offset: u32,
+    pub size: u32,
     pub cycle: Option<Duration>,
     pub points: IndexMap<String, PointConfig>,
 }
@@ -31,9 +31,9 @@ impl ProfinetDb {
             id: format!("{}/ProfinetDb({})", parent.into(), conf.name),
             name: conf.name,
             description: conf.description,
-            number: conf.number,
-            offset: conf.offset,
-            size: conf.size,
+            number: conf.number as u32,
+            offset: conf.offset as u32,
+            size: conf.size as u32,
             cycle: conf.cycle,
             points: conf.points.iter().map(|pointConf| {
                 (pointConf.name.clone(), pointConf.clone())
@@ -53,7 +53,7 @@ impl ProfinetDb {
                     // let bytes = client.read(899, 0, 34).unwrap();
                     // print!("\x1B[2J\x1B[1;1H");
                     // debug!("{:?}", bytes);
-                    for (_key, pointType) in self.points {
+                    for (_key, pointType) in &self.points {
                         // match pointType.clone() {
                         //     ParsePointType::Bool(mut point) => {
                         //         point.addRaw(&bytes);
