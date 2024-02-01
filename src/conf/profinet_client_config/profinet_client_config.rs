@@ -1,39 +1,42 @@
 #![allow(non_snake_case)]
 
 use indexmap::IndexMap;
-use log::{debug, error, trace, warn};
+use log::{debug, error, trace};
 use std::{fs, str::FromStr, time::Duration};
 
 use crate::conf::{
-    conf_tree::ConfTree, point_config::point_config::PointConfig, profinet_client_config::keywd::{Keywd, Kind}, service_config::ServiceConfig
+    conf_tree::ConfTree, 
+    point_config::point_config::PointConfig, 
+    service_config::ServiceConfig,
+    profinet_client_config::keywd::{Keywd, Kind}, 
+    profinet_client_config::profinet_db_config::ProfinetDbConfig,
 };
-
-use super::profinet_device_config::ProfinetDeviceConfig;
 
 
 ///
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
-/// service ProfinetClient:
+/// service ProfinetClient Ied01:          # device will be executed in the independent thread, must have unique name
 ///    in queue in-queue:
 ///        max-length: 10000
 ///    out queue: MultiQueue.in-queue
-///    device Ied01:                       # device will be executed in the independent thread, must have unique name
-///        cycle: 1 ms                     # operating cycle time of the device
-///        protocol: 'profinet'
-///        description: 'S7-IED-01.01'
-///        ip: '192.168.100.243'
-///        rack: 0
-///        slot: 1
-///        db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
-///            description: 'db899 | Exhibit - drive data'
-///            number: 899
+///    name Ied01:                       
+///    cycle: 1 ms                     # operating cycle time of the device
+///    protocol: 'profinet'
+///    description: 'S7-IED-01.01'
+///    ip: '192.168.100.243'
+///    rack: 0
+///    slot: 1
+///    db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
+///        description: 'db899 | Exhibit - drive data'
+///        number: 899
+///        offset: 0
+///        size: 34
+///        delay: 10
+///        point Drive.Speed: 
+///            type: 'Real'
 ///            offset: 0
-///            size: 34
-///            delay: 10
-///            point Drive.Speed: 
-///                type: 'Real'
-///                offset: 0
+///                 ...
 /// 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ProfinetClientConfig {
@@ -42,42 +45,20 @@ pub struct ProfinetClientConfig {
     pub(crate) rx: String,
     pub(crate) rxMaxLength: i64,
     pub(crate) tx: String,
-    pub(crate) devices: IndexMap<String, ProfinetDeviceConfig>,
+    pub(crate) dbs: IndexMap<String, ProfinetDbConfig>,
 }
 ///
 /// 
 impl ProfinetClientConfig {
     ///
-    /// creates config from serde_yaml::Value of following format:
-    /// ```yaml
-    /// service ProfinetClient:
-    ///    in queue in-queue:
-    ///        max-length: 10000
-    ///    out queue: MultiQueue.in-queue
-    ///    device Ied01:                       # device will be executed in the independent thread, must have unique name
-    ///        cycle: 1 ms                     # operating cycle time of the device
-    ///        protocol: 'profinet'
-    ///        description: 'S7-IED-01.01'
-    ///        ip: '192.168.100.243'
-    ///        rack: 0
-    ///        slot: 1
-    ///        db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
-    ///            description: 'db899 | Exhibit - drive data'
-    ///            number: 899
-    ///            offset: 0
-    ///            size: 34
-    ///            delay: 10
-    ///            point Drive.Speed: 
-    ///                type: 'Real'
-    ///                offset: 0
-    ///                     ...
+    /// Creates new instance of the [ProfinetClientConfig]:
     pub fn new(confTree: &mut ConfTree) -> Self {
         println!("\n");
         trace!("ProfinetClientConfig.new | confTree: {:?}", confTree);
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item
         if confTree.count() > 1 {
-            warn!("ProfinetClientConfig.new | ProfinetClientConfig conf must have single item, additional items was ignored: {:?}", confTree)
+            error!("ProfinetClientConfig.new | ProfinetClientConfig conf must have single item, additional items was ignored: {:?}", confTree)
         };
         match confTree.next() {
             Some(selfConf) => {
@@ -94,16 +75,27 @@ impl ProfinetClientConfig {
                 let tx = selfConf.getOutQueue().unwrap();
                 debug!("{}.new | TX: {}", selfId, tx);
 
-                let mut devices = IndexMap::new();
+                let protocol = selfConf.getParamValue("protocol").unwrap().as_str().unwrap().to_string();
+                debug!("{}.new | protocol: {:?}", selfId, protocol);
+                let description = selfConf.getParamValue("description").unwrap().as_str().unwrap().to_string();
+                debug!("{}.new | description: {:?}", selfId, description);
+                let ip = selfConf.getParamValue("ip").unwrap().as_str().unwrap().to_string();
+                debug!("{}.new | ip: {:?}", selfId, ip);
+                let rack = selfConf.getParamValue("rack").unwrap().as_u64().unwrap();
+                debug!("{}.new | rack: {:?}", selfId, rack);
+                let slot = selfConf.getParamValue("slot").unwrap().as_u64().unwrap();
+                debug!("{}.new | slot: {:?}", selfId, slot);
+        
+                let mut dbs = IndexMap::new();
                 for key in &selfConf.keys {
                     let keyword = Keywd::from_str(key).unwrap();
-                    if keyword.kind() == Kind::Device {
+                    if keyword.kind() == Kind::Db {
                         let deviceName = keyword.name();
                         let mut deviceConf = selfConf.get(key).unwrap();
                         debug!("{}.new | device '{}'", selfId, deviceName);
                         trace!("{}.new | device '{}'   |   conf: {:?}", selfId, deviceName, deviceConf);
-                        let nodeConf = ProfinetDeviceConfig::new(&deviceName, &mut deviceConf);
-                        devices.insert(
+                        let nodeConf = ProfinetDbConfig::new(&deviceName, &mut deviceConf);
+                        dbs.insert(
                             deviceName,
                             nodeConf,
                         );
@@ -118,7 +110,7 @@ impl ProfinetClientConfig {
                     rx,
                     rxMaxLength: rxMaxLength,
                     tx,
-                    devices
+                    dbs
                 }
             },
             None => {
@@ -154,7 +146,7 @@ impl ProfinetClientConfig {
     ///
     /// Returns list of configurations of the defined points
     pub fn points(&self) -> Vec<PointConfig> {
-        self.devices.iter().fold(vec![], |mut points, (_deviceName, deviceConf)| {
+        self.dbs.iter().fold(vec![], |mut points, (_deviceName, deviceConf)| {
             points.extend(deviceConf.points());
             points
         })
