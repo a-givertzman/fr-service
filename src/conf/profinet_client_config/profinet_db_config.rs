@@ -43,12 +43,12 @@ impl ProfinetDbConfig {
         debug!("{}.new | size: {:?}", selfId, size);
         let mut points = vec![];
         for key in &selfConf.keys {
-            let keyword = FnConfKeywd::from_str(&confTree.key).unwrap();
+            let keyword = FnConfKeywd::from_str(key).unwrap();
             if keyword.kind() == FnConfKindName::Point {
                 let pointName = keyword.data();
                 let deviceConf = selfConf.get(key).unwrap();
-                debug!("{}.new | DB '{}'", selfId, pointName);
-                trace!("{}.new | DB '{}'   |   conf: {:?}", selfId, pointName, deviceConf);
+                debug!("{}.new | Point '{}'", selfId, pointName);
+                trace!("{}.new | Point '{}'   |   conf: {:?}", selfId, pointName, deviceConf);
                 let nodeConf = PointConfig::new(&deviceConf);
                 points.push(
                     nodeConf,

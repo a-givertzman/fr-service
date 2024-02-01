@@ -14,7 +14,7 @@ service ProfinetClient Ied01:
         number: 899
         offset: 0
         size: 34
-        delay: 10
+        cycle: 10 ms
         point Drive.Speed: 
             type: 'Real'
             offset: 0
@@ -35,7 +35,7 @@ service ProfinetClient Ied01:
         number: 899
         offset: 0
         size: 34
-        delay: 10
+        cycle: 10 ms
         point Drive.positionFromMru: 
             type: 'Real'
             offset: 20

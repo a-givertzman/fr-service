@@ -92,16 +92,18 @@ impl ServiceConfig {
     pub fn getDuration(&mut self, name: &str) -> Option<Duration> {
         match self.getParamValue(name) {
             Ok(value) => {
-                match value.as_str() {
-                    Some(value) => {
-                        match ConfDuration::from_str(value) {
-                            Ok(confDuration) => {
-                                Some(confDuration.toDuration())
-                            },
-                            Err(err) => panic!("{}.getDuration | Parse {} duration '{}' error: {:?}", self.id, &name, &value, err),
-                        }
+                let value = if value.is_u64() {
+                    value.as_u64().unwrap().to_string()
+                } else if value.is_string() {
+                    value.as_str().unwrap().to_string()
+                } else {
+                    panic!("{}.getDuration | Invalid {} duration format: {:?} \n\tin: {:?}", self.id, &name, &value, self.conf)
+                };
+                match ConfDuration::from_str(&value) {
+                    Ok(confDuration) => {
+                        Some(confDuration.toDuration())
                     },
-                    None => panic!("{}.getDuration | Invalid reconnect {} duration format: {:?} \n\tin: {:?}", self.id, &name, &value, self.conf),
+                    Err(err) => panic!("{}.getDuration | Parse {} duration '{}' error: {:?}", self.id, &name, &value, err),
                 }
             },
             Err(_) => None,

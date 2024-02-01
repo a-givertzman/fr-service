@@ -4,7 +4,7 @@
 mod tests {
     use log::{warn, info, debug};
     use std::{sync::Once, time::{Duration, Instant}};
-    use crate::{conf::profinet_client_config::profinet_client_config::ProfinetClientConfig, core_::{
+    use crate::{conf::{point_config::{point_config::PointConfig, point_config_type::PointConfigType}, profinet_client_config::profinet_client_config::ProfinetClientConfig}, core_::{
         debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
         testing::test_stuff::max_test_duration::TestDuration,
     }}; 
@@ -45,11 +45,26 @@ mod tests {
         let config = ProfinetClientConfig::read(path);
         debug!("config: {:?}", &config);
         debug!("config points:");
+
+        let mut targetPoints = [
+            PointConfig { name: String::from("Drive.Speed"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: String::from("Drive.OutputVoltage"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: String::from("Drive.DCVoltage"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: String::from("Drive.Current"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: String::from("Drive.Torque"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: String::from("Drive.positionFromMru"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: String::from("Drive.positionFromHoist"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: String::from("Capacitor.Capacity"), _type: PointConfigType::Int, history: None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: String::from("ChargeIn.On"), _type: PointConfigType::Bool, history: None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: String::from("ChargeOut.On"), _type: PointConfigType::Bool, history: None, alarm: None, address: None, filters: None, comment: None },
+        ];
         for point in config.points() {
             println!("\t {:?}", point);
+            let contains = targetPoints.iter().any(|p| {
+                p.name == point.name
+            });
+            assert!(contains == true, "\nresult: {:?}\ntarget: {:?}", contains, true);
         }
-
-
 
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         testDuration.exit();

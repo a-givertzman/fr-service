@@ -48,8 +48,8 @@ impl PointConfig {
     ///         bit: 0..255
     ///     comment: Test Point 
     pub fn new(confTree: &ConfTree) -> PointConfig {
-        println!("\n");
-        debug!("PointConfig.new | confTree: {:?}", confTree);
+        // println!("\n");
+        trace!("PointConfig.new | confTree: {:?}", confTree);
         let mut pc: PointConfig = serde_yaml::from_value(confTree.conf.clone()).unwrap();
         let keyword = FnConfKeywd::from_str(&confTree.key);
         pc.name = match keyword {

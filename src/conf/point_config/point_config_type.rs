@@ -13,7 +13,7 @@ pub enum PointConfigType {
     #[serde(alias = "int", alias = "Int")]
     Int,
     #[serde(rename = "Float")]
-    #[serde(alias = "float", alias = "Float")]
+    #[serde(alias = "float", alias = "Float", alias = "Real")]
     Float,
     #[serde(rename = "String")]
     #[serde(alias = "string", alias = "String")]
