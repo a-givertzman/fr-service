@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 log = "^0.4"
-env_logger = "^0.11"
+env_logger = "^0.10"
 
 # num = "^0.4"
 # derive-new = "^0.5"
@@ -28,6 +28,9 @@ indexmap = "^2.2"
 
 snap7 = "^0.0"
 snap7-sys = "^0.1"
+libc = "^0.2"
+bindgen = "^0.69"
+
 
 # [[bin]]
 # name = "task_test"
