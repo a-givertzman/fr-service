@@ -10,7 +10,6 @@ use serde::Deserialize;
 /// 
 #[derive(Debug, Deserialize, PartialEq, Eq, Hash, Clone)]
 pub enum Kind {
-    Device,
     Db,
 }
 ///
@@ -19,7 +18,6 @@ impl FromStr for Kind {
     type Err = String;
     fn from_str(input: &str) -> Result<Self, Self::Err> {
         match input {
-            "device" => Ok(Kind::Device),
             "db" => Ok(Kind::Db),
             _ => Err(format!("Kind.fron_str | Unknown keyword: '{}'", input))
         }
@@ -28,7 +26,6 @@ impl FromStr for Kind {
 impl ToString for Kind {
     fn to_string(&self) -> String {
         match self {
-            Kind::Device => "device",
             Kind::Db => "db",
         }.to_string()
     }
@@ -49,12 +46,10 @@ pub struct KeywdValue {
 /// |--------|--------|---------------------|
 /// | opt    | requir |  requir             |
 /// |--------|--------|---------------------|
-/// |        | device | Ied1                |
 /// |        | db     | db889               |
 /// ````
 #[derive(Debug, Deserialize, PartialEq, Eq, Hash)]
 pub enum Keywd {
-    Device(KeywdValue),
     Db(KeywdValue),
 }
 ///
@@ -62,19 +57,16 @@ pub enum Keywd {
 impl Keywd {
     pub fn prefix(&self) -> String {
         match self {
-            Keywd::Device(v) => v.prefix.clone(),
             Keywd::Db(v) => v.prefix.clone(),
         }
     }
     pub fn kind(&self) -> Kind {
         match self {
-            Keywd::Device(v) => v.kind.clone(),
             Keywd::Db(v) => v.kind.clone(),
         }
     }
     pub fn name(&self) -> String {
         match self {
-            Keywd::Device(v) => v.name.clone(),
             Keywd::Db(v) => v.name.clone(),
         }
     }
@@ -84,7 +76,8 @@ impl FromStr for Keywd {
     type Err = String;
     fn from_str(input: &str) -> Result<Keywd, String> {
         trace!("Keywd.from_str | input: {}", input);
-        let re = r#"(?:(?:(\w+)|))(?:(?:\s|)(device|db){1}(?:$|(?:[ \t]['"]*(\S+)['"]*)))"#;
+        // let re = r#"(?:(?:(\w+)|))(?:(?:\s|)(device|db){1}(?:$|(?:[ \t]['"]*(\S+)['"]*)))"#;
+        let re = r#"(?:(?:(\w+)|))(?:(?:\s|)(db){1}(?:$|(?:[ \t]['"]*(\S+)['"]*)))"#;
         let re = RegexBuilder::new(re).multi_line(false).build().unwrap();
         let groupPrefix = 1;
         let groupKind = 2;
@@ -127,7 +120,6 @@ impl FromStr for Keywd {
                         match &caps.get(groupKind) {
                             Some(keyword) => {
                                 match keyword.as_str() {
-                                    "device" => Ok( Keywd::Device( KeywdValue { prefix, kind, name: name.to_string() } )),
                                     "db" => Ok( Keywd::Db( KeywdValue { prefix, kind, name: name.to_string() } )),
                                     _      => Err(format!("Unknown keyword '{:?}'", &keyword)),
                                 }
