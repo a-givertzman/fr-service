@@ -45,8 +45,7 @@ mod tests {
         let config = ProfinetClientConfig::read(path);
         debug!("config: {:?}", &config);
         debug!("config points:");
-
-        let mut targetPoints = [
+        let targetPoints = [
             PointConfig { name: String::from("Drive.Speed"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
             PointConfig { name: String::from("Drive.OutputVoltage"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
             PointConfig { name: String::from("Drive.DCVoltage"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
@@ -65,8 +64,9 @@ mod tests {
             });
             assert!(contains == true, "\nresult: {:?}\ntarget: {:?}", contains, true);
         }
-
-        // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
+        let result = config.points().len();
+        let target = targetPoints.len();
+        assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         testDuration.exit();
     }
 }
