@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use indexmap::IndexMap;
-use log::{trace, debug, error};
+use log::{debug, error, trace, warn};
 use std::{fs, str::FromStr, time::Duration};
 
 use crate::conf::{
@@ -77,7 +77,7 @@ impl ProfinetClientConfig {
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item
         if confTree.count() > 1 {
-            error!("ProfinetClientConfig.new | FnConf must have single item, additional items was ignored: {:?}", confTree)
+            warn!("ProfinetClientConfig.new | ProfinetClientConfig conf must have single item, additional items was ignored: {:?}", confTree)
         };
         match confTree.next() {
             Some(selfConf) => {
@@ -94,15 +94,15 @@ impl ProfinetClientConfig {
                 let tx = selfConf.getOutQueue().unwrap();
                 debug!("{}.new | TX: {}", selfId, tx);
 
-                let mut nodeIndex = 0;
                 let mut devices = IndexMap::new();
                 for key in &selfConf.keys {
                     let keyword = Keywd::from_str(key).unwrap();
                     if keyword.kind() == Kind::Device {
                         let deviceName = keyword.name();
                         let mut deviceConf = selfConf.get(key).unwrap();
-                        debug!("{}.new | device '{}'   |   conf: {:?}", selfId, deviceName, deviceConf);
-                        let nodeConf = ProfinetDeviceConfig::new(&mut deviceConf);
+                        debug!("{}.new | device '{}'", selfId, deviceName);
+                        trace!("{}.new | device '{}'   |   conf: {:?}", selfId, deviceName, deviceConf);
+                        let nodeConf = ProfinetDeviceConfig::new(&deviceName, &mut deviceConf);
                         devices.insert(
                             deviceName,
                             nodeConf,
