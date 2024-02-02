@@ -3,7 +3,8 @@
 use log::{error, info};
 use snap7_sys::S7Object;
 use std::ffi::CString;
-use std::os::raw::{c_int, c_void};
+use std::ffi::{c_void, c_int};
+// use std::os::raw::{c_int, c_void};
 use std::time::Duration;
 
 use super::s7_error::S7Error;
