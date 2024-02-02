@@ -78,7 +78,16 @@ impl Service for ProfinetClient {
         let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
             let mut cycle = ServiceCycle::new(cycleInterval);
             let mut client = S7Client::new(selfId.clone(), conf.ip.clone(), None);
-            client.connect();
+            while !exit.load(Ordering::SeqCst) {
+                match client.connect() {
+                    Ok(_) => {
+                        break;
+                    },
+                    Err(err) => {
+                        debug!("{}.run | Connection error: {:?}", selfId, err);
+                    },
+                }
+            }
             loop {
                 cycle.start();
                 for (dbName, db) in &mut dbs {
