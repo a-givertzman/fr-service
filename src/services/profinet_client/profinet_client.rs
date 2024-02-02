@@ -19,7 +19,6 @@ pub struct ProfinetClient {
     rxSend: HashMap<String, Sender<PointType>>,
     conf: ProfinetClientConfig,
     services: Arc<Mutex<Services>>,
-    dbs: Arc<Mutex<IndexMap<String, ProfinetDb>>>,
     exit: Arc<AtomicBool>,
 }
 ///
@@ -35,7 +34,6 @@ impl ProfinetClient {
             rxSend: HashMap::from([(conf.rx.clone(), send)]),
             conf: conf.clone(),
             services,
-            dbs: Arc::new(Mutex::new(IndexMap::new())),
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -68,14 +66,14 @@ impl Service for ProfinetClient {
             Some(interval) => (interval > Duration::ZERO, interval),
             None => (false, Duration::ZERO),
         };
-        let dbs = self.dbs.clone();
         info!("{}.run | Preparing thread...", selfId);
         let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
+            let mut dbs: IndexMap<String, ProfinetDb> = IndexMap::new();
             let mut cycle = ServiceCycle::new(cycleInterval);
             for (dbName, dbConf) in conf.dbs {
                 info!("{}.run | configuring DB: {:?}...", selfId, dbName);
                 let db = ProfinetDb::new(&selfId, dbConf);
-                dbs.lock().unwrap().insert(
+                dbs.insert(
                     dbName.clone(),
                     db
                 );
