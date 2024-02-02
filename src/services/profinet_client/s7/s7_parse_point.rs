@@ -24,8 +24,10 @@ pub enum ParsePointType {
 }
 
 pub trait ParsePoint<T> {
-    fn next(&mut self, bytes: &Vec<u8>) -> Option<PointType>;
-    fn addRaw(&mut self, bytes: &Vec<u8>);
+    fn nextSimple(&mut self, bytes: &Vec<u8>) -> Option<PointType>;
+    fn next(&mut self, bytes: &Vec<u8>, timestamp: DateTime<Utc>) -> Option<PointType>;
+    fn addRawSimple(&mut self, bytes: &Vec<u8>);
+    fn addRaw(&mut self, bytes: &Vec<u8>, timestamp: DateTime<Utc>);
     ///
     /// Returns true if value or status was updated since last call [addRaw()]
     fn isChanged(&self) -> bool;
@@ -96,14 +98,10 @@ impl ParsePointBool {
                 Err(e)
             }
         }
-    }    
-}
-///
-impl ParsePoint<bool> for ParsePointBool {
-    //
-    //
-    fn next(&mut self, bytes: &Vec<u8>) -> Option<PointType> {
-        self.addRaw(bytes);
+    }
+    ///
+    /// 
+    fn toPoint(&self) -> Option<PointType> {
         if self.isChanged {
             Some(PointType::Bool(Point::new(
                 self.txId, 
@@ -117,10 +115,29 @@ impl ParsePoint<bool> for ParsePointBool {
             None
         }
     }
+}
+///
+impl ParsePoint<bool> for ParsePointBool {
     //
     //
-    fn addRaw(&mut self, bytes: &Vec<u8>) {
-        let timestamp = Utc::now();
+    fn nextSimple(&mut self, bytes: &Vec<u8>) -> Option<PointType> {
+        self.addRawSimple(bytes);
+        self.toPoint()
+    }
+    //
+    //
+    fn addRawSimple(&mut self, bytes: &Vec<u8>) {
+        self.addRaw(bytes, Utc::now())
+    }
+    //
+    //
+    fn next(&mut self, bytes: &Vec<u8>, timestamp: DateTime<Utc>) -> Option<PointType> {
+        self.addRaw(bytes, timestamp);
+        self.toPoint()
+    }
+    //
+    //
+    fn addRaw(&mut self, bytes: &Vec<u8>, timestamp: DateTime<Utc>) {
         let result = self.convert(
             bytes,
             self.offset.unwrap() as usize,
@@ -210,14 +227,9 @@ impl ParsePointInt {
             }
         }
     }
-}
-///
-/// 
-impl ParsePoint<i16> for ParsePointInt {
-    //
-    //
-    fn next(&mut self, bytes: &Vec<u8>) -> Option<PointType> {
-        self.addRaw(bytes);
+    ///
+    /// 
+    fn toPoint(&self) -> Option<PointType> {
         if self.isChanged {
             Some(PointType::Int(Point::new(
                 self.txId, 
@@ -231,10 +243,30 @@ impl ParsePoint<i16> for ParsePointInt {
             None
         }
     }
+}
+///
+/// 
+impl ParsePoint<i16> for ParsePointInt {
+    //
+    //
+    fn nextSimple(&mut self, bytes: &Vec<u8>) -> Option<PointType> {
+        self.addRawSimple(bytes);
+        self.toPoint()
+    }
     //
     // 
-    fn addRaw(&mut self, bytes: &Vec<u8>) {
-        let timestamp = Utc::now();
+    fn addRawSimple(&mut self, bytes: &Vec<u8>) {
+        self.addRaw(bytes, Utc::now())
+    }
+    //
+    //
+    fn next(&mut self, bytes: &Vec<u8>, timestamp: DateTime<Utc>) -> Option<PointType> {
+        self.addRaw(bytes, timestamp);
+        self.toPoint()
+    }
+    //
+    //
+    fn addRaw(&mut self, bytes: &Vec<u8>, timestamp: DateTime<Utc>) {
         let result = self.convert(bytes, self.offset.unwrap() as usize, 0);
         match result {
             Ok(newVal) => {
@@ -320,15 +352,10 @@ impl ParsePointReal {
                 Err(e)
             }
         }
-    }    
-}
-///
-/// 
-impl ParsePoint<f32> for ParsePointReal {
-    //
-    //
-    fn next(&mut self, bytes: &Vec<u8>) -> Option<PointType> {
-        self.addRaw(bytes);
+    }
+    ///
+    /// 
+    fn toPoint(&self) -> Option<PointType> {
         if self.isChanged {
             Some(PointType::Float(Point::new(
                 self.txId, 
@@ -341,11 +368,31 @@ impl ParsePoint<f32> for ParsePointReal {
         } else {
             None
         }
+    }
+}
+///
+/// 
+impl ParsePoint<f32> for ParsePointReal {
+    //
+    //
+    fn nextSimple(&mut self, bytes: &Vec<u8>) -> Option<PointType> {
+        self.addRawSimple(bytes);
+        self.toPoint()
     }    
     //
     //
-    fn addRaw(&mut self, bytes: &Vec<u8>) {
-        let timestamp = Utc::now();
+    fn addRawSimple(&mut self, bytes: &Vec<u8>) {
+        self.addRaw(bytes, Utc::now())
+    }
+    //
+    //
+    fn next(&mut self, bytes: &Vec<u8>, timestamp: DateTime<Utc>) -> Option<PointType> {
+        self.addRaw(bytes, timestamp);
+        self.toPoint()
+    }
+    //
+    //
+    fn addRaw(&mut self, bytes: &Vec<u8>, timestamp: DateTime<Utc>) {
         let result = self.convert(bytes, self.offset.unwrap() as usize, 0);
         match result {
             Ok(newVal) => {

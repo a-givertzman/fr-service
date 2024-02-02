@@ -2,6 +2,7 @@
 
 use std::{sync::mpsc::Sender, time::Duration};
 
+use chrono::Utc;
 use indexmap::IndexMap;
 use log::{debug, warn};
 
@@ -52,13 +53,14 @@ impl ProfinetDb {
             );
             match client.read(self.number, self.offset, self.size) {
                 Ok(bytes) => {
+                    let timestamp = Utc::now();
                     // let bytes = client.read(899, 0, 34).unwrap();
                     // print!("\x1B[2J\x1B[1;1H");
                     // debug!("{:?}", bytes);
                     for (_key, parsePointType) in &mut self.points {
                         match parsePointType {
                             ParsePointType::Bool(parsePoint) => {
-                                match parsePoint.next(&bytes) {
+                                match parsePoint.next(&bytes, timestamp) {
                                     Some(point) => {
                                         txSend.send(point).unwrap()
                                     },
@@ -66,7 +68,7 @@ impl ProfinetDb {
                                 }
                             },
                             ParsePointType::Int(parsePoint) => {
-                                match parsePoint.next(&bytes) {
+                                match parsePoint.next(&bytes, timestamp) {
                                     Some(point) => {
                                         txSend.send(point).unwrap()
                                     },
@@ -74,7 +76,7 @@ impl ProfinetDb {
                                 }
                             },
                             ParsePointType::Real(parsePoint) => {
-                                match parsePoint.next(&bytes) {
+                                match parsePoint.next(&bytes, timestamp) {
                                     Some(point) => {
                                         txSend.send(point).unwrap()
                                     },
