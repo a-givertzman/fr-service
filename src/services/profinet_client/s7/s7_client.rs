@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use log::{error, info};
+use log::{debug, error, info, trace, warn, LevelFilter};
 use snap7_sys::S7Object;
 use std::ffi::CString;
 use std::ffi::{c_void, c_int};
@@ -22,7 +22,7 @@ pub struct S7Client {
     // reconnectDelay: Duration,
 }
 impl S7Client {
-    pub fn new(parent: impl Into<String>, ip: String, reconnectDelay: Option<Duration>) -> Self {
+    pub fn new(parent: impl Into<String>, ip: String) -> Self {
         Self {
             id: format!("{}/S7Client({})", parent.into(), ip),
             ip: CString::new(ip).unwrap(),
@@ -49,12 +49,14 @@ impl S7Client {
         }
         if errCode == 0 {
             self.isConnected = true;
-            info!("{}.connect | successfully connected", self.id);
+            debug!("{}.connect | successfully connected", self.id);
             Ok(())
         } else {
             self.isConnected = false;
             let err = S7Error::from(errCode);
-            error!("{}.connect | connection error: {:?}", self.id, err);
+            if log::max_level() == LevelFilter::Trace {
+                warn!("{}.connect | connection error: {:?}", self.id, err);
+            }
             Err(err)
             // thread::sleep(self.reconnectDelay);
         }

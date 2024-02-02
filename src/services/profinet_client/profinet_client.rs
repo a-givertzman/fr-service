@@ -77,7 +77,7 @@ impl Service for ProfinetClient {
         }
         let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
             let mut cycle = ServiceCycle::new(cycleInterval);
-            let mut client = S7Client::new(selfId.clone(), conf.ip.clone(), None);
+            let mut client = S7Client::new(selfId.clone(), conf.ip.clone());
             while !exit.load(Ordering::SeqCst) {
                 match client.connect() {
                     Ok(_) => {
@@ -87,6 +87,7 @@ impl Service for ProfinetClient {
                         debug!("{}.run | Connection error: {:?}", selfId, err);
                     },
                 }
+                thread::sleep(Duration::from_millis(1000))
             }
             loop {
                 cycle.start();
