@@ -78,36 +78,42 @@ impl Service for ProfinetClient {
         let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
             let mut cycle = ServiceCycle::new(cycleInterval);
             let mut client = S7Client::new(selfId.clone(), conf.ip.clone());
-            while !exit.load(Ordering::SeqCst) {
+            'main: while !exit.load(Ordering::SeqCst) {
+                let mut errorsLimit: i8 = 3;
                 match client.connect() {
                     Ok(_) => {
-                        break;
+                        'read: while !exit.load(Ordering::SeqCst) {
+                            cycle.start();
+                            for (dbName, db) in &mut dbs {
+                                debug!("{}.run | DB '{}' - reading...", selfId, dbName);
+                                match db.read(&client, &txSend) {
+                                    Ok(_) => {
+                                        debug!("{}.run | DB '{}' - reading - ok", selfId, dbName);
+                                    },
+                                    Err(err) => {
+                                        error!("{}.run | DB '{}' - reading - error: {:?}", selfId, dbName, err);
+                                        errorsLimit -= 1;
+                                        if errorsLimit <= 0 {
+                                            error!("{}.run | DB '{}' - exceeded reading errors limit, trying to reconnect...", selfId, dbName);
+                                            client.close();
+                                            break 'read;
+                                        }
+                                    },
+                                }
+                                if exit.load(Ordering::SeqCst) {
+                                    break 'main;
+                                }
+                            }
+                            if cyclic {
+                                cycle.wait();
+                            }
+                        }
                     },
                     Err(err) => {
                         debug!("{}.run | Connection error: {:?}", selfId, err);
                     },
                 }
                 thread::sleep(Duration::from_millis(1000))
-            }
-            loop {
-                cycle.start();
-                for (dbName, db) in &mut dbs {
-                    debug!("{}.run | DB '{}' - reading...", selfId, dbName);
-                    match db.read(&client, &txSend) {
-                        Ok(_) => {
-                            debug!("{}.run | DB '{}' - reading - ok", selfId, dbName);
-                        },
-                        Err(err) => {
-                            error!("{}.run | DB '{}' - reading - error: {:?}", selfId, dbName, err);
-                        },
-                    }
-                }
-                if exit.load(Ordering::SeqCst) {
-                    break;
-                }
-                if cyclic {
-                    cycle.wait();
-                }
             }
         });
         info!("{}.run | started", self.id);

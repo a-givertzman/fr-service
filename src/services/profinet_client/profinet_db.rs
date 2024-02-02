@@ -44,7 +44,7 @@ impl ProfinetDb {
     ///     - reads data slice from the S7 device,
     ///     - parses raw data into the configured points
     ///     - returns only points with updated value or status
-    pub fn read(&mut self, client: &S7Client, sender: &Sender<PointType>) -> Result<(), String> {
+    pub fn read(&mut self, client: &S7Client, txSend: &Sender<PointType>) -> Result<(), String> {
         if client.isConnected {
             debug!(
                 "{}.read | reading DB: {:?}, offset: {:?}, size: {:?}",
@@ -60,7 +60,7 @@ impl ProfinetDb {
                             ParsePointType::Bool(parsePoint) => {
                                 match parsePoint.next(&bytes) {
                                     Some(point) => {
-                                        sender.send(point).unwrap()
+                                        txSend.send(point).unwrap()
                                     },
                                     None => {},
                                 }
@@ -68,7 +68,7 @@ impl ProfinetDb {
                             ParsePointType::Int(parsePoint) => {
                                 match parsePoint.next(&bytes) {
                                     Some(point) => {
-                                        sender.send(point).unwrap()
+                                        txSend.send(point).unwrap()
                                     },
                                     None => {},
                                 }
@@ -76,7 +76,7 @@ impl ProfinetDb {
                             ParsePointType::Real(parsePoint) => {
                                 match parsePoint.next(&bytes) {
                                     Some(point) => {
-                                        sender.send(point).unwrap()
+                                        txSend.send(point).unwrap()
                                     },
                                     None => {},
                                 }
