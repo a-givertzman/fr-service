@@ -8,7 +8,7 @@ use log::{debug, warn};
 
 use crate::{conf::{point_config::{point_config::PointConfig, point_config_type::PointConfigType}, profinet_client_config::profinet_db_config::ProfinetDbConfig}, core_::point::point_type::PointType, services::profinet_client::s7::s7_parse_point::ParsePoint};
 
-use super::s7::{s7_client::S7Client, s7_parse_point::{ParsePointBool, ParsePointInt, ParsePointReal, ParsePointType}};
+use super::s7::{s7_client::S7Client, s7_parse_point::{ParsePointBool, ParsePointInt, ParsePointReal}};
 
 ///
 /// Represents PROFINET DB - a collection of the PROFINET addresses

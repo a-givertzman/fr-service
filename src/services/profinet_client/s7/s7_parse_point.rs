@@ -4,10 +4,8 @@
 use std::array::TryFromSliceError;
 use chrono::{DateTime, Utc};
 use log::{
-    // info,
     debug,
     warn,
-    // error,
 };
 use crate::{
     core_::{point::{point::Point, point_type::PointType}, status::status::Status, types::bool::Bool},
@@ -15,14 +13,7 @@ use crate::{
 };
 
 ///
-/// 
-#[derive(Debug, Clone)]
-pub enum ParsePointType {
-    Bool(ParsePointBool),
-    Int(ParsePointInt),
-    Real(ParsePointReal),
-}
-
+/// Returns updated points parsed from the data slice from the S7 device,
 pub trait ParsePoint {
     fn nextSimple(&mut self, bytes: &Vec<u8>) -> Option<PointType>;
     fn next(&mut self, bytes: &Vec<u8>, timestamp: DateTime<Utc>) -> Option<PointType>;
