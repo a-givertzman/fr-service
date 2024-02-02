@@ -109,7 +109,7 @@ impl ParsePoint<bool> for ParsePointBool {
                 self.txId, 
                 &self.name, 
                 Bool(self.value), 
-                self.status as u8, 
+                self.status, 
                 self.timestamp
             )))
             // debug!("{} point Bool: {:?}", self.id, dsPoint.value);
@@ -223,7 +223,7 @@ impl ParsePoint<i16> for ParsePointInt {
                 self.txId, 
                 &self.name, 
                 self.value,
-                self.status as u8, 
+                self.status, 
                 self.timestamp
             )))
             // debug!("{} point Bool: {:?}", self.id, dsPoint.value);
@@ -334,7 +334,7 @@ impl ParsePoint<f32> for ParsePointReal {
                 self.txId, 
                 &self.name, 
                 self.value as f64,
-                self.status as u8, 
+                self.status, 
                 self.timestamp
             )))
             // debug!("{} point Bool: {:?}", self.id, dsPoint.value);
