@@ -45,6 +45,11 @@ pub struct ProfinetClientConfig {
     pub(crate) rx: String,
     pub(crate) rxMaxLength: i64,
     pub(crate) tx: String,
+    pub(crate) protocol: String,
+    pub(crate) description: String,
+    pub(crate) ip: String,
+    pub(crate) rack: u64,
+    pub(crate) slot: u64,
     pub(crate) dbs: IndexMap<String, ProfinetDbConfig>,
 }
 ///
@@ -107,6 +112,11 @@ impl ProfinetClientConfig {
                     rx,
                     rxMaxLength: rxMaxLength,
                     tx,
+                    protocol,
+                    description,
+                    ip,
+                    rack,
+                    slot,
                     dbs
                 }
             },

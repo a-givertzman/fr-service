@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 
-use log::{debug, error, info};
+use log::{error, info};
 use once_cell::sync::Lazy;
 use snap7_sys::*;
 use std::ffi::CString;
@@ -41,7 +41,6 @@ impl S7Client {
         }
     }
     pub fn connect(&mut self) {
-        const logPref: &str = "[S7Client.connect]";
         let mut req: c_int = 0;
         let mut neg: c_int = 0;
         let mut err = 0;
@@ -55,10 +54,10 @@ impl S7Client {
             }
             if err == 0 {
                 self.isConnected = true;
-                info!("{} {:?} | successfully connected", logPref, self.ip);
+                info!("{}.connect | successfully connected", self.id);
             } else {
                 self.isConnected = false;
-                error!("{} {:?} | connection error: {:?}", logPref, self.ip, err);
+                error!("{}.connect | connection error: {:?}", self.id, err);
                 thread::sleep(self.reconnectDelay);
             }
         }

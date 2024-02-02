@@ -98,9 +98,9 @@ impl Service for MockMultiQueueMatch {
         let mut staticSubscriptions: HashMap<usize, Sender<PointType>> = HashMap::new();
         for sendQueue in &self.sendQueues {
             debug!("{}.run | Lock services...", selfId);
-            let outSend = self.services.lock().unwrap().getLink(sendQueue);
+            let txSend = self.services.lock().unwrap().getLink(sendQueue);
             debug!("{}.run | Lock services - ok", selfId);
-            staticSubscriptions.insert(PointTxId::fromStr(sendQueue), outSend);
+            staticSubscriptions.insert(PointTxId::fromStr(sendQueue), txSend);
         }
         let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
@@ -171,9 +171,9 @@ impl Service for MockMultiQueueMatch {
     //     let mut staticSubscriptions: HashMap<String, Sender<PointType>> = HashMap::new();
     //     for sendQueue in &self.sendQueues {
     //         debug!("{}.run | Lock services...", selfId);
-    //         let outSend = self.services.lock().unwrap().getLink(sendQueue);
+    //         let txSend = self.services.lock().unwrap().getLink(sendQueue);
     //         debug!("{}.run | Lock services - ok", selfId);
-    //         staticSubscriptions.insert(sendQueue.to_string(), outSend);
+    //         staticSubscriptions.insert(sendQueue.to_string(), txSend);
     //     }
     //     let _handle = thread::Builder::new().name(format!("{} - MockMultiQueueMatch.run", selfId.clone())).spawn(move || {
     //         info!("{}.run | Preparing thread - ok", selfId);
