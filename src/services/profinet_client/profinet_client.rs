@@ -62,7 +62,6 @@ impl Service for ProfinetClient {
         let selfId = self.id.clone();
         let exit = self.exit.clone();
         let conf = self.conf.clone();
-        let services = self.services.clone();
         let txSend = self.services.lock().unwrap().getLink(&conf.tx);
         let (cyclic, cycleInterval) = match conf.cycle {
             Some(interval) => (interval > Duration::ZERO, interval),
@@ -73,10 +72,7 @@ impl Service for ProfinetClient {
         for (dbName, dbConf) in conf.dbs {
             info!("{}.run | configuring DB: {:?}...", selfId, dbName);
             let db = ProfinetDb::new(&selfId, dbConf);
-            dbs.insert(
-                dbName.clone(),
-                db
-            );
+            dbs.insert(dbName.clone(), db);
             info!("{}.run | configuring DB: {:?} - ok", selfId, dbName);
         }
         let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
@@ -92,7 +88,7 @@ impl Service for ProfinetClient {
                             debug!("{}.run | DB '{}' - reading - ok", selfId, dbName);
                         },
                         Err(err) => {
-                            error!("{}.run | configuring DB: {:?} - ok", selfId, dbName);
+                            error!("{}.run | DB '{}' - reading - error: {:?}", selfId, dbName, err);
                         },
                     }
                 }

@@ -65,6 +65,7 @@ mod tests {
         let clientHandle = client.lock().unwrap().run().unwrap();
         thread::sleep(Duration::from_millis(3000));
         client.lock().unwrap().exit();
+        mqService.lock().unwrap().exit();
         clientHandle.wait().unwrap();
         // let targetPoints = [
         //     PointConfig { name: String::from("Drive.Speed"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
