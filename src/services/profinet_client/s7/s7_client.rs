@@ -54,16 +54,12 @@ impl S7Client {
             self.isConnected = true;
             info!("{}.connect | successfully connected", self.id);
             Ok(())
-        } else if errCode > 0 {
+        } else {
             self.isConnected = false;
-            let err = S7Error::from(errCode as u32);
+            let err = S7Error::from(errCode);
             error!("{}.connect | connection error: {:?}", self.id, err);
             Err(err)
             // thread::sleep(self.reconnectDelay);
-        } else {
-            let err = S7Error::Unknown;
-            error!("{}.connect | connection error: {:?} ({}) - unknown error code", self.id, err, errCode);
-            Err(err)
         }
         // while !self.isConnected {
         // }
@@ -123,6 +119,7 @@ pub fn error_text(code: i32) -> String {
 /// - Please refer to code of the function ErrorText() for the explanation
 /// - source: https://snap7.sourceforge.net/sharp7.html
 #[derive(Debug)]
+#[repr(i32)]
 pub enum S7Error {
     TCPSocketCreation         = 0x00000001,
     TCPConnectionTimeout      = 0x00000002,
@@ -173,10 +170,10 @@ pub enum S7Error {
     CliInvalidParamNumber     = 0x02500000,
     CliCannotChangeParam      = 0x02600000,
     CliFunctionNotImplemented = 0x02700000,
-    Unknown = 0x99900000,
+    Inner(String),
 }
-impl From<u32> for S7Error {
-    fn from(value: u32) -> Self {
+impl From<i32> for S7Error {
+    fn from(value: i32) -> Self {
         match value {
             0x00000001 => Self::TCPSocketCreation,
             0x00000002 => Self::TCPConnectionTimeout,
@@ -227,7 +224,9 @@ impl From<u32> for S7Error {
             0x02500000 => Self::CliInvalidParamNumber,
             0x02600000 => Self::CliCannotChangeParam,
             0x02700000 => Self::CliFunctionNotImplemented,
-            _ => Self::Unknown,
+            _ => {
+                Self::Inner(format!("{} ({})", error_text(value), value))
+            },
         }
     }
 }
