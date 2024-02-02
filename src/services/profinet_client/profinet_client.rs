@@ -68,14 +68,14 @@ impl Service for ProfinetClient {
             None => (false, Duration::ZERO),
         };
         info!("{}.run | Preparing thread...", selfId);
-        let mut dbs: IndexMap<String, ProfinetDb> = IndexMap::new();
-        for (dbName, dbConf) in conf.dbs {
-            info!("{}.run | configuring DB: {:?}...", selfId, dbName);
-            let db = ProfinetDb::new(&selfId, dbConf);
-            dbs.insert(dbName.clone(), db);
-            info!("{}.run | configuring DB: {:?} - ok", selfId, dbName);
-        }
         let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
+            let mut dbs: IndexMap<String, ProfinetDb> = IndexMap::new();
+            for (dbName, dbConf) in conf.dbs {
+                info!("{}.run | configuring DB: {:?}...", selfId, dbName);
+                let db = ProfinetDb::new(&selfId, dbConf);
+                dbs.insert(dbName.clone(), db);
+                info!("{}.run | configuring DB: {:?} - ok", selfId, dbName);
+            }
             let mut cycle = ServiceCycle::new(cycleInterval);
             let mut client = S7Client::new(selfId.clone(), conf.ip.clone());
             'main: while !exit.load(Ordering::SeqCst) {

@@ -23,7 +23,7 @@ pub enum ParsePointType {
     Real(ParsePointReal),
 }
 
-pub trait ParsePoint<T> {
+pub trait ParsePoint {
     fn nextSimple(&mut self, bytes: &Vec<u8>) -> Option<PointType>;
     fn next(&mut self, bytes: &Vec<u8>, timestamp: DateTime<Utc>) -> Option<PointType>;
     fn addRawSimple(&mut self, bytes: &Vec<u8>);
@@ -117,7 +117,7 @@ impl ParsePointBool {
     }
 }
 ///
-impl ParsePoint<bool> for ParsePointBool {
+impl ParsePoint for ParsePointBool {
     //
     //
     fn nextSimple(&mut self, bytes: &Vec<u8>) -> Option<PointType> {
@@ -246,7 +246,7 @@ impl ParsePointInt {
 }
 ///
 /// 
-impl ParsePoint<i16> for ParsePointInt {
+impl ParsePoint for ParsePointInt {
     //
     //
     fn nextSimple(&mut self, bytes: &Vec<u8>) -> Option<PointType> {
@@ -372,7 +372,7 @@ impl ParsePointReal {
 }
 ///
 /// 
-impl ParsePoint<f32> for ParsePointReal {
+impl ParsePoint for ParsePointReal {
     //
     //
     fn nextSimple(&mut self, bytes: &Vec<u8>) -> Option<PointType> {

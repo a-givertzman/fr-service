@@ -6,7 +6,7 @@ use chrono::Utc;
 use indexmap::IndexMap;
 use log::{debug, warn};
 
-use crate::{conf::{point_config::point_config_type::PointConfigType, profinet_client_config::profinet_db_config::ProfinetDbConfig}, core_::point::point_type::PointType, services::profinet_client::s7::s7_parse_point::ParsePoint};
+use crate::{conf::{point_config::{point_config::PointConfig, point_config_type::PointConfigType}, profinet_client_config::profinet_db_config::ProfinetDbConfig}, core_::point::point_type::PointType, services::profinet_client::s7::s7_parse_point::ParsePoint};
 
 use super::s7::{s7_client::S7Client, s7_parse_point::{ParsePointBool, ParsePointInt, ParsePointReal, ParsePointType}};
 
@@ -20,7 +20,7 @@ pub struct ProfinetDb {
     pub offset: u32,
     pub size: u32,
     pub cycle: Option<Duration>,
-    pub points: IndexMap<String, ParsePointType>,
+    pub points: IndexMap<String, Box<dyn ParsePoint>>,
 }
 ///
 /// 
@@ -57,33 +57,28 @@ impl ProfinetDb {
                     // let bytes = client.read(899, 0, 34).unwrap();
                     // print!("\x1B[2J\x1B[1;1H");
                     // debug!("{:?}", bytes);
-                    for (_key, parsePointType) in &mut self.points {
-                        match parsePointType {
-                            ParsePointType::Bool(parsePoint) => {
-                                match parsePoint.next(&bytes, timestamp) {
-                                    Some(point) => {
-                                        txSend.send(point).unwrap()
-                                    },
-                                    None => {},
-                                }
-                            },
-                            ParsePointType::Int(parsePoint) => {
-                                match parsePoint.next(&bytes, timestamp) {
-                                    Some(point) => {
-                                        txSend.send(point).unwrap()
-                                    },
-                                    None => {},
-                                }
-                            },
-                            ParsePointType::Real(parsePoint) => {
-                                match parsePoint.next(&bytes, timestamp) {
-                                    Some(point) => {
-                                        txSend.send(point).unwrap()
-                                    },
-                                    None => {},
-                                }
-                            },
+                    for (_key, parsePoint) in &mut self.points {
+                        if let Some(point) = parsePoint.next(&bytes, timestamp) {
+                            txSend.send(point).unwrap()
                         }
+
+                        // match parsePoint {
+                        //     ParsePointType::Bool(parsePoint) => {
+                        //         if let Some(point) = parsePoint.next(&bytes, timestamp) {
+                        //             txSend.send(point).unwrap()
+                        //         }
+                        //     },
+                        //     ParsePointType::Int(parsePoint) => {
+                        //         if let Some(point) = parsePoint.next(&bytes, timestamp) {
+                        //             txSend.send(point).unwrap()
+                        //         }
+                        //     },
+                        //     ParsePointType::Real(parsePoint) => {
+                        //         if let Some(point) = parsePoint.next(&bytes, timestamp) {
+                        //             txSend.send(point).unwrap()
+                        //         }
+                        //     },
+                        // }
                     }
                     Ok(())
                 }
@@ -101,19 +96,19 @@ impl ProfinetDb {
     }
     ///
     /// 
-    fn configureParsePoints(selfId: &str, conf: &ProfinetDbConfig) -> IndexMap<String, ParsePointType> {
+    fn configureParsePoints(selfId: &str, conf: &ProfinetDbConfig) -> IndexMap<String, Box<dyn ParsePoint>> {
         conf.points.iter().map(|pointConf| {
             // (pointConf.name.clone(), pointConf.clone())
             let path = String::new();
             match pointConf._type {
                 PointConfigType::Bool => {
-                    (pointConf.name.clone(), ParsePointType::Bool(ParsePointBool::new(path, pointConf.name.clone(), pointConf)))
+                    (pointConf.name.clone(), Self::boxBool(path, pointConf.name.clone(), pointConf))
                 },
                 PointConfigType::Int => {
-                    (pointConf.name.clone(), ParsePointType::Int(ParsePointInt::new(path, pointConf.name.clone(), pointConf)))
+                    (pointConf.name.clone(), Self::boxInt(path, pointConf.name.clone(), pointConf))
                 },
                 PointConfigType::Float => {
-                    (pointConf.name.clone(), ParsePointType::Real(ParsePointReal::new(path, pointConf.name.clone(), pointConf)))
+                    (pointConf.name.clone(), Self::boxFloat(path, pointConf.name.clone(), pointConf))
                 },
                 _ => panic!("{}.configureParsePoints | Unknown type '{:?}' for S7 Device", selfId, pointConf._type)
                 // PointConfigType::String => {
@@ -124,5 +119,14 @@ impl ProfinetDb {
                 // },
             }
         }).collect()
+    }
+    fn boxBool(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
+        Box::new(ParsePointBool::new(path, name, config))
+    }
+    fn boxInt(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
+        Box::new(ParsePointInt::new(path, name, config))
+    }
+    fn boxFloat(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
+        Box::new(ParsePointReal::new(path, name, config))
     }
 }
