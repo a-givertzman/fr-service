@@ -42,27 +42,27 @@ impl S7Client {
     pub fn connect(&mut self) -> Result<(), S7Error> {
         let mut req: c_int = 0;
         let mut neg: c_int = 0;
-        let mut err = 0;
+        let mut errCode = 0;
         unsafe {
             // #[warn(temporary_cstring_as_ptr)]
-            err = S7LIB.Cli_ConnectTo(self.handle, self.ip.as_ptr(), 0, 1);
+            errCode = S7LIB.Cli_ConnectTo(self.handle, self.ip.as_ptr(), 0, 1);
             S7LIB.Cli_GetPduLength(self.handle, &mut req, &mut neg);
             self.req_len = req as usize;
             self.neg_len = neg as usize;
         }
-        if err == 0 {
+        if errCode == 0 {
             self.isConnected = true;
             info!("{}.connect | successfully connected", self.id);
             Ok(())
-        } else if err > 0 {
+        } else if errCode > 0 {
             self.isConnected = false;
-            let err = S7Error::from(err as u32);
+            let err = S7Error::from(errCode as u32);
             error!("{}.connect | connection error: {:?}", self.id, err);
             Err(err)
             // thread::sleep(self.reconnectDelay);
         } else {
             let err = S7Error::Unknown;
-            error!("{}.connect | connection error: {:?} - unknown error code", self.id, err);
+            error!("{}.connect | connection error: {:?} ({}) - unknown error code", self.id, err, errCode);
             Err(err)
         }
         // while !self.isConnected {
