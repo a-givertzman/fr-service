@@ -6,9 +6,19 @@ use chrono::Utc;
 use indexmap::IndexMap;
 use log::{debug, warn};
 
-use crate::{conf::{point_config::{point_config::PointConfig, point_config_type::PointConfigType}, profinet_client_config::profinet_db_config::ProfinetDbConfig}, core_::point::point_type::PointType, services::profinet_client::s7::s7_parse_point::ParsePoint};
-
-use super::s7::{s7_client::S7Client, s7_parse_point::{ParsePointBool, ParsePointInt, ParsePointReal}};
+use crate::{
+    core_::point::point_type::PointType,
+    conf::{point_config::{point_config::PointConfig, point_config_type::PointConfigType}, profinet_client_config::profinet_db_config::ProfinetDbConfig}, 
+    services::profinet_client::{
+        parse_point::ParsePoint,
+        s7::{
+            s7_client::S7Client,
+            s7_parse_bool::S7ParseBool,
+            s7_parse_int::S7ParseInt,
+            s7_parse_real::S7ParseReal,
+        }
+    },
+};
 
 ///
 /// Represents PROFINET DB - a collection of the PROFINET addresses
@@ -121,12 +131,12 @@ impl ProfinetDb {
         }).collect()
     }
     fn boxBool(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
-        Box::new(ParsePointBool::new(path, name, config))
+        Box::new(S7ParseBool::new(path, name, config))
     }
     fn boxInt(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
-        Box::new(ParsePointInt::new(path, name, config))
+        Box::new(S7ParseInt::new(path, name, config))
     }
     fn boxFloat(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
-        Box::new(ParsePointReal::new(path, name, config))
+        Box::new(S7ParseReal::new(path, name, config))
     }
 }
