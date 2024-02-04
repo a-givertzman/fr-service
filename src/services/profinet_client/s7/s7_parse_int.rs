@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use log::{debug, warn};
-use std::array::TryFromSliceError;
+use std::{array::TryFromSliceError, rc::Rc};
 use chrono::{DateTime, Utc};
 use crate::{
     core_::{point::{point::Point, point_type::PointType}, status::status::Status},
@@ -9,14 +9,50 @@ use crate::{
     services::profinet_client::parse_point::ParsePoint,
 };
 
+use super::filter::Filter;
+
+
 ///
-///
+/// 
 #[derive(Debug, Clone)]
+pub struct TresholdFilter {
+    value: i64,
+    isChanged: bool,
+
+}
+///
+/// 
+impl TresholdFilter {
+    pub fn new(initial: i64) -> Self {
+        Self { value: initial, isChanged: true }
+    }
+}
+///
+///
+impl Filter for TresholdFilter {
+    type Item = i64;
+    fn value(&self) -> Self::Item {
+        self.value
+    }
+    fn add(&mut self, value: Self::Item) {
+        self.value = value
+    }
+    fn next(&mut self, value: i64) -> Option<i64> {
+        todo!()
+    }
+
+    fn isChanged(&self) -> bool {
+        todo!()
+    }
+}
+///
+///
+#[derive(Debug)]
 pub struct S7ParseInt {
     pub txId: usize,
     pub path: String,
     pub name: String,
-    pub value: i64,
+    pub value: Box<dyn Filter<Item = i64>>,
     pub status: Status,
     pub offset: Option<u32>,
     pub bit: Option<u8>,
@@ -35,14 +71,13 @@ impl S7ParseInt {
         path: String,
         name: String,
         config: &PointConfig,
-        // filter: Filter<T>,
-        // convert: Function,
+        // filter: impl Filter,
     ) -> S7ParseInt {
         S7ParseInt {
             txId: 0,
             path: path,
             name: name,
-            value: 0,
+            value: Box::new(TresholdFilter::new(0)),
             status: Status::Invalid,
             isChanged: false,
             offset: config.clone().address.unwrap_or(PointConfigAddress::empty()).offset,
@@ -79,7 +114,7 @@ impl S7ParseInt {
             Some(PointType::Int(Point::new(
                 self.txId, 
                 &self.name, 
-                self.value,
+                self.value.value(),
                 self.status, 
                 self.timestamp
             )))
@@ -100,8 +135,8 @@ impl S7ParseInt {
         match result {
             Ok(newVal) => {
                 let newVal = newVal as i64;
-                if newVal != self.value {
-                    self.value = newVal as i64;
+                if newVal != self.value.value() {
+                    self.value.add(newVal);
                     self.status = Status::Ok;
                     self.timestamp = timestamp;
                     self.isChanged = true;
@@ -131,8 +166,8 @@ impl ParsePoint for S7ParseInt {
     }
     //
     //
-    fn nextStatus(&mut self, bytes: &Vec<u8>, timestamp: DateTime<Utc>) -> Option<PointType> {
-        self.status = Status::Ok;
+    fn nextStatus(&mut self, status: Status) -> Option<PointType> {
+        self.status = status;
         self.timestamp = Utc::now();
         self.toPoint()
     }

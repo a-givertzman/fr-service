@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use chrono::{DateTime, Utc};
-use crate::core_::point::point_type::PointType;
+use crate::core_::{point::point_type::PointType, status::status::Status};
 
 ///
 /// Returns updated points parsed from the data slice from the S7 device,
@@ -14,7 +14,7 @@ pub trait ParsePoint {
     fn next(&mut self, bytes: &Vec<u8>, timestamp: DateTime<Utc>) -> Option<PointType>;
     ///
     /// Returns new point (prevously parsed) with the given [status]
-    fn nextStatus(&mut self, bytes: &Vec<u8>, timestamp: DateTime<Utc>) -> Option<PointType>;
+    fn nextStatus(&mut self, status: Status) -> Option<PointType>;
     ///
     /// Returns true if value or status was updated since last call [addRaw()]
     fn isChanged(&self) -> bool;

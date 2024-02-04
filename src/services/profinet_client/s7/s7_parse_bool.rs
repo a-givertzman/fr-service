@@ -134,8 +134,8 @@ impl ParsePoint for S7ParseBool {
     }
     //
     //
-    fn nextStatus(&mut self, bytes: &Vec<u8>, timestamp: DateTime<Utc>) -> Option<PointType> {
-        self.status = Status::Ok;
+    fn nextStatus(&mut self, status: Status) -> Option<PointType> {
+        self.status = status;
         self.timestamp = Utc::now();
         self.toPoint()
     }
