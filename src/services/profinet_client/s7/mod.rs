@@ -7,5 +7,3 @@ pub mod s7_lib;
 pub mod s7_parse_bool;
 pub mod s7_parse_int;
 pub mod s7_parse_real;
-
-pub mod filter;

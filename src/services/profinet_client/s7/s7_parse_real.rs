@@ -4,19 +4,17 @@ use log::{debug, warn};
 use std::array::TryFromSliceError;
 use chrono::{DateTime, Utc};
 use crate::{
-    core_::{point::{point::Point, point_type::PointType}, status::status::Status},
-    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress}, 
-    services::profinet_client::parse_point::ParsePoint,
+    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress}, core_::{filter::filter::Filter, point::{point::Point, point_type::PointType}, status::status::Status}, services::profinet_client::parse_point::ParsePoint
 };
 
 ///
 ///
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct S7ParseReal {
     pub txId: usize,
     pub path: String,
     pub name: String,
-    pub value: f32,
+    pub value: Box<dyn Filter<Item = f64>>,
     pub status: Status,
     pub offset: Option<u32>,
     pub bit: Option<u8>,
@@ -35,11 +33,11 @@ impl S7ParseReal {
         path: String,
         name: String,
         config: &PointConfig,
-        // filter: Filter<T>,
+        filter: impl Filter<Item = f64>,
     ) -> S7ParseReal {
         S7ParseReal {
             txId: 0,
-            value: 0.0,
+            value: Box::new(filter),
             status: Status::Invalid,
             isChanged: false,
             path: path,
@@ -79,7 +77,7 @@ impl S7ParseReal {
             Some(PointType::Float(Point::new(
                 self.txId, 
                 &self.name, 
-                self.value as f64,
+                self.value.value(),
                 self.status, 
                 self.timestamp
             )))
@@ -99,8 +97,9 @@ impl S7ParseReal {
         let result = self.convert(bytes, self.offset.unwrap() as usize, 0);
         match result {
             Ok(newVal) => {
-                if newVal != self.value {
-                    self.value = newVal;
+                let newVal = newVal as f64;
+                if (newVal) != self.value.value() {
+                    self.value.add(newVal);
                     self.status = Status::Ok;
                     self.timestamp = timestamp;
                     self.isChanged = true;

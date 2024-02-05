@@ -8,7 +8,7 @@ mod tests {
             debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
             testing::test_stuff::max_test_duration::TestDuration,
         }, 
-        conf::point_config::{point_config::PointConfig, point_config_type::PointConfigType, point_config_address::PointConfigAddress, point_config_filters::PointConfigFilters},
+        conf::point_config::{point_config::PointConfig, point_config_type::PointConfigType, point_config_address::PointConfigAddress, point_config_filters::PointConfigFilter},
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -60,7 +60,7 @@ mod tests {
                     _type: PointConfigType::Bool, 
                     history: Some(0), alarm: Some(0), 
                     address: Some(PointConfigAddress { offset: Some(0), bit: Some(0) }), 
-                    filters: Some(PointConfigFilters { threshold: Some(5) }),
+                    filters: Some(PointConfigFilter { threshold: 5.0, factor: None }),
                     comment: Some(String::from("Test Point Bool")),
                 },
             ),
@@ -148,7 +148,7 @@ mod tests {
                     _type: PointConfigType::Bool, 
                     history: Some(0), alarm: Some(0), 
                     address: Some(PointConfigAddress { offset: Some(0), bit: Some(0) }), 
-                    filters: Some(PointConfigFilters { threshold: Some(5) }),
+                    filters: Some(PointConfigFilter { threshold: 5.0, factor: None }),
                     comment: Some(String::from("Test Point Bool")),
                 },
             ),

@@ -7,9 +7,7 @@ use indexmap::IndexMap;
 use log::{debug, warn};
 
 use crate::{
-    core_::point::point_type::PointType,
-    conf::{point_config::{point_config::PointConfig, point_config_type::PointConfigType}, profinet_client_config::profinet_db_config::ProfinetDbConfig}, 
-    services::profinet_client::{
+    conf::{point_config::{point_config::PointConfig, point_config_filters::PointConfigFilter, point_config_type::PointConfigType}, profinet_client_config::profinet_db_config::ProfinetDbConfig}, core_::{filter::{filter::{Filter, FilterEmpty}, filter_threshold::FilterThreshold}, point::point_type::PointType}, services::profinet_client::{
         parse_point::ParsePoint,
         s7::{
             s7_client::S7Client,
@@ -17,7 +15,7 @@ use crate::{
             s7_parse_int::S7ParseInt,
             s7_parse_real::S7ParseReal,
         }
-    },
+    }
 };
 
 ///
@@ -116,9 +114,21 @@ impl ProfinetDb {
         Box::new(S7ParseBool::new(path, name, config))
     }
     fn boxInt(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
-        Box::new(S7ParseInt::new(path, name, config))
+        Box::new(S7ParseInt::new(
+            path, 
+            name, 
+            config,
+        ))
     }
     fn boxFloat(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
         Box::new(S7ParseReal::new(path, name, config))
+    }
+    fn IntFilter(conf: Option<PointConfigFilter>) -> impl Filter {
+        match conf {
+            Some(conf) => {
+                FilterThreshold::new(0, conf.threshold, conf.factor.unwrap_or(0.0))
+            },
+            None => FilterEmpty::new(0),
+        }
     }
 }

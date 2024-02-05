@@ -4,10 +4,11 @@
 mod tests {
     use log::{warn, info, debug};
     use std::{sync::Once, time::{Duration, Instant}};
-    use crate::{core_::{
-        debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
+    use crate::core_::{
+        debug::debug_session::{Backtrace, DebugSession, LogLevel}, 
         testing::test_stuff::max_test_duration::TestDuration,
-    }, services::profinet_client::s7::{filter::Filter, s7_parse_int::FilterThreshol}}; 
+        filter::{filter_threshold::FilterThreshold, filter::Filter},
+    }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -66,7 +67,7 @@ mod tests {
             (0, 0),
         ];
         let threasold = 1.5;
-        let mut filter = FilterThreshol::new(0, threasold, 0.0);
+        let mut filter = FilterThreshold::new(0, threasold, 0.0);
         let mut prev = 0;
         for (value, target) in testData {
             filter.add(value);
@@ -136,7 +137,7 @@ mod tests {
             (-10, -10),
         ];
         let threasold = 1.5;
-        let mut filter = FilterThreshol::new(0, threasold, 0.0);
+        let mut filter = FilterThreshold::new(0, threasold, 0.0);
         let mut prev = 0;
         for (value, target) in testData {
             filter.add(value);

@@ -4,103 +4,9 @@ use log::{debug, warn};
 use std::array::TryFromSliceError;
 use chrono::{DateTime, Utc};
 use crate::{
-    core_::{point::{point::Point, point_type::PointType}, status::status::Status},
-    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress}, 
-    services::profinet_client::parse_point::ParsePoint,
+    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress}, core_::{filter::{filter::Filter, filter_threshold::FilterThreshold}, point::{point::Point, point_type::PointType}, status::status::Status}, services::profinet_client::parse_point::ParsePoint
 };
 
-use super::filter::Filter;
-
-
-///
-/// 
-#[derive(Debug, Clone)]
-pub struct FilterThreshol<T> {
-    value: T,
-    isChanged: bool,
-    threshold: f64,
-    factor: f64,
-    acc: f64,
-}
-///
-/// 
-impl<T> FilterThreshol<T> {
-    pub fn new(initial: T, threshold: f32, factor: f32) -> Self {
-        Self {
-            value: initial,
-            isChanged: true,
-            threshold: threshold as f64, 
-            factor: factor as f64,
-            acc: 0.0,
-        }
-    }
-}
-///
-///
-impl Filter for FilterThreshol<i64> {
-    type Item = i64;
-    ///
-    /// 
-    fn value(&self) -> Self::Item {
-        self.value
-    }
-    ///
-    /// 
-    fn add(&mut self, value: Self::Item) {
-        let delta = (self.value as f64) - (value as f64);
-        let delta = if self.factor > 0.0 {
-            self.acc += delta * self.factor;
-            self.acc.abs()
-        } else {
-            delta.abs()
-        };
-        if delta > self.threshold {
-            self.isChanged = true;
-            self.value = value;
-            self.acc = 0.0;
-        } else {
-            self.isChanged = false;
-        }
-    }
-    ///
-    /// 
-    fn isChanged(&self) -> bool {
-        self.isChanged
-    }
-}
-///
-///
-impl Filter for FilterThreshol<f64> {
-    type Item = f64;
-    ///
-    /// 
-    fn value(&self) -> Self::Item {
-        self.value
-    }
-    ///
-    /// 
-    fn add(&mut self, value: Self::Item) {
-        let delta = (self.value as f64) - (value as f64);
-        let delta = if self.factor > 0.0 {
-            self.acc += delta * self.factor;
-            self.acc.abs()
-        } else {
-            delta.abs()
-        };
-        if delta > self.threshold {
-            self.isChanged = true;
-            self.value = value;
-            self.acc = 0.0;
-        } else {
-            self.isChanged = false;
-        }
-    }
-    ///
-    /// 
-    fn isChanged(&self) -> bool {
-        self.isChanged
-    }
-}
 
 ///
 ///
@@ -128,13 +34,13 @@ impl S7ParseInt {
         path: String,
         name: String,
         config: &PointConfig,
-        // filter: impl Filter,
+        filter: impl Filter<Item = i64>,
     ) -> S7ParseInt {
         S7ParseInt {
             txId: 0,
             path: path,
             name: name,
-            value: Box::new(FilterThreshol::new(0, 0.5, 0.0)),
+            value: Box::new(filter),
             status: Status::Invalid,
             isChanged: false,
             offset: config.clone().address.unwrap_or(PointConfigAddress::empty()).offset,
