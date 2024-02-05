@@ -4,9 +4,13 @@
 /// 
 pub trait Filter: std::fmt::Debug {
     type Item;
+    ///
+    /// Returns current state
     fn value(&self) -> Self::Item;
+    /// - Updates state with value if value != inner
     fn add(&mut self, value: Self::Item);
-    fn next(&mut self, value: Self::Item) -> Option<Self::Item>;
+    ///
+    /// Returns true if last [add] was successful
     fn isChanged(&self) -> bool;
 }
 ///
@@ -35,16 +39,11 @@ impl<T: Copy + std::fmt::Debug + std::cmp::PartialEq> Filter for FilterEmpty<T> 
     //
     //
     fn add(&mut self, value: Self::Item) {
-        self.value = value;
-    }
-    //
-    //
-    fn next(&mut self, value: T) -> Option<T> {
         if value != self.value {
+            self.isChanged = true;
             self.value = value;
-            Some(self.value)
         } else {
-            None
+            self.isChanged = false;
         }
     }
     //

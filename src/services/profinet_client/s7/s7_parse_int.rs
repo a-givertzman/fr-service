@@ -15,53 +15,93 @@ use super::filter::Filter;
 ///
 /// 
 #[derive(Debug, Clone)]
-pub struct ThresholdFilter<T> {
+pub struct FilterThreshol<T> {
     value: T,
-    // prev: T,
     isChanged: bool,
-    threshold: f32,
-    factor: f32,
+    threshold: f64,
+    factor: f64,
+    acc: f64,
 }
 ///
 /// 
-impl ThresholdFilter<i64> {
-    pub fn new(initial: i64, threshold: f32, factor: f32) -> Self {
+impl<T> FilterThreshol<T> {
+    pub fn new(initial: T, threshold: f32, factor: f32) -> Self {
         Self {
             value: initial,
-            // prev: initial,
             isChanged: true,
-            threshold, factor,
+            threshold: threshold as f64, 
+            factor: factor as f64,
+            acc: 0.0,
         }
     }
 }
 ///
 ///
-impl Filter for ThresholdFilter<i64> {
+impl Filter for FilterThreshol<i64> {
     type Item = i64;
+    ///
+    /// 
     fn value(&self) -> Self::Item {
         self.value
     }
+    ///
+    /// 
     fn add(&mut self, value: Self::Item) {
-        let delta = ((self.value as f32) - (value as f32)).abs();
+        let delta = (self.value as f64) - (value as f64);
+        let delta = if self.factor > 0.0 {
+            self.acc += delta * self.factor;
+            self.acc.abs()
+        } else {
+            delta.abs()
+        };
         if delta > self.threshold {
-            // self.prev = value;
             self.isChanged = true;
             self.value = value;
-        }
-    }
-    fn next(&mut self, value: i64) -> Option<i64> {
-        if self.value != value {
-            self.value = value;
-            Some(self.value)
+            self.acc = 0.0;
         } else {
-            None
+            self.isChanged = false;
         }
     }
-
+    ///
+    /// 
     fn isChanged(&self) -> bool {
         self.isChanged
     }
 }
+///
+///
+impl Filter for FilterThreshol<f64> {
+    type Item = f64;
+    ///
+    /// 
+    fn value(&self) -> Self::Item {
+        self.value
+    }
+    ///
+    /// 
+    fn add(&mut self, value: Self::Item) {
+        let delta = (self.value as f64) - (value as f64);
+        let delta = if self.factor > 0.0 {
+            self.acc += delta * self.factor;
+            self.acc.abs()
+        } else {
+            delta.abs()
+        };
+        if delta > self.threshold {
+            self.isChanged = true;
+            self.value = value;
+            self.acc = 0.0;
+        } else {
+            self.isChanged = false;
+        }
+    }
+    ///
+    /// 
+    fn isChanged(&self) -> bool {
+        self.isChanged
+    }
+}
+
 ///
 ///
 #[derive(Debug)]
@@ -94,7 +134,7 @@ impl S7ParseInt {
             txId: 0,
             path: path,
             name: name,
-            value: Box::new(ThresholdFilter::new(0, 0.5, 0.0)),
+            value: Box::new(FilterThreshol::new(0, 0.5, 0.0)),
             status: Status::Invalid,
             isChanged: false,
             offset: config.clone().address.unwrap_or(PointConfigAddress::empty()).offset,

@@ -71,24 +71,6 @@ impl ProfinetDb {
                         if let Some(point) = parsePoint.next(&bytes, timestamp) {
                             txSend.send(point).unwrap()
                         }
-
-                        // match parsePoint {
-                        //     ParsePointType::Bool(parsePoint) => {
-                        //         if let Some(point) = parsePoint.next(&bytes, timestamp) {
-                        //             txSend.send(point).unwrap()
-                        //         }
-                        //     },
-                        //     ParsePointType::Int(parsePoint) => {
-                        //         if let Some(point) = parsePoint.next(&bytes, timestamp) {
-                        //             txSend.send(point).unwrap()
-                        //         }
-                        //     },
-                        //     ParsePointType::Real(parsePoint) => {
-                        //         if let Some(point) = parsePoint.next(&bytes, timestamp) {
-                        //             txSend.send(point).unwrap()
-                        //         }
-                        //     },
-                        // }
                     }
                     Ok(())
                 }
