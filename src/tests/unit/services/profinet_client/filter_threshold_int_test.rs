@@ -71,7 +71,7 @@ mod tests {
         let mut prev = 0;
         for (value, target) in testData {
             filter.add(value);
-            let diff = (prev as f32 - (value as f32)).abs();
+            let diff = (prev as f64 - (value as f64)).abs();
             if diff > threasold {
                 prev = value;
             }
@@ -141,7 +141,7 @@ mod tests {
         let mut prev = 0;
         for (value, target) in testData {
             filter.add(value);
-            let diff = (prev as f32 - (value as f32)).abs();
+            let diff = (prev as f64 - (value as f64)).abs();
             if diff > threasold {
                 prev = value;
             }

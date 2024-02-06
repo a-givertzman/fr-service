@@ -33,11 +33,11 @@ impl S7ParseReal {
         path: String,
         name: String,
         config: &PointConfig,
-        filter: impl Filter<Item = f64>,
+        filter: Box<dyn Filter<Item = f64>>,
     ) -> S7ParseReal {
         S7ParseReal {
             txId: 0,
-            value: Box::new(filter),
+            value: filter,
             status: Status::Invalid,
             isChanged: false,
             path: path,

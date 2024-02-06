@@ -118,17 +118,35 @@ impl ProfinetDb {
             path, 
             name, 
             config,
+            Self::intFilter(config.filters.clone()),
         ))
     }
     fn boxFloat(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
-        Box::new(S7ParseReal::new(path, name, config))
+        Box::new(S7ParseReal::new(
+            path, 
+            name, 
+            config,
+            Self::floatFilter(config.filters.clone()),
+        ))
     }
-    fn IntFilter(conf: Option<PointConfigFilter>) -> impl Filter {
+    fn intFilter(conf: Option<PointConfigFilter>) -> Box<dyn Filter<Item = i64>> {
         match conf {
             Some(conf) => {
-                FilterThreshold::new(0, conf.threshold, conf.factor.unwrap_or(0.0))
+                Box::new(
+                    FilterThreshold::new(0, conf.threshold, conf.factor.unwrap_or(0.0))
+                )
             },
-            None => FilterEmpty::new(0),
+            None => Box::new(FilterEmpty::new(0)),
+        }
+    }
+    fn floatFilter(conf: Option<PointConfigFilter>) -> Box<dyn Filter<Item = f64>> {
+        match conf {
+            Some(conf) => {
+                Box::new(
+                    FilterThreshold::new(0.0, conf.threshold, conf.factor.unwrap_or(0.0))
+                )
+            },
+            None => Box::new(FilterEmpty::<f64>::new(0.0)),
         }
     }
 }

@@ -4,7 +4,7 @@ use log::{debug, warn};
 use std::array::TryFromSliceError;
 use chrono::{DateTime, Utc};
 use crate::{
-    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress}, core_::{filter::{filter::Filter, filter_threshold::FilterThreshold}, point::{point::Point, point_type::PointType}, status::status::Status}, services::profinet_client::parse_point::ParsePoint
+    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress}, core_::{filter::filter::Filter, point::{point::Point, point_type::PointType}, status::status::Status}, services::profinet_client::parse_point::ParsePoint
 };
 
 
@@ -34,13 +34,13 @@ impl S7ParseInt {
         path: String,
         name: String,
         config: &PointConfig,
-        filter: impl Filter<Item = i64>,
+        filter: Box<dyn Filter<Item = i64>>,
     ) -> S7ParseInt {
         S7ParseInt {
             txId: 0,
             path: path,
             name: name,
-            value: Box::new(filter),
+            value: filter,
             status: Status::Invalid,
             isChanged: false,
             offset: config.clone().address.unwrap_or(PointConfigAddress::empty()).offset,

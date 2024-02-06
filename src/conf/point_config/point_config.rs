@@ -59,7 +59,7 @@ impl PointConfig {
             Ok(keyword) => keyword.data(),
             Err(_) => confTree.key.clone(),
         };
-            if let Some(mut filter) = pc.filters {
+            if let Some(mut filter) = pc.filters.clone() {
                 if let Some(factor) = filter.factor {
                     if factor == 0.0 {
                         filter.factor = None
