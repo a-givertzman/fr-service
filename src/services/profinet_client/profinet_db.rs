@@ -13,7 +13,7 @@ use crate::{
     }, 
     core_::{
         filter::{filter::{Filter, FilterEmpty}, filter_threshold::FilterThreshold}, 
-        point::point_type::PointType
+        point::point_type::PointType, status::status::Status
     }, 
     services::profinet_client::{
         parse_point::ParsePoint,
@@ -73,12 +73,23 @@ impl ProfinetDb {
                     // let bytes = client.read(899, 0, 34).unwrap();
                     // print!("\x1B[2J\x1B[1;1H");
                     // debug!("{:?}", bytes);
+                    let mut message = String::new();
                     for (_key, parsePoint) in &mut self.points {
                         if let Some(point) = parsePoint.next(&bytes, timestamp) {
-                            txSend.send(point).unwrap()
+                            match txSend.send(point) {
+                                Ok(_) => {},
+                                Err(err) => {
+                                    message = format!("{}.read | send error: {}", self.id, err);
+                                    warn!("{}", message);
+                                },
+                            }
                         }
                     }
-                    Ok(())
+                    if message.is_empty() {
+                        Ok(())
+                    } else {
+                        Err(message)
+                    }
                 }
                 Err(err) => {
                     let message = format!("{}.read | read error: {}", self.id, err);
@@ -92,6 +103,30 @@ impl ProfinetDb {
             Err(message)
         }        
     }
+    ///
+    /// Returns updated points from the current DB
+    ///     - reads data slice from the S7 device,
+    ///     - parses raw data into the configured points
+    ///     - returns only points with updated value or status
+    pub fn sendStatus(&mut self, status: Status, txSend: &Sender<PointType>) -> Result<(), String> {
+        let mut message = String::new();
+        for (_key, parsePoint) in &mut self.points {
+            if let Some(point) = parsePoint.nextStatus(status) {
+                match txSend.send(point) {
+                    Ok(_) => {},
+                    Err(err) => {
+                        message = format!("{}.sendStatus | send error: {}", self.id, err);
+                        warn!("{}", message);
+                    },
+                }
+            }
+        }
+        if message.is_empty() {
+            return Ok(())
+        }
+        Err(message)
+    }
+
     ///
     /// 
     fn configureParsePoints(selfId: &str, conf: &ProfinetDbConfig) -> IndexMap<String, Box<dyn ParsePoint>> {
