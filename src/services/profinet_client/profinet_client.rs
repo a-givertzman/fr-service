@@ -41,21 +41,16 @@ impl ProfinetClient {
     ///     - reads data slice from the S7 device,
     ///     - parses raw data into the configured points
     ///     - returns only points with updated value or status
-    fn lostConnection(selfId: &str, dbs: &IndexMap<String, ProfinetDb>, txSend: &Sender<PointType>) -> Result<(), Vec<String>> {
-        let mut errors = vec![];
+    fn lostConnection(selfId: &str, dbs: &IndexMap<String, ProfinetDb>, txSend: &Sender<PointType>) {
         for (dbName, db) in dbs {
             debug!("{}.run | DB '{}' - reading...", selfId, dbName);
             match db.sendStatus(Status::Invalid, &txSend) {
                 Ok(_) => {},
                 Err(err) => {
-                    errors.push(err);
+                    error!("{}.lostConnection | send errors: \n\t{:?}", selfId, err);
                 },
             };
         }
-        if errors.is_empty() {
-            return Ok(())
-        }
-        Err(errors)
     }
 }
 ///
@@ -115,12 +110,7 @@ impl Service for ProfinetClient {
                                         errorsLimit -= 1;
                                         if errorsLimit <= 0 {
                                             error!("{}.run | DB '{}' - exceeded reading errors limit, trying to reconnect...", selfId, dbName);
-                                            match Self::lostConnection(&selfId, &dbs, &txSend) {
-                                                Ok(_) => {},
-                                                Err(err) => {
-                                                    error!("{}.run | send 'Lost Connection' errors: \n\t{:?}", selfId, dbName);
-                                                },
-                                            };
+                                            Self::lostConnection(&selfId, &dbs, &txSend);
                                             client.close();
                                             break 'read;
                                         }
