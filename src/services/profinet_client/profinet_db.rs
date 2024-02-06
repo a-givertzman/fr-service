@@ -108,7 +108,7 @@ impl ProfinetDb {
     ///     - reads data slice from the S7 device,
     ///     - parses raw data into the configured points
     ///     - returns only points with updated value or status
-    pub fn sendStatus(&mut self, status: Status, txSend: &Sender<PointType>) -> Result<(), String> {
+    pub fn yieldStatus(&mut self, status: Status, txSend: &Sender<PointType>) -> Result<(), String> {
         let mut message = String::new();
         for (_key, parsePoint) in &mut self.points {
             if let Some(point) = parsePoint.nextStatus(status) {

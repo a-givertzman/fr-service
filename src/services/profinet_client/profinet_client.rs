@@ -41,10 +41,10 @@ impl ProfinetClient {
     ///     - reads data slice from the S7 device,
     ///     - parses raw data into the configured points
     ///     - returns only points with updated value or status
-    fn lostConnection(selfId: &str, dbs: &IndexMap<String, ProfinetDb>, txSend: &Sender<PointType>) {
+    fn yieldStatus(selfId: &str, dbs: &mut IndexMap<String, ProfinetDb>, txSend: &Sender<PointType>) {
         for (dbName, db) in dbs {
             debug!("{}.run | DB '{}' - reading...", selfId, dbName);
-            match db.sendStatus(Status::Invalid, &txSend) {
+            match db.yieldStatus(Status::Invalid, &txSend) {
                 Ok(_) => {},
                 Err(err) => {
                     error!("{}.lostConnection | send errors: \n\t{:?}", selfId, err);
@@ -95,6 +95,7 @@ impl Service for ProfinetClient {
             let mut client = S7Client::new(selfId.clone(), conf.ip.clone());
             'main: while !exit.load(Ordering::SeqCst) {
                 let mut errorsLimit: i8 = 3;
+                let mut status = Status::Ok;
                 match client.connect() {
                     Ok(_) => {
                         'read: while !exit.load(Ordering::SeqCst) {
@@ -110,7 +111,7 @@ impl Service for ProfinetClient {
                                         errorsLimit -= 1;
                                         if errorsLimit <= 0 {
                                             error!("{}.run | DB '{}' - exceeded reading errors limit, trying to reconnect...", selfId, dbName);
-                                            Self::lostConnection(&selfId, &dbs, &txSend);
+                                            status = Status::Invalid;
                                             client.close();
                                             break 'read;
                                         }
@@ -123,6 +124,9 @@ impl Service for ProfinetClient {
                             if cyclic {
                                 cycle.wait();
                             }
+                        }
+                        if status != Status::Ok {
+                            Self::yieldStatus(&selfId, &mut dbs, &txSend);
                         }
                     },
                     Err(err) => {
