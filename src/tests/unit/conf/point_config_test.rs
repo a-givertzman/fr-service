@@ -34,7 +34,7 @@ mod tests {
     }
     
     #[test]
-    fn test_point_config_deserialize() {
+    fn test_point_config_serialize() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
@@ -53,7 +53,7 @@ mod tests {
                             offset: 0   # 0..65535
                             bit: 0      # 0..255
                         filters:
-                            threshold: 5    # 5% threshold
+                            threshold: 5.0    # 5 threshold
                         comment: Test Point Bool"#, 
                 PointConfig { 
                     name: String::from("PointName0"),
@@ -122,7 +122,7 @@ mod tests {
 
     
     #[test]
-    fn test_point_config_serialize() {
+    fn test_point_config_deserialize() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
