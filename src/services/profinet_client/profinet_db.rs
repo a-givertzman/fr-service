@@ -7,7 +7,15 @@ use indexmap::IndexMap;
 use log::{debug, warn};
 
 use crate::{
-    conf::{point_config::{point_config::PointConfig, point_config_filters::PointConfigFilter, point_config_type::PointConfigType}, profinet_client_config::profinet_db_config::ProfinetDbConfig}, core_::{filter::{filter::{Filter, FilterEmpty}, filter_threshold::FilterThreshold}, point::point_type::PointType}, services::profinet_client::{
+    conf::{
+        point_config::{point_config::PointConfig, point_config_filters::PointConfigFilter, point_config_type::PointConfigType}, 
+        profinet_client_config::profinet_db_config::ProfinetDbConfig
+    }, 
+    core_::{
+        filter::{filter::{Filter, FilterEmpty}, filter_threshold::FilterThreshold}, 
+        point::point_type::PointType
+    }, 
+    services::profinet_client::{
         parse_point::ParsePoint,
         s7::{
             s7_client::S7Client,
@@ -110,9 +118,13 @@ impl ProfinetDb {
             }
         }).collect()
     }
+    ///
+    /// 
     fn boxBool(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
         Box::new(S7ParseBool::new(path, name, config))
     }
+    ///
+    /// 
     fn boxInt(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
         Box::new(S7ParseInt::new(
             path, 
@@ -121,6 +133,8 @@ impl ProfinetDb {
             Self::intFilter(config.filters.clone()),
         ))
     }
+    ///
+    /// 
     fn boxFloat(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
         Box::new(S7ParseReal::new(
             path, 
@@ -129,6 +143,8 @@ impl ProfinetDb {
             Self::floatFilter(config.filters.clone()),
         ))
     }
+    ///
+    /// 
     fn intFilter(conf: Option<PointConfigFilter>) -> Box<dyn Filter<Item = i64>> {
         match conf {
             Some(conf) => {
@@ -139,6 +155,8 @@ impl ProfinetDb {
             None => Box::new(FilterEmpty::new(0)),
         }
     }
+    ///
+    /// 
     fn floatFilter(conf: Option<PointConfigFilter>) -> Box<dyn Filter<Item = f64>> {
         match conf {
             Some(conf) => {
