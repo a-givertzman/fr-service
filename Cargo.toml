@@ -26,7 +26,7 @@ chrono = "^0.4"
 
 indexmap = "^2.2"
 
-snap7 = "^0.0"
+# snap7 = "^0.0"
 snap7-sys = "^0.1"
 libc = "^0.2"
 libloading = "^0.8"
