@@ -27,3 +27,5 @@ pub mod tcp_server_config;
 pub mod point_config;
 
 pub mod fn_point_config;
+
+pub mod profinet_client_config;

@@ -2,12 +2,13 @@
 name = "fr-service"
 version = "0.1.0"
 edition = "2021"
+build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 log = "^0.4"
-env_logger = "^0.10"
+env_logger = "^0.11"
 
 # num = "^0.4"
 # derive-new = "^0.5"
@@ -24,7 +25,16 @@ rand = "^0.8"
 
 chrono = "^0.4"
 
-indexmap = "^2.0"
+indexmap = "^2.2"
+
+# snap7 = "^0.0"
+snap7-sys = "^0.1"
+libc = "^0.2"
+libloading = "^0.8"
+bindgen = "^0.69"
+once_cell = "^1.19"
+
+
 
 # [[bin]]
 # name = "task_test"

@@ -40,7 +40,7 @@ impl ApiClientConfig {
     ///         max-length: 10000
     ///     out queue: MultiQueue.queue
     ///                     ...
-    pub fn new(confTree: &mut ConfTree) -> ApiClientConfig {
+    pub fn new(confTree: &mut ConfTree) -> Self {
         println!("\n");
         trace!("ApiClientConfig.new | confTree: {:?}", confTree);
         // self conf from first sub node
@@ -64,7 +64,7 @@ impl ApiClientConfig {
                 debug!("{}.new | reconnectCycle: {:?}", selfId, reconnectCycle);
                 let (rx, rxMaxLength) = selfConf.getInQueue().unwrap();
                 debug!("{}.new | RX: {},\tmax-length: {:?}", selfId, rx, rxMaxLength);
-                ApiClientConfig {
+                Self {
                     name: selfName,
                     address,
                     cycle,
@@ -80,7 +80,7 @@ impl ApiClientConfig {
     }
     ///
     /// creates config from serde_yaml::Value of following format:
-    pub(crate) fn fromYamlValue(value: &serde_yaml::Value) -> ApiClientConfig {
+    pub(crate) fn fromYamlValue(value: &serde_yaml::Value) -> Self {
         Self::new(&mut ConfTree::newRoot(value.clone()))
     }
     ///
@@ -90,7 +90,7 @@ impl ApiClientConfig {
             Ok(yamlString) => {
                 match serde_yaml::from_str(&yamlString) {
                     Ok(config) => {
-                        ApiClientConfig::fromYamlValue(&config)
+                        Self::fromYamlValue(&config)
                     },
                     Err(err) => {
                         panic!("ApiClientConfig.read | Error in config: {:?}\n\terror: {:?}", yamlString, err)

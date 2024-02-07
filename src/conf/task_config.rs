@@ -45,7 +45,7 @@ impl TaskConfig {
     /// creates config from serde_yaml::Value of following format:
     /// ```yaml
     /// task taskName:
-    ///     cycle: 100  // ms
+    ///     cycle: 100 ms
     ///     fn sqlUpdateMetric:
     ///         table: "TableName"
     ///         sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"

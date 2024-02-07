@@ -2,7 +2,7 @@
 
 use chrono::DateTime;
 
-use crate::core_::types::bool::Bool;
+use crate::core_::{status::status::Status, types::bool::Bool};
 
 
 #[derive(Clone, Debug, PartialEq)]
@@ -10,11 +10,11 @@ pub struct Point<T> {
     pub txId: usize,
     pub name: String,
     pub value: T,
-    pub status: u8,
+    pub status: Status,
     pub timestamp: DateTime<chrono::Utc>,
 }
 impl<T> Point<T> {
-    pub fn new(txId: usize, name: &str, value: T, status: u8, timestamp: DateTime<chrono::Utc>,) -> Point<T> {
+    pub fn new(txId: usize, name: &str, value: T, status: Status, timestamp: DateTime<chrono::Utc>,) -> Point<T> {
         Self {
             txId,
             name: name.to_owned(),
@@ -34,7 +34,7 @@ impl Point<Bool> {
             txId,
             name: name.into(),
             value: Bool(value),
-            status: 0,
+            status: Status::Ok,
             timestamp: chrono::offset::Utc::now(),
         }
     }
@@ -49,7 +49,7 @@ impl Point<i64> {
             txId,
             name: name.into(),
             value: value,
-            status: 0,
+            status: Status::Ok,
             timestamp: chrono::offset::Utc::now(),
         }
     }
@@ -64,7 +64,7 @@ impl Point<f64> {
             txId,
             name: name.into(),
             value: value,
-            status: 0,
+            status: Status::Ok,
             timestamp: chrono::offset::Utc::now(),
         }
     }
@@ -79,7 +79,7 @@ impl Point<String> {
             txId,
             name: name.into(),
             value: value.into(),
-            status: 0,
+            status: Status::Ok,
             timestamp: chrono::offset::Utc::now(),
         }
     }

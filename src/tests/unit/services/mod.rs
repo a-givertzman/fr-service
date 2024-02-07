@@ -9,3 +9,5 @@ pub mod multi_queue;
 pub mod tcp_server;
 
 pub mod services;
+
+pub mod profinet_client;

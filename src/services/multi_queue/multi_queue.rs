@@ -134,7 +134,7 @@ impl Service for MultiQueue {
             self.subscriptions.lock().unwrap().addBroadcast(innerReceiverId, send.clone());
             debug!("{}.run | Lock subscriptions - ok", selfId);
 
-            // staticSubscriptions.insert(PointTxId::fromStr(sendQueue), outSend);
+            // staticSubscriptions.insert(PointTxId::fromStr(sendQueue), txSend);
         }
         let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);

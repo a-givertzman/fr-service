@@ -9,7 +9,7 @@ use crate::conf::{
     conf_tree::ConfTree, fn_conf_keywd::FnConfKeywd, point_config::{
         point_config_type::PointConfigType,
         point_config_address::PointConfigAddress,
-        point_config_filters::PointConfigFilters,
+        point_config_filters::PointConfigFilter,
     }
 };
 
@@ -28,7 +28,7 @@ pub struct PointConfig {
     pub alarm: Option<u8>,
     pub address: Option<PointConfigAddress>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub filters: Option<PointConfigFilters>,
+    pub filters: Option<PointConfigFilter>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
     
@@ -46,16 +46,26 @@ impl PointConfig {
     ///     address:
     ///         offset: 0..65535
     ///         bit: 0..255
+    ///     filter:
+    ///         threshold: 0.5      // absolute threshold delta
+    ///         factor: 1.5         // multiplier for absolute threshold delta - in this case the delta will be accumulated
     ///     comment: Test Point 
     pub fn new(confTree: &ConfTree) -> PointConfig {
-        println!("\n");
-        debug!("PointConfig.new | confTree: {:?}", confTree);
+        // println!("\n");
+        trace!("PointConfig.new | confTree: {:?}", confTree);
         let mut pc: PointConfig = serde_yaml::from_value(confTree.conf.clone()).unwrap();
         let keyword = FnConfKeywd::from_str(&confTree.key);
         pc.name = match keyword {
             Ok(keyword) => keyword.data(),
             Err(_) => confTree.key.clone(),
         };
+            if let Some(mut filter) = pc.filters.clone() {
+                if let Some(factor) = filter.factor {
+                    if factor == 0.0 {
+                        filter.factor = None
+                    }
+                }
+            }
         pc
     }    
     ///

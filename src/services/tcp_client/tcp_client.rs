@@ -80,7 +80,7 @@ impl Service for TcpClient {
         info!("{}.run | rx queue name: {:?}", self.id, conf.rx);
         info!("{}.run | tx queue name: {:?}", self.id, conf.tx);
         debug!("{}.run | Lock services...", selfId);
-        let outSend = self.services.lock().unwrap().getLink(&conf.tx);
+        let txSend = self.services.lock().unwrap().getLink(&conf.tx);
         debug!("{}.run | Lock services - ok", selfId);
         let buffered = conf.rxBuffered; // TODO Read this from config
         let inRecv = self.inRecv.pop().unwrap();
@@ -96,7 +96,7 @@ impl Service for TcpClient {
         );
         let mut tcpReadAlive = TcpReadAlive::new(
             &selfId,
-            outSend,
+            txSend,
             Duration::from_millis(10),
             Some(exit.clone()),
             Some(exitPair.clone()),

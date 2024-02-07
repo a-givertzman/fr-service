@@ -5,7 +5,7 @@ use std::io::Read;
 use chrono::{DateTime, Utc};
 use log::{warn, trace, LevelFilter};
 
-use crate::core_::{net::connection_status::ConnectionStatus, point::{point_type::PointType, point::Point, point_tx_id::PointTxId}, types::bool::Bool};
+use crate::core_::{net::connection_status::ConnectionStatus, point::{point_type::PointType, point::Point, point_tx_id::PointTxId}, status::status::Status, types::bool::Bool};
 
 use super::jds_decode_message::JdsDecodeMessage;
 
@@ -78,7 +78,7 @@ impl JdsDeserialize {
                                             txId,
                                             name,
                                             Bool(value),
-                                            status as u8,
+                                            Status::from(status),
                                             timestamp,
                                         )))
                                     },
@@ -92,7 +92,7 @@ impl JdsDeserialize {
                                             txId,
                                             name,
                                             value,
-                                            status as u8,
+                                            Status::from(status),
                                             timestamp,
                                         )))
                                     },
@@ -106,7 +106,7 @@ impl JdsDeserialize {
                                             txId,
                                             name,
                                             value,
-                                            status as u8,
+                                            Status::from(status),
                                             timestamp,
                                         )))
                                     },
@@ -120,7 +120,7 @@ impl JdsDeserialize {
                                             txId,
                                             name,
                                             value.to_owned(),
-                                            status as u8,
+                                            Status::from(status),
                                             timestamp,
                                         )))
                                     },

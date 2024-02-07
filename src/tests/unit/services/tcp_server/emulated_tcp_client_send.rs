@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use log::{info, trace, warn, debug};
+use log::{info, warn, debug};
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc}, thread::{JoinHandle, self}, time::Duration, net::{TcpStream, SocketAddr}, io::Write};
 use crate::{
     core_::{
@@ -126,7 +126,7 @@ impl Service for EmulatedTcpClientSend {
         let totalCount = testData.len();
         let sent = self.sent.clone();
         let disconnect = self.disconnect.iter().map(|v| {(*v as f32) / 100.0}).collect();
-        let waitOnFinish = self.waitOnFinish;
+        let _waitOnFinish = self.waitOnFinish;
         let handle = thread::Builder::new().name(format!("{}.run Read", selfId)).spawn(move || {
             info!("{}.run | Preparing thread Read - ok", selfId);
             let mut switchState = Self::switchState(1, disconnect, 1.0);

@@ -2,7 +2,7 @@
 
 use chrono::DateTime;
 
-use crate::core_::{types::bool::Bool, testing::test_stuff::test_value::Value};
+use crate::core_::{status::status::Status, testing::test_stuff::test_value::Value, types::bool::Bool};
 
 use super::point::Point;
 
@@ -118,7 +118,7 @@ impl PointType {
     }
     ///
     /// Returns status of the containing Point
-    pub fn status(&self) -> u8 {
+    pub fn status(&self) -> Status {
         match self {
             PointType::Bool(point) => point.status,
             PointType::Int(point) => point.status,

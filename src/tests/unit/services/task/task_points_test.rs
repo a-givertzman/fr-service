@@ -49,7 +49,7 @@ mod tests {
         let path = "./src/tests/unit/services/task/task_test_points.yaml";
         let config = TaskConfig::read(path);
         trace!("config: {:?}", &config);
-        println!(" points: {:?}", config.points());
+        println!(" config points: {:?}", config.points());
         let services = Arc::new(Mutex::new(Services::new(selfId)));        
         let task = Arc::new(Mutex::new(Task::new(selfId, config, services.clone())));
         services.lock().unwrap().insert("Task", task.clone());
