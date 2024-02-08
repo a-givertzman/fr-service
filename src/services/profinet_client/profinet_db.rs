@@ -136,10 +136,13 @@ impl ProfinetDb {
                 let address = parsePoint.address();
                 match point {
                     PointType::Bool(point) => {
-                        let mut buf = [0; 8];
-                        let index = address.offset.unwrap() as usize;
-                        buf[index] = point.value.0 as u8;
-                        client.write(self.number, address.offset.unwrap(), 2, &mut buf)
+                        // !!! Not implemented because before write byte of the bool bits, that byte must be read from device
+                        // let mut buf = [0; 16];
+                        // let index = address.offset.unwrap() as usize;
+                        // buf[index] = point.value.0 as u8;
+                        // client.write(self.number, address.offset.unwrap(), 2, &mut buf)
+                        message = format!("{}.write | Write 'Bool' to the S7 Device - not implemented, point: {:?}", self.id, point.name);
+                        Err(message)
                     },
                     PointType::Int(point) => {
                         client.write(self.number, address.offset.unwrap(), 2, &mut point.value.to_be_bytes())
@@ -148,7 +151,7 @@ impl ProfinetDb {
                         client.write(self.number, address.offset.unwrap(), 4, &mut point.value.to_be_bytes())
                     },
                     PointType::String(point) => {
-                        message = format!("{}.write | S7 Device write 'String' - not implemented, point: {:?}", self.id, point.name);
+                        message = format!("{}.write | Write 'String' to the S7 Device - not implemented, point: {:?}", self.id, point.name);
                         Err(message)
                     },
                 }
