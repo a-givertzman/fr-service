@@ -136,7 +136,10 @@ impl ProfinetDb {
                 let address = parsePoint.address();
                 match point {
                     PointType::Bool(point) => {
-                        client.write(self.number, address.offset.unwrap(), 2, &mut [point.value.0 as u8])
+                        let mut buf = [0; 8];
+                        let index = address.offset.unwrap() as usize;
+                        buf[index] = point.value.0 as u8;
+                        client.write(self.number, address.offset.unwrap(), 2, &mut buf)
                     },
                     PointType::Int(point) => {
                         client.write(self.number, address.offset.unwrap(), 2, &mut point.value.to_be_bytes())
