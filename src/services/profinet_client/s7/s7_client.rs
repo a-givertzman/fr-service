@@ -18,7 +18,7 @@ pub struct S7Client {
     handle: S7Object,
     req_len: usize,
     neg_len: usize,
-    pub isConnected: bool,
+    // isConnected: bool,
     // reconnectDelay: Duration,
 }
 ///
@@ -33,7 +33,7 @@ impl S7Client {
             handle: unsafe { S7LIB.Cli_Create() },
             req_len: 0,
             neg_len: 0,
-            isConnected: false,
+            // isConnected: false,
         }
     }
     ///
@@ -50,11 +50,11 @@ impl S7Client {
             self.neg_len = neg as usize;
         }
         if errCode == 0 {
-            self.isConnected = true;
+            // self.isConnected = true;
             debug!("{}.connect | successfully connected", self.id);
             Ok(())
         } else {
-            self.isConnected = false;
+            // self.isConnected = false;
             let err = S7Error::from(errCode);
             if log::max_level() == LevelFilter::Trace {
                 warn!("{}.connect | connection error: {:?}", self.id, err);

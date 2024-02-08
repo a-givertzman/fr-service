@@ -62,46 +62,55 @@ impl ProfinetDb {
     ///     - parses raw data into the configured points
     ///     - returns only points with updated value or status
     pub fn read(&mut self, client: &S7Client, txSend: &Sender<PointType>) -> Result<(), String> {
-        if client.isConnected {
-            debug!(
-                "{}.read | reading DB: {:?}, offset: {:?}, size: {:?}",
-                self.id, self.number, self.offset, self.size
-            );
-            match client.read(self.number, self.offset, self.size) {
-                Ok(bytes) => {
-                    let timestamp = Utc::now();
-                    // let bytes = client.read(899, 0, 34).unwrap();
-                    // print!("\x1B[2J\x1B[1;1H");
-                    // debug!("{:?}", bytes);
-                    let mut message = String::new();
-                    for (_key, parsePoint) in &mut self.points {
-                        if let Some(point) = parsePoint.next(&bytes, timestamp) {
-                            match txSend.send(point) {
-                                Ok(_) => {},
-                                Err(err) => {
-                                    message = format!("{}.read | send error: {}", self.id, err);
-                                    warn!("{}", message);
-                                },
+        match client.isConnected() {
+            Ok(isConnected) => {
+                if isConnected {
+                    debug!(
+                        "{}.read | reading DB: {:?}, offset: {:?}, size: {:?}",
+                        self.id, self.number, self.offset, self.size
+                    );
+                    match client.read(self.number, self.offset, self.size) {
+                        Ok(bytes) => {
+                            let timestamp = Utc::now();
+                            // let bytes = client.read(899, 0, 34).unwrap();
+                            // print!("\x1B[2J\x1B[1;1H");
+                            // debug!("{:?}", bytes);
+                            let mut message = String::new();
+                            for (_key, parsePoint) in &mut self.points {
+                                if let Some(point) = parsePoint.next(&bytes, timestamp) {
+                                    match txSend.send(point) {
+                                        Ok(_) => {},
+                                        Err(err) => {
+                                            message = format!("{}.read | send error: {}", self.id, err);
+                                            warn!("{}", message);
+                                        },
+                                    }
+                                }
+                            }
+                            if message.is_empty() {
+                                Ok(())
+                            } else {
+                                Err(message)
                             }
                         }
+                        Err(err) => {
+                            let message = format!("{}.read | read error: {}", self.id, err);
+                            warn!("{}", message);
+                            Err(message)
+                        }
                     }
-                    if message.is_empty() {
-                        Ok(())
-                    } else {
-                        Err(message)
-                    }
-                }
-                Err(err) => {
-                    let message = format!("{}.read | read error: {}", self.id, err);
+                } else {
+                    let message = format!("{}.read | read error: Is not connected", self.id);
                     warn!("{}", message);
                     Err(message)
-                }
-            }
-        } else {
-            let message = format!("{}.read | read error: {} - is not connected", self.id, client.id);
-            warn!("{}", message);
-            Err(message)
-        }        
+                }        
+            },
+            Err(err) => {
+                let message = format!("{}.read | read error: {}", self.id, err);
+                warn!("{}", message);
+                Err(message)
+            },
+        }
     }
     ///
     /// Returns updated points from the current DB
