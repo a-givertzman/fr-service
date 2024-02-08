@@ -126,9 +126,14 @@ impl ProfinetDb {
         }
         Err(message)
     }
-
     ///
-    /// 
+    /// Writes point to the current DB
+    ///     - Returns Ok() if succeed, Err(message) on fail
+    pub fn write() {
+
+    }
+    ///
+    /// Configuring ParsePoint objects depending on point configurations coming from [conf]
     fn configureParsePoints(selfId: &str, conf: &ProfinetDbConfig) -> IndexMap<String, Box<dyn ParsePoint>> {
         conf.points.iter().map(|pointConf| {
             // (pointConf.name.clone(), pointConf.clone())
