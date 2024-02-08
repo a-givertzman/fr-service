@@ -4,7 +4,7 @@ use chrono::DateTime;
 
 use crate::core_::{status::status::Status, testing::test_stuff::test_value::Value, types::bool::Bool};
 
-use super::point::Point;
+use super::point::{Direction, Point};
 
 pub trait ToPoint {
     fn toPoint(self, txId: usize, name: &str) -> PointType;
@@ -124,6 +124,16 @@ impl PointType {
             PointType::Int(point) => point.status,
             PointType::Float(point) => point.status,
             PointType::String(point) => point.status,
+        }
+    }
+    ///
+    /// Returns the direction of the containing Point
+    pub fn direction(&self) -> Direction {
+        match self {
+            PointType::Bool(point) => point.direction,
+            PointType::Int(point) => point.direction,
+            PointType::Float(point) => point.direction,
+            PointType::String(point) => point.direction,
         }
     }
     ///

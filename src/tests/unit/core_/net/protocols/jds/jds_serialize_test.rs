@@ -50,16 +50,16 @@ mod tests {
                 name, tsStr(ts)), PointType::Bool(Point::new(txId, name, Bool(false), Status::Ok, Direction::Read, ts))
             ),
             (
-                format!(r#"{{"type": "Bool",  "name": "{}", "value": true,    "status": 0, "direction": "Read", "timestamp":"{}"}}"#, 
-                name, tsStr(ts)), PointType::Bool(Point::new(txId, name, Bool(true), Status::Ok, Direction::Read, ts))
+                format!(r#"{{"type": "Bool",  "name": "{}", "value": true,    "status": 0, "direction": "Write", "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Bool(Point::new(txId, name, Bool(true), Status::Ok, Direction::Write, ts))
             ),
             (
                 format!(r#"{{"type": "Int",   "name": "{}", "value": 1,   "status": 0, "direction": "Read", "timestamp":"{}"}}"#, 
                 name, tsStr(ts)), PointType::Int(Point::new(txId, name, 1, Status::Ok, Direction::Read, ts))
             ),
             (
-                format!(r#"{{"type": "Int",   "name": "{}", "value": -9223372036854775808,   "status": 0, "direction": "Read", "timestamp":"{}"}}"#, 
-                name, tsStr(ts)), PointType::Int(Point::new(txId, name, -9223372036854775808, Status::Ok, Direction::Read, ts))
+                format!(r#"{{"type": "Int",   "name": "{}", "value": -9223372036854775808,   "status": 0, "direction": "Write", "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Int(Point::new(txId, name, -9223372036854775808, Status::Ok, Direction::Write, ts))
             ),
             (
                 format!(r#"{{"type": "Int",   "name": "{}", "value":  9223372036854775807,   "status": 0, "direction": "Read", "timestamp":"{}"}}"#, 

@@ -56,20 +56,20 @@ mod tests {
                 name, tsStr(ts)), PointType::Bool(Point::new(txId, name, Bool(false), Status::Ok, Direction::Read, ts))
             ),
             (
-                format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": true,    "status": 0, "timestamp":"{}"}}"#, 
+                format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": true,    "status": 0, "direction": "read", "timestamp":"{}"}}"#, 
                 name, tsStr(ts)), PointType::Bool(Point::new(txId, name, Bool(true), Status::Ok, Direction::Read, ts))
             ),
             (
-                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": 1,   "status": 0, "timestamp":"{}"}}"#, 
+                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": 1,   "status": 0, "direction": "Read", "timestamp":"{}"}}"#, 
                 name, tsStr(ts)), PointType::Int(Point::new(txId, name, 1, Status::Ok, Direction::Read, ts))
             ),
             (
-                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": -9223372036854775808,   "status": 0, "timestamp":"{}"}}"#, 
-                name, tsStr(ts)), PointType::Int(Point::new(txId, name, -9223372036854775808, Status::Ok, Direction::Read, ts))
+                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": -9223372036854775808,   "status": 0, "direction": "Write", "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Int(Point::new(txId, name, -9223372036854775808, Status::Ok, Direction::Write, ts))
             ),
             (
-                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value":  9223372036854775807,   "status": 0, "timestamp":"{}"}}"#, 
-                name, tsStr(ts)), PointType::Int(Point::new(txId, name,  9223372036854775807, Status::Ok, Direction::Read, ts))
+                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value":  9223372036854775807,   "status": 0, "direction": "write", "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Int(Point::new(txId, name,  9223372036854775807, Status::Ok, Direction::Write, ts))
             ),
             (
                 format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  0.0, "status": 0, "timestamp":"{}"}}"#, 
@@ -126,6 +126,7 @@ mod tests {
                                             trace!("socket read - received[{}]: {:?}", recvIndex, point);
                                             assert!(point.name() == testData[recvIndex].1.name(), "\nreceived: {:?}\nexpected: {:?}", point.name(), testData[recvIndex].1.name());
                                             assert!(point.status() == testData[recvIndex].1.status(), "\nreceived: {:?}\nexpected: {:?}", point.status(), testData[recvIndex].1.status());
+                                            assert!(point.direction() == testData[recvIndex].1.direction(), "\nreceived: {:?}\nexpected: {:?}", point.direction(), testData[recvIndex].1.direction());
                                             assert!(point.timestamp() == testData[recvIndex].1.timestamp(), "\nreceived: {:?}\nexpected: {:?}", point.timestamp(), testData[recvIndex].1.timestamp());
                                             match point {
                                                 PointType::Bool(point) => assert!(point.value == testData[recvIndex].1.asBool().value, "\nreceived: {:?}\nexpected: {:?}", point.value, testData[recvIndex].1.asBool().value),

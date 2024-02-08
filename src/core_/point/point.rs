@@ -8,7 +8,7 @@ use crate::core_::{status::status::Status, types::bool::Bool};
 ///
 /// Read - point moves from Device to the Servicer & Clients (changed by the Device only)
 /// Write - point moves from Services & Clients to the Device (changed by the Services & Clients - User)
-#[derive(Clone, Debug, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub enum Direction {
     #[serde(rename = "Read")]
     #[serde(alias = "read", alias = "Read")]
