@@ -25,7 +25,7 @@ pub struct S7Client {
 /// 
 impl S7Client {
     ///
-    /// 
+    /// Creates new instance of the S7Client
     pub fn new(parent: impl Into<String>, ip: String) -> Self {
         Self {
             id: format!("{}/S7Client({})", parent.into(), ip),
@@ -37,7 +37,7 @@ impl S7Client {
         }
     }
     ///
-    /// 
+    /// Connects the client to the PLC
     pub fn connect(&mut self) -> Result<(), S7Error> {
         let mut req: c_int = 0;
         let mut neg: c_int = 0;
@@ -63,13 +63,26 @@ impl S7Client {
         }
     }
     ///
-    /// 
+    /// Returns the connection status
+    pub fn isConnected(&self) -> Result<bool, String> {
+        let mut isConnected: c_int = 0;
+        let code = unsafe {
+            S7LIB.Cli_GetConnected(self.handle, &mut isConnected)
+        };
+        match code {
+            0 => Ok(isConnected != 0),
+            _ => Err(S7Error::text(code))
+        }
+    }
+    ///
+    /// This is the main function to read data from a PLC.
+    /// With it you can read DB, Inputs, Outputs, Merkers, Timers and Counters
     pub fn read(&self, dbNum: u32, start: u32, size: u32) -> Result<Vec<u8>, String> {
         let mut buf = Vec::<u8>::new();
         buf.resize(size as usize, 0);
-        let res;
+        let code;
         unsafe {
-            res = S7LIB.Cli_DBRead(
+            code = S7LIB.Cli_DBRead(
                 self.handle,
                 dbNum as c_int,
                 start as c_int,
@@ -77,32 +90,40 @@ impl S7Client {
                 buf.as_mut_ptr() as *mut c_void,
             ) as i32;
         }
-        if res == 0 {
-            Ok(buf)
-        } else {
-            Err(String::from(S7Error::text(res)))
+        match code {
+            0 => Ok(buf),
+            _ => Err(S7Error::text(code)),
         }
     }
     ///
-    /// 
+    /// This is the main function to write data into a PLC. It’s the complementary function of
+    /// Cli_ReadArea(), the parameters and their meanings are the same.
+    /// The only difference is that the data is transferred from the buffer pointed by pUsrData
+    /// into PLC.
     pub fn write(&self, dbNum: u32, start: u32, size: u32, buf: &mut [u8]) -> Result<(), String> {
-        let res = unsafe {
+        let code = unsafe {
             S7LIB.Cli_DBWrite(
                 self.handle,
-                // Area, 
                 dbNum as c_int, 
                 start as c_int, 
                 size as c_int, 
                 buf.as_mut_ptr() as *mut c_void,
             )
         };
-        Err(format!("{}.write | Not implemented yet", self.id))
+        match code {
+            0 => Ok(()),
+            _ => Err(S7Error::text(code)),
+        }
     }
     ///
-    /// 
-    pub fn close(&mut self) {
-        unsafe {
-            S7LIB.Cli_Disconnect(self.handle);
+    /// Disconnects “gracefully” the Client from the PLC.
+    pub fn close(&mut self) -> Result<(), String> {
+        let code = unsafe {
+            S7LIB.Cli_Disconnect(self.handle)
+        };
+        match code {
+            0 => Ok(()),
+            _ => Err(S7Error::text(code)),
         }
     }
 }
@@ -110,7 +131,6 @@ impl S7Client {
 /// 
 impl Drop for S7Client {
     fn drop(&mut self) {
-        self.close();
         unsafe {
             S7LIB.Cli_Destroy(&mut self.handle);
         }
