@@ -137,4 +137,9 @@ impl ParsePoint for S7ParseReal {
     fn isChanged(&self) -> bool {
         self.isChanged
     }
+    //
+    //
+    fn address(&self) -> PointConfigAddress {
+        PointConfigAddress { offset: self.offset, bit: None }
+    }
 }

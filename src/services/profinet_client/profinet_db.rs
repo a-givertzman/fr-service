@@ -129,8 +129,35 @@ impl ProfinetDb {
     ///
     /// Writes point to the current DB
     ///     - Returns Ok() if succeed, Err(message) on fail
-    pub fn write(&mut self, client: &S7Client) {
-        client.
+    pub fn write(&mut self, client: &S7Client, point: PointType) -> Result<(), String> {
+        let mut message = String::new();
+        match self.points.get(&point.name()) {
+            Some(parsePoint) => {
+                let address = parsePoint.address();
+                let mut buf = Vec::<u8>::new();
+                match point {
+                    PointType::Bool(point) => {
+                        buf.push(point.value.0 as u8);
+                        client.write(self.number, address.offset.unwrap(), 2, &mut buf)
+                    },
+                    PointType::Int(point) => {
+                        buf = point.value.to_be_bytes().to_vec();
+                        client.write(self.number, address.offset.unwrap(), 2, &mut buf)
+                    },
+                    PointType::Float(point) => {
+                        buf = point.value.to_be_bytes().to_vec();
+                        client.write(self.number, address.offset.unwrap(), 4, &mut buf)
+                    },
+                    PointType::String(point) => {
+                        message = format!("{}.write | S7 Device write 'String' - not implemented, point: {:?}", self.id, point.name);
+                        Err(message)
+                    },
+                }
+            },
+            None => {
+                Err(message)
+            },
+        }
     }
     ///
     /// Configuring ParsePoint objects depending on point configurations coming from [conf]

@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use chrono::{DateTime, Utc};
-use crate::core_::{point::point_type::PointType, status::status::Status};
+use crate::{conf::point_config::point_config_address::PointConfigAddress, core_::{point::point_type::PointType, status::status::Status}};
 
 ///
 /// Returns updated points parsed from the data slice from the S7 device,
@@ -18,4 +18,7 @@ pub trait ParsePoint {
     ///
     /// Returns true if value or status was updated since last call [addRaw()]
     fn isChanged(&self) -> bool;
+    ///
+    /// Returns raw protocol specific address
+    fn address(&self) -> PointConfigAddress;
 }
