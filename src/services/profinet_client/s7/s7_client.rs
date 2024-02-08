@@ -85,7 +85,7 @@ impl S7Client {
     }
     ///
     /// 
-    pub fn write(&self, dbNum: u32, start: u32, size: u32, buf: &mut Vec::<u8>) -> Result<(), String> {
+    pub fn write(&self, dbNum: u32, start: u32, size: u32, buf: &mut [u8]) -> Result<(), String> {
         let res = unsafe {
             S7LIB.Cli_DBWrite(
                 self.handle,

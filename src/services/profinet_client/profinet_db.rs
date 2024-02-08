@@ -134,19 +134,15 @@ impl ProfinetDb {
         match self.points.get(&point.name()) {
             Some(parsePoint) => {
                 let address = parsePoint.address();
-                let mut buf = Vec::<u8>::new();
                 match point {
                     PointType::Bool(point) => {
-                        buf.push(point.value.0 as u8);
-                        client.write(self.number, address.offset.unwrap(), 2, &mut buf)
+                        client.write(self.number, address.offset.unwrap(), 2, &mut [point.value.0 as u8])
                     },
                     PointType::Int(point) => {
-                        buf = point.value.to_be_bytes().to_vec();
-                        client.write(self.number, address.offset.unwrap(), 2, &mut buf)
+                        client.write(self.number, address.offset.unwrap(), 2, &mut point.value.to_be_bytes())
                     },
                     PointType::Float(point) => {
-                        buf = point.value.to_be_bytes().to_vec();
-                        client.write(self.number, address.offset.unwrap(), 4, &mut buf)
+                        client.write(self.number, address.offset.unwrap(), 4, &mut point.value.to_be_bytes())
                     },
                     PointType::String(point) => {
                         message = format!("{}.write | S7 Device write 'String' - not implemented, point: {:?}", self.id, point.name);
