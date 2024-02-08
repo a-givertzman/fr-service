@@ -129,8 +129,8 @@ impl ProfinetDb {
     ///
     /// Writes point to the current DB
     ///     - Returns Ok() if succeed, Err(message) on fail
-    pub fn write() {
-
+    pub fn write(&mut self, client: &S7Client) {
+        client.
     }
     ///
     /// Configuring ParsePoint objects depending on point configurations coming from [conf]

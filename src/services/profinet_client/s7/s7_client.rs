@@ -4,13 +4,13 @@ use log::{debug, error, info, trace, warn, LevelFilter};
 use snap7_sys::S7Object;
 use std::ffi::CString;
 use std::ffi::{c_void, c_int};
-// use std::os::raw::{c_int, c_void};
 use std::time::Duration;
 
 use super::s7_error::S7Error;
 use super::s7_lib::S7LIB;
 
-
+///
+/// Ethrnet access to the PROFINET device
 #[derive(Debug)]
 pub struct S7Client {
     pub id: String,
@@ -21,7 +21,11 @@ pub struct S7Client {
     pub isConnected: bool,
     // reconnectDelay: Duration,
 }
+///
+/// 
 impl S7Client {
+    ///
+    /// 
     pub fn new(parent: impl Into<String>, ip: String) -> Self {
         Self {
             id: format!("{}/S7Client({})", parent.into(), ip),
@@ -30,12 +34,10 @@ impl S7Client {
             req_len: 0,
             neg_len: 0,
             isConnected: false,
-            // reconnectDelay: match reconnectDelay {
-            //     Some(delay) => delay,
-            //     None => Duration::from_secs(3),
-            // },
         }
     }
+    ///
+    /// 
     pub fn connect(&mut self) -> Result<(), S7Error> {
         let mut req: c_int = 0;
         let mut neg: c_int = 0;
@@ -58,11 +60,10 @@ impl S7Client {
                 warn!("{}.connect | connection error: {:?}", self.id, err);
             }
             Err(err)
-            // thread::sleep(self.reconnectDelay);
         }
-        // while !self.isConnected {
-        // }
     }
+    ///
+    /// 
     pub fn read(&self, dbNum: u32, start: u32, size: u32) -> Result<Vec<u8>, String> {
         let mut buf = Vec::<u8>::new();
         buf.resize(size as usize, 0);
@@ -82,12 +83,21 @@ impl S7Client {
             Err(String::from(S7Error::text(res)))
         }
     }
+    ///
+    /// 
+    pub fn write(&self, dbNum: u32, start: u32, size: u32) -> Result<(), String> {
+        Err(format!("{}.write | Not implemented yet", self.id))
+    }
+    ///
+    /// 
     pub fn close(&mut self) {
         unsafe {
             S7LIB.Cli_Disconnect(self.handle);
         }
     }
 }
+///
+/// 
 impl Drop for S7Client {
     fn drop(&mut self) {
         self.close();
