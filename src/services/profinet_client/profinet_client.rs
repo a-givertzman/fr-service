@@ -4,7 +4,7 @@ use std::{collections::HashMap, sync::{Arc, Mutex, atomic::{AtomicBool, Ordering
 use indexmap::IndexMap;
 use log::{debug, error, info};
 use crate::{
-    conf::profinet_client_config::profinet_client_config::ProfinetClientConfig, core_::{constants::constants::RECV_TIMEOUT, point::point_type::PointType, status::status::Status}, services::{profinet_client::{profinet_db::ProfinetDb, s7::s7_client::S7Client}, service::Service, services::Services, task::service_cycle::ServiceCycle}
+    conf::profinet_client_config::profinet_client_config::ProfinetClientConfig, core_::{constants::constants::RECV_TIMEOUT, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, services::{profinet_client::{profinet_db::ProfinetDb, s7::s7_client::S7Client}, service::Service, services::Services, task::service_cycle::ServiceCycle}
 };
 
 
@@ -78,6 +78,7 @@ impl Service for ProfinetClient {
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         let txSend = self.services.lock().unwrap().getLink(&conf.tx);
+        let txSendWrite = txSend.clone();
         let (cyclic, cycleInterval) = match conf.cycle {
             Some(interval) => (interval > Duration::ZERO, interval),
             None => (false, Duration::ZERO),
@@ -174,8 +175,23 @@ impl Service for ProfinetClient {
                                                     error!("{}.run | DB '{}' - write - error: {:?}", selfId, dbName, err);
                                                     if errorsLimit.add().is_err() {
                                                         error!("{}.run | DB '{}' - exceeded writing errors limit, trying to reconnect...", selfId, dbName);
-                                                        // status = Status::Invalid;
-                                                        client.close();
+                                                        match txSendWrite.send(PointType::String(Point::newString(
+                                                            PointTxId::fromStr(&selfId), 
+                                                            &pointName, 
+                                                            format!("Error write point '': {}", err),
+                                                        ))) {
+                                                            Ok(_) => {},
+                                                            Err(err) => {
+                                                                error!("{}.run | Error sending to queue: {:?}", selfId, err);
+                                                                // break 'main;
+                                                            },
+                                                        };
+                                                        match client.close() {
+                                                            Ok(_) => {},
+                                                            Err(err) => {
+                                                                error!("{}.run | {:?}", selfId, err);
+                                                            },
+                                                        };
                                                         break 'write;
                                                     }
                                                 },
