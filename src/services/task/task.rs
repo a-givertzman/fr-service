@@ -6,7 +6,7 @@ use std::{
     time::Duration, collections::HashMap,
 };
 
-use log::{info, debug, warn, trace};
+use log::{debug, error, info, trace, warn};
 
 use crate::{services::{task::task_nodes::TaskNodes, service::Service, services::Services}, core_::{point::point_type::PointType, constants::constants::RECV_TIMEOUT}, conf::point_config::point_config::PointConfig};
 use crate::conf::task_config::TaskConfig;
@@ -90,7 +90,7 @@ impl Service for Task {
                                 debug!("{}.run | {:?}", selfId, err);
                             },
                             RecvTimeoutError::Disconnected => {
-                                warn!("{}.run | Error receiving from queue: {:?}", selfId, err);
+                                error!("{}.run | Error receiving from queue: {:?}", selfId, err);
                                 break 'main;
                             },
                         }
