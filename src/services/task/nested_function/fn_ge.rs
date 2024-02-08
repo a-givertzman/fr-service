@@ -4,7 +4,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use log::debug;
 
-use crate::core_::{point::{point_type::PointType, point::Point}, types::{type_of::DebugTypeOf, bool::Bool, fn_in_out_ref::FnInOutRef}};
+use crate::core_::{point::{point::{Direction, Point}, point_type::PointType}, types::{bool::Bool, fn_in_out_ref::FnInOutRef, type_of::DebugTypeOf}};
 
 use super::{fn_::{FnInOut, FnIn, FnOut}, fn_kind::FnKind};
 
@@ -93,6 +93,7 @@ impl FnOut for FnGe {
                 name: format!("{}.out", self.id),
                 value: Bool(value),
                 status: status,
+                direction: Direction::Read,
                 timestamp: timestamp,
             }
         )

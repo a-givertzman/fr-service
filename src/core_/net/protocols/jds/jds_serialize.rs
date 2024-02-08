@@ -7,7 +7,7 @@ use log::trace;
 use serde::{Serialize, ser::SerializeStruct};
 use serde_json::json;
 
-use crate::{core_::{constants::constants::RECV_TIMEOUT, failure::recv_error::RecvError, point::point_type::PointType, status::status::Status}, tcp::steam_read::StreamRead};
+use crate::{core_::{constants::constants::RECV_TIMEOUT, failure::recv_error::RecvError, point::{point::Direction, point_type::PointType}, status::status::Status}, tcp::steam_read::StreamRead};
 
 
 ///
@@ -38,6 +38,7 @@ impl JdsSerialize {
                     name: point.name,
                     value: json!(point.value.0),
                     status: point.status,
+                    direction: point.direction,
                     timestamp: point.timestamp,
                 })
             },
@@ -47,6 +48,7 @@ impl JdsSerialize {
                     name: point.name,
                     value: json!(point.value),
                     status: point.status,
+                    direction: point.direction,
                     timestamp: point.timestamp,
                 })
             },
@@ -56,6 +58,7 @@ impl JdsSerialize {
                     name: point.name,
                     value: json!(point.value),
                     status: point.status,
+                    direction: point.direction,
                     timestamp: point.timestamp,
                 })
             },
@@ -65,6 +68,7 @@ impl JdsSerialize {
                     name: point.name,
                     value: json!(point.value),
                     status: point.status,
+                    direction: point.direction,
                     timestamp: point.timestamp,
                 })
             },
@@ -102,6 +106,7 @@ struct PointSerializable {
     pub name: String,
     pub value: serde_json::Value,
     pub status: Status,
+    pub direction: Direction,
     pub timestamp: DateTime<chrono::Utc>,
 }
 impl Serialize for PointSerializable {
@@ -113,6 +118,7 @@ impl Serialize for PointSerializable {
         state.serialize_field("name", &self.name)?;
         state.serialize_field("value", &self.value)?;
         state.serialize_field("status", &(Into::<u32>::into( self.status)))?;
+        state.serialize_field("direction", &json!(self.direction))?;
         state.serialize_field("timestamp", &self.timestamp.to_rfc3339())?;
         state.end()
     }

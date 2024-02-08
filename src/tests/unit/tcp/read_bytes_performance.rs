@@ -5,7 +5,7 @@ mod tests {
     use log::{info, debug, error, trace};
     use std::{sync::{Once, atomic::{AtomicUsize, Ordering}, Arc}, time::{Duration, Instant}, net::{TcpStream, TcpListener}, thread, io::{Read, BufReader, Write}};
     use crate::core_::{
-        debug::debug_session::{DebugSession, LogLevel, Backtrace}, net::protocols::jds::jds_define::JDS_END_OF_TRANSMISSION, point::{point_type::PointType, point::Point}, status::status::Status, testing::test_session::TestSession, types::bool::Bool
+        debug::debug_session::{Backtrace, DebugSession, LogLevel}, net::protocols::jds::jds_define::JDS_END_OF_TRANSMISSION, point::{point::{Direction, Point}, point_type::PointType}, status::status::Status, testing::test_session::TestSession, types::bool::Bool
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -49,17 +49,50 @@ mod tests {
         let ts = ts();
         // debug!("timestamp: {:?}", ts);j
         let testData = [
-            (format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": false,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Bool(Point::new(0, name, Bool(false), Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": true,    "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Bool(Point::new(0, name, Bool(true), Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": 1,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Int(Point::new(0, name, 1, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": -9223372036854775808,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Int(Point::new(0, name, -9223372036854775808, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value":  9223372036854775807,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Int(Point::new(0, name,  9223372036854775807, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  0.0, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(0, name,  0.0, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value": -1.1, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(0, name, -1.1, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  1.1, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(0, name,  1.1, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value": -1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(0, name, -1.7976931348623157e308, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(0, name,  1.7976931348623157e308, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "String","name": "{}", "value": "~!@#$%^&*()_+`1234567890-=","status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::String(Point::new(0, name, "~!@#$%^&*()_+`1234567890-=".to_string(), Status::Ok, ts))),
+            (
+                format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": false,   "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Bool(Point::new(0, name, Bool(false), Status::Ok, Direction::Read, ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": true,    "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Bool(Point::new(0, name, Bool(true), Status::Ok, Direction::Read, ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": 1,   "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Int(Point::new(0, name, 1, Status::Ok, Direction::Read, ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": -9223372036854775808,   "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Int(Point::new(0, name, -9223372036854775808, Status::Ok, Direction::Read, ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value":  9223372036854775807,   "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Int(Point::new(0, name,  9223372036854775807, Status::Ok, Direction::Read, ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  0.0, "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Float(Point::new(0, name,  0.0, Status::Ok, Direction::Read, ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value": -1.1, "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Float(Point::new(0, name, -1.1, Status::Ok, Direction::Read, ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  1.1, "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Float(Point::new(0, name,  1.1, Status::Ok, Direction::Read, ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value": -1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Float(Point::new(0, name, -1.7976931348623157e308, Status::Ok, Direction::Read, ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Float(Point::new(0, name,  1.7976931348623157e308, Status::Ok, Direction::Read, ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "String","name": "{}", "value": "~!@#$%^&*()_+`1234567890-=","status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::String(Point::new(0, name, "~!@#$%^&*()_+`1234567890-=".to_string(), Status::Ok, Direction::Read, ts))
+            ),
         ];
         //
         //

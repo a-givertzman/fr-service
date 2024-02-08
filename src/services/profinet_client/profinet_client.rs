@@ -174,7 +174,7 @@ impl Service for ProfinetClient {
                                                     error!("{}.run | DB '{}' - write - error: {:?}", selfId, dbName, err);
                                                     if errorsLimit.add().is_err() {
                                                         error!("{}.run | DB '{}' - exceeded writing errors limit, trying to reconnect...", selfId, dbName);
-                                                        status = Status::Invalid;
+                                                        // status = Status::Invalid;
                                                         client.close();
                                                         break 'write;
                                                     }
@@ -240,7 +240,7 @@ impl ErrorsLimit {
     }
     ///
     /// 
-    pub fn add(&self) -> Result<(), ()> {
+    pub fn add(&mut self) -> Result<(), ()> {
         if self.value > 0 {
             self.value -= 1;
             Ok(())

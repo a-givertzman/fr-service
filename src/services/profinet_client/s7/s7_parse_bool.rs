@@ -4,9 +4,7 @@ use log::{debug, warn};
 use std::array::TryFromSliceError;
 use chrono::{DateTime, Utc};
 use crate::{
-    core_::{point::{point::Point, point_type::PointType}, status::status::Status, types::bool::Bool},
-    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress}, 
-    services::profinet_client::parse_point::ParsePoint,
+    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress}, core_::{point::{point::{Direction, Point}, point_type::PointType}, status::status::Status, types::bool::Bool}, services::profinet_client::parse_point::ParsePoint
 };
 
 ///
@@ -82,7 +80,8 @@ impl S7ParseBool {
                 &self.name, 
                 Bool(self.value), 
                 self.status, 
-                self.timestamp
+                Direction::Read,
+                self.timestamp,
             )))
             // debug!("{} point Bool: {:?}", self.id, dsPoint.value);
         } else {

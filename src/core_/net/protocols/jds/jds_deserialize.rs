@@ -5,7 +5,7 @@ use std::io::Read;
 use chrono::{DateTime, Utc};
 use log::{warn, trace, LevelFilter};
 
-use crate::core_::{net::connection_status::ConnectionStatus, point::{point_type::PointType, point::Point, point_tx_id::PointTxId}, status::status::Status, types::bool::Bool};
+use crate::core_::{net::connection_status::ConnectionStatus, point::{point::{Direction, Point}, point_tx_id::PointTxId, point_type::PointType}, status::status::Status, types::bool::Bool};
 
 use super::jds_decode_message::JdsDecodeMessage;
 
@@ -60,6 +60,21 @@ impl JdsDeserialize {
     ///
     /// 
     pub fn deserialize(selfId: &str, txId: usize, bytes: Vec<u8>) -> Result<PointType, String> {
+        fn parseDirection(selfId: &str, name: &str, obj: &serde_json::Map<String, serde_json::Value>) -> Direction {
+            match obj.get("direction") {
+                Some(value) => {
+                    match serde_json::from_value(value.clone()) {
+                        Ok(direction) => direction,
+                        Err(err) => {
+                            let message = format!("{}.parse | Deserialize Point.direction error: {:?} in the: {}:{:?}", selfId, err, name, value);
+                            warn!("{}", message);
+                            Direction::Read
+                        },
+                    }
+                },
+                None => Direction::Read,
+            }
+        }
         match serde_json::from_slice(&bytes) {
             Ok(value) => {
                 let value: serde_json::Value = value;
@@ -72,6 +87,7 @@ impl JdsDeserialize {
                                         let name = obj.get("name").unwrap().as_str().unwrap();
                                         let value = obj.get("value").unwrap().as_bool().unwrap();
                                         let status = obj.get("status").unwrap().as_i64().unwrap();
+                                        let direction = parseDirection(selfId, name, obj);
                                         let timestamp = obj.get("timestamp").unwrap().as_str().unwrap();
                                         let timestamp: DateTime<Utc> = chrono::DateTime::parse_from_rfc3339(timestamp).unwrap().with_timezone(&Utc);
                                         Ok(PointType::Bool(Point::new(
@@ -79,6 +95,7 @@ impl JdsDeserialize {
                                             name,
                                             Bool(value),
                                             Status::from(status),
+                                            direction,
                                             timestamp,
                                         )))
                                     },
@@ -86,6 +103,7 @@ impl JdsDeserialize {
                                         let name = obj.get("name").unwrap().as_str().unwrap();
                                         let value = obj.get("value").unwrap().as_i64().unwrap();
                                         let status = obj.get("status").unwrap().as_i64().unwrap();
+                                        let direction = parseDirection(selfId, name, obj);
                                         let timestamp = obj.get("timestamp").unwrap().as_str().unwrap();
                                         let timestamp: DateTime<Utc> = chrono::DateTime::parse_from_rfc3339(timestamp).unwrap().with_timezone(&Utc);
                                         Ok(PointType::Int(Point::new(
@@ -93,6 +111,7 @@ impl JdsDeserialize {
                                             name,
                                             value,
                                             Status::from(status),
+                                            direction,
                                             timestamp,
                                         )))
                                     },
@@ -100,6 +119,7 @@ impl JdsDeserialize {
                                         let name = obj.get("name").unwrap().as_str().unwrap();
                                         let value = obj.get("value").unwrap().as_f64().unwrap();
                                         let status = obj.get("status").unwrap().as_i64().unwrap();
+                                        let direction = parseDirection(selfId, name, obj);
                                         let timestamp = obj.get("timestamp").unwrap().as_str().unwrap();
                                         let timestamp: DateTime<Utc> = chrono::DateTime::parse_from_rfc3339(timestamp).unwrap().with_timezone(&Utc);
                                         Ok(PointType::Float(Point::new(
@@ -107,6 +127,7 @@ impl JdsDeserialize {
                                             name,
                                             value,
                                             Status::from(status),
+                                            direction,
                                             timestamp,
                                         )))
                                     },
@@ -114,6 +135,7 @@ impl JdsDeserialize {
                                         let name = obj.get("name").unwrap().as_str().unwrap();
                                         let value = obj.get("value").unwrap().as_str().unwrap();
                                         let status = obj.get("status").unwrap().as_i64().unwrap();
+                                        let direction = parseDirection(selfId, name, obj);
                                         let timestamp = obj.get("timestamp").unwrap().as_str().unwrap();
                                         let timestamp: DateTime<Utc> = chrono::DateTime::parse_from_rfc3339(timestamp).unwrap().with_timezone(&Utc);
                                         Ok(PointType::String(Point::new(
@@ -121,6 +143,7 @@ impl JdsDeserialize {
                                             name,
                                             value.to_owned(),
                                             Status::from(status),
+                                            direction,
                                             timestamp,
                                         )))
                                     },
@@ -151,6 +174,5 @@ impl JdsDeserialize {
                 Err(message)        
             },
         }
-                // PointType::
     }    
 }
