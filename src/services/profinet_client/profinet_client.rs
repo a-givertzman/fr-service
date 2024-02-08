@@ -94,7 +94,7 @@ impl Service for ProfinetClient {
             let mut cycle = ServiceCycle::new(cycleInterval);
             let mut client = S7Client::new(selfId.clone(), conf.ip.clone());
             'main: while !exit.load(Ordering::SeqCst) {
-                let mut errorsLimit: i8 = 3;
+                let mut errorLimit = ErrorsLimit::new(3);
                 let mut status = Status::Ok;
                 match client.connect() {
                     Ok(_) => {
@@ -104,12 +104,12 @@ impl Service for ProfinetClient {
                                 debug!("{}.run | DB '{}' - reading...", selfId, dbName);
                                 match db.read(&client, &txSend) {
                                     Ok(_) => {
+                                        errorLimit.reset();
                                         debug!("{}.run | DB '{}' - reading - ok", selfId, dbName);
                                     },
                                     Err(err) => {
                                         error!("{}.run | DB '{}' - reading - error: {:?}", selfId, dbName, err);
-                                        errorsLimit -= 1;
-                                        if errorsLimit <= 0 {
+                                        if errorLimit.add().is_err() {
                                             error!("{}.run | DB '{}' - exceeded reading errors limit, trying to reconnect...", selfId, dbName);
                                             status = Status::Invalid;
                                             client.close();
@@ -152,8 +152,7 @@ impl Service for ProfinetClient {
             let mut cycle = ServiceCycle::new(cycleInterval);
             let mut client = S7Client::new(selfId.clone(), conf.ip.clone());
             'main: while !exit.load(Ordering::SeqCst) {
-                let mut errorsLimit: i8 = 3;
-                let mut status = Status::Ok;
+                let mut errorsLimit = ErrorsLimit::new(3);
                 match client.connect() {
                     Ok(_) => {
                         'write: while !exit.load(Ordering::SeqCst) {
@@ -168,12 +167,12 @@ impl Service for ProfinetClient {
                                         Some(db) => {
                                             match db.write(&client, point) {
                                                 Ok(_) => {
+                                                    errorsLimit.reset();
                                                     debug!("{}.run | DB '{}' - write - ok", selfId, dbName);
                                                 },
                                                 Err(err) => {
                                                     error!("{}.run | DB '{}' - write - error: {:?}", selfId, dbName, err);
-                                                    errorsLimit -= 1;
-                                                    if errorsLimit <= 0 {
+                                                    if errorsLimit.add().is_err() {
                                                         error!("{}.run | DB '{}' - exceeded writing errors limit, trying to reconnect...", selfId, dbName);
                                                         status = Status::Invalid;
                                                         client.close();
@@ -204,9 +203,9 @@ impl Service for ProfinetClient {
                                 cycle.wait();
                             }
                         }
-                        if status != Status::Ok {
-                            Self::yieldStatus(&selfId, &mut dbs, &txSend);
-                        }
+                        // if status != Status::Ok {
+                        //     Self::yieldStatus(&selfId, &mut dbs, &txSend);
+                        // }
                     },
                     Err(err) => {
                         debug!("{}.run | Connection error: {:?}", selfId, err);
@@ -223,4 +222,35 @@ impl Service for ProfinetClient {
     fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
     }    
+}
+
+///
+/// 
+struct ErrorsLimit {
+    value: usize,
+    limit: usize,
+}
+///
+/// 
+impl ErrorsLimit {
+    ///
+    /// Creates new instance of the ErrorLimit wir the [limit]
+    pub fn new(limit: usize) -> Self {
+        Self { value: limit, limit }
+    }
+    ///
+    /// 
+    pub fn add(&self) -> Result<(), ()> {
+        if self.value > 0 {
+            self.value -= 1;
+            Ok(())
+        } else {
+            Err(())
+        }
+    }
+    ///
+    /// 
+    pub fn reset(&mut self) {
+        self.value = self.limit;
+    }
 }
