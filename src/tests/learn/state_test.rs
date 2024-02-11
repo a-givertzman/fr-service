@@ -2,9 +2,10 @@
 #[cfg(test)]
 
 mod tests {
-    use log::{warn, info, debug};
-    use std::{sync::Once, time::{Duration, Instant}};
-    use crate::core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, state::{switch_state::{SwitchState, Switch, SwitchCondition}, switch_state_changed::SwitchStateChanged}}; 
+    use log::info;
+    use std::sync::Once;
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+    use crate::core_::state::{switch_state::{SwitchState, Switch, SwitchCondition}, switch_state_changed::SwitchStateChanged}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;

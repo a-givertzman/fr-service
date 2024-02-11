@@ -5,11 +5,8 @@ mod tests {
     use indexmap::IndexMap;
     use log::{trace, info};
     use std::{sync::Once, env, time::Duration};
-    
-    use crate::{
-        core_::debug::debug_session::*, 
-        conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType, task_config::TaskConfig}, 
-    };
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+    use crate::conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType, task_config::TaskConfig};
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;

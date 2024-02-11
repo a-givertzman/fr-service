@@ -2,11 +2,8 @@
 #[cfg(test)]
 use log::{debug, info};
 use std::{sync::Once, str::FromStr};
-
-use crate::{
-    core_::debug::debug_session::*,
-    conf::{fn_conf_keywd::FnConfKeywd, conf_duration::{ConfDuration, ConfDurationUnit}}, 
-};
+use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+use crate::conf::{fn_conf_keywd::FnConfKeywd, conf_duration::{ConfDuration, ConfDurationUnit}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;

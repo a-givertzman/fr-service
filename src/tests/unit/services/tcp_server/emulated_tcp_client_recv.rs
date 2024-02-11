@@ -2,9 +2,10 @@
 
 use log::{info, trace, warn, debug};
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{JoinHandle, self}, time::Duration, net::{TcpStream, SocketAddr}, io::Write};
+use testing::entities::test_value::Value;
 use crate::{
     core_::{
-        testing::test_stuff::test_value::Value, point::point_type::PointType, 
+        point::point_type::PointType, 
         net::{
             connection_status::ConnectionStatus,
             protocols::jds::{jds_deserialize::JdsDeserialize, jds_decode_message::JdsDecodeMessage}, 

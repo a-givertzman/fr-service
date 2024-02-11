@@ -3,8 +3,9 @@
 use std::{sync::{mpsc::Sender, Arc, atomic::{AtomicBool, Ordering}, Mutex}, thread::{self, JoinHandle}, time::Duration};
 
 use log::{debug, warn, info, trace};
+use testing::entities::test_value::Value;
 
-use crate::{core_::{point::{point_type::PointType, point_tx_id::PointTxId}, testing::test_stuff::test_value::Value}, services::{service::Service, services::Services}};
+use crate::{core_::point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}, services::{service::Service, services::Services}};
 
 
 ///

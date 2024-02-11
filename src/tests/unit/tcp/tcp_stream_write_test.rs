@@ -6,7 +6,9 @@ mod tests {
     use log::{warn, info, debug};
     use rand::Rng;
     use std::{sync::{Once, Arc, Mutex, atomic::{AtomicUsize, Ordering}}, time::{Duration, Instant}, thread, net::{TcpListener, TcpStream}, io::Read};
-    use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, net::connection_status::ConnectionStatus, testing::test_session::TestSession}, tcp::tcp_stream_write::TcpStreamWrite, tests::unit::tcp::tcp_stream_write_test::MockStreamRead}; 
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+    use testing::session::test_session::TestSession;
+    use crate::{core_::net::connection_status::ConnectionStatus, tcp::tcp_stream_write::TcpStreamWrite, tests::unit::tcp::tcp_stream_write_test::MockStreamRead}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -65,7 +67,7 @@ mod tests {
             Some(10000),
             Box::new(MockStreamRead { buffer: testData.clone()}),
         );
-        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
+        let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
 
         mockTcpServer(addr.clone(), count, messageLen, received.clone());
         thread::sleep(Duration::from_micros(100));

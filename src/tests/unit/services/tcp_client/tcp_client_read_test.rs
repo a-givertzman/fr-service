@@ -5,17 +5,12 @@
 mod tests {
     use log::{info, debug, warn, error, trace};
     use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::Write};
+    use testing::{session::test_session::TestSession, entities::test_value::Value, stuff::{random_test_values::RandomTestValues, max_test_duration::TestDuration}};
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        core_::{
-            debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-            testing::{test_session::TestSession, test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::TestDuration}},
-            point::point_type::PointType, 
-            net::protocols::jds::{jds_serialize::JdsSerialize, jds_encode_message::JdsEncodeMessage}, 
-        },
-        conf::tcp_client_config::TcpClientConfig,  
-        services::{tcp_client::tcp_client::TcpClient, services::Services, service::Service}, 
-        tests::unit::services::tcp_client::mock_multiqueue::MockMultiqueue, 
-        tcp::steam_read::StreamRead, 
+        conf::tcp_client_config::TcpClientConfig, core_::{
+            net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, point::point_type::{PointType, ToPoint} 
+        }, services::{service::Service, services::Services, tcp_client::tcp_client::TcpClient}, tcp::steam_read::StreamRead, tests::unit::services::tcp_client::mock_multiqueue::MockMultiqueue 
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -53,7 +48,7 @@ mod tests {
         let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
         testDuration.run().unwrap();
         let mut conf = TcpClientConfig::read(path);
-        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
+        let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         conf.address = addr.parse().unwrap();
 
         let iterations = 100;
@@ -162,7 +157,7 @@ mod tests {
                         Ok((mut socket, addr)) => {
                             info!("TCP server | accept connection - ok\n\t{:?}", addr);
                             for value in &testData {
-                                let point = value.toPoint(0, "test");
+                                let point = value.clone().toPoint(0, "test");
                                 send.send(point.clone()).unwrap();
                                 match jds.read() {
                                     Ok(bytes) => {

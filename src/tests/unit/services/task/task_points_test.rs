@@ -4,9 +4,9 @@
 mod tests {
     use log::trace;
     use std::{sync::{Once, Arc, Mutex}, env, time::Duration};
-    
+    use testing::stuff::max_test_duration::TestDuration;
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::max_test_duration::TestDuration}, 
         conf::task_config::TaskConfig, 
         services::{service::Service, services::Services, task::task::Task},
     };

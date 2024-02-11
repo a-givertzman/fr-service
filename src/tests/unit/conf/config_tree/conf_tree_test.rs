@@ -1,13 +1,11 @@
 #![allow(non_snake_case)]
-use indexmap::IndexMap;
 #[cfg(test)]
 use log::{debug, info};
 use std::sync::Once;
-
-use crate::{
-    core_::{debug::debug_session::*, testing::test_stuff::test_value::Value},
-    conf::conf_tree::ConfTree,
-};
+use indexmap::IndexMap;
+use testing::entities::test_value::Value;
+use debugging ::session::debug_session::{Backtrace, DebugSession, LogLevel};
+use crate::conf::conf_tree::ConfTree;
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;

@@ -3,7 +3,8 @@
 mod tests {
     use log::info;
     use std::sync::{Once, mpsc};
-    use crate::core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, constants::constants::RECV_TIMEOUT}; 
+    use debugging ::session::debug_session::{Backtrace, DebugSession, LogLevel};
+    use crate::core_::constants::constants::RECV_TIMEOUT; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;

@@ -4,8 +4,8 @@
 mod tests {
     use log::{debug, info};
     use std::sync::Once;
-    
-    use crate::core_::{state::switch_state::{Switch, SwitchCondition, SwitchState}, debug::debug_session::{DebugSession, LogLevel, Backtrace}};
+    use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
+    use crate::core_::state::switch_state::{Switch, SwitchCondition, SwitchState};
     
     #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
     enum ProcessState {

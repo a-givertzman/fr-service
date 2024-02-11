@@ -3,9 +3,9 @@
 
 mod tests {
     use log::{debug, info};
-    use std::sync::Once;
-    
-    use crate::core_::{aprox_eq::aprox_eq::AproxEq, debug::debug_session::{DebugSession, LogLevel, Backtrace}};
+    use std::sync::Once;    
+    use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
+    use crate::core_::aprox_eq::aprox_eq::AproxEq;
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;

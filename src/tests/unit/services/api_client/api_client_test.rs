@@ -3,8 +3,10 @@
 mod tests {
     use log::{info, debug, error};
     use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::{Read, Write}};
+    use testing::{entities::test_value::Value, session::test_session::TestSession, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues}};
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::ToPoint, testing::{test_session::TestSession, test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::TestDuration}}},
+        core_::point::point_type::ToPoint,
         conf::api_client_config::ApiClientConfig,  
         services::{api_cient::{api_client::ApiClient, api_reply::SqlReply, api_error::ApiError}, service::Service},
     }; 
@@ -45,7 +47,7 @@ mod tests {
         testDuration.run().unwrap();
         let mut conf = ApiClientConfig::read(path);
         // let addr = conf.address.clone();
-        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
+        let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         conf.address = addr.parse().unwrap();
 
         let mut apiClient = ApiClient::new("test ApiClient", conf);
@@ -178,7 +180,7 @@ mod tests {
         let timer = Instant::now();
         let send = apiClient.getLink("api-link");
         for value in testData {
-            let point = format!("select from table where id = {}", value.toString()).toPoint(0, "teset");
+            let point = format!("select from table where id = {}", value.to_string()).toPoint(0, "teset");
             send.send(point.clone()).unwrap();
             sent.push(point.asString().value);
         }

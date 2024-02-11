@@ -3,9 +3,10 @@
 
 mod tests {
     use std::{sync::{Once, Arc, Mutex}, time::Duration, thread};
+    use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, inc_test_values::IncTestValues, wait::WaitTread}, session::test_session::TestSession};
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         tests::unit::services::tcp_server::{emulated_tcp_client_recv::EmulatedTcpClientRecv, emulated_tcp_client_send::EmulatedTcpClientSend},
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::{test_stuff::{max_test_duration::TestDuration, inc_test_values::IncTestValues, test_value::Value, wait::WaitTread}, test_session::TestSession}}, 
         conf::{tcp_server_config::TcpServerConfig, multi_queue_config::MultiQueueConfig}, 
         services::{tcp_server::tcp_server::TcpServer, services::Services, service::Service, task::{task_test_producer::TaskTestProducer, task_test_receiver::TaskTestReceiver}, multi_queue::multi_queue::MultiQueue}, 
     }; 
@@ -52,7 +53,7 @@ mod tests {
         let testData: Vec<Value> = testData.collect();
         let totalCount = testData.len();
 
-        let tcpPort = TestSession::freeTcpPortStr();
+        let tcpPort = TestSession::free_tcp_port_str();
         let tcpAddr = format!("127.0.0.1:{}", tcpPort);
         let services = Arc::new(Mutex::new(Services::new(selfId)));
         let conf = format!(r#"
@@ -114,7 +115,7 @@ mod tests {
         assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         for value in testData {
             let result = received.remove(0).asInt().value;
-            let target = value.asInt();
+            let target = value.as_int();
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
         
@@ -147,7 +148,7 @@ mod tests {
         let testData: Vec<Value> = testData.collect();
         let totalCount = testData.len();
 
-        let tcpPort = TestSession::freeTcpPortStr();
+        let tcpPort = TestSession::free_tcp_port_str();
         let tcpAddr = format!("127.0.0.1:{}", tcpPort);
         let services = Arc::new(Mutex::new(Services::new(selfId)));
         let conf = format!(r#"
@@ -205,7 +206,7 @@ mod tests {
         assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         for value in testData {
             let result = received.remove(0).asInt().value;
-            let target = value.asInt();
+            let target = value.as_int();
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
         

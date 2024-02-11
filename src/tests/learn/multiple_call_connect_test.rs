@@ -5,7 +5,7 @@ mod tests {
     use rand::Rng;
     use std::{sync::{atomic::{AtomicUsize, Ordering}, Arc, Mutex}, thread};
     use std::{sync::Once, time::Duration};
-    use crate::core_::debug::debug_session::{DebugSession, LogLevel, Backtrace}; 
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;

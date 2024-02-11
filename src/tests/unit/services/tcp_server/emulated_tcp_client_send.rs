@@ -2,10 +2,10 @@
 
 use log::{info, warn, debug};
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc}, thread::{JoinHandle, self}, time::Duration, net::{TcpStream, SocketAddr}, io::Write};
+use testing::entities::test_value::Value;
 use crate::{
     core_::{
-        testing::test_stuff::test_value::Value, point::{point_type::PointType, point_tx_id::PointTxId}, 
-        net::protocols::jds::{jds_serialize::JdsSerialize, jds_encode_message::JdsEncodeMessage}, state::{switch_state::{SwitchState, Switch, SwitchCondition}, switch_state_changed::SwitchStateChanged},
+        net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}, state::{switch_state::{Switch, SwitchCondition, SwitchState}, switch_state_changed::SwitchStateChanged}
     },
     services::service::Service, tcp::steam_read::StreamRead, 
 };
@@ -146,7 +146,7 @@ impl Service for EmulatedTcpClientSend {
                             let mut progressPercent = 0.0;
                             while testData.len() > 0 {
                                 let value = testData.remove(0);
-                                let point = value.toPoint(txId, "test");
+                                let point = value.clone().toPoint(txId, "test");
                                 send.send(point.clone()).unwrap();
                                 match JdsMessage.read() {
                                     Ok(bytes) => {

@@ -3,11 +3,13 @@
 mod tests {
     use log::debug;
     use std::{sync::{Once, Arc, Mutex}, time::Duration, thread::{self}, collections::HashMap};
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+    use testing::{
+        entities::test_value::Value, 
+        stuff::{random_test_values::RandomTestValues, max_test_duration::TestDuration, wait::WaitTread},
+    };
     use crate::{
-        core_::{
-            debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-            testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::TestDuration, wait::WaitTread}, point::point_type::PointType,
-        }, 
+        core_::point::point_type::PointType, 
         conf::multi_queue_config::MultiQueueConfig, services::{multi_queue::multi_queue::MultiQueue, services::Services, service::Service}, 
         tests::unit::services::multi_queue::{mock_tcp_server::MockTcpServer, mock_recv_send_service::MockRecvSendService},
     }; 

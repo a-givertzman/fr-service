@@ -4,8 +4,10 @@ mod tests {
     use chrono::{DateTime, Utc};
     use log::{info, debug, error, trace};
     use std::{sync::{Once, atomic::{AtomicUsize, Ordering}, Arc}, time::{Duration, Instant}, net::{TcpStream, TcpListener}, thread, io::{Read, BufReader, Write}};
+    use testing::session::test_session::TestSession;
+    use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
     use crate::core_::{
-        debug::debug_session::{Backtrace, DebugSession, LogLevel}, net::protocols::jds::jds_define::JDS_END_OF_TRANSMISSION, point::{point::{Direction, Point}, point_type::PointType}, status::status::Status, testing::test_session::TestSession, types::bool::Bool
+        net::protocols::jds::jds_define::JDS_END_OF_TRANSMISSION, point::{point::{Direction, Point}, point_type::PointType}, status::status::Status, types::bool::Bool
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -96,7 +98,7 @@ mod tests {
         ];
         //
         //
-        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
+        let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         let received = Arc::new(AtomicUsize::new(0));
         let count = 100_000;
         let testDataLen = testData.len();
@@ -149,7 +151,7 @@ mod tests {
         }
         //
         // reading from stream.bytes
-        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
+        let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         let received = Arc::new(AtomicUsize::new(0));
         // let count = 10000;
         let testDataLen = testData.len();
@@ -202,7 +204,7 @@ mod tests {
         }
         //
         // reading from BufReader<stream>
-        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
+        let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         let received = Arc::new(AtomicUsize::new(0));
         // let count = 10000;
         let testDataLen = testData.len();

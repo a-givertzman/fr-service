@@ -6,8 +6,13 @@ mod tests {
     use log::{info, debug, trace, error};
     use rand::Rng;
     use std::{sync::{Once, atomic::{AtomicUsize, Ordering}, Arc}, time::{Duration, Instant}, net::{TcpStream, TcpListener}, thread, io::{Write, BufReader}};
+    use testing::session::test_session::TestSession;
+    use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
     use crate::core_::{
-        debug::debug_session::{Backtrace, DebugSession, LogLevel}, net::{connection_status::ConnectionStatus, protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}}, point::{point::{Direction, Point}, point_type::PointType}, status::status::Status, testing::test_session::TestSession, types::bool::Bool
+        types::bool::Bool,
+        status::status::Status, 
+        point::{point::{Direction, Point}, point_type::PointType}, 
+        net::{connection_status::ConnectionStatus, protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}}, 
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -98,7 +103,7 @@ mod tests {
         ];
         //
         //
-        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
+        let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         let received = Arc::new(AtomicUsize::new(0));
         let count = 1000;
         let testDataLen = testData.len();

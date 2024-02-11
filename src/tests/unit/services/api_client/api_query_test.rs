@@ -4,7 +4,8 @@
 use log::info;
 use serde_json::json;
 use std::sync::Once;
-use crate::{core_::debug::debug_session::{DebugSession, LogLevel, Backtrace}, services::api_cient::api_query::ApiQuery}; 
+use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+use crate::services::api_cient::api_query::ApiQuery; 
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;

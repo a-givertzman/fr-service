@@ -3,16 +3,12 @@
 mod tests {
     use log::{info, debug, warn};
     use std::{sync::{Once, Arc, Mutex}, thread::{self, JoinHandle}, time::{Duration, Instant}, net::TcpListener, io::BufReader};
+    use testing::{session::test_session::TestSession, entities::test_value::Value, stuff::{random_test_values::RandomTestValues, max_test_duration::TestDuration}};
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        core_::{
-            debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-            testing::{test_session::TestSession, test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::TestDuration}},
-            point::point_type::PointType, 
-            net::{protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}, 
-            connection_status::ConnectionStatus}, 
-        },
-        conf::tcp_client_config::TcpClientConfig,  
-        services::{tcp_client::tcp_client::TcpClient, services::Services}, tests::unit::services::tcp_client::mock_multiqueue::MockMultiqueue,
+        conf::tcp_client_config::TcpClientConfig, core_::{
+            net::{connection_status::ConnectionStatus, protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}}, point::point_type::{PointType, ToPoint} 
+        }, services::{services::Services, tcp_client::tcp_client::TcpClient}, tests::unit::services::tcp_client::mock_multiqueue::MockMultiqueue
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -49,7 +45,7 @@ mod tests {
         let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
         testDuration.run().unwrap();
         let mut conf = TcpClientConfig::read(path);
-        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
+        let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         conf.address = addr.parse().unwrap();
 
         let iterations = 100;

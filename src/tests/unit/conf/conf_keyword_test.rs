@@ -3,8 +3,8 @@
 mod tests {
     use log::debug;
     use std::{sync::Once, str::FromStr};
-    
-    use crate::{conf::conf_keywd::{ConfKeywd, ConfKeywdValue, ConfKind}, core_::debug::debug_session::*};
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+    use crate::conf::conf_keywd::{ConfKeywd, ConfKeywdValue, ConfKind};
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;

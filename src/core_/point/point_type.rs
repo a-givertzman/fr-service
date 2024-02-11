@@ -1,37 +1,38 @@
 #![allow(non_snake_case)]
 
 use chrono::DateTime;
+use testing::entities::test_value::Value;
 
-use crate::core_::{status::status::Status, testing::test_stuff::test_value::Value, types::bool::Bool};
+use crate::core_::{status::status::Status, types::bool::Bool};
 
 use super::point::{Direction, Point};
 
 pub trait ToPoint {
-    fn toPoint(self, txId: usize, name: &str) -> PointType;
+    fn toPoint(&self, txId: usize, name: &str) -> PointType;
 }
 
 impl ToPoint for bool {
-    fn toPoint(self, txId: usize, name: &str) -> PointType {
-        PointType::Bool(Point::newBool(txId, name, self))
+    fn toPoint(&self, txId: usize, name: &str) -> PointType {
+        PointType::Bool(Point::newBool(txId, name, *self))
     }
 }
 impl ToPoint for i64 {
-    fn toPoint(self, txId: usize, name: &str) -> PointType {
-        PointType::Int(Point::newInt(txId, name, self))
+    fn toPoint(&self, txId: usize, name: &str) -> PointType {
+        PointType::Int(Point::newInt(txId, name, *self))
     }
 }
 impl ToPoint for f64 {
-    fn toPoint(self, txId: usize, name: &str) -> PointType {
-        PointType::Float(Point::newFloat(txId, name, self))
+    fn toPoint(&self, txId: usize, name: &str) -> PointType {
+        PointType::Float(Point::newFloat(txId, name, *self))
     }
 }
 impl ToPoint for &str {
-    fn toPoint(self, txId: usize, name: &str) -> PointType {
-        PointType::String(Point::newString(txId, name, self))
+    fn toPoint(&self, txId: usize, name: &str) -> PointType {
+        PointType::String(Point::newString(txId, name, *self))
     }
 }
 impl ToPoint for String {
-    fn toPoint(self, txId: usize, name: &str) -> PointType {
+    fn toPoint(&self, txId: usize, name: &str) -> PointType {
         PointType::String(Point::newString(txId, name, self))
     }
 }

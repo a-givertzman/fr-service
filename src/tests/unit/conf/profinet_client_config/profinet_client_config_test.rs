@@ -2,12 +2,11 @@
 #[cfg(test)]
 
 mod tests {
-    use log::{warn, info, debug};
-    use std::{sync::Once, time::{Duration, Instant}};
-    use crate::{conf::{point_config::{point_config::PointConfig, point_config_type::PointConfigType}, profinet_client_config::profinet_client_config::ProfinetClientConfig}, core_::{
-        debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-        testing::test_stuff::max_test_duration::TestDuration,
-    }}; 
+    use log::debug;
+    use std::{sync::Once, time::Duration};
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+    use testing::stuff::max_test_duration::TestDuration;
+    use crate::conf::{point_config::{point_config::PointConfig, point_config_type::PointConfigType}, profinet_client_config::profinet_client_config::ProfinetClientConfig}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;

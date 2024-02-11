@@ -2,9 +2,9 @@
 #[cfg(test)]
 use log::{debug, info};
 use std::{sync::Once, time::{Instant, Duration}, thread,rc::Rc, cell::RefCell};
-
+use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
 use crate::{
-    core_::{aprox_eq::aprox_eq::AproxEq, debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::{PointType, ToPoint}, 
+    core_::{aprox_eq::aprox_eq::AproxEq, point::point_type::{PointType, ToPoint}, 
     types::fn_in_out_ref::FnInOutRef}, 
     services::task::nested_function::{fn_::FnOut, fn_timer::FnTimer, fn_input::FnInput},
 };

@@ -4,10 +4,10 @@
 mod tests {
     use log::trace;
     use log::{debug, info};
-    use regex::RegexBuilder;
     use std::sync::Once;
-    
-    use crate::core_::{debug::debug_session::*, format::format::Format, point::point_type::ToPoint};
+    use regex::RegexBuilder;
+    use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
+    use crate::core_::{format::format::Format, point::point_type::ToPoint};
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;

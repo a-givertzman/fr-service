@@ -4,7 +4,8 @@
 mod tests {
     use chrono::{DateTime, Utc};
     use std::sync::{Once, mpsc};
-    use crate::{core_::{debug::debug_session::{Backtrace, DebugSession, LogLevel}, net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, point::{point::{Direction, Point}, point_type::PointType}, status::status::Status, types::bool::Bool}, tcp::steam_read::StreamRead}; 
+    use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
+    use crate::{core_::{net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, point::{point::{Direction, Point}, point_type::PointType}, status::status::Status, types::bool::Bool}, tcp::steam_read::StreamRead}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;

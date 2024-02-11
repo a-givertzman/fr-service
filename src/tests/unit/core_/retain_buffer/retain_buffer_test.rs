@@ -2,7 +2,8 @@
 #[cfg(test)]
 mod tests {
     use std::sync::Once;
-    use crate::core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, retain_buffer::retain_buffer::RetainBuffer}; 
+    use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
+    use crate::core_::retain_buffer::retain_buffer::RetainBuffer; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;

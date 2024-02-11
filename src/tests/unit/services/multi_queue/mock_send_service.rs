@@ -3,8 +3,8 @@
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}, time::Duration};
 
 use log::{info, warn, debug, trace};
-
-use crate::{core_::{point::point_type::PointType, testing::test_stuff::test_value::Value}, services::{services::Services, service::Service}};
+use testing::entities::test_value::Value;
+use crate::{core_::point::point_type::{PointType, ToPoint}, services::{service::Service, services::Services}};
 
 
 pub struct MockSendService {

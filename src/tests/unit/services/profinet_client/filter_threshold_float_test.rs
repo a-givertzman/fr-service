@@ -3,11 +3,9 @@
 
 mod tests {
     use std::{sync::Once, time::Duration};
-    use crate::core_::{
-        debug::debug_session::{Backtrace, DebugSession, LogLevel}, 
-        testing::test_stuff::max_test_duration::TestDuration,
-        filter::{filter::Filter, filter_threshold::FilterThreshold}, 
-    };
+    use testing::stuff::max_test_duration::TestDuration;
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+    use crate::core_::filter::{filter::Filter, filter_threshold::FilterThreshold};
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -231,8 +229,8 @@ mod tests {
             (0.5, 0.2),
             (0.6, 0.6),
             (0.7, 0.6),
-            (0.8, 0.2),
-            (0.9, 0.2),
+            (0.8, 0.6),
+            (0.9, 0.6),
             (1.0, 1.0),
             (1.0, 1.0),
             (0.9, 1.0),
@@ -252,8 +250,8 @@ mod tests {
             (-0.5, -0.2),
             (-0.6, -0.6),
             (-0.7, -0.6),
-            (-0.8, -0.2),
-            (-0.9, -0.2),
+            (-0.8, -0.6),
+            (-0.9, -0.6),
             (-1.0, -1.0),
         ];
         let threasold = 1.0;
@@ -267,7 +265,7 @@ mod tests {
             }
             let result = filter.value();
             println!("{}    in: {}   |   out: {}   |   diff: {}", selfId, value, result, diff);
-            // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
+            assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
         testDuration.exit();
     }        

@@ -3,8 +3,9 @@
 
 mod tests {
     use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}, collections::HashMap};
+    use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues}};
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::TestDuration}}, 
         tests::unit::services::multi_queue::{mock_send_service::MockSendService, mock_multi_queue::MockMultiQueue, mock_recv_service::MockRecvService, mock_multi_queue_match::MockMultiQueueMatch}, 
         services::{services::Services, service::Service},
     }; 

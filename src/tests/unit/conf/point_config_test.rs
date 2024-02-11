@@ -3,13 +3,9 @@
 
 mod tests {
     use std::{sync::Once, time::Duration};
-    use crate::{
-        core_::{
-            debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-            testing::test_stuff::max_test_duration::TestDuration,
-        }, 
-        conf::point_config::{point_config::PointConfig, point_config_type::PointConfigType, point_config_address::PointConfigAddress, point_config_filters::PointConfigFilter},
-    }; 
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+    use testing::stuff::max_test_duration::TestDuration; 
+    use crate::conf::point_config::{point_config::PointConfig, point_config_type::PointConfigType, point_config_address::PointConfigAddress, point_config_filters::PointConfigFilter}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;

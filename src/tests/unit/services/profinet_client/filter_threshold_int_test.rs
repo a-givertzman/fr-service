@@ -2,13 +2,10 @@
 #[cfg(test)]
 
 mod tests {
-    use log::{warn, info, debug};
-    use std::{sync::Once, time::{Duration, Instant}};
-    use crate::core_::{
-        debug::debug_session::{Backtrace, DebugSession, LogLevel}, 
-        testing::test_stuff::max_test_duration::TestDuration,
-        filter::{filter_threshold::FilterThreshold, filter::Filter},
-    }; 
+    use std::{sync::Once, time::Duration};
+    use testing::stuff::max_test_duration::TestDuration;
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+    use crate::core_::filter::{filter_threshold::FilterThreshold, filter::Filter}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;

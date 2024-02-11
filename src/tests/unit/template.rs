@@ -4,10 +4,8 @@
 mod tests {
     use log::{warn, info, debug};
     use std::{sync::Once, time::{Duration, Instant}};
-    use crate::core_::{
-        debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-        testing::test_stuff::max_test_duration::TestDuration,
-    }; 
+    use debugging::debug_session::{DebugSession, LogLevel, Backtrace};
+    use crate::core_::testing::test_stuff::max_test_duration::TestDuration; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
