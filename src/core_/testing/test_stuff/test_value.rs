@@ -23,7 +23,7 @@ impl Value {
             Value::Bool(value) => value.toPoint(txId, name),
             Value::Int(value) => value.toPoint(txId, name),
             Value::Float(value) => value.toPoint(txId, name),
-            Value::String(value) => value.clone().toPoint(txId, name),
+            Value::String(value) => value.toPoint(txId, name),
         }
     }
     ///

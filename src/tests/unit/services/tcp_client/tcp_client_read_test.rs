@@ -157,7 +157,7 @@ mod tests {
                         Ok((mut socket, addr)) => {
                             info!("TCP server | accept connection - ok\n\t{:?}", addr);
                             for value in &testData {
-                                let point = value.clone().toPoint(0, "test");
+                                let point = value.toPoint(0, "test");
                                 send.send(point.clone()).unwrap();
                                 match jds.read() {
                                     Ok(bytes) => {

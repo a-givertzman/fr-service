@@ -146,7 +146,7 @@ impl Service for EmulatedTcpClientSend {
                             let mut progressPercent = 0.0;
                             while testData.len() > 0 {
                                 let value = testData.remove(0);
-                                let point = value.clone().toPoint(txId, "test");
+                                let point = value.toPoint(txId, "test");
                                 send.send(point.clone()).unwrap();
                                 match JdsMessage.read() {
                                     Ok(bytes) => {
