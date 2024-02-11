@@ -75,6 +75,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "api-tools"
+version = "0.0.1"
+source = "git+https://github.com/a-givertzman/rust-api-tools.git#0920f23f33ee2ffbe4e72ba3e281cbe76e94c069"
+dependencies = [
+ "env_logger",
+ "indexmap",
+ "log",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -242,6 +254,7 @@ dependencies = [
 name = "fr-service"
 version = "0.1.0"
 dependencies = [
+ "api-tools",
  "bindgen",
  "chrono",
  "debugging",
@@ -331,6 +344,7 @@ checksum = "824b2ae422412366ba479e8111fd301f7b5faece8149317bb81925979a53f520"
 dependencies = [
  "equivalent",
  "hashbrown",
+ "serde",
 ]
 
 [[package]]

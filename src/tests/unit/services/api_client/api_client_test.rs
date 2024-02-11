@@ -5,10 +5,11 @@ mod tests {
     use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::{Read, Write}};
     use testing::{entities::test_value::Value, session::test_session::TestSession, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+    use api_tools::{error::api_error::ApiError, reply::api_reply::SqlReply};
     use crate::{
         core_::point::point_type::ToPoint,
         conf::api_client_config::ApiClientConfig,  
-        services::{api_cient::{api_client::ApiClient, api_reply::SqlReply, api_error::ApiError}, service::Service},
+        services::{api_cient::api_client::ApiClient, service::Service},
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
