@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 use std::{sync::mpsc::Sender, time::Duration};
 
 use chrono::Utc;
@@ -44,10 +42,10 @@ impl ProfinetDb {
     ///
     /// Creates new instance of the [ProfinetDb]
     pub fn new(parent: impl Into<String>, conf: ProfinetDbConfig) -> Self {
-        let selfId = format!("{}/ProfinetDb({})", parent.into(), conf.name);
+        let self_id = format!("{}/ProfinetDb({})", parent.into(), conf.name);
         Self {
-            points: Self::configureParsePoints(&selfId, &conf),
-            id: selfId.clone(),
+            points: Self::configure_parse_points(&self_id, &conf),
+            id: self_id.clone(),
             name: conf.name,
             description: conf.description,
             number: conf.number as u32,
@@ -61,10 +59,10 @@ impl ProfinetDb {
     ///     - reads data slice from the S7 device,
     ///     - parses raw data into the configured points
     ///     - returns only points with updated value or status
-    pub fn read(&mut self, client: &S7Client, txSend: &Sender<PointType>) -> Result<(), String> {
-        match client.isConnected() {
-            Ok(isConnected) => {
-                if isConnected {
+    pub fn read(&mut self, client: &S7Client, tx_send: &Sender<PointType>) -> Result<(), String> {
+        match client.is_connected() {
+            Ok(is_connected) => {
+                if is_connected {
                     debug!(
                         "{}.read | reading DB: {:?}, offset: {:?}, size: {:?}",
                         self.id, self.number, self.offset, self.size
@@ -73,9 +71,9 @@ impl ProfinetDb {
                         Ok(bytes) => {
                             let timestamp = Utc::now();
                             let mut message = String::new();
-                            for (_key, parsePoint) in &mut self.points {
-                                if let Some(point) = parsePoint.next(&bytes, timestamp) {
-                                    match txSend.send(point) {
+                            for (_key, parse_point) in &mut self.points {
+                                if let Some(point) = parse_point.next(&bytes, timestamp) {
+                                    match tx_send.send(point) {
                                         Ok(_) => {},
                                         Err(err) => {
                                             message = format!("{}.read | send error: {}", self.id, err);
@@ -114,11 +112,11 @@ impl ProfinetDb {
     ///     - reads data slice from the S7 device,
     ///     - parses raw data into the configured points
     ///     - returns only points with updated value or status
-    pub fn yieldStatus(&mut self, status: Status, txSend: &Sender<PointType>) -> Result<(), String> {
+    pub fn yield_status(&mut self, status: Status, tx_send: &Sender<PointType>) -> Result<(), String> {
         let mut message = String::new();
-        for (_key, parsePoint) in &mut self.points {
-            if let Some(point) = parsePoint.nextStatus(status) {
-                match txSend.send(point) {
+        for (_key, parse_point) in &mut self.points {
+            if let Some(point) = parse_point.nextStatus(status) {
+                match tx_send.send(point) {
                     Ok(_) => {},
                     Err(err) => {
                         message = format!("{}.sendStatus | send error: {}", self.id, err);
@@ -138,8 +136,8 @@ impl ProfinetDb {
     pub fn write(&mut self, client: &S7Client, point: PointType) -> Result<(), String> {
         let mut message = String::new();
         match self.points.get(&point.name()) {
-            Some(parsePoint) => {
-                let address = parsePoint.address();
+            Some(parse_point) => {
+                let address = parse_point.address();
                 match point {
                     PointType::Bool(point) => {
                         // !!! Not implemented because before write byte of the bool bits, that byte must be read from device
@@ -169,21 +167,21 @@ impl ProfinetDb {
     }
     ///
     /// Configuring ParsePoint objects depending on point configurations coming from [conf]
-    fn configureParsePoints(selfId: &str, conf: &ProfinetDbConfig) -> IndexMap<String, Box<dyn ParsePoint>> {
-        conf.points.iter().map(|pointConf| {
+    fn configure_parse_points(self_id: &str, conf: &ProfinetDbConfig) -> IndexMap<String, Box<dyn ParsePoint>> {
+        conf.points.iter().map(|point_conf| {
             // (pointConf.name.clone(), pointConf.clone())
             let path = String::new();
-            match pointConf._type {
+            match point_conf._type {
                 PointConfigType::Bool => {
-                    (pointConf.name.clone(), Self::boxBool(path, pointConf.name.clone(), pointConf))
+                    (point_conf.name.clone(), Self::box_bool(path, point_conf.name.clone(), point_conf))
                 },
                 PointConfigType::Int => {
-                    (pointConf.name.clone(), Self::boxInt(path, pointConf.name.clone(), pointConf))
+                    (point_conf.name.clone(), Self::box_int(path, point_conf.name.clone(), point_conf))
                 },
                 PointConfigType::Float => {
-                    (pointConf.name.clone(), Self::boxFloat(path, pointConf.name.clone(), pointConf))
+                    (point_conf.name.clone(), Self::box_float(path, point_conf.name.clone(), point_conf))
                 },
-                _ => panic!("{}.configureParsePoints | Unknown type '{:?}' for S7 Device", selfId, pointConf._type)
+                _ => panic!("{}.configureParsePoints | Unknown type '{:?}' for S7 Device", self_id, point_conf._type)
                 // PointConfigType::String => {
                     
                 // },
@@ -195,32 +193,32 @@ impl ProfinetDb {
     }
     ///
     /// 
-    fn boxBool(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
+    fn box_bool(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
         Box::new(S7ParseBool::new(path, name, config))
     }
     ///
     /// 
-    fn boxInt(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
+    fn box_int(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
         Box::new(S7ParseInt::new(
             path, 
             name, 
             config,
-            Self::intFilter(config.filters.clone()),
+            Self::int_filter(config.filters.clone()),
         ))
     }
     ///
     /// 
-    fn boxFloat(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
+    fn box_float(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
         Box::new(S7ParseReal::new(
             path, 
             name, 
             config,
-            Self::floatFilter(config.filters.clone()),
+            Self::float_filter(config.filters.clone()),
         ))
     }
     ///
     /// 
-    fn intFilter(conf: Option<PointConfigFilter>) -> Box<dyn Filter<Item = i64>> {
+    fn int_filter(conf: Option<PointConfigFilter>) -> Box<dyn Filter<Item = i64>> {
         match conf {
             Some(conf) => {
                 Box::new(
@@ -232,7 +230,7 @@ impl ProfinetDb {
     }
     ///
     /// 
-    fn floatFilter(conf: Option<PointConfigFilter>) -> Box<dyn Filter<Item = f64>> {
+    fn float_filter(conf: Option<PointConfigFilter>) -> Box<dyn Filter<Item = f64>> {
         match conf {
             Some(conf) => {
                 Box::new(

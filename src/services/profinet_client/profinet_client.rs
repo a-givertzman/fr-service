@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 use std::{collections::HashMap, sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}}, thread::{self, JoinHandle}, time::Duration};
 use indexmap::IndexMap;
 use log::{debug, error, info};
@@ -14,8 +12,8 @@ use crate::{
 /// Verified incoming connections handles in the separate thread
 pub struct ProfinetClient {
     id: String,
-    rxRecv: Vec<Receiver<PointType>>,
-    rxSend: HashMap<String, Sender<PointType>>,
+    rx_recv: Vec<Receiver<PointType>>,
+    rx_send: HashMap<String, Sender<PointType>>,
     conf: ProfinetClientConfig,
     services: Arc<Mutex<Services>>,
     exit: Arc<AtomicBool>,
@@ -29,8 +27,8 @@ impl ProfinetClient {
         let (send, recv) = mpsc::channel();
         Self {
             id: format!("{}/ProfinetClient({})", parent.into(), conf.name),
-            rxRecv: vec![recv],
-            rxSend: HashMap::from([(conf.rx.clone(), send)]),
+            rx_recv: vec![recv],
+            rx_send: HashMap::from([(conf.rx.clone(), send)]),
             conf: conf.clone(),
             services,
             exit: Arc::new(AtomicBool::new(false)),
@@ -41,13 +39,13 @@ impl ProfinetClient {
     ///     - reads data slice from the S7 device,
     ///     - parses raw data into the configured points
     ///     - returns only points with updated value or status
-    fn yieldStatus(selfId: &str, dbs: &mut IndexMap<String, ProfinetDb>, txSend: &Sender<PointType>) {
-        for (dbName, db) in dbs {
-            debug!("{}.run | DB '{}' - reading...", selfId, dbName);
-            match db.yieldStatus(Status::Invalid, &txSend) {
+    fn yield_status(self_id: &str, dbs: &mut IndexMap<String, ProfinetDb>, tx_send: &Sender<PointType>) {
+        for (db_name, db) in dbs {
+            debug!("{}.run | DB '{}' - reading...", self_id, db_name);
+            match db.yield_status(Status::Invalid, &tx_send) {
                 Ok(_) => {},
                 Err(err) => {
-                    error!("{}.lostConnection | send errors: \n\t{:?}", selfId, err);
+                    error!("{}.lostConnection | send errors: \n\t{:?}", self_id, err);
                 },
             };
         }
@@ -65,7 +63,7 @@ impl Service for ProfinetClient {
     // 
     fn getLink(&mut self, name: &str) -> Sender<PointType> {
         // panic!("{}.getLink | Does not support getLink", self.id());
-        match self.rxSend.get(name) {
+        match self.rx_send.get(name) {
             Some(send) => send.clone(),
             None => panic!("{}.run | link '{:?}' - not found", self.id, name),
         }
@@ -74,46 +72,48 @@ impl Service for ProfinetClient {
     //
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
-        let selfId = self.id.clone();
+        let self_id = self.id.clone();
         let exit = self.exit.clone();
         let conf = self.conf.clone();
-        let txSend = self.services.lock().unwrap().getLink(&conf.tx);
-        let txSendWrite = txSend.clone();
-        let (cyclic, cycleInterval) = match conf.cycle {
+        let tx_send = self.services.lock().unwrap().getLink(&conf.tx);
+        let tx_send_write = tx_send.clone();
+        let (cyclic, cycle_interval) = match conf.cycle {
             Some(interval) => (interval > Duration::ZERO, interval),
             None => (false, Duration::ZERO),
         };
-        info!("{}.run | Preparing Read thread...", selfId);
-        let handle = thread::Builder::new().name(format!("{}.run Read", selfId.clone())).spawn(move || {
+        info!("{}.run | Preparing Read thread...", self_id);
+        let handle = thread::Builder::new().name(format!("{}.run Read", self_id.clone())).spawn(move || {
             let mut dbs: IndexMap<String, ProfinetDb> = IndexMap::new();
-            for (dbName, dbConf) in conf.dbs {
-                info!("{}.run | configuring Read DB: {:?}...", selfId, dbName);
-                let db = ProfinetDb::new(&selfId, dbConf);
-                dbs.insert(dbName.clone(), db);
-                info!("{}.run | configuring Read DB: {:?} - ok", selfId, dbName);
+            for (db_name, db_conf) in conf.dbs {
+                info!("{}.run | configuring Read DB: {:?}...", self_id, db_name);
+                let db = ProfinetDb::new(&self_id, db_conf);
+                dbs.insert(db_name.clone(), db);
+                info!("{}.run | configuring Read DB: {:?} - ok", self_id, db_name);
             }
-            let mut cycle = ServiceCycle::new(cycleInterval);
-            let mut client = S7Client::new(selfId.clone(), conf.ip.clone());
+            let mut cycle = ServiceCycle::new(cycle_interval);
+            let mut client = S7Client::new(self_id.clone(), conf.ip.clone());
             'main: while !exit.load(Ordering::SeqCst) {
-                let mut errorLimit = ErrorsLimit::new(3);
+                let mut error_limit = ErrorsLimit::new(3);
                 let mut status = Status::Ok;
                 match client.connect() {
                     Ok(_) => {
                         'read: while !exit.load(Ordering::SeqCst) {
                             cycle.start();
-                            for (dbName, db) in &mut dbs {
-                                debug!("{}.run | DB '{}' - reading...", selfId, dbName);
-                                match db.read(&client, &txSend) {
+                            for (db_name, db) in &mut dbs {
+                                debug!("{}.run | DB '{}' - reading...", self_id, db_name);
+                                match db.read(&client, &tx_send) {
                                     Ok(_) => {
-                                        errorLimit.reset();
-                                        debug!("{}.run | DB '{}' - reading - ok", selfId, dbName);
+                                        error_limit.reset();
+                                        debug!("{}.run | DB '{}' - reading - ok", self_id, db_name);
                                     },
                                     Err(err) => {
-                                        error!("{}.run | DB '{}' - reading - error: {:?}", selfId, dbName, err);
-                                        if errorLimit.add().is_err() {
-                                            error!("{}.run | DB '{}' - exceeded reading errors limit, trying to reconnect...", selfId, dbName);
+                                        error!("{}.run | DB '{}' - reading - error: {:?}", self_id, db_name, err);
+                                        if error_limit.add().is_err() {
+                                            error!("{}.run | DB '{}' - exceeded reading errors limit, trying to reconnect...", self_id, db_name);
                                             status = Status::Invalid;
-                                            client.close();
+                                            if let Err(err) = client.close() {
+                                                error!("{}.run | {:?}", self_id, err);
+                                            };
                                             break 'read;
                                         }
                                     },
@@ -127,70 +127,67 @@ impl Service for ProfinetClient {
                             }
                         }
                         if status != Status::Ok {
-                            Self::yieldStatus(&selfId, &mut dbs, &txSend);
+                            Self::yield_status(&self_id, &mut dbs, &tx_send);
                         }
                     },
                     Err(err) => {
-                        debug!("{}.run | Connection error: {:?}", selfId, err);
+                        debug!("{}.run | Connection error: {:?}", self_id, err);
                     },
                 }
                 thread::sleep(Duration::from_millis(1000))
             }
         });
-        let selfId = self.id.clone();
+        let self_id = self.id.clone();
         let exit = self.exit.clone();
         let conf = self.conf.clone();
-        let rxRecv = self.rxRecv.pop().unwrap();
-        info!("{}.run | Preparing Read thread...", selfId);
-        let handleWrite = thread::Builder::new().name(format!("{}.run Write", selfId.clone())).spawn(move || {
+        let rx_recv = self.rx_recv.pop().unwrap();
+        info!("{}.run | Preparing Read thread...", self_id);
+        let handle_write = thread::Builder::new().name(format!("{}.run Write", self_id.clone())).spawn(move || {
             let mut dbs: IndexMap<String, ProfinetDb> = IndexMap::new();
-            for (dbName, dbConf) in conf.dbs {
-                info!("{}.run | configuring Write DB: {:?}...", selfId, dbName);
-                let db = ProfinetDb::new(&selfId, dbConf);
-                dbs.insert(dbName.clone(), db);
-                info!("{}.run | configuring Write DB: {:?} - ok", selfId, dbName);
+            for (db_name, db_conf) in conf.dbs {
+                info!("{}.run | configuring Write DB: {:?}...", self_id, db_name);
+                let db = ProfinetDb::new(&self_id, db_conf);
+                dbs.insert(db_name.clone(), db);
+                info!("{}.run | configuring Write DB: {:?} - ok", self_id, db_name);
             }
-            let mut cycle = ServiceCycle::new(cycleInterval);
-            let mut client = S7Client::new(selfId.clone(), conf.ip.clone());
+            let mut cycle = ServiceCycle::new(cycle_interval);
+            let mut client = S7Client::new(self_id.clone(), conf.ip.clone());
             'main: while !exit.load(Ordering::SeqCst) {
-                let mut errorsLimit = ErrorsLimit::new(3);
+                let mut errors_limit = ErrorsLimit::new(3);
                 match client.connect() {
                     Ok(_) => {
                         'write: while !exit.load(Ordering::SeqCst) {
                             cycle.start();
-                            match rxRecv.recv_timeout(RECV_TIMEOUT) {
+                            match rx_recv.recv_timeout(RECV_TIMEOUT) {
                                 Ok(point) => {
-                                    let pointName = point.name();
-                                    let dbName = pointName.split("/").skip(1).next().unwrap();
-                                    debug!("{}.run | DB '{}' - writing point '{}'...", selfId, dbName, point.name());
+                                    let point_name = point.name();
+                                    let db_name = point_name.split("/").skip(1).next().unwrap();
+                                    debug!("{}.run | DB '{}' - writing point '{}'...", self_id, db_name, point.name());
                                     // let dbName = point.name().split("/").skip(1).collect::<String>();
-                                    match dbs.get_mut(dbName) {
+                                    match dbs.get_mut(db_name) {
                                         Some(db) => {
                                             match db.write(&client, point) {
                                                 Ok(_) => {
-                                                    errorsLimit.reset();
-                                                    debug!("{}.run | DB '{}' - write - ok", selfId, dbName);
+                                                    errors_limit.reset();
+                                                    debug!("{}.run | DB '{}' - write - ok", self_id, db_name);
                                                 },
                                                 Err(err) => {
-                                                    error!("{}.run | DB '{}' - write - error: {:?}", selfId, dbName, err);
-                                                    if errorsLimit.add().is_err() {
-                                                        error!("{}.run | DB '{}' - exceeded writing errors limit, trying to reconnect...", selfId, dbName);
-                                                        match txSendWrite.send(PointType::String(Point::newString(
-                                                            PointTxId::fromStr(&selfId), 
-                                                            &pointName, 
+                                                    error!("{}.run | DB '{}' - write - error: {:?}", self_id, db_name, err);
+                                                    if errors_limit.add().is_err() {
+                                                        error!("{}.run | DB '{}' - exceeded writing errors limit, trying to reconnect...", self_id, db_name);
+                                                        match tx_send_write.send(PointType::String(Point::newString(
+                                                            PointTxId::fromStr(&self_id), 
+                                                            &point_name, 
                                                             format!("Error write point '': {}", err),
                                                         ))) {
                                                             Ok(_) => {},
                                                             Err(err) => {
-                                                                error!("{}.run | Error sending to queue: {:?}", selfId, err);
+                                                                error!("{}.run | Error sending to queue: {:?}", self_id, err);
                                                                 // break 'main;
                                                             },
                                                         };
-                                                        match client.close() {
-                                                            Ok(_) => {},
-                                                            Err(err) => {
-                                                                error!("{}.run | {:?}", selfId, err);
-                                                            },
+                                                        if let Err(err) = client.close() {
+                                                            error!("{}.run | {:?}", self_id, err);
                                                         };
                                                         break 'write;
                                                     }
@@ -198,7 +195,7 @@ impl Service for ProfinetClient {
                                             }
                                         },
                                         None => {
-                                            error!("{}.run | DB '{}' - not found", selfId, dbName);
+                                            error!("{}.run | DB '{}' - not found", self_id, db_name);
                                         },
                                     };
                                 },
@@ -206,7 +203,7 @@ impl Service for ProfinetClient {
                                     match err {
                                         mpsc::RecvTimeoutError::Timeout => {},
                                         mpsc::RecvTimeoutError::Disconnected => {
-                                            error!("{}.run | Error receiving from queue: {:?}", selfId, err);
+                                            error!("{}.run | Error receiving from queue: {:?}", self_id, err);
                                             break 'main;
                                         },
                                     }
@@ -224,7 +221,7 @@ impl Service for ProfinetClient {
                         // }
                     },
                     Err(err) => {
-                        debug!("{}.run | Connection error: {:?}", selfId, err);
+                        debug!("{}.run | Connection error: {:?}", self_id, err);
                     },
                 }
                 thread::sleep(Duration::from_millis(1000))

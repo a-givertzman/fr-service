@@ -1,10 +1,7 @@
-#![allow(non_snake_case)]
-
-use log::{debug, error, info, trace, warn, LevelFilter};
+use log::{debug, warn, LevelFilter};
 use snap7_sys::S7Object;
 use std::ffi::CString;
 use std::ffi::{c_void, c_int};
-use std::time::Duration;
 
 use super::s7_error::S7Error;
 use super::s7_lib::S7LIB;
@@ -64,27 +61,27 @@ impl S7Client {
     }
     ///
     /// Returns the connection status
-    pub fn isConnected(&self) -> Result<bool, String> {
-        let mut isConnected: c_int = 0;
+    pub fn is_connected(&self) -> Result<bool, String> {
+        let mut is_connected: c_int = 0;
         let code = unsafe {
-            S7LIB.Cli_GetConnected(self.handle, &mut isConnected)
+            S7LIB.Cli_GetConnected(self.handle, &mut is_connected)
         };
         match code {
-            0 => Ok(isConnected != 0),
+            0 => Ok(is_connected != 0),
             _ => Err(S7Error::text(code))
         }
     }
     ///
     /// This is the main function to read data from a PLC.
     /// With it you can read DB, Inputs, Outputs, Merkers, Timers and Counters
-    pub fn read(&self, dbNum: u32, start: u32, size: u32) -> Result<Vec<u8>, String> {
+    pub fn read(&self, db_num: u32, start: u32, size: u32) -> Result<Vec<u8>, String> {
         let mut buf = Vec::<u8>::new();
         buf.resize(size as usize, 0);
         let code;
         unsafe {
             code = S7LIB.Cli_DBRead(
                 self.handle,
-                dbNum as c_int,
+                db_num as c_int,
                 start as c_int,
                 size as c_int,
                 buf.as_mut_ptr() as *mut c_void,
@@ -100,11 +97,11 @@ impl S7Client {
     /// Cli_ReadArea(), the parameters and their meanings are the same.
     /// The only difference is that the data is transferred from the buffer pointed by pUsrData
     /// into PLC.
-    pub fn write(&self, dbNum: u32, start: u32, size: u32, buf: &mut [u8]) -> Result<(), String> {
+    pub fn write(&self, db_num: u32, start: u32, size: u32, buf: &mut [u8]) -> Result<(), String> {
         let code = unsafe {
             S7LIB.Cli_DBWrite(
                 self.handle,
-                dbNum as c_int, 
+                db_num as c_int, 
                 start as c_int, 
                 size as c_int, 
                 buf.as_mut_ptr() as *mut c_void,

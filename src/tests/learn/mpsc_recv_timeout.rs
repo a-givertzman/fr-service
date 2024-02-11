@@ -27,7 +27,7 @@ mod tests {
     
     }
 
-    #[ignore = "common - all must be ignored"]
+    #[ignore = "learn - all must be ignored"]
     #[test]
     fn test_mpsc_receiver() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
