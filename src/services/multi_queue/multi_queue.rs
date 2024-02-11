@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread::{self, JoinHandle}, time::Duration};
+use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread::{self, JoinHandle}};
 
-use log::{info, warn, error, debug, trace};
+use log::{debug, error, info, trace};
 
 use crate::{services::{services::Services, service::Service}, conf::multi_queue_config::MultiQueueConfig, core_::{point::{point_type::PointType, point_tx_id::PointTxId}, constants::constants::RECV_TIMEOUT}};
 

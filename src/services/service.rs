@@ -17,11 +17,13 @@ pub trait Service {
     // panic!("{}.getLink | Does not support getLink", self.id())
     ///
     /// Returns Receiver
+    #[allow(unused_variables)]
     fn subscribe(&mut self, receiverId: &str, points: &Vec<String>) -> Receiver<PointType> {
         panic!("{}.subscribe | Does not support subscriptions", self.id())
     }
     ///
     /// Canceling the subsciption
+    #[allow(unused_variables)]
     fn unsubscribe(&mut self, receiverId: &str, points: &Vec<String>) -> Result<(), String> {
         panic!("{}.unsubscribe | Does not support subscriptions", self.id())
     }

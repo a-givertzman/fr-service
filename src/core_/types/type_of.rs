@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 pub trait DebugTypeOf<T> {
     fn printTypeOf(&self) {
         println!("{}", std::any::type_name::<T>())

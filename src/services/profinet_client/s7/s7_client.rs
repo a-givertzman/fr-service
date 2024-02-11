@@ -38,21 +38,21 @@ impl S7Client {
     pub fn connect(&mut self) -> Result<(), S7Error> {
         let mut req: c_int = 0;
         let mut neg: c_int = 0;
-        let mut errCode = 0;
-        unsafe {
+        let err_code = unsafe {
             // #[warn(temporary_cstring_as_ptr)]
-            errCode = S7LIB.Cli_ConnectTo(self.handle, self.ip.as_ptr(), 0, 1);
+            let err_code = S7LIB.Cli_ConnectTo(self.handle, self.ip.as_ptr(), 0, 1);
             S7LIB.Cli_GetPduLength(self.handle, &mut req, &mut neg);
             self.req_len = req as usize;
             self.neg_len = neg as usize;
-        }
-        if errCode == 0 {
+            err_code
+        };
+        if err_code == 0 {
             // self.isConnected = true;
             debug!("{}.connect | successfully connected", self.id);
             Ok(())
         } else {
             // self.isConnected = false;
-            let err = S7Error::from(errCode);
+            let err = S7Error::from(err_code);
             if log::max_level() == LevelFilter::Trace {
                 warn!("{}.connect | connection error: {:?}", self.id, err);
             }

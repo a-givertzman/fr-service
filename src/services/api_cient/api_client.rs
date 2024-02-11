@@ -176,11 +176,9 @@ impl Service for ApiClient {
             let mut buffer = RetainBuffer::new(&selfId, "", Some(conf.rxMaxLength as usize));
             let mut cycle = ServiceCycle::new(cycleInterval);
             let mut connect = TcpClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address, reconnect);
-            let mut connectionClosed = false;
             'main: loop {
                 match connect.connect() {
                     Some(mut stream) => {
-                        connectionClosed = false;
                         match stream.set_read_timeout(Some(Duration::from_secs(10))) {
                             Ok(_) => {},
                             Err(err) => {
@@ -210,14 +208,12 @@ impl Service for ApiClient {
                                                         }
                                                     },
                                                     ConnectionStatus::Closed(err) => {
-                                                        connectionClosed = true;
                                                         warn!("{}.run | API read error: {:?}", selfId, err);
                                                         break 'send;
                                                     },
                                                 };
                                             },
                                             Err(err) => {
-                                                connectionClosed = true;
                                                 warn!("{}.run | API sending error: {:?}", selfId, err);
                                                 break 'send;
                                             },
@@ -227,7 +223,7 @@ impl Service for ApiClient {
                                 };
                                 count -=1;
                             }
-                            if exit.load(Ordering::SeqCst) | connectionClosed {
+                            if exit.load(Ordering::SeqCst) {
                                 break 'main;
                             }
                             trace!("{}.run | step - done ({:?})", selfId, cycle.elapsed());

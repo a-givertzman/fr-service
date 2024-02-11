@@ -51,7 +51,7 @@ impl Service for TaskTestProducer {
     }
     //
     //
-    fn getLink(&mut self, name: &str) -> Sender<PointType> {
+    fn getLink(&mut self, _name: &str) -> Sender<PointType> {
         panic!("{}.getLink | Does not support getLink", self.id())
         // match self.rxSend.get(name) {
         //     Some(send) => send.clone(),

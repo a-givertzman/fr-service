@@ -73,7 +73,7 @@ mod tests {
         let selfId = "Emuleted TcpServer";
         let addr = addr.to_string();
         info!("{}.run | Preparing thread...", selfId);
-        let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
+        let handle = thread::Builder::new().name(format!("{}.run", selfId)).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
             match TcpListener::bind(addr.clone()) {
                 Ok(listener) => {

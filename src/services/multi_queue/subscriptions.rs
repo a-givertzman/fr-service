@@ -2,7 +2,7 @@
 
 use std::{collections::HashMap, sync::mpsc::Sender};
 
-use log::{warn, debug, trace};
+use log::{warn, trace};
 
 use crate::core_::point::point_type::PointType;
 

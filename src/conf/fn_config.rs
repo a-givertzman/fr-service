@@ -2,7 +2,7 @@
 
 use indexmap::IndexMap;
 use log::{trace, debug};
-use std::{fs, ops::BitOr, str::FromStr};
+use std::{fs, str::FromStr};
 
 use crate::conf::{
         fn_conf_keywd::FnConfKeywd, conf_tree::ConfTree, fn_point_config::FnPointConfig,
@@ -297,7 +297,7 @@ impl FnConfig {
     }
     ///
     /// 
-    fn getParamByKeyword(conf: &ConfTree, input: &str, kind: u8) -> Result<(ConfTree), String> {
+    fn getParamByKeyword(conf: &ConfTree, input: &str, kind: u8) -> Result<ConfTree, String> {
         debug!("FnConfig.getParamByKeyword | conf: {:?}", conf);
         for node in conf.subNodes().unwrap() {
             debug!("FnConfig.getParamByKeyword | node: {:?}", node);

@@ -164,7 +164,7 @@ impl NestedFn {
                 }
                 input
             },
-            FnConfKind::PointConf(conf) => {
+            FnConfKind::PointConf(_conf) => {
                 panic!("NestedFn.function | PointConf is not supported in the nested functions yet");
             }
             // FnConfKind::Metric(conf) => {

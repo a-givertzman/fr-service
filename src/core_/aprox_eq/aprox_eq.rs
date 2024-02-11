@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 ///
 /// provide approximately equality for f36, f64
 pub trait AproxEq<T> {

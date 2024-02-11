@@ -6,7 +6,7 @@ use std::{
     time::Duration, collections::HashMap,
 };
 
-use log::{debug, error, info, trace, warn};
+use log::{debug, error, info, trace};
 
 use crate::{services::{task::task_nodes::TaskNodes, service::Service, services::Services}, core_::{point::point_type::PointType, constants::constants::RECV_TIMEOUT}, conf::point_config::point_config::PointConfig};
 use crate::conf::task_config::TaskConfig;
