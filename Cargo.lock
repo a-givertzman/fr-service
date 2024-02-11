@@ -76,8 +76,8 @@ dependencies = [
 
 [[package]]
 name = "api-tools"
-version = "0.0.2"
-source = "git+https://github.com/a-givertzman/rust-api-tools.git#93e214391e71ce6ed9ccb16665b405e167a49f7e"
+version = "0.0.3"
+source = "git+https://github.com/a-givertzman/rust-api-tools.git#14d5c51e6a036bb7fc8647c9ef686cba3c240adc"
 dependencies = [
  "debugging",
  "env_logger",
