@@ -76,14 +76,16 @@ dependencies = [
 
 [[package]]
 name = "api-tools"
-version = "0.0.1"
-source = "git+https://github.com/a-givertzman/rust-api-tools.git#0920f23f33ee2ffbe4e72ba3e281cbe76e94c069"
+version = "0.0.2"
+source = "git+https://github.com/a-givertzman/rust-api-tools.git#93e214391e71ce6ed9ccb16665b405e167a49f7e"
 dependencies = [
+ "debugging",
  "env_logger",
  "indexmap",
  "log",
  "serde",
  "serde_json",
+ "testing",
 ]
 
 [[package]]

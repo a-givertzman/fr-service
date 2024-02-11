@@ -37,7 +37,7 @@ mod tests {
     
     #[test]
     fn test_ApiClient() {
-        DebugSession::init(LogLevel::Info, Backtrace::Short);
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
         println!("");
