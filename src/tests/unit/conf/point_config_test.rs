@@ -5,7 +5,7 @@ mod tests {
     use std::{sync::Once, time::Duration};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use testing::stuff::max_test_duration::TestDuration; 
-    use crate::conf::point_config::{point_config::PointConfig, point_config_type::PointConfigType, point_config_address::PointConfigAddress, point_config_filters::PointConfigFilter}; 
+    use crate::conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress, point_config_filters::PointConfigFilter, point_config_history::PointConfigHistory, point_config_type::PointConfigType}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -43,7 +43,7 @@ mod tests {
             (r#"
                     PointName0:
                         type: Bool      # Bool / Int / Float / String / Json
-                        history: 0      # 0 / 1
+                        history: None   # None / Read / Write
                         alarm: 0        # 0..15
                         address:
                             offset: 0   # 0..65535
@@ -54,7 +54,7 @@ mod tests {
                 PointConfig { 
                     name: String::from("PointName0"),
                     _type: PointConfigType::Bool, 
-                    history: Some(0), alarm: Some(0), 
+                    history: PointConfigHistory::None, alarm: Some(0), 
                     address: Some(PointConfigAddress { offset: Some(0), bit: Some(0) }), 
                     filters: Some(PointConfigFilter { threshold: 5.0, factor: None }),
                     comment: Some(String::from("Test Point Bool")),
@@ -63,14 +63,14 @@ mod tests {
             (r#"
                     PointName1:
                         type: Int       # Bool / Int / Float / String / Json
-                        history: 1      # 0 / 1
+                        history: read   # None / Read / Write
                         address:
                             offset: 0   # 0..65535
                         comment: Test Point"#, 
                 PointConfig { 
                     name: String::from("PointName1"),
                     _type: PointConfigType::Int, 
-                    history: Some(1), alarm: None, 
+                    history: PointConfigHistory::Read, alarm: None, 
                     address: Some(PointConfigAddress { offset: Some(0), bit: None }), 
                     filters: None,
                     comment: Some(String::from("Test Point")),
@@ -86,7 +86,7 @@ mod tests {
                 PointConfig { 
                     name: String::from("PointName2"),
                     _type: PointConfigType::Int, 
-                    history: None, alarm: Some(4), 
+                    history: PointConfigHistory::None, alarm: Some(4), 
                     address: Some(PointConfigAddress { offset: Some(0), bit: None }), 
                     filters: None,
                     comment: Some(String::from("Test Point")),
@@ -101,7 +101,7 @@ mod tests {
                 PointConfig { 
                     name: String::from("PointName3"),
                     _type: PointConfigType::Int, 
-                    history: None, alarm: None, 
+                    history: PointConfigHistory::None, alarm: None, 
                     address: Some(PointConfigAddress { offset: Some(12), bit: None }), 
                     filters: None,
                     comment: Some(String::from("Test Point")),
@@ -131,7 +131,7 @@ mod tests {
             (r#"
                     PointName0:
                         type: bool      # Bool / Int / Float / String / Json
-                        history: 0      # 0 / 1
+                        history: rw      # None / Read / Write
                         alarm: 0        # 0..15
                         address:
                             offset: 0   # 0..65535
@@ -142,7 +142,7 @@ mod tests {
                 PointConfig { 
                     name: String::from("PointName0"),
                     _type: PointConfigType::Bool, 
-                    history: Some(0), alarm: Some(0), 
+                    history: PointConfigHistory::ReadWrite, alarm: Some(0), 
                     address: Some(PointConfigAddress { offset: Some(0), bit: Some(0) }), 
                     filters: Some(PointConfigFilter { threshold: 5.0, factor: None }),
                     comment: Some(String::from("Test Point Bool")),
@@ -151,14 +151,14 @@ mod tests {
             (r#"
                     PointName1:
                         type: Int       # Bool / Int / Float / String / Json
-                        history: 1      # 0 / 1
+                        history: w      # None / Read / Write
                         address:
                             offset: 0   # 0..65535
                         comment: Test Point"#, 
                 PointConfig { 
                     name: String::from("PointName1"),
                     _type: PointConfigType::Int, 
-                    history: Some(1), alarm: None, 
+                    history: PointConfigHistory::Write, alarm: None, 
                     address: Some(PointConfigAddress { offset: Some(0), bit: None }), 
                     filters: None,
                     comment: Some(String::from("Test Point")),
@@ -174,7 +174,7 @@ mod tests {
                 PointConfig { 
                     name: String::from("PointName2"),
                     _type: PointConfigType::Int, 
-                    history: None, alarm: Some(4), 
+                    history: PointConfigHistory::None, alarm: Some(4), 
                     address: Some(PointConfigAddress { offset: Some(0), bit: None }), 
                     filters: None,
                     comment: Some(String::from("Test Point")),
@@ -189,7 +189,7 @@ mod tests {
                 PointConfig { 
                     name: String::from("PointName3"),
                     _type: PointConfigType::Int, 
-                    history: None, alarm: None, 
+                    history: PointConfigHistory::None, alarm: None, 
                     address: Some(PointConfigAddress { offset: Some(12), bit: None }), 
                     filters: None,
                     comment: Some(String::from("Test Point")),

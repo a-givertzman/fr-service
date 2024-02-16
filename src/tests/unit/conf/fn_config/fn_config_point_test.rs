@@ -6,7 +6,7 @@ mod tests {
     use std::sync::Once;
     use indexmap::IndexMap;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::conf::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig, fn_point_config::FnPointConfig, point_config::{point_config::PointConfig, point_config_type::PointConfigType}};
+    use crate::conf::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig, fn_point_config::FnPointConfig, point_config::{point_config::PointConfig, point_config_history::PointConfigHistory, point_config_type::PointConfigType}};
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -39,7 +39,7 @@ mod tests {
         let testPoint1 = PointConfig {
             name: "CraneMovement.BoomUp".to_string(),
             _type: PointConfigType::Int,
-            history: None,
+            history: PointConfigHistory::None,
             alarm: None,
             address: None,
             filters: None,
@@ -48,7 +48,7 @@ mod tests {
         let testPoint2 = PointConfig {
             name: "CraneMovement.BoomDown".to_string(),
             _type: PointConfigType::Float,
-            history: Some(1),
+            history: PointConfigHistory::Read,
             alarm: None,
             address: None,
             filters: None,

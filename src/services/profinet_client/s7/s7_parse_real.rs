@@ -4,7 +4,7 @@ use log::{debug, warn};
 use std::array::TryFromSliceError;
 use chrono::{DateTime, Utc};
 use crate::{
-    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress}, core_::{filter::filter::Filter, point::{point::{Direction, Point}, point_type::PointType}, status::status::Status}, services::profinet_client::parse_point::ParsePoint
+    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress, point_config_history::PointConfigHistory}, core_::{filter::filter::Filter, point::{point::{Direction, Point}, point_type::PointType}, status::status::Status}, services::profinet_client::parse_point::ParsePoint
 };
 
 ///
@@ -17,7 +17,7 @@ pub struct S7ParseReal {
     pub value: Box<dyn Filter<Item = f64>>,
     pub status: Status,
     pub offset: Option<u32>,
-    pub history: Option<u8>,
+    pub history: PointConfigHistory,
     pub alarm: Option<u8>,
     pub comment: Option<String>,
     pub timestamp: DateTime<Utc>,
@@ -42,7 +42,7 @@ impl S7ParseReal {
             path: path,
             name: name,
             offset: config.clone().address.unwrap_or(PointConfigAddress::empty()).offset,
-            history: config.history,
+            history: config.history.clone(),
             alarm: config.alarm,
             comment: config.comment.clone(),
             timestamp: Utc::now(),

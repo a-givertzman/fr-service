@@ -27,7 +27,7 @@ service ProfinetClient Ied01:
         point Drive.Current: 
             type: 'Real'
             offset: 12
-            history: 1
+            history: read
         point Drive.Torque: 
             type: 'Real'
             offset: 16
