@@ -40,7 +40,7 @@ fn test_int() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_int");
-    let input = initEach(0.toPoint(0, "int"));
+    let input = initEach(0.to_point(0, "int"));
     let testData = vec![
         0,
         1,
@@ -58,13 +58,13 @@ fn test_int() {
         0,
     ];
     for value in testData {
-        let point = value.toPoint(0, "test");
+        let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = input.borrow_mut().out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.asInt().value, value);
+        assert_eq!(state.as_int().value, value);
     }        
 }
 
@@ -73,7 +73,7 @@ fn test_bool() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_bool");
-    let input = initEach(false.toPoint(0, "bool"));
+    let input = initEach(false.to_point(0, "bool"));
     let testData = vec![
         false,
         false,
@@ -93,13 +93,13 @@ fn test_bool() {
         false,
     ];
     for value in testData {
-        let point = value.toPoint(0, "test");
+        let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = input.borrow_mut().out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.asBool().value.0, value);
+        assert_eq!(state.as_bool().value.0, value);
     }        
 }
 
@@ -108,7 +108,7 @@ fn test_float() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_float");
-    let input = initEach(0.0.toPoint(0, "float"));
+    let input = initEach(0.0.to_point(0, "float"));
     let testData = vec![
         0.0,
         1.0,
@@ -128,13 +128,13 @@ fn test_float() {
         0.0,
     ];
     for value in testData {
-        let point = value.toPoint(0, "test");
+        let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = input.borrow_mut().out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.asFloat().value, value);
+        assert_eq!(state.as_float().value, value);
     }        
 }
 
@@ -144,7 +144,7 @@ fn test_string() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_string");
-    let input = initEach("0".toPoint(0, "string"));
+    let input = initEach("0".to_point(0, "string"));
     let testData = vec![
         "0",
         "1",
@@ -162,12 +162,12 @@ fn test_string() {
         "0",
     ];
     for value in testData {
-        let point = value.toPoint(0, "test");
+        let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = input.borrow_mut().out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.asString().value, value);
+        assert_eq!(state.as_string().value, value);
     }        
 }

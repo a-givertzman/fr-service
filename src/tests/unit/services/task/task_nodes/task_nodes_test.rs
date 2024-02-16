@@ -104,7 +104,7 @@ mod tests {
         ];
         mockService.lock().unwrap().run().unwrap();
         for (name, value, targetValue) in testData {
-            let point = value.toPoint(0, name);
+            let point = value.to_point(0, name);
             // let inputName = &point.name();
             debug!("input point name: {:?}  value: {:?}", name, value);
             match &taskNodes.getEvalNode(&name) {

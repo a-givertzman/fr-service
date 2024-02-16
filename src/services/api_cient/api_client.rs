@@ -188,7 +188,7 @@ impl Service for ApiClient {
                             while count > 0 {
                                 match buffer.first() {
                                     Some(point) => {
-                                        let sql = point.asString().value;
+                                        let sql = point.as_string().value;
                                         match Self::send(&self_id, sql, &mut stream) {
                                             Ok(_) => {
                                                 match Self::read_all(&self_id, &mut stream) {

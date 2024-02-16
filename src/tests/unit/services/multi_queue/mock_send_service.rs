@@ -84,7 +84,7 @@ impl Service for MockSendService {
         let _handle = thread::Builder::new().name(format!("{}.run", selfId)).spawn(move || {
             info!("{}.run | Preparing thread - ok", selfId);
             for value in testData {
-                let point = value.toPoint(0,&format!("{}/test", selfId));
+                let point = value.to_point(0,&format!("{}/test", selfId));
                 match txSend.send(point.clone()) {
                     Ok(_) => {
                         trace!("{}.run | send: {:?}", selfId, point);

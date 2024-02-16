@@ -127,7 +127,7 @@ impl Service for MockRecvSendService {
             info!("{}.run | Preparing thread Send - ok", selfId);
             let txId = PointTxId::fromStr(&selfId);
             for value in testData.iter() {
-                let point = value.toPoint(txId,&format!("{}/test", selfId));
+                let point = value.to_point(txId,&format!("{}/test", selfId));
                 match txSend.send(point.clone()) {
                     Ok(_) => {
                         trace!("{}.run | send: {:?}", selfId, point);

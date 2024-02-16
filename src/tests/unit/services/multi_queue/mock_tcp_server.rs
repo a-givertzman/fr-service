@@ -132,7 +132,7 @@ impl Service for MockTcpServer {
         let handle = thread::Builder::new().name(format!("{}.run | Send", selfId)).spawn(move || {
             info!("{}.run | Preparing thread Send - ok", selfId);
             for value in testData.iter() {
-                let point = value.toPoint(txId,&format!("{}/test", selfId));
+                let point = value.to_point(txId,&format!("{}/test", selfId));
                 match txSend.send(point.clone()) {
                     Ok(_) => {
                         trace!("{}.run | send: {:?}", selfId, point);

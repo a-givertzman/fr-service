@@ -134,10 +134,10 @@ mod tests {
                                             assert!(point.direction() == testData[recvIndex].1.direction(), "\nreceived: {:?}\nexpected: {:?}", point.direction(), testData[recvIndex].1.direction());
                                             assert!(point.timestamp() == testData[recvIndex].1.timestamp(), "\nreceived: {:?}\nexpected: {:?}", point.timestamp(), testData[recvIndex].1.timestamp());
                                             match point {
-                                                PointType::Bool(point) => assert!(point.value == testData[recvIndex].1.asBool().value, "\nreceived: {:?}\nexpected: {:?}", point.value, testData[recvIndex].1.asBool().value),
-                                                PointType::Int(point) => assert!(point.value == testData[recvIndex].1.asInt().value, "\nreceived: {:?}\nexpected: {:?}", point.value, testData[recvIndex].1.asInt().value),
-                                                PointType::Float(point) => assert!(point.value == testData[recvIndex].1.asFloat().value, "\nreceived: {:?}\nexpected: {:?}", point.value, testData[recvIndex].1.asFloat().value),
-                                                PointType::String(point) => assert!(point.value == testData[recvIndex].1.asString().value, "\nreceived: {:?}\nexpected: {:?}", point.value, testData[recvIndex].1.asString().value),
+                                                PointType::Bool(point) => assert!(point.value == testData[recvIndex].1.as_bool().value, "\nreceived: {:?}\nexpected: {:?}", point.value, testData[recvIndex].1.as_bool().value),
+                                                PointType::Int(point) => assert!(point.value == testData[recvIndex].1.as_int().value, "\nreceived: {:?}\nexpected: {:?}", point.value, testData[recvIndex].1.as_int().value),
+                                                PointType::Float(point) => assert!(point.value == testData[recvIndex].1.as_float().value, "\nreceived: {:?}\nexpected: {:?}", point.value, testData[recvIndex].1.as_float().value),
+                                                PointType::String(point) => assert!(point.value == testData[recvIndex].1.as_string().value, "\nreceived: {:?}\nexpected: {:?}", point.value, testData[recvIndex].1.as_string().value),
                                             }
                                             // debug!("socket read - received: {:?}", received.load(Ordering::SeqCst));
                                             if received.load(Ordering::SeqCst) >= total {

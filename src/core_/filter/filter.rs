@@ -1,7 +1,8 @@
-#![allow(non_snake_case)]
-
 ///
-/// 
+/// Holds single value
+/// - call add(value) to apply new value
+/// - get current value by calling value()
+/// - is_changed() - check if value was changed after las add()
 pub trait Filter: std::fmt::Debug {
     type Item;
     ///
@@ -10,21 +11,21 @@ pub trait Filter: std::fmt::Debug {
     /// - Updates state with value if value != inner
     fn add(&mut self, value: Self::Item);
     ///
-    /// Returns true if last [add] was successful
-    fn isChanged(&self) -> bool;
+    /// Returns true if last [add] was successful, internal value was changed
+    fn is_changed(&self) -> bool;
 }
 ///
 /// Pass input value as is
 #[derive(Debug, Clone)]
 pub struct FilterEmpty<T> {
     value: T,
-    isChanged: bool,
+    is_changed: bool,
 }
 ///
 /// 
 impl<T> FilterEmpty<T> {
     pub fn new(initial: T) -> Self {
-        Self { value: initial, isChanged: true }
+        Self { value: initial, is_changed: true }
     }
 }
 ///
@@ -40,15 +41,15 @@ impl<T: Copy + std::fmt::Debug + std::cmp::PartialEq> Filter for FilterEmpty<T> 
     //
     fn add(&mut self, value: Self::Item) {
         if value != self.value {
-            self.isChanged = true;
+            self.is_changed = true;
             self.value = value;
         } else {
-            self.isChanged = false;
+            self.is_changed = false;
         }
     }
     //
     //
-    fn isChanged(&self) -> bool {
-        self.isChanged
+    fn is_changed(&self) -> bool {
+        self.is_changed
     }
 }

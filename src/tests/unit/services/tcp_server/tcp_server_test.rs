@@ -114,7 +114,7 @@ mod tests {
         let result = received.len();
         assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         for value in testData {
-            let result = received.remove(0).asInt().value;
+            let result = received.remove(0).as_int().value;
             let target = value.as_int();
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
@@ -205,7 +205,7 @@ mod tests {
         let result = received.len();
         assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         for value in testData {
-            let result = received.remove(0).asInt().value;
+            let result = received.remove(0).as_int().value;
             let target = value.as_int();
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }

@@ -45,7 +45,7 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         info!("test_bool");
-        let input = initEach(false.toPoint(0, "bool"));
+        let input = initEach(false.to_point(0, "bool"));
         let mut fnVar = FnVar::new(
             "test",
             input.clone(),
@@ -67,7 +67,7 @@ mod tests {
             false,
         ];
         for value in testData {
-            let point = value.toPoint(0, "test");
+            let point = value.to_point(0, "test");
             input.borrow_mut().add(point.clone());
             // debug!("input: {:?}", &input);
             fnVar.eval();
@@ -84,7 +84,7 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         info!("test_int");
-        let input = initEach(false.toPoint(0, "bool"));
+        let input = initEach(false.to_point(0, "bool"));
         let mut fnVar = FnVar::new(
             "test",
             input.clone(),
@@ -103,7 +103,7 @@ mod tests {
             i64::MAX,
         ];
         for value in testData {
-            let point = value.toPoint(0, "test");
+            let point = value.to_point(0, "test");
             input.borrow_mut().add(point.clone());
             // debug!("input: {:?}", &input);
             fnVar.eval();
@@ -120,7 +120,7 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         info!("test_float");
-        let input = initEach(false.toPoint(0, "bool"));
+        let input = initEach(false.to_point(0, "bool"));
         let mut fnVar = FnVar::new(
             "test",
             input.clone(),
@@ -139,7 +139,7 @@ mod tests {
             f64::MAX,
         ];
         for value in testData {
-            let point = value.toPoint(0, "test");
+            let point = value.to_point(0, "test");
             input.borrow_mut().add(point.clone());
             // debug!("input: {:?}", &input);
             fnVar.eval();

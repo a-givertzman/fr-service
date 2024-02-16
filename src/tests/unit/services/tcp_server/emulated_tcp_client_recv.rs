@@ -195,10 +195,10 @@ impl Service for EmulatedTcpClientRecv {
                                                         switchState.add(progressPercent);
                                                         if let Some(mustReceived) = &mustReceived {
                                                             let markerReceived_ = match mustReceived {
-                                                                Value::Bool(value) => value == &point.asBool().value.0,
-                                                                Value::Int(value) => value == &point.asInt().value,
-                                                                Value::Float(value) => value == &point.asFloat().value,
-                                                                Value::String(value) => value == &point.asString().value,
+                                                                Value::Bool(value) => value == &point.as_bool().value.0,
+                                                                Value::Int(value) => value == &point.as_int().value,
+                                                                Value::Float(value) => value == &point.as_float().value,
+                                                                Value::String(value) => value == &point.as_string().value,
                                                             };
                                                             if markerReceived_ {
                                                                 info!("{}.run | received marker {:?}, exiting...", selfId, point);

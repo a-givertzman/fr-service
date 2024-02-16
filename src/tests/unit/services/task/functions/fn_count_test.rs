@@ -40,7 +40,7 @@ fn test_single() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_single");
-    let input = initEach(false.toPoint(0, "bool"));
+    let input = initEach(false.to_point(0, "bool"));
     let mut fnCount = FnCount::new(
         "test",
         0.0, 
@@ -63,13 +63,13 @@ fn test_single() {
         (false, 5),
     ];
     for (value, targetState) in testData {
-        let point = value.toPoint(0, "test");
+        let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = fnCount.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.asFloat().value, targetState as f64);
+        assert_eq!(state.as_float().value, targetState as f64);
     }        
 }
 // 
@@ -79,7 +79,7 @@ fn test_multiple() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_multiple");
-    let input = initEach(false.toPoint(0, "bool"));
+    let input = initEach(false.to_point(0, "bool"));
     let mut fnCount = FnCount::new(
         "test",
         0.0, 
@@ -102,13 +102,13 @@ fn test_multiple() {
         (false, 5),
     ];
     for (value, targetState) in testData {
-        let point = value.toPoint(0, "test");
+        let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = fnCount.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.asFloat().value, targetState as f64);
+        assert_eq!(state.as_float().value, targetState as f64);
     }        
 }
 
@@ -117,7 +117,7 @@ fn test_multiple_reset() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_multiple_reset");
-    let input = initEach(false.toPoint(0, "bool"));
+    let input = initEach(false.to_point(0, "bool"));
     let mut fnCount = FnCount::new(
         "test",
         0.0, 
@@ -143,12 +143,12 @@ fn test_multiple_reset() {
         if reset {
             fnCount.reset();
         }
-        let point = value.toPoint(0, "test");
+        let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = fnCount.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.asFloat().value, targetState as f64);
+        assert_eq!(state.as_float().value, targetState as f64);
     }        
 }

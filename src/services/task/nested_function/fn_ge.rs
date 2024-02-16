@@ -45,7 +45,7 @@ impl FnGe {
             PointType::Float(point) => {
                 point.value
             },
-            _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, point.printTypeOf(), point),
+            _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, point.print_type_of(), point),
         }
     }
 }
@@ -83,13 +83,13 @@ impl FnOut for FnGe {
             std::cmp::Ordering::Greater => point1.status(),
         };
         let (txId, timestamp) = match point1.timestamp().cmp(&point2.timestamp()) {
-            std::cmp::Ordering::Less => (point2.txId(), point2.timestamp()),
-            std::cmp::Ordering::Equal => (point1.txId(), point1.timestamp()),
-            std::cmp::Ordering::Greater => (point1.txId(), point1.timestamp()),
+            std::cmp::Ordering::Less => (point2.tx_id(), point2.timestamp()),
+            std::cmp::Ordering::Equal => (point1.tx_id(), point1.timestamp()),
+            std::cmp::Ordering::Greater => (point1.tx_id(), point1.timestamp()),
         };
         PointType::Bool(
             Point::<Bool> {
-                txId: *txId,
+                tx_id: *txId,
                 name: format!("{}.out", self.id),
                 value: Bool(value),
                 status: status,

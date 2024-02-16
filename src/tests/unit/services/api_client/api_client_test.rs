@@ -181,9 +181,9 @@ mod tests {
         let timer = Instant::now();
         let send = apiClient.get_link("api-link");
         for value in testData {
-            let point = format!("select from table where id = {}", value.to_string()).toPoint(0, "teset");
+            let point = format!("select from table where id = {}", value.to_string()).to_point(0, "teset");
             send.send(point.clone()).unwrap();
-            sent.push(point.asString().value);
+            sent.push(point.as_string().value);
         }
         receiverHandle.join().unwrap();
         println!("elapsed: {:?}", timer.elapsed());

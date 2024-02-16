@@ -106,7 +106,7 @@ mod tests {
         debug!("Test - setup - ok");
         debug!("Sending points...");
         for value in testData {
-            let point = value.toPoint(0, "teset");
+            let point = value.to_point(0, "teset");
             send.send(point.clone()).unwrap();
             sent.push(point);
         }

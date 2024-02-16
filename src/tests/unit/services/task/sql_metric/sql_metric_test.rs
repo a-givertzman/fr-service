@@ -68,7 +68,7 @@ fn test_int() {
         (9, "/path/Point.Name", 11),
     ];
     for (value, name, targetValue) in testData {
-        let point = value.toPoint(0, name);
+        let point = value.to_point(0, name);
         let inputName = &point.name();
         match &nodes.getEvalNode(&inputName) {
             Some(evalNode) => {
@@ -154,7 +154,7 @@ fn test_float() {
         (9.9, "/path/Point.Name", 12.1),
     ];
     for (value, name, targetValue) in testData {
-        let point = value.toPoint(0, name);
+        let point = value.to_point(0, name);
         let inputName = &point.name();
         match nodes.getEvalNode(&inputName) {
             Some(evalNode) => {
@@ -186,7 +186,7 @@ fn test_float() {
                     let out = out.replace("{!}", &digits);
                     trace!("out: {}", out);
             
-                    debug!("value: {:?}   |   state: {:?}", point.asFloat().value, outValue);
+                    debug!("value: {:?}   |   state: {:?}", point.as_float().value, outValue);
                     assert_eq!(
                         out, 
                         format!("UPDATE SelectMetric_test_table_name SET kind = '{:.1}' WHERE id = '{}';",targetValue, 3.33),

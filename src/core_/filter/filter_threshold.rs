@@ -55,7 +55,7 @@ impl Filter for FilterThreshold<i64> {
     }
     ///
     /// 
-    fn isChanged(&self) -> bool {
+    fn is_changed(&self) -> bool {
         self.isChanged
     }
 }
@@ -88,7 +88,7 @@ impl Filter for FilterThreshold<f64> {
     }
     ///
     /// 
-    fn isChanged(&self) -> bool {
+    fn is_changed(&self) -> bool {
         self.isChanged
     }
 }

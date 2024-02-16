@@ -133,7 +133,7 @@ mod tests {
             assert!(result.name() == target.name(), "\nresult: {:?}\ntarget: {:?}", result, target);
             assert!(result.status() == target.status(), "\nresult: {:?}\ntarget: {:?}", result, target);
             assert!(result.timestamp() == target.timestamp(), "\nresult: {:?}\ntarget: {:?}", result, target);
-            assert!(result.cmpValue(&target), "\nresult: {:?}\ntarget: {:?}", result, target);
+            assert!(result.cmp_value(&target), "\nresult: {:?}\ntarget: {:?}", result, target);
         }
         testDuration.exit();
     }
@@ -157,7 +157,7 @@ mod tests {
                         Ok((mut socket, addr)) => {
                             info!("TCP server | accept connection - ok\n\t{:?}", addr);
                             for value in &testData {
-                                let point = value.toPoint(0, "test");
+                                let point = value.to_point(0, "test");
                                 send.send(point.clone()).unwrap();
                                 match jds.read() {
                                     Ok(bytes) => {

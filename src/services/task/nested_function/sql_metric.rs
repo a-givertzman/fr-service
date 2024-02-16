@@ -80,8 +80,8 @@ impl SqlMetric {
         // let initial = conf.param("initial").name.parse().unwrap();
         let table = conf.param("table").name();
         let mut sql = Format::new(&conf.param("sql").name());
-        sql.insert("id", id.clone().toPoint(txId, ""));
-        sql.insert("table", table.clone().toPoint(txId, ""));
+        sql.insert("id", id.clone().to_point(txId, ""));
+        sql.insert("table", table.clone().to_point(txId, ""));
         sql.prepare();
         let mut sqlNames = sql.names();
         sqlNames.remove("initial");
@@ -143,7 +143,7 @@ impl FnOut for SqlMetric {
             };
         }
         debug!("{}.out | sql: {:?}", selfId, self.sql.out());
-        PointType::String(Point::newString(
+        PointType::String(Point::new_string(
             self.txId,
             &selfId, 
             self.sql.out(),

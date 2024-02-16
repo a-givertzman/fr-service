@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 use chrono::DateTime;
 use testing::entities::test_value::Value;
 
@@ -8,32 +6,32 @@ use crate::core_::{status::status::Status, types::bool::Bool};
 use super::point::{Direction, Point};
 
 pub trait ToPoint {
-    fn toPoint(&self, txId: usize, name: &str) -> PointType;
+    fn to_point(&self, tx_id: usize, name: &str) -> PointType;
 }
 
 impl ToPoint for bool {
-    fn toPoint(&self, txId: usize, name: &str) -> PointType {
-        PointType::Bool(Point::newBool(txId, name, *self))
+    fn to_point(&self, tx_id: usize, name: &str) -> PointType {
+        PointType::Bool(Point::new_bool(tx_id, name, *self))
     }
 }
 impl ToPoint for i64 {
-    fn toPoint(&self, txId: usize, name: &str) -> PointType {
-        PointType::Int(Point::newInt(txId, name, *self))
+    fn to_point(&self, tx_id: usize, name: &str) -> PointType {
+        PointType::Int(Point::new_int(tx_id, name, *self))
     }
 }
 impl ToPoint for f64 {
-    fn toPoint(&self, txId: usize, name: &str) -> PointType {
-        PointType::Float(Point::newFloat(txId, name, *self))
+    fn to_point(&self, tx_id: usize, name: &str) -> PointType {
+        PointType::Float(Point::new_float(tx_id, name, *self))
     }
 }
 impl ToPoint for &str {
-    fn toPoint(&self, txId: usize, name: &str) -> PointType {
-        PointType::String(Point::newString(txId, name, *self))
+    fn to_point(&self, tx_id: usize, name: &str) -> PointType {
+        PointType::String(Point::new_string(tx_id, name, *self))
     }
 }
 impl ToPoint for String {
-    fn toPoint(&self, txId: usize, name: &str) -> PointType {
-        PointType::String(Point::newString(txId, name, self))
+    fn to_point(&self, tx_id: usize, name: &str) -> PointType {
+        PointType::String(Point::new_string(tx_id, name, self))
     }
 }
 
@@ -52,17 +50,17 @@ pub enum PointType {
 impl PointType {
     ///
     /// 
-    pub fn new<T: ToPoint>(txId: usize, name: &str, value: T) -> Self {
-        value.toPoint(txId, name)
+    pub fn new<T: ToPoint>(tx_id: usize, name: &str, value: T) -> Self {
+        value.to_point(tx_id, name)
     }
     ///
     /// Returns transmitter ID of the containing Point
-    pub fn txId(&self) -> &usize {
+    pub fn tx_id(&self) -> &usize {
         match self {
-            PointType::Bool(point) => &point.txId,
-            PointType::Int(point) => &point.txId,
-            PointType::Float(point) => &point.txId,
-            PointType::String(point) => &point.txId,
+            PointType::Bool(point) => &point.tx_id,
+            PointType::Int(point) => &point.tx_id,
+            PointType::Float(point) => &point.tx_id,
+            PointType::String(point) => &point.tx_id,
         }
     }
     ///
@@ -87,7 +85,7 @@ impl PointType {
     }
     ///
     /// Returns containing Point<bool>
-    pub fn asBool(&self) -> Point<Bool> {
+    pub fn as_bool(&self) -> Point<Bool> {
         match self {
             PointType::Bool(point) => point.clone(),
             _ => panic!("PointType.asBool | Invalid point type Bool"),
@@ -95,7 +93,7 @@ impl PointType {
     }
     ///
     /// Returns containing Point<i64>
-    pub fn asInt(&self) -> Point<i64> {
+    pub fn as_int(&self) -> Point<i64> {
         match self {
             PointType::Int(point) => point.clone(),
             _ => panic!("PointType.asInt | Invalid point type Int, point: {:?}", &self.name()),
@@ -103,7 +101,7 @@ impl PointType {
     }
     ///
     /// Returns containing Point<f64>
-    pub fn asFloat(&self) -> Point<f64> {
+    pub fn as_float(&self) -> Point<f64> {
         match self {
             PointType::Float(point) => point.clone(),
             _ => panic!("PointType.asFloat | Invalid point type Float"),
@@ -111,7 +109,7 @@ impl PointType {
     }
     ///
     /// Returns containing Point<String>
-    pub fn asString(&self) -> Point<String> {
+    pub fn as_string(&self) -> Point<String> {
         match self {
             PointType::String(point) => point.clone(),
             _ => panic!("PointType.asString | Invalid point type String"),
@@ -148,29 +146,13 @@ impl PointType {
         }
     }
     ///
-    /// 
-    pub fn cmpValue(&self, other: &PointType) -> bool {
+    /// Returns true if other.value == self.value
+    pub fn cmp_value(&self, other: &PointType) -> bool {
         match self {
-            PointType::Bool(point) => point.value == other.asBool().value,
-            PointType::Int(point) => point.value == other.asInt().value,
-            PointType::Float(point) => point.value == other.asFloat().value,
-            PointType::String(point) => point.value == other.asString().value,
+            PointType::Bool(point) => point.value == other.as_bool().value,
+            PointType::Int(point) => point.value == other.as_int().value,
+            PointType::Float(point) => point.value == other.as_float().value,
+            PointType::String(point) => point.value == other.as_string().value,
         }
     }
 }
-
-
-
-
-
-
-// impl PartialEq for PointType {
-//     fn eq(&self, other: &Self) -> bool {
-//         match (self, other) {
-//             (Self::Bool(l0), Self::Bool(r0)) => l0 == r0,
-//             (Self::Int(l0), Self::Int(r0)) => l0 == r0,
-//             (Self::Float(l0), Self::Float(r0)) => l0 == r0,
-//             _ => false,
-//         }
-//     }
-// }

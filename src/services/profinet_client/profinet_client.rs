@@ -175,7 +175,7 @@ impl Service for ProfinetClient {
                                                     error!("{}.run | DB '{}' - write - error: {:?}", self_id, db_name, err);
                                                     if errors_limit.add().is_err() {
                                                         error!("{}.run | DB '{}' - exceeded writing errors limit, trying to reconnect...", self_id, db_name);
-                                                        match tx_send_write.send(PointType::String(Point::newString(
+                                                        match tx_send_write.send(PointType::String(Point::new_string(
                                                             PointTxId::fromStr(&self_id), 
                                                             &point_name, 
                                                             format!("Error write point '': {}", err),

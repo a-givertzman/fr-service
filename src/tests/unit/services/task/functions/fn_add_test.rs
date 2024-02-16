@@ -43,8 +43,8 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         info!("test_bool");
-        let mut value1Stored = false.toPoint(0, "bool");
-        let mut value2Stored = false.toPoint(0, "bool");
+        let mut value1Stored = false.to_point(0, "bool");
+        let mut value2Stored = false.to_point(0, "bool");
         let mut target: PointType;
         let input1 = initEach(value1Stored.clone());
         let input2 = initEach(value2Stored.clone());
@@ -63,19 +63,19 @@ mod tests {
             (false, false),
         ];
         for (value1, value2) in testData {
-            let point1 = value1.toPoint(0, "test");
-            let point2 = value2.toPoint(0, "test");
+            let point1 = value1.to_point(0, "test");
+            let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
             let state = fnAdd.out();
             debug!("value1: {:?}   |   state: {:?}", value1, state);
             value1Stored = point1.clone();
-            target = PointType::Bool(value1Stored.asBool() + value2Stored.asBool());
+            target = PointType::Bool(value1Stored.as_bool() + value2Stored.as_bool());
             assert_eq!(state, target);
             input2.borrow_mut().add(point2.clone());
             let state = fnAdd.out();
             debug!("value2: {:?}   |   state: {:?}", value2, state);
             value2Stored = point2.clone();
-            target = PointType::Bool(value1Stored.asBool() + value2Stored.asBool());
+            target = PointType::Bool(value1Stored.as_bool() + value2Stored.as_bool());
             assert_eq!(state, target);
             println!("");
         }        
@@ -87,8 +87,8 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         info!("test_int");
-        let mut value1Stored = 0.toPoint(0, "int");
-        let mut value2Stored = 0.toPoint(0, "int");
+        let mut value1Stored = 0.to_point(0, "int");
+        let mut value2Stored = 0.to_point(0, "int");
         let mut target: PointType;
         let input1 = initEach(value1Stored.clone());
         let input2 = initEach(value2Stored.clone());
@@ -112,19 +112,19 @@ mod tests {
             (0, i64::MAX),
         ];
         for (value1, value2) in testData {
-            let point1 = value1.toPoint(0, "test");
-            let point2 = value2.toPoint(0, "test");
+            let point1 = value1.to_point(0, "test");
+            let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
             let state = fnAdd.out();
             debug!("value1: {:?}   |   state: {:?}", value1, state);
             value1Stored = point1.clone();
-            target = PointType::Int(value1Stored.asInt() + value2Stored.asInt());
+            target = PointType::Int(value1Stored.as_int() + value2Stored.as_int());
             assert_eq!(state, target);
             input2.borrow_mut().add(point2.clone());
             let state = fnAdd.out();
             debug!("value2: {:?}   |   state: {:?}", value2, state);
             value2Stored = point2.clone();
-            target = PointType::Int(value1Stored.asInt() + value2Stored.asInt());
+            target = PointType::Int(value1Stored.as_int() + value2Stored.as_int());
             assert_eq!(state, target);
             println!("");
         }        

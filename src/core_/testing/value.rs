@@ -4,12 +4,12 @@ use testing::entities::test_value::Value;
 use crate::core_::point::point_type::{PointType, ToPoint};
 
 impl ToPoint for Value {
-    fn toPoint(&self, txId: usize, name: &str) -> PointType {
+    fn to_point(&self, txId: usize, name: &str) -> PointType {
         match self {
-            Value::Bool(value) => value.toPoint(txId, name),
-            Value::Int(value) => value.toPoint(txId, name),
-            Value::Float(value) => value.toPoint(txId, name),
-            Value::String(value) => value.toPoint(txId, name),
+            Value::Bool(value) => value.to_point(txId, name),
+            Value::Int(value) => value.to_point(txId, name),
+            Value::Float(value) => value.to_point(txId, name),
+            Value::String(value) => value.to_point(txId, name),
         }
     }
 }

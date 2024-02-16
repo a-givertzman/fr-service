@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 use std::{sync::mpsc::{Sender, Receiver}, thread::JoinHandle};
 
 use crate::{core_::point::point_type::PointType, conf::point_config::point_config::PointConfig};
@@ -18,13 +16,13 @@ pub trait Service {
     ///
     /// Returns Receiver
     #[allow(unused_variables)]
-    fn subscribe(&mut self, receiverId: &str, points: &Vec<String>) -> Receiver<PointType> {
+    fn subscribe(&mut self, receiver_id: &str, points: &Vec<String>) -> Receiver<PointType> {
         panic!("{}.subscribe | Does not support subscriptions", self.id())
     }
     ///
     /// Canceling the subsciption
     #[allow(unused_variables)]
-    fn unsubscribe(&mut self, receiverId: &str, points: &Vec<String>) -> Result<(), String> {
+    fn unsubscribe(&mut self, receiver_id: &str, points: &Vec<String>) -> Result<(), String> {
         panic!("{}.unsubscribe | Does not support subscriptions", self.id())
     }
     ///

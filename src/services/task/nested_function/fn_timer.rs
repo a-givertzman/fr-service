@@ -128,7 +128,7 @@ impl FnOut for FnTimer {
             PointType::Bool(point) => point.value.0,
             PointType::Int(point) => point.value > 0,
             PointType::Float(point) => point.value > 0.0,
-            _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, point.printTypeOf(), point),
+            _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, point.print_type_of(), point),
         };
         self.state.add(value);
         let state = self.state.state();
@@ -159,7 +159,7 @@ impl FnOut for FnTimer {
         };
         PointType::Float(
             Point {
-                txId: *point.txId(),
+                tx_id: *point.tx_id(),
                 name: format!("{}.out", self.id),
                 value: self.totalElapsed + self.sessionElapsed,
                 status: point.status(),

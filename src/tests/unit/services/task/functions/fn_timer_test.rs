@@ -41,7 +41,7 @@ fn test_elapsed_repeat_false() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_elapsed_repeat_false");
-    let input = initEach(false.toPoint(0, "bool"));
+    let input = initEach(false.to_point(0, "bool"));
     let mut fnTimer = FnTimer::new(
         "id", 
         0,
@@ -88,13 +88,13 @@ fn test_elapsed_repeat_false() {
             }
         }
         target = elapsedTotal + elapsed;
-        let point = value.toPoint(0, "test");
+        let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
-        let fnTimerElapsed = fnTimer.out().asFloat().value;
+        let fnTimerElapsed = fnTimer.out().as_float().value;
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, fnTimerElapsed);
-        assert!(fnTimerElapsed.aproxEq(target, 2), "current '{}' != target '{}'", fnTimerElapsed, target);
+        assert!(fnTimerElapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fnTimerElapsed, target);
         thread::sleep(Duration::from_secs_f64(0.1));
     }        
 }
@@ -104,7 +104,7 @@ fn test_total_elapsed_repeat() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_total_elapsed_repeat");
-    let input = initEach(false.toPoint(0, "bool"));
+    let input = initEach(false.to_point(0, "bool"));
     let mut fnTimer = FnTimer::new(
         "id", 
         0,
@@ -146,13 +146,13 @@ fn test_total_elapsed_repeat() {
             }
         }
         target = elapsedTotal + elapsed;
-        let point = value.toPoint(0, "test");
+        let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
-        let fnTimerElapsed = fnTimer.out().asFloat().value;
+        let fnTimerElapsed = fnTimer.out().as_float().value;
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, fnTimerElapsed);
-        assert!(fnTimerElapsed.aproxEq(target, 2), "current '{}' != target '{}'", fnTimerElapsed, target);
+        assert!(fnTimerElapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fnTimerElapsed, target);
         thread::sleep(Duration::from_secs_f64(0.1));
     }        
 }
@@ -162,7 +162,7 @@ fn test_total_elapsed_repeat_reset() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     initOnce();
     info!("test_total_elapsed_repeat_reset");
-    let input = initEach(false.toPoint(0, "bool"));
+    let input = initEach(false.to_point(0, "bool"));
     let mut fnTimer = FnTimer::new(
         "id",
         0, 
@@ -211,13 +211,13 @@ fn test_total_elapsed_repeat_reset() {
             }
         }
         target = elapsedTotal + elapsedSession;
-        let point = value.toPoint(0, "test");
+        let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
-        let fnTimerElapsed = fnTimer.out().asFloat().value;
+        let fnTimerElapsed = fnTimer.out().as_float().value;
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}   |   target {}{}", value, fnTimerElapsed, target, if reset {"\t<-- reset"} else {""});
-        assert!(fnTimerElapsed.aproxEq(target, 2), "current '{}' != target '{}'", fnTimerElapsed, target);
+        assert!(fnTimerElapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fnTimerElapsed, target);
         thread::sleep(Duration::from_secs_f64(0.1));
     }        
 }
@@ -229,7 +229,7 @@ fn test_initial_repeat() {
     initOnce();
     info!("test_initial_repeat");
     let initial = 123.1234;
-    let input = initEach(false.toPoint(0, "bool"));
+    let input = initEach(false.to_point(0, "bool"));
     let mut fnTimer = FnTimer::new(
         "id",
         initial, 
@@ -271,13 +271,13 @@ fn test_initial_repeat() {
             }
         }
         target = elapsedTotal + elapsed;
-        let point = value.toPoint(0, "test");
+        let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
-        let fnTimerElapsed = fnTimer.out().asFloat().value;
+        let fnTimerElapsed = fnTimer.out().as_float().value;
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, fnTimerElapsed);
-        assert!(fnTimerElapsed.aproxEq(target, 2), "current '{}' != target '{}'", fnTimerElapsed, target);
+        assert!(fnTimerElapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fnTimerElapsed, target);
         thread::sleep(Duration::from_secs_f64(0.1));
     }        
 }

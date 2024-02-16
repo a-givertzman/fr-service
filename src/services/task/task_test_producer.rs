@@ -71,7 +71,7 @@ impl Service for TaskTestProducer {
         thread::Builder::new().name(selfId.clone()).spawn(move || {
             debug!("{}.run | calculating step...", selfId);
             for value in testData {
-                let point = value.toPoint(txId, "/path/Point.Name");
+                let point = value.to_point(txId, "/path/Point.Name");
                 match txSend.send(point.clone()) {
                     Ok(_) => {
                         sent.lock().unwrap().push(point.clone());

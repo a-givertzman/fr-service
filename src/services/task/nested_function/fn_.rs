@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 use crate::core_::point::point_type::PointType;
 
 use super::fn_kind::FnKind;

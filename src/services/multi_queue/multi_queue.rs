@@ -155,7 +155,7 @@ impl Service for MultiQueue {
                         trace!("{}.run | received: {:?}", selfId, point);
                         for (receiverId, sender) in subscriptions.iter(&pointId) {
                             // for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {
-                            match receiverId != point.txId() {
+                            match receiverId != point.tx_id() {
                                 true => {
                                     match sender.send(point.clone()) {
                                         Ok(_) => {},

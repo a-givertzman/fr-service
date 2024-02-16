@@ -49,7 +49,7 @@ mod tests {
             (0, (123456789.0f32, 123456789.1f32)),
         ];
         for (decimals, (value, target)) in testData {
-            let aproxEq = value.aproxEq(target, decimals);
+            let aproxEq = value.aprox_eq(target, decimals);
             debug!("value: {:?}   |   target: {:?}  |    decimals: {:?}     |   aproxEq: {:?}", value, target, decimals, aproxEq);
             assert_eq!(aproxEq, true, "value: {:?}   |   target: {:?}  |    decimals: {:?}    |   aproxEq: {:?}", value, target, decimals, aproxEq);
         }        
@@ -83,7 +83,7 @@ mod tests {
             (0, (12345678901234567.0111111111111111f64, 12345678901234567.0123456789123456f64)),
         ];
         for (decimals, (value, target)) in testData {
-            let aproxEq = value.aproxEq(target, decimals);
+            let aproxEq = value.aprox_eq(target, decimals);
             debug!("value: {:?}   |   target: {:?}  |    decimals: {:?}     |   aproxEq: {:?}", value, target, decimals, aproxEq);
             assert_eq!(aproxEq, true, "value: {:?}   |   target: {:?}  |    decimals: {:?}    |   aproxEq: {:?}", value, target, decimals, aproxEq);
         }        

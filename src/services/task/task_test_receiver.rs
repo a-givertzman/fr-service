@@ -75,7 +75,7 @@ impl Service for TaskTestReceiver {
                             break 'inner;
                         }
                         debug!("{}.run | received: {}, (value: {:?})", selfId, count, point.value());
-                        trace!("{}.run | received SQL: {:?}", selfId, point.asString().value);
+                        trace!("{}.run | received SQL: {:?}", selfId, point.as_string().value);
                         // debug!("{}.run | value: {}\treceived SQL: {:?}", value, sql);
                     },
                     Err(err) => {

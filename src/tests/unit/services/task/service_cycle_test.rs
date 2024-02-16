@@ -83,7 +83,7 @@ fn test_ServiceCycle() {
             let cycleElapsed = t.elapsed();
             debug!("cycle done in: {:?}", cycleElapsed.as_secs_f64());
             if mathElapsed.as_millis() >= targetCycleInterval.into() {
-                if ! mathElapsed.as_secs_f64().aproxEq(cycleElapsed.as_secs_f64(), digits) {
+                if ! mathElapsed.as_secs_f64().aprox_eq(cycleElapsed.as_secs_f64(), digits) {
                     errors += 1;
                     warn!( 
                         "values must be aprox equals ({} digits): mathElapsed: {:?} != cycleElapsed {:?}", 
@@ -95,7 +95,7 @@ fn test_ServiceCycle() {
             } else {
                 let targetInSecs = (targetCycleInterval as f64) / 1000.0;
                 let digits = 4 - length as usize;
-                if ! targetInSecs.aproxEq(cycleElapsed.as_secs_f64(), digits) {
+                if ! targetInSecs.aprox_eq(cycleElapsed.as_secs_f64(), digits) {
                     errors += 1;
                     warn!(
                         "values must be aprox equals ({} digits): targetInSecs: {:?} != cycleElapsed {:?}", 
