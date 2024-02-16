@@ -77,7 +77,7 @@ mod tests {
                                 const float 0.05
                         in2 point CraneMovement.BoomDown: 
                             type: 'Float'
-                            history: 1
+                            history: r
                             comment: 'Some indication'
                             input:
                                 const float 0.07

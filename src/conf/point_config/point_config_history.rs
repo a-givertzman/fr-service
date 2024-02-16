@@ -13,12 +13,16 @@ use serde::{Serialize, Deserialize};
 /// ```
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum PointConfigHistory {
+    // #[serde(skip_serializing)]
     #[serde(alias = "none", alias = "")]
     None,
+    #[serde(rename(serialize = "r"))]
     #[serde(alias = "read", alias = "r")]
     Read,
+    #[serde(rename(serialize = "w"))]
     #[serde(alias = "write", alias = "w")]
     Write,
+    #[serde(rename(serialize = "rw"))]
     #[serde(alias = "readwrite", alias = "ReadWrite", alias = "rw")]
     ReadWrite
 }

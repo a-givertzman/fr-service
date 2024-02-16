@@ -25,6 +25,7 @@ pub struct PointConfig {
     #[serde(alias = "type", alias = "Type")]
     pub _type: PointConfigType,
     #[serde(default)]
+    #[serde(skip_serializing_if = "is_none")]
     pub history: PointConfigHistory,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub alarm: Option<u8>,
@@ -34,6 +35,11 @@ pub struct PointConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
     
+}
+///
+/// 
+fn is_none<T: Default + PartialEq>(t: &T) -> bool {
+    t == &Default::default()
 }
 ///
 /// 

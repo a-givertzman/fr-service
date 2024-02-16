@@ -43,7 +43,6 @@ mod tests {
             (r#"
                     PointName0:
                         type: Bool      # Bool / Int / Float / String / Json
-                        history: None   # None / Read / Write
                         alarm: 0        # 0..15
                         address:
                             offset: 0   # 0..65535
@@ -63,7 +62,7 @@ mod tests {
             (r#"
                     PointName1:
                         type: Int       # Bool / Int / Float / String / Json
-                        history: read   # None / Read / Write
+                        history: r      # ommit - None / r - Read / w - Write / rw - ReadWrite
                         address:
                             offset: 0   # 0..65535
                         comment: Test Point"#, 
@@ -95,18 +94,35 @@ mod tests {
             (r#"
                     PointName3:
                         type: Int       # Bool / Int / Float / String / Json
+                        history: w      # ommit - None / r - Read / w - Write / rw - ReadWrite
                         address:
                             offset: 12   # 0..65535
                         comment: Test Point"#, 
                 PointConfig { 
                     name: String::from("PointName3"),
                     _type: PointConfigType::Int, 
-                    history: PointConfigHistory::None, alarm: None, 
+                    history: PointConfigHistory::Write, alarm: None, 
                     address: Some(PointConfigAddress { offset: Some(12), bit: None }), 
                     filters: None,
                     comment: Some(String::from("Test Point")),
                 },
             ),
+            (r#"
+                    PointName4:
+                        type: Int       # Bool / Int / Float / String / Json
+                        history: rw     # ommit - None / r - Read / w - Write / rw - ReadWrite
+                        address:
+                            offset: 12   # 0..65535
+                        comment: Test Point"#, 
+                PointConfig { 
+                    name: String::from("PointName4"),
+                    _type: PointConfigType::Int, 
+                    history: PointConfigHistory::ReadWrite, alarm: None, 
+                    address: Some(PointConfigAddress { offset: Some(12), bit: None }), 
+                    filters: None,
+                    comment: Some(String::from("Test Point")),
+                },
+            ),            
         ];
         for (target, conf) in testData {
             let target: serde_yaml::Value = serde_yaml::from_str(target).unwrap();
