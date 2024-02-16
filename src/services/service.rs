@@ -13,7 +13,7 @@ pub trait Service {
     fn id(&self) -> &str;
     ///
     /// Returns copy of the Sender - service's incoming queue
-    fn getLink(&mut self, name: &str) -> Sender<PointType>;
+    fn get_link(&mut self, name: &str) -> Sender<PointType>;
     // panic!("{}.getLink | Does not support getLink", self.id())
     ///
     /// Returns Receiver

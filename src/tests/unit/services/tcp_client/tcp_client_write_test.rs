@@ -102,7 +102,7 @@ mod tests {
         tcpClient.lock().unwrap().run().unwrap();
         debug!("Running service {} - ok", tcpClientServiceId);
         let timer = Instant::now();
-        let send = tcpClient.lock().unwrap().getLink("link");
+        let send = tcpClient.lock().unwrap().get_link("link");
         debug!("Test - setup - ok");
         debug!("Sending points...");
         for value in testData {

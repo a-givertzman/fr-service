@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 use log::{info, debug, trace, warn};
 use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering}}, time::Duration, thread::{self, JoinHandle}, collections::HashMap, net::TcpStream, io::{Write, Read}};
 use api_tools::{client::api_query::ApiQuery, reply::api_reply::SqlReply};
@@ -40,24 +38,24 @@ impl ApiClient {
     }
     ///
     /// Reads all avalible at the moment items from the in-queue
-    fn readQueue(selfId: &str, recv: &Receiver<PointType>, buffer: &mut RetainBuffer<PointType>) {
-        let maxReadAtOnce = 1000;
+    fn read_queue(self_id: &str, recv: &Receiver<PointType>, buffer: &mut RetainBuffer<PointType>) {
+        let max_read_at_once = 1000;
         for (index, point) in recv.try_iter().enumerate() {   
-            debug!("{}.readQueue | point: {:?}", selfId, &point);
+            debug!("{}.readQueue | point: {:?}", self_id, &point);
             buffer.push(point);
-            if index > maxReadAtOnce {
+            if index > max_read_at_once {
                 break;
             }                 
         }
     }
     ///
     /// Writing sql string to the TcpStream
-    fn send(selfId: &str, sql: String, stream: &mut TcpStream) -> Result<(), Box<dyn std::error::Error>>{
+    fn send(self_id: &str, sql: String, stream: &mut TcpStream) -> Result<(), Box<dyn std::error::Error>>{
         let query = ApiQuery::new("authToken", "id", "database", sql, true, true);
         match stream.write(query.toJson().as_bytes()) {
             Ok(_) => Ok(()),
             Err(err) => {
-                warn!("{}.send | write to tcp stream error: {:?}", selfId, err);
+                warn!("{}.send | write to tcp stream error: {:?}", self_id, err);
                 Err(Box::new(err))
             },
         }
@@ -71,26 +69,26 @@ impl ApiClient {
     /// - returns Closed:
     ///    - if read 0 bytes
     ///    - if on error
-    fn readAll(selfId: &str, stream: &mut TcpStream) -> ConnectionStatus<Vec<u8>, String> {
+    fn read_all(self_id: &str, stream: &mut TcpStream) -> ConnectionStatus<Vec<u8>, String> {
         let mut buf = [0; Self::BUF_LEN];
         let mut result = vec![];
         loop {
             match stream.read(&mut buf) {
                 Ok(len) => {
-                    debug!("{}.readAll |     read len: {:?}", selfId, len);
+                    debug!("{}.readAll |     read len: {:?}", self_id, len);
                     result.append(& mut buf[..len].into());
                     if len < Self::BUF_LEN {
                         if len == 0 {
-                            return ConnectionStatus::Closed(format!("{}.readAll | tcp stream closed", selfId));
+                            return ConnectionStatus::Closed(format!("{}.readAll | tcp stream closed", self_id));
                         } else {
                             return ConnectionStatus::Active(result)
                         }
                     }
                 },
                 Err(err) => {
-                    warn!("{}.readAll | error reading from socket: {:?}", selfId, err);
-                    warn!("{}.readAll | error kind: {:?}", selfId, err.kind());
-                    let status = ConnectionStatus::Closed(format!("{}.readAll | tcp stream error: {:?}", selfId, err));
+                    warn!("{}.readAll | error reading from socket: {:?}", self_id, err);
+                    warn!("{}.readAll | error kind: {:?}", self_id, err.kind());
+                    let status = ConnectionStatus::Closed(format!("{}.readAll | tcp stream error: {:?}", self_id, err));
                     return match err.kind() {
                         std::io::ErrorKind::NotFound => status,
                         std::io::ErrorKind::PermissionDenied => status,
@@ -149,7 +147,7 @@ impl Service for ApiClient {
     }
     //
     //
-    fn getLink(&mut self, name: &str) -> Sender<PointType> {
+    fn get_link(&mut self, name: &str) -> Sender<PointType> {
         match self.send.get(name) {
             Some(send) => send.clone(),
             None => panic!("{}.run | link '{:?}' - not found", self.id, name),
@@ -159,59 +157,59 @@ impl Service for ApiClient {
     // 
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
-        let selfId = self.id.clone();
+        let self_id = self.id.clone();
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         let recv = self.recv.pop().unwrap();
-        let (cyclic, cycleInterval) = match conf.cycle {
+        let (cyclic, cycle_interval) = match conf.cycle {
             Some(interval) => (interval > Duration::ZERO, interval),
             None => (false, Duration::ZERO),
         };
         let reconnect = if conf.reconnectCycle.is_some() {conf.reconnectCycle.unwrap()} else {Duration::from_secs(3)};
-        let _queueMaxLength = conf.rxMaxLength;
-        let _handle = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
-            let mut buffer = RetainBuffer::new(&selfId, "", Some(conf.rxMaxLength as usize));
-            let mut cycle = ServiceCycle::new(cycleInterval);
-            let mut connect = TcpClientConnect::new(selfId.clone() + "/TcpSocketClientConnect", conf.address, reconnect);
+        let _queue_max_length = conf.rxMaxLength;
+        let _handle = thread::Builder::new().name(format!("{} - main", self_id)).spawn(move || {
+            let mut buffer = RetainBuffer::new(&self_id, "", Some(conf.rxMaxLength as usize));
+            let mut cycle = ServiceCycle::new(cycle_interval);
+            let mut connect = TcpClientConnect::new(self_id.clone() + "/TcpSocketClientConnect", conf.address, reconnect);
             'main: loop {
                 match connect.connect() {
                     Some(mut stream) => {
                         match stream.set_read_timeout(Some(Duration::from_secs(10))) {
                             Ok(_) => {},
                             Err(err) => {
-                                debug!("{}.run | TcpStream.set_timeout error: {:?}", selfId, err);
+                                debug!("{}.run | TcpStream.set_timeout error: {:?}", self_id, err);
                             },
                         };
                         'send: loop {
                             cycle.start();
-                            trace!("{}.run | step...", selfId);
-                            Self::readQueue(&selfId, &recv, &mut buffer);
+                            trace!("{}.run | step...", self_id);
+                            Self::read_queue(&self_id, &recv, &mut buffer);
                             let mut count = buffer.len();
                             while count > 0 {
                                 match buffer.first() {
                                     Some(point) => {
                                         let sql = point.asString().value;
-                                        match Self::send(&selfId, sql, &mut stream) {
+                                        match Self::send(&self_id, sql, &mut stream) {
                                             Ok(_) => {
-                                                match Self::readAll(&selfId, &mut stream) {
+                                                match Self::read_all(&self_id, &mut stream) {
                                                     ConnectionStatus::Active(bytes) => {
                                                         let reply = String::from_utf8(bytes).unwrap();
-                                                        debug!("{}.run | API reply: {:?}", selfId, reply);
+                                                        debug!("{}.run | API reply: {:?}", self_id, reply);
                                                         let reply: SqlReply = serde_json::from_str(&reply).unwrap();
                                                         if reply.hasError() {
-                                                            warn!("{}.run | API reply has error: {:?}", selfId, reply.error);
+                                                            warn!("{}.run | API reply has error: {:?}", self_id, reply.error);
                                                         } else {
                                                             buffer.popFirst();
                                                         }
                                                     },
                                                     ConnectionStatus::Closed(err) => {
-                                                        warn!("{}.run | API read error: {:?}", selfId, err);
+                                                        warn!("{}.run | API read error: {:?}", self_id, err);
                                                         break 'send;
                                                     },
                                                 };
                                             },
                                             Err(err) => {
-                                                warn!("{}.run | API sending error: {:?}", selfId, err);
+                                                warn!("{}.run | API sending error: {:?}", self_id, err);
                                                 break 'send;
                                             },
                                         }
@@ -223,14 +221,14 @@ impl Service for ApiClient {
                             if exit.load(Ordering::SeqCst) {
                                 break 'main;
                             }
-                            trace!("{}.run | step - done ({:?})", selfId, cycle.elapsed());
+                            trace!("{}.run | step - done ({:?})", self_id, cycle.elapsed());
                             if cyclic {
                                 cycle.wait();
                             }
                         };
                     },
                     None => {
-                        debug!("{}.run | Not connection", selfId);
+                        debug!("{}.run | Not connection", self_id);
                     },
                 }
                 if exit.load(Ordering::SeqCst) {
@@ -238,7 +236,7 @@ impl Service for ApiClient {
                 }
                 thread::sleep(Duration::from_millis(100));
             };
-            info!("{}.run | stopped", selfId);
+            info!("{}.run | stopped", self_id);
         });
         info!("{}.run | started", self.id);
         _handle

@@ -114,7 +114,7 @@ impl Service for TcpServer {
     }
     //
     // 
-    fn getLink(&mut self, _name: &str) -> Sender<PointType> {
+    fn get_link(&mut self, _name: &str) -> Sender<PointType> {
         panic!("{}.getLink | Does not support getLink", self.id())
         // match self.rxSend.get(name) {
         //     Some(send) => send.clone(),

@@ -177,7 +177,7 @@ mod tests {
         }
         //
         //
-        fn getLink(&mut self, name: &str) -> Sender<PointType> {
+        fn get_link(&mut self, name: &str) -> Sender<PointType> {
             match self.links.get(name) {
                 Some(send) => send.clone(),
                 None => panic!("{}.run | link '{:?}' - not found", self.id, name),

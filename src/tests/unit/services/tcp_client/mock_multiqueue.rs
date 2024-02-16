@@ -38,7 +38,7 @@ impl Service for MockMultiqueue {
     }
     //
     //
-    fn getLink(&mut self, name: &str) -> Sender<PointType> {
+    fn get_link(&mut self, name: &str) -> Sender<PointType> {
         assert!(name == "queue", "{}.run | link '{:?}' - not found", self.id, name);
         self.send.clone()
     }

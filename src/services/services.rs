@@ -46,7 +46,7 @@ impl Services {
     pub fn getLink(&self, name: &str) -> Sender<PointType> {
         let name = QueueName::new(name);
         match self.map.get(name.service()) {
-            Some(srvc) => srvc.lock().unwrap().getLink(name.queue()),
+            Some(srvc) => srvc.lock().unwrap().get_link(name.queue()),
             None => panic!("{}.get | service '{:?}' - not found", self.id, name),
         }
     }

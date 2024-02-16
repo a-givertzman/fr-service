@@ -61,7 +61,7 @@ impl Service for ProfinetClient {
     }
     //
     // 
-    fn getLink(&mut self, name: &str) -> Sender<PointType> {
+    fn get_link(&mut self, name: &str) -> Sender<PointType> {
         // panic!("{}.getLink | Does not support getLink", self.id());
         match self.rx_send.get(name) {
             Some(send) => send.clone(),

@@ -179,7 +179,7 @@ mod tests {
 
         apiClient.run().unwrap();
         let timer = Instant::now();
-        let send = apiClient.getLink("api-link");
+        let send = apiClient.get_link("api-link");
         for value in testData {
             let point = format!("select from table where id = {}", value.to_string()).toPoint(0, "teset");
             send.send(point.clone()).unwrap();
