@@ -13,6 +13,8 @@ use crate::conf::{
     }
 };
 
+use super::point_config_history::PointConfigHistory;
+
 ///
 /// 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -22,8 +24,8 @@ pub struct PointConfig {
     #[serde(rename = "type")]
     #[serde(alias = "type", alias = "Type")]
     pub _type: PointConfigType,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub history: Option<u8>,
+    // #[serde(skip_serializing_if = "Option::is_none")]
+    pub history: PointConfigHistory,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub alarm: Option<u8>,
     pub address: Option<PointConfigAddress>,
