@@ -24,7 +24,7 @@ pub struct PointConfig {
     #[serde(rename = "type")]
     #[serde(alias = "type", alias = "Type")]
     pub _type: PointConfigType,
-    // #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     pub history: PointConfigHistory,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub alarm: Option<u8>,
