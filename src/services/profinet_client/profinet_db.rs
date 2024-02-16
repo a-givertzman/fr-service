@@ -115,7 +115,7 @@ impl ProfinetDb {
     pub fn yield_status(&mut self, status: Status, tx_send: &Sender<PointType>) -> Result<(), String> {
         let mut message = String::new();
         for (_key, parse_point) in &mut self.points {
-            if let Some(point) = parse_point.nextStatus(status) {
+            if let Some(point) = parse_point.next_status(status) {
                 match tx_send.send(point) {
                     Ok(_) => {},
                     Err(err) => {

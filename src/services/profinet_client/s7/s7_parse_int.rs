@@ -116,7 +116,7 @@ impl S7ParseInt {
 impl ParsePoint for S7ParseInt {
     //
     //
-    fn nextSimple(&mut self, bytes: &Vec<u8>) -> Option<PointType> {
+    fn next_simple(&mut self, bytes: &Vec<u8>) -> Option<PointType> {
         self.addRawSimple(bytes);
         self.toPoint()
     }
@@ -128,14 +128,14 @@ impl ParsePoint for S7ParseInt {
     }
     //
     //
-    fn nextStatus(&mut self, status: Status) -> Option<PointType> {
+    fn next_status(&mut self, status: Status) -> Option<PointType> {
         self.status = status;
         self.timestamp = Utc::now();
         self.toPoint()
     }
     //
     //
-    fn isChanged(&self) -> bool {
+    fn is_changed(&self) -> bool {
         self.isChanged
     }
     //
