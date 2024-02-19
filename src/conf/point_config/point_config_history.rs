@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
 
 ///
-/// The point config history option
+/// The point config history option, determines for which direction will be enabled history option
 ///     - None - history parameter was omitted / deactivated
 ///     - Read - history parameter active for points coming from devicec to the clients
 ///     - Write - history parameter active for points (commands) coming from clients to the devices
@@ -26,7 +26,8 @@ pub enum PointConfigHistory {
     #[serde(alias = "readwrite", alias = "ReadWrite", alias = "rw")]
     ReadWrite
 }
-
+///
+/// 
 impl Default for PointConfigHistory {
     fn default() -> Self {
         Self::None

@@ -429,7 +429,9 @@ Contains a timestamp in the format corresponding with RFC 3339 and ISO 8601 date
 Such as:
 `2024-02-19T12:16:57.648504907Z`
 
-##### PointConfig
+</details>
+
+#### PointConfig
 
 ```yaml
     Point.Name:
@@ -443,6 +445,61 @@ Such as:
             threshold: 5.0          # 5 threshold
             factor: 0.1
         comment: Test Point Bool,   # Description to the point (Optional)
+```
+
+<details>
+
+##### PointConfig.type
+
+The type of the containing information stored in the Point.value field.
+Corresponding with Point.Value.
+Fallowing types are supported:
+
+- Bool - true / false
+- Int - i64 - The 64-bit signed integer type.
+- Float - f64 - A 64-bit floating point type (specifically, the "binary64" type defined in IEEE 754-2008).
+- String - string of the variable length
+- Json - coming soon
+
+##### PointConfig.alarm
+
+The alarm class of the point, determains how it will be shown in the Alarm List of the Client application:
+
+- 0 - alarm disabled (can be omitted)
+- 1 - Emergency Alarm (State when equipment can't work anymore)
+- 2 - Not in use (Sub class of Emergency Alarm)
+- 3 - Not in use (Sub class of Emergency Alarm)
+- 4 - Warning (Important events to pay attention)
+- 5 - Not in use
+- 6 - Not in use
+- 7 - Not in use
+- 8 - Not in use
+- 9 - Not in use
+- 10 - Not in use
+- 11 - Not in use
+- 12 - Not in use
+- 13 - Not in use
+- 14 - Not in use
+- 15 - Not in use
+
+##### PointConfig.history
+
+Point config history option, determines for which direction will be enabled history option:
+
+- None - history parameter was omitted / deactivated
+- r / read / Read - history parameter active for points coming from devicec to the clients
+- w / write / Write - history parameter active for points (commands) coming from clients to the devices
+- rw / readwrite / ReadWrite - history parameter active for points & points (commands) both directions
+
+##### PointConfig.address
+
+General implementation of the PointConfig.address
+For specific protocols can have custom implementations
+
+```yaml
+    address:                    # Protocol-specific address in the source device (Optional)
+        offset: 0               # 0..65535 - Some address / ofset withing the device
+        bit: 0                  # 0..255 (Optional) - can be used for boolean bits stored in some address / offset
 ```
 
 ##### PointConfig.filters
