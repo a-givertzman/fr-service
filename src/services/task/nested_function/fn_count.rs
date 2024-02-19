@@ -5,7 +5,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use log::trace;
 
 use crate::core_::{
-    point::{point::{Direction, Point}, point_type::PointType}, types::{fn_in_out_ref::FnInOutRef, type_of::DebugTypeOf} 
+    point::{point::{Cot, Point}, point_type::PointType}, types::{fn_in_out_ref::FnInOutRef, type_of::DebugTypeOf} 
 };
 
 use super::{fn_::{FnInOut, FnOut, FnIn}, fn_kind::FnKind};
@@ -74,7 +74,7 @@ impl FnOut for FnCount {
                 name: format!("{}.out", self.id),
                 value: self.count,
                 status: point.status(),
-                direction: Direction::Read,
+                direction: Cot::Read,
                 timestamp: point.timestamp(),
             }
         )

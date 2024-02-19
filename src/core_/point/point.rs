@@ -4,16 +4,37 @@ use crate::core_::{status::status::Status, types::bool::Bool};
 
 
 ///
-/// Read - point moves from Device to the Servicer & Clients (changed by the Device only)
-/// Write - point moves from Services & Clients to the Device (changed by the Services & Clients - User)
+/// Cause and diraction of the transmission
+/// Inf - Information
+/// Act - Activation
+/// ActCon - Activation | Confirmatiom
+/// ActErr - Activation | Error
+/// Req - Request
+/// ReqCon - Rquest | Confirmatiom reply
+/// ReqErr - Rquest | Error reply
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Serialize, Deserialize)]
-pub enum Direction {
-    #[serde(rename = "Read")]
-    #[serde(alias = "read", alias = "Read")]
-    Read,
-    #[serde(rename = "Write")]
-    #[serde(alias = "write", alias = "Write")]
-    Write,
+pub enum Cot {
+    #[serde(rename = "inf")]
+    #[serde(alias = "inf", alias = "Inf", alias = "INF")]
+    Inf = 3,
+    #[serde(rename = "act")]
+    #[serde(alias = "act", alias = "Act", alias = "ACT")]
+    Act = 6,
+    #[serde(rename = "actcon")]
+    #[serde(alias = "actcon", alias = "ActCon", alias = "ACTCON")]
+    ActCon = 7,
+    #[serde(rename = "acterr")]
+    #[serde(alias = "acterr", alias = "ActErr", alias = "ACTERR")]
+    ActErr = 8,
+    #[serde(rename = "req")]
+    #[serde(alias = "req", alias = "Req", alias = "REQ")]
+    Req = 11,
+    #[serde(rename = "reqcon")]
+    #[serde(alias = "reqcon", alias = "ReqCon", alias = "REQCON")]
+    ReqCon = 12,
+    #[serde(rename = "reqerr")]
+    #[serde(alias = "reqerr", alias = "ReqErr", alias = "REQERR")]
+    ReqErr = 13,
 }
 
 ///
@@ -24,7 +45,7 @@ pub struct Point<T> {
     pub name: String,
     pub value: T,
     pub status: Status,
-    pub direction: Direction,
+    pub direction: Cot,
     pub timestamp: DateTime<chrono::Utc>,
 }
 ///
@@ -38,7 +59,7 @@ impl<T> Point<T> {
     ///     - status: Status - indicates Ok or some kind of invalidity
     ///     - direction: Direction - the kind of the direction Read / Write
     ///     - timestamp: DateTime<chrono::Utc> - registration timestamp
-    pub fn new(tx_id: usize, name: &str, value: T, status: Status, direction: Direction, timestamp: DateTime<chrono::Utc>) -> Point<T> {
+    pub fn new(tx_id: usize, name: &str, value: T, status: Status, direction: Cot, timestamp: DateTime<chrono::Utc>) -> Point<T> {
         Self {
             tx_id,
             name: name.to_owned(),
@@ -60,7 +81,7 @@ impl Point<Bool> {
             name: name.into(),
             value: Bool(value),
             status: Status::Ok,
-            direction: Direction::Read,
+            direction: Cot::Read,
             timestamp: chrono::offset::Utc::now(),
         }
     }
@@ -76,7 +97,7 @@ impl Point<i64> {
             name: name.into(),
             value: value,
             status: Status::Ok,
-            direction: Direction::Read,
+            direction: Cot::Read,
             timestamp: chrono::offset::Utc::now(),
         }
     }
@@ -92,7 +113,7 @@ impl Point<f64> {
             name: name.into(),
             value: value,
             status: Status::Ok,
-            direction: Direction::Read,
+            direction: Cot::Read,
             timestamp: chrono::offset::Utc::now(),
         }
     }
@@ -108,7 +129,7 @@ impl Point<String> {
             name: name.into(),
             value: value.into(),
             status: Status::Ok,
-            direction: Direction::Read,
+            direction: Cot::Read,
             timestamp: chrono::offset::Utc::now(),
         }
     }

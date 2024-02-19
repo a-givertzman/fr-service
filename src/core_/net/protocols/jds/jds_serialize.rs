@@ -7,7 +7,7 @@ use log::trace;
 use serde::{Serialize, ser::SerializeStruct};
 use serde_json::json;
 
-use crate::{core_::{constants::constants::RECV_TIMEOUT, failure::recv_error::RecvError, point::{point::Direction, point_type::PointType}, status::status::Status}, tcp::steam_read::StreamRead};
+use crate::{core_::{constants::constants::RECV_TIMEOUT, failure::recv_error::RecvError, point::{point::Cot, point_type::PointType}, status::status::Status}, tcp::steam_read::StreamRead};
 
 
 ///
@@ -106,7 +106,7 @@ struct PointSerializable {
     pub name: String,
     pub value: serde_json::Value,
     pub status: Status,
-    pub direction: Direction,
+    pub direction: Cot,
     pub timestamp: DateTime<chrono::Utc>,
 }
 impl Serialize for PointSerializable {

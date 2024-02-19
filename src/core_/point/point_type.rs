@@ -3,7 +3,7 @@ use testing::entities::test_value::Value;
 
 use crate::core_::{status::status::Status, types::bool::Bool};
 
-use super::point::{Direction, Point};
+use super::point::{Cot, Point};
 
 pub trait ToPoint {
     fn to_point(&self, tx_id: usize, name: &str) -> PointType;
@@ -127,7 +127,7 @@ impl PointType {
     }
     ///
     /// Returns the direction of the containing Point
-    pub fn direction(&self) -> Direction {
+    pub fn direction(&self) -> Cot {
         match self {
             PointType::Bool(point) => point.direction,
             PointType::Int(point) => point.direction,

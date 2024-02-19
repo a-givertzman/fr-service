@@ -5,7 +5,7 @@ use std::io::Read;
 use chrono::{DateTime, Utc};
 use log::{warn, trace, LevelFilter};
 
-use crate::core_::{net::connection_status::ConnectionStatus, point::{point::{Direction, Point}, point_tx_id::PointTxId, point_type::PointType}, status::status::Status, types::bool::Bool};
+use crate::core_::{net::connection_status::ConnectionStatus, point::{point::{Cot, Point}, point_tx_id::PointTxId, point_type::PointType}, status::status::Status, types::bool::Bool};
 
 use super::jds_decode_message::JdsDecodeMessage;
 
@@ -60,7 +60,7 @@ impl JdsDeserialize {
     ///
     /// 
     pub fn deserialize(selfId: &str, txId: usize, bytes: Vec<u8>) -> Result<PointType, String> {
-        fn parseDirection(selfId: &str, name: &str, obj: &serde_json::Map<String, serde_json::Value>) -> Direction {
+        fn parseDirection(selfId: &str, name: &str, obj: &serde_json::Map<String, serde_json::Value>) -> Cot {
             match obj.get("direction") {
                 Some(value) => {
                     match serde_json::from_value(value.clone()) {
@@ -68,11 +68,11 @@ impl JdsDeserialize {
                         Err(err) => {
                             let message = format!("{}.parse | Deserialize Point.direction error: {:?} in the: {}:{:?}", selfId, err, name, value);
                             warn!("{}", message);
-                            Direction::Read
+                            Cot::Read
                         },
                     }
                 },
-                None => Direction::Read,
+                None => Cot::Read,
             }
         }
         match serde_json::from_slice(&bytes) {
