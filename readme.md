@@ -367,9 +367,9 @@ The Entity of the information. Contains fallowing:
 - cot
 - timestamp
 
-##### Point.name
-
 <details>
+
+##### Point.name
 
 Unique within all the system (similar to the linux system full file path).
 
@@ -385,32 +385,19 @@ Examples:
 '/AppName/SubAppName/Device/Point.Name'
 ```
 
-</details>
+##### Point.type
 
-##### Point.type <details>
-
-</details>
 
 ##### Point.value
 
-<details>
-</details>
 
 ##### Point.status
 
-<details>
-</details>
-
 ##### Point.cot
-
-<details>
-</details>
 
 ##### Point.timestamp
 
-<details>
 1996-12-19T16:39:57-08:00.
-</details>
 
 
 Exact 
@@ -424,3 +411,5 @@ Exact
          - ReqCon - Request | Confirmation reply
          - ReqErr - Request | Error reply
 ##### PointConfig
+
+</details>
