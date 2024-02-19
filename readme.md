@@ -433,15 +433,24 @@ Such as:
 
 ```yaml
     Point.Name:
-        type: Bool      # Bool / Int / Float / String / Json
-        alarm: 0        # 0..15 - Optional
-        history: r      # ommit - None / r - Read / w - Write / rw - ReadWrite
-        address:
-            offset: 0   # 0..65535
-            bit: 0      # 0..255 optional
+        type: Bool                  # Bool / Int / Float / String / Json
+        alarm: 0                    # 0..15 (Optional)
+        history: r                  # ommit - None / r - Read / w - Write / rw - ReadWrite (Optional)
+        address:                    # Protocol-specific address in the source device (Optional)
+            offset: 0               # 0..65535
+            bit: 0                  # 0..255 (Optional)
         filters:
-            threshold: 5.0    # 5 threshold
-        comment: Test Point Bool, 
+            threshold: 5.0          # 5 threshold
+            factor: 0.1
+        comment: Test Point Bool,   # Description to the point (Optional)
 ```
+
+##### PointConfig.filters
+
+Sequence of the prefilters - executed during parsing data points from the protocol line
+
+- threshold - float insensitivity parameter to the absolute changes of the value,
+    $\delta = value_i - value_i-1
+- factor - integral factor
 
 </details>

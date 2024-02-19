@@ -60,6 +60,26 @@ mod tests {
                 },
             ),
             (r#"
+                    Point.Name.0:
+                        type: Bool      # Bool / Int / Float / String / Json
+                        alarm: 0        # 0..15
+                        address:
+                            offset: 0   # 0..65535
+                            bit: 0      # 0..255
+                        filters:
+                            threshold: 5.0    # 5 threshold
+                            factor: 0.1
+                        comment: Test Point Bool"#, 
+                PointConfig { 
+                    name: String::from("Point.Name.0"),
+                    _type: PointConfigType::Bool, 
+                    history: PointConfigHistory::None, alarm: Some(0), 
+                    address: Some(PointConfigAddress { offset: Some(0), bit: Some(0) }), 
+                    filters: Some(PointConfigFilter { threshold: 5.0, factor: Some(0.1) }),
+                    comment: Some(String::from("Test Point Bool")),
+                },
+            ),
+            (r#"
                     PointName1:
                         type: Int       # Bool / Int / Float / String / Json
                         history: r      # ommit - None / r - Read / w - Write / rw - ReadWrite

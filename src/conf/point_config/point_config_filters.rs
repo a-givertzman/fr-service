@@ -4,7 +4,8 @@ use serde::{Serialize, Deserialize};
 
 ///
 /// Set of the prefilters - executed during parsing data points from the protocol line
-///     - [threshold]: float - 0...100% parameter for data points to be filtered
+///     - [threshold] - float parameter for data points to be filtered
+///     - [factor] - integral factor
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PointConfigFilter {
     // #[serde(skip_serializing_if = "Option::is_none")]
