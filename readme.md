@@ -375,7 +375,7 @@ Unique within all the system (similar to the linux system full file path).
 
 - Begins with "/",
 - consists of the path divided by the "/",
-- Ends with the name (name can be divided by the dot)
+- Ends with the name (name can be divided by the dot / multiple dots)
 
 Examples:
 
@@ -396,7 +396,7 @@ The type of the containing information stored in the Point.value field. Fallowin
 
 ##### Point.value
 
-The value, contains some information of the type corresponding with the Point.type field
+Contains the information of the type corresponding with the Point.type field
 
 ##### Point.status
 
@@ -421,8 +421,12 @@ Cause and direction of the transmission:
 
 ##### Point.timestamp
 
-Contains a timestamp in the format corresponding with RFC 3339 and ISO 8601 date and time string such as:
+Contains a timestamp in the format corresponding with RFC 3339 and ISO 8601 date and time string:
 
+- Includes milliseconds and microseconds,
+- Time zone can be included
+
+Such as:
 `2024-02-19T12:16:57.648504907Z`
 
 ##### PointConfig
