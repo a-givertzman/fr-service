@@ -448,6 +448,7 @@ Such as:
 ##### PointConfig.filters
 
 Sequence of the prefilters - executed during parsing data points from the protocol line
+Allows to avoid unnecessary transmissions of the same value
 
 - threshold - float insensitivity parameter to the absolute changes of the value,  
     1).
