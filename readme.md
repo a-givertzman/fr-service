@@ -387,9 +387,8 @@ Examples:
 
 </details>
 
-##### Point.type
+##### Point.type <details>
 
-<details>
 </details>
 
 ##### Point.value
