@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::{Arc, Mutex, atomic::{AtomicBool, Ordering
 use indexmap::IndexMap;
 use log::{debug, error, info};
 use crate::{
-    conf::profinet_client_config::profinet_client_config::ProfinetClientConfig, core_::{constants::constants::RECV_TIMEOUT, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, services::{profinet_client::{profinet_db::ProfinetDb, s7::s7_client::S7Client}, service::Service, services::Services, task::service_cycle::ServiceCycle}
+    conf::{point_config::point_config::PointConfig, profinet_client_config::profinet_client_config::ProfinetClientConfig}, core_::{constants::constants::RECV_TIMEOUT, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, services::{profinet_client::{profinet_db::ProfinetDb, s7::s7_client::S7Client}, service::Service, services::Services, task::service_cycle::ServiceCycle}
 };
 
 
@@ -86,7 +86,7 @@ impl Service for ProfinetClient {
             let mut dbs: IndexMap<String, ProfinetDb> = IndexMap::new();
             for (db_name, db_conf) in conf.dbs {
                 info!("{}.run | configuring Read DB: {:?}...", self_id, db_name);
-                let db = ProfinetDb::new(&self_id, db_conf);
+                let db = ProfinetDb::new(&self_id, &db_conf);
                 dbs.insert(db_name.clone(), db);
                 info!("{}.run | configuring Read DB: {:?} - ok", self_id, db_name);
             }
@@ -144,11 +144,13 @@ impl Service for ProfinetClient {
         info!("{}.run | Preparing Read thread...", self_id);
         let handle_write = thread::Builder::new().name(format!("{}.run Write", self_id.clone())).spawn(move || {
             let mut dbs: IndexMap<String, ProfinetDb> = IndexMap::new();
+            let mut points: Vec<PointConfig> = vec![];
             for (db_name, db_conf) in conf.dbs {
                 info!("{}.run | configuring Write DB: {:?}...", self_id, db_name);
-                let db = ProfinetDb::new(&self_id, db_conf);
+                let db = ProfinetDb::new(&self_id, &db_conf);
                 dbs.insert(db_name.clone(), db);
                 info!("{}.run | configuring Write DB: {:?} - ok", self_id, db_name);
+                points.extend(db_conf.points());
             }
             let mut cycle = ServiceCycle::new(cycle_interval);
             let mut client = S7Client::new(self_id.clone(), conf.ip.clone());

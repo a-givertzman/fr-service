@@ -41,13 +41,13 @@ pub struct ProfinetDb {
 impl ProfinetDb {
     ///
     /// Creates new instance of the [ProfinetDb]
-    pub fn new(parent: impl Into<String>, conf: ProfinetDbConfig) -> Self {
+    pub fn new(parent: impl Into<String>, conf: &ProfinetDbConfig) -> Self {
         let self_id = format!("{}/ProfinetDb({})", parent.into(), conf.name);
         Self {
-            points: Self::configure_parse_points(&self_id, &conf),
+            points: Self::configure_parse_points(&self_id, conf),
             id: self_id.clone(),
-            name: conf.name,
-            description: conf.description,
+            name: conf.name.clone(),
+            description: conf.description.clone(),
             number: conf.number as u32,
             offset: conf.offset as u32,
             size: conf.size as u32,

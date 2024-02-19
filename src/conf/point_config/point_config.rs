@@ -16,7 +16,7 @@ use crate::conf::{
 use super::point_config_history::PointConfigHistory;
 
 ///
-/// 
+/// The configuration of the Point
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PointConfig {
     #[serde(skip)]
