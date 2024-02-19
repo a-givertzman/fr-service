@@ -1,8 +1,10 @@
-use std::{collections::HashMap, sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}}, thread::{self, JoinHandle}, time::Duration};
+use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}}, thread::{self, JoinHandle}, time::Duration};
 use indexmap::IndexMap;
 use log::{debug, error, info};
 use crate::{
-    conf::{point_config::point_config::PointConfig, profinet_client_config::profinet_client_config::ProfinetClientConfig}, core_::{constants::constants::RECV_TIMEOUT, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, services::{profinet_client::{profinet_db::ProfinetDb, s7::s7_client::S7Client}, service::Service, services::Services, task::service_cycle::ServiceCycle}
+    conf::{point_config::point_config::PointConfig, profinet_client_config::profinet_client_config::ProfinetClientConfig}, 
+    core_::{constants::constants::RECV_TIMEOUT, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, 
+    services::{profinet_client::{profinet_db::ProfinetDb, s7::s7_client::S7Client}, service::Service, services::Services, task::service_cycle::ServiceCycle},
 };
 
 
@@ -13,7 +15,6 @@ use crate::{
 pub struct ProfinetClient {
     id: String,
     rx_recv: Vec<Receiver<PointType>>,
-    rx_send: HashMap<String, Sender<PointType>>,
     conf: ProfinetClientConfig,
     services: Arc<Mutex<Services>>,
     exit: Arc<AtomicBool>,
@@ -24,11 +25,9 @@ impl ProfinetClient {
     ///
     /// 
     pub fn new(parent: impl Into<String>, conf: ProfinetClientConfig, services: Arc<Mutex<Services>>) -> Self {
-        let (send, recv) = mpsc::channel();
         Self {
             id: format!("{}/ProfinetClient({})", parent.into(), conf.name),
-            rx_recv: vec![recv],
-            rx_send: HashMap::from([(conf.rx.clone(), send)]),
+            rx_recv: vec![],
             conf: conf.clone(),
             services,
             exit: Arc::new(AtomicBool::new(false)),
@@ -61,13 +60,13 @@ impl Service for ProfinetClient {
     }
     //
     // 
-    fn get_link(&mut self, name: &str) -> Sender<PointType> {
-        // panic!("{}.getLink | Does not support getLink", self.id());
-        match self.rx_send.get(name) {
-            Some(send) => send.clone(),
-            None => panic!("{}.run | link '{:?}' - not found", self.id, name),
-        }
-    }
+    // fn get_link(&mut self, _name: &str) -> Sender<PointType> {
+    //     panic!("{}.getLink | Does not support getLink", self.id());
+    //     // match self.rx_send.get(name) {
+    //     //     Some(send) => send.clone(),
+    //     //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
+    //     // }
+    // }
     //
     //
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
@@ -140,7 +139,7 @@ impl Service for ProfinetClient {
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         let conf = self.conf.clone();
-        let rx_recv = self.rx_recv.pop().unwrap();
+        let services = self.services.clone();
         info!("{}.run | Preparing Read thread...", self_id);
         let handle_write = thread::Builder::new().name(format!("{}.run Write", self_id.clone())).spawn(move || {
             let mut dbs: IndexMap<String, ProfinetDb> = IndexMap::new();
@@ -152,6 +151,12 @@ impl Service for ProfinetClient {
                 info!("{}.run | configuring Write DB: {:?} - ok", self_id, db_name);
                 points.extend(db_conf.points());
             }
+            debug!("{}.run | Point configs: \n{:?}", self_id, points);
+            let points = points.iter().map(|point_conf| {
+                point_conf.name.clone()
+            }).collect::<Vec<String>>();
+            debug!("{}.run | Point: \n{:?}", self_id, points);
+            let rx_recv = services.lock().unwrap().subscribe(&conf.rx, &self_id, &points);
             let mut cycle = ServiceCycle::new(cycle_interval);
             let mut client = S7Client::new(self_id.clone(), conf.ip.clone());
             'main: while !exit.load(Ordering::SeqCst) {

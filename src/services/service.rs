@@ -11,8 +11,10 @@ pub trait Service {
     fn id(&self) -> &str;
     ///
     /// Returns copy of the Sender - service's incoming queue
-    fn get_link(&mut self, name: &str) -> Sender<PointType>;
-    // panic!("{}.getLink | Does not support getLink", self.id())
+    #[allow(unused_variables)]
+    fn get_link(&mut self, name: &str) -> Sender<PointType> {
+        panic!("{}.getLink | Does not supports getLink", self.id())
+    }
     ///
     /// Returns Receiver
     #[allow(unused_variables)]
