@@ -361,12 +361,15 @@ metrics = {
 The Entity of the information. Contains fallowing:
 
 - name
+- type
 - value
 - status
 - cot
 - timestamp
 
 ##### Point.name
+
+<details>
 
 Unique within all the system (similar to the linux system full file path).
 
@@ -376,11 +379,41 @@ Unique within all the system (similar to the linux system full file path).
 
 Examples:
 
-```rust
+```js
 '/AppName/Service/Point.Name'
 '/AppName/Device/Point.Name'
 '/AppName/SubAppName/Device/Point.Name'
 ```
+
+</details>
+
+##### Point.type
+
+<details>
+</details>
+
+##### Point.value
+
+<details>
+</details>
+
+##### Point.status
+
+<details>
+</details>
+
+##### Point.cot
+
+<details>
+</details>
+
+##### Point.timestamp
+
+<details>
+1996-12-19T16:39:57-08:00.
+</details>
+
+
 Exact 
    - [x] Point - add Cot field
       - [ ] Cot - Cause and direction of the transmission: 
