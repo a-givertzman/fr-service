@@ -450,7 +450,15 @@ Such as:
 Sequence of the prefilters - executed during parsing data points from the protocol line
 
 - threshold - float insensitivity parameter to the absolute changes of the value,
-    $\delta = value_i - value_i-1
-- factor - integral factor
+    1. $$delta = value_i - value_{i-1};$$
+
+    2. $$delta > threshold :\quad value updated$$
+        $$delta \leq threshold :\quad value ignored$$
+
+- factor - integral factor, if present:
+    1. $$delta = delta_{i-1} + (value_i - value_{i-1}) factor;$$
+
+    2. $$delta > threshold :\quad value updated$$
+        $$delta \leq threshold :\quad value ignored$$
 
 </details>
