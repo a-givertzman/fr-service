@@ -116,7 +116,7 @@ impl FnConfig {
                             };
                             FnConfKind::PointConf(
                                 FnPointConfig {
-                                    conf: PointConfig::new(confTree),
+                                    conf: PointConfig::new("SelfNameRequired!!!", confTree),
                                     input: Box::new(FnConfig::new(&inputConf, vars)),
                                 }
                             )

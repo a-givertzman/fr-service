@@ -97,7 +97,7 @@ impl ProfinetClientConfig {
                         let mut deviceConf = selfConf.get(key).unwrap();
                         debug!("{}.new | DB '{}'", selfId, deviceName);
                         trace!("{}.new | DB '{}'   |   conf: {:?}", selfId, deviceName, deviceConf);
-                        let nodeConf = ProfinetDbConfig::new(&deviceName, &mut deviceConf);
+                        let nodeConf = ProfinetDbConfig::new(&format!("{}/{}", selfName, deviceName), &mut deviceConf);
                         dbs.insert(
                             deviceName,
                             nodeConf,

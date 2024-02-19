@@ -45,11 +45,11 @@ impl ProfinetDbConfig {
         for key in &selfConf.keys {
             let keyword = FnConfKeywd::from_str(key).unwrap();
             if keyword.kind() == FnConfKindName::Point {
-                let pointName = keyword.data();
-                let deviceConf = selfConf.get(key).unwrap();
+                let pointName = format!("{}/{}", selfName, keyword.data());
+                let pointConf = selfConf.get(key).unwrap();
                 debug!("{}.new | Point '{}'", selfId, pointName);
-                trace!("{}.new | Point '{}'   |   conf: {:?}", selfId, pointName, deviceConf);
-                let nodeConf = PointConfig::new(&deviceConf);
+                trace!("{}.new | Point '{}'   |   conf: {:?}", selfId, pointName, pointConf);
+                let nodeConf = PointConfig::new(&selfName, &pointConf);
                 points.push(
                     nodeConf,
                 );

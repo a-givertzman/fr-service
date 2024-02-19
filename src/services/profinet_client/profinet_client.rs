@@ -151,11 +151,17 @@ impl Service for ProfinetClient {
                 info!("{}.run | configuring Write DB: {:?} - ok", self_id, db_name);
                 points.extend(db_conf.points());
             }
-            debug!("{}.run | Point configs: \n{:?}", self_id, points);
+            debug!("{}.run | Point configs ({}) :", self_id, points.len());
+            for cfg in &points {
+                println!("\t{:?}", cfg);
+            }
             let points = points.iter().map(|point_conf| {
                 point_conf.name.clone()
             }).collect::<Vec<String>>();
-            debug!("{}.run | Point: \n{:?}", self_id, points);
+            debug!("{}.run | Points: ({})", self_id, points.len());
+            for name in &points {
+                println!("\t{:?}", name);
+            }
             let rx_recv = services.lock().unwrap().subscribe(&conf.rx, &self_id, &points);
             let mut cycle = ServiceCycle::new(cycle_interval);
             let mut client = S7Client::new(self_id.clone(), conf.ip.clone());
