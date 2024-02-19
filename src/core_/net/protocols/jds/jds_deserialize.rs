@@ -61,18 +61,18 @@ impl JdsDeserialize {
     /// 
     pub fn deserialize(selfId: &str, txId: usize, bytes: Vec<u8>) -> Result<PointType, String> {
         fn parseDirection(selfId: &str, name: &str, obj: &serde_json::Map<String, serde_json::Value>) -> Cot {
-            match obj.get("direction") {
+            match obj.get("cot") {
                 Some(value) => {
                     match serde_json::from_value(value.clone()) {
                         Ok(direction) => direction,
                         Err(err) => {
                             let message = format!("{}.parse | Deserialize Point.direction error: {:?} in the: {}:{:?}", selfId, err, name, value);
                             warn!("{}", message);
-                            Cot::Read
+                            Cot::default()
                         },
                     }
                 },
-                None => Cot::Read,
+                None => Cot::default(),
             }
         }
         match serde_json::from_slice(&bytes) {

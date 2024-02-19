@@ -77,7 +77,7 @@ impl S7ParseInt {
                 &self.name, 
                 self.value.value(),
                 self.status, 
-                Cot::Read,
+                Cot::Inf,
                 self.timestamp,
             )))
             // debug!("{} point Bool: {:?}", self.id, dsPoint.value);

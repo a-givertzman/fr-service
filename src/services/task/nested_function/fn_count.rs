@@ -74,7 +74,7 @@ impl FnOut for FnCount {
                 name: format!("{}.out", self.id),
                 value: self.count,
                 status: point.status(),
-                direction: Cot::Read,
+                cot: Cot::Inf,
                 timestamp: point.timestamp(),
             }
         )

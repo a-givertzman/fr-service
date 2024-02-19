@@ -38,7 +38,7 @@ impl JdsSerialize {
                     name: point.name,
                     value: json!(point.value.0),
                     status: point.status,
-                    direction: point.direction,
+                    direction: point.cot,
                     timestamp: point.timestamp,
                 })
             },
@@ -48,7 +48,7 @@ impl JdsSerialize {
                     name: point.name,
                     value: json!(point.value),
                     status: point.status,
-                    direction: point.direction,
+                    direction: point.cot,
                     timestamp: point.timestamp,
                 })
             },
@@ -58,7 +58,7 @@ impl JdsSerialize {
                     name: point.name,
                     value: json!(point.value),
                     status: point.status,
-                    direction: point.direction,
+                    direction: point.cot,
                     timestamp: point.timestamp,
                 })
             },
@@ -68,7 +68,7 @@ impl JdsSerialize {
                     name: point.name,
                     value: json!(point.value),
                     status: point.status,
-                    direction: point.direction,
+                    direction: point.cot,
                     timestamp: point.timestamp,
                 })
             },

@@ -163,7 +163,7 @@ impl FnOut for FnTimer {
                 name: format!("{}.out", self.id),
                 value: self.totalElapsed + self.sessionElapsed,
                 status: point.status(),
-                direction: Cot::Read,
+                cot: Cot::Inf,
                 timestamp: point.timestamp(),
             }
         )

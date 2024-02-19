@@ -93,7 +93,7 @@ impl FnOut for FnGe {
                 name: format!("{}.out", self.id),
                 value: Bool(value),
                 status: status,
-                direction: Cot::Read,
+                cot: Cot::Inf,
                 timestamp: timestamp,
             }
         )

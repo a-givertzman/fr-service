@@ -126,13 +126,13 @@ impl PointType {
         }
     }
     ///
-    /// Returns the direction of the containing Point
-    pub fn direction(&self) -> Cot {
+    /// Returns the cause & direction of the containing Point
+    pub fn cot(&self) -> Cot {
         match self {
-            PointType::Bool(point) => point.direction,
-            PointType::Int(point) => point.direction,
-            PointType::Float(point) => point.direction,
-            PointType::String(point) => point.direction,
+            PointType::Bool(point) => point.cot,
+            PointType::Int(point) => point.cot,
+            PointType::Float(point) => point.cot,
+            PointType::String(point) => point.cot,
         }
     }
     ///

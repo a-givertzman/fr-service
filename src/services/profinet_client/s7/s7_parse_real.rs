@@ -77,7 +77,7 @@ impl S7ParseReal {
                 &self.name, 
                 self.value.value(),
                 self.status, 
-                Cot::Read,
+                Cot::Inf,
                 self.timestamp,
             )))
             // debug!("{} point Bool: {:?}", self.id, dsPoint.value);

@@ -36,6 +36,13 @@ pub enum Cot {
     #[serde(alias = "reqerr", alias = "ReqErr", alias = "REQERR")]
     ReqErr = 13,
 }
+///
+/// 
+impl Default for Cot {
+    fn default() -> Self {
+        Self::Inf
+    }
+}
 
 ///
 /// Entity of the information 
@@ -45,7 +52,7 @@ pub struct Point<T> {
     pub name: String,
     pub value: T,
     pub status: Status,
-    pub direction: Cot,
+    pub cot: Cot,
     pub timestamp: DateTime<chrono::Utc>,
 }
 ///
@@ -59,13 +66,13 @@ impl<T> Point<T> {
     ///     - status: Status - indicates Ok or some kind of invalidity
     ///     - direction: Direction - the kind of the direction Read / Write
     ///     - timestamp: DateTime<chrono::Utc> - registration timestamp
-    pub fn new(tx_id: usize, name: &str, value: T, status: Status, direction: Cot, timestamp: DateTime<chrono::Utc>) -> Point<T> {
+    pub fn new(tx_id: usize, name: &str, value: T, status: Status, cot: Cot, timestamp: DateTime<chrono::Utc>) -> Point<T> {
         Self {
             tx_id,
             name: name.to_owned(),
             value,
             status,
-            direction,
+            cot,
             timestamp,
         }
     }
@@ -81,7 +88,7 @@ impl Point<Bool> {
             name: name.into(),
             value: Bool(value),
             status: Status::Ok,
-            direction: Cot::Read,
+            cot: Cot::default(),
             timestamp: chrono::offset::Utc::now(),
         }
     }
@@ -97,7 +104,7 @@ impl Point<i64> {
             name: name.into(),
             value: value,
             status: Status::Ok,
-            direction: Cot::Read,
+            cot: Cot::default(),
             timestamp: chrono::offset::Utc::now(),
         }
     }
@@ -113,7 +120,7 @@ impl Point<f64> {
             name: name.into(),
             value: value,
             status: Status::Ok,
-            direction: Cot::Read,
+            cot: Cot::default(),
             timestamp: chrono::offset::Utc::now(),
         }
     }
@@ -129,7 +136,7 @@ impl Point<String> {
             name: name.into(),
             value: value.into(),
             status: Status::Ok,
-            direction: Cot::Read,
+            cot: Cot::default(),
             timestamp: chrono::offset::Utc::now(),
         }
     }
@@ -149,8 +156,8 @@ impl<T: std::ops::Add<Output = T> + Clone> std::ops::Add for Point<T> {
             std::cmp::Ordering::Equal => (self.tx_id, self.timestamp),
             std::cmp::Ordering::Greater => (self.tx_id, self.timestamp),
         };
-        let direction = if self.direction == rhs.direction {
-            self.direction
+        let direction = if self.cot == rhs.cot {
+            self.cot
         } else {
             panic!("Point.add | Directions are not equals")
         };
@@ -159,7 +166,7 @@ impl<T: std::ops::Add<Output = T> + Clone> std::ops::Add for Point<T> {
             name: String::from("Point.Add"),
             value: self.value + rhs.value,
             status,
-            direction,
+            cot: direction,
             timestamp,
         }
     }
@@ -179,8 +186,8 @@ impl<T: std::ops::BitOr<Output = T>> std::ops::BitOr for Point<T> {
             std::cmp::Ordering::Equal => (self.tx_id, self.timestamp),
             std::cmp::Ordering::Greater => (self.tx_id, self.timestamp),
         };
-        let direction = if self.direction == rhs.direction {
-            self.direction
+        let direction = if self.cot == rhs.cot {
+            self.cot
         } else {
             panic!("Point.add | Directions are not equals")
         };
@@ -189,7 +196,7 @@ impl<T: std::ops::BitOr<Output = T>> std::ops::BitOr for Point<T> {
             name: String::from("Point.BitOr"),
             value: self.value | rhs.value,
             status,
-            direction,
+            cot: direction,
             timestamp,
         }        
     }
@@ -214,7 +221,7 @@ impl<T: std::cmp::PartialOrd> std::cmp::PartialOrd for Point<T> {
             Some(core::cmp::Ordering::Equal) => {}
             ord => return ord,
         }
-        match self.direction.partial_cmp(&other.direction) {
+        match self.cot.partial_cmp(&other.cot) {
             Some(core::cmp::Ordering::Equal) => {}
             ord => return ord,
         }

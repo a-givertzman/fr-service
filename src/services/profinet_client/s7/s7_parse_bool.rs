@@ -80,7 +80,7 @@ impl S7ParseBool {
                 &self.name, 
                 Bool(self.value), 
                 self.status, 
-                Cot::Read,
+                Cot::Inf,
                 self.timestamp,
             )))
             // debug!("{} point Bool: {:?}", self.id, dsPoint.value);
