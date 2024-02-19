@@ -14,25 +14,25 @@ use crate::core_::{status::status::Status, types::bool::Bool};
 /// ReqErr - Rquest | Error reply
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub enum Cot {
-    #[serde(rename = "inf")]
+    #[serde(rename = "Inf")]
     #[serde(alias = "inf", alias = "Inf", alias = "INF")]
     Inf = 3,
-    #[serde(rename = "act")]
+    #[serde(rename = "Act")]
     #[serde(alias = "act", alias = "Act", alias = "ACT")]
     Act = 6,
-    #[serde(rename = "actcon")]
+    #[serde(rename = "ActCon")]
     #[serde(alias = "actcon", alias = "ActCon", alias = "ACTCON")]
     ActCon = 7,
-    #[serde(rename = "acterr")]
+    #[serde(rename = "ActErr")]
     #[serde(alias = "acterr", alias = "ActErr", alias = "ACTERR")]
     ActErr = 8,
-    #[serde(rename = "req")]
+    #[serde(rename = "Req")]
     #[serde(alias = "req", alias = "Req", alias = "REQ")]
     Req = 11,
-    #[serde(rename = "reqcon")]
+    #[serde(rename = "ReqCon")]
     #[serde(alias = "reqcon", alias = "ReqCon", alias = "REQCON")]
     ReqCon = 12,
-    #[serde(rename = "reqerr")]
+    #[serde(rename = "ReqErr")]
     #[serde(alias = "reqerr", alias = "ReqErr", alias = "REQERR")]
     ReqErr = 13,
 }

@@ -65,15 +65,15 @@ mod tests {
                 name, tsStr(ts)), PointType::Bool(Point::new(txId, name, Bool(true), Status::Ok, Cot::default(), ts))
             ),
             (
-                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": 1,   "status": 0, "cot": "Read", "timestamp":"{}"}}"#, 
-                name, tsStr(ts)), PointType::Int(Point::new(txId, name, 1, Status::Ok, Cot::default(), ts))
+                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": 1,   "status": 0, "cot": "Inf", "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Int(Point::new(txId, name, 1, Status::Ok, Cot::Inf, ts))
             ),
             (
-                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": -9223372036854775808,   "status": 0, "cot": "Write", "timestamp":"{}"}}"#, 
+                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": -9223372036854775808,   "status": 0, "cot": "Act", "timestamp":"{}"}}"#, 
                 name, tsStr(ts)), PointType::Int(Point::new(txId, name, -9223372036854775808, Status::Ok, Cot::Act, ts))
             ),
             (
-                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value":  9223372036854775807,   "status": 0, "cot": "write", "timestamp":"{}"}}"#, 
+                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value":  9223372036854775807,   "status": 0, "cot": "act", "timestamp":"{}"}}"#, 
                 name, tsStr(ts)), PointType::Int(Point::new(txId, name,  9223372036854775807, Status::Ok, Cot::Act, ts))
             ),
             (

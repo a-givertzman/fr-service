@@ -42,54 +42,58 @@ mod tests {
         initEach();
         println!("");
         println!("test JdsEncodeMessage");
-        let name = "/server/line1/ied1/test1";
+        let name = "/server/line1/ied1/test";
         let ts = ts();
         let txId = 0;
         // debug!("timestamp: {:?}", ts);j
         let testData = [
             (
                 format!(r#"{{"type": "Bool",  "name": "{}", "value": false,   "status": 0, "cot": "Inf", "timestamp":"{}"}}"#, 
-                name, tsStr(ts)), PointType::Bool(Point::new(txId, name, Bool(false), Status::Ok, Cot::Inf, ts))
+                &format!("{}00", name), tsStr(ts)), PointType::Bool(Point::new(txId, &format!("{}00", name), Bool(false), Status::Ok, Cot::default(), ts))
             ),
             (
-                format!(r#"{{"type": "Bool",  "name": "{}", "value": true,    "status": 0, "cot": "INF", "timestamp":"{}"}}"#, 
-                name, tsStr(ts)), PointType::Bool(Point::new(txId, name, Bool(true), Status::Ok, Cot::Inf, ts))
+                format!(r#"{{"type": "Bool",  "name": "{}", "value": false,   "status": 0, "cot": "Inf", "timestamp":"{}"}}"#, 
+                &format!("{}01", name), tsStr(ts)), PointType::Bool(Point::new(txId, &format!("{}01", name), Bool(false), Status::Ok, Cot::Inf, ts))
             ),
             (
-                format!(r#"{{"type": "Int",   "name": "{}", "value": 1,   "status": 0, "cot": "inf", "timestamp":"{}"}}"#, 
-                name, tsStr(ts)), PointType::Int(Point::new(txId, name, 1, Status::Ok, Cot::Inf, ts))
+                format!(r#"{{"type": "Bool",  "name": "{}", "value": true,    "status": 0, "cot": "Act", "timestamp":"{}"}}"#, 
+                &format!("{}02", name), tsStr(ts)), PointType::Bool(Point::new(txId, &format!("{}02", name), Bool(true), Status::Ok, Cot::Act, ts))
             ),
             (
-                format!(r#"{{"type": "Int",   "name": "{}", "value": -9223372036854775808,   "status": 0, "cot": "inf", "timestamp":"{}"}}"#, 
-                name, tsStr(ts)), PointType::Int(Point::new(txId, name, -9223372036854775808, Status::Ok, Cot::Inf, ts))
+                format!(r#"{{"type": "Int",   "name": "{}", "value": 1,   "status": 0, "cot": "ActCon", "timestamp":"{}"}}"#, 
+                &format!("{}03", name), tsStr(ts)), PointType::Int(Point::new(txId, &format!("{}03", name), 1, Status::Ok, Cot::ActCon, ts))
             ),
             (
-                format!(r#"{{"type": "Int",   "name": "{}", "value":  9223372036854775807,   "status": 0, "cot": "inf", "timestamp":"{}"}}"#, 
-                name, tsStr(ts)), PointType::Int(Point::new(txId, name,  9223372036854775807, Status::Ok, Cot::Inf, ts))
+                format!(r#"{{"type": "Int",   "name": "{}", "value": -9223372036854775808,   "status": 0, "cot": "ActErr", "timestamp":"{}"}}"#, 
+                &format!("{}04", name), tsStr(ts)), PointType::Int(Point::new(txId, &format!("{}04", name), -9223372036854775808, Status::Ok, Cot::ActErr, ts))
             ),
             (
-                format!(r#"{{"type": "Float", "name": "{}", "value":  0.0, "status": 0, "cot": "inf", "timestamp":"{}"}}"#, 
-                name, tsStr(ts)), PointType::Float(Point::new(txId, name,  0.0, Status::Ok, Cot::Inf, ts))
+                format!(r#"{{"type": "Int",   "name": "{}", "value":  9223372036854775807,   "status": 0, "cot": "Req", "timestamp":"{}"}}"#, 
+                &format!("{}05", name), tsStr(ts)), PointType::Int(Point::new(txId, &format!("{}05", name),  9223372036854775807, Status::Ok, Cot::Req, ts))
             ),
             (
-                format!(r#"{{"type": "Float", "name": "{}", "value": -1.1, "status": 0, "cot": "inf", "timestamp":"{}"}}"#, 
-                name, tsStr(ts)), PointType::Float(Point::new(txId, name, -1.1, Status::Ok, Cot::Inf, ts))
+                format!(r#"{{"type": "Float", "name": "{}", "value":  0.0, "status": 0, "cot": "ReqCon", "timestamp":"{}"}}"#, 
+                &format!("{}06", name), tsStr(ts)), PointType::Float(Point::new(txId, &format!("{}06", name),  0.0, Status::Ok, Cot::ReqCon, ts))
             ),
             (
-                format!(r#"{{"type": "Float", "name": "{}", "value":  1.1, "status": 0, "cot": "inf", "timestamp":"{}"}}"#, 
-                name, tsStr(ts)), PointType::Float(Point::new(txId, name,  1.1, Status::Ok, Cot::Inf, ts))
+                format!(r#"{{"type": "Float", "name": "{}", "value": -1.1, "status": 0, "cot": "ReqErr", "timestamp":"{}"}}"#, 
+                &format!("{}07", name), tsStr(ts)), PointType::Float(Point::new(txId, &format!("{}07", name), -1.1, Status::Ok, Cot::ReqErr, ts))
             ),
             (
-                format!(r#"{{"type": "Float", "name": "{}", "value": -1.7976931348623157e308, "status": 0, "cot": "inf", "timestamp":"{}"}}"#, 
-                name, tsStr(ts)), PointType::Float(Point::new(txId, name, -1.7976931348623157e308, Status::Ok, Cot::Inf, ts))
+                format!(r#"{{"type": "Float", "name": "{}", "value":  1.1, "status": 0, "cot": "Inf", "timestamp":"{}"}}"#, 
+                &format!("{}08", name), tsStr(ts)), PointType::Float(Point::new(txId, &format!("{}08", name),  1.1, Status::Ok, Cot::Inf, ts))
             ),
             (
-                format!(r#"{{"type": "Float", "name": "{}", "value":  1.7976931348623157e308, "status": 0, "cot": "inf", "timestamp":"{}"}}"#, 
-                name, tsStr(ts)), PointType::Float(Point::new(txId, name,  1.7976931348623157e308, Status::Ok, Cot::Inf, ts))
+                format!(r#"{{"type": "Float", "name": "{}", "value": -1.7976931348623157e308, "status": 0, "cot": "Inf", "timestamp":"{}"}}"#, 
+                &format!("{}09", name), tsStr(ts)), PointType::Float(Point::new(txId, &format!("{}09", name), -1.7976931348623157e308, Status::Ok, Cot::Inf, ts))
             ),
             (
-                format!(r#"{{"type": "String","name": "{}", "value": "~!@#$%^&*()_+`1234567890-=","status": 0,"cot": "inf",  "timestamp":"{}"}}"#, 
-                name, tsStr(ts)), PointType::String(Point::new(txId, name, "~!@#$%^&*()_+`1234567890-=".to_string(), Status::Ok, Cot::Inf, ts))
+                format!(r#"{{"type": "Float", "name": "{}", "value":  1.7976931348623157e308, "status": 0, "cot": "Inf", "timestamp":"{}"}}"#, 
+                &format!("{}10", name), tsStr(ts)), PointType::Float(Point::new(txId, &format!("{}10", name),  1.7976931348623157e308, Status::Ok, Cot::Inf, ts))
+            ),
+            (
+                format!(r#"{{"type": "String","name": "{}", "value": "~!@#$%^&*()_+`1234567890-=","status": 0,"cot": "Inf",  "timestamp":"{}"}}"#, 
+                &format!("{}11", name), tsStr(ts)), PointType::String(Point::new(txId, &format!("{}11", name), "~!@#$%^&*()_+`1234567890-=".to_string(), Status::Ok, Cot::Inf, ts))
             ),
         ];
         let (send, recv) = mpsc::channel();
@@ -98,13 +102,13 @@ mod tests {
             JdsSerialize::new("test", recv),
         );
         for (target, point) in testData {
-            send.send(point).unwrap();
+            send.send(point.clone()).unwrap();
             let result = jdsSerialize.read().unwrap();
-            let value: serde_json::Value = serde_json::from_str(&target).unwrap();
+            let value: serde_json::Value = serde_json::from_str(&target).expect(&format!("Error parsing value: {:?}", target));
             let mut target = vec![];
-            serde_json::to_writer(&mut target, &value).unwrap();
+            serde_json::to_writer(&mut target, &value).expect(&format!("Error parsing value: {:?}", value));
             target.push(4);
-            assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
+            assert!(result == target, "\n name: {} \nresult: {:?}\ntarget: {:?}", point.name(), String::from_utf8(result), String::from_utf8(target));
         }
     }
 }
