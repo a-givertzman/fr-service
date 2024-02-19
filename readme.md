@@ -387,29 +387,43 @@ Examples:
 
 ##### Point.type
 
+The type of the containing information stored in the Point.value field. Fallowing types are supported:
+
+- Bool - true / false
+- Int - i64 (4 byte)
+- Float - i64 (4 byte)
+- String - string of the variable length
 
 ##### Point.value
 
+The value, contains some information of the type corresponding with the Point.type field
 
 ##### Point.status
 
+The status of the containing information:
+
+- Ok = 0;
+- Obsolete = 2;
+- TimeInvalid = 3;
+- Invalid = 10;
+
 ##### Point.cot
+
+Cause and direction of the transmission:
+
+- Inf - Information
+- Act - Activation
+- ActCon - Activation | Confirmation
+- ActErr - Activation | Error
+- Req - Request
+- ReqCon - Request | Confirmation reply
+- ReqErr - Request | Error reply
 
 ##### Point.timestamp
 
 1996-12-19T16:39:57-08:00.
 
 
-Exact 
-   - [x] Point - add Cot field
-      - [ ] Cot - Cause and direction of the transmission: 
-         - Inf - Information
-         - Act - Activation
-         - ActCon - Activation | Confirmation
-         - ActErr - Activation | Error
-         - Req - Request
-         - ReqCon - Request | Confirmation reply
-         - ReqErr - Request | Error reply
 ##### PointConfig
 
 </details>
