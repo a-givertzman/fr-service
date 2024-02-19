@@ -424,11 +424,24 @@ Cause and direction of the transmission:
 Contains a timestamp in the format corresponding with RFC 3339 and ISO 8601 date and time string:
 
 - Includes milliseconds and microseconds,
-- Time zone can be included
+- Local time zone offset can be included
 
 Such as:
 `2024-02-19T12:16:57.648504907Z`
 
 ##### PointConfig
+
+```yaml
+    Point.Name:
+        type: Bool      # Bool / Int / Float / String / Json
+        alarm: 0        # 0..15 - Optional
+        history: r      # ommit - None / r - Read / w - Write / rw - ReadWrite
+        address:
+            offset: 0   # 0..65535
+            bit: 0      # 0..255 optional
+        filters:
+            threshold: 5.0    # 5 threshold
+        comment: Test Point Bool, 
+```
 
 </details>

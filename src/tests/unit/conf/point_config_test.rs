@@ -41,7 +41,7 @@ mod tests {
         testDuration.run().unwrap();
         let testData = [
             (r#"
-                    PointName0:
+                    Point.Name.0:
                         type: Bool      # Bool / Int / Float / String / Json
                         alarm: 0        # 0..15
                         address:
@@ -51,7 +51,7 @@ mod tests {
                             threshold: 5.0    # 5 threshold
                         comment: Test Point Bool"#, 
                 PointConfig { 
-                    name: String::from("PointName0"),
+                    name: String::from("Point.Name.0"),
                     _type: PointConfigType::Bool, 
                     history: PointConfigHistory::None, alarm: Some(0), 
                     address: Some(PointConfigAddress { offset: Some(0), bit: Some(0) }), 
