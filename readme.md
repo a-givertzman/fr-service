@@ -355,3 +355,40 @@ metrics = {
     },
 }
 ```
+
+#### Point
+
+The Entity of the information. Contains fallowing:
+
+- name
+- value
+- status
+- cot
+- timestamp
+
+##### Point.name
+
+Unique within all the system (similar to the linux system full file path).
+
+- Begins with "/",
+- consists of the path divided by the "/",
+- Ends with the name (name can be divided by the dot)
+
+Examples:
+
+```rust
+'/AppName/Service/Point.Name'
+'/AppName/Device/Point.Name'
+'/AppName/SubAppName/Device/Point.Name'
+```
+Exact 
+   - [x] Point - add Cot field
+      - [ ] Cot - Cause and direction of the transmission: 
+         - Inf - Information
+         - Act - Activation
+         - ActCon - Activation | Confirmation
+         - ActErr - Activation | Error
+         - Req - Request
+         - ReqCon - Request | Confirmation reply
+         - ReqErr - Request | Error reply
+##### PointConfig
