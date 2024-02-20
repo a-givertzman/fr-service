@@ -5,9 +5,7 @@ use serde::{Serialize, Deserialize};
 
 use crate::conf::{
     conf_tree::ConfTree, fn_conf_keywd::FnConfKeywd, point_config::{
-        point_config_type::PointConfigType,
-        point_config_address::PointConfigAddress,
-        point_config_filters::PointConfigFilter,
+        point_config_address::PointConfigAddress, point_config_filters::PointConfigFilter, point_config_type::PointConfigType, point_name::PointName
     }
 };
 
@@ -61,13 +59,11 @@ impl PointConfig {
         trace!("PointConfig.new | confTree: {:?}", conf_tree);
         let mut pc: PointConfig = serde_yaml::from_value(conf_tree.conf.clone()).unwrap();
         let keyword = FnConfKeywd::from_str(&conf_tree.key);
-        pc.name = match keyword {
+        let name = match keyword {
             Ok(keyword) => keyword.data(),
             Err(_) => conf_tree.key.clone(),
         };
-        if !parent.is_empty() {
-            pc.name = format!("{}/{}", parent, pc.name);
-        }
+        pc.name = PointName::new(parent, &name).full();
         if let Some(mut filter) = pc.filters.clone() {
             if let Some(factor) = filter.factor {
                 if factor == 0.0 {
