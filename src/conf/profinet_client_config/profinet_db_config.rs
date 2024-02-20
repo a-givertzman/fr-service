@@ -1,6 +1,6 @@
 use log::{debug, trace};
 use std::{str::FromStr, time::Duration};
-use crate::conf::{conf_tree::ConfTree, fn_conf_keywd::{FnConfKeywd, FnConfKindName}, point_config::point_config::PointConfig, service_config::ServiceConfig};
+use crate::conf::{conf_tree::ConfTree, fn_conf_keywd::{FnConfKeywd, FnConfKindName}, point_config::{point_config::PointConfig, point_name::PointName}, service_config::ServiceConfig};
 
 ///
 /// 
@@ -27,7 +27,7 @@ impl ProfinetDbConfig {
         trace!("{}.new | MAPPING VALUE", self_id);
         let mut self_conf = ServiceConfig::new(&self_id, self_conf);
         trace!("{}.new | selfConf: {:?}", self_id, self_conf);
-        let self_name = format!("{}/{}", parent, name);
+        let self_name = PointName::new(parent, &name).full();
         debug!("{}.new | name: {:?}", self_id, self_name);
         let cycle = self_conf.getDuration("cycle");
         debug!("{}.new | cycle: {:?}", self_id, cycle);
