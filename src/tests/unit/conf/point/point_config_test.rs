@@ -176,7 +176,7 @@ mod tests {
                             threshold: 5    # 5% threshold
                         comment: Test Point Bool"#, 
                 PointConfig { 
-                    name: format!("{}/PointName0", self_id),
+                    name: format!("/{}/PointName0", self_id),
                     _type: PointConfigType::Bool, 
                     history: PointConfigHistory::ReadWrite, alarm: Some(0), 
                     address: Some(PointConfigAddress { offset: Some(0), bit: Some(0) }), 
@@ -192,7 +192,7 @@ mod tests {
                             offset: 0   # 0..65535
                         comment: Test Point"#, 
                 PointConfig { 
-                    name: format!("{}/PointName1", self_id),
+                    name: format!("/{}/PointName1", self_id),
                     _type: PointConfigType::Int, 
                     history: PointConfigHistory::Write, alarm: None, 
                     address: Some(PointConfigAddress { offset: Some(0), bit: None }), 
@@ -208,7 +208,7 @@ mod tests {
                             offset: 0   # 0..65535
                         comment: Test Point"#, 
                 PointConfig { 
-                    name: format!("{}/PointName2", self_id),
+                    name: format!("/{}/PointName2", self_id),
                     _type: PointConfigType::Int, 
                     history: PointConfigHistory::None, alarm: Some(4), 
                     address: Some(PointConfigAddress { offset: Some(0), bit: None }), 
@@ -223,7 +223,7 @@ mod tests {
                             offset: 12   # 0..65535
                         comment: Test Point"#, 
                 PointConfig { 
-                    name: format!("{}/PointName3", self_id),
+                    name: format!("/{}/PointName3", self_id),
                     _type: PointConfigType::Int, 
                     history: PointConfigHistory::None, alarm: None, 
                     address: Some(PointConfigAddress { offset: Some(12), bit: None }), 
