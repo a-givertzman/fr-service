@@ -140,7 +140,7 @@ mod tests {
                     match rnd.gen_bool(0.7) {
                         true => {
                             println!("TestConnect | connecting - ok");
-                            stream.lock().unwrap().push(String::from("Stream"));
+                            stream.lock().unwrap().push(format!("Stream"));
                             state.store(ConnectState::Connected.value(), Ordering::SeqCst)
                         },
                         false => {

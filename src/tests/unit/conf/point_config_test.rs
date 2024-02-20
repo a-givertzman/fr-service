@@ -51,12 +51,12 @@ mod tests {
                             threshold: 5.0    # 5 threshold
                         comment: Test Point Bool"#, 
                 PointConfig { 
-                    name: String::from("Point.Name.0"),
+                    name: format!("Point.Name.0"),
                     _type: PointConfigType::Bool, 
                     history: PointConfigHistory::None, alarm: Some(0), 
                     address: Some(PointConfigAddress { offset: Some(0), bit: Some(0) }), 
                     filters: Some(PointConfigFilter { threshold: 5.0, factor: None }),
-                    comment: Some(String::from("Test Point Bool")),
+                    comment: Some(format!("Test Point Bool")),
                 },
             ),
             (r#"
@@ -71,12 +71,12 @@ mod tests {
                             factor: 0.1
                         comment: Test Point Bool"#, 
                 PointConfig { 
-                    name: String::from("Point.Name.0"),
+                    name: format!("Point.Name.0"),
                     _type: PointConfigType::Bool, 
                     history: PointConfigHistory::None, alarm: Some(0), 
                     address: Some(PointConfigAddress { offset: Some(0), bit: Some(0) }), 
                     filters: Some(PointConfigFilter { threshold: 5.0, factor: Some(0.1) }),
-                    comment: Some(String::from("Test Point Bool")),
+                    comment: Some(format!("Test Point Bool")),
                 },
             ),
             (r#"
@@ -87,12 +87,12 @@ mod tests {
                             offset: 0   # 0..65535
                         comment: Test Point"#, 
                 PointConfig { 
-                    name: String::from("PointName1"),
+                    name: format!("PointName1"),
                     _type: PointConfigType::Int, 
                     history: PointConfigHistory::Read, alarm: None, 
                     address: Some(PointConfigAddress { offset: Some(0), bit: None }), 
                     filters: None,
-                    comment: Some(String::from("Test Point")),
+                    comment: Some(format!("Test Point")),
                 },
             ),
             (r#"
@@ -103,12 +103,12 @@ mod tests {
                             offset: 0   # 0..65535
                         comment: Test Point"#, 
                 PointConfig { 
-                    name: String::from("PointName2"),
+                    name: format!("PointName2"),
                     _type: PointConfigType::Int, 
                     history: PointConfigHistory::None, alarm: Some(4), 
                     address: Some(PointConfigAddress { offset: Some(0), bit: None }), 
                     filters: None,
-                    comment: Some(String::from("Test Point")),
+                    comment: Some(format!("Test Point")),
                 },
             ),
             (r#"
@@ -119,12 +119,12 @@ mod tests {
                             offset: 12   # 0..65535
                         comment: Test Point"#, 
                 PointConfig { 
-                    name: String::from("PointName3"),
+                    name: format!("PointName3"),
                     _type: PointConfigType::Int, 
                     history: PointConfigHistory::Write, alarm: None, 
                     address: Some(PointConfigAddress { offset: Some(12), bit: None }), 
                     filters: None,
-                    comment: Some(String::from("Test Point")),
+                    comment: Some(format!("Test Point")),
                 },
             ),
             (r#"
@@ -135,12 +135,12 @@ mod tests {
                             offset: 12   # 0..65535
                         comment: Test Point"#, 
                 PointConfig { 
-                    name: String::from("PointName4"),
+                    name: format!("PointName4"),
                     _type: PointConfigType::Int, 
                     history: PointConfigHistory::ReadWrite, alarm: None, 
                     address: Some(PointConfigAddress { offset: Some(12), bit: None }), 
                     filters: None,
-                    comment: Some(String::from("Test Point")),
+                    comment: Some(format!("Test Point")),
                 },
             ),            
         ];
@@ -181,7 +181,7 @@ mod tests {
                     history: PointConfigHistory::ReadWrite, alarm: Some(0), 
                     address: Some(PointConfigAddress { offset: Some(0), bit: Some(0) }), 
                     filters: Some(PointConfigFilter { threshold: 5.0, factor: None }),
-                    comment: Some(String::from("Test Point Bool")),
+                    comment: Some(format!("Test Point Bool")),
                 },
             ),
             (r#"
@@ -197,7 +197,7 @@ mod tests {
                     history: PointConfigHistory::Write, alarm: None, 
                     address: Some(PointConfigAddress { offset: Some(0), bit: None }), 
                     filters: None,
-                    comment: Some(String::from("Test Point")),
+                    comment: Some(format!("Test Point")),
                 },
             ),
             (r#"
@@ -213,7 +213,7 @@ mod tests {
                     history: PointConfigHistory::None, alarm: Some(4), 
                     address: Some(PointConfigAddress { offset: Some(0), bit: None }), 
                     filters: None,
-                    comment: Some(String::from("Test Point")),
+                    comment: Some(format!("Test Point")),
                 },
             ),
             (r#"
@@ -228,7 +228,7 @@ mod tests {
                     history: PointConfigHistory::None, alarm: None, 
                     address: Some(PointConfigAddress { offset: Some(12), bit: None }), 
                     filters: None,
-                    comment: Some(String::from("Test Point")),
+                    comment: Some(format!("Test Point")),
                 },
             ),
         ];

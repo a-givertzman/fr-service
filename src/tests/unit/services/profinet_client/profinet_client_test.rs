@@ -67,16 +67,16 @@ mod tests {
         mqService.lock().unwrap().exit();
         clientHandle.wait().unwrap();
         // let targetPoints = [
-        //     PointConfig { name: String::from("Drive.Speed"), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-        //     PointConfig { name: String::from("Drive.OutputVoltage"), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-        //     PointConfig { name: String::from("Drive.DCVoltage"), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-        //     PointConfig { name: String::from("Drive.Current"), _type: PointConfigType::Float, history: Some(1), alarm: None, address: None, filters: None, comment: None },
-        //     PointConfig { name: String::from("Drive.Torque"), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-        //     PointConfig { name: String::from("Drive.positionFromMru"), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-        //     PointConfig { name: String::from("Drive.positionFromHoist"), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-        //     PointConfig { name: String::from("Capacitor.Capacity"), _type: PointConfigType::Int, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-        //     PointConfig { name: String::from("ChargeIn.On"), _type: PointConfigType::Bool, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-        //     PointConfig { name: String::from("ChargeOut.On"), _type: PointConfigType::Bool, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+        //     PointConfig { name: format!("Drive.Speed"), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+        //     PointConfig { name: format!("Drive.OutputVoltage"), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+        //     PointConfig { name: format!("Drive.DCVoltage"), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+        //     PointConfig { name: format!("Drive.Current"), _type: PointConfigType::Float, history: Some(1), alarm: None, address: None, filters: None, comment: None },
+        //     PointConfig { name: format!("Drive.Torque"), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+        //     PointConfig { name: format!("Drive.positionFromMru"), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+        //     PointConfig { name: format!("Drive.positionFromHoist"), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+        //     PointConfig { name: format!("Capacitor.Capacity"), _type: PointConfigType::Int, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+        //     PointConfig { name: format!("ChargeIn.On"), _type: PointConfigType::Bool, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+        //     PointConfig { name: format!("ChargeOut.On"), _type: PointConfigType::Bool, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
         // ];
         // let configPoints = config.points();
         // for point in &configPoints {

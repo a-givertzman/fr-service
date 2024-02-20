@@ -45,16 +45,16 @@ mod tests {
         debug!("config: {:?}", &config);
         debug!("config points:");
         let targetPoints = [
-            PointConfig { name: String::from("Drive.Speed"), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: String::from("Drive.OutputVoltage"), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: String::from("Drive.DCVoltage"), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: String::from("Drive.Current"), _type: PointConfigType::Float, history: PointConfigHistory::Read, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: String::from("Drive.Torque"), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: String::from("Drive.positionFromMru"), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: String::from("Drive.positionFromHoist"), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: String::from("Capacitor.Capacity"), _type: PointConfigType::Int, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: String::from("ChargeIn.On"), _type: PointConfigType::Bool, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: String::from("ChargeOut.On"), _type: PointConfigType::Bool, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: format!("{}/db899/Drive.Speed", selfId), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: format!("{}/db899/Drive.OutputVoltage", selfId), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: format!("{}/db899/Drive.DCVoltage", selfId), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: format!("{}/db899/Drive.Current", selfId), _type: PointConfigType::Float, history: PointConfigHistory::Read, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: format!("{}/db899/Drive.Torque", selfId), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: format!("{}/db899/Drive.positionFromMru", selfId), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: format!("{}/db899/Drive.positionFromHoist", selfId), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: format!("{}/db899/Capacitor.Capacity", selfId), _type: PointConfigType::Int, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: format!("{}/db899/ChargeIn.On", selfId), _type: PointConfigType::Bool, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: format!("{}/db899/ChargeOut.On", selfId), _type: PointConfigType::Bool, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
         ];
         let configPoints = config.points();
         for point in &configPoints {

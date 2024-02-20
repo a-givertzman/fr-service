@@ -70,24 +70,24 @@ mod tests {
                             const 1
                 "#, 
                 MetricConfig { 
-                    name: String::from("SqlMetric"), 
-                    table: String::from("table_name"), 
+                    name: format!("SqlMetric"), 
+                    table: format!("table_name"), 
                     sql: String::from("UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"), 
                     initial: 0.123, 
-                    vars: vec![String::from("VarName2")],
+                    vars: vec![format!("VarName2")],
                     inputs: IndexMap::from([
-                        (String::from("input1"), FnConfKind::Var( FnConfig { 
-                            name: String::from("VarName2"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-                                (String::from("input"), FnConfKind::Fn( FnConfig { 
-                                    name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-                                        (String::from("initial"), FnConfKind::Var( FnConfig { name: String::from("VarName2"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
-                                        (String::from("input11"), FnConfKind::Fn( FnConfig { 
-                                            name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-                                                (String::from("input1"), FnConfKind::Const( FnConfig { name: String::from("someValue"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
-                                                (String::from("input2"), FnConfKind::Point( FnConfig { name: String::from("/path/Point.Name/"), type_: FnConfPointType::Int, inputs: IndexMap::new() } )), 
-                                                (String::from("input"), FnConfKind::Fn( FnConfig { 
-                                                    name: String::from("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-                                                        (String::from("input"), FnConfKind::Point( FnConfig { name: String::from("/path/Point.Name/"), type_: FnConfPointType::Bool, inputs: IndexMap::new() } )),
+                        (format!("input1"), FnConfKind::Var( FnConfig { 
+                            name: format!("VarName2"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                (format!("input"), FnConfKind::Fn( FnConfig { 
+                                    name: format!("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                        (format!("initial"), FnConfKind::Var( FnConfig { name: format!("VarName2"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
+                                        (format!("input11"), FnConfKind::Fn( FnConfig { 
+                                            name: format!("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                                (format!("input1"), FnConfKind::Const( FnConfig { name: format!("someValue"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
+                                                (format!("input2"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name/"), type_: FnConfPointType::Int, inputs: IndexMap::new() } )), 
+                                                (format!("input"), FnConfKind::Fn( FnConfig { 
+                                                    name: format!("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                                        (format!("input"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name/"), type_: FnConfPointType::Bool, inputs: IndexMap::new() } )),
                                                     ])
                                                 } )), 
                                             ]),
@@ -96,7 +96,7 @@ mod tests {
                                 } )),
                             ]),
                         } )), 
-                        (String::from("input2"), FnConfKind::Const( FnConfig { name: String::from("1"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
+                        (format!("input2"), FnConfKind::Const( FnConfig { name: format!("1"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
                     ]), 
                 },
             ),

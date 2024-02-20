@@ -89,14 +89,14 @@ fn test_config_tree_valid() {
                     input: const 1.1
             "#,
             Node::Map(IndexMap::from([
-                (String::from("let newVar2"), Node::Map(IndexMap::from([
-                    (String::from("input"), Node::End(ConfTree { key: String::from("input"), conf: serde_yaml::from_str("const 2.2").unwrap() })), 
+                (format!("let newVar2"), Node::Map(IndexMap::from([
+                    (format!("input"), Node::End(ConfTree { key: format!("input"), conf: serde_yaml::from_str("const 2.2").unwrap() })), 
                 ]))),
-                (String::from("let newVar3"), Node::Map(IndexMap::from([
-                    (String::from("input"), Node::End(ConfTree { key: String::from("input"), conf: serde_yaml::from_str("const 3.3").unwrap() })), 
+                (format!("let newVar3"), Node::Map(IndexMap::from([
+                    (format!("input"), Node::End(ConfTree { key: format!("input"), conf: serde_yaml::from_str("const 3.3").unwrap() })), 
                 ]))),
-                (String::from("let newVar1"), Node::Map(IndexMap::from([
-                    (String::from("input"), Node::End(ConfTree { key: String::from("input"), conf: serde_yaml::from_str("const 1.1").unwrap() })), 
+                (format!("let newVar1"), Node::Map(IndexMap::from([
+                    (format!("input"), Node::End(ConfTree { key: format!("input"), conf: serde_yaml::from_str("const 1.1").unwrap() })), 
                 ]))),
             ]))
         ),
@@ -111,15 +111,15 @@ fn test_config_tree_valid() {
                             inputConst2: newVar1
             "#,
             Node::Map(IndexMap::from([
-                (String::from("let newVar1"), Node::Map(IndexMap::from([
-                    (String::from("input2"), Node::End(ConfTree { key: String::from("input2"), conf: serde_yaml::from_str("point '/Path/Point.Name/'").unwrap() })), 
-                    (String::from("input3"), Node::Map(IndexMap::from([
-                        (String::from("fn count"), Node::Map(IndexMap::from([
-                            (String::from("inputConst1"), Node::End(ConfTree { key: String::from("inputConst1"), conf: serde_yaml::from_str("const '13.5'").unwrap() })), 
-                            (String::from("inputConst2"), Node::End(ConfTree { key: String::from("inputConst2"), conf: serde_yaml::from_str("newVar1").unwrap() }))
+                (format!("let newVar1"), Node::Map(IndexMap::from([
+                    (format!("input2"), Node::End(ConfTree { key: format!("input2"), conf: serde_yaml::from_str("point '/Path/Point.Name/'").unwrap() })), 
+                    (format!("input3"), Node::Map(IndexMap::from([
+                        (format!("fn count"), Node::Map(IndexMap::from([
+                            (format!("inputConst1"), Node::End(ConfTree { key: format!("inputConst1"), conf: serde_yaml::from_str("const '13.5'").unwrap() })), 
+                            (format!("inputConst2"), Node::End(ConfTree { key: format!("inputConst2"), conf: serde_yaml::from_str("newVar1").unwrap() }))
                         ])))
                     ]))), 
-                    (String::from("input1"), Node::End(ConfTree { key: String::from("input1"), conf: serde_yaml::from_str("const 177.3").unwrap() }))
+                    (format!("input1"), Node::End(ConfTree { key: format!("input1"), conf: serde_yaml::from_str("const 177.3").unwrap() }))
                 ]))),
             ]))
         ),
@@ -158,18 +158,18 @@ fn test_config_tree_valid() {
                     cycle: 200
             "#,
             Node::Map(IndexMap::from([
-                (String::from("serviceCMA"), Node::Map(IndexMap::from([
-                    (String::from("nodeType"), Node::End(ConfTree { key: String::from("nodeType"), conf: serde_yaml::from_str("API Client").unwrap() })), 
-                    (String::from("address"), Node::End(ConfTree { key: String::from("address"), conf: serde_yaml::from_str("127.0.0.1:8899").unwrap() })), 
-                    (String::from("cycle"), Node::End(ConfTree { key: String::from("cycle"), conf: serde_yaml::from_str("1000").unwrap() })),
+                (format!("serviceCMA"), Node::Map(IndexMap::from([
+                    (format!("nodeType"), Node::End(ConfTree { key: format!("nodeType"), conf: serde_yaml::from_str("API Client").unwrap() })), 
+                    (format!("address"), Node::End(ConfTree { key: format!("address"), conf: serde_yaml::from_str("127.0.0.1:8899").unwrap() })), 
+                    (format!("cycle"), Node::End(ConfTree { key: format!("cycle"), conf: serde_yaml::from_str("1000").unwrap() })),
                 ]))), 
-                (String::from("serviceAPI"), Node::Map(IndexMap::from([
-                    (String::from("nodeType"), Node::End(ConfTree { key: String::from("nodeType"), conf: serde_yaml::from_str("API Client").unwrap() })), 
-                    (String::from("address"), Node::End(ConfTree { key: String::from("address"), conf: serde_yaml::from_str("127.0.0.1:8899").unwrap() })), 
-                    (String::from("cycle"), Node::End(ConfTree { key: String::from("cycle"), conf: serde_yaml::from_str("2000").unwrap() })),
+                (format!("serviceAPI"), Node::Map(IndexMap::from([
+                    (format!("nodeType"), Node::End(ConfTree { key: format!("nodeType"), conf: serde_yaml::from_str("API Client").unwrap() })), 
+                    (format!("address"), Node::End(ConfTree { key: format!("address"), conf: serde_yaml::from_str("127.0.0.1:8899").unwrap() })), 
+                    (format!("cycle"), Node::End(ConfTree { key: format!("cycle"), conf: serde_yaml::from_str("2000").unwrap() })),
                 ]))), 
-                (String::from("serviceTask"), Node::Map(IndexMap::from([
-                    (String::from("cycle"), Node::End(ConfTree { key: String::from("cycle"), conf: serde_yaml::from_str("200").unwrap() }))
+                (format!("serviceTask"), Node::Map(IndexMap::from([
+                    (format!("cycle"), Node::End(ConfTree { key: format!("cycle"), conf: serde_yaml::from_str("200").unwrap() }))
                 ]))),
             ]))
         ),

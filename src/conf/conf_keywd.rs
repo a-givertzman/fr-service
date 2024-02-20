@@ -48,6 +48,7 @@ pub struct ConfKeywdValue {
     pub prefix: String,
     pub kind: ConfKind,
     pub name: String,
+    pub sufix: String,
 }
 
 ///
@@ -109,7 +110,7 @@ impl FromStr for ConfKeywd {
         let groupPrefix = 1;
         let groupKind = 2;
         let groupName = 3;
-        let groupId = 4;
+        let groupSufix = 4;
         match re.captures(input) {
             Some(caps) => {
                 let prefix = match &caps.get(groupPrefix) {
@@ -140,16 +141,20 @@ impl FromStr for ConfKeywd {
                         }
                     },
                 };
+                let sufix = match &caps.get(groupSufix) {
+                    Some(first) => String::from(first.as_str()),
+                    None => String::new(),
+                };
                 match &name {
                     Ok(name) => {
                         match &caps.get(groupKind) {
                             Some(keyword) => {
                                 match keyword.as_str() {
-                                    "task" => Ok( ConfKeywd::Task( ConfKeywdValue { prefix, kind, name: name.to_string() } )),
-                                    "service" => Ok( ConfKeywd::Service( ConfKeywdValue { prefix, kind, name: name.to_string() } )),
-                                    "queue" => Ok( ConfKeywd::Queue( ConfKeywdValue { prefix, kind, name: name.to_string() } )),
-                                    "link" => Ok( ConfKeywd::Link( ConfKeywdValue { prefix, kind, name: name.to_string() } )),
-                                    _      => Err(format!("Unknown keyword '{:?}'", &keyword)),
+                                    "task"      => Ok( ConfKeywd::Task( ConfKeywdValue { prefix, kind, name: name.to_string(), sufix } )),
+                                    "service"   => Ok( ConfKeywd::Service( ConfKeywdValue { prefix, kind, name: name.to_string(), sufix } )),
+                                    "queue"     => Ok( ConfKeywd::Queue( ConfKeywdValue { prefix, kind, name: name.to_string(), sufix } )),
+                                    "link"      => Ok( ConfKeywd::Link( ConfKeywdValue { prefix, kind, name: name.to_string(), sufix } )),
+                                    _           => Err(format!("Unknown keyword '{:?}'", &keyword)),
                                 }
                             },
                             None => {

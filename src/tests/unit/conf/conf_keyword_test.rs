@@ -37,15 +37,16 @@ mod tests {
         println!("test_create_valid");
         // let (initial, switches) = initEach();
         let testData = vec![
-            ("service ApiClient", ConfKeywd::Service( ConfKeywdValue {prefix: String::new(), kind: ConfKind::Service, name: String::from("ApiClient")} )),
-            ("service MultiQueue", ConfKeywd::Service( ConfKeywdValue {prefix: String::new(), kind: ConfKind::Service, name: String::from("MultiQueue")} )),
-            ("task Task1", ConfKeywd::Task( ConfKeywdValue {prefix: String::new(), kind: ConfKind::Task, name: String::from("Task1")} )),
-            ("task task1", ConfKeywd::Task( ConfKeywdValue {prefix: String::new(), kind: ConfKind::Task, name: String::from("task1")} )),
-            ("in queue queue1", ConfKeywd::Queue( ConfKeywdValue {prefix: String::from("in"), kind: ConfKind::Queue, name: String::from("queue1")} )),
-            ("in link link", ConfKeywd::Link( ConfKeywdValue {prefix: String::from("in"), kind: ConfKind::Link, name: String::from("link")} )),
-            ("in queue in-queue", ConfKeywd::Queue( ConfKeywdValue {prefix: String::from("in"), kind: ConfKind::Queue, name: String::from("in-queue")} )),
-            ("out queue", ConfKeywd::Queue( ConfKeywdValue {prefix: String::from("out"), kind: ConfKind::Queue, name: String::new()} )),
-            ("out link", ConfKeywd::Link( ConfKeywdValue {prefix: String::from("out"), kind: ConfKind::Link, name: String::new()} )),
+            ("service ApiClient", ConfKeywd::Service( ConfKeywdValue {prefix: format!(""), kind: ConfKind::Service, name: format!("ApiClient"), sufix: format!("")} )),
+            ("service ApiClient ApiClient1", ConfKeywd::Service( ConfKeywdValue {prefix: format!(""), kind: ConfKind::Service, name: format!("ApiClient"), sufix: format!("ApiClient1")} )),
+            ("service MultiQueue", ConfKeywd::Service( ConfKeywdValue {prefix: format!(""), kind: ConfKind::Service, name: format!("MultiQueue"), sufix: format!("")} )),
+            ("task Task1", ConfKeywd::Task( ConfKeywdValue {prefix: format!(""), kind: ConfKind::Task, name: format!("Task1"), sufix: format!("")} )),
+            ("task task1", ConfKeywd::Task( ConfKeywdValue {prefix: format!(""), kind: ConfKind::Task, name: format!("task1"), sufix: format!("")} )),
+            ("in queue queue1", ConfKeywd::Queue( ConfKeywdValue {prefix: format!("in"), kind: ConfKind::Queue, name: format!("queue1"), sufix: format!("")} )),
+            ("in link link", ConfKeywd::Link( ConfKeywdValue {prefix: format!("in"), kind: ConfKind::Link, name: format!("link"), sufix: format!("")} )),
+            ("in queue in-queue", ConfKeywd::Queue( ConfKeywdValue {prefix: format!("in"), kind: ConfKind::Queue, name: format!("in-queue"), sufix: format!("")} )),
+            ("out queue", ConfKeywd::Queue( ConfKeywdValue {prefix: format!("out"), kind: ConfKind::Queue, name: format!(""), sufix: format!("")} )),
+            ("out link", ConfKeywd::Link( ConfKeywdValue {prefix: format!("out"), kind: ConfKind::Link, name: format!(""), sufix: format!("")} )),
         ];
         for (value, target) in testData {
             let result = ConfKeywd::from_str(value).unwrap();

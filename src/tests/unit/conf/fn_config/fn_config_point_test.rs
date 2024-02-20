@@ -39,7 +39,7 @@ mod tests {
         let selfId = "test FnConfig | point";
         println!("{}", selfId);
         let testPoint1 = PointConfig {
-            name: "CraneMovement.BoomUp".to_string(),
+            name: format!("{}/CraneMovement.BoomUp", selfId),
             _type: PointConfigType::Int,
             history: PointConfigHistory::None,
             alarm: None,
@@ -48,7 +48,7 @@ mod tests {
             comment: Some("Some indication".to_string()),
         };
         let testPoint2 = PointConfig {
-            name: "CraneMovement.BoomDown".to_string(),
+            name: format!("{}/CraneMovement.BoomDown", selfId),
             _type: PointConfigType::Float,
             history: PointConfigHistory::Read,
             alarm: None,
