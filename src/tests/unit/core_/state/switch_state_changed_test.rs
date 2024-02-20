@@ -14,7 +14,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -25,7 +25,7 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach<T: std::cmp::PartialOrd + Clone + 'static>(initial: u8, steps: Vec<T>) -> SwitchState<u8, T> {
+    fn init_each<T: std::cmp::PartialOrd + Clone + 'static>(initial: u8, steps: Vec<T>) -> SwitchState<u8, T> {
         fn switch<T: std::cmp::PartialOrd + Clone + 'static>(state: &mut u8, input: Option<T>) -> Switch<u8, T> {
             let state_ = *state;
             *state = *state + 1;
@@ -58,14 +58,14 @@ mod tests {
     #[test]
     fn test_state() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
-        initOnce();
+        init_once();
         println!("");
         println!("test SwitchState");
 
         let steps: Vec<f64> = vec![0.25, 0.50, 0.75];
         let initial = 1;
         let mut switchState = SwitchStateChanged::new(
-            initEach(initial, steps),
+            init_each(initial, steps),
         );
 
         let mut prevState = initial;
@@ -87,14 +87,14 @@ mod tests {
     #[test]
     fn test_state_empty_steps() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
-        initOnce();
+        init_once();
         println!("");
         println!("test SwitchState empty steps");
 
         let steps: Vec<f64> = vec![];
         let initial = 1;
         let mut switchState = SwitchStateChanged::new(
-            initEach(initial, steps),
+            init_each(initial, steps),
         );
 
         for value in 0..=100 {

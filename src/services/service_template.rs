@@ -55,10 +55,10 @@ impl Service for TcpServer {
     //
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
-        let selfId = self.id.clone();
+        let self_id = self.id.clone();
         let exit = self.exit.clone();
-        info!("{}.run | Preparing thread...", selfId);
-        let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
+        info!("{}.run | Preparing thread...", self_id);
+        let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             loop {
                 if exit.load(Ordering::SeqCst) {
                     break;

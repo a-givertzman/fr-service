@@ -50,20 +50,20 @@ impl ApiClientConfig {
         };
         match confTree.next() {
             Some(selfConf) => {
-                let selfId = format!("ApiClientConfig({})", selfConf.key);
-                trace!("{}.new | MAPPING VALUE", selfId);
-                let mut selfConf = ServiceConfig::new(&selfId, selfConf);
-                trace!("{}.new | selfConf: {:?}", selfId, selfConf);
+                let self_id = format!("ApiClientConfig({})", selfConf.key);
+                trace!("{}.new | MAPPING VALUE", self_id);
+                let mut selfConf = ServiceConfig::new(&self_id, selfConf);
+                trace!("{}.new | selfConf: {:?}", self_id, selfConf);
                 let selfName = selfConf.name();
-                debug!("{}.new | name: {:?}", selfId, selfName);
+                debug!("{}.new | name: {:?}", self_id, selfName);
                 let address: SocketAddr = selfConf.getParamValue("address").unwrap().as_str().unwrap().parse().unwrap();
-                debug!("{}.new | address: {:?}", selfId, address);
+                debug!("{}.new | address: {:?}", self_id, address);
                 let cycle = selfConf.getDuration("cycle");
-                debug!("{}.new | cycle: {:?}", selfId, cycle);
+                debug!("{}.new | cycle: {:?}", self_id, cycle);
                 let reconnectCycle = selfConf.getDuration("reconnect");
-                debug!("{}.new | reconnectCycle: {:?}", selfId, reconnectCycle);
+                debug!("{}.new | reconnectCycle: {:?}", self_id, reconnectCycle);
                 let (rx, rxMaxLength) = selfConf.getInQueue().unwrap();
-                debug!("{}.new | RX: {},\tmax-length: {:?}", selfId, rx, rxMaxLength);
+                debug!("{}.new | RX: {},\tmax-length: {:?}", self_id, rx, rxMaxLength);
                 Self {
                     name: selfName,
                     address,
@@ -80,7 +80,7 @@ impl ApiClientConfig {
     }
     ///
     /// creates config from serde_yaml::Value of following format:
-    pub(crate) fn fromYamlValue(value: &serde_yaml::Value) -> Self {
+    pub(crate) fn from_yaml(value: &serde_yaml::Value) -> Self {
         Self::new(&mut ConfTree::newRoot(value.clone()))
     }
     ///
@@ -90,7 +90,7 @@ impl ApiClientConfig {
             Ok(yamlString) => {
                 match serde_yaml::from_str(&yamlString) {
                     Ok(config) => {
-                        Self::fromYamlValue(&config)
+                        Self::from_yaml(&config)
                     },
                     Err(err) => {
                         panic!("ApiClientConfig.read | Error in config: {:?}\n\terror: {:?}", yamlString, err)

@@ -53,15 +53,15 @@ impl Service for TaskTestReceiver {
     //
     //
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
-        let selfId = self.id.clone();
-        info!("{}.run | starting...", selfId);
+        let self_id = self.id.clone();
+        info!("{}.run | starting...", self_id);
         let exit = self.exit.clone();
         let received = self.received.clone();
         let mut count = 0;
         let mut errorCount = 0;
         let inRecv = self.inRecv.pop().unwrap();
         let iterations = self.iterations;
-        let handle = thread::Builder::new().name(selfId.clone()).spawn(move || {
+        let handle = thread::Builder::new().name(self_id.clone()).spawn(move || {
             // info!("Task({}).run | prepared", name);
             'inner: loop {
                 if exit.load(Ordering::Relaxed) {
@@ -74,15 +74,15 @@ impl Service for TaskTestReceiver {
                         if count >= iterations {
                             break 'inner;
                         }
-                        debug!("{}.run | received: {}, (value: {:?})", selfId, count, point.value());
-                        trace!("{}.run | received SQL: {:?}", selfId, point.as_string().value);
+                        debug!("{}.run | received: {}, (value: {:?})", self_id, count, point.value());
+                        trace!("{}.run | received SQL: {:?}", self_id, point.as_string().value);
                         // debug!("{}.run | value: {}\treceived SQL: {:?}", value, sql);
                     },
                     Err(err) => {
-                        warn!("{}.run | Error receiving from queue: {:?}", selfId, err);
+                        warn!("{}.run | Error receiving from queue: {:?}", self_id, err);
                         errorCount += 1;
                         if errorCount > 10 {
-                            warn!("{}.run | Error receiving count > 10, exit...", selfId);
+                            warn!("{}.run | Error receiving count > 10, exit...", self_id);
                             break 'inner;
                         }        
                     },
@@ -91,8 +91,8 @@ impl Service for TaskTestReceiver {
                     break 'inner;
                 }
             };
-            info!("{}.run | received {} SQL's", selfId, count);
-            info!("{}.run | exit", selfId);
+            info!("{}.run | received {} SQL's", self_id, count);
+            info!("{}.run | exit", self_id);
             // thread::sleep(Duration::from_secs_f32(2.1));
         });
         info!("{}.run | starting - ok", self.id);

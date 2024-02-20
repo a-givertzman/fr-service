@@ -15,7 +15,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -26,20 +26,20 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
     #[test]
     fn test_metric_config_new_valid() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
         let self_id = "test MetricConfig | new valid";
         println!("{}", self_id);
-        // let (initial, switches) = initEach();
-        let testData = [
+        // let (initial, switches) = init_each();
+        let test_data = [
             // (
             //     r#"fn SqlMetric:
             //         table: "table_name"
@@ -101,7 +101,7 @@ mod tests {
                 },
             ),
         ];
-        for (value, target) in testData {
+        for (value, target) in test_data {
             debug!("test value: {:?}", value);
             let conf: serde_yaml::Value = serde_yaml::from_str(value).unwrap();
     
@@ -109,7 +109,7 @@ mod tests {
             // let fnKeyword = FnConfigKeyword::from_str(conf.as_str().unwrap()).unwrap();
             // debug!("\tfnKeyword: {:?}", fnKeyword);
             let mut vars = vec![];
-            let fnConfig = MetricConfig::fromYamlValue(self_id, &conf, &mut vars);
+            let fnConfig = MetricConfig::from_yaml(self_id, &conf, &mut vars);
             debug!("\tfnConfig: {:?}", fnConfig);
             assert_eq!(fnConfig, target);
         }

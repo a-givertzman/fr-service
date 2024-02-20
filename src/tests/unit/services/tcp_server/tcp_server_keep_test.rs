@@ -17,7 +17,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -28,33 +28,33 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
     #[test]
     fn test_TcpServer_keep_send() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
-        let selfId = "test TcpServer keep lost connection | Send";
-        println!("{}", selfId);
-        let testDuration = TestDuration::new(selfId, Duration::from_secs(20));
-        testDuration.run().unwrap();
+        let self_id = "test TcpServer keep lost connection | Send";
+        println!("{}", self_id);
+        let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
+        test_duration.run().unwrap();
 
         let iterations = 100;
-        let testData = IncTestValues::new(
-            selfId, 
+        let test_data = IncTestValues::new(
+            self_id, 
             0, 
             iterations, 
         );
-        let testData: Vec<Value> = testData.collect();
-        let totalCount = testData.len();
+        let test_data: Vec<Value> = test_data.collect();
+        let totalCount = test_data.len();
 
         let tcpPort = TestSession::free_tcp_port_str();
         let tcpAddr = format!("127.0.0.1:{}", tcpPort);
-        let services = Arc::new(Mutex::new(Services::new(selfId)));
+        let services = Arc::new(Mutex::new(Services::new(self_id)));
         let conf = format!(r#"
             service TcpServer:
                 cycle: 1 ms
@@ -66,8 +66,8 @@ mod tests {
                 out queue: MultiQueue.in-queue
         "#, tcpAddr);
         let conf = serde_yaml::from_str(&conf).unwrap();
-        let conf = TcpServerConfig::fromYamlValue(&conf);
-        let tcpServer = Arc::new(Mutex::new(TcpServer::new(selfId, conf, services.clone())));
+        let conf = TcpServerConfig::from_yaml(&conf);
+        let tcpServer = Arc::new(Mutex::new(TcpServer::new(self_id, conf, services.clone())));
         services.lock().unwrap().insert("TcpServer", tcpServer.clone());
 
         let mqConf = r#"
@@ -77,23 +77,23 @@ mod tests {
                 out queue:
         "#;
         let mqConf = serde_yaml::from_str(mqConf).unwrap();
-        let mqConf = MultiQueueConfig::fromYamlValue(&mqConf);
-        let mqService = Arc::new(Mutex::new(MultiQueue::new(selfId, mqConf, services.clone())));
+        let mqConf = MultiQueueConfig::from_yaml(&mqConf);
+        let mqService = Arc::new(Mutex::new(MultiQueue::new(self_id, mqConf, services.clone())));
         services.lock().unwrap().insert("MultiQueue", mqService.clone());
 
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
-            selfId,
+            self_id,
             "MultiQueue.in-queue",
             Duration::from_millis(100),
             services.clone(),
-            testData.clone(),
+            test_data.clone(),
         )));
         services.lock().unwrap().insert("TaskTestProducer", producer.clone());
         let emulatedTcpClientRecv = Arc::new(Mutex::new(EmulatedTcpClientRecv::new(
-            selfId,
+            self_id,
             &tcpAddr,
             Some(iterations),
-            Some(testData.last().unwrap().clone()),
+            Some(test_data.last().unwrap().clone()),
             vec![25, 50, 75],
         )));
         let mqServiceHandle = mqService.lock().unwrap().run().unwrap();
@@ -122,32 +122,32 @@ mod tests {
         producerHandle.wait().unwrap();
         tcpServerHandle.wait().unwrap();
         mqServiceHandle.wait().unwrap();
-        testDuration.exit();
+        test_duration.exit();
     }
 
     #[test]
     fn test_TcpServer_keep_receive() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
-        let selfId = "test TcpServer keep lost connection | Receive";
-        println!("{}", selfId);
-        let testDuration = TestDuration::new(selfId, Duration::from_secs(30));
-        testDuration.run().unwrap();
+        let self_id = "test TcpServer keep lost connection | Receive";
+        println!("{}", self_id);
+        let test_duration = TestDuration::new(self_id, Duration::from_secs(30));
+        test_duration.run().unwrap();
 
         let iterations = 100;
-        let testData = IncTestValues::new(
-            selfId, 
+        let test_data = IncTestValues::new(
+            self_id, 
             0, 
             iterations, 
         );
-        let testData: Vec<Value> = testData.collect();
-        let totalCount = testData.len();
+        let test_data: Vec<Value> = test_data.collect();
+        let totalCount = test_data.len();
 
         let tcpPort = TestSession::free_tcp_port_str();
         let tcpAddr = format!("127.0.0.1:{}", tcpPort);
-        let services = Arc::new(Mutex::new(Services::new(selfId)));
+        let services = Arc::new(Mutex::new(Services::new(self_id)));
         let conf = format!(r#"
             service TcpServer:
                 cycle: 1 ms
@@ -159,8 +159,8 @@ mod tests {
                 out queue: MultiQueue.in-queue
         "#, tcpAddr);
         let conf = serde_yaml::from_str(&conf).unwrap();
-        let conf = TcpServerConfig::fromYamlValue(&conf);
-        let tcpServer = Arc::new(Mutex::new(TcpServer::new(selfId, conf, services.clone())));
+        let conf = TcpServerConfig::from_yaml(&conf);
+        let tcpServer = Arc::new(Mutex::new(TcpServer::new(self_id, conf, services.clone())));
         services.lock().unwrap().insert("TcpServer", tcpServer.clone());
 
         let mqConf = r#"
@@ -171,20 +171,20 @@ mod tests {
                     - TaskTestReceiver.queue
         "#;
         let mqConf = serde_yaml::from_str(mqConf).unwrap();
-        let mqConf = MultiQueueConfig::fromYamlValue(&mqConf);
-        let mqService = Arc::new(Mutex::new(MultiQueue::new(selfId, mqConf, services.clone())));
+        let mqConf = MultiQueueConfig::from_yaml(&mqConf);
+        let mqService = Arc::new(Mutex::new(MultiQueue::new(self_id, mqConf, services.clone())));
         services.lock().unwrap().insert("MultiQueue", mqService.clone());
 
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
-            selfId,
+            self_id,
             "queue",
             iterations,
         )));
         services.lock().unwrap().insert("TaskTestReceiver", receiver.clone());
         let emulatedTcpClient = Arc::new(Mutex::new(EmulatedTcpClientSend::new(
-            selfId,
+            self_id,
             &tcpAddr,
-            testData.clone(),
+            test_data.clone(),
             vec![25, 50, 75],
             true,
         )));
@@ -203,7 +203,7 @@ mod tests {
         let target = totalCount;
         let result = received.len();
         assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
-        for value in testData {
+        for value in test_data {
             let result = received.remove(0).as_int().value;
             let target = value.as_int();
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
@@ -213,7 +213,7 @@ mod tests {
         mqService.lock().unwrap().exit();
         tcpServerHandle.wait().unwrap();
         mqServiceHandle.wait().unwrap();
-        testDuration.exit();
+        test_duration.exit();
     }
 }
 

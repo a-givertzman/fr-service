@@ -55,8 +55,8 @@ impl SqlMetric {
     //
     pub fn new(parent: &str, conf: &mut FnConfig, taskNodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> SqlMetric {
         COUNT.fetch_add(1, Ordering::SeqCst);
-        let selfId = format!("{}/SqlMetric{}", parent, COUNT.load(Ordering::Relaxed));
-        let txId = PointTxId::fromStr(&selfId);
+        let self_id = format!("{}/SqlMetric{}", parent, COUNT.load(Ordering::Relaxed));
+        let txId = PointTxId::fromStr(&self_id);
         let mut inputs = IndexMap::new();
         let inputConfs = conf.inputs.clone();
         let inputConfNames = inputConfs.keys().filter(|v| {
@@ -69,11 +69,11 @@ impl SqlMetric {
             !delete
         });
         for name in inputConfNames {
-            debug!("{}.new | input name: {:?}", selfId, name);
+            debug!("{}.new | input name: {:?}", self_id, name);
             let inputConf = conf.inputConf(&name);
             inputs.insert(
                 name.to_string(), 
-                NestedFn::new(&selfId, txId, inputConf, taskNodes, services.clone()),
+                NestedFn::new(&self_id, txId, inputConf, taskNodes, services.clone()),
             );
         }
         let id = conf.name.clone();
@@ -89,7 +89,7 @@ impl SqlMetric {
         sqlNames.remove("sql");
         sqlNames.remove("id");
         SqlMetric {
-            id: selfId,
+            id: self_id,
             txId,
             kind: FnKind::Fn,
             inputs: inputs,
@@ -128,24 +128,24 @@ impl FnOut for SqlMetric {
     }
     //
     fn out(&mut self) -> PointType {
-        let selfId = self.id.clone();
+        let self_id = self.id.clone();
         for (fullName, (name, sufix)) in &self.sqlNames {
-            trace!("{}.out | name: {:?}, sufix: {:?}", selfId, name, sufix);
+            trace!("{}.out | name: {:?}, sufix: {:?}", self_id, name, sufix);
             match self.inputs.get(name) {
                 Some(input) => {
-                    trace!("{}.out | input: {:?} - found", selfId, name);
+                    trace!("{}.out | input: {:?} - found", self_id, name);
                     let point = input.borrow_mut().out();
                     self.sql.insert(&fullName, point);
                 },
                 None => {
-                    panic!("{}.out | input: {:?} - not found", selfId, name);
+                    panic!("{}.out | input: {:?} - not found", self_id, name);
                 },
             };
         }
-        debug!("{}.out | sql: {:?}", selfId, self.sql.out());
+        debug!("{}.out | sql: {:?}", self_id, self.sql.out());
         PointType::String(Point::new_string(
             self.txId,
-            &selfId, 
+            &self_id, 
             self.sql.out(),
         ))
     }

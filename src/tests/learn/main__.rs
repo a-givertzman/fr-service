@@ -17,7 +17,7 @@ fn main() {
     DebugSession::init(LogLevel::Debug, Backtrace::Short);
     info!("test_task");
     
-    // let (initial, switches) = initEach();
+    // let (initial, switches) = init_each();
     trace!("dir: {:?}", env::current_dir());
     let path = "./src/tests/unit/task/task_config_test.yaml";
     let config = TaskConfig::read(path);
@@ -34,7 +34,7 @@ fn main() {
 
 fn main1() {
     DebugSession::init(core_::debug::debug_session::LogLevel::Debug);
-    let testData = [
+    let test_data = [
         r#"
             input1: const 177.3
             input2: point '/Path/Point.Name/'
@@ -44,7 +44,7 @@ fn main1() {
                     inputConst2: newVar1
         "#,
     ];
-    let mut conf: serde_yaml::Value = serde_yaml::from_str(testData[0]).unwrap();
+    let mut conf: serde_yaml::Value = serde_yaml::from_str(test_data[0]).unwrap();
     let map = conf.as_mapping_mut().unwrap();
     debug!("map: {:?}", &map);
     let removed = map.remove_entry("input2");

@@ -13,7 +13,7 @@ static INIT: Once = Once::new();
 
 ///
 /// once called initialisation
-fn initOnce() {
+fn init_once() {
     INIT.call_once(|| {
             // implement your initialisation code to be called only once for current test file
         }
@@ -24,7 +24,7 @@ fn initOnce() {
 ///
 /// returns:
 ///  - ...
-fn initEach() -> () {
+fn init_each() -> () {
 
 }
 
@@ -32,11 +32,11 @@ fn initEach() -> () {
 #[test]
 fn test_create_valid() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
-    initEach();
+    init_once();
+    init_each();
     println!("test_create_valid");
-    // let (initial, switches) = initEach();
-    let testData = vec![
+    // let (initial, switches) = init_each();
+    let test_data = vec![
         ("input1 fn fnName", FnConfKeywd::Fn( FnConfKeywdValue {input: format!("input1"), type_: FnConfPointType::Unknown, data: format!("fnName")} )),
         ("fn name", FnConfKeywd::Fn( FnConfKeywdValue {input: format!(""), type_: FnConfPointType::Unknown, data: format!("name")} )),
         ("fn  name", FnConfKeywd::Fn( FnConfKeywdValue {input: format!(""), type_: FnConfPointType::Unknown, data: format!("name")} )),
@@ -57,7 +57,7 @@ fn test_create_valid() {
         ("input6 point float /path/Point.Name", FnConfKeywd::Point( FnConfKeywdValue {input: format!("input6"), type_: FnConfPointType::Float, data: format!("/path/Point.Name")} )),
         ("input7 point string /path/Point.Name", FnConfKeywd::Point( FnConfKeywdValue {input: format!("input7"), type_: FnConfPointType::String, data: format!("/path/Point.Name")} )),
     ];
-    for (value, target) in testData {
+    for (value, target) in test_data {
         let fnConfigType = FnConfKeywd::from_str(value).unwrap();
         debug!("value: {:?}   |   fnConfigType: {:?}   |   target: {:?}", value, fnConfigType, target);
         assert_eq!(fnConfigType, target);
@@ -67,11 +67,11 @@ fn test_create_valid() {
 #[test]
 fn test_create_invalid() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
-    initEach();
+    init_once();
+    init_each();
     info!("test_create_invalid");
-    // let (initial, switches) = initEach();
-    let testData: Vec<(&str, Result<&str, ()>)> = vec![
+    // let (initial, switches) = init_each();
+    let test_data: Vec<(&str, Result<&str, ()>)> = vec![
         ("fn:name", Err(())),
         ("fn\nname", Err(())),
         ("fn: name", Err(())),
@@ -97,7 +97,7 @@ fn test_create_invalid() {
         ("pointName", Err(())),
         ("point_name", Err(())),
     ];
-    for (value, target) in testData {
+    for (value, target) in test_data {
         let fnConfigType = FnConfKeywd::from_str(value);
         debug!("value: {:?}   |   fnConfigType: {:?}   |   target: {:?}", value, fnConfigType, target);
         assert_eq!(fnConfigType.is_err(), true);

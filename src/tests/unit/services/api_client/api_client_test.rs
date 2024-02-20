@@ -19,7 +19,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -30,7 +30,7 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
@@ -38,14 +38,14 @@ mod tests {
     #[test]
     fn test_ApiClient() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
-        let selfId = "test ApiClient";
-        println!("{}", selfId);
+        let self_id = "test ApiClient";
+        println!("{}", self_id);
         let path = "./src/tests/unit/services/api_client/api_client.yaml";
-        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
-        testDuration.run().unwrap();
+        let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
+        test_duration.run().unwrap();
         let mut conf = ApiClientConfig::read(path);
         // let addr = conf.address.clone();
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
@@ -53,11 +53,11 @@ mod tests {
 
         let mut apiClient = ApiClient::new("test ApiClient", conf);
 
-        // let testDuration = Duration::from_secs(10);
+        // let test_duration = Duration::from_secs(10);
         let count = 300;
         let mut state = 0;
-        let testData = RandomTestValues::new(
-            selfId, 
+        let test_data = RandomTestValues::new(
+            self_id, 
             vec![
                 Value::Int(i64::MIN),
                 Value::Int(i64::MAX),
@@ -81,7 +81,7 @@ mod tests {
             ], 
             count, 
         );
-        let testData: Vec<Value> = testData.collect();
+        let test_data: Vec<Value> = test_data.collect();
 
         let mut sent = vec![];
         let received = Arc::new(Mutex::new(vec![]));
@@ -180,7 +180,7 @@ mod tests {
         apiClient.run().unwrap();
         let timer = Instant::now();
         let send = apiClient.get_link("api-link");
-        for value in testData {
+        for value in test_data {
             let point = format!("select from table where id = {}", value.to_string()).to_point(0, "teset");
             send.send(point.clone()).unwrap();
             sent.push(point.as_string().value);
@@ -200,6 +200,6 @@ mod tests {
             debug!("\nresult({}): {:?}\ntarget({}): {:?}", received.len(), result, sent.len(), target);
             assert!(result == &target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
-        testDuration.exit();
+        test_duration.exit();
     }
 }

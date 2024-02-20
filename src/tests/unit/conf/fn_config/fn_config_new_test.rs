@@ -15,7 +15,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -26,19 +26,19 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
     #[test]
     fn test_fn_config_new_valid() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
         let self_id = "test FnConfig | new valid";
         println!("{}", self_id);
-        let testData = [
+        let test_data = [
             (
                 r#"let newVar:
                     input: const '13.55'
@@ -135,12 +135,12 @@ mod tests {
                 ]) } )
             ),
         ];
-        for (value, target) in testData {
+        for (value, target) in test_data {
             debug!("test value: {:?}", value);
             let conf: serde_yaml::Value = serde_yaml::from_str(value).unwrap();
             debug!("value: {:?}   |   conf: {:?}   |   target: {:?}", "_", conf, target);
             let mut vars = vec![];
-            let fnConfig = FnConfig::fromYamlValue(self_id, &conf, &mut vars);
+            let fnConfig = FnConfig::from_yaml(self_id, &conf, &mut vars);
             debug!("\tfnConfig: {:?}", fnConfig);
             assert_eq!(fnConfig, target);
         }

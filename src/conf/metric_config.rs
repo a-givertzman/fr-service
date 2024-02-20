@@ -100,7 +100,7 @@ impl MetricConfig {
     }
     ///
     /// creates config from serde_yaml::Value of following format:
-    pub(crate) fn fromYamlValue(parent: &str, value: &serde_yaml::Value, vars: &mut Vec<String>) -> MetricConfig {
+    pub(crate) fn from_yaml(parent: &str, value: &serde_yaml::Value, vars: &mut Vec<String>) -> MetricConfig {
         Self::new(parent, &ConfTree::newRoot(value.clone()).next().unwrap(), vars)
     }
     ///
@@ -112,7 +112,7 @@ impl MetricConfig {
             Ok(yamlString) => {
                 match serde_yaml::from_str(&yamlString) {
                     Ok(config) => {
-                        MetricConfig::fromYamlValue(parent, &config, &mut vars)
+                        MetricConfig::from_yaml(parent, &config, &mut vars)
                     },
                     Err(err) => {
                         panic!("MetricConfig.read | Error in config: {:?}\n\terror: {:?}", yamlString, err)

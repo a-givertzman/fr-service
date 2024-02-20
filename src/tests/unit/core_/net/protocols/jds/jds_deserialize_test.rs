@@ -22,7 +22,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -33,7 +33,7 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
@@ -47,15 +47,15 @@ mod tests {
     #[test]
     fn test_jds_deserialize() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
         println!("test JdsDeserialize");
         let name = "/server/line1/ied1/test1";
         let ts = ts();
         let txId = 0;
         // debug!("timestamp: {:?}", ts);j
-        let testData = [
+        let test_data = [
             (
                 format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": false,   "status": 0, "timestamp":"{}"}}"#, 
                 name, tsStr(ts)), PointType::Bool(Point::new(txId, name, Bool(false), Status::Ok, Cot::default(), ts))
@@ -106,9 +106,9 @@ mod tests {
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         let received = Arc::new(AtomicUsize::new(0));
         let count = 1000;
-        let testDataLen = testData.len();
-        let total = count * testDataLen;
-        mockTcpServer(addr.to_string(), count, testData.clone(), received.clone());
+        let test_dataLen = test_data.len();
+        let total = count * test_dataLen;
+        mockTcpServer(addr.to_string(), count, test_data.clone(), received.clone());
         thread::sleep(Duration::from_micros(100));
         {
             println!("\nReading from stream.read(byte)...");
@@ -127,17 +127,17 @@ mod tests {
                                     match point {
                                         Ok(point) => {
                                             received.fetch_add(1, Ordering::SeqCst);
-                                            let recvIndex = (received.load(Ordering::SeqCst) - 1) % testDataLen;
+                                            let recvIndex = (received.load(Ordering::SeqCst) - 1) % test_dataLen;
                                             trace!("socket read - received[{}]: {:?}", recvIndex, point);
-                                            assert!(point.name() == testData[recvIndex].1.name(), "\nreceived: {:?}\nexpected: {:?}", point.name(), testData[recvIndex].1.name());
-                                            assert!(point.status() == testData[recvIndex].1.status(), "\nreceived: {:?}\nexpected: {:?}", point.status(), testData[recvIndex].1.status());
-                                            assert!(point.cot() == testData[recvIndex].1.cot(), "\nreceived: {:?}\nexpected: {:?}", point.cot(), testData[recvIndex].1.cot());
-                                            assert!(point.timestamp() == testData[recvIndex].1.timestamp(), "\nreceived: {:?}\nexpected: {:?}", point.timestamp(), testData[recvIndex].1.timestamp());
+                                            assert!(point.name() == test_data[recvIndex].1.name(), "\nreceived: {:?}\nexpected: {:?}", point.name(), test_data[recvIndex].1.name());
+                                            assert!(point.status() == test_data[recvIndex].1.status(), "\nreceived: {:?}\nexpected: {:?}", point.status(), test_data[recvIndex].1.status());
+                                            assert!(point.cot() == test_data[recvIndex].1.cot(), "\nreceived: {:?}\nexpected: {:?}", point.cot(), test_data[recvIndex].1.cot());
+                                            assert!(point.timestamp() == test_data[recvIndex].1.timestamp(), "\nreceived: {:?}\nexpected: {:?}", point.timestamp(), test_data[recvIndex].1.timestamp());
                                             match point {
-                                                PointType::Bool(point) => assert!(point.value == testData[recvIndex].1.as_bool().value, "\nreceived: {:?}\nexpected: {:?}", point.value, testData[recvIndex].1.as_bool().value),
-                                                PointType::Int(point) => assert!(point.value == testData[recvIndex].1.as_int().value, "\nreceived: {:?}\nexpected: {:?}", point.value, testData[recvIndex].1.as_int().value),
-                                                PointType::Float(point) => assert!(point.value == testData[recvIndex].1.as_float().value, "\nreceived: {:?}\nexpected: {:?}", point.value, testData[recvIndex].1.as_float().value),
-                                                PointType::String(point) => assert!(point.value == testData[recvIndex].1.as_string().value, "\nreceived: {:?}\nexpected: {:?}", point.value, testData[recvIndex].1.as_string().value),
+                                                PointType::Bool(point) => assert!(point.value == test_data[recvIndex].1.as_bool().value, "\nreceived: {:?}\nexpected: {:?}", point.value, test_data[recvIndex].1.as_bool().value),
+                                                PointType::Int(point) => assert!(point.value == test_data[recvIndex].1.as_int().value, "\nreceived: {:?}\nexpected: {:?}", point.value, test_data[recvIndex].1.as_int().value),
+                                                PointType::Float(point) => assert!(point.value == test_data[recvIndex].1.as_float().value, "\nreceived: {:?}\nexpected: {:?}", point.value, test_data[recvIndex].1.as_float().value),
+                                                PointType::String(point) => assert!(point.value == test_data[recvIndex].1.as_string().value, "\nreceived: {:?}\nexpected: {:?}", point.value, test_data[recvIndex].1.as_string().value),
                                             }
                                             // debug!("socket read - received: {:?}", received.load(Ordering::SeqCst));
                                             if received.load(Ordering::SeqCst) >= total {
@@ -166,7 +166,7 @@ mod tests {
     }
     ///
     /// TcpServer setup
-    fn mockTcpServer(addr: String, count: usize, testData: [(String, PointType); 11], received: Arc<AtomicUsize>) {
+    fn mockTcpServer(addr: String, count: usize, test_data: [(String, PointType); 11], received: Arc<AtomicUsize>) {
         let mut sent = 0;
         thread::spawn(move || {
             info!("TCP server | Preparing test server...");
@@ -183,7 +183,7 @@ mod tests {
                                 info!("TCP server | accept connection - ok\n\t{:?}", addr);
                                 let EOT = [4];
                                 for _ in 0..count {
-                                    for (msg, _) in &testData {
+                                    for (msg, _) in &test_data {
                                         let pos: usize = rng.gen_range(5..(msg.len() - 5));
                                         // for e in buf.iter_mut() {*e = 0;}
                                         let (msg1, msg2) = msg.split_at(pos);

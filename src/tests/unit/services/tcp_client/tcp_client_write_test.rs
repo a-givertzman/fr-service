@@ -18,7 +18,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -29,28 +29,28 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
     #[test]
     fn test_TcpClient_write() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
-        let selfId = "test TcpClient WRITE";
-        println!("{}", selfId);
+        let self_id = "test TcpClient WRITE";
+        println!("{}", self_id);
         let path = "./src/tests/unit/services/tcp_client/tcp_client.yaml";
-        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
-        testDuration.run().unwrap();
+        let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
+        test_duration.run().unwrap();
         let mut conf = TcpClientConfig::read(path);
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         conf.address = addr.parse().unwrap();
 
         let iterations = 100;
-        let testData = RandomTestValues::new(
-            selfId, 
+        let test_data = RandomTestValues::new(
+            self_id, 
             vec![
                 Value::Int(i64::MIN),
                 Value::Int(i64::MAX),
@@ -74,11 +74,11 @@ mod tests {
             ], 
             iterations, 
         );
-        let testData: Vec<Value> = testData.collect();
+        let test_data: Vec<Value> = test_data.collect();
 
-        let services = Arc::new(Mutex::new(Services::new(selfId)));
+        let services = Arc::new(Mutex::new(Services::new(self_id)));
         let multiQueue = Arc::new(Mutex::new(MockMultiqueue::new(None)));
-        let tcpClient = Arc::new(Mutex::new(TcpClient::new(selfId, conf, services.clone())));
+        let tcpClient = Arc::new(Mutex::new(TcpClient::new(self_id, conf, services.clone())));
         let multiQueueServiceId = "MultiQueue";
         let tcpClientServiceId = "TcpClient";
         services.lock().unwrap().insert(tcpClientServiceId, tcpClient.clone());
@@ -105,19 +105,19 @@ mod tests {
         let send = tcpClient.lock().unwrap().get_link("link");
         debug!("Test - setup - ok");
         debug!("Sending points...");
-        for value in testData {
+        for value in test_data {
             let point = value.to_point(0, "teset");
             send.send(point.clone()).unwrap();
             sent.push(point);
         }
         handle.join().unwrap();
         // let waitDuration = Duration::from_millis(10);
-        // let mut waitAttempts = testDuration.as_micros() / waitDuration.as_micros();
+        // let mut waitAttempts = test_duration.as_micros() / waitDuration.as_micros();
         // while received.lock().unwrap().len() < count {
         //     debug!("waiting while all data beeng received {}/{}...", received.lock().unwrap().len(), count);
         //     thread::sleep(waitDuration);
         //     waitAttempts -= 1;
-        //     assert!(waitAttempts > 0, "Transfering {}/{} points taks too mach time {:?} of {:?}", received.lock().unwrap().len(), count, timer.elapsed(), testDuration);
+        //     assert!(waitAttempts > 0, "Transfering {}/{} points taks too mach time {:?} of {:?}", received.lock().unwrap().len(), count, timer.elapsed(), test_duration);
         // }
         println!("elapsed: {:?}", timer.elapsed());
         println!("total test events: {:?}", iterations);
@@ -126,7 +126,7 @@ mod tests {
         println!("recv events: {:?}", received.len());
         assert!(sent.len() == iterations, "sent: {:?}\ntarget: {:?}", sent.len(), iterations);
         assert!(received.len() == iterations, "received: {:?}\ntarget: {:?}", received.len(), iterations);
-        testDuration.exit();
+        test_duration.exit();
     }
     ///
     /// TcpServer setup

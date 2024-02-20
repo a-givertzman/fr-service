@@ -23,13 +23,13 @@ impl TcpStreamWrite {
     ///
     /// Creates new instance of [TcpStreamWrite]
     pub fn new(parent: impl Into<String>, buffered: bool, bufferLength: Option<usize>, stream: Box<dyn StreamRead<Vec<u8>, RecvError> + Send>) -> Self {
-        let selfId = format!("{}/TcpStreamWrite", parent.into());
+        let self_id = format!("{}/TcpStreamWrite", parent.into());
         let buffer = match buffered {
-            true => RetainBuffer::new(&selfId, "", bufferLength),
-            false => RetainBuffer::new(&selfId, "", Some(0))
+            true => RetainBuffer::new(&self_id, "", bufferLength),
+            false => RetainBuffer::new(&self_id, "", Some(0))
         };
         Self {
-            id: selfId,
+            id: self_id,
             // buffered,
             stream,
             buffer,

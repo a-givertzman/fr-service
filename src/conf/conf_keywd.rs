@@ -5,7 +5,6 @@ use log::{trace, warn};
 use regex::RegexBuilder;
 use serde::Deserialize;
 
-
 ///
 /// 
 #[derive(Debug, Deserialize, PartialEq, Eq, Hash, Clone)]
@@ -30,6 +29,8 @@ impl FromStr for ConfKind {
         }
     }
 }
+///
+/// 
 impl ToString for ConfKind {
     fn to_string(&self) -> String {
         match self {
@@ -98,8 +99,17 @@ impl ConfKeywd {
             ConfKeywd::Link(v) => v.name.clone(),
         }
     }
+    pub fn sufix(&self) -> String {
+        match self {
+            ConfKeywd::Task(v) => v.sufix.clone(),
+            ConfKeywd::Service(v) => v.sufix.clone(),
+            ConfKeywd::Queue(v) => v.sufix.clone(),
+            ConfKeywd::Link(v) => v.sufix.clone(),
+        }
+    }
 }
-
+///
+/// 
 impl FromStr for ConfKeywd {
     type Err = String;
     fn from_str(input: &str) -> Result<ConfKeywd, String> {

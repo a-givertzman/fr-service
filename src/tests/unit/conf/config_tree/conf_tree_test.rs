@@ -14,7 +14,7 @@ static INIT: Once = Once::new();
 
 ///
 /// once called initialisation
-fn initOnce() {
+fn init_once() {
     INIT.call_once(|| {
             // implement your initialisation code to be called only once for current test file
         }
@@ -25,7 +25,7 @@ fn initOnce() {
 ///
 /// returns:
 ///  - ...
-fn initEach() -> () {
+fn init_each() -> () {
 
 }
 
@@ -49,11 +49,11 @@ impl Node {
 #[test]
 fn test_config_tree_valid() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
-    initEach();
+    init_once();
+    init_each();
     info!("test_config_tree_valid");
-    // let (initial, switches) = initEach();
-    let testData: Vec<(&str, Node)> = vec![
+    // let (initial, switches) = init_each();
+    let test_data: Vec<(&str, Node)> = vec![
         // (
         //     r#"let newVar:
         //         input const '13.55'
@@ -174,11 +174,11 @@ fn test_config_tree_valid() {
             ]))
         ),
     ];
-    for (value, target) in testData {
+    for (value, target) in test_data {
         // debug!("test value: {:?}", value);
         let conf: serde_yaml::Value = serde_yaml::from_str(value).unwrap();
         debug!("test conf: {:?}", conf);
-        // let conf = testData.get("/").unwrap();
+        // let conf = test_data.get("/").unwrap();
         let confTree = ConfTree::newRoot(conf);
         debug!("confTree: {:?}", confTree);
         let res = inputs(&confTree);
@@ -215,11 +215,11 @@ fn inputs(confTree: &ConfTree) -> Node {
 #[test]
 fn test_config_tree_as_type() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
-    initEach();
+    init_once();
+    init_each();
     info!("test_config_tree_valid");
-    // let (initial, switches) = initEach();
-    let testData: Vec<(&str, IndexMap<&str, Value>)> = vec![
+    // let (initial, switches) = init_each();
+    let test_data: Vec<(&str, IndexMap<&str, Value>)> = vec![
         (
             r#"
                 boolTrue: true
@@ -246,7 +246,7 @@ fn test_config_tree_as_type() {
         ),
 
     ];
-    for (value, targets) in testData {
+    for (value, targets) in test_data {
         // debug!("test value: {:?}", value);
         let conf: serde_yaml::Value = serde_yaml::from_str(value).unwrap();
         debug!("test conf: {:?}", conf);

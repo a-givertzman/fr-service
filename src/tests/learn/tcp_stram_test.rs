@@ -14,7 +14,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -25,7 +25,7 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
 
@@ -33,13 +33,13 @@ mod tests {
     #[test]
     fn test_tcp_stream_read() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
-        let selfId = "test TcpStream read on close";
-        println!("{}", selfId);
-        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
-        testDuration.run().unwrap();
+        let self_id = "test TcpStream read on close";
+        println!("{}", self_id);
+        let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
+        test_duration.run().unwrap();
         let tcpPort = TestSession::free_tcp_port_str();
         let tcpAddr = format!("127.0.0.1:{}", tcpPort);
         let handle = server(&tcpAddr).unwrap();
@@ -48,39 +48,39 @@ mod tests {
             Ok(stream) => {
                 match stream.set_read_timeout(Some(RECV_TIMEOUT)) {
                     Ok(_) => {
-                        info!("{}.setStreamTimout | Socket set read timeout {:?} - ok", selfId, RECV_TIMEOUT);
+                        info!("{}.setStreamTimout | Socket set read timeout {:?} - ok", self_id, RECV_TIMEOUT);
                     },
                     Err(err) => {
-                        warn!("{}.setStreamTimout | Socket set read timeout error {:?}", selfId, err);
+                        warn!("{}.setStreamTimout | Socket set read timeout error {:?}", self_id, err);
                     },
                 }
                 let stream = BufReader::new(stream);
                 for byte in stream.bytes() {
-                    debug!("{}.run | received byte: {:?}", selfId, byte);
+                    debug!("{}.run | received byte: {:?}", self_id, byte);
                 }
             },
             Err(err) => {
-                panic!("{}.run | TcpStream::connect error: {:?}", selfId, err);
+                panic!("{}.run | TcpStream::connect error: {:?}", self_id, err);
             },
         }
-        debug!("{}.run | TcpStream::read finished", selfId);
+        debug!("{}.run | TcpStream::read finished", self_id);
         handle.wait().unwrap();
-        testDuration.exit();
+        test_duration.exit();
     }
     ///
     /// 
     fn server(addr: &str) -> Result<JoinHandle<()>, std::io::Error> {
-        let selfId = "Emuleted TcpServer";
+        let self_id = "Emuleted TcpServer";
         let addr = addr.to_string();
-        info!("{}.run | Preparing thread...", selfId);
-        let handle = thread::Builder::new().name(format!("{}.run", selfId)).spawn(move || {
-            info!("{}.run | Preparing thread - ok", selfId);
+        info!("{}.run | Preparing thread...", self_id);
+        let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
+            info!("{}.run | Preparing thread - ok", self_id);
             match TcpListener::bind(addr.clone()) {
                 Ok(listener) => {
-                    info!("{}.run | Open socket {} - ok", selfId, addr);
+                    info!("{}.run | Open socket {} - ok", self_id, addr);
                     for stream in listener.incoming() {
                         // if exit.load(Ordering::SeqCst) {
-                        //     debug!("{}.run | Detected exit", selfId);
+                        //     debug!("{}.run | Detected exit", self_id);
                         //     break;
                         // }
                         // match stream {
@@ -88,52 +88,52 @@ mod tests {
                         //         let mut buf = vec![];
                         //         match stream.read(&mut buf) {
                         //             Ok(len) => {
-                        //                 debug!("{}.run | received {} bytes", selfId, len);
+                        //                 debug!("{}.run | received {} bytes", self_id, len);
                         //             },
                         //             Err(err) => {
-                        //                 warn!("{}.run | TcpListener::bind error: {:?}", selfId, err);
+                        //                 warn!("{}.run | TcpListener::bind error: {:?}", self_id, err);
                         //             },
                         //         }
                         //     },
                         //     Err(err) => {
-                        //         panic!("{}.run | TcpListener::incoming error: {:?}", selfId, err);
+                        //         panic!("{}.run | TcpListener::incoming error: {:?}", self_id, err);
                         //     },
                         // }
                         match stream {
                             Ok(mut stream) => {
                                 match stream.set_read_timeout(Some(RECV_TIMEOUT)) {
                                     Ok(_) => {
-                                        info!("{}.setStreamTimout | Socket set read timeout {:?} - ok", selfId, RECV_TIMEOUT);
+                                        info!("{}.setStreamTimout | Socket set read timeout {:?} - ok", self_id, RECV_TIMEOUT);
                                     },
                                     Err(err) => {
-                                        warn!("{}.setStreamTimout | Socket set read timeout error {:?}", selfId, err);
+                                        warn!("{}.setStreamTimout | Socket set read timeout error {:?}", self_id, err);
                                     },
                                 }                
                                 let mut buf = vec![0, 1, 2, 3];
                                 match stream.write(&mut buf) {
                                     Ok(len) => {
-                                        // debug!("{}.run | received {} bytes", selfId, len);
-                                        info!("{}.run | sent {} bytes - ok", selfId, len);
+                                        // debug!("{}.run | received {} bytes", self_id, len);
+                                        info!("{}.run | sent {} bytes - ok", self_id, len);
                                         thread::sleep(Duration::from_secs(3));
                                         drop(stream);
                                     },
                                     Err(err) => {
-                                        warn!("{}.run | TcpListener::bind error: {:?}", selfId, err);
+                                        warn!("{}.run | TcpListener::bind error: {:?}", self_id, err);
                                     },
                                 }
                             },
                             Err(err) => {
-                                panic!("{}.run | TcpListener::incoming error: {:?}", selfId, err);
+                                panic!("{}.run | TcpListener::incoming error: {:?}", self_id, err);
                             },
                         }
                         break;
                     }
                 },
                 Err(err) => {
-                    warn!("{}.run | TcpListener::bind error: {:?}", selfId, err);
+                    warn!("{}.run | TcpListener::bind error: {:?}", self_id, err);
                 },
             };
-            info!("{}.run | Exit...", selfId);
+            info!("{}.run | Exit...", self_id);
         });
         handle
     }

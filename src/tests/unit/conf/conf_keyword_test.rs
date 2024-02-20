@@ -13,7 +13,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -24,7 +24,7 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
@@ -32,11 +32,11 @@ mod tests {
     #[test]
     fn test_create_valid() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("test_create_valid");
-        // let (initial, switches) = initEach();
-        let testData = vec![
+        // let (initial, switches) = init_each();
+        let test_data = vec![
             ("service ApiClient", ConfKeywd::Service( ConfKeywdValue {prefix: format!(""), kind: ConfKind::Service, name: format!("ApiClient"), sufix: format!("")} )),
             ("service ApiClient ApiClient1", ConfKeywd::Service( ConfKeywdValue {prefix: format!(""), kind: ConfKind::Service, name: format!("ApiClient"), sufix: format!("ApiClient1")} )),
             ("service MultiQueue", ConfKeywd::Service( ConfKeywdValue {prefix: format!(""), kind: ConfKind::Service, name: format!("MultiQueue"), sufix: format!("")} )),
@@ -48,7 +48,7 @@ mod tests {
             ("out queue", ConfKeywd::Queue( ConfKeywdValue {prefix: format!("out"), kind: ConfKind::Queue, name: format!(""), sufix: format!("")} )),
             ("out link", ConfKeywd::Link( ConfKeywdValue {prefix: format!("out"), kind: ConfKind::Link, name: format!(""), sufix: format!("")} )),
         ];
-        for (value, target) in testData {
+        for (value, target) in test_data {
             let result = ConfKeywd::from_str(value).unwrap();
             debug!("value: {:?}   |   ConfKind: {:?}   |   target: {:?}", value, result, target);
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
@@ -58,11 +58,11 @@ mod tests {
     // #[test]
     // fn test_create_invalid() {
     //     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    //     initOnce();
-    //     initEach();
+    //     init_once();
+    //     init_each();
     //     info!("test_create_invalid");
-    //     // let (initial, switches) = initEach();
-    //     let testData: Vec<(&str, Result<&str, ()>)> = vec![
+    //     // let (initial, switches) = init_each();
+    //     let test_data: Vec<(&str, Result<&str, ()>)> = vec![
     //         ("fn:name", Err(())),
     //         ("fn\nname", Err(())),
     //         ("fn: name", Err(())),
@@ -88,7 +88,7 @@ mod tests {
     //         ("pointName", Err(())),
     //         ("point_name", Err(())),
     //     ];
-    //     for (value, target) in testData {
+    //     for (value, target) in test_data {
     //         let fnConfigType = ConfKeywd::from_str(value);
     //         debug!("value: {:?}   |   fnConfigType: {:?}   |   target: {:?}", value, fnConfigType, target);
     //         assert_eq!(fnConfigType.is_err(), true);

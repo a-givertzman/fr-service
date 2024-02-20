@@ -15,7 +15,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -26,20 +26,20 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
     #[test]
     fn test_fn_config_point() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
-        let selfId = "test FnConfig | point";
-        println!("{}", selfId);
+        let self_id = "test FnConfig | point";
+        println!("{}", self_id);
         let testPoint1 = PointConfig {
-            name: format!("{}/CraneMovement.BoomUp", selfId),
+            name: format!("{}/CraneMovement.BoomUp", self_id),
             _type: PointConfigType::Int,
             history: PointConfigHistory::None,
             alarm: None,
@@ -48,7 +48,7 @@ mod tests {
             comment: Some("Some indication".to_string()),
         };
         let testPoint2 = PointConfig {
-            name: format!("{}/CraneMovement.BoomDown", selfId),
+            name: format!("{}/CraneMovement.BoomDown", self_id),
             _type: PointConfigType::Float,
             history: PointConfigHistory::Read,
             alarm: None,
@@ -56,7 +56,7 @@ mod tests {
             filters: None,
             comment: Some("Some indication".to_string()),
         };
-        let testData = [
+        let test_data = [
             (
                 vec![],
                 r#"let newVar:
@@ -96,12 +96,12 @@ mod tests {
                 ]) } ),
             ),
         ];
-        for (pointsTarget, value, target) in testData {
+        for (pointsTarget, value, target) in test_data {
             debug!("test value: {:?}", value);
             let conf: serde_yaml::Value = serde_yaml::from_str(value).unwrap();
             debug!("value: {:?}   |   conf: {:?}   |   target: {:?}", "_", conf, target);
             let mut vars = vec![];
-            let fnConfig = FnConfig::fromYamlValue(selfId, &conf, &mut vars);
+            let fnConfig = FnConfig::from_yaml(self_id, &conf, &mut vars);
             let points = fnConfig.points();
             debug!("\tfnConfig: {:?}", fnConfig);
             debug!("\tpoints: {:?}", points);

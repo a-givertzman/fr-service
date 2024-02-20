@@ -15,7 +15,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -26,18 +26,18 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
     #[test]
     fn test_fn_config_read_valid() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
-        let selfId = "test FnConfig | read valid";
-        println!("{}", selfId);
+        let self_id = "test FnConfig | read valid";
+        println!("{}", self_id);
         let target = FnConfKind::Var( FnConfig { 
             name: "VarName2".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                 ("input".to_string(), FnConfKind::Fn( FnConfig { 
@@ -67,10 +67,10 @@ mod tests {
             ]),
         } );
         
-        // let (initial, switches) = initEach();
+        // let (initial, switches) = init_each();
         trace!("dir: {:?}", env::current_dir());
         let path= "./src/tests/unit/conf/fn_config/fn_config_test.yaml";
-        let fnConfig = FnConfig::read(selfId, path);
+        let fnConfig = FnConfig::read(self_id, path);
         trace!("fnConfig: {:?}", fnConfig);
         assert_eq!(fnConfig, target);
     }

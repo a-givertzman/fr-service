@@ -1,4 +1,3 @@
-#![allow(non_snake_case)]
 #[cfg(test)]
 
 mod tests {
@@ -14,7 +13,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -25,21 +24,21 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
     #[test]
-    fn test_point_config_serialize() {
+    fn test_point_name() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
-        let selfId = "test PointConfig deserialize";
-        println!("{}", selfId);
-        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
-        testDuration.run().unwrap();
-        let testData = [
+        let self_id = "test PointName";
+        println!("{}", self_id);
+        let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
+        test_duration.run().unwrap();
+        let test_data = [
             (r#"
                     Point.Name.0:
                         type: Bool      # Bool / Int / Float / String / Json
@@ -144,26 +143,26 @@ mod tests {
                 },
             ),            
         ];
-        for (target, conf) in testData {
+        for (target, conf) in test_data {
             let target: serde_yaml::Value = serde_yaml::from_str(target).unwrap();
-            let result = conf.asYaml();
+            let result = conf.as_yaml();
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
-        testDuration.exit();
+        test_duration.exit();
     }
 
     
     #[test]
     fn test_point_config_deserialize() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
-        let selfId = "test PointConfig serialize";
-        println!("{}", selfId);
-        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
-        testDuration.run().unwrap();
-        let testData = [
+        let self_id = "test PointConfig serialize";
+        println!("{}", self_id);
+        let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
+        test_duration.run().unwrap();
+        let test_data = [
             (r#"
                     PointName0:
                         type: bool      # Bool / Int / Float / String / Json
@@ -176,7 +175,7 @@ mod tests {
                             threshold: 5    # 5% threshold
                         comment: Test Point Bool"#, 
                 PointConfig { 
-                    name: format!("{}/PointName0", selfId),
+                    name: format!("{}/PointName0", self_id),
                     _type: PointConfigType::Bool, 
                     history: PointConfigHistory::ReadWrite, alarm: Some(0), 
                     address: Some(PointConfigAddress { offset: Some(0), bit: Some(0) }), 
@@ -192,7 +191,7 @@ mod tests {
                             offset: 0   # 0..65535
                         comment: Test Point"#, 
                 PointConfig { 
-                    name: format!("{}/PointName1", selfId),
+                    name: format!("{}/PointName1", self_id),
                     _type: PointConfigType::Int, 
                     history: PointConfigHistory::Write, alarm: None, 
                     address: Some(PointConfigAddress { offset: Some(0), bit: None }), 
@@ -208,7 +207,7 @@ mod tests {
                             offset: 0   # 0..65535
                         comment: Test Point"#, 
                 PointConfig { 
-                    name: format!("{}/PointName2", selfId),
+                    name: format!("{}/PointName2", self_id),
                     _type: PointConfigType::Int, 
                     history: PointConfigHistory::None, alarm: Some(4), 
                     address: Some(PointConfigAddress { offset: Some(0), bit: None }), 
@@ -223,7 +222,7 @@ mod tests {
                             offset: 12   # 0..65535
                         comment: Test Point"#, 
                 PointConfig { 
-                    name: format!("{}/PointName3", selfId),
+                    name: format!("{}/PointName3", self_id),
                     _type: PointConfigType::Int, 
                     history: PointConfigHistory::None, alarm: None, 
                     address: Some(PointConfigAddress { offset: Some(12), bit: None }), 
@@ -232,11 +231,11 @@ mod tests {
                 },
             ),
         ];
-        for (conf, target) in testData {
+        for (conf, target) in test_data {
             let conf = serde_yaml::from_str(conf).unwrap();
-            let result = PointConfig::fromYamlValue(selfId, &conf);
+            let result = PointConfig::from_yaml(self_id, &conf);
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
-        testDuration.exit();
+        test_duration.exit();
     }
 }

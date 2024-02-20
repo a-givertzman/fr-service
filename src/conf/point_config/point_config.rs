@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 use std::{collections::HashMap, str::FromStr};
 
 use log::{trace, debug};
@@ -58,14 +56,14 @@ impl PointConfig {
     ///         threshold: 0.5      // absolute threshold delta
     ///         factor: 1.5         // multiplier for absolute threshold delta - in this case the delta will be accumulated
     ///     comment: Test Point 
-    pub fn new(parent: &str, confTree: &ConfTree) -> PointConfig {
+    pub fn new(parent: &str, conf_tree: &ConfTree) -> PointConfig {
         // println!("\n");
-        trace!("PointConfig.new | confTree: {:?}", confTree);
-        let mut pc: PointConfig = serde_yaml::from_value(confTree.conf.clone()).unwrap();
-        let keyword = FnConfKeywd::from_str(&confTree.key);
+        trace!("PointConfig.new | confTree: {:?}", conf_tree);
+        let mut pc: PointConfig = serde_yaml::from_value(conf_tree.conf.clone()).unwrap();
+        let keyword = FnConfKeywd::from_str(&conf_tree.key);
         pc.name = match keyword {
             Ok(keyword) => keyword.data(),
-            Err(_) => confTree.key.clone(),
+            Err(_) => conf_tree.key.clone(),
         };
         if !parent.is_empty() {
             pc.name = format!("{}/{}", parent, pc.name);
@@ -81,13 +79,13 @@ impl PointConfig {
     }    
     ///
     /// creates config from serde_yaml::Value of following format:
-    pub(crate) fn fromYamlValue(parent: &str, value: &serde_yaml::Value) -> PointConfig {
-        debug!("PointConfig.fromYamlValue | value: {:?}", value);
+    pub(crate) fn from_yaml(parent: &str, value: &serde_yaml::Value) -> PointConfig {
+        debug!("PointConfig.from_yaml | value: {:?}", value);
         Self::new(parent, &ConfTree::newRoot(value.clone()).next().unwrap())
     }
     ///
     /// Returns yaml representation
-    pub fn asYaml(&self) -> serde_yaml::Value {
+    pub fn as_yaml(&self) -> serde_yaml::Value {
         let result: serde_yaml::Value = serde_yaml::to_value(&self).unwrap();
         let mut wrap = HashMap::new();
         wrap.insert(self.name.clone(), result);

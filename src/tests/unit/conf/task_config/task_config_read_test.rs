@@ -15,7 +15,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -26,15 +26,15 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
     #[test]
     fn test_task_config_read_valid() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         info!("test_task_config_read_valid");
         let target = TaskConfig {
             name: format!("task1"),
@@ -81,7 +81,7 @@ mod tests {
             ])
         };
         
-        // let (initial, switches) = initEach();
+        // let (initial, switches) = init_each();
         trace!("dir: {:?}", env::current_dir());
         let path = "./src/tests/unit/conf/task_config/task_config_test.yaml";
         let metricConfig = TaskConfig::read(path);

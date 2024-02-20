@@ -16,7 +16,7 @@ static INIT: Once = Once::new();
 
 ///
 /// once called initialisation
-fn initOnce() {
+fn init_once() {
     INIT.call_once(|| {
             // implement your initialisation code to be called only once for current test file
         }
@@ -27,7 +27,7 @@ fn initOnce() {
 ///
 /// returns:
 ///  - ...
-fn initEach(initial: PointType) -> FnInOutRef {
+fn init_each(initial: PointType) -> FnInOutRef {
     Rc::new(RefCell::new(
         Box::new(
             FnInput::new("test", initial)
@@ -39,16 +39,16 @@ fn initEach(initial: PointType) -> FnInOutRef {
 #[test]
 fn test_elapsed_repeat_false() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
+    init_once();
     info!("test_elapsed_repeat_false");
-    let input = initEach(false.to_point(0, "bool"));
+    let input = init_each(false.to_point(0, "bool"));
     let mut fnTimer = FnTimer::new(
         "id", 
         0,
         input.clone(),
         false,
     );
-    let testData = vec![
+    let test_data = vec![
         (false, 0),
         (false, 0),
         (true, 1),
@@ -70,7 +70,7 @@ fn test_elapsed_repeat_false() {
     let mut elapsed: f64 = 0.0;
     let mut elapsedTotal: f64 = 0.0;
     let mut done = false;
-    for (value, _) in testData {
+    for (value, _) in test_data {
         if !done {
             if value {
                 if start.is_none() {
@@ -102,16 +102,16 @@ fn test_elapsed_repeat_false() {
 #[test]
 fn test_total_elapsed_repeat() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
+    init_once();
     info!("test_total_elapsed_repeat");
-    let input = initEach(false.to_point(0, "bool"));
+    let input = init_each(false.to_point(0, "bool"));
     let mut fnTimer = FnTimer::new(
         "id", 
         0,
         input.clone(),
         true,
     );
-    let testData = vec![
+    let test_data = vec![
         (false, 0),
         (false, 0),
         (true, 1),
@@ -131,7 +131,7 @@ fn test_total_elapsed_repeat() {
     let mut target: f64;
     let mut elapsed: f64 = 0.0;
     let mut elapsedTotal: f64 = 0.0;
-    for (value, _) in testData {
+    for (value, _) in test_data {
         if value {
             if start.is_none() {
                 start = Some(Instant::now());
@@ -160,16 +160,16 @@ fn test_total_elapsed_repeat() {
 #[test]
 fn test_total_elapsed_repeat_reset() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
+    init_once();
     info!("test_total_elapsed_repeat_reset");
-    let input = initEach(false.to_point(0, "bool"));
+    let input = init_each(false.to_point(0, "bool"));
     let mut fnTimer = FnTimer::new(
         "id",
         0, 
         input.clone(),
         true,
     );
-    let testData = vec![
+    let test_data = vec![
         (false, 0, false),
         (false, 0, false),
         (true, 1, false),
@@ -190,7 +190,7 @@ fn test_total_elapsed_repeat_reset() {
     let mut elapsedTotal: f64 = 0.0;
     let mut elapsedSession: f64 = 0.0;
     let mut target;
-    for (value, _, reset) in testData {
+    for (value, _, reset) in test_data {
         if reset {
             start = None;
             elapsedSession = 0.0;
@@ -226,17 +226,17 @@ fn test_total_elapsed_repeat_reset() {
 #[test]
 fn test_initial_repeat() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
+    init_once();
     info!("test_initial_repeat");
     let initial = 123.1234;
-    let input = initEach(false.to_point(0, "bool"));
+    let input = init_each(false.to_point(0, "bool"));
     let mut fnTimer = FnTimer::new(
         "id",
         initial, 
         input.clone(),
         true,
     );
-    let testData = vec![
+    let test_data = vec![
         (false, 0),
         (false, 0),
         (true, 1),
@@ -256,7 +256,7 @@ fn test_initial_repeat() {
     let mut target: f64;
     let mut elapsed: f64 = 0.0;
     let mut elapsedTotal: f64 = initial;
-    for (value, _) in testData {
+    for (value, _) in test_data {
         if value {
             if start.is_none() {
                 start = Some(Instant::now());

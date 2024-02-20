@@ -109,8 +109,8 @@ fn main() {
     env_logger::init();
 
     info!("test_create_valid_fn");
-    // let (initial, switches) = initEach();
-    let testData = [
+    // let (initial, switches) = init_each();
+    let test_data = [
         // serde_yaml::from_str(r#"
         //     input: const 177.3
         // "#),
@@ -173,12 +173,12 @@ fn main() {
         "#,
     ];
 
-    // for conf in testData {
+    // for conf in test_data {
     //     let config = Config::new(&conf.unwrap(), &None);
     //     debug!("config: {:?}", config);
     // }
     let mut services = vec![];
-    let config: Vec<serde_yaml::Value> = serde_yaml::from_str(&testData[0]).unwrap();
+    let config: Vec<serde_yaml::Value> = serde_yaml::from_str(&test_data[0]).unwrap();
     for conf in config {
         debug!("main | key: {:?}\t|\tconf: {:?}", "_", conf);
         let conf = format!("!{}", serde_yaml::to_string(&conf).unwrap());
@@ -258,8 +258,8 @@ fn main() {
 //     env_logger::init();
 
 //     info!("test_create_valid_fn");
-//     // let (initial, switches) = initEach();
-//     let testData = [
+//     // let (initial, switches) = init_each();
+//     let test_data = [
 //         (serde_yaml::from_str(r#"
 //             let newVar1:
 //                 input1:
@@ -273,10 +273,10 @@ fn main() {
 //                     //         inputConst1: const '13.5'
 //                     //         inputConst2: const '13.5'
 //     ];
-//     for (value, target) in testData {
+//     for (value, target) in test_data {
 //         debug!("test value: {:?}", value);
 //         let conf: serde_yaml::Value = value.unwrap();
-//         // let conf = testData.get("/").unwrap();
+//         // let conf = test_data.get("/").unwrap();
 
 //         debug!("value: {:?}   |   conf: {:?}   |   target: {:?}", "_", conf, target);
 //         // let fnKeyword = FnConfigKeyword::from_str(conf.as_str().unwrap()).unwrap();

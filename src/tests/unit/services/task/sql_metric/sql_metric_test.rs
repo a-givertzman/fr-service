@@ -22,7 +22,7 @@ static INIT: Once = Once::new();
 
 ///
 /// once called initialisation
-fn initOnce() {
+fn init_once() {
     INIT.call_once(|| {
             // implement your initialisation code to be called only once for current test file
         }
@@ -33,25 +33,25 @@ fn initOnce() {
 ///
 /// returns:
 ///  - Rc<RefCell<Box<dyn FnInOut>>>...
-// fn initEach() {
+// fn init_each() {
 // }
 
 
 #[test]
 fn test_int() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
+    init_once();
     println!("");
-    let selfId = "test_int";
-    println!("{}", selfId);
+    let self_id = "test_int";
+    println!("{}", self_id);
     let path = "./src/tests/unit/services/task/sql_metric/sql_metric_int_test.yaml";
     let conf = TaskConfig::read(path);
     debug!("conf: {:?}", conf);
-    let mut nodes = TaskNodes::new(selfId);
-    let services = Arc::new(Mutex::new(Services::new(selfId)));
+    let mut nodes = TaskNodes::new(self_id);
+    let services = Arc::new(Mutex::new(Services::new(self_id)));
     nodes.buildNodes("test", conf, services);
     debug!("taskNodes: {:?}", nodes);
-    let testData = vec![
+    let test_data = vec![
         (1, "/path/Point.Name", 3),
         (1, "/path/Point.Name", 3),
         (1, "/path/Point.Name", 3),
@@ -67,7 +67,7 @@ fn test_int() {
         (8, "/path/Point.Name", 10),
         (9, "/path/Point.Name", 11),
     ];
-    for (value, name, targetValue) in testData {
+    for (value, name, targetValue) in test_data {
         let point = value.to_point(0, name);
         let inputName = &point.name();
         match &nodes.getEvalNode(&inputName) {
@@ -126,18 +126,18 @@ fn test_int() {
 #[test]
 fn test_float() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
+    init_once();
     println!("");
-    let selfId = "test_float";
-    println!("{}", selfId);
+    let self_id = "test_float";
+    println!("{}", self_id);
     let path = "./src/tests/unit/services/task/sql_metric/sql_metric_float_test.yaml";
     let conf = TaskConfig::read(path);
     debug!("conf: {:?}", conf);
-    let mut nodes = TaskNodes::new(selfId);
-    let services = Arc::new(Mutex::new(Services::new(selfId)));
+    let mut nodes = TaskNodes::new(self_id);
+    let services = Arc::new(Mutex::new(Services::new(self_id)));
     nodes.buildNodes("test", conf, services);
     debug!("taskNodes: {:?}", nodes);
-    let testData = vec![
+    let test_data = vec![
         (1.1, "/path/Point.Name", 3.3),
         (1.2, "/path/Point.Name", 3.4),
         (1.3, "/path/Point.Name", 3.5),
@@ -153,7 +153,7 @@ fn test_float() {
         (8.8, "/path/Point.Name", 11.0),
         (9.9, "/path/Point.Name", 12.1),
     ];
-    for (value, name, targetValue) in testData {
+    for (value, name, targetValue) in test_data {
         let point = value.to_point(0, name);
         let inputName = &point.name();
         match nodes.getEvalNode(&inputName) {

@@ -230,7 +230,7 @@ impl Service for ProfinetClient {
                             }
                         }
                         // if status != Status::Ok {
-                        //     Self::yieldStatus(&selfId, &mut dbs, &txSend);
+                        //     Self::yieldStatus(&self_id, &mut dbs, &txSend);
                         // }
                     },
                     Err(err) => {

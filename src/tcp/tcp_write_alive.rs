@@ -36,16 +36,16 @@ impl TcpWriteAlive {
     /// 
     pub fn run(&self, mut tcpStream: TcpStream) -> JoinHandle<()> {
         info!("{}.run | starting...", self.id);
-        let selfId = self.id.clone();
+        let self_id = self.id.clone();
         let exit = self.exit.clone();
         let exitPair = self.exitPair.clone();
         let mut cycle = ServiceCycle::new(self.cycle);
         let streamWrite = self.streamWrite.clone();
         info!("{}.run | Preparing thread...", self.id);
-        let handle = thread::Builder::new().name(format!("{} - Write", selfId.clone())).spawn(move || {
-            info!("{}.run | Preparing thread - ok", selfId);
+        let handle = thread::Builder::new().name(format!("{} - Write", self_id.clone())).spawn(move || {
+            info!("{}.run | Preparing thread - ok", self_id);
             let mut streamWrite = streamWrite.lock().unwrap();
-            info!("{}.run | Main loop started", selfId);
+            info!("{}.run | Main loop started", self_id);
             'main: loop {
                 cycle.start();
                 match streamWrite.write(&mut tcpStream) {
@@ -53,12 +53,12 @@ impl TcpWriteAlive {
                         match result {
                             Ok(_) => {},
                             Err(err) => {
-                                warn!("{}.run | error: {:?}", selfId, err);
+                                warn!("{}.run | error: {:?}", self_id, err);
                             },
                         }
                     },
                     ConnectionStatus::Closed(err) => {
-                        warn!("{}.run | error: {:?}", selfId, err);
+                        warn!("{}.run | error: {:?}", self_id, err);
                         exitPair.store(true, Ordering::SeqCst);
                         break 'main;
                     },
@@ -68,7 +68,7 @@ impl TcpWriteAlive {
                 }
                 cycle.wait();
             }
-            info!("{}.run | Exit", selfId);
+            info!("{}.run | Exit", self_id);
         }).unwrap();
         info!("{}.run | started", self.id);
         handle

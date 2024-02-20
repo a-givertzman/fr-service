@@ -19,10 +19,10 @@ pub struct MockRecvService {
 /// 
 impl MockRecvService {
     pub fn new(parent: impl Into<String>, rxQueue: &str, recvLimit: Option<usize>) -> Self {
-        let selfId = format!("{}/MockRecvService", parent.into());
+        let self_id = format!("{}/MockRecvService", parent.into());
         let (send, recv) = mpsc::channel::<PointType>();
         Self {
-            id: selfId.clone(),
+            id: self_id.clone(),
             rxSend: HashMap::from([(rxQueue.to_string(), send)]),
             rxRecv: vec![recv],
             received: Arc::new(Mutex::new(vec![])),
@@ -61,20 +61,20 @@ impl Service for MockRecvService {
     //
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
-        let selfId = self.id.clone();
+        let self_id = self.id.clone();
         let exit = self.exit.clone();
         let inRecv = self.rxRecv.pop().unwrap();
         let received = self.received.clone();
         let recvLimit = self.recvLimit.clone();
-        let handle = thread::Builder::new().name(format!("{}.run", selfId)).spawn(move || {
-            info!("{}.run | Preparing thread - ok", selfId);
+        let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
+            info!("{}.run | Preparing thread - ok", self_id);
             match recvLimit {
                 Some(recvLimit) => {
                     let mut receivedCount = 0;
                     loop {
                         match inRecv.recv_timeout(RECV_TIMEOUT) {
                             Ok(point) => {
-                                trace!("{}.run | received: {:?}", selfId, point);
+                                trace!("{}.run | received: {:?}", self_id, point);
                                 received.lock().unwrap().push(point);
                                 receivedCount += 1;
                             },
@@ -92,7 +92,7 @@ impl Service for MockRecvService {
                     loop {
                         match inRecv.recv_timeout(RECV_TIMEOUT) {
                             Ok(point) => {
-                                trace!("{}.run | received: {:?}", selfId, point);
+                                trace!("{}.run | received: {:?}", self_id, point);
                                 received.lock().unwrap().push(point);
                             },
                             Err(_) => {},

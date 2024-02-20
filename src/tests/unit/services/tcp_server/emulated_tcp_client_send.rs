@@ -13,14 +13,14 @@ use crate::{
 
 ///
 /// Jast connects to the tcp socket on [address]
-/// - all point from [testData] will be sent via socket
+/// - all point from [test_data] will be sent via socket
 /// - all received point in the received() method
 /// - if [recvLimit] is some then thread exit when riched recvLimit
-/// - [disconnect] - contains percentage (0..100) of testData / iterations, where socket will be disconnected and connected again
+/// - [disconnect] - contains percentage (0..100) of test_data / iterations, where socket will be disconnected and connected again
 pub struct EmulatedTcpClientSend {
     id: String,
     addr: SocketAddr,
-    testData: Vec<Value>,
+    test_data: Vec<Value>,
     sent: Arc<Mutex<Vec<PointType>>>,
     disconnect: Vec<i8>,
     waitOnFinish: bool,
@@ -29,12 +29,12 @@ pub struct EmulatedTcpClientSend {
 ///
 /// 
 impl EmulatedTcpClientSend {
-    pub fn new(parent: impl Into<String>, addr: &str, testData: Vec<Value>, disconnect: Vec<i8>, waitOnFinish: bool) -> Self {
-        let selfId = format!("{}/EmulatedTcpClientSend", parent.into());
+    pub fn new(parent: impl Into<String>, addr: &str, test_data: Vec<Value>, disconnect: Vec<i8>, waitOnFinish: bool) -> Self {
+        let self_id = format!("{}/EmulatedTcpClientSend", parent.into());
         Self {
-            id: selfId.clone(),
+            id: self_id.clone(),
             addr: addr.parse().unwrap(),
-            testData,
+            test_data,
             sent: Arc::new(Mutex::new(vec![])),
             disconnect,
             waitOnFinish,
@@ -119,33 +119,33 @@ impl Service for EmulatedTcpClientSend {
     //
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
-        let selfId = self.id.clone();
+        let self_id = self.id.clone();
         let exit = self.exit.clone();
         let addr = self.addr.clone();
-        let mut testData = self.testData.clone();
-        let totalCount = testData.len();
+        let mut test_data = self.test_data.clone();
+        let totalCount = test_data.len();
         let sent = self.sent.clone();
         let disconnect = self.disconnect.iter().map(|v| {(*v as f32) / 100.0}).collect();
         let _waitOnFinish = self.waitOnFinish;
-        let handle = thread::Builder::new().name(format!("{}.run Read", selfId)).spawn(move || {
-            info!("{}.run | Preparing thread Read - ok", selfId);
+        let handle = thread::Builder::new().name(format!("{}.run Read", self_id)).spawn(move || {
+            info!("{}.run | Preparing thread Read - ok", self_id);
             let mut switchState = Self::switchState(1, disconnect, 1.0);
             'connect: loop {
                 match TcpStream::connect(addr) {
                     Ok(mut tcpStream) => {
-                        info!("{}.run | connected on: {:?}", selfId, addr);
+                        info!("{}.run | connected on: {:?}", self_id, addr);
                         thread::sleep(Duration::from_millis(100));
-                        if !testData.is_empty() {
+                        if !test_data.is_empty() {
                             let (send, recv) = mpsc::channel();
                             let mut JdsMessage = JdsEncodeMessage::new(
-                                &selfId,
-                                JdsSerialize::new(&selfId, recv)
+                                &self_id,
+                                JdsSerialize::new(&self_id, recv)
                             );
-                            let txId = PointTxId::fromStr(&selfId);
+                            let txId = PointTxId::fromStr(&self_id);
                             let mut sentCount = 0;
                             let mut progressPercent = 0.0;
-                            while testData.len() > 0 {
-                                let value = testData.remove(0);
+                            while test_data.len() > 0 {
+                                let value = test_data.remove(0);
                                 let point = value.to_point(txId, "test");
                                 send.send(point.clone()).unwrap();
                                 match JdsMessage.read() {
@@ -156,25 +156,25 @@ impl Service for EmulatedTcpClientSend {
                                                 sentCount += 1;
                                                 progressPercent = (sentCount as f32) / (totalCount as f32);
                                                 switchState.add(progressPercent);
-                                                debug!("{}.run | sent: {:?}", selfId, value);
+                                                debug!("{}.run | sent: {:?}", self_id, value);
                                             },
                                             Err(err) => {
-                                                warn!("{}.run | socket write error: {:?}", selfId, err);
+                                                warn!("{}.run | socket write error: {:?}", self_id, err);
                                             },
                                         }
                                     },
                                     Err(err) => {
-                                        panic!("{}.run | jdsSerialize error: {:?}", selfId, err);
+                                        panic!("{}.run | jdsSerialize error: {:?}", self_id, err);
                                     },
                                 };
-                                // if testData.is_empty() && waitOnFinish {
-                                //     info!("{}.run | waitOnFinish: {}", selfId, waitOnFinish);
+                                // if test_data.is_empty() && waitOnFinish {
+                                //     info!("{}.run | waitOnFinish: {}", self_id, waitOnFinish);
                                 //     while !exit.load(Ordering::SeqCst) {
                                 //         thread::sleep(Duration::from_millis(100));
                                 //     }
                                 // }
                                 if switchState.changed() {
-                                    info!("{}.run | state: {} progress percent: {}", selfId, switchState.state(), progressPercent);
+                                    info!("{}.run | state: {} progress percent: {}", self_id, switchState.state(), progressPercent);
                                     thread::sleep(Duration::from_millis(1000));
                                     tcpStream.flush().unwrap();
                                     thread::sleep(Duration::from_millis(1000));
@@ -189,35 +189,35 @@ impl Service for EmulatedTcpClientSend {
                             }
                         }
                         if switchState.isMax() {
-                            info!("{}.run | switchState.isMax, exiting", selfId);
+                            info!("{}.run | switchState.isMax, exiting", self_id);
                             break 'connect;
                         }
-                        if testData.is_empty() {
-                            info!("{}.run | testData.is_empty, exiting", selfId);
+                        if test_data.is_empty() {
+                            info!("{}.run | test_data.is_empty, exiting", self_id);
                             tcpStream.flush().unwrap();
                             thread::sleep(Duration::from_millis(1000));
                             break 'connect;
                         }
                     },
                     Err(err) => {
-                        warn!("{}.run | connection error: {:?}", selfId, err);
+                        warn!("{}.run | connection error: {:?}", self_id, err);
                         thread::sleep(Duration::from_millis(1000))
                     },
                 }
                 if switchState.isMax() {
-                    info!("{}.run | switchState.isMax, exiting", selfId);
+                    info!("{}.run | switchState.isMax, exiting", self_id);
                     break 'connect;
                 }
-                if testData.is_empty() {
-                    info!("{}.run | testData.is_empty, exiting", selfId);
+                if test_data.is_empty() {
+                    info!("{}.run | test_data.is_empty, exiting", self_id);
                     break 'connect;
                 }
                 if exit.load(Ordering::SeqCst) {
-                    info!("{}.run | exit detected, exiting", selfId);
+                    info!("{}.run | exit detected, exiting", self_id);
                     break 'connect;
                 }
             }
-            info!("{}.run | Exit", selfId);
+            info!("{}.run | Exit", self_id);
         });
         info!("{}.run | starting - ok", self.id);
         handle

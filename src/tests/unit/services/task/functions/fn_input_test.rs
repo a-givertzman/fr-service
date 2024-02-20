@@ -15,7 +15,7 @@ static INIT: Once = Once::new();
 
 ///
 /// once called initialisation
-fn initOnce() {
+fn init_once() {
     INIT.call_once(|| {
             // implement your initialisation code to be called only once for current test file
         }
@@ -26,7 +26,7 @@ fn initOnce() {
 ///
 /// returns:
 ///  - ...
-fn initEach(initial: PointType) -> FnInOutRef {
+fn init_each(initial: PointType) -> FnInOutRef {
     Rc::new(RefCell::new(
         Box::new(
             FnInput::new("test", initial)
@@ -38,10 +38,10 @@ fn initEach(initial: PointType) -> FnInOutRef {
 #[test]
 fn test_int() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
+    init_once();
     info!("test_int");
-    let input = initEach(0.to_point(0, "int"));
-    let testData = vec![
+    let input = init_each(0.to_point(0, "int"));
+    let test_data = vec![
         0,
         1,
         2,
@@ -57,7 +57,7 @@ fn test_int() {
         0,
         0,
     ];
-    for value in testData {
+    for value in test_data {
         let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
@@ -71,10 +71,10 @@ fn test_int() {
 #[test]
 fn test_bool() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
+    init_once();
     info!("test_bool");
-    let input = initEach(false.to_point(0, "bool"));
-    let testData = vec![
+    let input = init_each(false.to_point(0, "bool"));
+    let test_data = vec![
         false,
         false,
         false,
@@ -92,7 +92,7 @@ fn test_bool() {
         false,
         false,
     ];
-    for value in testData {
+    for value in test_data {
         let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
@@ -106,10 +106,10 @@ fn test_bool() {
 #[test]
 fn test_float() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
+    init_once();
     info!("test_float");
-    let input = initEach(0.0.to_point(0, "float"));
-    let testData = vec![
+    let input = init_each(0.0.to_point(0, "float"));
+    let test_data = vec![
         0.0,
         1.0,
         2.0,
@@ -127,7 +127,7 @@ fn test_float() {
         1.0,
         0.0,
     ];
-    for value in testData {
+    for value in test_data {
         let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
@@ -142,10 +142,10 @@ fn test_float() {
 #[test]
 fn test_string() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
+    init_once();
     info!("test_string");
-    let input = initEach("0".to_point(0, "string"));
-    let testData = vec![
+    let input = init_each("0".to_point(0, "string"));
+    let test_data = vec![
         "0",
         "1",
         "2",
@@ -161,7 +161,7 @@ fn test_string() {
         "0",
         "0",
     ];
-    for value in testData {
+    for value in test_data {
         let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);

@@ -61,11 +61,11 @@ impl JdsDecodeMessage {
     /// - returns Closed:
     ///    - if read 0 bytes
     ///    - if on error
-    fn readAll(selfId: &str, bytes: &mut Vec<u8>, stream: impl Read) -> ConnectionStatus<Result<(), String>, String> {
+    fn readAll(self_id: &str, bytes: &mut Vec<u8>, stream: impl Read) -> ConnectionStatus<Result<(), String>, String> {
         for byte in stream.bytes() {
             match byte {
                 Ok(byte) => {
-                    // debug!("{}.readAll |     read len: {:?}", selfId, len);
+                    // debug!("{}.readAll |     read len: {:?}", self_id, len);
                     match byte {
                         JDS_END_OF_TRANSMISSION => {
                             return ConnectionStatus::Active(Ok(()));
@@ -76,22 +76,22 @@ impl JdsDecodeMessage {
                     };
                 },
                 Err(err) => {
-                    warn!("{}.readAll | error reading from socket: {:?}", selfId, err);
-                    warn!("{}.readAll | error kind: {:?}", selfId, err.kind());
+                    warn!("{}.readAll | error reading from socket: {:?}", self_id, err);
+                    warn!("{}.readAll | error kind: {:?}", self_id, err.kind());
                     match Self::matchErrorKind(err.kind()) {
                         Status::Active => {
-                            return ConnectionStatus::Active(Err(format!("{}.readAll | tcp stream is empty", selfId)));
+                            return ConnectionStatus::Active(Err(format!("{}.readAll | tcp stream is empty", self_id)));
                         },
                         Status::Closed => {
-                            return ConnectionStatus::Closed(format!("{}.readAll | tcp stream is closed, error: {:?}", selfId, err));
+                            return ConnectionStatus::Closed(format!("{}.readAll | tcp stream is closed, error: {:?}", self_id, err));
                         },
                     }
                 },
             };
         };
-        trace!("{}.readAll | read bytes: {:?}", selfId, bytes);
-        ConnectionStatus::Closed(format!("{}.readAll | tcp stream is closed", selfId))
-        // ConnectionStatus::Active(Err(format!("{}.readAll | tcp stream is empty", selfId)))
+        trace!("{}.readAll | read bytes: {:?}", self_id, bytes);
+        ConnectionStatus::Closed(format!("{}.readAll | tcp stream is closed", self_id))
+        // ConnectionStatus::Active(Err(format!("{}.readAll | tcp stream is empty", self_id)))
     }
     ///
     /// 

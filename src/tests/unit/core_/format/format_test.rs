@@ -16,7 +16,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -27,24 +27,24 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
     #[test]
     fn test_simple_name() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         info!("test_bool");
     
-        // let (initial, switches) = initEach();
-        let testData = vec![
+        // let (initial, switches) = init_each();
+        let test_data = vec![
             ("abc {a} xyz {b} rty {c} str {d}.", (false, 12, 1.618, "1223"), "abc false xyz 12 rty 1.618 str 1223."),
             ("abc {a} xyz '{b}' rty \"{c}\" str '{d}'.", (false, 12, 1.618, "1223"), "abc false xyz '12' rty \"1.618\" str '1223'."),
             ("abc {a} xyz '{b}' rty \"{c}\" str \"{d}\".", (false, 12, 1.618, "1223"), "abc false xyz '12' rty \"1.618\" str \"1223\"."),
         ];
-        for (input, values, target) in testData {
+        for (input, values, target) in test_data {
             let mut format = Format::new(input);
             format.insert("a", values.0.to_point(0, ""));
             format.insert("b", values.1.to_point(0, ""));
@@ -59,16 +59,16 @@ mod tests {
     #[test]
     fn test_name_sufix() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         info!("test_name_sufix");
     
-        // let (initial, switches) = initEach();
-        let testData = vec![
+        // let (initial, switches) = init_each();
+        let test_data = vec![
             ("abc {a.value} xyz {b.name} rty {c.timestamp} str {c.id}.", (false, 12, 1.618, "1223"), r"abc false xyz  rty {c.timestamp} UTC str {c.id}."),
             ("abc {a.value} xyz {b.name} rty {c.timestamp} str {c.id}.", (false, 02, 0.618, "1223"), r"abc false xyz  rty {c.timestamp} UTC str {c.id}."),
         ];
-        for (input, values, target) in testData {
+        for (input, values, target) in test_data {
             let mut format = Format::new(input);
             format.insert("a.value", values.0.to_point(0, ""));
             format.insert("b.name", values.1.to_point(0, ""));
@@ -94,10 +94,10 @@ mod tests {
     #[test]
     fn test_prepare() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         info!("test_prepare");
-        // let (initial, switches) = initEach();
+        // let (initial, switches) = init_each();
     
         let mut format = Format::new("abc {const} xyz '{b.name}' rty {c.value} str {c.timestamp}.");
         format.insert("const", 12345.to_point(0, ""));
@@ -107,11 +107,11 @@ mod tests {
         let target = "abc 12345 xyz 'the.name' rty {c.value} str {c.timestamp}.";
         assert!(format.out() == target, "prepared format != target \nformat: {} \ntarget: {}", format, target);
     
-        let testData = vec![
+        let test_data = vec![
             (1.618, r"abc 12345 xyz 'the.name' rty {c.value} str {c.timestamp} UTC."),
             (0.618, r"abc 12345 xyz 'the.name' rty {c.value} str {c.timestamp} UTC."),
         ];
-        for (values, target) in testData {
+        for (values, target) in test_data {
             format.insert("a.value", values.to_point(0, ""));
             format.insert("c.timestamp", values.to_point(0, ""));
             debug!("result: {}", format);

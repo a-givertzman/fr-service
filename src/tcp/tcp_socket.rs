@@ -59,11 +59,11 @@ impl TcpSocket {
     /// - returns Closed:
     ///    - if read 0 bytes
     ///    - if on error
-    fn readAll(selfId: &str, bytes: &mut Vec<u8>, stream: &mut BufReader<TcpStream>) -> ConnectionStatus<(), String> {
+    fn readAll(self_id: &str, bytes: &mut Vec<u8>, stream: &mut BufReader<TcpStream>) -> ConnectionStatus<(), String> {
         for byte in stream.bytes() {
             match byte {
                 Ok(byte) => {
-                    // debug!("{}.readAll |     read len: {:?}", selfId, len);
+                    // debug!("{}.readAll |     read len: {:?}", self_id, len);
                     match byte {
                         JDS_END_OF_TRANSMISSION => {
                             return ConnectionStatus::Active(());
@@ -74,10 +74,10 @@ impl TcpSocket {
                     };
                 },
                 Err(err) => {
-                    warn!("{}.readAll | error reading from socket: {:?}", selfId, err);
-                    warn!("{}.readAll | error kind: {:?}", selfId, err.kind());
+                    warn!("{}.readAll | error reading from socket: {:?}", self_id, err);
+                    warn!("{}.readAll | error kind: {:?}", self_id, err.kind());
                     // Self::matchErrorKind(err.kind());
-                    return ConnectionStatus::Closed(format!("{}.readAll | tcp socket error : {:?}", selfId, err))
+                    return ConnectionStatus::Closed(format!("{}.readAll | tcp socket error : {:?}", self_id, err))
                 },
             };
         };

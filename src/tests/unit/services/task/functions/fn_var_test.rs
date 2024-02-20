@@ -20,7 +20,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -31,7 +31,7 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach(initial: PointType) -> FnInOutRef {
+    fn init_each(initial: PointType) -> FnInOutRef {
         Rc::new(RefCell::new(
             Box::new(
                 FnInput::new("test", initial)
@@ -43,14 +43,14 @@ mod tests {
     #[test]
     fn test_bool() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
+        init_once();
         info!("test_bool");
-        let input = initEach(false.to_point(0, "bool"));
+        let input = init_each(false.to_point(0, "bool"));
         let mut fnVar = FnVar::new(
             "test",
             input.clone(),
         );
-        let testData = vec![
+        let test_data = vec![
             false,
             false,
             true,
@@ -66,7 +66,7 @@ mod tests {
             false,
             false,
         ];
-        for value in testData {
+        for value in test_data {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point.clone());
             // debug!("input: {:?}", &input);
@@ -82,14 +82,14 @@ mod tests {
     #[test]
     fn test_int() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
+        init_once();
         info!("test_int");
-        let input = initEach(false.to_point(0, "bool"));
+        let input = init_each(false.to_point(0, "bool"));
         let mut fnVar = FnVar::new(
             "test",
             input.clone(),
         );
-        let testData = vec![
+        let test_data = vec![
             0,
             1,
             2,
@@ -102,7 +102,7 @@ mod tests {
             i64::MIN,
             i64::MAX,
         ];
-        for value in testData {
+        for value in test_data {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point.clone());
             // debug!("input: {:?}", &input);
@@ -118,14 +118,14 @@ mod tests {
     #[test]
     fn test_float() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
+        init_once();
         info!("test_float");
-        let input = initEach(false.to_point(0, "bool"));
+        let input = init_each(false.to_point(0, "bool"));
         let mut fnVar = FnVar::new(
             "test",
             input.clone(),
         );
-        let testData = vec![
+        let test_data = vec![
             0.0,
             0.1,
             -0.2,
@@ -138,7 +138,7 @@ mod tests {
             f64::MIN,
             f64::MAX,
         ];
-        for value in testData {
+        for value in test_data {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point.clone());
             // debug!("input: {:?}", &input);

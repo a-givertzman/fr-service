@@ -14,7 +14,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -25,15 +25,15 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
     #[test]
     fn test_success_connection() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
         println!("test success connection");
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
@@ -97,8 +97,8 @@ mod tests {
     #[test]
     fn test_failure_connection() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
         println!("test failure connection");
         let timeout = Duration::from_millis(1500); // ms

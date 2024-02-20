@@ -18,7 +18,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -29,7 +29,7 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
@@ -38,13 +38,13 @@ mod tests {
     #[test]
     fn test_task_struct() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
-        let selfId = "test_task_struct";
-        println!("{}", selfId);
-        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
-        testDuration.run().unwrap();
+        let self_id = "test_task_struct";
+        println!("{}", self_id);
+        let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
+        test_duration.run().unwrap();
 
         let iterations = 10;
         
@@ -53,31 +53,31 @@ mod tests {
         let config = TaskConfig::read(path);
         trace!("config: {:?}", &config);
         
-        let services = Arc::new(Mutex::new(Services::new(selfId)));
+        let services = Arc::new(Mutex::new(Services::new(self_id)));
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
-            selfId,
+            self_id,
             "in-queue",
             iterations,
         )));
         services.lock().unwrap().insert("TaskTestReceiver", receiver.clone());
         
-        let testData = RandomTestValues::new(
-            selfId, 
+        let test_data = RandomTestValues::new(
+            self_id, 
             vec![], 
             iterations, 
         );
-        let testData: Vec<Value> = testData.collect();
-        let totalCount = testData.len();
+        let test_data: Vec<Value> = test_data.collect();
+        let totalCount = test_data.len();
         assert!(totalCount == iterations, "\nresult: {:?}\ntarget: {:?}", totalCount, iterations);
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
-            selfId, 
+            self_id, 
             "Task.recv-queue",
             Duration::ZERO,
             services.clone(),
-            testData,
+            test_data,
         )));
         
-        let task = Arc::new(Mutex::new(Task::new(selfId, config, services.clone())));
+        let task = Arc::new(Mutex::new(Task::new(self_id, config, services.clone())));
         services.lock().unwrap().insert("Task", task.clone());
         
         let receiverHandle = receiver.lock().unwrap().run().unwrap();
@@ -99,7 +99,7 @@ mod tests {
         println!("received: {:?}", result);
         assert!(sent == iterations, "\nresult: {:?}\ntarget: {:?}", sent, iterations);
         assert!(result == iterations, "\nresult: {:?}\ntarget: {:?}", result, iterations);
-        testDuration.exit();
+        test_duration.exit();
     }
 
 
@@ -107,10 +107,10 @@ mod tests {
     #[test]
     fn test_task_tranfer() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         info!("test_task_transfer");
-        let selfId = "test";
+        let self_id = "test";
         let iterations = 10;
         
         trace!("dir: {:?}", env::current_dir());
@@ -119,16 +119,16 @@ mod tests {
         let config = TaskConfig::read(path);
         trace!("config: {:?}", &config);
     
-        let services = Arc::new(Mutex::new(Services::new(selfId)));
+        let services = Arc::new(Mutex::new(Services::new(self_id)));
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
-            selfId,
+            self_id,
             "in-queue",
             iterations,
         )));
         services.lock().unwrap().insert("TaskTestReceiver", receiver.clone());
         
-        let testData = RandomTestValues::new(
-            selfId, 
+        let test_data = RandomTestValues::new(
+            self_id, 
             vec![
                 Value::Float(f64::MAX),
                 Value::Float(f64::MIN),
@@ -139,17 +139,17 @@ mod tests {
             ], 
             iterations, 
         );
-        let testData: Vec<Value> = testData.collect();
-        // let totalCount = testData.len();
+        let test_data: Vec<Value> = test_data.collect();
+        // let totalCount = test_data.len();
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
-            selfId,
+            self_id,
             "Task.recv-queue",
             Duration::ZERO,
             services.clone(),
-            testData,
+            test_data,
         )));
     
-        let task = Arc::new(Mutex::new(Task::new(selfId, config, services.clone())));
+        let task = Arc::new(Mutex::new(Task::new(self_id, config, services.clone())));
         services.lock().unwrap().insert("Task", task.clone());
 
         let receiverHandle = receiver.lock().unwrap().run().unwrap();

@@ -21,7 +21,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -32,31 +32,31 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
     #[test]
     fn test_MultiQueue_subscribtions() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
-        let selfId = "test_multi_queue - Static subscriptions - Single send";
-        println!("{}", selfId);
+        let self_id = "test_multi_queue - Static subscriptions - Single send";
+        println!("{}", self_id);
 
         let count = 3;              // count of the MockRecvSendService & MockTcpServer instances
         let iterations = 1000;      // test data length
         let staticTestData = RandomTestValues::new(
-            selfId, 
+            self_id, 
             vec![
                 Value::Int(12),
             ], 
             iterations, 
         );
         let staticTestData: Vec<Value> = staticTestData.collect();
-        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
-        testDuration.run().unwrap();
+        let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
+        test_duration.run().unwrap();
         let mut conf = r#"
             service MultiQueue:
                 in queue in-queue:
@@ -67,7 +67,7 @@ mod tests {
             conf = format!("{}\n                    - MockRecvSendService{}.in-queue", conf, i)
         }
         let conf = serde_yaml::from_str(&conf).unwrap();
-        let mqConf = MultiQueueConfig::fromYamlValue(&conf);
+        let mqConf = MultiQueueConfig::from_yaml(&conf);
         debug!("mqConf: {:?}", mqConf);
         let services = Arc::new(Mutex::new(Services::new("test")));
         let mqService = Arc::new(Mutex::new(MultiQueue::new("test", mqConf, services.clone())));
@@ -97,7 +97,7 @@ mod tests {
         for i in 0..count {
             let pointContent = format!("dynamic{}", i);
             let dynamicTestData = RandomTestValues::new(
-                selfId, 
+                self_id, 
                 vec![
                     Value::String(String::from(&pointContent)),
                 ], 
@@ -153,7 +153,7 @@ mod tests {
         }
         mqService.lock().unwrap().exit();
         mqHandle.wait().unwrap();
-        testDuration.exit();
+        test_duration.exit();
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
     }
     ///

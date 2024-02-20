@@ -17,7 +17,7 @@ static INIT: Once = Once::new();
 
 ///
 /// once called initialisation
-fn initOnce() {
+fn init_once() {
     INIT.call_once(|| {
             // implement your initialisation code to be called only once for current test file
         }
@@ -28,15 +28,15 @@ fn initOnce() {
 ///
 /// returns:
 ///  - ...
-fn initEach() -> () {
+fn init_each() -> () {
 
 }
 
 #[test]
 fn test_ServiceCycle() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
-    initEach();
+    init_once();
+    init_each();
     println!("");
     println!("test ServiceCycle");
     fn load(num: usize) {

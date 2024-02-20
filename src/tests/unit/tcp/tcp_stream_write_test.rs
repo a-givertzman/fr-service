@@ -17,7 +17,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -28,7 +28,7 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     static INDEX: AtomicUsize = AtomicUsize::new(0);
@@ -47,25 +47,25 @@ mod tests {
     #[test]
     fn test_TcpStreamWrite() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
         println!("test TcpStreamWrite");
         let count = 1000;
-        let testDuration = Duration::from_secs(10);
+        let test_duration = Duration::from_secs(10);
         let sent = Arc::new(AtomicUsize::new(0));
         let received = Arc::new(Mutex::new(vec![]));
         let messageLen = 10;
-        let mut testData = vec![];
+        let mut test_data = vec![];
         for _ in 0..count {
-            testData.push(randomBytes(messageLen))
+            test_data.push(randomBytes(messageLen))
         }
-        info!("testData: {:?}", testData);
+        info!("test_data: {:?}", test_data);
         let mut tcpStreamWrite = TcpStreamWrite::new(
             "test",
             true,
             Some(10000),
-            Box::new(MockStreamRead { buffer: testData.clone()}),
+            Box::new(MockStreamRead { buffer: test_data.clone()}),
         );
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
 
@@ -103,17 +103,17 @@ mod tests {
                     thread::sleep(Duration::from_millis(100));
                 },
             };
-            assert!(timer.elapsed() < testDuration, "Transfering {}/{} messages taks too mach time {:?} of {:?}", received.lock().unwrap().len(), count, timer.elapsed(), testDuration);
+            assert!(timer.elapsed() < test_duration, "Transfering {}/{} messages taks too mach time {:?} of {:?}", received.lock().unwrap().len(), count, timer.elapsed(), test_duration);
             // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
             warn!("sent total: {}/{}", sent.load(Ordering::SeqCst), count);
         }
         let waitDuration = Duration::from_millis(10);
-        let mut waitAttempts = testDuration.as_micros() / waitDuration.as_micros();
+        let mut waitAttempts = test_duration.as_micros() / waitDuration.as_micros();
         while received.lock().unwrap().len() < count {
             debug!("waiting while all data beeng received {}/{}...", received.lock().unwrap().len(), count);
             thread::sleep(waitDuration);
             waitAttempts -= 1;
-            assert!(waitAttempts > 0, "Transfering {}/{} messages taks too mach time {:?} of {:?}", received.lock().unwrap().len(), count, timer.elapsed(), testDuration);
+            assert!(waitAttempts > 0, "Transfering {}/{} messages taks too mach time {:?} of {:?}", received.lock().unwrap().len(), count, timer.elapsed(), test_duration);
         }
         println!("elapsed: {:?}", timer.elapsed());
         println!("total test events: {:?}", count);
@@ -122,7 +122,7 @@ mod tests {
         println!("recv events: {:?}", received.len());
         assert!(sent.load(Ordering::SeqCst) == count, "sent: {:?}\ntarget: {:?}", sent, count);
         assert!(received.len() == count, "received: {:?}\ntarget: {:?}", received.len(), count);
-        for target in testData {
+        for target in test_data {
             let result = match received.first() {
                 Some(bytes) => {
                     debug!("\nresult: {:?}\ntarget: {:?}", bytes, target);

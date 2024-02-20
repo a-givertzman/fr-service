@@ -45,7 +45,7 @@ impl Service for MockMultiqueue {
     //
     // 
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
-        let selfId = self.id.clone();
+        let self_id = self.id.clone();
         let exit = self.exit.clone();
         let recv = self.recv.pop().unwrap();
         let received = self.received.clone();
@@ -64,7 +64,7 @@ impl Service for MockMultiqueue {
                                 }
                             },
                             Err(err) => {
-                                warn!("{}.run | recv error: {:?}", selfId, err);
+                                warn!("{}.run | recv error: {:?}", self_id, err);
                             },
                         }
                         if exit.load(Ordering::SeqCst) {
@@ -79,7 +79,7 @@ impl Service for MockMultiqueue {
                                 received.lock().unwrap().push(point);
                             },
                             Err(err) => {
-                                warn!("{}.run | recv error: {:?}", selfId, err);
+                                warn!("{}.run | recv error: {:?}", self_id, err);
                             },
                         }
                         if exit.load(Ordering::SeqCst) {

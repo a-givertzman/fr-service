@@ -25,13 +25,13 @@ impl TcpReadAlive {
     /// - [exit] - notification from parent to exit 
     /// - [exitPair] - notification from / to sibling pair to exit 
     pub fn new(parent: impl Into<String>, send: Sender<PointType>, cycle: Duration, exit: Option<Arc<AtomicBool>>, exitPair: Option<Arc<AtomicBool>>) -> Self {
-        let selfId = format!("{}/TcpReadAlive", parent.into());
+        let self_id = format!("{}/TcpReadAlive", parent.into());
         Self {
-            id: selfId.clone(),
+            id: self_id.clone(),
             jdsStream: Arc::new(Mutex::new(JdsDeserialize::new(
-                selfId.clone(),
+                self_id.clone(),
                 JdsDecodeMessage::new(
-                    selfId,
+                    self_id,
                 ),
             ))),
             send: send,
@@ -44,18 +44,18 @@ impl TcpReadAlive {
     /// Main loop of the [TcpReadAlive]
     pub fn run(&mut self, tcpStream: TcpStream) -> JoinHandle<()> {
         info!("{}.run | starting...", self.id);
-        let selfId = self.id.clone();
+        let self_id = self.id.clone();
         let exit = self.exit.clone();
         let exitPair = self.exitPair.clone();
         let mut cycle = ServiceCycle::new(self.cycle);
         let send = self.send.clone();
         let jdsStream = self.jdsStream.clone();
         info!("{}.run | Preparing thread...", self.id);
-        let handle = thread::Builder::new().name(format!("{} - Read", selfId.clone())).spawn(move || {
-            info!("{}.run | Preparing thread - ok", selfId);
+        let handle = thread::Builder::new().name(format!("{} - Read", self_id.clone())).spawn(move || {
+            info!("{}.run | Preparing thread - ok", self_id);
             let mut tcpStream = BufReader::new(tcpStream);
             let mut jdsStream = jdsStream.lock().unwrap();
-            info!("{}.run | Main loop started", selfId);
+            info!("{}.run | Main loop started", self_id);
             loop {
                 cycle.start();
                 match jdsStream.read(&mut tcpStream) {
@@ -65,19 +65,19 @@ impl TcpReadAlive {
                                 match send.send(point) {
                                     Ok(_) => {},
                                     Err(err) => {
-                                        warn!("{}.run | write to queue error: {:?}", selfId, err);
+                                        warn!("{}.run | write to queue error: {:?}", self_id, err);
                                     },
                                 };
                             },
                             Err(err) => {
                                 if log::max_level() == LevelFilter::Trace {
-                                    warn!("{}.run | error: {:?}", selfId, err);
+                                    warn!("{}.run | error: {:?}", self_id, err);
                                 }
                             },
                         }
                     },
                     ConnectionStatus::Closed(err) => {
-                        warn!("{}.run | error: {:?}", selfId, err);
+                        warn!("{}.run | error: {:?}", self_id, err);
                         exitPair.store(true, Ordering::SeqCst);
                         break;
                     },
@@ -87,7 +87,7 @@ impl TcpReadAlive {
                 }
                 cycle.wait();
             }
-            info!("{}.run | Exit", selfId);
+            info!("{}.run | Exit", self_id);
         }).unwrap();
         info!("{}.run | started", self.id);
         handle

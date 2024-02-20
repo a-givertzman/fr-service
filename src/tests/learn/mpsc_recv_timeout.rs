@@ -13,7 +13,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -24,7 +24,7 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
 
@@ -32,14 +32,14 @@ mod tests {
     #[test]
     fn test_mpsc_receiver() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
         println!("test mpsc::Receiver");
-        let selfId = "test";
+        let self_id = "test";
         let (send, recv) = mpsc::channel();
         let iterations = 3;
-        let _h = thread::Builder::new().name(selfId.to_string()).spawn(move || {
+        let _h = thread::Builder::new().name(self_id.to_string()).spawn(move || {
             for value in 0..=iterations {
                 send.send(value).unwrap();
                 thread::sleep(Duration::from_millis(1000))

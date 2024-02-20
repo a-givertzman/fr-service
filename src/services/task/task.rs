@@ -62,7 +62,7 @@ impl Service for Task {
     //
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
-        let selfId = self.id.clone();
+        let self_id = self.id.clone();
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         let services = self.services.clone();
@@ -71,26 +71,26 @@ impl Service for Task {
             None => (false, Duration::ZERO),
         };
         let inRecv = self.inRecv.pop().unwrap();
-        let handle = thread::Builder::new().name(format!("{} - main", selfId)).spawn(move || {
+        let handle = thread::Builder::new().name(format!("{} - main", self_id)).spawn(move || {
             let mut cycle = ServiceCycle::new(cycleInterval);
-            let mut taskNodes = TaskNodes::new(&selfId);
-            taskNodes.buildNodes(&selfId, conf, services);
-            debug!("{}.run | taskNodes: {:?}", selfId, taskNodes);
+            let mut taskNodes = TaskNodes::new(&self_id);
+            taskNodes.buildNodes(&self_id, conf, services);
+            debug!("{}.run | taskNodes: {:?}", self_id, taskNodes);
             'main: loop {
                 cycle.start();
-                trace!("{}.run | calculation step...", selfId);
+                trace!("{}.run | calculation step...", self_id);
                 match inRecv.recv_timeout(RECV_TIMEOUT) {
                     Ok(point) => {
-                        debug!("{}.run | point: {:?}", selfId, &point);
+                        debug!("{}.run | point: {:?}", self_id, &point);
                         taskNodes.eval(point);
                     },
                     Err(err) => {
                         match err {
                             RecvTimeoutError::Timeout => {
-                                debug!("{}.run | {:?}", selfId, err);
+                                debug!("{}.run | {:?}", self_id, err);
                             },
                             RecvTimeoutError::Disconnected => {
-                                error!("{}.run | Error receiving from queue: {:?}", selfId, err);
+                                error!("{}.run | Error receiving from queue: {:?}", self_id, err);
                                 break 'main;
                             },
                         }
@@ -99,12 +99,12 @@ impl Service for Task {
                 if exit.load(Ordering::SeqCst) {
                     break 'main;
                 }
-                debug!("{}.run | calculation step - done ({:?})", selfId, cycle.elapsed());
+                debug!("{}.run | calculation step - done ({:?})", self_id, cycle.elapsed());
                 if cyclic {
                     cycle.wait();
                 }
             };
-            info!("{}.run | stopped", selfId);
+            info!("{}.run | stopped", self_id);
         });
         info!("{}.run | started", self.id);
         handle

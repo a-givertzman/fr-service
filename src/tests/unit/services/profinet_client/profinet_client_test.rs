@@ -15,7 +15,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -26,21 +26,21 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
     #[test]
     fn profinet_client() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
-        let selfId = "test ProfinetClient";
-        println!("{}", selfId);
-        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
-        testDuration.run().unwrap();
-        let services = Arc::new(Mutex::new(Services::new(selfId)));
+        let self_id = "test ProfinetClient";
+        println!("{}", self_id);
+        let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
+        test_duration.run().unwrap();
+        let services = Arc::new(Mutex::new(Services::new(self_id)));
         let conf = r#"
             service MultiQueue:
                 in queue in-queue:
@@ -48,8 +48,8 @@ mod tests {
                 out queue: queue
         "#.to_string();
         let conf = serde_yaml::from_str(&conf).unwrap();
-        let mqConf = MultiQueueConfig::fromYamlValue(&conf);
-        let mqService = Arc::new(Mutex::new(MultiQueue::new(selfId, mqConf, services.clone())));
+        let mqConf = MultiQueueConfig::from_yaml(&conf);
+        let mqService = Arc::new(Mutex::new(MultiQueue::new(self_id, mqConf, services.clone())));
         services.lock().unwrap().insert("MultiQueue", mqService.clone());
 
         let path = "./src/tests/unit/services/profinet_client/profinet_client.yaml";
@@ -57,7 +57,7 @@ mod tests {
         debug!("config: {:?}", &conf);
         debug!("config points:");
 
-        let client = Arc::new(Mutex::new(ProfinetClient::new(selfId, conf, services.clone())));
+        let client = Arc::new(Mutex::new(ProfinetClient::new(self_id, conf, services.clone())));
         services.lock().unwrap().insert("ProfinetClient", client.clone());
 
         mqService.lock().unwrap().run().unwrap();
@@ -93,6 +93,6 @@ mod tests {
         // let result = config.points().len();
         // let target = targetPoints.len();
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
-        testDuration.exit();
+        test_duration.exit();
     }
 }

@@ -14,7 +14,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -25,7 +25,7 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     fn ts() -> DateTime<Utc> {
@@ -38,15 +38,15 @@ mod tests {
     #[test]
     fn test_JdsEncodeMessage() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
         println!("test JdsEncodeMessage");
         let name = "/server/line1/ied1/test";
         let ts = ts();
         let txId = 0;
         // debug!("timestamp: {:?}", ts);j
-        let testData = [
+        let test_data = [
             (
                 format!(r#"{{"type": "Bool",  "name": "{}", "value": false,   "status": 0, "cot": "Inf", "timestamp":"{}"}}"#, 
                 &format!("{}00", name), tsStr(ts)), PointType::Bool(Point::new(txId, &format!("{}00", name), Bool(false), Status::Ok, Cot::default(), ts))
@@ -101,7 +101,7 @@ mod tests {
             "test",
             JdsSerialize::new("test", recv),
         );
-        for (target, point) in testData {
+        for (target, point) in test_data {
             send.send(point.clone()).unwrap();
             let result = jdsSerialize.read().unwrap();
             let value: serde_json::Value = serde_json::from_str(&target).expect(&format!("Error parsing value: {:?}", target));
