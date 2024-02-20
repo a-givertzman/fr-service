@@ -103,11 +103,13 @@ impl FromStr for ConfKeywd {
     type Err = String;
     fn from_str(input: &str) -> Result<ConfKeywd, String> {
         trace!("FnConfKeywd.from_str | input: {}", input);
-        let re = r#"(?:(?:(\w+)|))(?:(?:\s|)(task|service|queue|link){1}(?:$|(?:[ \t]['"]*(\S+)['"]*)))"#;
+        // let re = r#"(?:(?:(\w+)|))(?:(?:\s|)(task|service|queue|link){1}(?:$|(?:[ \t]['"]*(\S+)['"]*)))"#;
+        let re = r#"(?:(?:(\w+)[ \t])?(task|service|queue|link){1}(?:$|(?:[ \t](\S+)(?:[ \t](\S+))?)))"#;
         let re = RegexBuilder::new(re).multi_line(false).build().unwrap();
         let groupPrefix = 1;
         let groupKind = 2;
         let groupName = 3;
+        let groupId = 4;
         match re.captures(input) {
             Some(caps) => {
                 let prefix = match &caps.get(groupPrefix) {

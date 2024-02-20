@@ -48,7 +48,7 @@ impl FnConfig {
     ///             input2: point '/path/Point.Name/'
     ///             input fn functionName:
     ///                 input: point '/path/Point.Name/'```
-    pub fn new(confTree: &ConfTree, vars: &mut Vec<String>) -> FnConfKind {
+    pub fn new(parent: &str, confTree: &ConfTree, vars: &mut Vec<String>) -> FnConfKind {
         println!("\n");
         trace!("FnConfig.new | confTree: {:?}", confTree);
         // self conf from first sub node
@@ -85,7 +85,7 @@ impl FnConfig {
                             FnConfKind::Var(
                                 FnConfig {
                                     name: value.data,
-                                    inputs: Self::buildInputs(confTree, vars),
+                                    inputs: Self::buildInputs(parent, confTree, vars),
                                     type_: value.type_,
                                 }
                             )        
@@ -94,7 +94,7 @@ impl FnConfig {
                             FnConfKind::Fn(
                                 FnConfig {
                                     name: value.data,
-                                    inputs: Self::buildInputs(confTree, vars),
+                                    inputs: Self::buildInputs(parent, confTree, vars),
                                     type_: value.type_,
                                 }
                             )
@@ -116,8 +116,8 @@ impl FnConfig {
                             };
                             FnConfKind::PointConf(
                                 FnPointConfig {
-                                    conf: PointConfig::new("SelfNameRequired!!!", confTree),
-                                    input: Box::new(FnConfig::new(&inputConf, vars)),
+                                    conf: PointConfig::new(parent, confTree),
+                                    input: Box::new(FnConfig::new(parent, &inputConf, vars)),
                                 }
                             )
                         },
@@ -204,7 +204,7 @@ impl FnConfig {
     }
     ///
     /// 
-    fn buildInputs(confTree: &ConfTree, vars: &mut Vec<String>) -> IndexMap<String, FnConfKind> {
+    fn buildInputs(parent: &str, confTree: &ConfTree, vars: &mut Vec<String>) -> IndexMap<String, FnConfKind> {
         let mut inputs = IndexMap::new();
         match confTree.subNodes() {
             // has inputs in mapping
@@ -218,7 +218,7 @@ impl FnConfig {
                             if !keyword.input().is_empty() {
                                 inputs.insert(
                                     keyword.input(),
-                                    FnConfig::new(&subNode, vars),
+                                    FnConfig::new(parent, &subNode, vars),
                                 );
                             }
                         },
@@ -226,7 +226,7 @@ impl FnConfig {
                             trace!("FnConfig.buildInputs | sub node NO KEYWORD");
                             inputs.insert(
                                 (&subNode).key.clone(), 
-                                FnConfig::new(&subNode, vars),
+                                FnConfig::new(parent, &subNode, vars),
                             );
                         },
                     };
@@ -236,7 +236,7 @@ impl FnConfig {
                 trace!("FnConfig.buildInputs | sub node not found, possible Const or Var");
                 inputs.insert(
                     (&confTree).key.clone(), 
-                    FnConfig::new(&confTree, vars),
+                    FnConfig::new(parent, &confTree, vars),
                 );
             },
         }
@@ -244,8 +244,8 @@ impl FnConfig {
     }
     ///
     /// creates config from serde_yaml::Value of following format:
-    pub fn fromYamlValue(value: &serde_yaml::Value, vars: &mut Vec<String>) -> FnConfKind {
-        Self::new(&ConfTree::newRoot(value.clone()).next().unwrap(), vars)
+    pub fn fromYamlValue(parent: &str, value: &serde_yaml::Value, vars: &mut Vec<String>) -> FnConfKind {
+        Self::new(parent, &ConfTree::newRoot(value.clone()).next().unwrap(), vars)
     }
     ///
     /// reads yaml config from path
@@ -259,13 +259,13 @@ impl FnConfig {
     ///             input fn functionName:
     ///                 input: point '/path/Point.Name/'```
     #[allow(dead_code)]
-    pub fn read(path: &str) -> FnConfKind {
+    pub fn read(parent: &str, path: &str) -> FnConfKind {
         let mut vars = vec![];
         match fs::read_to_string(&path) {
             Ok(yamlString) => {
                 match serde_yaml::from_str(&yamlString) {
                     Ok(config) => {
-                        FnConfig::fromYamlValue(&config, &mut vars)
+                        FnConfig::fromYamlValue(parent, &config, &mut vars)
                     },
                     Err(err) => {
                         panic!("FnConfig.read | Error in config: {:?}\n\terror: {:?}", yamlString, err)

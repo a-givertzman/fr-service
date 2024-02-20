@@ -35,7 +35,9 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
-        info!("test_fn_config_new_valid");
+        println!("");
+        let self_id = "test FnConfig | new valid";
+        println!("{}", self_id);
         let testData = [
             (
                 r#"let newVar:
@@ -138,7 +140,7 @@ mod tests {
             let conf: serde_yaml::Value = serde_yaml::from_str(value).unwrap();
             debug!("value: {:?}   |   conf: {:?}   |   target: {:?}", "_", conf, target);
             let mut vars = vec![];
-            let fnConfig = FnConfig::fromYamlValue(&conf, &mut vars);
+            let fnConfig = FnConfig::fromYamlValue(self_id, &conf, &mut vars);
             debug!("\tfnConfig: {:?}", fnConfig);
             assert_eq!(fnConfig, target);
         }

@@ -35,7 +35,9 @@ mod tests{
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
-        info!("test_fn_config_read_valid");
+        println!("");
+        let self_id = "test MetricConfig | read valid";
+        println!("{}", self_id);
         let target = MetricConfig { 
             name: String::from("SqlMetric"), 
             table: String::from("table_name"), 
@@ -70,7 +72,7 @@ mod tests{
         // let (initial, switches) = initEach();
         trace!("dir: {:?}", env::current_dir());
         let path = "./src/tests/unit/conf/metric_config/metric_config_test.yaml";
-        let metricConfig = MetricConfig::read(path);
+        let metricConfig = MetricConfig::read(self_id, path);
         trace!("fnConfig: {:?}", metricConfig);
         assert_eq!(metricConfig, target);
     }

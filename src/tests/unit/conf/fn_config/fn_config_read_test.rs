@@ -2,7 +2,7 @@
 #[cfg(test)]
 
 mod tests {
-    use log::{trace, info};
+    use log::trace;
     use std::{sync::Once, env};
     use indexmap::IndexMap;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
@@ -35,7 +35,9 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
-        info!("test_fn_config_read_valid");
+        println!("");
+        let selfId = "test FnConfig | read valid";
+        println!("{}", selfId);
         let target = FnConfKind::Var( FnConfig { 
             name: "VarName2".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                 ("input".to_string(), FnConfKind::Fn( FnConfig { 
@@ -68,7 +70,7 @@ mod tests {
         // let (initial, switches) = initEach();
         trace!("dir: {:?}", env::current_dir());
         let path= "./src/tests/unit/conf/fn_config/fn_config_test.yaml";
-        let fnConfig = FnConfig::read(path);
+        let fnConfig = FnConfig::read(selfId, path);
         trace!("fnConfig: {:?}", fnConfig);
         assert_eq!(fnConfig, target);
     }

@@ -2,7 +2,7 @@
 #[cfg(test)]
 
 mod tests {
-    use log::{info, debug};
+    use log::debug;
     use std::sync::Once;
     use indexmap::IndexMap;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
@@ -35,7 +35,9 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         initOnce();
         initEach();
-        info!("test_metric_config_new_valid");
+        println!("");
+        let self_id = "test MetricConfig | new valid";
+        println!("{}", self_id);
         // let (initial, switches) = initEach();
         let testData = [
             // (
@@ -107,7 +109,7 @@ mod tests {
             // let fnKeyword = FnConfigKeyword::from_str(conf.as_str().unwrap()).unwrap();
             // debug!("\tfnKeyword: {:?}", fnKeyword);
             let mut vars = vec![];
-            let fnConfig = MetricConfig::fromYamlValue(&conf, &mut vars);
+            let fnConfig = MetricConfig::fromYamlValue(self_id, &conf, &mut vars);
             debug!("\tfnConfig: {:?}", fnConfig);
             assert_eq!(fnConfig, target);
         }

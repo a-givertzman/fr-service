@@ -2,7 +2,7 @@
 #[cfg(test)]
 
 mod tests {
-    use log::{debug, info};
+    use log::debug;
     use std::sync::Once;
     use indexmap::IndexMap;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
@@ -31,11 +31,13 @@ mod tests {
     }
     
     #[test]
-    fn test_fn_config_new_valid() {
+    fn test_fn_config_point() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         initOnce();
         initEach();
-        info!("test_fn_config_new_valid");
+        println!("");
+        let selfId = "test FnConfig | point";
+        println!("{}", selfId);
         let testPoint1 = PointConfig {
             name: "CraneMovement.BoomUp".to_string(),
             _type: PointConfigType::Int,
@@ -99,7 +101,7 @@ mod tests {
             let conf: serde_yaml::Value = serde_yaml::from_str(value).unwrap();
             debug!("value: {:?}   |   conf: {:?}   |   target: {:?}", "_", conf, target);
             let mut vars = vec![];
-            let fnConfig = FnConfig::fromYamlValue(&conf, &mut vars);
+            let fnConfig = FnConfig::fromYamlValue(selfId, &conf, &mut vars);
             let points = fnConfig.points();
             debug!("\tfnConfig: {:?}", fnConfig);
             debug!("\tpoints: {:?}", points);

@@ -67,21 +67,23 @@ impl PointConfig {
             Ok(keyword) => keyword.data(),
             Err(_) => confTree.key.clone(),
         };
-        pc.name = format!("{}/{}", parent, pc.name);
-            if let Some(mut filter) = pc.filters.clone() {
-                if let Some(factor) = filter.factor {
-                    if factor == 0.0 {
-                        filter.factor = None
-                    }
+        if !parent.is_empty() {
+            pc.name = format!("{}/{}", parent, pc.name);
+        }
+        if let Some(mut filter) = pc.filters.clone() {
+            if let Some(factor) = filter.factor {
+                if factor == 0.0 {
+                    filter.factor = None
                 }
             }
+        }
         pc
     }    
     ///
     /// creates config from serde_yaml::Value of following format:
-    pub(crate) fn fromYamlValue(value: &serde_yaml::Value) -> PointConfig {
+    pub(crate) fn fromYamlValue(parent: &str, value: &serde_yaml::Value) -> PointConfig {
         debug!("PointConfig.fromYamlValue | value: {:?}", value);
-        Self::new("", &ConfTree::newRoot(value.clone()).next().unwrap())
+        Self::new(parent, &ConfTree::newRoot(value.clone()).next().unwrap())
     }
     ///
     /// Returns yaml representation

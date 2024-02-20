@@ -84,7 +84,7 @@ impl TaskConfig {
                     let nodeConf = selfConf.get(key).unwrap();
                     trace!("{}.new | nodeConf: {:?}", selfId, nodeConf);
                     nodeIndex += 1;
-                    let nodeConf = FnConfig::new(&nodeConf, &mut vars);
+                    let nodeConf = FnConfig::new(&selfName, &nodeConf, &mut vars);
                     nodes.insert(
                         format!("{}-{}", nodeConf.name(), nodeIndex),
                         nodeConf,
