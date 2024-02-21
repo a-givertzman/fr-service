@@ -38,6 +38,8 @@ libloading = "^0.8"
 bindgen = "^0.69"
 once_cell = "^1.19"
 
+concat-string = "^1.0"
+concat_strs = "^1.0"
 
 
 # [[bin]]

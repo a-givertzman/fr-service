@@ -1,12 +1,4 @@
 #![allow(non_snake_case)]
-// use log::debug;
-
-
-// pub enum ConfTreeNode {
-//     String(serde_yaml::Value),
-//     Map(serde_yaml::Value),
-// }
-
 ///
 /// ConfTree holds sede_yaml::Value and it key
 /// for root key = ""
@@ -16,6 +8,8 @@ pub struct ConfTree {
     pub key: String,
     pub conf: serde_yaml::Value,
 }
+///
+/// 
 impl ConfTree {
     ///
     /// creates iterotor on the serde_yaml::Value mapping

@@ -1,6 +1,6 @@
 use chrono::DateTime;
+use concat_string::concat_string;
 use testing::entities::test_value::Value;
-
 use crate::core_::{status::status::Status, types::bool::Bool};
 
 use super::point::{Cot, Point};
@@ -71,6 +71,16 @@ impl PointType {
             PointType::Int(point) => point.name.clone(),
             PointType::Float(point) => point.name.clone(),
             PointType::String(point) => point.name.clone(),
+        }
+    }
+    ///
+    /// Returns destination of the containing Point
+    pub fn dest(&self) -> String {
+        match self {
+            PointType::Bool(point) => concat_string!(point.cot, point.name),
+            PointType::Int(point) => concat_string!(point.cot, point.name),
+            PointType::Float(point) => concat_string!(point.cot, point.name),
+            PointType::String(point) => concat_string!(point.cot, point.name),
         }
     }
     ///

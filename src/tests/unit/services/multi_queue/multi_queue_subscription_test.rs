@@ -1,5 +1,5 @@
-#![allow(non_snake_case)]
 #[cfg(test)]
+
 mod tests {
     use log::debug;
     use std::{sync::{Once, Arc, Mutex}, time::Duration, thread::{self}, collections::HashMap};
@@ -37,7 +37,7 @@ mod tests {
     }
     
     #[test]
-    fn test_MultiQueue_subscribtions() {
+    fn test_multi_queue_subscribtions() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
@@ -47,14 +47,14 @@ mod tests {
 
         let count = 3;              // count of the MockRecvSendService & MockTcpServer instances
         let iterations = 1000;      // test data length
-        let staticTestData = RandomTestValues::new(
+        let static_test_data = RandomTestValues::new(
             self_id, 
             vec![
                 Value::Int(12),
             ], 
             iterations, 
         );
-        let staticTestData: Vec<Value> = staticTestData.collect();
+        let static_test_data: Vec<Value> = static_test_data.collect();
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
         let mut conf = r#"
@@ -67,67 +67,67 @@ mod tests {
             conf = format!("{}\n                    - MockRecvSendService{}.in-queue", conf, i)
         }
         let conf = serde_yaml::from_str(&conf).unwrap();
-        let mqConf = MultiQueueConfig::from_yaml(&conf);
-        debug!("mqConf: {:?}", mqConf);
+        let mq_conf = MultiQueueConfig::from_yaml(&conf);
+        debug!("mqConf: {:?}", mq_conf);
         let services = Arc::new(Mutex::new(Services::new("test")));
-        let mqService = Arc::new(Mutex::new(MultiQueue::new("test", mqConf, services.clone())));
-        services.lock().unwrap().insert("MultiQueue", mqService.clone());
+        let mq_service = Arc::new(Mutex::new(MultiQueue::new("test", mq_conf, services.clone())));
+        services.lock().unwrap().insert("MultiQueue", mq_service.clone());
         let mut handles = vec![];
-        let mut rsServices = vec![];
+        let mut rs_services = vec![];
         for i in 0..count {
-            let rsService = Arc::new(Mutex::new(MockRecvSendService::new(
+            let rs_service = Arc::new(Mutex::new(MockRecvSendService::new(
                 format!("tread{}", i),
                 "in-queue",     //MultiQueue.
                 "MultiQueue.in-queue",
                 services.clone(),
-                staticTestData.clone(),
+                static_test_data.clone(),
                 None,   //Some(staticTestDataLen * count),
             )));
-            services.lock().unwrap().insert(&format!("MockRecvSendService{}", i), rsService.clone());
-            rsServices.push(rsService);
+            services.lock().unwrap().insert(&format!("MockRecvSendService{}", i), rs_service.clone());
+            rs_services.push(rs_service);
         }
-        let mqHandle = mqService.lock().unwrap().run().unwrap();
-        for rsService in &rsServices {
-            let h = rsService.lock().unwrap().run().unwrap();
+        let mq_handle = mq_service.lock().unwrap().run().unwrap();
+        for rs_service in &rs_services {
+            let h = rs_service.lock().unwrap().run().unwrap();
             handles.push(h);
         }
         println!("All MockRecvSendService threads - finished");
-        let mut tcpServerServices: Vec<Arc<Mutex<MockTcpServer>>> = vec![];
-        let mut dynamicTarget: HashMap<i32, usize> = HashMap::new();
+        let mut tcp_server_services: Vec<Arc<Mutex<MockTcpServer>>> = vec![];
+        let mut dynamic_target: HashMap<i32, usize> = HashMap::new();
         for i in 0..count {
-            let pointContent = format!("dynamic{}", i);
-            let dynamicTestData = RandomTestValues::new(
+            let point_content = format!("dynamic{}", i);
+            let dynamic_test_data = RandomTestValues::new(
                 self_id, 
                 vec![
-                    Value::String(String::from(&pointContent)),
+                    Value::String(String::from(&point_content)),
                 ], 
                 iterations, 
             );
-            let dynamicTestData: Vec<Value> = dynamicTestData.collect();
-            let tcpServerService = Arc::new(Mutex::new(MockTcpServer::new(
+            let dynamic_test_data: Vec<Value> = dynamic_test_data.collect();
+            let tcp_server_service = Arc::new(Mutex::new(MockTcpServer::new(
                 format!("tread{}", i),
                 "MultiQueue.in-queue",
                 services.clone(),
-                dynamicTestData.clone(),
+                dynamic_test_data.clone(),
                 None,
             )));
-            services.lock().unwrap().insert(&format!("MockTcpServer{}", i), tcpServerService.clone());
-            let thdHandle = tcpServerService.lock().unwrap().run().unwrap();
-            thdHandle.wait().unwrap();
+            services.lock().unwrap().insert(&format!("MockTcpServer{}", i), tcp_server_service.clone());
+            let thd_handle = tcp_server_service.lock().unwrap().run().unwrap();
+            thd_handle.wait().unwrap();
             thread::sleep(Duration::from_millis(100));
             let target = 0;
-            let result = pointsCount(tcpServerService.lock().unwrap().received().lock().unwrap().iter(), &pointContent);
+            let result = points_count(tcp_server_service.lock().unwrap().received().lock().unwrap().iter(), &point_content);
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
-            for rsService in &rsServices {
-                let result = rsService.lock().unwrap().received().lock().unwrap().len();
-                println!("Static service Received( {} ): {}", rsService.lock().unwrap().id(), result);
+            for rs_service in &rs_services {
+                let result = rs_service.lock().unwrap().received().lock().unwrap().len();
+                println!("Static service Received( {} ): {}", rs_service.lock().unwrap().id(), result);
                 // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
             }
-            for (index, tcpServerService) in tcpServerServices.iter().enumerate() {
-                let result = pointsCount(tcpServerService.lock().unwrap().received().lock().unwrap().iter(), &pointContent);
-                println!("Dynamic service Received( {} ): {}", tcpServerService.lock().unwrap().id(), result);
+            for (index, tcp_server_service) in tcp_server_services.iter().enumerate() {
+                let result = points_count(tcp_server_service.lock().unwrap().received().lock().unwrap().iter(), &point_content);
+                println!("Dynamic service Received( {} ): {}", tcp_server_service.lock().unwrap().id(), result);
                 // let result = tcpServerService.lock().unwrap().received().lock().unwrap().len();
-                match dynamicTarget.get_mut(&(index as i32)) {
+                match dynamic_target.get_mut(&(index as i32)) {
                     Some(value) => {
                         *value += iterations;
                     },
@@ -135,30 +135,30 @@ mod tests {
                         panic!("index {} - not found", index)
                     },
                 };
-                let target = dynamicTarget.get(&(index as i32)).unwrap();
+                let target = dynamic_target.get(&(index as i32)).unwrap();
                 assert!(&result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
             }
-            println!("Dynamic service Received( {} ): {}", tcpServerService.lock().unwrap().id(), result);
-            tcpServerServices.push(tcpServerService.clone());
-            dynamicTarget.insert(i, 0);
+            println!("Dynamic service Received( {} ): {}", tcp_server_service.lock().unwrap().id(), result);
+            tcp_server_services.push(tcp_server_service.clone());
+            dynamic_target.insert(i, 0);
         }
-        for rsService in rsServices {
-            rsService.lock().unwrap().exit();
+        for rs_srvice in rs_services {
+            rs_srvice.lock().unwrap().exit();
         }
-        for tcpServerService in tcpServerServices {
-            tcpServerService.lock().unwrap().exit();
+        for tcp_server_service in tcp_server_services {
+            tcp_server_service.lock().unwrap().exit();
         }
         for thd in handles {
             thd.wait().unwrap();
         }
-        mqService.lock().unwrap().exit();
-        mqHandle.wait().unwrap();
+        mq_service.lock().unwrap().exit();
+        mq_handle.wait().unwrap();
         test_duration.exit();
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
     }
     ///
     /// 
-    fn pointsCount<'a, T>(points: T, value: &str) -> usize 
+    fn points_count<'a, T>(points: T, value: &str) -> usize 
         where T: Iterator<Item = &'a PointType>{
         let mut result = 0;
         for point in points {

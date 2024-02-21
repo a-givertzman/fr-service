@@ -43,6 +43,21 @@ impl Default for Cot {
         Self::Inf
     }
 }
+///
+/// 
+impl AsRef<str> for Cot {
+    fn as_ref(&self) -> &str {
+        match self {
+            Cot::Inf => "Inf",
+            Cot::Act => "Act",
+            Cot::ActCon => "ActCon",
+            Cot::ActErr => "ActErr",
+            Cot::Req => "Req",
+            Cot::ReqCon => "ReqCon",
+            Cot::ReqErr => "ReqErr",
+        }
+    }
+}
 
 ///
 /// Entity of the information 
@@ -50,6 +65,7 @@ impl Default for Cot {
 pub struct Point<T> {
     pub tx_id: usize,
     pub name: String,
+    // pub path: PointPath,
     pub value: T,
     pub status: Status,
     pub cot: Cot,
