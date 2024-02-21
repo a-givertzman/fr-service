@@ -4,7 +4,7 @@ use log::debug;
 use std::{time::Instant, sync::atomic::{AtomicUsize, Ordering}};
 
 use crate::core_::{
-    point::{point::{Cot, Point}, point_type::PointType}, state::switch_state::{Switch, SwitchCondition, SwitchState}, types::{fn_in_out_ref::FnInOutRef, type_of::DebugTypeOf} 
+    cot::cot::Cot, point::{point::Point, point_type::PointType}, state::switch_state::{Switch, SwitchCondition, SwitchState}, types::{fn_in_out_ref::FnInOutRef, type_of::DebugTypeOf} 
 };
 
 use super::{fn_::{FnInOut, FnIn, FnOut}, fn_kind::FnKind};

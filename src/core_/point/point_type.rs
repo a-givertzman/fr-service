@@ -1,9 +1,9 @@
 use chrono::DateTime;
 use concat_string::concat_string;
 use testing::entities::test_value::Value;
-use crate::core_::{status::status::Status, types::bool::Bool};
+use crate::core_::{cot::cot::Cot, status::status::Status, types::bool::Bool};
 
-use super::point::{Cot, Point};
+use super::point::Point;
 
 pub trait ToPoint {
     fn to_point(&self, tx_id: usize, name: &str) -> PointType;

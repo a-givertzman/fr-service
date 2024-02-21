@@ -5,7 +5,7 @@ use std::io::Read;
 use chrono::{DateTime, Utc};
 use log::{warn, trace, LevelFilter};
 
-use crate::core_::{net::connection_status::ConnectionStatus, point::{point::{Cot, Point}, point_tx_id::PointTxId, point_type::PointType}, status::status::Status, types::bool::Bool};
+use crate::core_::{cot::cot::Cot, net::connection_status::ConnectionStatus, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status, types::bool::Bool};
 
 use super::jds_decode_message::JdsDecodeMessage;
 

@@ -97,7 +97,7 @@ impl std::fmt::Binary for Cot {
 
 #[derive(Debug, Clone, Copy)]
 #[repr(u32)]
-enum Direction {
+pub enum Direction {
     Read = cot::INF | cot::ACT_CON | cot::ACT_ERR | cot::REQ_CON | cot::REQ_ERR,
     Write = cot::ACT | cot::REQ,
 }
@@ -110,5 +110,10 @@ impl std::ops::BitAnd<Cot> for Direction {
 impl std::fmt::Binary for Direction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(&format!("{:#08b}",self.to_owned() as u32), f)
+    }
+}
+impl Direction {
+    pub fn contains(&self, rhs: Cot) -> bool {
+        (*self & rhs) > 0
     }
 }

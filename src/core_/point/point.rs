@@ -1,63 +1,6 @@
 use chrono::DateTime;
 use serde::{Serialize, Deserialize};
-use crate::core_::{status::status::Status, types::bool::Bool};
-
-
-///
-/// Cause and diraction of the transmission
-/// Inf - Information
-/// Act - Activation
-/// ActCon - Activation | Confirmatiom
-/// ActErr - Activation | Error
-/// Req - Request
-/// ReqCon - Rquest | Confirmatiom reply
-/// ReqErr - Rquest | Error reply
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Serialize, Deserialize)]
-pub enum Cot {
-    #[serde(rename = "Inf")]
-    #[serde(alias = "inf", alias = "Inf", alias = "INF")]
-    Inf = 3,
-    #[serde(rename = "Act")]
-    #[serde(alias = "act", alias = "Act", alias = "ACT")]
-    Act = 6,
-    #[serde(rename = "ActCon")]
-    #[serde(alias = "actcon", alias = "ActCon", alias = "ACTCON")]
-    ActCon = 7,
-    #[serde(rename = "ActErr")]
-    #[serde(alias = "acterr", alias = "ActErr", alias = "ACTERR")]
-    ActErr = 8,
-    #[serde(rename = "Req")]
-    #[serde(alias = "req", alias = "Req", alias = "REQ")]
-    Req = 11,
-    #[serde(rename = "ReqCon")]
-    #[serde(alias = "reqcon", alias = "ReqCon", alias = "REQCON")]
-    ReqCon = 12,
-    #[serde(rename = "ReqErr")]
-    #[serde(alias = "reqerr", alias = "ReqErr", alias = "REQERR")]
-    ReqErr = 13,
-}
-///
-/// 
-impl Default for Cot {
-    fn default() -> Self {
-        Self::Inf
-    }
-}
-///
-/// 
-impl AsRef<str> for Cot {
-    fn as_ref(&self) -> &str {
-        match self {
-            Cot::Inf => "Inf",
-            Cot::Act => "Act",
-            Cot::ActCon => "ActCon",
-            Cot::ActErr => "ActErr",
-            Cot::Req => "Req",
-            Cot::ReqCon => "ReqCon",
-            Cot::ReqErr => "ReqErr",
-        }
-    }
-}
+use crate::core_::{cot::cot::Cot, status::status::Status, types::bool::Bool};
 
 ///
 /// Entity of the information 

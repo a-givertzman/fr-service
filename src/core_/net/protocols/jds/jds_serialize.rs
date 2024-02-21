@@ -7,7 +7,7 @@ use log::trace;
 use serde::{Serialize, ser::SerializeStruct};
 use serde_json::json;
 
-use crate::{core_::{constants::constants::RECV_TIMEOUT, failure::recv_error::RecvError, point::{point::Cot, point_type::PointType}, status::status::Status}, tcp::steam_read::StreamRead};
+use crate::{core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, failure::recv_error::RecvError, point::point_type::PointType, status::status::Status}, tcp::steam_read::StreamRead};
 
 
 ///

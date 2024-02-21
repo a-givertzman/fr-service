@@ -4,7 +4,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use log::debug;
 
-use crate::core_::{point::{point::{Cot, Point}, point_type::PointType}, types::{bool::Bool, fn_in_out_ref::FnInOutRef, type_of::DebugTypeOf}};
+use crate::core_::{cot::cot::Cot, point::{point::Point, point_type::PointType}, types::{bool::Bool, fn_in_out_ref::FnInOutRef, type_of::DebugTypeOf}};
 
 use super::{fn_::{FnInOut, FnIn, FnOut}, fn_kind::FnKind};
 

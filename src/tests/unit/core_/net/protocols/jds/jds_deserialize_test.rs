@@ -9,10 +9,7 @@ mod tests {
     use testing::session::test_session::TestSession;
     use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
     use crate::core_::{
-        types::bool::Bool,
-        status::status::Status, 
-        point::{point::{Cot, Point}, point_type::PointType}, 
-        net::{connection_status::ConnectionStatus, protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}}, 
+        cot::cot::Cot, net::{connection_status::ConnectionStatus, protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}}, point::{point::Point, point_type::PointType}, status::status::Status, types::bool::Bool 
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.

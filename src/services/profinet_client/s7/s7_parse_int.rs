@@ -4,7 +4,9 @@ use log::{debug, warn};
 use std::array::TryFromSliceError;
 use chrono::{DateTime, Utc};
 use crate::{
-    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress, point_config_history::PointConfigHistory}, core_::{filter::filter::Filter, point::{point::{Cot, Point}, point_type::PointType}, status::status::Status}, services::profinet_client::parse_point::ParsePoint
+    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress, point_config_history::PointConfigHistory},
+    core_::{cot::cot::Cot, filter::filter::Filter, point::{point::Point, point_type::PointType}, status::status::Status}, 
+    services::profinet_client::parse_point::ParsePoint,
 };
 
 
