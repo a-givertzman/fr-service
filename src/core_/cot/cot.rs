@@ -84,8 +84,16 @@ impl AsRef<str> for Cot {
 /// 
 impl std::ops::BitOr for Cot {
     type Output = u32;
-    fn bitor(self, rhs: Self) -> Self::Output {
+    fn bitor(self, rhs: Cot) -> Self::Output {
         self as u32 | rhs as u32
+    }
+}
+///
+/// 
+impl std::ops::BitAnd for Cot {
+    type Output = u32;
+    fn bitand(self, rhs: Cot) -> Self::Output {
+        self as u32 & rhs as u32
     }
 }
 ///
@@ -102,14 +110,6 @@ impl std::ops::BitAnd<Cot> for u32 {
     type Output = u32;
     fn bitand(self, rhs: Cot) -> Self::Output {
         self & rhs as u32
-    }
-}
-///
-/// 
-impl std::ops::BitAnd<Cot> for Cot {
-    type Output = u32;
-    fn bitand(self, rhs: Cot) -> Self::Output {
-        self as u32 & rhs as u32
     }
 }
 ///
