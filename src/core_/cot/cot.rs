@@ -42,6 +42,19 @@ pub enum Cot {
     #[serde(rename = "ReqErr")]
     #[serde(alias = "reqerr", alias = "ReqErr", alias = "REQERR")]
     ReqErr = cot::REQ_ERR,
+    #[serde(skip)]
+    Read = cot::INF | cot::ACT_CON | cot::ACT_ERR | cot::REQ_CON | cot::REQ_ERR,
+    #[serde(skip)]
+    Write = cot::ACT | cot::REQ,
+}
+///
+/// 
+impl Cot {
+    ///
+    /// Returns true if [self] contains [other]
+    pub fn contains(&self, rhs: Cot) -> bool {
+        (*self & rhs) > 0
+    }
 }
 ///
 /// 
@@ -62,6 +75,8 @@ impl AsRef<str> for Cot {
             Cot::Req => "Req",
             Cot::ReqCon => "ReqCon",
             Cot::ReqErr => "ReqErr",
+            Cot::Read => "Read",
+            Cot::Write => "Write",
         }
     }
 }
@@ -83,37 +98,14 @@ impl std::ops::BitAnd<Cot> for u32 {
         self & rhs as u32
     }
 }
-impl std::ops::BitAnd<Direction> for Cot {
+impl std::ops::BitAnd<Cot> for Cot {
     type Output = u32;
-    fn bitand(self, rhs: Direction) -> Self::Output {
+    fn bitand(self, rhs: Cot) -> Self::Output {
         self as u32 & rhs as u32
     }
 }
 impl std::fmt::Binary for Cot {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(&format!("{:#08b}",self.to_owned() as u32), f)
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-#[repr(u32)]
-pub enum Direction {
-    Read = cot::INF | cot::ACT_CON | cot::ACT_ERR | cot::REQ_CON | cot::REQ_ERR,
-    Write = cot::ACT | cot::REQ,
-}
-impl std::ops::BitAnd<Cot> for Direction {
-    type Output = u32;
-    fn bitand(self, rhs: Cot) -> Self::Output {
-        self as u32 & rhs
-    }
-}
-impl std::fmt::Binary for Direction {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(&format!("{:#08b}",self.to_owned() as u32), f)
-    }
-}
-impl Direction {
-    pub fn contains(&self, rhs: Cot) -> bool {
-        (*self & rhs) > 0
     }
 }

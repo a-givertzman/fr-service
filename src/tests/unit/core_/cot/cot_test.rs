@@ -5,7 +5,7 @@ mod tests {
     use std::{sync::Once, time::Duration};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use testing::stuff::max_test_duration::TestDuration;
-    use crate::core_::cot::cot::{Cot, Direction}; 
+    use crate::core_::cot::cot::Cot;
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -41,21 +41,21 @@ mod tests {
         test_duration.run().unwrap();
         let test_data = [
             // match
-            (true, Cot::Inf, Direction::Read),
-            (true, Cot::Act, Direction::Write),
-            (true, Cot::ActCon, Direction::Read),
-            (true, Cot::ActErr, Direction::Read),
-            (true, Cot::Req, Direction::Write),
-            (true, Cot::ReqCon, Direction::Read),
-            (true, Cot::ReqErr, Direction::Read),
+            (true, Cot::Inf, Cot::Read),
+            (true, Cot::Act, Cot::Write),
+            (true, Cot::ActCon, Cot::Read),
+            (true, Cot::ActErr, Cot::Read),
+            (true, Cot::Req, Cot::Write),
+            (true, Cot::ReqCon, Cot::Read),
+            (true, Cot::ReqErr, Cot::Read),
             // not match
-            (false, Cot::Inf, Direction::Write),
-            (false, Cot::Act, Direction::Read),
-            (false, Cot::ActCon, Direction::Write),
-            (false, Cot::ActErr, Direction::Write),
-            (false, Cot::Req, Direction::Read),
-            (false, Cot::ReqCon, Direction::Write),
-            (false, Cot::ReqErr, Direction::Write),
+            (false, Cot::Inf, Cot::Write),
+            (false, Cot::Act, Cot::Read),
+            (false, Cot::ActCon, Cot::Write),
+            (false, Cot::ActErr, Cot::Write),
+            (false, Cot::Req, Cot::Read),
+            (false, Cot::ReqCon, Cot::Write),
+            (false, Cot::ReqErr, Cot::Write),
         ];
         for (target, left, right) in test_data {
             let result = left & right;
