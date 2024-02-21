@@ -1,11 +1,11 @@
 use serde::{Serialize, Deserialize};
 
 mod cot {
-    pub const INF   : u32 = 0b00000010;
-    pub const ACT   : u32 = 0b00000100;
+    pub const INF    : u32 = 0b00000010;
+    pub const ACT    : u32 = 0b00000100;
     pub const ACT_CON: u32 = 0b00001000;
     pub const ACT_ERR: u32 = 0b00010000;
-    pub const REQ   : u32 = 0b00100000;
+    pub const REQ    : u32 = 0b00100000;
     pub const REQ_CON: u32 = 0b01000000;
     pub const REQ_ERR: u32 = 0b10000000;
 }
@@ -51,7 +51,7 @@ pub enum Cot {
 /// 
 impl Cot {
     ///
-    /// Returns true if [self] contains [other]
+    /// Returns true if [self] contains [rhs]
     pub fn contains(&self, rhs: Cot) -> bool {
         (*self & rhs) > 0
     }
@@ -80,30 +80,40 @@ impl AsRef<str> for Cot {
         }
     }
 }
+///
+/// 
 impl std::ops::BitOr for Cot {
     type Output = u32;
     fn bitor(self, rhs: Self) -> Self::Output {
         self as u32 | rhs as u32
     }
 }
+///
+/// 
 impl std::ops::BitOr<Cot> for u32 {
     type Output = u32;
     fn bitor(self, rhs: Cot) -> Self::Output {
         self | rhs as u32
     }
 }
+///
+/// 
 impl std::ops::BitAnd<Cot> for u32 {
     type Output = u32;
     fn bitand(self, rhs: Cot) -> Self::Output {
         self & rhs as u32
     }
 }
+///
+/// 
 impl std::ops::BitAnd<Cot> for Cot {
     type Output = u32;
     fn bitand(self, rhs: Cot) -> Self::Output {
         self as u32 & rhs as u32
     }
 }
+///
+/// 
 impl std::fmt::Binary for Cot {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(&format!("{:#08b}",self.to_owned() as u32), f)
