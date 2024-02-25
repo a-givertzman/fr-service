@@ -46,6 +46,8 @@ pub enum Cot {
     Read = cot::INF | cot::ACT_CON | cot::ACT_ERR | cot::REQ_CON | cot::REQ_ERR,
     #[serde(skip)]
     Write = cot::ACT | cot::REQ,
+    #[serde(skip)]
+    All = 0xFF,// cot::INF | cot::ACT_CON | cot::ACT_ERR | cot::REQ_CON | cot::REQ_ERR | cot::ACT | cot::REQ,
 }
 ///
 /// 
@@ -77,6 +79,7 @@ impl AsRef<str> for Cot {
             Cot::ReqErr => "ReqErr",
             Cot::Read => "Read",
             Cot::Write => "Write",
+            Cot::All => "*",
         }
     }
 }

@@ -61,8 +61,10 @@ mod tests {
             let result = left & right;
             println!("cot: {:?}, direction: {:?} | result: {}", left, right, result);
             println!("left: {:#08b}({:?}), right: {:#08b}({:?}) | result: {:#08b}({:?})", left, left, right, right, result, result);
-            assert!((result > 0) == target, "\nresult: {:?}\ntarget: {:?}", result, left as u32 & right as u32);
-            assert!(right.contains(left) == target, "\nresult: {:?}\ntarget: {:?}", result, left as u32 & right as u32);
+            assert!((result > 0) == target, "\nresult: {:?}\ntarget: {:?}", result, (left as u32) & (right as u32));
+            assert!(right.contains(left) == target, "\nresult: {:?}\ntarget: {:?}", result, (left as u32) & (right as u32));
+            let result = left & Cot::All;
+            assert!((result > 0) == true, "\nresult: {:?}\ntarget: {:?}", result, (left as u32) & (Cot::All as u32));
         }
         test_duration.exit();
     }
