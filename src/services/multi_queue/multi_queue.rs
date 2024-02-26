@@ -4,7 +4,11 @@ use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, 
 
 use log::{debug, error, info, trace};
 
-use crate::{services::{services::Services, service::Service}, conf::multi_queue_config::MultiQueueConfig, core_::{point::{point_type::PointType, point_tx_id::PointTxId}, constants::constants::RECV_TIMEOUT}};
+use crate::{
+    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, point::{point_tx_id::PointTxId, point_type::PointType}}, 
+    conf::multi_queue_config::MultiQueueConfig, 
+    services::{service::Service, services::Services, multi_queue::subscription_criteria::SubscriptionCriteria},
+};
 
 use super::subscriptions::Subscriptions;
 
@@ -64,7 +68,7 @@ impl Service for MultiQueue {
     }
     //
     //
-    fn subscribe(&mut self, receiverId: &str, points: &Vec<String>) -> Receiver<PointType> {
+    fn subscribe(&mut self, receiverId: &str, points: &Vec<SubscriptionCriteria>) -> Receiver<PointType> {
         let (send, recv) = mpsc::channel();
         let innerReceiverId = PointTxId::fromStr(receiverId);
         self.receiverDictionary.insert(innerReceiverId, receiverId.to_string());
@@ -72,8 +76,8 @@ impl Service for MultiQueue {
             self.subscriptions.lock().unwrap().addBroadcast(innerReceiverId, send);
             debug!("{}.subscribe | Broadcast subscription registered, receiver: {} ({})", self.id, receiverId, innerReceiverId);
         } else {
-            for pointId in points {
-                self.subscriptions.lock().unwrap().addMulticast(innerReceiverId, pointId, send.clone());
+            for mut subscription_criteria in points {
+                self.subscriptions.lock().unwrap().addMulticast(innerReceiverId, &subscription_criteria.destination(), send.clone());
             }
             debug!("{}.subscribe | Multicast subscription registered, receiver: {} ({})", self.id, receiverId, innerReceiverId);
         }
@@ -82,7 +86,7 @@ impl Service for MultiQueue {
     }
     //
     //
-    fn unsubscribe(&mut self, receiverId: &str, points: &Vec<String>) -> Result<(), String> {
+    fn unsubscribe(&mut self, receiverId: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
         let mut changed = false;
         let innerReceiverId = PointTxId::fromStr(receiverId);
         if points.is_empty() {
@@ -97,12 +101,12 @@ impl Service for MultiQueue {
                 },
             }
         } else {
-            for pointId in points {
-                match self.subscriptions.lock().unwrap().remove(&innerReceiverId, pointId) {
+            for subscription_criteria in points {
+                match self.subscriptions.lock().unwrap().remove(&innerReceiverId, &subscription_criteria.destination()) {
                     Ok(_) => {
                         self.receiverDictionary.remove(&innerReceiverId);
                         changed = changed | true;
-                        debug!("{}.unsubscribe | Multicat subscription '{}' removed, receiver: {} ({})", self.id, pointId, receiverId, innerReceiverId);
+                        debug!("{}.unsubscribe | Multicat subscription '{}' removed, receiver: {} ({})", self.id, subscription_criteria.destination(), receiverId, innerReceiverId);
                     },
                     Err(err) => {
                         return Err(err)

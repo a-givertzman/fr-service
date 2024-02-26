@@ -5,8 +5,7 @@ use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, 
 use log::{info, warn, error, debug, trace};
 
 use crate::{
-    services::{services::Services, service::Service, multi_queue::subscriptions::Subscriptions}, 
-    core_::point::{point_type::PointType, point_tx_id::PointTxId},
+    core_::point::{point_tx_id::PointTxId, point_type::PointType}, services::{multi_queue::{subscription_criteria::SubscriptionCriteria, subscriptions::Subscriptions}, service::Service, services::Services}
 };
 
 
@@ -61,24 +60,24 @@ impl Service for MockMultiQueue {
     }
     //
     //
-    fn subscribe(&mut self, receiverId: &str, points: &Vec<String>) -> Receiver<PointType> {
+    fn subscribe(&mut self, receiverId: &str, points: &Vec<SubscriptionCriteria>) -> Receiver<PointType> {
         let (send, recv) = mpsc::channel();
         let receiverId = PointTxId::fromStr(receiverId);
         if points.is_empty() {
             self.subscriptions.lock().unwrap().addBroadcast(receiverId, send.clone());
         } else {
-            for pointId in points {
-                self.subscriptions.lock().unwrap().addMulticast(receiverId, pointId, send.clone());
+            for subscription_criteria in points {
+                self.subscriptions.lock().unwrap().addMulticast(receiverId, &subscription_criteria.destination(), send.clone());
             }
         }
         recv
     }
     //
     //
-    fn unsubscribe(&mut self, receiverId: &str, points: &Vec<String>) -> Result<(), String> {
+    fn unsubscribe(&mut self, receiverId: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
         let receiverId = PointTxId::fromStr(receiverId);
-        for pointId in points {
-            match self.subscriptions.lock().unwrap().remove(&receiverId, pointId) {
+        for subscription_criteria in points {
+            match self.subscriptions.lock().unwrap().remove(&receiverId, &subscription_criteria.destination()) {
                 Ok(_) => {},
                 Err(err) => {
                     return Err(err)

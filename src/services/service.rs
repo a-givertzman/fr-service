@@ -1,6 +1,9 @@
 use std::{sync::mpsc::{Sender, Receiver}, thread::JoinHandle};
 
-use crate::{core_::point::point_type::PointType, conf::point_config::point_config::PointConfig};
+use crate::{
+    core_::point::point_type::PointType, conf::point_config::point_config::PointConfig,
+    services::multi_queue::subscription_criteria::SubscriptionCriteria,
+};
 
 ///
 /// Interface for application service
@@ -18,13 +21,13 @@ pub trait Service {
     ///
     /// Returns Receiver
     #[allow(unused_variables)]
-    fn subscribe(&mut self, receiver_id: &str, points: &Vec<String>) -> Receiver<PointType> {
+    fn subscribe(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Receiver<PointType> {
         panic!("{}.subscribe | Does not support subscriptions", self.id())
     }
     ///
     /// Canceling the subsciption
     #[allow(unused_variables)]
-    fn unsubscribe(&mut self, receiver_id: &str, points: &Vec<String>) -> Result<(), String> {
+    fn unsubscribe(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
         panic!("{}.unsubscribe | Does not support subscriptions", self.id())
     }
     ///

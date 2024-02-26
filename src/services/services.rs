@@ -4,9 +4,15 @@ use std::{collections::HashMap, sync::{Arc, Mutex, mpsc::{Sender, Receiver}}};
 
 use log::debug;
 
-use crate::{core_::point::point_type::PointType, conf::point_config::point_config::PointConfig};
-
-use super::{service::Service, queue_name::QueueName};
+use crate::{
+    core_::point::point_type::PointType, 
+    conf::point_config::point_config::PointConfig,
+    services::{
+        multi_queue::subscription_criteria::SubscriptionCriteria,
+        queue_name::QueueName,
+        service::Service,
+    }
+};
 
 ///
 /// Holds a map of the all services in app by there names
@@ -52,7 +58,7 @@ impl Services {
     }
     ///
     /// Returns Receiver
-    pub fn subscribe(&mut self, service: &str, receiverId: &str, points: &Vec<String>) -> Receiver<PointType> {
+    pub fn subscribe(&mut self, service: &str, receiverId: &str, points: &Vec<SubscriptionCriteria>) -> Receiver<PointType> {
         match self.map.get(service) {
             Some(srvc) => {
                 debug!("{}.subscribe | Lock service '{:?}'...", self.id, service);

@@ -6,8 +6,15 @@ use log::{warn, trace};
 
 use crate::core_::point::point_type::PointType;
 
+///
+/// Unique id of the service receiving the Point's by the subscription
+/// This id used to identify the service produced the Points. 
+/// To avoid send back self produced Point's.
 type ReceiverId = usize;
-type PointId = String; 
+///
+/// Destination of the point,
+/// Currently it's just a concat of the Point.cot & Point.id 
+type PointDest = String; 
 
 ///
 /// Contains map of Sender's
@@ -15,7 +22,7 @@ type PointId = String;
 #[derive(Debug, Clone)]
 pub struct Subscriptions {
     id: String,
-    multicast: HashMap<PointId, HashMap<ReceiverId, Sender<PointType>>>,
+    multicast: HashMap<PointDest, HashMap<ReceiverId, Sender<PointType>>>,
     broadcast: HashMap<ReceiverId, Sender<PointType>>,
     empty: HashMap<ReceiverId, Sender<PointType>>,
 }
@@ -34,14 +41,14 @@ impl Subscriptions {
     }
     ///
     /// Adds subscription to Point ID with receiver ID
-    pub fn addMulticast(&mut self, receiverId: usize, pointId: &str, sender: Sender<PointType>) {
-        if ! self.multicast.contains_key(pointId) {
+    pub fn addMulticast(&mut self, receiverId: usize, destination: &str, sender: Sender<PointType>) {
+        if ! self.multicast.contains_key(destination) {
             self.multicast.insert(
-                pointId.to_string(),
+                destination.to_string(),
                 HashMap::new(),
             );
         };
-        match self.multicast.get_mut(pointId) {
+        match self.multicast.get_mut(destination) {
             Some(senders) => {
                 senders.insert(
                     receiverId,
@@ -49,7 +56,7 @@ impl Subscriptions {
                 );
             },
             None => {
-                warn!("{}.addMulticast | Subscription '{}' - not found", self.id, pointId);
+                warn!("{}.addMulticast | Subscription '{}' - not found", self.id, destination);
             },
         }
     }

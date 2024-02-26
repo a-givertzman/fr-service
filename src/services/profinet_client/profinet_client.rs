@@ -3,8 +3,8 @@ use indexmap::IndexMap;
 use log::{debug, error, info};
 use crate::{
     conf::{point_config::point_config::PointConfig, profinet_client_config::profinet_client_config::ProfinetClientConfig}, 
-    core_::{constants::constants::RECV_TIMEOUT, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, 
-    services::{profinet_client::{profinet_db::ProfinetDb, s7::s7_client::S7Client}, service::Service, services::Services, task::service_cycle::ServiceCycle},
+    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, 
+    services::{multi_queue::subscription_criteria::SubscriptionCriteria, profinet_client::{profinet_db::ProfinetDb, s7::s7_client::S7Client}, service::Service, services::Services, task::service_cycle::ServiceCycle},
 };
 
 
@@ -156,8 +156,8 @@ impl Service for ProfinetClient {
                 println!("\t{:?}", cfg);
             }
             let points = points.iter().map(|point_conf| {
-                point_conf.name.clone()
-            }).collect::<Vec<String>>();
+                SubscriptionCriteria::new(&point_conf.name, Cot::Act)
+            }).collect::<Vec<SubscriptionCriteria>>();
             debug!("{}.run | Points: ({})", self_id, points.len());
             for name in &points {
                 println!("\t{:?}", name);
