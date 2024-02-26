@@ -8,10 +8,7 @@ use std::{
 };
 use testing::stuff::wait::WaitTread;
 use crate::{
-    services::{services::Services, service::Service, task::service_cycle::ServiceCycle, queue_name::QueueName}, 
-    conf::tcp_server_config::TcpServerConfig, 
-    core_::{point::point_type::PointType, net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, constants::constants::RECV_TIMEOUT}, 
-    tcp::{tcp_read_alive::TcpReadAlive, tcp_write_alive::TcpWriteAlive, tcp_stream_write::TcpStreamWrite},
+    conf::tcp_server_config::TcpServerConfig, core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, point::point_type::PointType}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, service::Service, services::Services, task::service_cycle::ServiceCycle}, tcp::{tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive}
 };
 
 
@@ -363,7 +360,15 @@ impl TcpServerConnection {
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
             let send = services.lock().unwrap().getLink(&selfConfTx);
-            let recv = services.lock().unwrap().subscribe(txQueueName.service(), &self_id, &vec![]);
+            let points = services.lock().unwrap().points().iter().fold(vec![], |mut points, point_conf| {
+                points.push(SubscriptionCriteria::new(&point_conf.name, Cot::Inf));
+                points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ActCon));
+                points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ActErr));
+                points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ReqCon));
+                points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ReqErr));
+                points
+            });
+            let recv = services.lock().unwrap().subscribe(txQueueName.service(), &self_id, &points);
             let buffered = rxMaxLength > 0;
             let mut tcpReadAlive = TcpReadAlive::new(
                 &self_id,
