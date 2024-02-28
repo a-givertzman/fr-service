@@ -1,8 +1,6 @@
 //!
 //! JdsService implements behavior on the JDS communication protocol for the following kinds of requests:
-//! - "Start" - after this request points transmission begins
-//! - "Points" - all points configurations requested
-//! - "Auth" request - authentication requested//! ```yaml
+//! Basic configuration parameters
 //! service JdsService Id:
 //!     parameter: value    # meaning
 //!     parameter: value    # meaning
@@ -17,9 +15,10 @@ use crate::{
 
 
 ///
-/// Binds TCP socket server
-/// Listening socket for incoming connections
-/// Verified incoming connections handles in the separate thread
+/// Supported kinds of requests
+/// - "Start" - after this request points transmission begins
+/// - "Points" - all points configurations requested
+/// - "Auth" request - authentication requested
 pub struct JdsService {
     id: String,
     rxSend: HashMap<String, Sender<PointType>>,
@@ -52,15 +51,6 @@ impl Service for JdsService {
     //
     fn id(&self) -> &str {
         &self.id
-    }
-    //
-    // 
-    fn get_link(&mut self, name: &str) -> Sender<PointType> {
-        panic!("{}.get_link | Does not support get_link", self.id())
-        // match self.rxSend.get(name) {
-        //     Some(send) => send.clone(),
-        //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
-        // }
     }
     //
     //
