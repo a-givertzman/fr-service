@@ -62,7 +62,7 @@ impl Service for MockSendService {
     //
     //
     fn get_link(&mut self, _name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
-        panic!("{}.getLink | Does not support getLink", self.id())
+        panic!("{}.get_link | Does not support get_link", self.id())
         // match self.rxSend.get(name) {
         //     Some(send) => send.clone(),
         //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
@@ -77,7 +77,7 @@ impl Service for MockSendService {
         debug!("{}.run | Lock services...", self_id);
         let services = self.services.lock().unwrap();
         debug!("{}.run | Lock services - ok", self_id);
-        let txSend = services.getLink(&self.sendQueue);
+        let txSend = services.get_link(&self.sendQueue);
         let test_data = self.test_data.clone();
         let sent = self.sent.clone();
         let delay = self.delay.clone();

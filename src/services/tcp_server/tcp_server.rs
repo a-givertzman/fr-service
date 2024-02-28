@@ -112,7 +112,7 @@ impl Service for TcpServer {
     //
     // 
     fn get_link(&mut self, _name: &str) -> Sender<PointType> {
-        panic!("{}.getLink | Does not support getLink", self.id())
+        panic!("{}.get_link | Does not support get_link", self.id())
         // match self.rxSend.get(name) {
         //     Some(send) => send.clone(),
         //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
@@ -359,7 +359,7 @@ impl TcpServerConnection {
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
-            let send = services.lock().unwrap().getLink(&selfConfTx);
+            let send = services.lock().unwrap().get_link(&selfConfTx);
             let points = services.lock().unwrap().points().iter().fold(vec![], |mut points, point_conf| {
                 points.push(SubscriptionCriteria::new(&point_conf.name, Cot::Inf));
                 points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ActCon));
@@ -517,7 +517,7 @@ impl TcpServerConnection {
     //     info!("{}.connection | Preparing thread...", self_id);
     //     let handle = thread::Builder::new().name(format!("{}.connection", self_id.clone())).spawn(move || {
     //         info!("{}.connection | Preparing thread - ok", self_id);
-    //         let send = services.lock().unwrap().getLink(&selfConfTx);
+    //         let send = services.lock().unwrap().get_link(&selfConfTx);
     //         let recv = services.lock().unwrap().subscribe(txQueueName.service(), &self_id, &vec![]);
     //         let buffered = conf.rxMaxLength > 0;
     //         let mut tcpReadAlive = TcpReadAlive::new(

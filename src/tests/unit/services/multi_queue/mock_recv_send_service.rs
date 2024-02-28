@@ -119,7 +119,7 @@ impl Service for MockRecvSendService {
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         debug!("{}.run | Lock services...", self_id);
-        let txSend = self.services.lock().unwrap().getLink(&self.txQueue);
+        let txSend = self.services.lock().unwrap().get_link(&self.txQueue);
         debug!("{}.run | Lock services - ok", self_id);
         let test_data = self.test_data.clone();
         let sent = self.sent.clone();

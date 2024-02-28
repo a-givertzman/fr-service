@@ -61,7 +61,7 @@ impl Service for ProfinetClient {
     //
     // 
     // fn get_link(&mut self, _name: &str) -> Sender<PointType> {
-    //     panic!("{}.getLink | Does not support getLink", self.id());
+    //     panic!("{}.get_link | Does not support get_link", self.id());
     //     // match self.rx_send.get(name) {
     //     //     Some(send) => send.clone(),
     //     //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
@@ -74,7 +74,7 @@ impl Service for ProfinetClient {
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         let conf = self.conf.clone();
-        let tx_send = self.services.lock().unwrap().getLink(&conf.tx);
+        let tx_send = self.services.lock().unwrap().get_link(&conf.tx);
         let tx_send_write = tx_send.clone();
         let (cyclic, cycle_interval) = match conf.cycle {
             Some(interval) => (interval > Duration::ZERO, interval),

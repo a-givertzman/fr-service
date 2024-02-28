@@ -102,7 +102,7 @@ impl Service for MockMultiQueueMatch {
         let mut staticSubscriptions: HashMap<usize, Sender<PointType>> = HashMap::new();
         for sendQueue in &self.sendQueues {
             debug!("{}.run | Lock services...", self_id);
-            let txSend = self.services.lock().unwrap().getLink(sendQueue);
+            let txSend = self.services.lock().unwrap().get_link(sendQueue);
             debug!("{}.run | Lock services - ok", self_id);
             staticSubscriptions.insert(PointTxId::fromStr(sendQueue), txSend);
         }
@@ -175,7 +175,7 @@ impl Service for MockMultiQueueMatch {
     //     let mut staticSubscriptions: HashMap<String, Sender<PointType>> = HashMap::new();
     //     for sendQueue in &self.sendQueues {
     //         debug!("{}.run | Lock services...", self_id);
-    //         let txSend = self.services.lock().unwrap().getLink(sendQueue);
+    //         let txSend = self.services.lock().unwrap().get_link(sendQueue);
     //         debug!("{}.run | Lock services - ok", self_id);
     //         staticSubscriptions.insert(sendQueue.to_string(), txSend);
     //     }

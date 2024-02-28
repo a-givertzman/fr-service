@@ -7,7 +7,7 @@
 //!     parameter: value    # meaning
 //!     parameter: value    # meaning
 //! ```
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread::{self, JoinHandle}};
+use std::{collections::HashMap, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread::{self, JoinHandle}};
 use log::info;
 use crate::{
     core_::point::point_type::PointType, 
@@ -22,6 +22,8 @@ use crate::{
 /// Verified incoming connections handles in the separate thread
 pub struct JdsService {
     id: String,
+    rxSend: HashMap<String, Sender<PointType>>,
+    rxRecv: Vec<Receiver<PointType>>,
     conf: JdsServiceConfig,
     services: Arc<Mutex<Services>>,
     exit: Arc<AtomicBool>,
@@ -32,8 +34,11 @@ impl JdsService {
     ///
     /// 
     pub fn new(parent: impl Into<String>, conf: JdsServiceConfig, services: Arc<Mutex<Services>>) -> Self {
+        let (send, recv) = mpsc::channel();
         Self {
             id: format!("{}/JdsService({})", parent.into(), conf.name),
+            rxSend: HashMap::from([(conf.rx.clone(), send)]),
+            rxRecv: vec![recv],
             conf: conf.clone(),
             services,
             exit: Arc::new(AtomicBool::new(false)),
@@ -51,11 +56,11 @@ impl Service for JdsService {
     //
     // 
     fn get_link(&mut self, name: &str) -> Sender<PointType> {
-        // panic!("{}.getLink | Does not support getLink", self.id())
-        match self.rxSend.get(name) {
-            Some(send) => send.clone(),
-            None => panic!("{}.run | link '{:?}' - not found", self.id, name),
-        }
+        panic!("{}.get_link | Does not support get_link", self.id())
+        // match self.rxSend.get(name) {
+        //     Some(send) => send.clone(),
+        //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
+        // }
     }
     //
     //

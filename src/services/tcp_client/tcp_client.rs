@@ -80,7 +80,7 @@ impl Service for TcpClient {
         info!("{}.run | rx queue name: {:?}", self.id, conf.rx);
         info!("{}.run | tx queue name: {:?}", self.id, conf.tx);
         debug!("{}.run | Lock services...", self_id);
-        let txSend = self.services.lock().unwrap().getLink(&conf.tx);
+        let txSend = self.services.lock().unwrap().get_link(&conf.tx);
         debug!("{}.run | Lock services - ok", self_id);
         let buffered = conf.rxBuffered; // TODO Read this from config
         let inRecv = self.inRecv.pop().unwrap();

@@ -65,7 +65,7 @@ impl Service for MockTcpServer {
     //
     //
     fn get_link(&mut self, _name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
-        panic!("{}.getLink | Does not support static producer", self.id())
+        panic!("{}.get_link | Does not support static producer", self.id())
         // match self.rxSend.get(name) {
         //     Some(send) => send.clone(),
         //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
@@ -81,7 +81,7 @@ impl Service for MockTcpServer {
         let mqServiceName = mqServiceName.service();
         debug!("{}.run | Lock services...", self_id);
         let rxRecv = self.services.lock().unwrap().subscribe(mqServiceName, &self_id, &vec![]);
-        let txSend = self.services.lock().unwrap().getLink(&self.multiQueue);
+        let txSend = self.services.lock().unwrap().get_link(&self.multiQueue);
         debug!("{}.run | Lock services - ok", self_id);
         let received = self.received.clone();
         let recvLimit = self.recvLimit.clone();

@@ -131,7 +131,7 @@ impl Service for MultiQueue {
         // let mut staticSubscriptions: HashMap<usize, Sender<PointType>> = HashMap::new();
         for receiverId in &self.sendQueues {
             debug!("{}.run | Lock services...", self_id);
-            let send = self.services.lock().unwrap().getLink(receiverId);
+            let send = self.services.lock().unwrap().get_link(receiverId);
             debug!("{}.run | Lock services - ok", self_id);
             let innerReceiverId = PointTxId::fromStr(receiverId);
             debug!("{}.run | Lock subscriptions...", self_id);

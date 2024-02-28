@@ -52,7 +52,7 @@ impl Service for TaskTestProducer {
     //
     //
     fn get_link(&mut self, _name: &str) -> Sender<PointType> {
-        panic!("{}.getLink | Does not support getLink", self.id())
+        panic!("{}.get_link | Does not support get_link", self.id())
         // match self.rxSend.get(name) {
         //     Some(send) => send.clone(),
         //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
@@ -65,7 +65,7 @@ impl Service for TaskTestProducer {
         let txId = PointTxId::fromStr(&self_id);
         let cycle = self.cycle.clone();
         let delayed = !cycle.is_zero();
-        let txSend = self.services.lock().unwrap().getLink(&self.link);
+        let txSend = self.services.lock().unwrap().get_link(&self.link);
         let sent = self.sent.clone();
         let test_data = self.test_data.clone();
         thread::Builder::new().name(self_id.clone()).spawn(move || {

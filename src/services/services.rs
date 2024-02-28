@@ -49,7 +49,7 @@ impl Services {
     }
     ///
     /// Returns copy of the Sender - service's incoming queue
-    pub fn getLink(&self, name: &str) -> Sender<PointType> {
+    pub fn get_link(&self, name: &str) -> Sender<PointType> {
         let name = QueueName::new(name);
         match self.map.get(name.service()) {
             Some(srvc) => srvc.lock().unwrap().get_link(name.queue()),
