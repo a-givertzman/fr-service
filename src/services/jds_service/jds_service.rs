@@ -10,8 +10,9 @@
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread::{self, JoinHandle}};
 use log::info;
 use crate::{
-    services::{services::Services, service::Service}, 
-    conf::tcp_server_config::JdsServiceConfig, core_::point::point_type::PointType,
+    core_::point::point_type::PointType, 
+    conf::jds_service_config::jds_service_config::JdsServiceConfig, 
+    services::{service::Service, services::Services},
 };
 
 
@@ -32,7 +33,7 @@ impl JdsService {
     /// 
     pub fn new(parent: impl Into<String>, conf: JdsServiceConfig, services: Arc<Mutex<Services>>) -> Self {
         Self {
-            id: format!("{}/JdsService", parent.into(), conf.name),
+            id: format!("{}/JdsService({})", parent.into(), conf.name),
             conf: conf.clone(),
             services,
             exit: Arc::new(AtomicBool::new(false)),
@@ -49,12 +50,12 @@ impl Service for JdsService {
     }
     //
     // 
-    fn getLink(&mut self, name: &str) -> Sender<PointType> {
-        panic!("{}.getLink | Does not support getLink", self.id())
-        // match self.rxSend.get(name) {
-        //     Some(send) => send.clone(),
-        //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
-        // }
+    fn get_link(&mut self, name: &str) -> Sender<PointType> {
+        // panic!("{}.getLink | Does not support getLink", self.id())
+        match self.rxSend.get(name) {
+            Some(send) => send.clone(),
+            None => panic!("{}.run | link '{:?}' - not found", self.id, name),
+        }
     }
     //
     //
