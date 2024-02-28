@@ -22,16 +22,9 @@ use crate::conf::{
 #[derive(Debug, PartialEq, Clone)]
 pub struct JdsServiceConfig {
     pub(crate) name: String,
-    pub(crate) cycle: Option<Duration>,
     pub(crate) rx: String,
     pub(crate) rx_max_len: i64,
     pub(crate) tx: String,
-    pub(crate) protocol: String,
-    pub(crate) description: String,
-    pub(crate) ip: String,
-    pub(crate) rack: u64,
-    pub(crate) slot: u64,
-    pub(crate) dbs: IndexMap<String, ProfinetDbConfig>,
 }
 ///
 /// 
@@ -53,7 +46,7 @@ impl JdsServiceConfig {
                 let mut self_conf = ServiceConfig::new(&self_id, self_conf);
                 trace!("{}.new | selfConf: {:?}", self_id, self_conf);
                 let self_name = self_conf.name();
-                let device_name = self_conf.sufix();
+                let self_addr = self_conf.sufix();
                 debug!("{}.new | name: {:?}", self_id, self_name);
                 let cycle = self_conf.getDuration("cycle");
                 debug!("{}.new | cycle: {:?}", self_id, cycle);
@@ -61,45 +54,11 @@ impl JdsServiceConfig {
                 debug!("{}.new | RX: {},\tmax-length: {}", self_id, rx, rx_max_len);
                 let tx = self_conf.getOutQueue().unwrap();
                 debug!("{}.new | TX: {}", self_id, tx);
-                let protocol = self_conf.getParamValue("protocol").unwrap().as_str().unwrap().to_string();
-                debug!("{}.new | protocol: {:?}", self_id, protocol);
-                let description = self_conf.getParamValue("description").unwrap().as_str().unwrap().to_string();
-                debug!("{}.new | description: {:?}", self_id, description);
-                let ip = self_conf.getParamValue("ip").unwrap().as_str().unwrap().to_string();
-                debug!("{}.new | ip: {:?}", self_id, ip);
-                let rack = self_conf.getParamValue("rack").unwrap().as_u64().unwrap();
-                debug!("{}.new | rack: {:?}", self_id, rack);
-                let slot = self_conf.getParamValue("slot").unwrap().as_u64().unwrap();
-                debug!("{}.new | slot: {:?}", self_id, slot);
-                let mut dbs = IndexMap::new();
-                for key in &self_conf.keys {
-                    let keyword = Keywd::from_str(key).unwrap();
-                    if keyword.kind() == Kind::Db {
-                        let db_name = keyword.name();
-                        let mut device_conf = self_conf.get(key).unwrap();
-                        debug!("{}.new | DB '{}'", self_id, db_name);
-                        trace!("{}.new | DB '{}'   |   conf: {:?}", self_id, db_name, device_conf);
-                        let node_conf = ProfinetDbConfig::new(&device_name, &db_name, &mut device_conf);
-                        dbs.insert(
-                            db_name,
-                            node_conf,
-                        );
-                    } else {
-                        debug!("{}.new | device expected, but found {:?}", self_id, keyword);
-                    }
-                }
                 JdsServiceConfig {
                     name: self_name,
-                    cycle,
                     rx,
                     rx_max_len,
                     tx,
-                    protocol,
-                    description,
-                    ip,
-                    rack,
-                    slot,
-                    dbs
                 }
             },
             None => {
@@ -135,9 +94,6 @@ impl JdsServiceConfig {
     ///
     /// Returns list of configurations of the defined points
     pub fn points(&self) -> Vec<PointConfig> {
-        self.dbs.iter().fold(vec![], |mut points, (_device_name, device_conf)| {
-            points.extend(device_conf.points());
-            points
-        })
+        panic!("JdsServiceConfig.points | Not implemented for now");
     }
 }
