@@ -10,7 +10,7 @@ use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thre
 use log::info;
 use crate::{
     services::{services::Services, service::Service}, 
-    conf::tcp_server_config::TcpServerConfig, core_::point::point_type::PointType,
+    conf::tcp_server_config::ServiceNameConfig, core_::point::point_type::PointType,
 };
 
 
@@ -18,20 +18,20 @@ use crate::{
 /// Binds TCP socket server
 /// Listening socket for incoming connections
 /// Verified incoming connections handles in the separate thread
-pub struct TcpServer {
+pub struct ServiceName {
     id: String,
-    conf: TcpServerConfig,
+    conf: ServiceNameConfig,
     services: Arc<Mutex<Services>>,
     exit: Arc<AtomicBool>,
 }
 ///
 /// 
-impl TcpServer {
+impl ServiceName {
     ///
     /// 
-    pub fn new(parent: impl Into<String>, conf: TcpServerConfig, services: Arc<Mutex<Services>>) -> Self {
+    pub fn new(parent: impl Into<String>, conf: ServiceNameConfig, services: Arc<Mutex<Services>>) -> Self {
         Self {
-            id: format!("{}/TcpClient({})", parent.into(), conf.name),
+            id: format!("{}/ServiceName({})", parent.into(), conf.name),
             conf: conf.clone(),
             services,
             exit: Arc::new(AtomicBool::new(false)),
@@ -40,7 +40,7 @@ impl TcpServer {
 }
 ///
 /// 
-impl Service for TcpServer {
+impl Service for ServiceName {
     //
     //
     fn id(&self) -> &str {
@@ -48,8 +48,8 @@ impl Service for TcpServer {
     }
     //
     // 
-    fn getLink(&mut self, name: &str) -> Sender<PointType> {
-        panic!("{}.getLink | Does not support getLink", self.id())
+    fn get_link(&mut self, name: &str) -> Sender<PointType> {
+        panic!("{}.get_link | Does not support get_link", self.id())
         // match self.rxSend.get(name) {
         //     Some(send) => send.clone(),
         //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
