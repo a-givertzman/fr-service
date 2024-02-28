@@ -1,8 +1,9 @@
 //!
-//! Service implements kind of bihavior
-//! Basic configuration parameters:
-//! ```yaml
-//! service ServiceName Id:
+//! JdsService implements behavior on the JDS communication protocol for the following kinds of requests:
+//! - "Start" - after this request points transmission begins
+//! - "Points" - all points configurations requested
+//! - "Auth" request - authentication requested//! ```yaml
+//! service JdsService Id:
 //!     parameter: value    # meaning
 //!     parameter: value    # meaning
 //! ```
@@ -10,7 +11,7 @@ use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thre
 use log::info;
 use crate::{
     services::{services::Services, service::Service}, 
-    conf::tcp_server_config::TcpServerConfig, core_::point::point_type::PointType,
+    conf::tcp_server_config::JdsServiceConfig, core_::point::point_type::PointType,
 };
 
 
@@ -18,20 +19,20 @@ use crate::{
 /// Binds TCP socket server
 /// Listening socket for incoming connections
 /// Verified incoming connections handles in the separate thread
-pub struct TcpServer {
+pub struct JdsService {
     id: String,
-    conf: TcpServerConfig,
+    conf: JdsServiceConfig,
     services: Arc<Mutex<Services>>,
     exit: Arc<AtomicBool>,
 }
 ///
 /// 
-impl TcpServer {
+impl JdsService {
     ///
     /// 
-    pub fn new(parent: impl Into<String>, conf: TcpServerConfig, services: Arc<Mutex<Services>>) -> Self {
+    pub fn new(parent: impl Into<String>, conf: JdsServiceConfig, services: Arc<Mutex<Services>>) -> Self {
         Self {
-            id: format!("{}/TcpClient({})", parent.into(), conf.name),
+            id: format!("{}/JdsService", parent.into(), conf.name),
             conf: conf.clone(),
             services,
             exit: Arc::new(AtomicBool::new(false)),
@@ -40,7 +41,7 @@ impl TcpServer {
 }
 ///
 /// 
-impl Service for TcpServer {
+impl Service for JdsService {
     //
     //
     fn id(&self) -> &str {

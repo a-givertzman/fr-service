@@ -3,3 +3,5 @@
 //! - "Start" - after this request points transmission begins
 //! - "Points" - all points configurations requested
 //! - "Auth" request - authentication requested
+///
+pub mod jds_service;
