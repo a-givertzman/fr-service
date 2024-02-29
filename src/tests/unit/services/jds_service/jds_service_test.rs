@@ -146,6 +146,35 @@ mod tests {
         println!("{} | Total received: {}", self_id, received_len);
         assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         //
+        // Verifing JdsService replies
+        let mut replies = 0;
+        let mut reply_errors = 0;
+        for point in received.lock().unwrap().iter() {
+            match point.cot() {
+                // Cot::Inf => todo!(),
+                // Cot::Act => todo!(),
+                // Cot::ActCon => todo!(),
+                // Cot::ActErr => todo!(),
+                // Cot::Req => todo!(),
+                Cot::ReqCon => {
+                    replies += 1;
+                },
+                Cot::ReqErr => {
+                    reply_errors += 1;
+                },
+                // Cot::Read => todo!(),
+                // Cot::Write => todo!(),
+                // Cot::All => todo!(),
+                _ => {},
+            }
+            println!("{} | Received reply: {:?}", self_id, point);
+        }
+        let result = replies;
+        assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
+        let result = reply_errors;
+        let target = 0;
+        assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
+        //
         // Waiting while all services being finished
         mq_service_handle.wait().unwrap();
         jds_service_handle.wait().unwrap();

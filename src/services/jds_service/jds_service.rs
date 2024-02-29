@@ -9,7 +9,7 @@ use std::{collections::HashMap, sync::{atomic::{AtomicBool, Ordering}, mpsc::{se
 use concat_string::concat_string;
 use log::{debug, info};
 use crate::{
-    conf::{jds_service_config::jds_service_config::JdsServiceConfig, point_config::{point_config::PointConfig, point_name::PointName}}, core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, point::point_type::PointType}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, service::Service, services::Services}
+    conf::{jds_service_config::jds_service_config::JdsServiceConfig, point_config::{point_config::PointConfig, point_name::PointName}}, core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, service::Service, services::Services}
 };
 
 
@@ -59,9 +59,11 @@ impl Service for JdsService {
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
         let self_id = self.id.clone();
+        let tx_id = PointTxId::fromStr(&self_id);
         let exit = self.exit.clone();
         let parent = self.parent.clone();
         let self_conf = self.conf.clone();
+        let tx_send = self.services.lock().unwrap().get_link(&self.conf.tx);
         let services = self.services.clone();
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
@@ -82,6 +84,22 @@ impl Service for JdsService {
                 match rx_recv.recv_timeout(RECV_TIMEOUT) {
                     Ok(point) => {
                         debug!("{}.run | request: {:?}", self_id, point);
+                        let point = PointType::String(Point::new(
+                            tx_id, 
+                            &PointName::new(&parent, "JdsService/Auth.Secret").full(),
+                            r#"{
+                                \"reply\": \"Auth.Secret Reply\"
+                            }"#.to_string(), 
+                            Status::Ok, 
+                            Cot::Req, 
+                            chrono::offset::Utc::now(),
+                        ));
+                        match tx_send.send(point) {
+                            Ok(_) => {},
+                            Err(err) => {
+                                panic!("{}.run | Send error: {:?}", self_id, err);
+                            },
+                        };
                     },
                     Err(err) => {
                         match err {

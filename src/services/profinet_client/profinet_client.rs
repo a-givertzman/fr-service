@@ -122,6 +122,7 @@ impl ProfinetClient {
     /// Writes Point to the protocol (PROFINET device) specific address
     fn write(&mut self, tx_send: Sender<PointType>) -> Result<JoinHandle<()>, std::io::Error> {
         let self_id = self.id.clone();
+        let tx_id = PointTxId::fromStr(&self_id);
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         let services = self.services.clone();
@@ -174,7 +175,7 @@ impl ProfinetClient {
                                                     if errors_limit.add().is_err() {
                                                         error!("{}.write | DB '{}' - exceeded writing errors limit, trying to reconnect...", self_id, db_name);
                                                         match tx_send.send(PointType::String(Point::new_string(
-                                                            PointTxId::fromStr(&self_id), 
+                                                            tx_id,
                                                             &point_name, 
                                                             format!("Error write point '': {}", err),
                                                         ))) {
