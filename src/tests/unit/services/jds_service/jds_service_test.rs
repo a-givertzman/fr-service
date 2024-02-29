@@ -4,7 +4,7 @@ mod tests {
     use log::debug;
     use testing::stuff::{max_test_duration::TestDuration, wait::WaitTread};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use std::{collections::HashMap, process::exit, sync::{Arc, Mutex, Once}, time::Duration};
+    use std::{collections::HashMap, process::exit, sync::{Arc, Mutex, Once}, thread, time::Duration};
     use crate::{conf::{jds_service_config::jds_service_config::JdsServiceConfig, multi_queue_config::MultiQueueConfig}, core_::{cot::cot::Cot, point::{point::Point, point_type::PointType}, status::status::Status}, services::{jds_service::jds_service::JdsService, multi_queue::multi_queue::MultiQueue, service::Service, services::Services}, tests::unit::services::multi_queue::mock_recv_service::MockRecvService}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -63,6 +63,7 @@ mod tests {
         debug!("config: {:?}", &conf);
         let jds_service = Arc::new(Mutex::new(JdsService::new(self_id, conf, services.clone())));
         services.lock().unwrap().insert("JdsService", jds_service.clone());
+        println!("{} | JdsService - ready", self_id);
         //
         // Preparing test data
         let tx_id = 0;
@@ -94,14 +95,19 @@ mod tests {
         // Configuring Receiver
         let receiver = Arc::new(Mutex::new(MockRecvService::new(self_id, "in-queue", Some(test_items_count))));
         services.lock().unwrap().insert("MockRecvService", receiver.clone());
+        println!("{} | MockRecvService - ready", self_id);
         //
         // Starting all services
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         let mq_service_handle = mq_service.lock().unwrap().run().unwrap();
         let jds_service_handle = jds_service.lock().unwrap().run().unwrap();
+        println!("{} | All services - are executed", self_id);
+        thread::sleep(Duration::from_micros(100));
         //
         // Sending test events
+        println!("{} | Try to get send from MultiQueue...", self_id);
         let send = services.lock().unwrap().get_link("MultiQueue.in-queue");
+        println!("{} | Try to get send from MultiQueue - ok", self_id);
         let mut sent = 0;
         for point in test_data {
             match send.send(point) {
@@ -114,18 +120,29 @@ mod tests {
             }
         }
         println!("{} | Total sent: {}", self_id, sent);
+        thread::sleep(Duration::from_micros(100));
         //
         // Waiting while all events being received
         receiver_handle.wait().unwrap();
+        //
+        // Stopping all services
+        receiver.lock().unwrap().exit();
+        jds_service.lock().unwrap().exit();
+        mq_service.lock().unwrap().exit();
+        //
+        // Verivications
         let received = receiver.lock().unwrap().received();
         let received_len = received.lock().unwrap().len();
         let result = received_len;
         let target = test_items_count;
         println!("{} | Total received: {}", self_id, received_len);
         assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
-
+        //
+        // Waiting while all services being finished
         mq_service_handle.wait().unwrap();
         jds_service_handle.wait().unwrap();
+        //
+        // Reseting dureation timer
         test_duration.exit();
     }
 }

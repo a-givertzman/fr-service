@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::{cell::RefCell, rc::Rc};
 
 use concat_string::concat_string;
 
@@ -28,17 +28,14 @@ impl SubscriptionCriteria {
             dest: RefCell::new(None),
         }
     }
-    ///
+    /// deref
     /// 
     pub fn destination(&self) -> String {
-        let dest = self.dest.borrow_mut();
-        match dest.as_deref() {
-            Some(dest) => dest.to_owned(),
-            None => {
-                let dest = concat_string!(self.name, "/", self.cot);
-                *self.dest.borrow_mut() = Some(dest.clone());
-                dest
-            },
+        if let Some(dest) = &*self.dest.borrow() {
+            return dest.clone();
         }
+        let dest = concat_string!(self.name, "/", self.cot);
+        *self.dest.borrow_mut() = Some(dest.clone());
+        dest
     }
 }

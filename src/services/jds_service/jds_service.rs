@@ -8,7 +8,7 @@
 use std::{collections::HashMap, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread::{self, JoinHandle}};
 use log::{debug, info};
 use crate::{
-    conf::{jds_service_config::jds_service_config::JdsServiceConfig, point_config::point_config::PointConfig}, core_::{cot::cot::Cot, point::point_type::PointType}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, service::Service, services::Services}
+    conf::{jds_service_config::jds_service_config::JdsServiceConfig, point_config::point_config::PointConfig}, core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, point::point_type::PointType}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, service::Service, services::Services}
 };
 
 
@@ -56,24 +56,36 @@ impl Service for JdsService {
         info!("{}.run | starting...", self.id);
         let self_id = self.id.clone();
         let exit = self.exit.clone();
-        let self_conf_name = self.conf.name.clone();
+        let self_conf = self.conf.clone();
+        let services = self.services.clone();
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             let points = CONFIGS.iter().map(|conf| {
                 let conf = serde_yaml::from_str(conf).unwrap();
-                PointConfig::from_yaml(&self_conf_name, &conf)
+                PointConfig::from_yaml(&self_conf.name, &conf)
             });
             let points = points.map(|point_conf| {
                 SubscriptionCriteria::new(&point_conf.name, Cot::Act)
             }).collect::<Vec<SubscriptionCriteria>>();
-            debug!("{}.write | Points subscribed on: ({})", self_id, points.len());
+            debug!("{}.run | Points subscribed on: ({})", self_id, points.len());
             for name in &points {
                 println!("\t{:?}", name);
             }
-
-            loop {
-                if exit.load(Ordering::SeqCst) {
-                    break;
+            // let rx_recv = services.lock().unwrap().subscribe(&self_conf.rx, &self_id, &points);
+            let rx_recv = services.lock().unwrap().subscribe("MultiQueue", &self_id, &points);
+            'main: while !exit.load(Ordering::SeqCst) {
+                match rx_recv.recv_timeout(RECV_TIMEOUT) {
+                    Ok(point) => {
+                        debug!("{}.run | request: {:?}", self_id, point);
+                    },
+                    Err(err) => {
+                        match err {
+                            mpsc::RecvTimeoutError::Timeout => {},
+                            mpsc::RecvTimeoutError::Disconnected => {
+                                panic!("{}.run | Send error: {:?}", self_id, err);
+                            },
+                        }
+                    },
                 }
             }
         });
