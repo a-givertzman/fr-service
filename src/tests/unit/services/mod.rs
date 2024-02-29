@@ -1,13 +1,15 @@
-pub mod task;
+mod task;
 
-pub mod api_client;
+mod api_client;
 
-pub mod tcp_client;
+mod tcp_client;
 
-pub mod multi_queue;
+mod multi_queue;
 
-pub mod tcp_server;
+mod tcp_server;
 
-pub mod services;
+mod services;
 
-pub mod profinet_client;
+mod profinet_client;
+
+mod jds_service;

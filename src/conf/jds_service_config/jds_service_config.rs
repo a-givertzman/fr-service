@@ -1,20 +1,16 @@
-use indexmap::IndexMap;
+use std::fs;
 use log::{debug, error, trace};
-use std::{fs, str::FromStr, time::Duration};
-
 use crate::conf::{
     conf_tree::ConfTree, 
     point_config::point_config::PointConfig, 
     service_config::ServiceConfig,
-    profinet_client_config::keywd::{Keywd, Kind}, 
-    profinet_client_config::profinet_db_config::ProfinetDbConfig,
 };
 
 
 ///
 /// Creates config from serde_yaml::Value of following format:
 /// ```yaml
-/// service JdsService Id01:          # service unique address used in the point path
+/// service JdsService JdsService:          # service unique address used in the point path
 ///    in queue in-queue:
 ///        max-length: 10000
 ///    out queue: MultiQueue.in-queue
@@ -68,7 +64,7 @@ impl JdsServiceConfig {
     }
     ///
     /// creates config from serde_yaml::Value of following format:
-    pub(crate) fn from_yaml_value(value: &serde_yaml::Value) -> JdsServiceConfig {
+    pub(crate) fn from_yaml(value: &serde_yaml::Value) -> JdsServiceConfig {
         Self::new(&mut ConfTree::newRoot(value.clone()))
     }
     ///
@@ -79,7 +75,7 @@ impl JdsServiceConfig {
             Ok(yaml_string) => {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
-                        JdsServiceConfig::from_yaml_value(&config)
+                        JdsServiceConfig::from_yaml(&config)
                     },
                     Err(err) => {
                         panic!("JdsServiceConfig.read | Error in config: {:?}\n\terror: {:?}", yaml_string, err)
