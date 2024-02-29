@@ -34,7 +34,7 @@ impl SubscriptionCriteria {
         if let Some(dest) = &*self.dest.borrow() {
             return dest.clone();
         }
-        let dest = concat_string!(self.name, "/", self.cot);
+        let dest = concat_string!(self.cot, "/", self.name);
         *self.dest.borrow_mut() = Some(dest.clone());
         dest
     }

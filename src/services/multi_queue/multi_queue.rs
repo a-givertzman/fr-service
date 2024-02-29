@@ -76,7 +76,7 @@ impl Service for MultiQueue {
             self.subscriptions.lock().unwrap().addBroadcast(innerReceiverId, send);
             debug!("{}.subscribe | Broadcast subscription registered, receiver: {} ({})", self.id, receiverId, innerReceiverId);
         } else {
-            for mut subscription_criteria in points {
+            for subscription_criteria in points {
                 self.subscriptions.lock().unwrap().addMulticast(innerReceiverId, &subscription_criteria.destination(), send.clone());
             }
             debug!("{}.subscribe | Multicast subscription registered, receiver: {} ({})", self.id, receiverId, innerReceiverId);
@@ -155,7 +155,7 @@ impl Service for MultiQueue {
                 }
                 match recv.recv_timeout(RECV_TIMEOUT) {
                     Ok(point) => {
-                        let pointId = point.name();
+                        let pointId = SubscriptionCriteria::new(&point.name(), point.cot()).destination();
                         trace!("{}.run | received: {:?}", self_id, point);
                         for (receiverId, sender) in subscriptions.iter(&pointId) {
                             // for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {

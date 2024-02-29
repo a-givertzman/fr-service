@@ -6,9 +6,10 @@
 //!     parameter: value    # meaning
 //! ```
 use std::{collections::HashMap, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread::{self, JoinHandle}};
+use concat_string::concat_string;
 use log::{debug, info};
 use crate::{
-    conf::{jds_service_config::jds_service_config::JdsServiceConfig, point_config::point_config::PointConfig}, core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, point::point_type::PointType}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, service::Service, services::Services}
+    conf::{jds_service_config::jds_service_config::JdsServiceConfig, point_config::{point_config::PointConfig, point_name::PointName}}, core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, point::point_type::PointType}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, service::Service, services::Services}
 };
 
 
@@ -19,6 +20,7 @@ use crate::{
 /// - "Subscribe" - after this request points transmission begins
 pub struct JdsService {
     id: String,
+    parent: String,
     rxSend: HashMap<String, Sender<PointType>>,
     rxRecv: Vec<Receiver<PointType>>,
     conf: JdsServiceConfig,
@@ -32,8 +34,10 @@ impl JdsService {
     /// 
     pub fn new(parent: impl Into<String>, conf: JdsServiceConfig, services: Arc<Mutex<Services>>) -> Self {
         let (send, recv) = mpsc::channel();
+        let parent = parent.into();
         Self {
-            id: format!("{}/JdsService({})", parent.into(), conf.name),
+            id: format!("{}/JdsService({})", parent, conf.name),
+            parent: parent,
             rxSend: HashMap::from([(conf.rx.clone(), send)]),
             rxRecv: vec![recv],
             conf: conf.clone(),
@@ -56,6 +60,7 @@ impl Service for JdsService {
         info!("{}.run | starting...", self.id);
         let self_id = self.id.clone();
         let exit = self.exit.clone();
+        let parent = self.parent.clone();
         let self_conf = self.conf.clone();
         let services = self.services.clone();
         info!("{}.run | Preparing thread...", self_id);
@@ -65,7 +70,7 @@ impl Service for JdsService {
                 PointConfig::from_yaml(&self_conf.name, &conf)
             });
             let points = points.map(|point_conf| {
-                SubscriptionCriteria::new(&point_conf.name, Cot::Act)
+                SubscriptionCriteria::new(&PointName::new(&parent, &point_conf.name).full(), Cot::Req)
             }).collect::<Vec<SubscriptionCriteria>>();
             debug!("{}.run | Points subscribed on: ({})", self_id, points.len());
             for name in &points {

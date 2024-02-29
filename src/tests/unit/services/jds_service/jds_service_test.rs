@@ -5,7 +5,7 @@ mod tests {
     use testing::stuff::{max_test_duration::TestDuration, wait::WaitTread};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use std::{collections::HashMap, process::exit, sync::{Arc, Mutex, Once}, thread, time::Duration};
-    use crate::{conf::{jds_service_config::jds_service_config::JdsServiceConfig, multi_queue_config::MultiQueueConfig}, core_::{cot::cot::Cot, point::{point::Point, point_type::PointType}, status::status::Status}, services::{jds_service::jds_service::JdsService, multi_queue::multi_queue::MultiQueue, service::Service, services::Services}, tests::unit::services::multi_queue::mock_recv_service::MockRecvService}; 
+    use crate::{conf::{jds_service_config::jds_service_config::JdsServiceConfig, multi_queue_config::MultiQueueConfig, point_config::point_name::PointName}, core_::{cot::cot::Cot, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, services::{jds_service::jds_service::JdsService, multi_queue::multi_queue::MultiQueue, service::Service, services::Services}, tests::unit::services::multi_queue::mock_recv_service::MockRecvService}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -66,12 +66,12 @@ mod tests {
         println!("{} | JdsService - ready", self_id);
         //
         // Preparing test data
-        let tx_id = 0;
+        let tx_id = PointTxId::fromStr(self_id);
         let parent = self_id;
         let test_data = [
             PointType::String(Point::new(
                 tx_id, 
-                &format!("{}/JdsService/Auth.Secret", parent),
+                &PointName::new(parent, "JdsService/Auth.Secret").full(),
                 r#"{
                     \"secret\": \"Auth.Secret\"
                 }"#.to_string(), 
@@ -81,7 +81,7 @@ mod tests {
             )),
             PointType::String(Point::new(
                 tx_id, 
-                &format!("{}/JdsService/Auth.Ssh", parent),
+                &PointName::new(parent, "JdsService/Auth.Ssh").full(),
                 r#"{
                     \"ssh\": \"Auth.Ssh\"
                 }"#.to_string(), 
@@ -102,7 +102,7 @@ mod tests {
         let mq_service_handle = mq_service.lock().unwrap().run().unwrap();
         let jds_service_handle = jds_service.lock().unwrap().run().unwrap();
         println!("{} | All services - are executed", self_id);
-        thread::sleep(Duration::from_micros(100));
+        thread::sleep(Duration::from_millis(100));
         //
         // Sending test events
         println!("{} | Try to get send from MultiQueue...", self_id);
@@ -110,9 +110,10 @@ mod tests {
         println!("{} | Try to get send from MultiQueue - ok", self_id);
         let mut sent = 0;
         for point in test_data {
-            match send.send(point) {
+            match send.send(point.clone()) {
                 Ok(_) => {
                     sent += 1;
+                    println!("{} | \t sent: {:?}", self_id, point);
                 },
                 Err(err) => {
                     panic!("{} | Send error: {:?}", self_id, err)
@@ -120,7 +121,7 @@ mod tests {
             }
         }
         println!("{} | Total sent: {}", self_id, sent);
-        thread::sleep(Duration::from_micros(100));
+        thread::sleep(Duration::from_micros(300));
         //
         // Waiting while all events being received
         receiver_handle.wait().unwrap();
