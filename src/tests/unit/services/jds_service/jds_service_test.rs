@@ -108,7 +108,7 @@ mod tests {
         let mq_service_handle = mq_service.lock().unwrap().run().unwrap();
         let jds_service_handle = jds_service.lock().unwrap().run().unwrap();
         println!("{} | All services - are executed", self_id);
-        thread::sleep(Duration::from_millis(500));
+        thread::sleep(Duration::from_millis(200));
         //
         // Sending test events
         println!("{} | Try to get send from MultiQueue...", self_id);
@@ -127,10 +127,11 @@ mod tests {
             }
         }
         println!("{} | Total sent: {}", self_id, sent);
-        thread::sleep(Duration::from_micros(300));
+        thread::sleep(Duration::from_micros(100));
         //
         // Waiting while all events being received
         receiver_handle.wait().unwrap();
+        thread::sleep(Duration::from_millis(200));
         //
         // Stopping all services
         receiver.lock().unwrap().exit();
