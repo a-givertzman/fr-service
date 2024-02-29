@@ -99,7 +99,7 @@ mod tests {
         let test_items_count = test_data.len();
         //
         // Configuring Receiver
-        let receiver = Arc::new(Mutex::new(MockRecvService::new(self_id, "in-queue", Some(test_items_count))));
+        let receiver = Arc::new(Mutex::new(MockRecvService::new(self_id, "in-queue", Some(test_items_count * 2))));
         services.lock().unwrap().insert("MockRecvService", receiver.clone());
         println!("{} | MockRecvService - ready", self_id);
         //
@@ -127,11 +127,10 @@ mod tests {
             }
         }
         println!("{} | Total sent: {}", self_id, sent);
-        thread::sleep(Duration::from_micros(100));
         //
         // Waiting while all events being received
         receiver_handle.wait().unwrap();
-        thread::sleep(Duration::from_millis(200));
+        thread::sleep(Duration::from_millis(800));
         //
         // Stopping all services
         receiver.lock().unwrap().exit();
@@ -142,7 +141,7 @@ mod tests {
         let received = receiver.lock().unwrap().received();
         let received_len = received.lock().unwrap().len();
         let result = received_len;
-        let target = test_items_count;
+        let target = test_items_count * 2;
         println!("{} | Total received: {}", self_id, received_len);
         assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         //
@@ -173,6 +172,7 @@ mod tests {
             }
         }
         let result = replies;
+        let target = test_items_count;
         assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         let result = reply_errors;
         let target = 0;

@@ -7,7 +7,7 @@
 //! ```
 use std::{collections::HashMap, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread::{self, JoinHandle}};
 use concat_string::concat_string;
-use log::{debug, info};
+use log::{debug, info, warn};
 use crate::{
     conf::{jds_service_config::jds_service_config::JdsServiceConfig, point_config::{point_config::PointConfig, point_name::PointName}}, core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, service::Service, services::Services}
 };
@@ -65,6 +65,8 @@ impl Service for JdsService {
         let self_conf = self.conf.clone();
         let tx_send = self.services.lock().unwrap().get_link(&self.conf.tx);
         let services = self.services.clone();
+        let point_name_auth_secret = PointName::new(&parent, "JdsService/Auth.Secret").full();
+        let point_name_auth_ssh = PointName::new(&parent, "JdsService/Auth.Ssh").full();
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             let points = CONFIGS.iter().map(|conf| {
@@ -83,23 +85,48 @@ impl Service for JdsService {
             'main: while !exit.load(Ordering::SeqCst) {
                 match rx_recv.recv_timeout(RECV_TIMEOUT) {
                     Ok(point) => {
-                        debug!("{}.run | request: {:?}", self_id, point);
-                        let point = PointType::String(Point::new(
-                            tx_id, 
-                            &PointName::new(&parent, "JdsService/Auth.Secret").full(),
-                            r#"{
-                                \"reply\": \"Auth.Secret Reply\"
-                            }"#.to_string(), 
-                            Status::Ok, 
-                            Cot::ReqCon, 
-                            chrono::offset::Utc::now(),
-                        ));
-                        match tx_send.send(point) {
-                            Ok(_) => {},
-                            Err(err) => {
-                                panic!("{}.run | Send error: {:?}", self_id, err);
+                        debug!("{}.run | request: \n\t{:?}", self_id, point);
+                        match point.name() {
+                            name if name == point_name_auth_secret => {
+                                let point = PointType::String(Point::new(
+                                    tx_id, 
+                                    &PointName::new(&parent, "JdsService/Auth.Secret").full(),
+                                    r#"{
+                                        \"reply\": \"Auth.Secret Reply\"
+                                    }"#.to_string(), 
+                                    Status::Ok, 
+                                    Cot::ReqCon, 
+                                    chrono::offset::Utc::now(),
+                                ));
+                                match tx_send.send(point) {
+                                    Ok(_) => {},
+                                    Err(err) => {
+                                        panic!("{}.run | Send error: {:?}", self_id, err);
+                                    },
+                                };
                             },
-                        };
+                            name if name == point_name_auth_ssh => {
+                                let point = PointType::String(Point::new(
+                                    tx_id, 
+                                    &PointName::new(&parent, "JdsService/Auth.Ssh").full(),
+                                    r#"{
+                                        \"reply\": \"Auth.Ssh Reply\"
+                                    }"#.to_string(), 
+                                    Status::Ok, 
+                                    Cot::ReqCon, 
+                                    chrono::offset::Utc::now(),
+                                ));
+                                match tx_send.send(point) {
+                                    Ok(_) => {},
+                                    Err(err) => {
+                                        panic!("{}.run | Send error: {:?}", self_id, err);
+                                    },
+                                };
+                            },
+                            _ => {
+                                warn!("{}.run | Unknown request name: {:?}", self_id, point.name());
+                            }
+                        }
                     },
                     Err(err) => {
                         match err {
