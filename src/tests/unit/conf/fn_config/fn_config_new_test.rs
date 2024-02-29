@@ -2,7 +2,7 @@
 #[cfg(test)]
 
 mod tests {
-    use log::{debug, info};
+    use log::debug;
     use std::sync::Once;
     use indexmap::IndexMap;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};

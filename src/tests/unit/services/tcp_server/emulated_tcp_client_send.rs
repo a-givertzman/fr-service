@@ -48,6 +48,7 @@ impl EmulatedTcpClientSend {
     }
     ///
     /// 
+    #[allow(dead_code)]
     pub fn sent(&self) -> Arc<Mutex<Vec<PointType>>> {
         self.sent.clone()
     }

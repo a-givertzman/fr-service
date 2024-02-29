@@ -16,9 +16,9 @@ use crate::{
 
 ///
 /// Supported kinds of requests
-/// - "Start" - after this request points transmission begins
-/// - "Points" - all points configurations requested
 /// - "Auth" request - authentication requested
+/// - "Points" - all points configurations requested
+/// - "Subscribe" - after this request points transmission begins
 pub struct JdsService {
     id: String,
     rxSend: HashMap<String, Sender<PointType>>,
