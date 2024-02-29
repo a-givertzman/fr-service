@@ -39,6 +39,7 @@ impl JdsService {
         let parent = parent.into();
         let mut requests = HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default());
         requests.insert(PointName::new(&parent, "JdsService/Auth.Secret").full(), 0);
+        requests.insert(PointName::new(&parent, "JdsService/Auth.Secret").full(), 0);
         Self {
             id: format!("{}/JdsService({})", parent, conf.name),
             parent: parent,
