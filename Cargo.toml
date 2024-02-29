@@ -30,6 +30,7 @@ rand = "^0.8"
 chrono = "^0.4"
 
 indexmap = "^2.2"
+hashers = "^1.0"
 
 # snap7 = "^0.0"
 snap7-sys = "^0.1"

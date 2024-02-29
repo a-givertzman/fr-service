@@ -5,8 +5,9 @@
 //!     parameter: value    # meaning
 //!     parameter: value    # meaning
 //! ```
-use std::{collections::HashMap, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread::{self, JoinHandle}};
+use std::{collections::HashMap, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread::{self, JoinHandle}};
 use concat_string::concat_string;
+use hashers::fx_hash::FxHasher;
 use log::{debug, info, warn};
 use crate::{
     conf::{jds_service_config::jds_service_config::JdsServiceConfig, point_config::{point_config::PointConfig, point_name::PointName}}, core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, service::Service, services::Services}
@@ -25,6 +26,7 @@ pub struct JdsService {
     rxRecv: Vec<Receiver<PointType>>,
     conf: JdsServiceConfig,
     services: Arc<Mutex<Services>>,
+    requests: HashMap<String, String, BuildHasherDefault<FxHasher>>,
     exit: Arc<AtomicBool>,
 }
 ///
@@ -35,6 +37,8 @@ impl JdsService {
     pub fn new(parent: impl Into<String>, conf: JdsServiceConfig, services: Arc<Mutex<Services>>) -> Self {
         let (send, recv) = mpsc::channel();
         let parent = parent.into();
+        let mut requests = HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default());
+        requests.insert(PointName::new(&parent, "JdsService/Auth.Secret").full(), 0);
         Self {
             id: format!("{}/JdsService({})", parent, conf.name),
             parent: parent,
@@ -42,7 +46,26 @@ impl JdsService {
             rxRecv: vec![recv],
             conf: conf.clone(),
             services,
+            requests: HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default()),
             exit: Arc::new(AtomicBool::new(false)),
+        }
+    }
+    fn match_request<'a>(self_id: &'a str, request: &'a PointType) -> Option<&'a str> {
+        match request.name() {
+            name if name == point_name_auth_secret => {
+                Some(r#"{
+                        \"reply\": \"Auth.Secret Reply\"
+                    }"#)
+            },
+            name if name == point_name_auth_ssh => {
+                Some(r#"{
+                    \"reply\": \"Auth.Ssh Reply\"
+                }"#)
+            },
+            _ => {
+                warn!("{}.run | Unknown request name: {:?}", self_id, request.name());
+                None
+            }
         }
     }
 }
@@ -86,8 +109,8 @@ impl Service for JdsService {
                 match rx_recv.recv_timeout(RECV_TIMEOUT) {
                     Ok(point) => {
                         debug!("{}.run | request: \n\t{:?}", self_id, point);
-                        match point.name() {
-                            name if name == point_name_auth_secret => {
+                        match Self::match_request(&self_id, &point) {
+                            Some(point) => {
                                 let point = PointType::String(Point::new(
                                     tx_id, 
                                     &PointName::new(&parent, "JdsService/Auth.Secret").full(),
@@ -97,7 +120,7 @@ impl Service for JdsService {
                                     Status::Ok, 
                                     Cot::ReqCon, 
                                     chrono::offset::Utc::now(),
-                                ));
+                                ));                                
                                 match tx_send.send(point) {
                                     Ok(_) => {},
                                     Err(err) => {
@@ -105,27 +128,7 @@ impl Service for JdsService {
                                     },
                                 };
                             },
-                            name if name == point_name_auth_ssh => {
-                                let point = PointType::String(Point::new(
-                                    tx_id, 
-                                    &PointName::new(&parent, "JdsService/Auth.Ssh").full(),
-                                    r#"{
-                                        \"reply\": \"Auth.Ssh Reply\"
-                                    }"#.to_string(), 
-                                    Status::Ok, 
-                                    Cot::ReqCon, 
-                                    chrono::offset::Utc::now(),
-                                ));
-                                match tx_send.send(point) {
-                                    Ok(_) => {},
-                                    Err(err) => {
-                                        panic!("{}.run | Send error: {:?}", self_id, err);
-                                    },
-                                };
-                            },
-                            _ => {
-                                warn!("{}.run | Unknown request name: {:?}", self_id, point.name());
-                            }
+                            None => {},
                         }
                     },
                     Err(err) => {
