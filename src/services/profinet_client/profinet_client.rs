@@ -143,7 +143,7 @@ impl ProfinetClient {
             let points = points.iter().map(|point_conf| {
                 SubscriptionCriteria::new(&point_conf.name, Cot::Act)
             }).collect::<Vec<SubscriptionCriteria>>();
-            debug!("{}.write | Points: ({})", self_id, points.len());
+            debug!("{}.write | Points subscribed on: ({})", self_id, points.len());
             for name in &points {
                 println!("\t{:?}", name);
             }
