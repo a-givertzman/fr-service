@@ -158,16 +158,19 @@ mod tests {
                 // Cot::Req => todo!(),
                 Cot::ReqCon => {
                     replies += 1;
+                    println!("{} | Received ReqCon reply: {:?}", self_id, point);
                 },
                 Cot::ReqErr => {
                     reply_errors += 1;
+                    println!("{} | Received ReqErr reply: {:?}", self_id, point);
                 },
                 // Cot::Read => todo!(),
                 // Cot::Write => todo!(),
                 // Cot::All => todo!(),
-                _ => {},
+                _ => {
+                    println!("{} | Received unknown point: {:?}", self_id, point);
+                },
             }
-            println!("{} | Received reply: {:?}", self_id, point);
         }
         let result = replies;
         assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);

@@ -91,7 +91,7 @@ impl Service for JdsService {
                                 \"reply\": \"Auth.Secret Reply\"
                             }"#.to_string(), 
                             Status::Ok, 
-                            Cot::Req, 
+                            Cot::ReqCon, 
                             chrono::offset::Utc::now(),
                         ));
                         match tx_send.send(point) {
