@@ -211,6 +211,11 @@ mod jds_service {
                 Cot::ReqCon => {
                     replies += 1;
                     println!("{} | Received ReqCon reply: {:?}", self_id, point);
+                    if point.name() == PointName::new(parent, "JdsService/Points").full() {
+                        let result: Vec<PointConfig> = serde_json::from_str(point.value().as_string().as_str()).unwrap();
+                        let target = point_configs(self_id);
+                        assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
+                    }
                 },
                 Cot::ReqErr => {
                     reply_errors += 1;
