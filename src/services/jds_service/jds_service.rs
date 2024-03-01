@@ -11,6 +11,7 @@ use const_format::formatcp;
 use hashers::fx_hash::FxHasher;
 use log::{debug, info, warn};
 use regex::RegexBuilder;
+use serde_json::json;
 use crate::{
     conf::{jds_service_config::jds_service_config::JdsServiceConfig, point_config::{point_config::PointConfig, point_name::PointName}}, core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, service::Service, services::Services}
 };
@@ -103,15 +104,15 @@ impl JdsService {
                 );
             },
             RequestKind::Points => {
+                let points = services.lock().unwrap().points();
+                let points = json!(points).to_string();
                 Self::send_reply(
                     self_id,
                     tx_send,
                     PointType::String(Point::new(
                         tx_id, 
-                        &PointName::new(&parent, "JdsService/Auth.Secret").full(),
-                        r#"{
-                            \"reply\": \"Auth.Ssh Reply\"
-                        }"#.to_string(), 
+                        &PointName::new(&parent, "JdsService/Points").full(),
+                        points, 
                         Status::Ok, 
                         Cot::ReqCon, 
                         chrono::offset::Utc::now(),
@@ -124,9 +125,9 @@ impl JdsService {
                     tx_send,
                     PointType::String(Point::new(
                         tx_id, 
-                        &PointName::new(&parent, "JdsService/Auth.Secret").full(),
+                        &PointName::new(&parent, "JdsService/Subscribe").full(),
                         r#"{
-                            \"reply\": \"Auth.Ssh Reply\"
+                            \"reply\": \"Subscribe\"
                         }"#.to_string(), 
                         Status::Ok, 
                         Cot::ReqCon, 
