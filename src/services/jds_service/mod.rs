@@ -5,3 +5,4 @@
 //! - "Auth" request - authentication requested
 ///
 pub mod jds_service;
+mod request_kind;

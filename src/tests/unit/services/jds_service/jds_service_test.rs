@@ -95,6 +95,26 @@ mod tests {
                 Cot::Req, 
                 chrono::offset::Utc::now(),
             )),
+            PointType::String(Point::new(
+                tx_id, 
+                &PointName::new(parent, "JdsService/Points").full(),
+                r#"{
+                    \"points\": []
+                }"#.to_string(), 
+                Status::Ok, 
+                Cot::Req, 
+                chrono::offset::Utc::now(),
+            )),
+            PointType::String(Point::new(
+                tx_id, 
+                &PointName::new(parent, "JdsService/Subcribe").full(),
+                r#"{
+                    \"points\": []
+                }"#.to_string(), 
+                Status::Ok, 
+                Cot::Req, 
+                chrono::offset::Utc::now(),
+            )),
         ];
         let test_items_count = test_data.len();
         //

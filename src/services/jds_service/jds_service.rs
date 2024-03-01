@@ -7,11 +7,15 @@
 //! ```
 use std::{collections::HashMap, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread::{self, JoinHandle}};
 use concat_string::concat_string;
+use const_format::formatcp;
 use hashers::fx_hash::FxHasher;
 use log::{debug, info, warn};
+use regex::RegexBuilder;
 use crate::{
     conf::{jds_service_config::jds_service_config::JdsServiceConfig, point_config::{point_config::PointConfig, point_name::PointName}}, core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, service::Service, services::Services}
 };
+
+use super::request_kind::RequestKind;
 
 
 ///
@@ -51,22 +55,88 @@ impl JdsService {
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
-    fn match_request<'a>(self_id: &'a str, request: &'a PointType) -> Option<&'a str> {
-        match request.name() {
-            name if name == point_name_auth_secret => {
-                Some(r#"{
-                        \"reply\": \"Auth.Secret Reply\"
-                    }"#)
+    fn send_reply(self_id: &str, tx_send: &Sender<PointType>, reply: PointType) {
+        match tx_send.send(reply) {
+            Ok(_) => {},
+            Err(err) => {
+                panic!("{}.run | Send error: {:?}", self_id, err);
             },
-            name if name == point_name_auth_ssh => {
-                Some(r#"{
-                    \"reply\": \"Auth.Ssh Reply\"
-                }"#)
+        };
+    }
+    ///
+    /// Detecting kind of the request stored as json string in the incoming point.
+    /// Performs the action depending on the Request kind.
+    fn match_request<'a>(parent: &str, self_id: &'a str, tx_id: usize, request: &'a PointType, tx_send: &Sender<PointType>, services: &Arc<Mutex<Services>>) {
+        let point_name_auth_secret = PointName::new(&parent, "JdsService/Auth.Secret").full();
+        let point_name_auth_ssh = PointName::new(&parent, "JdsService/Auth.Ssh").full();
+        match RequestKind::from(request.name()) {
+            RequestKind::AuthSecret => {
+                Self::send_reply(
+                    self_id,
+                    tx_send,
+                    PointType::String(Point::new(
+                        tx_id, 
+                        &PointName::new(&parent, "JdsService/Auth.Secret").full(),
+                        r#"{
+                            \"reply\": \"Auth.Secret Reply\"
+                        }"#.to_string(), 
+                        Status::Ok, 
+                        Cot::ReqCon, 
+                        chrono::offset::Utc::now(),
+                    )),
+                );
             },
-            _ => {
+            RequestKind::AuthSsh => {
+                Self::send_reply(
+                    self_id,
+                    tx_send,
+                    PointType::String(Point::new(
+                        tx_id, 
+                        &PointName::new(&parent, "JdsService/Auth.Secret").full(),
+                        r#"{
+                            \"reply\": \"Auth.Ssh Reply\"
+                        }"#.to_string(), 
+                        Status::Ok, 
+                        Cot::ReqCon, 
+                        chrono::offset::Utc::now(),
+                    )),
+                );
+            },
+            RequestKind::Points => {
+                Self::send_reply(
+                    self_id,
+                    tx_send,
+                    PointType::String(Point::new(
+                        tx_id, 
+                        &PointName::new(&parent, "JdsService/Auth.Secret").full(),
+                        r#"{
+                            \"reply\": \"Auth.Ssh Reply\"
+                        }"#.to_string(), 
+                        Status::Ok, 
+                        Cot::ReqCon, 
+                        chrono::offset::Utc::now(),
+                    )),
+                );
+            },
+            RequestKind::Subscribe => {
+                Self::send_reply(
+                    self_id,
+                    tx_send,
+                    PointType::String(Point::new(
+                        tx_id, 
+                        &PointName::new(&parent, "JdsService/Auth.Secret").full(),
+                        r#"{
+                            \"reply\": \"Auth.Ssh Reply\"
+                        }"#.to_string(), 
+                        Status::Ok, 
+                        Cot::ReqCon, 
+                        chrono::offset::Utc::now(),
+                    )),
+                );
+            },
+            RequestKind::Unknown => {
                 warn!("{}.run | Unknown request name: {:?}", self_id, request.name());
-                None
-            }
+            },
         }
     }
 }
@@ -89,11 +159,9 @@ impl Service for JdsService {
         let self_conf = self.conf.clone();
         let tx_send = self.services.lock().unwrap().get_link(&self.conf.tx);
         let services = self.services.clone();
-        let point_name_auth_secret = PointName::new(&parent, "JdsService/Auth.Secret").full();
-        let point_name_auth_ssh = PointName::new(&parent, "JdsService/Auth.Ssh").full();
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
-            let points = CONFIGS.iter().map(|conf| {
+            let points = REQUEST_YAML_CONFIGS.iter().map(|conf| {
                 let conf = serde_yaml::from_str(conf).unwrap();
                 PointConfig::from_yaml(&self_conf.name, &conf)
             });
@@ -110,27 +178,7 @@ impl Service for JdsService {
                 match rx_recv.recv_timeout(RECV_TIMEOUT) {
                     Ok(point) => {
                         debug!("{}.run | request: \n\t{:?}", self_id, point);
-                        match Self::match_request(&self_id, &point) {
-                            Some(point) => {
-                                let point = PointType::String(Point::new(
-                                    tx_id, 
-                                    &PointName::new(&parent, "JdsService/Auth.Secret").full(),
-                                    r#"{
-                                        \"reply\": \"Auth.Secret Reply\"
-                                    }"#.to_string(), 
-                                    Status::Ok, 
-                                    Cot::ReqCon, 
-                                    chrono::offset::Utc::now(),
-                                ));                                
-                                match tx_send.send(point) {
-                                    Ok(_) => {},
-                                    Err(err) => {
-                                        panic!("{}.run | Send error: {:?}", self_id, err);
-                                    },
-                                };
-                            },
-                            None => {},
-                        }
+                        Self::match_request(&parent, &self_id, tx_id,&point, &tx_send, &services);
                     },
                     Err(err) => {
                         match err {
@@ -152,18 +200,31 @@ impl Service for JdsService {
         self.exit.store(true, Ordering::SeqCst);
     }    
 }
-
-const CONFIGS: &[&str] = &[
-    r#"Auth.Secret:
-        type: String      # Bool / Int / Float / String / Json
-        comment: Auth request, contains token / pass string"#,
-    r#"Auth.Ssh:
-        type: String      # Bool / Int / Float / String / Json
-        comment: Auth request, contains SSH key"#,
-    r#"Points.All:
-        type: String      # Bool / Int / Float / String / Json
-        comment: Request on all Ponts configurations"#,
-    r#"Subscribe.All:
-        type: String      # Bool / Int / Float / String / Json
-        comment: Request to begin transmossion of all configured Points"#,
+///
+/// Used to create Point configurations to sibscribe on all kind of requests
+const REQUEST_YAML_CONFIGS: &[&str] = &[
+    formatcp!(
+        r#"{}:
+            type: String      # Bool / Int / Float / String / Json
+            comment: Auth request, contains token / pass string"#, 
+        RequestKind::AUTH_SECRET
+    ),
+    formatcp!(
+        r#"{}:
+            type: String      # Bool / Int / Float / String / Json
+            comment: Auth request, contains SSH key"#, 
+        RequestKind::AUTH_SSH,
+    ),
+    formatcp!(
+        r#"{}:
+            type: String      # Bool / Int / Float / String / Json
+            comment: Request all Ponts configurations"#, 
+        RequestKind::POINTS,
+    ),
+    formatcp!(
+        r#"{}:
+            type: String      # Bool / Int / Float / String / Json
+            comment: Request to begin transmossion of all configured Points"#, 
+        RequestKind::SUBSCRIBE,
+    ),
 ];
