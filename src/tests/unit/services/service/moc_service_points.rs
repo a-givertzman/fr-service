@@ -3,10 +3,7 @@
 //! Which returns exactly the vector from which it was created
 use std::thread::JoinHandle;
 use log::debug;
-
 use crate::{conf::point_config::point_config::PointConfig, services::service::service::Service};
-
-
 ///
 /// MockServicePoints implements points() method only.
 /// Which returns exactly the vector from which it was created

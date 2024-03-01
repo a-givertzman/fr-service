@@ -20,7 +20,7 @@ use regex::RegexBuilder;
 /// ```
 ///
 #[derive(Debug, PartialEq)]
-pub(super) enum RequestKind {
+pub enum RequestKind {
     AuthSecret,
     AuthSsh,
     Points,
@@ -30,10 +30,10 @@ pub(super) enum RequestKind {
 ///
 /// 
 impl RequestKind {
-    pub(super) const AUTH_SECRET: &'static str = "Auth.Secret";
-    pub(super) const AUTH_SSH: &'static str = "Auth.Ssh";
-    pub(super) const POINTS: &'static str = "Points";
-    pub(super) const SUBSCRIBE: &'static str = "Subscribe";
+    pub const AUTH_SECRET: &'static str = "Auth.Secret";
+    pub const AUTH_SSH: &'static str = "Auth.Ssh";
+    pub const POINTS: &'static str = "Points";
+    pub const SUBSCRIBE: &'static str = "Subscribe";
 }
 ///
 /// 
