@@ -33,7 +33,36 @@ mod jds_service {
     fn init_each() -> () {
     
     }
-    
+    ///
+    fn point_configs(parent: &str) -> Vec<PointConfig> {
+        vec![
+            PointConfig::from_yaml(parent, &serde_yaml::from_str(&format!(
+                r#"{}:
+                    type: String      # Bool / Int / Float / String / Json
+                    comment: Auth request, contains token / pass string"#, 
+                RequestKind::AUTH_SECRET
+            )).unwrap()),
+            PointConfig::from_yaml(parent, &serde_yaml::from_str(&format!(
+                r#"{}:
+                    type: String      # Bool / Int / Float / String / Json
+                    comment: Auth request, contains SSH key"#, 
+                RequestKind::AUTH_SSH,
+            )).unwrap()),
+            PointConfig::from_yaml(parent, &serde_yaml::from_str(&format!(
+                r#"{}:
+                    type: String      # Bool / Int / Float / String / Json
+                    comment: Request all Ponts configurations"#, 
+                RequestKind::POINTS,
+            )).unwrap()),
+            PointConfig::from_yaml(parent, &serde_yaml::from_str(&format!(
+                r#"{}:
+                    type: String      # Bool / Int / Float / String / Json
+                    comment: Request to begin transmossion of all configured Points"#, 
+                RequestKind::SUBSCRIBE,
+            )).unwrap()),
+        ]
+    }
+    ///
     #[test]
     fn auth_secret() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -118,33 +147,8 @@ mod jds_service {
         ];
         let test_items_count = test_data.len();
         //
-        //
-        let service_points = Arc::new(Mutex::new(MockServicePoints::new(self_id, vec![
-            PointConfig::from_yaml(self_id, &serde_yaml::from_str(&format!(
-                r#"{}:
-                    type: String      # Bool / Int / Float / String / Json
-                    comment: Auth request, contains token / pass string"#, 
-                RequestKind::AUTH_SECRET
-            )).unwrap()),
-            PointConfig::from_yaml(self_id, &serde_yaml::from_str(&format!(
-                r#"{}:
-                    type: String      # Bool / Int / Float / String / Json
-                    comment: Auth request, contains SSH key"#, 
-                RequestKind::AUTH_SSH,
-            )).unwrap()),
-            PointConfig::from_yaml(self_id, &serde_yaml::from_str(&format!(
-                r#"{}:
-                    type: String      # Bool / Int / Float / String / Json
-                    comment: Request all Ponts configurations"#, 
-                RequestKind::POINTS,
-            )).unwrap()),
-            PointConfig::from_yaml(self_id, &serde_yaml::from_str(&format!(
-                r#"{}:
-                    type: String      # Bool / Int / Float / String / Json
-                    comment: Request to begin transmossion of all configured Points"#, 
-                RequestKind::SUBSCRIBE,
-            )).unwrap()),
-        ])));
+        // preparing MockServicePoints with the Vec<PontConfig>
+        let service_points = Arc::new(Mutex::new(MockServicePoints::new(self_id, point_configs(self_id))));
         services.lock().unwrap().insert("MockServicePoints", service_points);
         //
         // Configuring Receiver
