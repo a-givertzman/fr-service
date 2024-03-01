@@ -7,7 +7,7 @@ use log::{debug, error, info, trace};
 use crate::{
     core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, point::{point_tx_id::PointTxId, point_type::PointType}}, 
     conf::multi_queue_config::MultiQueueConfig, 
-    services::{service::Service, services::Services, multi_queue::subscription_criteria::SubscriptionCriteria},
+    services::{service::service::Service, services::Services, multi_queue::subscription_criteria::SubscriptionCriteria},
 };
 
 use super::subscriptions::Subscriptions;

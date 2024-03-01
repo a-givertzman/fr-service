@@ -5,7 +5,7 @@ use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, 
 use log::{info, warn, error, debug, trace};
 
 use crate::{
-    core_::point::{point_tx_id::PointTxId, point_type::PointType}, services::{multi_queue::{subscription_criteria::SubscriptionCriteria, subscriptions::Subscriptions}, service::Service, services::Services}
+    core_::point::{point_tx_id::PointTxId, point_type::PointType}, services::{multi_queue::{subscription_criteria::SubscriptionCriteria, subscriptions::Subscriptions}, service::service::Service, services::Services}
 };
 
 

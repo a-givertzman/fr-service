@@ -4,7 +4,7 @@ use std::{collections::HashMap, sync::{mpsc::{Sender, Receiver, self}, Arc, Mute
 
 use log::{info, trace};
 
-use crate::{core_::{point::point_type::PointType, constants::constants::RECV_TIMEOUT}, services::service::Service};
+use crate::{core_::{point::point_type::PointType, constants::constants::RECV_TIMEOUT}, services::service::service::Service};
 
 
 pub struct MockRecvService {

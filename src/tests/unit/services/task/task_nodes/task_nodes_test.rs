@@ -7,7 +7,7 @@ mod tests {
     use crate::{
         core_::point::point_type::{ToPoint, PointType},
         conf::task_config::TaskConfig, 
-        services::{task::{task_nodes::TaskNodes, nested_function::{fn_kind::FnKind, fn_count::{self}, fn_ge, sql_metric}}, services::Services, service::Service},
+        services::{task::{task_nodes::TaskNodes, nested_function::{fn_kind::FnKind, fn_count::{self}, fn_ge, sql_metric}}, services::Services, service::service::Service},
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.

@@ -9,7 +9,7 @@ mod tests {
     use crate::{
         core_::point::point_type::ToPoint,
         conf::api_client_config::ApiClientConfig,  
-        services::{api_cient::api_client::ApiClient, service::Service},
+        services::{api_cient::api_client::ApiClient, service::service::Service},
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.

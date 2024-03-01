@@ -5,12 +5,14 @@ use std::{
     thread::{self, JoinHandle},
     time::Duration, collections::HashMap,
 };
-
 use log::{debug, error, info, trace};
-
-use crate::{services::{task::task_nodes::TaskNodes, service::Service, services::Services}, core_::{point::point_type::PointType, constants::constants::RECV_TIMEOUT}, conf::point_config::point_config::PointConfig};
 use crate::conf::task_config::TaskConfig;
 use crate::services::task::service_cycle::ServiceCycle;
+use crate::{
+    services::{task::task_nodes::TaskNodes, service::service::Service, services::Services}, 
+    core_::{point::point_type::PointType, constants::constants::RECV_TIMEOUT}, 
+    conf::point_config::point_config::PointConfig,
+};
 
 /// Task implements entity, which provides cyclically (by event) executing calculations
 ///  - executed in the cycle mode (current impl)

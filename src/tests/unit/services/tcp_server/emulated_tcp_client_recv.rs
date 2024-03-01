@@ -11,7 +11,7 @@ use crate::{
             protocols::jds::{jds_deserialize::JdsDeserialize, jds_decode_message::JdsDecodeMessage}, 
         }, state::{switch_state::{SwitchState, Switch, SwitchCondition}, switch_state_changed::SwitchStateChanged},
     },
-    services::service::Service, 
+    services::service::service::Service, 
 };
 
 

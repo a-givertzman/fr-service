@@ -7,7 +7,7 @@ mod tests {
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         tests::unit::services::multi_queue::{mock_send_service::MockSendService, mock_multi_queue::MockMultiQueue, mock_recv_service::MockRecvService, mock_multi_queue_match::MockMultiQueueMatch}, 
-        services::{services::Services, service::Service},
+        services::{services::Services, service::service::Service},
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.

@@ -4,7 +4,7 @@ use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, Joi
 
 use log::{info, warn, debug, trace};
 use testing::entities::test_value::Value;
-use crate::{core_::point::point_type::{PointType, ToPoint}, services::{service::Service, services::Services}};
+use crate::{core_::point::point_type::{PointType, ToPoint}, services::{service::service::Service, services::Services}};
 
 
 pub struct MockSendService {

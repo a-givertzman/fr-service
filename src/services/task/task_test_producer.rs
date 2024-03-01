@@ -5,7 +5,7 @@ use std::{sync::{mpsc::Sender, Arc, atomic::{AtomicBool, Ordering}, Mutex}, thre
 use log::{debug, warn, info, trace};
 use testing::entities::test_value::Value;
 
-use crate::{core_::point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}, services::{service::Service, services::Services}};
+use crate::{core_::point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}, services::{service::service::Service, services::Services}};
 
 
 ///

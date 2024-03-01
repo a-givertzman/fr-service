@@ -10,7 +10,7 @@ use crate::{
     services::{
         multi_queue::subscription_criteria::SubscriptionCriteria,
         queue_name::QueueName,
-        service::Service,
+        service::service::Service,
     }
 };
 

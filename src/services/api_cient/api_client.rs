@@ -4,7 +4,7 @@ use api_tools::{client::api_query::ApiQuery, reply::api_reply::SqlReply};
 use crate::{
     core_::{point::point_type::PointType, net::connection_status::ConnectionStatus, retain_buffer::retain_buffer::RetainBuffer}, 
     conf::api_client_config::ApiClientConfig,
-    services::{task::service_cycle::ServiceCycle, service::Service}, 
+    services::{task::service_cycle::ServiceCycle, service::service::Service}, 
     tcp::tcp_client_connect::TcpClientConnect, 
 };
 

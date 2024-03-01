@@ -1,11 +1,6 @@
 //!
-//! Service implements kind of bihavior
-//! Basic configuration parameters:
-//! ```yaml
-//! service ServiceName Id:
-//!     parameter: value    # meaning
-//!     parameter: value    # meaning
-//! ```
+//! MockServicePoints implements points() method only.
+//! Which returns exactly the vector from which it was created
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread::{self, JoinHandle}};
 use log::info;
 use crate::{
@@ -15,13 +10,11 @@ use crate::{
 
 
 ///
-/// Binds TCP socket server
-/// Listening socket for incoming connections
-/// Verified incoming connections handles in the separate thread
+/// MockServicePoints implements points() method only.
+/// Which returns exactly the vector from which it was created
 pub struct ServiceName {
     id: String,
-    conf: ServiceNameConfig,
-    services: Arc<Mutex<Services>>,
+    points: Vec<PointConfig>,
     exit: Arc<AtomicBool>,
 }
 ///
@@ -29,7 +22,7 @@ pub struct ServiceName {
 impl ServiceName {
     ///
     /// 
-    pub fn new(parent: impl Into<String>, conf: ServiceNameConfig, services: Arc<Mutex<Services>>) -> Self {
+    pub fn new(parent: impl Into<String>, points: Vec<PointConfig>) -> Self {
         Self {
             id: format!("{}/ServiceName({})", parent.into(), conf.name),
             conf: conf.clone(),

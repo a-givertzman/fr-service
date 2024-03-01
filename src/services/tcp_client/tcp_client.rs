@@ -7,7 +7,7 @@ use log::{info, debug};
 use crate::{
     core_::{point::point_type::PointType, net::protocols::jds::{jds_serialize::JdsSerialize, jds_encode_message::JdsEncodeMessage}},
     conf::tcp_client_config::TcpClientConfig,
-    services::{service::Service, services::Services}, 
+    services::{service::service::Service, services::Services}, 
     tcp::{
         tcp_client_connect::TcpClientConnect, 
         tcp_stream_write::TcpStreamWrite, 

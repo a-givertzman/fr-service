@@ -5,7 +5,7 @@ use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, Joi
 use testing::entities::test_value::Value;
 use crate::{
     core_::{constants::constants::RECV_TIMEOUT, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, 
-    services::{queue_name::QueueName, service::Service, services::Services},
+    services::{queue_name::QueueName, service::service::Service, services::Services},
 };
 
 

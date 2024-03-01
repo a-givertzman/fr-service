@@ -8,7 +8,7 @@ mod tests {
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         conf::task_config::TaskConfig, 
-        services::{service::Service, services::Services, task::task::Task},
+        services::{service::service::Service, services::Services, task::task::Task},
     };
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.

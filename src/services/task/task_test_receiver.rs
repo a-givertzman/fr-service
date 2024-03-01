@@ -4,7 +4,7 @@ use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Order
 
 use log::{info, warn, trace, debug};
 
-use crate::{core_::point::point_type::PointType, services::service::Service};
+use crate::{core_::point::point_type::PointType, services::service::service::Service};
 
 
 pub struct TaskTestReceiver {

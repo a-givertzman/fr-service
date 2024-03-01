@@ -8,7 +8,7 @@ mod tests {
     use crate::{
         conf::{jds_service_config::jds_service_config::JdsServiceConfig, multi_queue_config::MultiQueueConfig, point_config::point_name::PointName}, 
         core_::{cot::cot::Cot, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, 
-        services::{jds_service::jds_service::JdsService, multi_queue::multi_queue::MultiQueue, service::Service, services::Services}, 
+        services::{jds_service::jds_service::JdsService, multi_queue::multi_queue::MultiQueue, service::service::Service, services::Services}, 
         tests::unit::services::multi_queue::mock_recv_service::MockRecvService,
     }; 
     
