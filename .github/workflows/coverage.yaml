@@ -35,6 +35,7 @@ jobs:
         run: |
           # cargo install cargo-tarpaulin
           cargo +stable install cargo-llvm-cov --locked
+          cargo update
           cargo check
           clear && cargo llvm-cov --fail-under-functions 30 --release -- --nocapture
       # - run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
