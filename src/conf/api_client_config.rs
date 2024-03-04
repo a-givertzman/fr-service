@@ -23,6 +23,7 @@ use crate::conf::{conf_tree::ConfTree, service_config::ServiceConfig};
 pub struct ApiClientConfig {
     pub(crate) name: String,
     pub(crate) address: SocketAddr,
+    pub(crate) database: String,
     pub(crate) auth_token: String,
     pub(crate) cycle: Option<Duration>,
     pub(crate) reconnectCycle: Option<Duration>,
@@ -63,6 +64,8 @@ impl ApiClientConfig {
                 debug!("{}.new | name: {:?}", self_id, selfName);
                 let address: SocketAddr = selfConf.getParamValue("address").unwrap().as_str().unwrap().parse().unwrap();
                 debug!("{}.new | address: {:?}", self_id, address);
+                let database = selfConf.getParamValue("database").unwrap().as_str().unwrap().to_string();
+                debug!("{}.new | database: {:?}", self_id, database);
                 let auth_token = selfConf.getParamValue("auth_token").unwrap_or(serde_yaml::Value::default()).as_str().unwrap_or("").to_string();
                 debug!("{}.new | auth_token: {:?}", self_id, auth_token);
                 let cycle = selfConf.getDuration("cycle");
@@ -76,6 +79,7 @@ impl ApiClientConfig {
                 Self {
                     name: selfName,
                     address,
+                    database,
                     auth_token,
                     cycle,
                     reconnectCycle,
