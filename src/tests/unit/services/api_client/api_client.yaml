@@ -5,3 +5,5 @@ service ApiClient:
     in queue api-link:
         max-length: 10000
     out queue: MultiQueue.queue
+    auth_token: 123!@#
+    # debug: true

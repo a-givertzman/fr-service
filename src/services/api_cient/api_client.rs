@@ -1,6 +1,7 @@
+use concat_string::concat_string;
 use log::{info, debug, trace, warn};
-use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering}}, time::Duration, thread::{self, JoinHandle}, collections::HashMap, net::TcpStream, io::{Write, Read}};
-use api_tools::{client::api_query::ApiQuery, reply::api_reply::SqlReply};
+use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering}}, time::Duration, thread::{self, JoinHandle}, collections::HashMap, net::TcpStream, io::Read};
+use api_tools::client::{api_query::{ApiQuery, ApiQueryKind, ApiQuerySql}, api_reply::ApiReply, api_request::ApiRequest};
 use crate::{
     core_::{point::point_type::PointType, net::connection_status::ConnectionStatus, retain_buffer::retain_buffer::RetainBuffer}, 
     conf::api_client_config::ApiClientConfig,
@@ -28,8 +29,9 @@ impl ApiClient {
     /// - [parent] - the ID if the parent entity
     pub fn new(parent: impl Into<String>, conf: ApiClientConfig) -> Self {
         let (send, recv) = mpsc::channel();
+        let self_id = format!("{}/ApiClient({})", parent.into(), conf.name);
         Self {
-            id: format!("{}/ApiClient({})", parent.into(), conf.name),
+            id: self_id,
             recv: vec![recv],
             send: HashMap::from([(conf.rx.clone(), send)]),
             conf: conf.clone(),
@@ -50,15 +52,36 @@ impl ApiClient {
     }
     ///
     /// Writing sql string to the TcpStream
-    fn send(self_id: &str, sql: String, stream: &mut TcpStream) -> Result<(), Box<dyn std::error::Error>>{
-        let query = ApiQuery::new("authToken", "id", "database", sql, true, true);
-        match stream.write(query.toJson().as_bytes()) {
-            Ok(_) => Ok(()),
+    fn send(self_id: &str, request: &mut ApiRequest, sql: String, keep_alive: bool, stream: &mut TcpStream) -> Result<ApiReply, String> {
+        let database = "database";
+        let query = ApiQuery::new(
+            ApiQueryKind::Sql(ApiQuerySql::new(database, sql)),
+            true,
+        );
+        match request.fetch(&query, keep_alive) {
+            Ok(reply) => {
+                match serde_json::from_slice(&reply) {
+                    Ok(reply) => reply,
+                    Err(err) => {
+                        let message = concat_string!(self_id, ".send | Error sending API request: {:?}", err.to_string());
+                        warn!("{}", message);
+                        Err(message)
+                    },
+                }
+            },
             Err(err) => {
-                warn!("{}.send | write to tcp stream error: {:?}", self_id, err);
-                Err(Box::new(err))
+                let message = concat_string!(self_id, ".send | Error sending API request: {:?}", err);
+                warn!("{}", message);
+                Err(message)
             },
         }
+        // match stream.write(query.toJson().as_bytes()) {
+        //     Ok(_) => Ok(()),
+        //     Err(err) => {
+        //         warn!("{}.send | write to tcp stream error: {:?}", self_id, err);
+        //         Err(Box::new(err))
+        //     },
+        // }
     }
     ///
     /// bytes to be read from socket at once
@@ -171,6 +194,19 @@ impl Service for ApiClient {
             let mut buffer = RetainBuffer::new(&self_id, "", Some(conf.rxMaxLength as usize));
             let mut cycle = ServiceCycle::new(cycle_interval);
             let mut connect = TcpClientConnect::new(self_id.clone() + "/TcpSocketClientConnect", conf.address, reconnect);
+            let api_keep_alive = true;
+            let sql_keep_alive = true;
+            let mut request = ApiRequest::new(
+                &self_id, 
+                conf.address, 
+                conf.auth_token, 
+                ApiQuery::new(
+                    ApiQueryKind::Sql(ApiQuerySql::new("", "")), 
+                    sql_keep_alive,
+                ),
+                api_keep_alive, 
+                conf.debug,
+            );
             'main: loop {
                 match connect.connect() {
                     Some(mut stream) => {
@@ -189,30 +225,42 @@ impl Service for ApiClient {
                                 match buffer.first() {
                                     Some(point) => {
                                         let sql = point.as_string().value;
-                                        match Self::send(&self_id, sql, &mut stream) {
-                                            Ok(_) => {
-                                                match Self::read_all(&self_id, &mut stream) {
-                                                    ConnectionStatus::Active(bytes) => {
-                                                        let reply = String::from_utf8(bytes).unwrap();
-                                                        debug!("{}.run | API reply: {:?}", self_id, reply);
-                                                        let reply: SqlReply = serde_json::from_str(&reply).unwrap();
-                                                        if reply.hasError() {
-                                                            warn!("{}.run | API reply has error: {:?}", self_id, reply.error);
-                                                        } else {
-                                                            buffer.popFirst();
-                                                        }
-                                                    },
-                                                    ConnectionStatus::Closed(err) => {
-                                                        warn!("{}.run | API read error: {:?}", self_id, err);
-                                                        break 'send;
-                                                    },
-                                                };
+                                        match Self::send(&self_id, &mut request, sql, api_keep_alive, &mut stream) {
+                                            Ok(reply) => {
+                                                if reply.hasError() {
+                                                    warn!("{}.run | API reply has error: {:?}", self_id, reply.error);
+                                                } else {
+                                                    buffer.popFirst();
+                                                }
                                             },
                                             Err(err) => {
-                                                warn!("{}.run | API sending error: {:?}", self_id, err);
-                                                break 'send;
+                                                warn!("{}.run | Error: {:?}", self_id, err);
                                             },
                                         }
+                                        // match Self::send(&self_id, sql, &mut stream) {
+                                        //     Ok(_) => {
+                                        //         match Self::read_all(&self_id, &mut stream) {
+                                        //             ConnectionStatus::Active(bytes) => {
+                                        //                 let reply = String::from_utf8(bytes).unwrap();
+                                        //                 debug!("{}.run | API reply: {:?}", self_id, reply);
+                                        //                 let reply: SqlReply = serde_json::from_str(&reply).unwrap();
+                                        //                 if reply.hasError() {
+                                        //                     warn!("{}.run | API reply has error: {:?}", self_id, reply.error);
+                                        //                 } else {
+                                        //                     buffer.popFirst();
+                                        //                 }
+                                        //             },
+                                        //             ConnectionStatus::Closed(err) => {
+                                        //                 warn!("{}.run | API read error: {:?}", self_id, err);
+                                        //                 break 'send;
+                                        //             },
+                                        //         };
+                                        //     },
+                                        //     Err(err) => {
+                                        //         warn!("{}.run | API sending error: {:?}", self_id, err);
+                                        //         break 'send;
+                                        //     },
+                                        // }
                                     },
                                     None => {break;},
                                 };

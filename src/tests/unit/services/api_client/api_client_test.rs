@@ -4,7 +4,7 @@ mod api_client {
     use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::{Read, Write}};
     use testing::{entities::test_value::Value, session::test_session::TestSession, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use api_tools::{error::api_error::ApiError, reply::api_reply::SqlReply};
+    use api_tools::{error::api_error::ApiError, server::reply::api_reply::SqlReply};
     use crate::{
         core_::point::point_type::ToPoint,
         conf::api_client_config::ApiClientConfig,  
