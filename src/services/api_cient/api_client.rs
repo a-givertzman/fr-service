@@ -65,7 +65,11 @@ impl ApiClient {
                 match serde_json::from_slice(&reply) {
                     Ok(reply) => Ok(reply),
                     Err(err) => {
-                        let message = concat_string!(self_id, ".send | Error parsing API reply: {:?}", err.to_string());
+                        let reply = match std::str::from_utf8(&reply) {
+                            Ok(reply) => reply.to_string(),
+                            Err(err) => concat_string!(self_id, ".send | Error parsing reply to utf8 string: ", err.to_string()),
+                        };
+                        let message = concat_string!(self_id, ".send | Error parsing API reply: {:?} \n\t reply was: {:?}", err.to_string(), reply);
                         warn!("{}", message);
                         Err(message)
                     },
@@ -78,82 +82,6 @@ impl ApiClient {
             },
         }
     }
-    // ///
-    // /// bytes to be read from socket at once
-    // // const BUF_LEN: usize = 1024 * 4;
-    // ///
-    // /// reads all avalible data from the TspStream
-    // /// - returns Active: if read bytes non zero length without errors
-    // /// - returns Closed:
-    // ///    - if read 0 bytes
-    // ///    - if on error
-    // fn read_all(self_id: &str, stream: &mut TcpStream) -> ConnectionStatus<Vec<u8>, String> {
-    //     let mut buf = [0; Self::BUF_LEN];
-    //     let mut result = vec![];
-    //     loop {
-    //         match stream.read(&mut buf) {
-    //             Ok(len) => {
-    //                 debug!("{}.readAll |     read len: {:?}", self_id, len);
-    //                 result.append(& mut buf[..len].into());
-    //                 if len < Self::BUF_LEN {
-    //                     if len == 0 {
-    //                         return ConnectionStatus::Closed(format!("{}.readAll | tcp stream closed", self_id));
-    //                     } else {
-    //                         return ConnectionStatus::Active(result)
-    //                     }
-    //                 }
-    //             },
-    //             Err(err) => {
-    //                 warn!("{}.readAll | error reading from socket: {:?}", self_id, err);
-    //                 warn!("{}.readAll | error kind: {:?}", self_id, err.kind());
-    //                 let status = ConnectionStatus::Closed(format!("{}.readAll | tcp stream error: {:?}", self_id, err));
-    //                 return match err.kind() {
-    //                     std::io::ErrorKind::NotFound => status,
-    //                     std::io::ErrorKind::PermissionDenied => status,
-    //                     std::io::ErrorKind::ConnectionRefused => status,
-    //                     std::io::ErrorKind::ConnectionReset => status,
-    //                     // std::io::ErrorKind::HostUnreachable => status,
-    //                     // std::io::ErrorKind::NetworkUnreachable => status,
-    //                     std::io::ErrorKind::ConnectionAborted => status,
-    //                     std::io::ErrorKind::NotConnected => status,
-    //                     std::io::ErrorKind::AddrInUse => status,
-    //                     std::io::ErrorKind::AddrNotAvailable => status,
-    //                     // std::io::ErrorKind::NetworkDown => status,
-    //                     std::io::ErrorKind::BrokenPipe => status,
-    //                     std::io::ErrorKind::AlreadyExists => status,
-    //                     std::io::ErrorKind::WouldBlock => status,
-    //                     // std::io::ErrorKind::NotADirectory => todo!(),
-    //                     // std::io::ErrorKind::IsADirectory => todo!(),
-    //                     // std::io::ErrorKind::DirectoryNotEmpty => todo!(),
-    //                     // std::io::ErrorKind::ReadOnlyFilesystem => todo!(),
-    //                     // std::io::ErrorKind::FilesystemLoop => todo!(),
-    //                     // std::io::ErrorKind::StaleNetworkFileHandle => todo!(),
-    //                     std::io::ErrorKind::InvalidInput => status,
-    //                     std::io::ErrorKind::InvalidData => status,
-    //                     std::io::ErrorKind::TimedOut => status,
-    //                     std::io::ErrorKind::WriteZero => status,
-    //                     // std::io::ErrorKind::StorageFull => todo!(),
-    //                     // std::io::ErrorKind::NotSeekable => todo!(),
-    //                     // std::io::ErrorKind::FilesystemQuotaExceeded => todo!(),
-    //                     // std::io::ErrorKind::FileTooLarge => todo!(),
-    //                     // std::io::ErrorKind::ResourceBusy => todo!(),
-    //                     // std::io::ErrorKind::ExecutableFileBusy => todo!(),
-    //                     // std::io::ErrorKind::Deadlock => todo!(),
-    //                     // std::io::ErrorKind::CrossesDevices => todo!(),
-    //                     // std::io::ErrorKind::TooManyLinks => todo!(),
-    //                     // std::io::ErrorKind::InvalidFilename => todo!(),
-    //                     // std::io::ErrorKind::ArgumentListTooLong => todo!(),
-    //                     std::io::ErrorKind::Interrupted => status,
-    //                     std::io::ErrorKind::Unsupported => status,
-    //                     std::io::ErrorKind::UnexpectedEof => status,
-    //                     std::io::ErrorKind::OutOfMemory => status,
-    //                     std::io::ErrorKind::Other => status,
-    //                     _ => status,
-    //                 }
-    //             },
-    //         };
-    //     }
-    // }
 }
 ///
 /// 
