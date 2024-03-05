@@ -1,12 +1,11 @@
 use concat_string::concat_string;
 use log::{info, debug, trace, warn};
 use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering}}, time::Duration, thread::{self, JoinHandle}, collections::HashMap};
-use api_tools::client::{api_query::{ApiQuery, ApiQueryKind, ApiQuerySql}, api_reply::ApiReply, api_request::ApiRequest};
+use api_tools::{api::reply::api_reply::ApiReply, client::{api_query::{ApiQuery, ApiQueryKind, ApiQuerySql}, api_request::ApiRequest}};
 use crate::{
     core_::{point::point_type::PointType, retain_buffer::retain_buffer::RetainBuffer}, 
     conf::api_client_config::ApiClientConfig,
     services::{task::service_cycle::ServiceCycle, service::service::Service}, 
-    tcp::tcp_client_connect::TcpClientConnect, 
 };
 
 ///
@@ -59,10 +58,14 @@ impl ApiClient {
         );
         match request.fetch(&query, keep_alive) {
             Ok(reply) => {
-                match serde_json::from_slice(&reply) {
+                let reply = std::str::from_utf8(&reply);
+                debug!("{}.send | reply: {:?}", self_id, reply);
+                let reply = serde_json::from_str(reply.unwrap());
+                debug!("{}.send | reply: {:?}", self_id, reply);
+                match reply {
                     Ok(reply) => reply,
                     Err(err) => {
-                        let message = concat_string!(self_id, ".send | Error sending API request: {:?}", err.to_string());
+                        let message = concat_string!(self_id, ".send | Error parsing API reply: {:?}", err.to_string());
                         warn!("{}", message);
                         Err(message)
                     },

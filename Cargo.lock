@@ -92,7 +92,7 @@ dependencies = [
 [[package]]
 name = "api-tools"
 version = "0.0.3"
-source = "git+https://github.com/a-givertzman/rust-api-tools.git#42e263e0cafe45408988ac77783a1625bfb8bea3"
+source = "git+https://github.com/a-givertzman/rust-api-tools.git?tag=0.0.3#187e3d72c65aae455c979fc3e6b544ce695fc758"
 dependencies = [
  "debugging",
  "env_logger",
@@ -206,9 +206,9 @@ checksum = "a2bd12c1caf447e69cd4528f47f94d203fd2582878ecb9e9465484c4148a8223"
 
 [[package]]
 name = "cc"
-version = "1.0.88"
+version = "1.0.89"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "02f341c093d19155a6e41631ce5971aac4e9a868262212153124c15fa22d1cdc"
+checksum = "a0ba8f7aaa012f30d5b2861462f6708eccd49c3c39863fe083a308035f63d723"
 
 [[package]]
 name = "cexpr"
@@ -310,7 +310,7 @@ dependencies = [
 [[package]]
 name = "debugging"
 version = "0.0.1"
-source = "git+https://github.com/a-givertzman/rust-debuging.git#18c3318af218aa8caa094a7dfda0d71f08a9eeda"
+source = "git+https://github.com/a-givertzman/rust-debuging.git?tag=0.0.1#18c3318af218aa8caa094a7dfda0d71f08a9eeda"
 dependencies = [
  "env_logger",
 ]
@@ -937,9 +937,9 @@ dependencies = [
 
 [[package]]
 name = "regex-automata"
-version = "0.4.5"
+version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5bb987efffd3c6d0d8f5f89510bb458559eab11e4f869acb20bf845e016259cd"
+checksum = "86b83b8b9847f9bf95ef68afb0b8e6cdb80f498442f5179a29fad448fcc1eaea"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -1122,8 +1122,8 @@ dependencies = [
 
 [[package]]
 name = "testing"
-version = "0.0.1"
-source = "git+https://github.com/a-givertzman/rust-testing.git#4442589e734b62f974c80026331d05def59a49f1"
+version = "0.0.2"
+source = "git+https://github.com/a-givertzman/rust-testing.git?tag=0.0.2#b810ec56855f8793167255a26fe3d89450ca3039"
 dependencies = [
  "env_logger",
  "log",

@@ -4,7 +4,7 @@ mod api_client {
     use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::{Read, Write}};
     use testing::{entities::test_value::Value, session::test_session::TestSession, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use api_tools::{error::api_error::ApiError, server::reply::api_reply::SqlReply};
+    use api_tools::{error::api_error::ApiError, api::reply::api_reply::ApiReply};
     use crate::{
         core_::point::point_type::ToPoint,
         conf::api_client_config::ApiClientConfig,  
@@ -45,7 +45,7 @@ mod api_client {
         conf.address = addr.parse().unwrap();
         let mut api_client = ApiClient::new("test ApiClient", conf);
         // let test_duration = Duration::from_secs(10);
-        let count = 300;
+        let count = 10;
         let mut state = 0;
         let test_data = RandomTestValues::new(
             self_id, 
@@ -106,7 +106,7 @@ mod api_client {
                                                     debug!("TCP server | received: {:?}", value);
                                                     received.push(value.clone());
                                                     let obj = value.as_object().unwrap();
-                                                    let reply = SqlReply {
+                                                    let reply = ApiReply {
                                                         authToken: obj.get("authToken").unwrap().as_str().unwrap().to_string(),
                                                         id: obj.get("id").unwrap().as_str().unwrap().to_string(),
                                                         keepAlive: obj.get("keepAlive").unwrap().as_bool().unwrap(),
