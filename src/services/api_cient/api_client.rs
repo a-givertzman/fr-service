@@ -58,12 +58,12 @@ impl ApiClient {
         );
         match request.fetch(&query, keep_alive) {
             Ok(reply) => {
-                let reply = std::str::from_utf8(&reply);
-                debug!("{}.send | reply: {:?}", self_id, reply);
-                let reply = serde_json::from_str(reply.unwrap());
-                debug!("{}.send | reply: {:?}", self_id, reply);
-                match reply {
-                    Ok(reply) => reply,
+                if log::max_level() > log::LevelFilter::Info {
+                    let reply_str = std::str::from_utf8(&reply).unwrap();
+                    debug!("{}.send | reply str: {:?}", self_id, reply_str);
+                }
+                match serde_json::from_slice(&reply) {
+                    Ok(reply) => Ok(reply),
                     Err(err) => {
                         let message = concat_string!(self_id, ".send | Error parsing API reply: {:?}", err.to_string());
                         warn!("{}", message);
@@ -213,7 +213,7 @@ impl Service for ApiClient {
                             let sql = point.as_string().value;
                             match Self::send(&self_id, &mut request, &conf.database, sql, api_keep_alive) {
                                 Ok(reply) => {
-                                    if reply.hasError() {
+                                    if reply.has_error() {
                                         warn!("{}.run | API reply has error: {:?}", self_id, reply.error);
                                     } else {
                                         buffer.popFirst();

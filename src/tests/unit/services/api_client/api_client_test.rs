@@ -106,15 +106,14 @@ mod api_client {
                                                     debug!("TCP server | received: {:?}", value);
                                                     received.push(value.clone());
                                                     let obj = value.as_object().unwrap();
-                                                    let reply = ApiReply {
-                                                        authToken: obj.get("authToken").unwrap().as_str().unwrap().to_string(),
-                                                        id: obj.get("id").unwrap().as_str().unwrap().to_string(),
-                                                        keepAlive: obj.get("keepAlive").unwrap().as_bool().unwrap(),
-                                                        query: "".into(),
-                                                        data: vec![],
-                                                        error: ApiError::empty(),
-                                                    };
-                                                    match _socket.write(&reply.asBytes()) {
+                                                    let reply = ApiReply::new(
+                                                        obj.get("authToken").unwrap().as_str().unwrap().to_string(),
+                                                        obj.get("id").unwrap().as_str().unwrap().to_string(),
+                                                        obj.get("keepAlive").unwrap().as_bool().unwrap(),
+                                                        "".into(),
+                                                        vec![],
+                                                    );
+                                                    match _socket.write(&reply.as_bytes()) {
                                                         Ok(bytes) => {
                                                             debug!("TCP server | sent bytes: {:?}", bytes);
                                                         },
@@ -171,6 +170,7 @@ mod api_client {
             let point = format!("select from table where id = {}", value.to_string()).to_point(0, "teset");
             send.send(point.clone()).unwrap();
             sent.push(point.as_string().value);
+            println!("sent: {:?}", point);
         }
         receiver_handle.join().unwrap();
         println!("elapsed: {:?}", timer.elapsed());
