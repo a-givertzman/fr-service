@@ -6,7 +6,7 @@ use std::{
     time::Duration, collections::HashMap,
 };
 use log::{debug, error, info, trace};
-use crate::conf::task_config::TaskConfig;
+use crate::{conf::task_config::TaskConfig, core_::object::object::Object};
 use crate::services::task::service_cycle::ServiceCycle;
 use crate::{
     services::{task::task_nodes::TaskNodes, service::service::Service, services::Services}, 
@@ -46,12 +46,14 @@ impl Task {
 }
 ///
 /// 
-impl Service for Task {
-    //
-    //
+impl Object for Task {
     fn id(&self) -> &str {
         &self.id
     }
+}
+///
+/// 
+impl Service for Task {
     //
     //
     fn get_link(&mut self, name: &str) -> Sender<PointType> {

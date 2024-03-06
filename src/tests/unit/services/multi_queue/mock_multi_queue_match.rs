@@ -5,11 +5,9 @@ use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, 
 use log::{info, warn, error, debug, trace};
 
 use crate::{
-    core_::point::{point_tx_id::PointTxId, point_type::PointType}, 
+    core_::{object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}}, 
     services::{
-        multi_queue::{subscription_criteria::SubscriptionCriteria, subscriptions::Subscriptions}, 
-        services::Services,
-        service::service::Service, 
+        multi_queue::{subscription_criteria::SubscriptionCriteria, subscriptions::Subscriptions}, service::service::Service, services::Services 
     },
 };
 
@@ -49,12 +47,14 @@ impl MockMultiQueueMatch {
 }
 ///
 /// 
-impl Service for MockMultiQueueMatch {
-    //
-    //
+impl Object for MockMultiQueueMatch {
     fn id(&self) -> &str {
         &self.id
     }
+}
+///
+/// 
+impl Service for MockMultiQueueMatch {
     //
     //
     fn get_link(&mut self, name: &str) -> Sender<PointType> {

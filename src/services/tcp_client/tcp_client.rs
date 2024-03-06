@@ -5,15 +5,9 @@ use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Order
 use log::{info, debug};
 
 use crate::{
-    core_::{point::point_type::PointType, net::protocols::jds::{jds_serialize::JdsSerialize, jds_encode_message::JdsEncodeMessage}},
-    conf::tcp_client_config::TcpClientConfig,
-    services::{service::service::Service, services::Services}, 
-    tcp::{
-        tcp_client_connect::TcpClientConnect, 
-        tcp_stream_write::TcpStreamWrite, 
-        tcp_write_alive::TcpWriteAlive, 
-        tcp_read_alive::TcpReadAlive
-    }, 
+    conf::tcp_client_config::TcpClientConfig, core_::{net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::point_type::PointType}, services::{service::service::Service, services::Services}, tcp::{
+        tcp_client_connect::TcpClientConnect, tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive
+    } 
 };
 
 
@@ -53,14 +47,14 @@ impl TcpClient {
         }
     }
 }
-///
-/// 
-impl Service for TcpClient {
-    //
-    //
+impl Object for TcpClient {
     fn id(&self) -> &str {
         &self.id
     }
+}
+///
+/// 
+impl Service for TcpClient {
     //
     // 
     fn get_link(&mut self, name: &str) -> Sender<PointType> {

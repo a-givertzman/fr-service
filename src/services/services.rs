@@ -1,9 +1,5 @@
-#![allow(non_snake_case)]
-
 use std::{collections::HashMap, sync::{Arc, Mutex, mpsc::{Sender, Receiver}}};
-
 use log::debug;
-
 use crate::{
     core_::point::point_type::PointType, 
     conf::point_config::point_config::PointConfig,
@@ -40,7 +36,7 @@ impl Services {
         self.map.insert(id.to_string(), service);
     }
     ///
-    /// Returns Service's link
+    /// Returns Service
     pub fn get(&self, name: &str) -> Arc<Mutex<dyn Service>> {
         match self.map.get(name) {
             Some(srvc) => srvc.clone(),
@@ -59,11 +55,11 @@ impl Services {
     ///
     /// Returns Receiver
     /// - service - the name of the service to subscribe on
-    pub fn subscribe(&mut self, service: &str, receiverId: &str, points: &Vec<SubscriptionCriteria>) -> Receiver<PointType> {
+    pub fn subscribe(&mut self, service: &str, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Receiver<PointType> {
         match self.map.get(service) {
             Some(srvc) => {
                 debug!("{}.subscribe | Lock service '{:?}'...", self.id, service);
-                let r = srvc.lock().unwrap().subscribe(receiverId, points);
+                let r = srvc.lock().unwrap().subscribe(receiver_id, points);
                 debug!("{}.subscribe | Lock service '{:?}' - ok", self.id, service);
                 r
             },
@@ -75,8 +71,8 @@ impl Services {
     pub fn points(&self) -> Vec<PointConfig> {
         let mut points = vec![];
         for service in self.map.values() {
-            let mut servicePoints = service.lock().unwrap().points();
-            points.append(&mut servicePoints);
+            let mut service_points = service.lock().unwrap().points();
+            points.append(&mut service_points);
         };
         points
     }

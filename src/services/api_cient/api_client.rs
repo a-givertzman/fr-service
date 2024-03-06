@@ -3,9 +3,7 @@ use log::{info, debug, trace, warn};
 use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering}}, time::Duration, thread::{self, JoinHandle}, collections::HashMap};
 use api_tools::{api::reply::api_reply::ApiReply, client::{api_query::{ApiQuery, ApiQueryKind, ApiQuerySql}, api_request::ApiRequest}};
 use crate::{
-    core_::{point::point_type::PointType, retain_buffer::retain_buffer::RetainBuffer}, 
-    conf::api_client_config::ApiClientConfig,
-    services::{task::service_cycle::ServiceCycle, service::service::Service}, 
+    conf::api_client_config::ApiClientConfig, core_::{object::object::Object, point::point_type::PointType, retain_buffer::retain_buffer::RetainBuffer}, services::{service::service::Service, task::service_cycle::ServiceCycle} 
 };
 
 ///
@@ -85,12 +83,14 @@ impl ApiClient {
 }
 ///
 /// 
-impl Service for ApiClient {
-    //
-    //
+impl Object for ApiClient {
     fn id(&self) -> &str {
         &self.id
     }
+}
+///
+/// 
+impl Service for ApiClient {
     //
     //
     fn get_link(&mut self, name: &str) -> Sender<PointType> {

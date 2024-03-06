@@ -5,9 +5,7 @@ use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc}, thread::{Joi
 use testing::entities::test_value::Value;
 use crate::{
     core_::{
-        net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, 
-        point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}, 
-        state::{switch_state::{Switch, SwitchCondition, SwitchState}, switch_state_changed::SwitchStateChanged},
+        net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}, state::{switch_state::{Switch, SwitchCondition, SwitchState}, switch_state_changed::SwitchStateChanged}
     },
     services::service::service::Service, tcp::steam_read::StreamRead, 
 };
@@ -103,12 +101,14 @@ impl EmulatedTcpClientSend {
 }
 ///
 /// 
-impl Service for EmulatedTcpClientSend {
-    //
-    //
+impl Object for EmulatedTcpClientSend {
     fn id(&self) -> &str {
         &self.id
     }
+}
+///
+/// 
+impl Service for EmulatedTcpClientSend {
     //
     //
     fn get_link(&mut self, _name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {

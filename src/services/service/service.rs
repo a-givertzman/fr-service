@@ -1,16 +1,15 @@
 use std::{sync::mpsc::{Sender, Receiver}, thread::JoinHandle};
 use crate::{
-    core_::point::point_type::PointType, conf::point_config::point_config::PointConfig,
-    services::multi_queue::subscription_criteria::SubscriptionCriteria,
+    conf::point_config::point_config::PointConfig, core_::{object::object::Object, point::point_type::PointType}, services::multi_queue::subscription_criteria::SubscriptionCriteria
 };
 
 ///
 /// Interface for application service
 /// - Running in the individual thread
-pub trait Service {
-    ///
-    /// Returns service's ID
-    fn id(&self) -> &str;
+pub trait Service: Object {
+    // ///
+    // /// Returns service's ID
+    // fn id(&self) -> &str;
     ///
     /// Returns copy of the Sender - service's incoming queue
     #[allow(unused_variables)]

@@ -5,11 +5,10 @@ use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{JoinHandl
 use testing::entities::test_value::Value;
 use crate::{
     core_::{
-        point::point_type::PointType, 
         net::{
             connection_status::ConnectionStatus,
-            protocols::jds::{jds_deserialize::JdsDeserialize, jds_decode_message::JdsDecodeMessage}, 
-        }, state::{switch_state::{SwitchState, Switch, SwitchCondition}, switch_state_changed::SwitchStateChanged},
+            protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}, 
+        }, object::object::Object, point::point_type::PointType, state::{switch_state::{Switch, SwitchCondition, SwitchState}, switch_state_changed::SwitchStateChanged}
     },
     services::service::service::Service, 
 };
@@ -136,12 +135,14 @@ impl EmulatedTcpClientRecv {
 }
 ///
 /// 
-impl Service for EmulatedTcpClientRecv {
-    //
-    //
+impl Object for EmulatedTcpClientRecv {
     fn id(&self) -> &str {
         &self.id
     }
+}
+///
+/// 
+impl Service for EmulatedTcpClientRecv {
     //
     //
     fn get_link(&mut self, _name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {

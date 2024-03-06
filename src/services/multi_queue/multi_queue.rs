@@ -1,9 +1,7 @@
 use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread::{self, JoinHandle}};
 use log::{debug, error, info, trace};
 use crate::{
-    core_::{constants::constants::RECV_TIMEOUT, point::{point_tx_id::PointTxId, point_type::PointType}}, 
-    conf::multi_queue_config::MultiQueueConfig, 
-    services::{service::service::Service, services::Services, multi_queue::subscription_criteria::SubscriptionCriteria},
+    conf::multi_queue_config::MultiQueueConfig, core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, service::service::Service, services::Services}
 };
 use super::subscriptions::Subscriptions;
 
@@ -47,12 +45,14 @@ impl MultiQueue {
 }
 ///
 /// 
-impl Service for MultiQueue {
-    //
-    //
+impl Object for MultiQueue {
     fn id(&self) -> &str {
         &self.id
     }
+}
+///
+/// 
+impl Service for MultiQueue {
     //
     //
     fn get_link(&mut self, name: &str) -> Sender<PointType> {

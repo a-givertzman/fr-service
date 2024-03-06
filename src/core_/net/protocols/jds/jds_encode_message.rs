@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use crate::{tcp::steam_read::StreamRead, core_::failure::recv_error::RecvError};
+use crate::{core_::{failure::recv_error::RecvError, object::object::Object}, tcp::steam_read::StreamRead};
 
 use super::{jds_serialize::JdsSerialize, jds_define::JDS_END_OF_TRANSMISSION};
 
@@ -23,6 +23,13 @@ impl JdsEncodeMessage {
             id: format!("{}/JdsMessage", parent.into()),
             stream,
         }
+    }
+}
+///
+/// 
+impl Object for JdsEncodeMessage {
+    fn id(&self) -> &str {
+        &self.id
     }
 }
 ///

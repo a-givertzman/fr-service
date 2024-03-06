@@ -5,17 +5,15 @@
 //!     parameter: value    # meaning
 //!     parameter: value    # meaning
 //! ```
-use std::{collections::HashMap, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread::{self, JoinHandle}};
+use std::{sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread::{self, JoinHandle}};
 use const_format::formatcp;
-use hashers::fx_hash::FxHasher;
 use log::{debug, info, warn};
 use serde_json::json;
 use crate::{
     conf::{jds_service_config::jds_service_config::JdsServiceConfig, point_config::{point_config::PointConfig, point_name::PointName}}, 
-    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, 
+    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, object::object::Object, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, 
     services::{multi_queue::{subscription_criteria::SubscriptionCriteria, subscriptions::Subscriptions}, service::service::Service, services::Services},
 };
-
 use super::request_kind::RequestKind;
 
 
@@ -141,15 +139,27 @@ impl JdsService {
             },
         }
     }
+    ///
+    /// 
+    fn points<'a>(self_conf_name: &'a str) -> Box<impl Iterator<Item = PointConfig> + 'a> {
+        Box::new(
+            REQUEST_YAML_CONFIGS.iter().map(|conf| {
+                let conf = serde_yaml::from_str(conf).unwrap();
+                PointConfig::from_yaml(self_conf_name, &conf)
+            }),
+        )
+    }
+}
+///
+/// 
+impl Object for JdsService {
+    fn id(&self) -> &str {
+        &self.id
+    }
 }
 ///
 /// 
 impl Service for JdsService {
-    //
-    //
-    fn id(&self) -> &str {
-        &self.id
-    }
     //
     //
     fn subscribe(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Receiver<PointType> {
@@ -213,11 +223,7 @@ impl Service for JdsService {
         let services = self.services.clone();
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
-            let points = REQUEST_YAML_CONFIGS.iter().map(|conf| {
-                let conf = serde_yaml::from_str(conf).unwrap();
-                PointConfig::from_yaml(&self_conf.name, &conf)
-            });
-            let points = points.map(|point_conf| {
+            let points = Self::points(&self_conf.name).map(|point_conf| {
                 SubscriptionCriteria::new(&PointName::new(&parent, &point_conf.name).full(), Cot::Req)
             }).collect::<Vec<SubscriptionCriteria>>();
             debug!("{}.run | Points subscribed on: ({})", self_id, points.len());
@@ -246,11 +252,16 @@ impl Service for JdsService {
         info!("{}.run | started", self.id);
         handle
     }
-    ///
-    /// 
+    //
+    //
+    fn points(&self) -> Vec<PointConfig> {
+        Self::points(&self.conf.name).collect()
+    }
+    //
+    // 
     fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
-    }    
+    }
 }
 ///
 /// Used to create Point configurations to sibscribe on all kind of requests

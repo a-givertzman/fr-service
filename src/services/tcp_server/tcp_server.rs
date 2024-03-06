@@ -1,15 +1,16 @@
-use log::{info, warn, debug};
+use log::{debug, error, info, trace, warn};
 use std::{
     sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::{Sender, Receiver, self, SendError}}, 
     thread::{self, JoinHandle}, 
     net::{TcpListener, TcpStream, Shutdown}, time::{Duration, Instant}, any::Any, collections::HashMap,
 };
+use concat_string::concat_string;
 use testing::stuff::wait::WaitTread;
 use crate::{
     conf::tcp_server_config::TcpServerConfig, 
-    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, point::point_type::PointType}, 
+    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::point_type::PointType}, 
     services::{multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, service::service::Service, services::Services, task::service_cycle::ServiceCycle}, 
-    tcp::{tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive},
+    tcp::{steam_read::StreamFilter, tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive},
 };
 ///
 /// Bounds TCP socket server
@@ -102,21 +103,14 @@ impl TcpServer {
 }
 ///
 /// 
-impl Service for TcpServer {
-    //
-    //
+impl Object for TcpServer {
     fn id(&self) -> &str {
         &self.id
     }
-    //
-    // 
-    fn get_link(&mut self, _name: &str) -> Sender<PointType> {
-        panic!("{}.get_link | Does not support get_link", self.id())
-        // match self.rxSend.get(name) {
-        //     Some(send) => send.clone(),
-        //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
-        // }
-    }
+}
+///
+/// 
+impl Service for TcpServer {
     //
     //
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
@@ -343,6 +337,21 @@ impl TcpServerConnection {
     }
     ///
     /// 
+    fn await_subscribe_rec_con(self_id: &str, recv: Receiver<PointType>) -> PointType {
+        loop {
+            match recv.recv() {
+                Ok(point) => {
+                    trace!("{}.await_subscribe_rec_con | point: {:?}", self_id, point);
+                    return point;
+                },
+                Err(err) => {
+                    error!("{}.await_subscribe_rec_con | error: {:?}", self_id, err);
+                },
+            }
+        }
+    }
+    ///
+    /// 
     pub fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
         let self_id = self.id.clone();
@@ -396,6 +405,17 @@ impl TcpServerConnection {
             );
             let keep_timeout = conf.keepTimeout.unwrap_or(Duration::from_secs(3));
             let mut duration = Instant::now();
+            let jds_service = services.lock().unwrap().get("JdsService");
+            let jds_points = jds_service.lock().unwrap().points().iter().fold(vec![], |mut points, point_conf| {
+                let point_name = &concat_string!(self_id, point_conf.name);
+                points.push(SubscriptionCriteria::new(point_name, Cot::ReqCon));
+                points.push(SubscriptionCriteria::new(point_name, Cot::ReqErr));
+                points
+            });
+            let filter = Some(StreamFilter::allow(Some(Cot::Req | Cot::ReqCon | Cot::ReqErr), None));
+            let jds_recv = jds_service.lock().unwrap().subscribe(&self_id, &jds_points);
+            Self::await_subscribe_rec_con(&self_id, jds_recv);
+            let jds_recv = jds_service.lock().unwrap().unsubscribe(&self_id, &jds_points);
             loop {
                 exit_pair.store(false, Ordering::SeqCst);
                 match action_recv.recv_timeout(RECV_TIMEOUT) {

@@ -4,7 +4,7 @@ use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, Joi
 
 use log::{info, warn, debug, trace};
 use testing::entities::test_value::Value;
-use crate::{core_::point::point_type::{PointType, ToPoint}, services::{service::service::Service, services::Services}};
+use crate::{core_::{object::object::Object, point::point_type::{PointType, ToPoint}}, services::{service::service::Service, services::Services}};
 
 
 pub struct MockSendService {
@@ -53,12 +53,14 @@ impl MockSendService {
 }
 ///
 /// 
-impl Service for MockSendService {
-    //
-    //
+impl Object for MockSendService {
     fn id(&self) -> &str {
         &self.id
     }
+}
+///
+/// 
+impl Service for MockSendService {
     //
     //
     fn get_link(&mut self, _name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {

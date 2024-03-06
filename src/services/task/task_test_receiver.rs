@@ -4,7 +4,7 @@ use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Order
 
 use log::{info, warn, trace, debug};
 
-use crate::{core_::point::point_type::PointType, services::service::service::Service};
+use crate::{core_::{object::object::Object, point::point_type::PointType}, services::service::service::Service};
 
 
 pub struct TaskTestReceiver {
@@ -38,10 +38,14 @@ impl TaskTestReceiver {
 }
 ///
 /// 
-impl Service for TaskTestReceiver {
+impl Object for TaskTestReceiver {
     fn id(&self) -> &str {
         &self.id
     }
+}
+///
+/// 
+impl Service for TaskTestReceiver {
     //
     //
     fn get_link(&mut self, name: &str) -> Sender<PointType> {
