@@ -1,8 +1,8 @@
-use crate::core_::{failure::recv_error::RecvError, object::object::Object, point::point_type::PointType};
+use crate::core_::{object::object::Object, point::point_type::PointType};
 
 pub trait StreamRead<T: Sync, E>: Sync + Object {
     fn read(&mut self) -> Result<T, E>;
-    fn read_filtered(&mut self, filter: StreamFilter) -> Result<Option<serde_json::Value>, RecvError> {
+    fn read_filtered(&mut self, filter: &StreamFilter) -> Result<Option<T>, E> {
         panic!("{}.read_filtered | Does not supported", self.id())
     }
 }

@@ -121,7 +121,7 @@ impl Service for TcpClient {
                 match tcpClientConnect.connect() {
                     Some(tcpStream) => {
                         let hR = tcpReadAlive.run(tcpStream.try_clone().unwrap());
-                        let hW = tcpWriteAlive.run(tcpStream);
+                        let hW = tcpWriteAlive.run(tcpStream, Arc::new(Mutex::new(None)));
                         hR.join().unwrap();
                         hW.join().unwrap();
                     },

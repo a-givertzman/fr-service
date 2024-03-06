@@ -336,19 +336,38 @@ impl TcpServerConnection {
         }
     }
     ///
-    /// 
-    fn await_subscribe_rec_con(self_id: &str, recv: Receiver<PointType>) -> PointType {
-        loop {
-            match recv.recv() {
-                Ok(point) => {
-                    trace!("{}.await_subscribe_rec_con | point: {:?}", self_id, point);
-                    return point;
-                },
-                Err(err) => {
-                    error!("{}.await_subscribe_rec_con | error: {:?}", self_id, err);
-                },
+    /// Waiting for Subscribe request confirmation from JdsService for the Connection
+    fn await_subscribe_rec_con(self_id: String, services: Arc<Mutex<Services>>, filter: Arc<Mutex<Option<StreamFilter>>>, restart: Arc<AtomicBool>) {
+        let _ = thread::Builder::new().name(format!("{}.await_subscribe_rec_con", self_id.clone())).spawn(move || {
+            let jds_service = services.lock().unwrap().get("JdsService");
+            let jds_points = jds_service.lock().unwrap().points().iter().fold(vec![], |mut points, point_conf| {
+                let point_name = &concat_string!(self_id, point_conf.name);
+                points.push(SubscriptionCriteria::new(point_name, Cot::ReqCon));
+                points.push(SubscriptionCriteria::new(point_name, Cot::ReqErr));
+                points
+            });
+            let jds_recv = jds_service.lock().unwrap().subscribe(&self_id, &jds_points);
+            loop {
+                match jds_recv.recv() {
+                    Ok(point) => {
+                        trace!("{}.await_subscribe_rec_con | Point: {:?}", self_id, point);
+                        let mut filter_lock = filter.lock().unwrap();
+                        *filter_lock = None;
+                        restart.store(true, Ordering::SeqCst);
+                        break;
+                    },
+                    Err(err) => {
+                        error!("{}.await_subscribe_rec_con | Receive error: {:?}", self_id, err);
+                    },
+                }
             }
-        }
+            match jds_service.lock().unwrap().unsubscribe(&self_id, &jds_points) {
+                Ok(_) => {},
+                Err(err) => {
+                    error!("{}.await_subscribe_rec_con | Unsubscribe error: {:?}", self_id, err);
+                },
+            };
+        });
     }
     ///
     /// 
@@ -405,17 +424,10 @@ impl TcpServerConnection {
             );
             let keep_timeout = conf.keepTimeout.unwrap_or(Duration::from_secs(3));
             let mut duration = Instant::now();
-            let jds_service = services.lock().unwrap().get("JdsService");
-            let jds_points = jds_service.lock().unwrap().points().iter().fold(vec![], |mut points, point_conf| {
-                let point_name = &concat_string!(self_id, point_conf.name);
-                points.push(SubscriptionCriteria::new(point_name, Cot::ReqCon));
-                points.push(SubscriptionCriteria::new(point_name, Cot::ReqErr));
-                points
-            });
-            let filter = Some(StreamFilter::allow(Some(Cot::Req | Cot::ReqCon | Cot::ReqErr), None));
-            let jds_recv = jds_service.lock().unwrap().subscribe(&self_id, &jds_points);
-            Self::await_subscribe_rec_con(&self_id, jds_recv);
-            let jds_recv = jds_service.lock().unwrap().unsubscribe(&self_id, &jds_points);
+            let filter = Arc::new(Mutex::new(Some(
+                StreamFilter::allow(Some(Cot::Req | Cot::ReqCon | Cot::ReqErr), None),
+            )));
+            Self::await_subscribe_rec_con(self_id.clone(), services.clone(), filter.clone(), exit_pair.clone());
             loop {
                 exit_pair.store(false, Ordering::SeqCst);
                 match action_recv.recv_timeout(RECV_TIMEOUT) {
@@ -423,10 +435,10 @@ impl TcpServerConnection {
                         match action {
                             Action::Continue(tcp_stream) => {
                                 info!("{}.run | Action - Continue received", self_id);
-                                let hR = tcp_read_alive.run(tcp_stream.try_clone().unwrap());
-                                let hW = tcp_write_alive.run(tcp_stream);
-                                hR.join().unwrap();
-                                hW.join().unwrap();
+                                let hr = tcp_read_alive.run(tcp_stream.try_clone().unwrap());
+                                let hw = tcp_write_alive.run(tcp_stream, filter.clone());
+                                hr.join().unwrap();
+                                hw.join().unwrap();
                                 info!("{}.run | Finished", self_id);
                                 duration = Instant::now();
                             },

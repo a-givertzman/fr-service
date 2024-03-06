@@ -1,4 +1,7 @@
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread::{JoinHandle, self}, time::Duration, net::TcpStream, io::BufReader};
+use std::{
+    sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, 
+    thread::{JoinHandle, self}, time::Duration, net::TcpStream, io::BufReader,
+};
 use log::{warn, info, LevelFilter};
 use crate::{core_::{
     net::{connection_status::ConnectionStatus, protocols::jds::{jds_deserialize::JdsDeserialize, jds_decode_message::JdsDecodeMessage}}, 
@@ -50,12 +53,12 @@ impl TcpReadAlive {
         info!("{}.run | Preparing thread...", self.id);
         let handle = thread::Builder::new().name(format!("{} - Read", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
-            let mut tcpStream = BufReader::new(tcp_stream);
-            let mut jdsStream = jds_stream.lock().unwrap();
+            let mut tcp_stream = BufReader::new(tcp_stream);
+            let mut jds_stream = jds_stream.lock().unwrap();
             info!("{}.run | Main loop started", self_id);
             loop {
                 cycle.start();
-                match jdsStream.read(&mut tcpStream) {
+                match jds_stream.read(&mut tcp_stream) {
                     ConnectionStatus::Active(point) => {
                         match point {
                             Ok(point) => {

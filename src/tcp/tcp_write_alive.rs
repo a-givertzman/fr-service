@@ -4,6 +4,8 @@ use crate::{
     core_::net::connection_status::ConnectionStatus,
     tcp::tcp_stream_write::TcpStreamWrite, services::task::service_cycle::ServiceCycle, 
 };
+
+use super::steam_read::StreamFilter;
 ///
 /// Transfering points from Channel Sender<PointType> to the JdsStream (socket)
 pub struct TcpWriteAlive {
@@ -30,7 +32,7 @@ impl TcpWriteAlive {
     }
     ///
     /// 
-    pub fn run(&self, mut tcp_stream: TcpStream) -> JoinHandle<()> {
+    pub fn run(&self, mut tcp_stream: TcpStream, filter: Arc<Mutex<Option<StreamFilter>>>) -> JoinHandle<()> {
         info!("{}.run | starting...", self.id);
         let self_id = self.id.clone();
         let exit = self.exit.clone();
@@ -40,11 +42,12 @@ impl TcpWriteAlive {
         info!("{}.run | Preparing thread...", self.id);
         let handle = thread::Builder::new().name(format!("{} - Write", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
+            let filter = filter.lock().unwrap();
             let mut stream_write = stream_write.lock().unwrap();
             info!("{}.run | Main loop started", self_id);
             'main: loop {
                 cycle.start();
-                match stream_write.write(&mut tcp_stream) {
+                match stream_write.write(&mut tcp_stream, &filter) {
                     ConnectionStatus::Active(result) => {
                         match result {
                             Ok(_) => {},

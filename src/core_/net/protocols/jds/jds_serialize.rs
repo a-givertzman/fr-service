@@ -103,7 +103,7 @@ impl StreamRead<serde_json::Value, RecvError> for JdsSerialize {
     }
     ///
     /// Reads single point from Receiver & serialize it into json string if filter passed
-    fn read_filtered(&mut self, filter: StreamFilter) -> Result<Option<serde_json::Value>, RecvError> {
+    fn read_filtered(&mut self, filter: &StreamFilter) -> Result<Option<serde_json::Value>, RecvError> {
         match self.stream.recv_timeout(RECV_TIMEOUT) {
             Ok(point) => {
                 if filter.pass(&point) {
