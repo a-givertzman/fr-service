@@ -8,7 +8,7 @@ use concat_string::concat_string;
 use testing::stuff::wait::WaitTread;
 use crate::{
     conf::tcp_server_config::TcpServerConfig, 
-    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::point_type::PointType}, 
+    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object}, 
     services::{multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, service::service::Service, services::Services, task::service_cycle::ServiceCycle}, 
     tcp::{steam_read::StreamFilter, tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive},
 };
@@ -21,26 +21,32 @@ pub struct TcpServer {
     conf: TcpServerConfig,
     connections: Arc<Mutex<TcpServerConnections>>,
     services: Arc<Mutex<Services>>,
+    filter: Option<StreamFilter>,
     exit: Arc<AtomicBool>,
 }
 ///
 /// 
 impl TcpServer {
     ///
-    /// 
-    pub fn new(parent: impl Into<String>, conf: TcpServerConfig, services: Arc<Mutex<Services>>) -> Self {
+    /// Creates new instance of the TcpServer:
+    /// - parent - name of the parent entity, used to create self name: "/parent/self_id/"
+    /// - filter - all trafic from server to client will be filtered by some criterias, until Subscribe request confirmed:
+    ///    - cot - [Cot] - bit mask wich will be passed
+    ///    - name - exact name wich passed
+    pub fn new(parent: impl Into<String>, conf: TcpServerConfig, services: Arc<Mutex<Services>>, filter: Option<StreamFilter>) -> Self {
         let self_id = format!("{}/TcpServer({})", parent.into(), conf.name);
         Self {
             id: self_id.clone(),
             conf: conf.clone(),
             connections: Arc::new(Mutex::new(TcpServerConnections::new(self_id))),
             services,
+            filter,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
     ///
     /// 
-    fn setup_connection(self_id: String, connection_id: &String, stream: TcpStream, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>, connections: Arc<Mutex<TcpServerConnections>>) {
+    fn setup_connection(self_id: String, connection_id: &String, stream: TcpStream, services: Arc<Mutex<Services>>, filter: Option<StreamFilter>, conf: TcpServerConfig, exit: Arc<AtomicBool>, connections: Arc<Mutex<TcpServerConnections>>) {
         info!("{}.setup_connection | Trying to repair Connection '{}'...", self_id, connection_id);
         // let connectionsLock = connections.lock().unwrap();
         let repair_result = connections.lock().unwrap().repair(&connection_id, stream.try_clone().unwrap());
@@ -53,7 +59,13 @@ impl TcpServer {
 
                 info!("{}.setup_connection | New connection: '{}'", self_id, connection_id);
                 let (send, recv) = mpsc::channel();
-                let mut connection = TcpServerConnection::new(connection_id.clone(), recv, services.clone(), conf.clone(), exit.clone());
+                let mut connection = TcpServerConnection::new(
+                    connection_id.clone(),
+                    recv, services.clone(),
+                    filter,
+                    conf.clone(),
+                    exit.clone()
+                );
                 match connection.run() {
                     Ok(handle) => {
                         match send.send(Action::Continue(stream)) {
@@ -120,6 +132,7 @@ impl Service for TcpServer {
         let exit = self.exit.clone();
         let connections = self.connections.clone();
         let services = self.services.clone();
+        let filter = self.filter.clone();
         let reconnect_cycle = conf.reconnectCycle.unwrap_or(Duration::ZERO);
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
@@ -142,7 +155,7 @@ impl Service for TcpServer {
                                     let connection_id = format!("{}-{}", self_id, rem_ip);
                                     Self::set_stream_timout(&self_id, &stream, RECV_TIMEOUT, None);
                                     info!("{}.run | Setting up Connection '{}'...", self_id, connection_id);
-                                    Self::setup_connection(self_id.clone(), &connection_id, stream, services.clone(), conf.clone(), exit.clone(), connections.clone());
+                                    Self::setup_connection(self_id.clone(), &connection_id, stream, services.clone(), filter.clone(), conf.clone(), exit.clone(), connections.clone());
                                 },
                                 Err(err) => {
                                     warn!("{}.run | error: {:?}", self_id, err);
@@ -225,7 +238,7 @@ impl Connection {
 
 ///
 /// 
-enum Action {
+pub enum Action {
     Continue(TcpStream),
     Exit,
 }
@@ -234,7 +247,7 @@ enum Action {
 ///
 /// 
 #[derive(Debug)]
-struct TcpServerConnections {
+pub struct TcpServerConnections {
     id: String,
     connections: HashMap<String, Connection>,
 }
@@ -314,10 +327,11 @@ impl TcpServerConnections {
 
 ///
 /// 
-struct TcpServerConnection {
+pub struct TcpServerConnection {
     id: String,
     action_recv: Vec<Receiver<Action>>, 
     services: Arc<Mutex<Services>>, 
+    filter: Option<StreamFilter>,
     conf: TcpServerConfig, 
     exit: Arc<AtomicBool>,
 }
@@ -325,12 +339,15 @@ struct TcpServerConnection {
 /// 
 impl TcpServerConnection {
     ///
-    /// 
-    pub fn new(parent: impl Into<String>, action_recv: Receiver<Action>, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>) -> Self {
+    /// - filter - all trafic from server to client will be filtered by some criterias, until Subscribe request confirmed:
+    ///    - cot - [Cot] - bit mask wich will be passed
+    ///    - name - exact name wich passed
+    pub fn new(parent: impl Into<String>, action_recv: Receiver<Action>, services: Arc<Mutex<Services>>, filter: Option<StreamFilter>, conf: TcpServerConfig, exit: Arc<AtomicBool>) -> Self {
         Self {
             id: format!("{}/TcpServerConnection", parent.into()),
             action_recv: vec![action_recv],
             services,
+            filter,
             conf,
             exit,
         }
@@ -338,36 +355,41 @@ impl TcpServerConnection {
     ///
     /// Waiting for Subscribe request confirmation from JdsService for the Connection
     fn await_subscribe_rec_con(self_id: String, services: Arc<Mutex<Services>>, filter: Arc<Mutex<Option<StreamFilter>>>, restart: Arc<AtomicBool>) {
-        let _ = thread::Builder::new().name(format!("{}.await_subscribe_rec_con", self_id.clone())).spawn(move || {
-            let jds_service = services.lock().unwrap().get("JdsService");
-            let jds_points = jds_service.lock().unwrap().points().iter().fold(vec![], |mut points, point_conf| {
-                let point_name = &concat_string!(self_id, point_conf.name);
-                points.push(SubscriptionCriteria::new(point_name, Cot::ReqCon));
-                points.push(SubscriptionCriteria::new(point_name, Cot::ReqErr));
-                points
-            });
-            let jds_recv = jds_service.lock().unwrap().subscribe(&self_id, &jds_points);
-            loop {
-                match jds_recv.recv() {
-                    Ok(point) => {
-                        trace!("{}.await_subscribe_rec_con | Point: {:?}", self_id, point);
-                        let mut filter_lock = filter.lock().unwrap();
-                        *filter_lock = None;
-                        restart.store(true, Ordering::SeqCst);
-                        break;
-                    },
-                    Err(err) => {
-                        error!("{}.await_subscribe_rec_con | Receive error: {:?}", self_id, err);
-                    },
-                }
-            }
-            match jds_service.lock().unwrap().unsubscribe(&self_id, &jds_points) {
-                Ok(_) => {},
-                Err(err) => {
-                    error!("{}.await_subscribe_rec_con | Unsubscribe error: {:?}", self_id, err);
-                },
-            };
-        });
+        match *filter.clone().lock().unwrap() {
+            Some(_) => {
+                let _ = thread::Builder::new().name(format!("{}.await_subscribe_rec_con", self_id.clone())).spawn(move || {
+                    let jds_service = services.lock().unwrap().get("JdsService");
+                    let jds_points = jds_service.lock().unwrap().points().iter().fold(vec![], |mut points, point_conf| {
+                        let point_name = &concat_string!(self_id, point_conf.name);
+                        points.push(SubscriptionCriteria::new(point_name, Cot::ReqCon));
+                        points.push(SubscriptionCriteria::new(point_name, Cot::ReqErr));
+                        points
+                    });
+                    let jds_recv = jds_service.lock().unwrap().subscribe(&self_id, &jds_points);
+                    loop {
+                        match jds_recv.recv() {
+                            Ok(point) => {
+                                trace!("{}.await_subscribe_rec_con | Point: {:?}", self_id, point);
+                                let mut filter_lock = filter.lock().unwrap();
+                                *filter_lock = None;
+                                restart.store(true, Ordering::SeqCst);
+                                break;
+                            },
+                            Err(err) => {
+                                error!("{}.await_subscribe_rec_con | Receive error: {:?}", self_id, err);
+                            },
+                        }
+                    }
+                    match jds_service.lock().unwrap().unsubscribe(&self_id, &jds_points) {
+                        Ok(_) => {},
+                        Err(err) => {
+                            error!("{}.await_subscribe_rec_con | Unsubscribe error: {:?}", self_id, err);
+                        },
+                    };
+                });
+            },
+            None => {},
+        }
     }
     ///
     /// 
@@ -382,6 +404,7 @@ impl TcpServerConnection {
         let exit_pair = Arc::new(AtomicBool::new(false));
         let action_recv = self.action_recv.pop().unwrap();
         let services = self.services.clone();
+        let filter = Arc::new(Mutex::new(self.filter.clone()));
         let tx_queue_name = QueueName::new(&self_conf_tx);
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
@@ -424,9 +447,9 @@ impl TcpServerConnection {
             );
             let keep_timeout = conf.keepTimeout.unwrap_or(Duration::from_secs(3));
             let mut duration = Instant::now();
-            let filter = Arc::new(Mutex::new(Some(
-                StreamFilter::allow(Some(Cot::Req | Cot::ReqCon | Cot::ReqErr), None),
-            )));
+            // let filter = Arc::new(Mutex::new(Some(
+            //     StreamFilter::allow(Some(Cot::Req | Cot::ReqCon | Cot::ReqErr), None),
+            // )));
             Self::await_subscribe_rec_con(self_id.clone(), services.clone(), filter.clone(), exit_pair.clone());
             loop {
                 exit_pair.store(false, Ordering::SeqCst);
