@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 use log::{info, warn, debug};
 use std::{
     sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::{Sender, Receiver, self, SendError}}, 
@@ -13,8 +11,6 @@ use crate::{
     services::{multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, service::service::Service, services::Services, task::service_cycle::ServiceCycle}, 
     tcp::{tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive},
 };
-
-
 ///
 /// Bounds TCP socket server
 /// Listening socket for incoming connections
@@ -43,62 +39,62 @@ impl TcpServer {
     }
     ///
     /// 
-    fn setupConnection(self_id: String, connectionId: &String, stream: TcpStream, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>, connections: Arc<Mutex<TcpServerConnections>>) {
-        info!("{}.setupConnection | Trying to repair Connection '{}'...", self_id, connectionId);
+    fn setup_connection(self_id: String, connection_id: &String, stream: TcpStream, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>, connections: Arc<Mutex<TcpServerConnections>>) {
+        info!("{}.setup_connection | Trying to repair Connection '{}'...", self_id, connection_id);
         // let connectionsLock = connections.lock().unwrap();
-        let repairResult = connections.lock().unwrap().repair(&connectionId, stream.try_clone().unwrap());
-        match repairResult {
+        let repair_result = connections.lock().unwrap().repair(&connection_id, stream.try_clone().unwrap());
+        match repair_result {
             Ok(_) => {
-                info!("{}.setupConnection | Connection '{}' - reparied", self_id, connectionId);
+                info!("{}.setup_connection | Connection '{}' - reparied", self_id, connection_id);
             },
             Err(err) => {
                 info!("{}.run | {}", self_id, err);
 
-                info!("{}.setupConnection | New connection: '{}'", self_id, connectionId);
+                info!("{}.setup_connection | New connection: '{}'", self_id, connection_id);
                 let (send, recv) = mpsc::channel();
-                let mut connection = TcpServerConnection::new(connectionId.clone(), recv, services.clone(), conf.clone(), exit.clone());
+                let mut connection = TcpServerConnection::new(connection_id.clone(), recv, services.clone(), conf.clone(), exit.clone());
                 match connection.run() {
                     Ok(handle) => {
                         match send.send(Action::Continue(stream)) {
                             Ok(_) => {},
                             Err(err) => {
-                                warn!("{}.setupConnection | Send tcpStream error {:?}", self_id, err);
+                                warn!("{}.setup_connection | Send tcpStream error {:?}", self_id, err);
                             },
                         }
-                        info!("{}.setupConnection | connections.lock...", self_id);
+                        info!("{}.setup_connection | connections.lock...", self_id);
                         connections.lock().unwrap().insert(
-                            connectionId,
+                            connection_id,
                             handle,
                             send,
                         );
-                        info!("{}.setupConnection | connections.lock - ok", self_id);
+                        info!("{}.setup_connection | connections.lock - ok", self_id);
                     },
                     Err(err) => {
-                        warn!("{}.setupConnection | error: {:?}", self_id, err);
+                        warn!("{}.setup_connection | error: {:?}", self_id, err);
                     },
                 };
-                info!("{}.setupConnection | Connection '{}' - created new", self_id, connectionId);
+                info!("{}.setup_connection | Connection '{}' - created new", self_id, connection_id);
             },
         }
     }
     ///
     /// 
-    fn setStreamTimout(self_id: &String, stream: &TcpStream, raadTimeout: Duration, writeTimeout: Option<Duration>) {
-        match stream.set_read_timeout(Some(raadTimeout)) {
+    fn set_stream_timout(self_id: &String, stream: &TcpStream, raad_timeout: Duration, write_timeout: Option<Duration>) {
+        match stream.set_read_timeout(Some(raad_timeout)) {
             Ok(_) => {
-                info!("{}.setStreamTimout | Socket set read timeout {:?} - ok", self_id, raadTimeout);
+                info!("{}.set_stream_timout | Socket set read timeout {:?} - ok", self_id, raad_timeout);
             },
             Err(err) => {
-                warn!("{}.setStreamTimout | Socket set read timeout error {:?}", self_id, err);
+                warn!("{}.set_stream_timout | Socket set read timeout error {:?}", self_id, err);
             },
         }
-        if let Some(timeout) = writeTimeout {
+        if let Some(timeout) = write_timeout {
             match stream.set_write_timeout(Some(timeout)) {
                 Ok(_) => {
-                    info!("{}.setStreamTimout | Socket set write timeout {:?} - ok", self_id, timeout);
+                    info!("{}.set_stream_timout | Socket set write timeout {:?} - ok", self_id, timeout);
                 },
                 Err(err) => {
-                    warn!("{}.setStreamTimout | Socket set write timeout error {:?}", self_id, err);
+                    warn!("{}.set_stream_timout | Socket set write timeout error {:?}", self_id, err);
                 },
             }
         }
@@ -130,11 +126,11 @@ impl Service for TcpServer {
         let exit = self.exit.clone();
         let connections = self.connections.clone();
         let services = self.services.clone();
-        let reconnectCycle = conf.reconnectCycle.unwrap_or(Duration::ZERO);
+        let reconnect_cycle = conf.reconnectCycle.unwrap_or(Duration::ZERO);
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
-            let mut cycle = ServiceCycle::new(reconnectCycle);
+            let mut cycle = ServiceCycle::new(reconnect_cycle);
             'main: loop {
                 cycle.start();
                 info!("{}.run | Open socket {}...", self_id, conf.address);
@@ -148,11 +144,11 @@ impl Service for TcpServer {
                             }
                             match stream {
                                 Ok(stream) => {
-                                    let remIp = stream.peer_addr().map_or("Unknown remote IP".to_string(), |a| {a.ip().to_string()});
-                                    let connectionId = format!("{}-{}", self_id, remIp);
-                                    Self::setStreamTimout(&self_id, &stream, RECV_TIMEOUT, None);
-                                    info!("{}.run | Setting up Connection '{}'...", self_id, connectionId);
-                                    Self::setupConnection(self_id.clone(), &connectionId, stream, services.clone(), conf.clone(), exit.clone(), connections.clone());
+                                    let rem_ip = stream.peer_addr().map_or("Unknown remote IP".to_string(), |a| {a.ip().to_string()});
+                                    let connection_id = format!("{}-{}", self_id, rem_ip);
+                                    Self::set_stream_timout(&self_id, &stream, RECV_TIMEOUT, None);
+                                    info!("{}.run | Setting up Connection '{}'...", self_id, connection_id);
+                                    Self::setup_connection(self_id.clone(), &connection_id, stream, services.clone(), conf.clone(), exit.clone(), connections.clone());
                                 },
                                 Err(err) => {
                                     warn!("{}.run | error: {:?}", self_id, err);
@@ -228,7 +224,7 @@ impl Connection {
     }
     ///
     /// 
-    pub fn isActive(&self) -> bool {
+    pub fn is_active(&self) -> bool {
         !self.handle.is_finished()
     }
 }
@@ -261,10 +257,10 @@ impl TcpServerConnections {
     }
     ///
     /// 
-    fn insert(&mut self, connectionId: &String, handle: JoinHandle<()>, send: Sender<Action>) {
-        info!("{}.insert | connection: '{}'", self.id, connectionId);
+    fn insert(&mut self, connection_id: &String, handle: JoinHandle<()>, send: Sender<Action>) {
+        info!("{}.insert | connection: '{}'", self.id, connection_id);
         self.connections.insert(
-            connectionId.to_string(),
+            connection_id.to_string(),
             Connection::new(
                 handle,
                 send,
@@ -273,10 +269,10 @@ impl TcpServerConnections {
     }
     ///
     /// 
-    fn repair(&self, connectionId: &String, stream: TcpStream) -> Result<(), String> {
-        match self.connections.get(connectionId) {
+    fn repair(&self, connection_id: &String, stream: TcpStream) -> Result<(), String> {
+        match self.connections.get(connection_id) {
             Some(conn) => {
-                if conn.isActive() {
+                if conn.is_active() {
                     match conn.send(Action::Continue(stream)) {
                         Ok(_) => {
                             // info!("{}.run | Keeped connection '{}' repaired", self_id, connectionId);
@@ -287,11 +283,11 @@ impl TcpServerConnections {
                         },
                     }
                 } else {
-                    Err(format!("{}.repair | Keeped connection '{}' - exceeded", self.id, connectionId))
+                    Err(format!("{}.repair | Keeped connection '{}' - exceeded", self.id, connection_id))
                 }
             },
             None => {
-                Err(format!("{}.repair | Keeped connection '{}' - not found", self.id, connectionId))
+                Err(format!("{}.repair | Keeped connection '{}' - not found", self.id, connection_id))
             },
         }
     }    
@@ -305,7 +301,7 @@ impl TcpServerConnections {
             let keys: Vec<String> = self.connections.keys().map(|k| {k.to_string()}).collect();
             info!("{}.run | Wait for connections:", self.id);
             for key in &keys {
-                info!("{}.run | \tconnection: {:?}\t isActive: {}", self.id, key, self.connections.get(key).unwrap().isActive());
+                info!("{}.run | \tconnection: {:?}\t isActive: {}", self.id, key, self.connections.get(key).unwrap().is_active());
             }
             match keys.first() {
                 Some(key) => {
@@ -326,7 +322,7 @@ impl TcpServerConnections {
 /// 
 struct TcpServerConnection {
     id: String,
-    actionRecv: Vec<Receiver<Action>>, 
+    action_recv: Vec<Receiver<Action>>, 
     services: Arc<Mutex<Services>>, 
     conf: TcpServerConfig, 
     exit: Arc<AtomicBool>,
@@ -336,10 +332,10 @@ struct TcpServerConnection {
 impl TcpServerConnection {
     ///
     /// 
-    pub fn new(parent: impl Into<String>, actionRecv: Receiver<Action>, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>) -> Self {
+    pub fn new(parent: impl Into<String>, action_recv: Receiver<Action>, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>) -> Self {
         Self {
             id: format!("{}/TcpServerConnection", parent.into()),
-            actionRecv: vec![actionRecv],
+            action_recv: vec![action_recv],
             services,
             conf,
             exit,
@@ -350,19 +346,19 @@ impl TcpServerConnection {
     pub fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
         let self_id = self.id.clone();
-        let self_idClone = self.id.clone();
+        let self_id_clone = self.id.clone();
         let conf = self.conf.clone();
-        let selfConfTx = conf.tx.clone();
-        let rxMaxLength = conf.rxMaxLength;
+        let self_conf_tx = conf.tx.clone();
+        let rx_max_length = conf.rxMaxLength;
         let exit = self.exit.clone();
-        let exitPair = Arc::new(AtomicBool::new(false));
-        let actionRecv = self.actionRecv.pop().unwrap();
+        let exit_pair = Arc::new(AtomicBool::new(false));
+        let action_recv = self.action_recv.pop().unwrap();
         let services = self.services.clone();
-        let txQueueName = QueueName::new(&selfConfTx);
+        let tx_queue_name = QueueName::new(&self_conf_tx);
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
-            let send = services.lock().unwrap().get_link(&selfConfTx);
+            let send = services.lock().unwrap().get_link(&self_conf_tx);
             let points = services.lock().unwrap().points().iter().fold(vec![], |mut points, point_conf| {
                 points.push(SubscriptionCriteria::new(&point_conf.name, Cot::Inf));
                 points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ActCon));
@@ -371,22 +367,22 @@ impl TcpServerConnection {
                 points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ReqErr));
                 points
             });
-            let recv = services.lock().unwrap().subscribe(txQueueName.service(), &self_id, &points);
-            let buffered = rxMaxLength > 0;
-            let mut tcpReadAlive = TcpReadAlive::new(
+            let recv = services.lock().unwrap().subscribe(tx_queue_name.service(), &self_id, &points);
+            let buffered = rx_max_length > 0;
+            let mut tcp_read_alive = TcpReadAlive::new(
                 &self_id,
                 send,
                 Duration::from_millis(10),
                 Some(exit.clone()),
-                Some(exitPair.clone()),
+                Some(exit_pair.clone()),
             );
-            let tcpWriteAlive = TcpWriteAlive::new(
+            let tcp_write_alive = TcpWriteAlive::new(
                 &self_id,
                 Duration::from_millis(10),
                 Arc::new(Mutex::new(TcpStreamWrite::new(
                     &self_id,
                     buffered,
-                    Some(rxMaxLength as usize),
+                    Some(rx_max_length as usize),
                     Box::new(JdsEncodeMessage::new(
                         &self_id,
                         JdsSerialize::new(
@@ -396,19 +392,19 @@ impl TcpServerConnection {
                     )),
                 ))),
                 Some(exit.clone()),
-                Some(exitPair.clone()),
+                Some(exit_pair.clone()),
             );
-            let keepTimeout = conf.keepTimeout.unwrap_or(Duration::from_secs(3));
+            let keep_timeout = conf.keepTimeout.unwrap_or(Duration::from_secs(3));
             let mut duration = Instant::now();
             loop {
-                exitPair.store(false, Ordering::SeqCst);
-                match actionRecv.recv_timeout(RECV_TIMEOUT) {
+                exit_pair.store(false, Ordering::SeqCst);
+                match action_recv.recv_timeout(RECV_TIMEOUT) {
                     Ok(action) => {
                         match action {
-                            Action::Continue(tcpStream) => {
+                            Action::Continue(tcp_stream) => {
                                 info!("{}.run | Action - Continue received", self_id);
-                                let hR = tcpReadAlive.run(tcpStream.try_clone().unwrap());
-                                let hW = tcpWriteAlive.run(tcpStream);
+                                let hR = tcp_read_alive.run(tcp_stream.try_clone().unwrap());
+                                let hW = tcp_write_alive.run(tcp_stream);
                                 hR.join().unwrap();
                                 hW.join().unwrap();
                                 info!("{}.run | Finished", self_id);
@@ -433,160 +429,14 @@ impl TcpServerConnection {
                     info!("{}.run | Detected exit", self_id);
                     break;
                 }
-                if keepTimeout.checked_sub(duration.elapsed()).is_none() {
-                    info!("{}.run | Keeped lost connection timeout({:?}) exceeded", self_id, keepTimeout);
+                if keep_timeout.checked_sub(duration.elapsed()).is_none() {
+                    info!("{}.run | Keeped lost connection timeout({:?}) exceeded", self_id, keep_timeout);
                     break;
                 }
             }
             info!("{}.run | Exit", self_id);
         });
-        info!("{}.run | Started", self_idClone);
+        info!("{}.run | Started", self_id_clone);
         handle
     }    
 }
-
-
-
-
-
-
-
-
-
-
-
-    // ///
-    // /// 
-    // fn repairConnection(self_id: &String, connectionId: &String, connections: Arc<Mutex<HashMap<String, Connection>>>, stream: TcpStream) -> Result<(), String> {
-    //     match connections.lock().unwrap().get(connectionId) {
-    //         Some(conn) => {
-    //             if conn.isActive() {
-    //                 match conn.send(Action::Continue(stream)) {
-    //                     Ok(_) => {
-    //                         // info!("{}.run | Keeped connection '{}' repaired", self_id, connectionId);
-    //                         Ok(())
-    //                     },
-    //                     Err(err) => {
-    //                         Err(format!("{}.run | Keeped connection repair error {:?}", self_id, err))
-    //                     },
-    //                 }
-    //             } else {
-    //                 Err(format!("{}.run | Keeped connection '{}' - exceeded", self_id, connectionId))
-    //             }
-    //         },
-    //         None => {
-    //             Err(format!("{}.run | Keeped connection '{}' - not found", self_id, connectionId))
-    //         },
-    //     }
-    // }
-
-
-
-    //     ///
-    // /// 
-    // fn waitConnections(self_id: &String, connections: Arc<Mutex<HashMap<String, Connection>>>) {
-    //     info!("{}.run | connections.lock...", self_id);
-    //     while connections.lock().unwrap().len() > 0 {
-    //         info!("{}.run | connections.lock - ok", self_id);
-    //         let mut connectionsLock = connections.lock().unwrap();
-    //         let keys: Vec<String> = connectionsLock.keys().map(|k| {k.to_string()}).collect();
-    //         info!("{}.run | Wait for connections:", self_id);
-    //         for key in &keys {
-    //             info!("{}.run | \tconnection: {:?}\t isActive: {}", self_id, key, connectionsLock.get(key).unwrap().isActive());
-    //         }
-    //         match keys.first() {
-    //             Some(key) => {
-    //                 let connection = connectionsLock.remove(key).unwrap();
-    //                 connection.send(Action::Exit).unwrap_or_else(|_| {info!("{}.run | Connection '{}' - already finished", self_id, key)});
-    //                 connection.wait().unwrap();
-    //             },
-    //             None => {
-    //                 break;
-    //             },
-    //         };
-    //     }
-    // }
-
-
-
-
-    //     ///
-    // /// Setup thread for incomming connection
-    // fn connection(self_id: String, actionRecv: Receiver<Action>, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>) -> Result<JoinHandle<()>, std::io::Error> {
-    //     info!("{}.connection | starting...", self_id);
-    //     let self_idClone = self_id.clone();
-    //     let selfConfTx = conf.tx.clone();
-    //     let txQueueName = QueueName::new(&selfConfTx);
-    //     info!("{}.connection | Preparing thread...", self_id);
-    //     let handle = thread::Builder::new().name(format!("{}.connection", self_id.clone())).spawn(move || {
-    //         info!("{}.connection | Preparing thread - ok", self_id);
-    //         let send = services.lock().unwrap().get_link(&selfConfTx);
-    //         let recv = services.lock().unwrap().subscribe(txQueueName.service(), &self_id, &vec![]);
-    //         let buffered = conf.rxMaxLength > 0;
-    //         let mut tcpReadAlive = TcpReadAlive::new(
-    //             &self_id,
-    //             send,
-    //             Duration::from_millis(10),
-    //             Some(exit.clone()),
-    //         );
-    //         let tcpWriteAlive = TcpWriteAlive::new(
-    //             &self_id,
-    //             Duration::from_millis(10),
-    //             Arc::new(Mutex::new(TcpStreamWrite::new(
-    //                 &self_id,
-    //                 buffered,
-    //                 Some(conf.rxMaxLength as usize),
-    //                 Box::new(JdsEncodeMessage::new(
-    //                     &self_id,
-    //                     JdsSerialize::new(
-    //                         &self_id,
-    //                         recv,
-    //                     ),
-    //                 )),
-    //             ))),
-    //             Some(exit.clone()),
-    //         );
-    //         let keepTimeout = conf.keepTimeout.unwrap_or(Duration::from_secs(3));
-    //         let mut duration = Instant::now();
-    //         loop {
-    //             match actionRecv.recv_timeout(RECV_TIMEOUT) {
-    //                 Ok(action) => {
-    //                     match action {
-    //                         Action::Continue(tcpStream) => {
-    //                             info!("{}.connection | Action - Continue received", self_id);
-    //                             let hR = tcpReadAlive.run(tcpStream.try_clone().unwrap());
-    //                             let hW = tcpWriteAlive.run(tcpStream);
-    //                             hR.join().unwrap();
-    //                             hW.join().unwrap();
-    //                             info!("{}.connection | Finished", self_id);
-    //                             duration = Instant::now();
-    //                         },
-    //                         Action::Exit => {
-    //                             info!("{}.connection | Action - Exit received", self_id);
-    //                             break;
-    //                         },
-    //                     }
-    //                 },
-    //                 Err(err) => {
-    //                     match err {
-    //                         mpsc::RecvTimeoutError::Timeout => {},
-    //                         mpsc::RecvTimeoutError::Disconnected => {
-    //                             break;
-    //                         },
-    //                     }
-    //                 },
-    //             }
-    //             if exit.load(Ordering::SeqCst) {
-    //                 info!("{}.connection | Detected exit", self_id);
-    //                 break;
-    //             }
-    //             if keepTimeout.checked_sub(duration.elapsed()).is_none() {
-    //                 info!("{}.connection | Keeped lost connection timeout({:?}) exceeded", self_id, keepTimeout);
-    //                 break;
-    //             }
-    //         }
-    //         info!("{}.connection | Exit", self_id);
-    //     });
-    //     info!("{}.connection | Started", self_idClone);
-    //     handle
-    // }

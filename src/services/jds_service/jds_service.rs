@@ -13,7 +13,7 @@ use serde_json::json;
 use crate::{
     conf::{jds_service_config::jds_service_config::JdsServiceConfig, point_config::{point_config::PointConfig, point_name::PointName}}, 
     core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, 
-    services::{multi_queue::subscription_criteria::SubscriptionCriteria, service::service::Service, services::Services},
+    services::{multi_queue::{subscription_criteria::SubscriptionCriteria, subscriptions::Subscriptions}, service::service::Service, services::Services},
 };
 
 use super::request_kind::RequestKind;
@@ -27,11 +27,12 @@ use super::request_kind::RequestKind;
 pub struct JdsService {
     id: String,
     parent: String,
-    rxSend: HashMap<String, Sender<PointType>>,
-    rxRecv: Vec<Receiver<PointType>>,
+    // rxSend: HashMap<String, Sender<PointType>>,
+    // rxRecv: Vec<Receiver<PointType>>,
     conf: JdsServiceConfig,
     services: Arc<Mutex<Services>>,
-    requests: HashMap<String, String, BuildHasherDefault<FxHasher>>,
+    subscriptions: Arc<Mutex<Subscriptions>>,
+    // requests: HashMap<String, String, BuildHasherDefault<FxHasher>>,
     exit: Arc<AtomicBool>,
 }
 ///
@@ -40,19 +41,21 @@ impl JdsService {
     ///
     /// 
     pub fn new(parent: impl Into<String>, conf: JdsServiceConfig, services: Arc<Mutex<Services>>) -> Self {
-        let (send, recv) = mpsc::channel();
+        // let (send, recv) = mpsc::channel();
         let parent = parent.into();
-        let mut requests = HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default());
-        requests.insert(PointName::new(&parent, "JdsService/Auth.Secret").full(), 0);
-        requests.insert(PointName::new(&parent, "JdsService/Auth.Secret").full(), 0);
+        let self_id = format!("{}/JdsService({})", parent, conf.name);
+        // let mut requests = HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default());
+        // requests.insert(PointName::new(&parent, "JdsService/Auth.Secret").full(), 0);
+        // requests.insert(PointName::new(&parent, "JdsService/Auth.Secret").full(), 0);
         Self {
-            id: format!("{}/JdsService({})", parent, conf.name),
+            id: self_id.clone(),
             parent: parent,
-            rxSend: HashMap::from([(conf.rx.clone(), send)]),
-            rxRecv: vec![recv],
+            // rxSend: HashMap::from([(conf.rx.clone(), send)]),
+            // rxRecv: vec![recv],
             conf: conf.clone(),
             services,
-            requests: HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default()),
+            subscriptions: Arc::new(Mutex::new(Subscriptions::new(self_id))),
+            // requests: HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default()),
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -68,8 +71,6 @@ impl JdsService {
     /// Detecting kind of the request stored as json string in the incoming point.
     /// Performs the action depending on the Request kind.
     fn match_request<'a>(parent: &str, self_id: &'a str, tx_id: usize, request: &'a PointType, tx_send: &Sender<PointType>, services: &Arc<Mutex<Services>>) {
-        let point_name_auth_secret = PointName::new(&parent, "JdsService/Auth.Secret").full();
-        let point_name_auth_ssh = PointName::new(&parent, "JdsService/Auth.Ssh").full();
         match RequestKind::from(request.name()) {
             RequestKind::AuthSecret => {
                 Self::send_reply(
@@ -148,6 +149,56 @@ impl Service for JdsService {
     //
     fn id(&self) -> &str {
         &self.id
+    }
+    //
+    //
+    fn subscribe(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Receiver<PointType> {
+        let (send, recv) = mpsc::channel();
+        let inner_receiver_id = PointTxId::fromStr(receiver_id);
+        match points.is_empty() {
+            true => {
+                self.subscriptions.lock().unwrap().add_broadcast(inner_receiver_id, send);
+                debug!("{}.subscribe | Broadcast subscription registered, receiver: {} ({})", self.id, receiver_id, inner_receiver_id);
+            },
+            false => {
+                for subscription_criteria in points {
+                    self.subscriptions.lock().unwrap().add_multicast(inner_receiver_id, &subscription_criteria.destination(), send.clone());
+                }
+                debug!("{}.subscribe | Multicast subscription registered, receiver: {} ({})", self.id, receiver_id, inner_receiver_id);
+            },
+        }
+        recv
+    }
+    //
+    //
+    fn unsubscribe(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
+        let inner_receiver_id = PointTxId::fromStr(receiver_id);
+        if points.is_empty() {
+            match self.subscriptions.lock().unwrap().remove_all(&inner_receiver_id) {
+                Ok(_) => {
+                    debug!("{}.unsubscribe | Broadcast subscription removed, receiver: {} ({})", self.id, receiver_id, inner_receiver_id);
+                },
+                Err(err) => {
+                    let message = format!("{}.unsubscribe | Error removing broadcast subscription, receiver: {} ({})\n detales: {:?}", self.id, receiver_id, inner_receiver_id, err);
+                    warn!("{}", message);
+                    return Err(err)
+                },
+            }
+        } else {
+            for subscription_criteria in points {
+                match self.subscriptions.lock().unwrap().remove(&inner_receiver_id, &subscription_criteria.destination()) {
+                    Ok(_) => {
+                        debug!("{}.unsubscribe | Multicat subscription '{}' removed, receiver: {} ({})", self.id, subscription_criteria.destination(), receiver_id, inner_receiver_id);
+                    },
+                    Err(err) => {
+                        let message = format!("{}.unsubscribe | Error removing multicat subscription '{}', receiver: {} ({})\n detales: {:?}", self.id, subscription_criteria.destination(), receiver_id, inner_receiver_id, err);
+                        warn!("{}", message);
+                        return Err(err)
+                    },
+                }
+            }
+        }
+        Ok(())
     }
     //
     //

@@ -69,10 +69,10 @@ impl Service for MockMultiQueueMatch {
         let (send, recv) = mpsc::channel();
         let receiverId = PointTxId::fromStr(receiverId);
         if points.is_empty() {
-            self.subscriptions.lock().unwrap().addBroadcast(receiverId, send.clone());
+            self.subscriptions.lock().unwrap().add_broadcast(receiverId, send.clone());
         } else {
             for subscription_criteria in points {
-                self.subscriptions.lock().unwrap().addMulticast(receiverId, &subscription_criteria.destination(), send.clone());
+                self.subscriptions.lock().unwrap().add_multicast(receiverId, &subscription_criteria.destination(), send.clone());
             }
         }
         recv

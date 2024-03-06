@@ -1,9 +1,6 @@
-#![allow(non_snake_case)]
-
-use std::{collections::HashMap, sync::mpsc::Sender};
-
 use log::{warn, trace};
-
+use std::{collections::HashMap, hash::BuildHasherDefault, sync::mpsc::Sender};
+use hashers::fx_hash::FxHasher;
 use crate::core_::point::point_type::PointType;
 
 ///
@@ -22,9 +19,9 @@ type PointDest = String;
 #[derive(Debug, Clone)]
 pub struct Subscriptions {
     id: String,
-    multicast: HashMap<PointDest, HashMap<ReceiverId, Sender<PointType>>>,
-    broadcast: HashMap<ReceiverId, Sender<PointType>>,
-    empty: HashMap<ReceiverId, Sender<PointType>>,
+    multicast: HashMap<PointDest, HashMap<ReceiverId, Sender<PointType>, BuildHasherDefault<FxHasher>>, BuildHasherDefault<FxHasher>>,
+    broadcast: HashMap<ReceiverId, Sender<PointType>, BuildHasherDefault<FxHasher>>,
+    empty: HashMap<ReceiverId, Sender<PointType>, BuildHasherDefault<FxHasher>>,
 }
 ///
 /// 
@@ -34,24 +31,24 @@ impl Subscriptions {
     pub fn new(parent: impl Into<String>, ) -> Self {
         Self {
             id: format!("{}/Subscriptions", parent.into()),
-            multicast: HashMap::new(),
-            broadcast: HashMap::new(),
-            empty: HashMap::new(),
+            multicast: HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default()),
+            broadcast: HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default()),
+            empty: HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default()),
         }
     }
     ///
     /// Adds subscription to Point ID with receiver ID
-    pub fn addMulticast(&mut self, receiverId: usize, destination: &str, sender: Sender<PointType>) {
+    pub fn add_multicast(&mut self, receiver_id: usize, destination: &str, sender: Sender<PointType>) {
         if ! self.multicast.contains_key(destination) {
             self.multicast.insert(
                 destination.to_string(),
-                HashMap::new(),
+                HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default()),
             );
         };
         match self.multicast.get_mut(destination) {
             Some(senders) => {
                 senders.insert(
-                    receiverId,
+                    receiver_id,
                     sender,
                 );
             },
@@ -62,16 +59,16 @@ impl Subscriptions {
     }
     ///
     /// 
-    pub fn addBroadcast(&mut self, receiverId: usize, sender: Sender<PointType>) {
+    pub fn add_broadcast(&mut self, receiver_id: usize, sender: Sender<PointType>) {
         self.broadcast.insert(
-            receiverId,
+            receiver_id,
             sender,
         );
     }
     ///
     /// Returns map of Senders
-    pub fn iter(&self, pointId: &str) -> impl Iterator<Item = (&usize, &Sender<PointType>)> {
-        match self.multicast.get(pointId) {
+    pub fn iter(&self, point_id: &str) -> impl Iterator<Item = (&usize, &Sender<PointType>)> {
+        match self.multicast.get(point_id) {
             Some(multicast) => {
                 trace!("{}.iter | \n\t Multicast: {:?} \n\t Broadcast: {:?}", self.id, multicast, self.broadcast);
                 multicast.iter().chain(&self.broadcast)
@@ -84,32 +81,32 @@ impl Subscriptions {
     }
     ///
     /// Removes single subscription by Point Id for receiver ID
-    pub fn remove(&mut self, receiverId: &usize, pointId: &str) -> Result<(), String> {
-        match self.multicast.get_mut(pointId) {
+    pub fn remove(&mut self, receiver_id: &usize, point_id: &str) -> Result<(), String> {
+        match self.multicast.get_mut(point_id) {
             Some(senders) => {
-                match senders.remove(receiverId) {
+                match senders.remove(receiver_id) {
                     Some(_) => Ok(()),
-                    None => Err(format!("{}.run | Subscription '{}', receiver '{}' - not found", self.id, pointId, receiverId)),
+                    None => Err(format!("{}.run | Subscription '{}', receiver '{}' - not found", self.id, point_id, receiver_id)),
                 }
             },
-            None => Err(format!("{}.run | Subscription '{}' - not found", self.id, pointId)),
+            None => Err(format!("{}.run | Subscription '{}' - not found", self.id, point_id)),
         }
     }
     ///
     /// Removes all subscriptions for receiver ID
-    pub fn removeAll(&mut self, receiverId: &usize) -> Result<(), String> {
+    pub fn remove_all(&mut self, receiver_id: &usize) -> Result<(), String> {
         let mut changed = false;
         let mut messages = vec![];
         let keys: Vec<String> = self.multicast.keys().map(|v| v.clone()).collect();
         for pointId in keys {
             match self.multicast.get_mut(&pointId) {
                 Some(senders) => {
-                    match senders.remove(receiverId) {
+                    match senders.remove(receiver_id) {
                         Some(_) => {
                             changed = changed | true;
                         },
                         None => {
-                            messages.push(format!("{}.run | Multicast Subscription '{}', receiver '{}' - not found", self.id, pointId, receiverId));
+                            messages.push(format!("{}.run | Multicast Subscription '{}', receiver '{}' - not found", self.id, pointId, receiver_id));
                         },
                     }
                 },
@@ -118,12 +115,12 @@ impl Subscriptions {
                 }
             }
         }
-        match self.broadcast.remove(receiverId) {
+        match self.broadcast.remove(receiver_id) {
             Some(_) => {
                 changed = changed | true;
             },
             None => {
-                messages.push(format!("{}.run | Broadcast Subscription by receiver '{}' - not found", self.id, receiverId));
+                messages.push(format!("{}.run | Broadcast Subscription by receiver '{}' - not found", self.id, receiver_id));
             },
         }
         if changed {
