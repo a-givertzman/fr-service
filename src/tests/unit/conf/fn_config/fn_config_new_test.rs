@@ -37,7 +37,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test FnConfig | new valid";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let test_data = [
             (
                 r#"let newVar:

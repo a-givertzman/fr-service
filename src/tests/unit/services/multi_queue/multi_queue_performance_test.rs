@@ -42,7 +42,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test MultiQueue Performance";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let iterations = ITERATIONS;
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
@@ -150,7 +150,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test MultiQueue Performance with matching by producer ID";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let iterations = ITERATIONS;
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();

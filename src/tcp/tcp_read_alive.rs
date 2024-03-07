@@ -62,6 +62,18 @@ impl TcpReadAlive {
                     ConnectionStatus::Active(point) => {
                         match point {
                             Ok(point) => {
+                                match point.cot() {
+                                    crate::core_::cot::cot::Cot::Inf => todo!(),
+                                    crate::core_::cot::cot::Cot::Act => todo!(),
+                                    crate::core_::cot::cot::Cot::ActCon => todo!(),
+                                    crate::core_::cot::cot::Cot::ActErr => todo!(),
+                                    crate::core_::cot::cot::Cot::Req => todo!(),
+                                    crate::core_::cot::cot::Cot::ReqCon => todo!(),
+                                    crate::core_::cot::cot::Cot::ReqErr => todo!(),
+                                    crate::core_::cot::cot::Cot::Read => todo!(),
+                                    crate::core_::cot::cot::Cot::Write => todo!(),
+                                    crate::core_::cot::cot::Cot::All => todo!(),
+                                }
                                 match send.send(point) {
                                     Ok(_) => {},
                                     Err(err) => {

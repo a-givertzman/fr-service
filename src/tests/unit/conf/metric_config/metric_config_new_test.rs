@@ -37,7 +37,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test MetricConfig | new valid";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         // let (initial, switches) = init_each();
         let test_data = [
             // (

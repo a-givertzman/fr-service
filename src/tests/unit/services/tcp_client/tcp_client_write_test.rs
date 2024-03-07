@@ -40,7 +40,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test TcpClient WRITE";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let path = "./src/tests/unit/services/tcp_client/tcp_client.yaml";
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();

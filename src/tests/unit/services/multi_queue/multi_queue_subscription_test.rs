@@ -43,7 +43,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test_multi_queue - Static subscriptions - Single send";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
 
         let count = 3;              // count of the MockRecvSendService & MockTcpServer instances
         let iterations = 1000;      // test data length

@@ -37,7 +37,7 @@ mod tests{
         init_each();
         println!("");
         let self_id = "test MetricConfig | read valid";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let target = MetricConfig { 
             name: format!("SqlMetric"), 
             table: format!("table_name"), 

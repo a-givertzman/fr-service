@@ -51,7 +51,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test TcpStreamWrite";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let count = 1000;
         let test_duration = Duration::from_secs(10);
         let sent = Arc::new(AtomicUsize::new(0));

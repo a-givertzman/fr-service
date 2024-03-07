@@ -35,7 +35,7 @@ mod api_client {
         init_each();
         println!("");
         let self_id = "test ApiClient";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let path = "./src/tests/unit/services/api_client/api_client.yaml";
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
         test_duration.run().unwrap();
@@ -164,8 +164,8 @@ mod api_client {
             };
         });
         api_client.run().unwrap();
-        let timer = Instant::now();
         let send = api_client.get_link("api-link");
+        let timer = Instant::now();
         for value in test_data {
             let point = format!("select from table where id = {}", value.to_string()).to_point(0, "teset");
             send.send(point.clone()).unwrap();

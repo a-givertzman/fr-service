@@ -39,7 +39,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test TcpServer keep lost connection | Send";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
         test_duration.run().unwrap();
 
@@ -132,7 +132,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test TcpServer keep lost connection | Receive";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(30));
         test_duration.run().unwrap();
 

@@ -37,7 +37,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test ProfinetClient";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
         let services = Arc::new(Mutex::new(Services::new(self_id)));

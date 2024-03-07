@@ -43,7 +43,7 @@ fn test_int() {
     init_once();
     println!("");
     let self_id = "test_int";
-    println!("{}", self_id);
+    println!("\n{}", self_id);
     let path = "./src/tests/unit/services/task/sql_metric/sql_metric_int_test.yaml";
     let conf = TaskConfig::read(path);
     debug!("conf: {:?}", conf);
@@ -129,7 +129,7 @@ fn test_float() {
     init_once();
     println!("");
     let self_id = "test_float";
-    println!("{}", self_id);
+    println!("\n{}", self_id);
     let path = "./src/tests/unit/services/task/sql_metric/sql_metric_float_test.yaml";
     let conf = TaskConfig::read(path);
     debug!("conf: {:?}", conf);

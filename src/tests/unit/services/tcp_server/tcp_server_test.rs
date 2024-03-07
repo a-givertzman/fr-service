@@ -40,7 +40,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test TcpServer | Send";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
         test_duration.run().unwrap();
 
@@ -135,7 +135,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test TcpServer | Receive";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
 
