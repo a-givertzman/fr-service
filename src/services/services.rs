@@ -67,6 +67,18 @@ impl Services {
         }
     }
     ///
+    /// Returns ok if subscription extended sucessfully
+    /// - service - the name of the service to extend subscribtion on
+    pub fn extend_subscription(&mut self, service: &str, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
+        panic!("{}.extend_subscription | Not implemented yet", self.id);
+    }
+    ///
+    /// Returns ok if subscription removed sucessfully
+    /// - service - the name of the service to unsubscribe on
+    fn unsubscribe(&mut self, service: &str, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
+        panic!("{}.extend_subscription | Not implemented yet", self.id);
+    }
+    ///
     /// Returns list of point configurations over the all services
     pub fn points(&self) -> Vec<PointConfig> {
         let mut points = vec![];
