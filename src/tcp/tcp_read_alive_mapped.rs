@@ -11,7 +11,7 @@ use crate::{core_::{
 
 ///
 /// Transfering points from JdsStream (socket) to the Channels Map<ReceiverId, Sender<PointType>>
-pub struct TcpReadAlive {
+pub struct TcpReadAliveMapped {
     id: String,
     jds_stream: Arc<Mutex<JdsDeserialize>>,
     receivers: Arc<RwLock<HashMap<Cot, Sender<PointType>, BuildHasherDefault<FxHasher>>>>,
@@ -19,9 +19,9 @@ pub struct TcpReadAlive {
     exit: Arc<AtomicBool>,
     exit_pair: Arc<AtomicBool>,
 }
-impl TcpReadAlive {
+impl TcpReadAliveMapped {
     ///
-    /// Creates new instance of [TcpReadAlive]
+    /// Creates new instance of [TcpReadAliveMapped]
     /// - [parent] - the ID if the parent entity
     /// - [exit] - notification from parent to exit 
     /// - [exitPair] - notification from / to sibling pair to exit 
@@ -48,7 +48,7 @@ impl TcpReadAlive {
         }
     }
     ///
-    /// Main loop of the [TcpReadAlive]
+    /// Main loop of the [TcpReadAliveMapped]
     pub fn run(&mut self, tcp_stream: TcpStream) -> JoinHandle<()> {
         info!("{}.run | starting...", self.id);
         let self_id = self.id.clone();
@@ -63,7 +63,6 @@ impl TcpReadAlive {
             let mut tcp_stream = BufReader::new(tcp_stream);
             let mut jds_stream = jds_stream.lock().unwrap();
             info!("{}.run | Main loop started", self_id);
-            let mut receiver: &Sender<PointType>;
             loop {
                 cycle.start();
                 match jds_stream.read(&mut tcp_stream) {

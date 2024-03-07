@@ -80,7 +80,7 @@ mod tests {
             match TcpStream::connect(&addr) {
                 Ok(mut stream) => {
                     'inner: while sent.load(Ordering::SeqCst) < count {
-                        match tcpStreamWrite.write(&mut stream, &None) {
+                        match tcpStreamWrite.write(&mut stream) {
                             ConnectionStatus::Active(result) => {
                                 match result {
                                     Ok(sentBytes) => {

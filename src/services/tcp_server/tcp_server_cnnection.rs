@@ -1,6 +1,12 @@
-use std::{sync::{atomic::{AtomicBool, Ordering}, mpsc::{Receiver, RecvTimeoutError}, Arc, Mutex}, thread::{self, JoinHandle}, time::{Duration, Instant}};
+use std::{collections::HashMap, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{Receiver, RecvTimeoutError}, Arc, Mutex, RwLock}, thread::{self, JoinHandle}, time::{Duration, Instant}};
+use hashers::fx_hash::FxHasher;
 use log::{error, info, trace};
-use crate::{conf::tcp_server_config::TcpServerConfig, core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, services::Services}, tcp::{steam_read::StreamFilter, tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive}};
+use crate::{
+    conf::tcp_server_config::TcpServerConfig, 
+    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}}, 
+    services::{multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, services::Services}, 
+    tcp::{steam_read::StreamFilter, tcp_read_alive_mapped::TcpReadAliveMapped, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive},
+};
 use super::connections::Action;
 use concat_string::concat_string;
 
@@ -88,7 +94,10 @@ impl TcpServerConnection {
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
-            let send = services.lock().unwrap().get_link(&self_conf_tx);
+            let receivers = Arc::new(RwLock::new(
+                HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default()),
+            ));
+            receivers.write().unwrap().insert(Cot::Req, services.lock().unwrap().get_link(&self_conf_tx));
             let points = services.lock().unwrap().points().iter().fold(vec![], |mut points, point_conf| {
                 points.push(SubscriptionCriteria::new(&point_conf.name, Cot::Inf));
                 points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ActCon));
@@ -99,9 +108,9 @@ impl TcpServerConnection {
             });
             let recv = services.lock().unwrap().subscribe(tx_queue_name.service(), &self_id, &points);
             let buffered = rx_max_length > 0;
-            let mut tcp_read_alive = TcpReadAlive::new(
+            let mut tcp_read_alive = TcpReadAliveMapped::new(
                 &self_id,
-                send,
+                receivers,
                 Duration::from_millis(10),
                 Some(exit.clone()),
                 Some(exit_pair.clone()),
@@ -126,9 +135,6 @@ impl TcpServerConnection {
             );
             let keep_timeout = conf.keepTimeout.unwrap_or(Duration::from_secs(3));
             let mut duration = Instant::now();
-            // let filter = Arc::new(Mutex::new(Some(
-            //     StreamFilter::allow(Some(Cot::Req | Cot::ReqCon | Cot::ReqErr), None),
-            // )));
             Self::await_subscribe_rec_con(self_id.clone(), services.clone(), filter.clone(), exit_pair.clone());
             loop {
                 exit_pair.store(false, Ordering::SeqCst);
@@ -138,7 +144,7 @@ impl TcpServerConnection {
                             Action::Continue(tcp_stream) => {
                                 info!("{}.run | Action - Continue received", self_id);
                                 let hr = tcp_read_alive.run(tcp_stream.try_clone().unwrap());
-                                let hw = tcp_write_alive.run(tcp_stream, filter.clone());
+                                let hw = tcp_write_alive.run(tcp_stream);
                                 hr.join().unwrap();
                                 hw.join().unwrap();
                                 info!("{}.run | Finished", self_id);

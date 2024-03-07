@@ -1,11 +1,9 @@
-use std::{io::Write, sync::{Arc, Mutex}};
+use std::io::Write;
 use log::{warn, LevelFilter, trace};
 use crate::{
     tcp::steam_read::StreamRead, 
     core_::{retain_buffer::retain_buffer::RetainBuffer, net::connection_status::ConnectionStatus, failure::recv_error::RecvError},
 };
-
-use super::steam_read::StreamFilter;
 
 ///
 /// Received from in queue sequences of bites adds into the end of local buffer
@@ -38,15 +36,8 @@ impl TcpStreamWrite {
     }
     ///
     /// 
-    pub fn write(&mut self, mut tcp_stream: impl Write, filter: &Option<StreamFilter>) -> ConnectionStatus<Result<usize, String>, String> {
-        let bytes = match filter {
-            Some(filter) => self.stream.read_filtered(filter),
-            None => match self.stream.read() {
-                Ok(bytes) => Ok(Some(bytes)),
-                Err(err) => Err(err),
-            },
-        };
-        match bytes {
+    pub fn write(&mut self, mut tcp_stream: impl Write) -> ConnectionStatus<Result<usize, String>, String> {
+        match self.stream.read() {
             Ok(bytes) => {
                 while let Some(bytes) = self.buffer.first() {
                     trace!("{}.write | bytes: {:?}", self.id, bytes);
@@ -64,22 +55,15 @@ impl TcpStreamWrite {
                     };
                 }
                 trace!("{}.write | bytes: {:?}", self.id, bytes);
-                match bytes {
-                    Some(bytes) => {
-                        match tcp_stream.write(&bytes) {
-                            Ok(sent) => {ConnectionStatus::Active(Ok(sent))},
-                            Err(err) => {
-                                self.buffer.push(bytes);
-                                let message = format!("{}.write | error: {:?}", self.id, err);
-                                if log::max_level() == LevelFilter::Trace {
-                                    warn!("{}", message);
-                                }
-                                return ConnectionStatus::Closed(message);
-                            },
+                match tcp_stream.write(&bytes) {
+                    Ok(sent) => {ConnectionStatus::Active(Ok(sent))},
+                    Err(err) => {
+                        self.buffer.push(bytes);
+                        let message = format!("{}.write | error: {:?}", self.id, err);
+                        if log::max_level() == LevelFilter::Trace {
+                            warn!("{}", message);
                         }
-                    },
-                    None => {
-                        ConnectionStatus::Active(Ok(0))
+                        return ConnectionStatus::Closed(message);
                     },
                 }
             },
