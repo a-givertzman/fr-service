@@ -232,7 +232,7 @@ impl Service for JdsService {
             }
             // let rx_recv = services.lock().unwrap().subscribe(&self_conf.rx, &self_id, &points);
             let rx_recv = services.lock().unwrap().subscribe("MultiQueue", &self_id, &points);
-            'main: while !exit.load(Ordering::SeqCst) {
+            while !exit.load(Ordering::SeqCst) {
                 match rx_recv.recv_timeout(RECV_TIMEOUT) {
                     Ok(point) => {
                         debug!("{}.run | request: \n\t{:?}", self_id, point);
