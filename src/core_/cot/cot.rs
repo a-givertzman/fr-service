@@ -19,7 +19,7 @@ mod cot {
 /// Req - Request (Common request to the JdsService)
 /// ReqCon - Rquest | Confirmatiom reply 
 /// ReqErr - Rquest | Error reply
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Eq, Hash, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[repr(u32)]
 pub enum Cot {
     #[serde(rename = "Inf")]

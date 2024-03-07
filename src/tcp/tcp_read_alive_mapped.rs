@@ -1,20 +1,20 @@
-use log::{warn, info, LevelFilter};
 use std::{
-    io::BufReader, net::TcpStream, 
-    sync::{atomic::{AtomicBool, Ordering}, mpsc::Sender, Arc, Mutex}, 
-    thread::{self, JoinHandle}, time::Duration,
+    collections::HashMap, hash::BuildHasherDefault, io::BufReader, net::TcpStream, sync::{atomic::{AtomicBool, Ordering}, mpsc::Sender, Arc, Mutex, RwLock}, thread::{self, JoinHandle}, time::Duration
 };
+use hashers::fx_hash::FxHasher;
+use log::{warn, info, LevelFilter};
 use crate::{core_::{
-    net::{connection_status::ConnectionStatus, protocols::jds::{jds_deserialize::JdsDeserialize, jds_decode_message::JdsDecodeMessage}}, 
+    cot::cot::Cot, 
+    net::{connection_status::ConnectionStatus, protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}}, 
     point::point_type::PointType,
 }, services::task::service_cycle::ServiceCycle};
 
 ///
-/// Transfering points from JdsStream (socket) to the Channel Sender<PointType>
+/// Transfering points from JdsStream (socket) to the Channels Map<ReceiverId, Sender<PointType>>
 pub struct TcpReadAlive {
     id: String,
     jds_stream: Arc<Mutex<JdsDeserialize>>,
-    send: Sender<PointType>,
+    receivers: Arc<RwLock<HashMap<Cot, Sender<PointType>, BuildHasherDefault<FxHasher>>>>,
     cycle: Duration,
     exit: Arc<AtomicBool>,
     exit_pair: Arc<AtomicBool>,
@@ -25,8 +25,14 @@ impl TcpReadAlive {
     /// - [parent] - the ID if the parent entity
     /// - [exit] - notification from parent to exit 
     /// - [exitPair] - notification from / to sibling pair to exit 
-    pub fn new(parent: impl Into<String>, send: Sender<PointType>, cycle: Duration, exit: Option<Arc<AtomicBool>>, exit_pair: Option<Arc<AtomicBool>>) -> Self {
-        let self_id = format!("{}/TcpReadAlive", parent.into());
+    pub fn new(
+        parent: impl Into<String>, 
+        receivers: Arc<RwLock<HashMap<Cot, Sender<PointType>, BuildHasherDefault<FxHasher>>>>, 
+        cycle: Duration, 
+        exit: Option<Arc<AtomicBool>>, 
+        exit_pair: Option<Arc<AtomicBool>>,
+    ) -> Self {
+        let self_id = format!("{}/TcpReadAliveMapped", parent.into());
         Self {
             id: self_id.clone(),
             jds_stream: Arc::new(Mutex::new(JdsDeserialize::new(
@@ -35,7 +41,7 @@ impl TcpReadAlive {
                     self_id,
                 ),
             ))),
-            send: send,
+            receivers,
             cycle,
             exit: exit.unwrap_or(Arc::new(AtomicBool::new(false))),
             exit_pair: exit_pair.unwrap_or(Arc::new(AtomicBool::new(false))),
@@ -49,7 +55,7 @@ impl TcpReadAlive {
         let exit = self.exit.clone();
         let exit_pair = self.exit_pair.clone();
         let mut cycle = ServiceCycle::new(self.cycle);
-        let send = self.send.clone();
+        let receivers = self.receivers.clone();
         let jds_stream = self.jds_stream.clone();
         info!("{}.run | Preparing thread...", self.id);
         let handle = thread::Builder::new().name(format!("{} - Read", self_id.clone())).spawn(move || {
@@ -57,16 +63,27 @@ impl TcpReadAlive {
             let mut tcp_stream = BufReader::new(tcp_stream);
             let mut jds_stream = jds_stream.lock().unwrap();
             info!("{}.run | Main loop started", self_id);
+            let mut receiver: &Sender<PointType>;
             loop {
                 cycle.start();
                 match jds_stream.read(&mut tcp_stream) {
                     ConnectionStatus::Active(point) => {
                         match point {
                             Ok(point) => {
-                                match send.send(point) {
-                                    Ok(_) => {},
-                                    Err(err) => {
-                                        warn!("{}.run | write to queue error: {:?}", self_id, err);
+                                let point_cot = point.cot();
+                                match receivers.read().unwrap().get(&point_cot) {
+                                    Some(receiver) => {
+                                        match receiver.send(point) {
+                                            Ok(_) => {},
+                                            Err(err) => {
+                                                warn!("{}.run | write to receiver by {:?}, error: {:?}", self_id, point_cot, err);
+                                            },
+                                        };
+                                    },
+                                    None => {
+                                        if log::max_level() > log::LevelFilter::Info {
+                                            warn!("{}.run | Point with cot {:?} - ignored", self_id, point.cot());
+                                        }
                                     },
                                 };
                             },
