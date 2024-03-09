@@ -73,9 +73,9 @@ impl Services {
         // panic!("{}.extend_subscription | Not implemented yet", self.id);
         match self.map.get(service) {
             Some(srvc) => {
-                debug!("{}.unsubscribe | Lock service '{:?}'...", self.id, service);
+                debug!("{}.extend_subscription | Lock service '{:?}'...", self.id, service);
                 let r = srvc.lock().unwrap().extend_subscription(receiver_id, points);
-                debug!("{}.unsubscribe | Lock service '{:?}' - ok", self.id, service);
+                debug!("{}.extend_subscription | Lock service '{:?}' - ok", self.id, service);
                 r
             },
             None => panic!("{}.get | service '{:?}' - not found", self.id, service),
