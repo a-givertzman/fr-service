@@ -5,12 +5,8 @@ mod tests {
     use std::sync::{Once, mpsc};
     use debugging ::session::debug_session::{Backtrace, DebugSession, LogLevel};
     use crate::core_::constants::constants::RECV_TIMEOUT; 
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    ///    
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -19,15 +15,12 @@ mod tests {
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-
+    fn init_each() -> () {}
+    ///
+    /// 
     #[ignore = "learn - all must be ignored"]
     #[test]
     fn test_mpsc_receiver() {

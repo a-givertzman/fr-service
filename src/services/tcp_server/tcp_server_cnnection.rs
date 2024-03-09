@@ -5,7 +5,7 @@ use crate::{
     conf::tcp_server_config::TcpServerConfig, 
     core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}}, 
     services::{multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, services::Services}, 
-    tcp::{steam_read::StreamFilter, tcp_read_alive_mapped::TcpReadAliveMapped, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive},
+    tcp::{steam_read::StreamFilter, tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive},
 };
 use super::connections::Action;
 use concat_string::concat_string;
@@ -98,6 +98,7 @@ impl TcpServerConnection {
                 HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default()),
             ));
             receivers.write().unwrap().insert(Cot::Req, services.lock().unwrap().get_link(&self_conf_tx));
+            let recv = services.lock().unwrap().get_link(&self_conf_tx);
             let points = services.lock().unwrap().points().iter().fold(vec![], |mut points, point_conf| {
                 points.push(SubscriptionCriteria::new(&point_conf.name, Cot::Inf));
                 points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ActCon));
@@ -106,11 +107,12 @@ impl TcpServerConnection {
                 points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ReqErr));
                 points
             });
+            let send = services.lock().unwrap().get_link(&self_conf_tx);
             let recv = services.lock().unwrap().subscribe(tx_queue_name.service(), &self_id, &points);
             let buffered = rx_max_length > 0;
-            let mut tcp_read_alive = TcpReadAliveMapped::new(
+            let mut tcp_read_alive = TcpReadAlive::new(
                 &self_id,
-                receivers,
+                send,
                 Duration::from_millis(10),
                 Some(exit.clone()),
                 Some(exit_pair.clone()),
