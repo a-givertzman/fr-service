@@ -14,19 +14,25 @@ pub trait Service: Object {
     /// Returns copy of the Sender - service's incoming queue
     #[allow(unused_variables)]
     fn get_link(&mut self, name: &str) -> Sender<PointType> {
-        panic!("{}.get_link | Does not supports get_link", self.id())
+        panic!("{}.get_link | Does not supported", self.id())
     }
     ///
     /// Returns Receiver
     #[allow(unused_variables)]
     fn subscribe(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Receiver<PointType> {
-        panic!("{}.subscribe | Does not support subscriptions", self.id())
+        panic!("{}.subscribe | Does not supported", self.id())
+    }
+    ///
+    /// Extends the sucessfully with additiuonal points
+    #[allow(unused_variables)]
+    fn extend_subscription(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
+        panic!("{}.extend_subscription | Does not supported", self.id())
     }
     ///
     /// Canceling the subsciption
     #[allow(unused_variables)]
     fn unsubscribe(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
-        panic!("{}.unsubscribe | Does not support subscriptions", self.id())
+        panic!("{}.unsubscribe | Does not supported", self.id())
     }
     ///
     /// Starts service's main loop in the individual thread

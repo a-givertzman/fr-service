@@ -70,13 +70,30 @@ impl Services {
     /// Returns ok if subscription extended sucessfully
     /// - service - the name of the service to extend subscribtion on
     pub fn extend_subscription(&mut self, service: &str, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
-        panic!("{}.extend_subscription | Not implemented yet", self.id);
+        // panic!("{}.extend_subscription | Not implemented yet", self.id);
+        match self.map.get(service) {
+            Some(srvc) => {
+                debug!("{}.unsubscribe | Lock service '{:?}'...", self.id, service);
+                let r = srvc.lock().unwrap().extend_subscription(receiver_id, points);
+                debug!("{}.unsubscribe | Lock service '{:?}' - ok", self.id, service);
+                r
+            },
+            None => panic!("{}.get | service '{:?}' - not found", self.id, service),
+        }
     }
     ///
     /// Returns ok if subscription removed sucessfully
     /// - service - the name of the service to unsubscribe on
     fn unsubscribe(&mut self, service: &str, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
-        panic!("{}.extend_subscription | Not implemented yet", self.id);
+        match self.map.get(service) {
+            Some(srvc) => {
+                debug!("{}.unsubscribe | Lock service '{:?}'...", self.id, service);
+                let r = srvc.lock().unwrap().unsubscribe(receiver_id, points);
+                debug!("{}.unsubscribe | Lock service '{:?}' - ok", self.id, service);
+                r
+            },
+            None => panic!("{}.get | service '{:?}' - not found", self.id, service),
+        }
     }
     ///
     /// Returns list of point configurations over the all services
@@ -88,12 +105,4 @@ impl Services {
         };
         points
     }
-    // ///
-    // /// 
-    // pub fn get_mut(&mut self, name: &str) -> Arc<Mutex<dyn Service>> {
-    //     match self.map.get_mut(name) {
-    //         Some(srvc) => srvc,
-    //         None => panic!("{}.get | service '{:?}' - not found", self.id, name),
-    //     }
-    // }
 }

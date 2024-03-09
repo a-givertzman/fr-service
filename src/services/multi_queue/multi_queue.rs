@@ -1,5 +1,5 @@
 use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread::{self, JoinHandle}};
-use log::{debug, error, info, trace};
+use log::{debug, error, info, trace, warn};
 use crate::{
     conf::multi_queue_config::MultiQueueConfig, core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, service::service::Service, services::Services}
 };
@@ -78,6 +78,24 @@ impl Service for MultiQueue {
         }
         self.subscriptions_changed.store(true, Ordering::SeqCst);
         recv
+    }
+    //
+    //
+    fn extend_subscription(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
+        let inner_receiver_id = PointTxId::fromStr(receiver_id);
+        // self.receiver_dictionary.insert(inner_receiver_id, receiver_id.to_string());
+        if points.is_empty() {
+            let message = format!("{}.extend_subscription | Broadcast subscription can't be extended, receiver: {} ({})", self.id, receiver_id, inner_receiver_id);
+            warn!("{}", message);
+            Err(message)
+        } else {
+            for subscription_criteria in points {
+                self.subscriptions.lock().unwrap().extend_multicast(inner_receiver_id, &subscription_criteria.destination());
+            }
+            debug!("{}.extend_subscription | Multicast subscription extended, receiver: {} ({})", self.id, receiver_id, inner_receiver_id);
+            self.subscriptions_changed.store(true, Ordering::SeqCst);
+            Ok(())
+        }
     }
     //
     //

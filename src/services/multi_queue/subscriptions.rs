@@ -53,7 +53,22 @@ impl Subscriptions {
                 );
             },
             None => {
-                warn!("{}.addMulticast | Subscription '{}' - not found", self.id, destination);
+                warn!("{}.add_multicast | Subscription '{}' - not found", self.id, destination);
+            },
+        }
+    }
+    ///
+    /// Extends subscription if exists, otherwise returns error
+    pub fn extend_multicast(&mut self, receiver_id: usize, destination: &str) -> Result<(), String> {
+        match self.multicast.iter().find_map(|(_, senders)| senders.get(&receiver_id)) {
+            Some(sender) => {
+                self.add_multicast(receiver_id, destination, sender.clone());
+                Ok(())
+            },
+            None => {
+                let message = format!("{}.extend_multicast | Receiver '{}' - not found in subscriptions", self.id, receiver_id);
+                warn!("{}", message);
+                Err(message)
             },
         }
     }
