@@ -1,5 +1,5 @@
 use log::{warn, trace};
-use std::{collections::HashMap, hash::BuildHasherDefault, sync::mpsc::Sender};
+use std::{borrow::BorrowMut, collections::HashMap, hash::BuildHasherDefault, sync::mpsc::Sender};
 use hashers::fx_hash::FxHasher;
 use crate::core_::point::point_type::PointType;
 
@@ -37,25 +37,12 @@ impl Subscriptions {
         }
     }
     ///
-    /// Adds subscription to Point ID with receiver ID
+    /// Adds subscription for receiver_id with destination 
     pub fn add_multicast(&mut self, receiver_id: usize, destination: &str, sender: Sender<PointType>) {
-        if ! self.multicast.contains_key(destination) {
-            self.multicast.insert(
-                destination.to_string(),
-                HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default()),
-            );
-        };
-        match self.multicast.get_mut(destination) {
-            Some(senders) => {
-                senders.insert(
-                    receiver_id,
-                    sender,
-                );
-            },
-            None => {
-                warn!("{}.add_multicast | Subscription '{}' - not found", self.id, destination);
-            },
-        }
+        self.multicast
+            .entry(destination.to_owned())
+            .or_insert(HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default()))
+            .insert(receiver_id, sender);
     }
     ///
     /// Extends subscription if exists, otherwise returns error
