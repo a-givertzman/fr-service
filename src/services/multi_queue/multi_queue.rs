@@ -3,6 +3,7 @@ use log::{debug, error, info, trace, warn};
 use crate::{
     conf::multi_queue_config::MultiQueueConfig, core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, service::service::Service, services::Services}
 };
+use concat_string::concat_string;
 use super::subscriptions::Subscriptions;
 
 ///
@@ -89,12 +90,21 @@ impl Service for MultiQueue {
             warn!("{}", message);
             Err(message)
         } else {
+            let mut message = String::new();
             for subscription_criteria in points {
-                self.subscriptions.lock().unwrap().extend_multicast(inner_receiver_id, &subscription_criteria.destination());
+                if let Err(err) = self.subscriptions.lock().unwrap().extend_multicast(inner_receiver_id, &subscription_criteria.destination()) {
+                    message = concat_string!(message, err, "\n");
+                };
             }
-            debug!("{}.extend_subscription | Multicast subscription extended, receiver: {} ({})", self.id, receiver_id, inner_receiver_id);
-            self.subscriptions_changed.store(true, Ordering::SeqCst);
-            Ok(())
+            if message.is_empty() {
+                debug!("{}.extend_subscription | Multicast subscription extended, receiver: {} ({})", self.id, receiver_id, inner_receiver_id);
+                self.subscriptions_changed.store(true, Ordering::SeqCst);
+                Ok(())
+            } else {
+                debug!("{}.extend_subscription | Multicast subscription extended, receiver: {} ({}) \n\t with errors: {:?}", self.id, receiver_id, inner_receiver_id, message);
+                self.subscriptions_changed.store(true, Ordering::SeqCst);
+                Err(message)
+            }
         }
     }
     //

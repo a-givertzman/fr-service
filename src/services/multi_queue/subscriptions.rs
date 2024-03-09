@@ -60,7 +60,7 @@ impl Subscriptions {
         }
     }
     ///
-    /// 
+    /// Adds subscription for receiver_id without destination, all destinations will be received
     pub fn add_broadcast(&mut self, receiver_id: usize, sender: Sender<PointType>) {
         self.broadcast.insert(
             receiver_id,
