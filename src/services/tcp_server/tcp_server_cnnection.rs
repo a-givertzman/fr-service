@@ -125,10 +125,10 @@ impl TcpServerConnection {
                         match action {
                             Action::Continue(tcp_stream) => {
                                 info!("{}.run | Action - Continue received", self_id);
-                                let hr = tcp_read_alive.run(tcp_stream.try_clone().unwrap());
-                                let hw = tcp_write_alive.run(tcp_stream);
-                                hr.join().unwrap();
-                                hw.join().unwrap();
+                                let h_read = tcp_read_alive.run(tcp_stream.try_clone().unwrap());
+                                let h_write = tcp_write_alive.run(tcp_stream);
+                                h_read.join().expect(format!("{}.run | Error joining TcpReadAlive thread, probable exit with errors", self_id).as_str());
+                                h_write.join().expect(format!("{}.run | Error joining TcpWriteAlive thread, probable exit with errors", self_id).as_str());
                                 info!("{}.run | Finished", self_id);
                                 duration = Instant::now();
                             },
