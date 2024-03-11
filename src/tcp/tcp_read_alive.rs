@@ -1,22 +1,21 @@
 use concat_string::concat_string;
 use log::{error, info, warn, LevelFilter};
 use std::{
-    io::{BufReader, Read}, net::TcpStream, 
+    io::BufReader, net::TcpStream, 
     sync::{atomic::{AtomicBool, Ordering}, mpsc::Sender, Arc, Mutex}, 
     thread::{self, JoinHandle}, time::Duration,
 };
 use crate::{core_::{
-    net::{connection_status::ConnectionStatus, protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}}, object::object::Object, point::point_type::PointType
+    net::{connection_status::ConnectionStatus, protocols::jds::jds_deserialize::JdsDeserialize}, object::object::Object, point::point_type::PointType
 }, services::{services::Services, task::service_cycle::ServiceCycle}};
 
-use super::steam_read::{StreamRead, TcpStreamRead};
+use super::steam_read::TcpStreamRead;
 
 ///
 /// Transfering points from JdsStream (socket) to the Channel Sender<PointType>
 pub struct TcpReadAlive {
     id: String,
-    src_stream: Arc<Mutex<dyn TcpStreamRead>>,
-    // src_stream: Arc<Mutex<impl StreamRead>>,
+    stream_read: Arc<Mutex<dyn TcpStreamRead>>,
     send: Sender<PointType>,
     cycle: Duration,
     exit: Arc<AtomicBool>,
@@ -30,7 +29,7 @@ impl TcpReadAlive {
     /// - [exitPair] - notification from / to sibling pair to exit 
     pub fn new(
         parent: impl Into<String>, 
-        src_stream: Arc<Mutex<dyn TcpStreamRead>>,
+        stream_read: Arc<Mutex<dyn TcpStreamRead>>,
         dest: Sender<PointType>, 
         cycle: Duration, 
         exit: Option<Arc<AtomicBool>>, 
@@ -39,7 +38,7 @@ impl TcpReadAlive {
         let self_id = format!("{}/TcpReadAlive", parent.into());
         Self {
             id: self_id.clone(),
-            src_stream,
+            stream_read,
             send: dest,
             cycle,
             exit: exit.unwrap_or(Arc::new(AtomicBool::new(false))),
@@ -55,7 +54,7 @@ impl TcpReadAlive {
         let exit_pair = self.exit_pair.clone();
         let mut cycle = ServiceCycle::new(self.cycle);
         let send = self.send.clone();
-        let jds_stream = self.src_stream.clone();
+        let jds_stream = self.stream_read.clone();
         info!("{}.run | Preparing thread...", self.id);
         let handle = thread::Builder::new().name(format!("{} - Read", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
@@ -116,42 +115,41 @@ impl RouterReply {
 }
 
 // type Rautes = dyn Fn(PointType, Arc<Mutex<Services>>)-> RouterReply;
-pub struct JdsRouter<F> {
+pub struct JdsRoutes<F> {
     id: String,
     services: Arc<Mutex<Services>>,
     jds_stream: JdsDeserialize,
-    tx_send: Sender<PointType>,
+    req_reply_send: Sender<PointType>,
     rautes: F ,
 }
 ///
 /// 
-impl<F> JdsRouter<F> {
+impl<F> JdsRoutes<F> {
     ///
     /// 
-    pub fn new(parent: impl Into<String>, services: Arc<Mutex<Services>>, jds_stream: JdsDeserialize, tx_send: Sender<PointType>, rautes: F) -> Self {
-        let self_id = format!("{}/TcpReadAlive", parent.into());
+    pub fn new(parent: impl Into<String>, services: Arc<Mutex<Services>>, jds_stream: JdsDeserialize, req_reply_send: Sender<PointType>, rautes: F) -> Self {
+        let self_id = format!("{}/JdsRoutes", parent.into());
         Self {
             id: self_id, 
             services,
             jds_stream,
-            tx_send,
+            req_reply_send,
             rautes,
         }
     }
 }
 ///
 /// 
-impl<F> Object for JdsRouter<F> {
+impl<F> Object for JdsRoutes<F> {
     fn id(&self) -> &str {
         &self.id
     }
 }
 ///
 /// 
-impl<F> TcpStreamRead for JdsRouter<F> where
+impl<F> TcpStreamRead for JdsRoutes<F> where
     F: Fn(String, PointType, Arc<Mutex<Services>>) -> RouterReply,
     F: Send + Sync + 'static {
-    // T: Send + 'static {
     ///
     /// Reads single point from source
     fn read(&mut self, tcp_stream: &mut BufReader<TcpStream>) -> ConnectionStatus<Result<PointType, String>, String> {
@@ -161,10 +159,10 @@ impl<F> TcpStreamRead for JdsRouter<F> where
                     Ok(point) => {
                         let result = (&self.rautes)(self.id.clone(), point, self.services.clone());
                         match result.retply {
-                            Some(point) => if let Err(err) = self.tx_send.send(point) {
+                            Some(point) => if let Err(err) = self.req_reply_send.send(point) {
                                 error!("{}.read | Send reply error: {:?}", self.id, err)
                             },
-                            None => todo!(),
+                            None => {},
                         };
                         match result.pass {
                             Some(point) => ConnectionStatus::Active(Ok(point)),

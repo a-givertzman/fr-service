@@ -6,7 +6,7 @@ use crate::{
     conf::{point_config::point_name::PointName, tcp_server_config::TcpServerConfig}, 
     core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, net::protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, 
     services::{jds_service::request_kind::RequestKind, multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, services::Services}, 
-    tcp::{tcp_read_alive::{JdsRouter, RouterReply, TcpReadAlive}, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive},
+    tcp::{tcp_read_alive::{JdsRoutes, RouterReply, TcpReadAlive}, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive},
 };
 use super::connections::Action;
 
@@ -74,7 +74,7 @@ impl TcpServerConnection {
             let req_reply_send = send.clone();
             let mut tcp_read_alive = TcpReadAlive::new(
                 &self_id,
-                Arc::new(Mutex::new(JdsRouter::new(
+                Arc::new(Mutex::new(JdsRoutes::new(
                     &self_id,
                     services.clone(),
                     JdsDeserialize::new(
@@ -87,6 +87,8 @@ impl TcpServerConnection {
                     |self_id, point, services| {
                         let self_id: String = self_id;
                         let point: PointType = point;
+                        println!("{}.run | point from socket: {:?}", self_id, point);
+                        println!("{}.run | point.json from socket: {:?}", self_id, json!(&point).to_string());
                         match point.cot() {
                             Cot::Req => Self::handle_request(&self_id, 0, point, services),
                             _        => RouterReply::new(Some(point), None),

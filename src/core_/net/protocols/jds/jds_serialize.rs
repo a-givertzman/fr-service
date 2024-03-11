@@ -128,3 +128,4 @@ impl Serialize for PointSerializable {
         state.end()
     }
 }
+

@@ -1,5 +1,5 @@
 use std::io::Write;
-use log::{warn, LevelFilter, trace};
+use log::{error, trace, warn, LevelFilter};
 use crate::{
     tcp::steam_read::StreamRead, 
     core_::{retain_buffer::retain_buffer::RetainBuffer, net::connection_status::ConnectionStatus, failure::recv_error::RecvError},
@@ -78,7 +78,9 @@ impl TcpStreamWrite {
                     },
                     RecvError::Timeout => ConnectionStatus::Active(Ok(0)),
                     RecvError::Disconnected => {
-                        panic!("{}.write | channel disconnected, error: {:?}", self.id, err);
+                        let message = format!("{}.write | channel disconnected, error: {:?}", self.id, err);
+                        warn!("{}", message);
+                        ConnectionStatus::Active(Err(message))
                     },
                 }
             },

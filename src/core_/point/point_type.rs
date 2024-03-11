@@ -1,5 +1,6 @@
 use chrono::DateTime;
 use concat_string::concat_string;
+use serde::{Serialize, ser::SerializeStruct};
 use testing::entities::test_value::Value;
 use crate::core_::{cot::cot::Cot, status::status::Status, types::bool::Bool};
 
@@ -164,5 +165,50 @@ impl PointType {
             PointType::Float(point) => point.value == other.as_float().value,
             PointType::String(point) => point.value == other.as_string().value,
         }
+    }
+}
+///
+///
+impl Serialize for PointType {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer {
+        let mut state = serializer.serialize_struct("Color", 3)?;
+        match self {
+            PointType::Bool(point) => {
+                state.serialize_field("type", "Bool")?;
+                state.serialize_field("value", &point.value.0)?;
+                state.serialize_field("name", &point.name)?;
+                state.serialize_field("status", &(Into::<u32>::into( point.status)))?;
+                state.serialize_field("cot", &point.cot)?;
+                state.serialize_field("timestamp", &point.timestamp.to_rfc3339())?;
+            },
+            PointType::Int(point) => {
+                state.serialize_field("type", "Int")?;
+                state.serialize_field("value", &point.value)?;
+                state.serialize_field("name", &point.name)?;
+                state.serialize_field("status", &(Into::<u32>::into( point.status)))?;
+                state.serialize_field("cot", &point.cot)?;
+                state.serialize_field("timestamp", &point.timestamp.to_rfc3339())?;
+            },
+            PointType::Float(point) => {
+                state.serialize_field("type", "Float")?;
+                state.serialize_field("value", &point.value)?;
+                state.serialize_field("name", &point.name)?;
+                state.serialize_field("status", &(Into::<u32>::into( point.status)))?;
+                state.serialize_field("cot", &point.cot)?;
+                state.serialize_field("timestamp", &point.timestamp.to_rfc3339())?;
+            },
+            PointType::String(point) => {
+                state.serialize_field("type", "String")?;
+                state.serialize_field("value", &point.value)?;
+                state.serialize_field("name", &point.name)?;
+                state.serialize_field("status", &(Into::<u32>::into( point.status)))?;
+                state.serialize_field("cot", &point.cot)?;
+                state.serialize_field("timestamp", &point.timestamp.to_rfc3339())?;
+            },
+        };
+        // trace!("{}.read | json: {:?}", self.id, value);
+        state.end()
     }
 }

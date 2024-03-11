@@ -4,6 +4,8 @@
 mod tests {
     use std::{sync::Once, time::Duration};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+    use log::debug;
+    use serde_json::json;
     use testing::stuff::max_test_duration::TestDuration; 
     use crate::conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress, point_config_filters::PointConfigFilter, point_config_history::PointConfigHistory, point_config_type::PointConfigType}; 
     
@@ -147,6 +149,8 @@ mod tests {
         for (target, conf) in test_data {
             let target: serde_yaml::Value = serde_yaml::from_str(target).unwrap();
             let result = conf.as_yaml();
+            // debug!("{} | Serialized PointConfig: {:?}", self_id, json!(result).to_string());
+            println!("{:?}", json!(result).to_string());
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
         test_duration.exit();
