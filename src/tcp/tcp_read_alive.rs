@@ -1,3 +1,4 @@
+use concat_string::concat_string;
 use log::{warn, info, LevelFilter};
 use std::{
     io::{BufReader, Read}, net::TcpStream, 
@@ -104,21 +105,23 @@ impl TcpReadAlive {
     }
 }
 
-
+type Rautes = fn(point: PointType) -> Option<PointType>;
 pub struct Router {
     id: String,
     jds_stream: JdsDeserialize,
+    rautes: Rautes,
 }
 ///
 /// 
 impl Router {
     ///
     /// 
-    pub fn new(parent: impl Into<String>, jds_stream: JdsDeserialize) -> Self {
+    pub fn new(parent: impl Into<String>, jds_stream: JdsDeserialize, rautes: Rautes) -> Self {
         let self_id = format!("{}/TcpReadAlive", parent.into());
         Self {
             id: self_id, 
             jds_stream,
+            rautes,
         }
     }
 }
@@ -139,18 +142,21 @@ impl TcpStreamRead for Router {
             ConnectionStatus::Active(point) => {
                 match point {
                     Ok(point) => {
-                        ConnectionStatus::Active(Ok(point))
+                        match (self.rautes)(point) {
+                            Some(point) => ConnectionStatus::Active(Ok(point)),
+                            None => ConnectionStatus::Active(Err(concat_string!(self.id, ".read | Filtered by routes"))),
+                        }
                     },
                     Err(err) => {
                         if log::max_level() == LevelFilter::Trace {
-                            warn!("{}.run | error: {:?}", self.id, err);
+                            warn!("{}.read | error: {:?}", self.id, err);
                         }
                         ConnectionStatus::Active(Err(err))
                     },
                 }
             },
             ConnectionStatus::Closed(err) => {
-                warn!("{}.run | error: {:?}", self.id, err);
+                warn!("{}.read | error: {:?}", self.id, err);
                 ConnectionStatus::Closed(err)
             },
         }

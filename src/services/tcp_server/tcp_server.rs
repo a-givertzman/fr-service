@@ -12,7 +12,6 @@ use crate::{
             connections::{Action, TcpServerConnections},
         },
     }, 
-    tcp::steam_read::StreamFilter,
 };
 ///
 /// Bounds TCP socket server
@@ -23,7 +22,6 @@ pub struct TcpServer {
     conf: TcpServerConfig,
     connections: Arc<Mutex<TcpServerConnections>>,
     services: Arc<Mutex<Services>>,
-    filter: Option<StreamFilter>,
     exit: Arc<AtomicBool>,
 }
 ///
@@ -35,20 +33,19 @@ impl TcpServer {
     /// - filter - all trafic from server to client will be filtered by some criterias, until Subscribe request confirmed:
     ///    - cot - [Cot] - bit mask wich will be passed
     ///    - name - exact name wich passed
-    pub fn new(parent: impl Into<String>, conf: TcpServerConfig, services: Arc<Mutex<Services>>, filter: Option<StreamFilter>) -> Self {
+    pub fn new(parent: impl Into<String>, conf: TcpServerConfig, services: Arc<Mutex<Services>>, ) -> Self {
         let self_id = format!("{}/TcpServer({})", parent.into(), conf.name);
         Self {
             id: self_id.clone(),
             conf: conf.clone(),
             connections: Arc::new(Mutex::new(TcpServerConnections::new(self_id))),
             services,
-            filter,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
     ///
     /// 
-    fn setup_connection(self_id: String, connection_id: &String, stream: TcpStream, services: Arc<Mutex<Services>>, filter: Option<StreamFilter>, conf: TcpServerConfig, exit: Arc<AtomicBool>, connections: Arc<Mutex<TcpServerConnections>>) {
+    fn setup_connection(self_id: String, connection_id: &String, stream: TcpStream, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>, connections: Arc<Mutex<TcpServerConnections>>) {
         info!("{}.setup_connection | Trying to repair Connection '{}'...", self_id, connection_id);
         // let connectionsLock = connections.lock().unwrap();
         let repair_result = connections.lock().unwrap().repair(&connection_id, stream.try_clone().unwrap());
@@ -64,7 +61,6 @@ impl TcpServer {
                 let mut connection = TcpServerConnection::new(
                     connection_id.clone(),
                     recv, services.clone(),
-                    filter,
                     conf.clone(),
                     exit.clone()
                 );
@@ -134,7 +130,6 @@ impl Service for TcpServer {
         let exit = self.exit.clone();
         let connections = self.connections.clone();
         let services = self.services.clone();
-        let filter = self.filter.clone();
         let reconnect_cycle = conf.reconnectCycle.unwrap_or(Duration::ZERO);
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
@@ -157,7 +152,7 @@ impl Service for TcpServer {
                                     let connection_id = format!("{}-{}", self_id, rem_ip);
                                     Self::set_stream_timout(&self_id, &stream, RECV_TIMEOUT, None);
                                     info!("{}.run | Setting up Connection '{}'...", self_id, connection_id);
-                                    Self::setup_connection(self_id.clone(), &connection_id, stream, services.clone(), filter.clone(), conf.clone(), exit.clone(), connections.clone());
+                                    Self::setup_connection(self_id.clone(), &connection_id, stream, services.clone(), conf.clone(), exit.clone(), connections.clone());
                                 },
                                 Err(err) => {
                                     warn!("{}.run | error: {:?}", self_id, err);
