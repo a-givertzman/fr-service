@@ -1,14 +1,27 @@
-use std::{collections::HashMap, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, RecvTimeoutError, Sender}, Arc, Mutex, RwLock}, thread::{self, JoinHandle}, time::{Duration, Instant}};
+use std::{collections::HashMap, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{Receiver, RecvTimeoutError}, Arc, Mutex, RwLock}, thread::{self, JoinHandle}, time::{Duration, Instant}};
 use hashers::fx_hash::FxHasher;
 use log::{debug, info, warn};
 use serde_json::json;
 use crate::{
     conf::{point_config::point_name::PointName, tcp_server_config::TcpServerConfig}, 
-    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, net::protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, 
+    core_::{
+        constants::constants::RECV_TIMEOUT, 
+        cot::cot::Cot, 
+        status::status::Status,
+        net::protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, 
+        point::{point::Point, point_type::PointType},
+    }, 
     services::{jds_service::request_kind::RequestKind, multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, services::Services}, 
     tcp::{tcp_read_alive::{JdsRoutes, RouterReply, TcpReadAlive}, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive},
 };
 use super::connections::Action;
+
+use once_cell::sync::Lazy;
+
+
+static SHARED_TX_QUEUE_NAME: Lazy<RwLock<String>> = Lazy::new(|| {
+    RwLock::new(String::new())
+});
 
 ///
 /// Single Jds over TCP connection
@@ -69,7 +82,9 @@ impl TcpServerConnection {
                 points
             });
             // let send = services.lock().unwrap().get_link(&self_conf_tx);
-            let (send, recv) = services.lock().unwrap().subscribe(tx_queue_name.service(), &self_id, &points);
+            println!("{}.run | tx_queue_name: {:?}", self_id, tx_queue_name);
+            let (send, recv) = services.lock().unwrap().subscribe(&tx_queue_name.service(), &self_id, &points);
+            *SHARED_TX_QUEUE_NAME.write().unwrap() = tx_queue_name.service().to_owned();
             let buffered = rx_max_length > 0;
             let req_reply_send = send.clone();
             let mut tcp_read_alive = TcpReadAlive::new(
@@ -90,7 +105,7 @@ impl TcpServerConnection {
                         println!("{}.run | point from socket: {:?}", self_id, point);
                         println!("{}.run | point.json from socket: {:?}", self_id, json!(&point).to_string());
                         match point.cot() {
-                            Cot::Req => Self::handle_request(&self_id, 0, point, services),
+                            Cot::Req => Self::handle_request(&self_id, 0, point, services, &SHARED_TX_QUEUE_NAME.read().unwrap()),
                             _        => RouterReply::new(Some(point), None),
                         }
                     },
@@ -166,7 +181,7 @@ impl TcpServerConnection {
     ///
     /// Detecting kind of the request stored as json string in the incoming point.
     /// Performs the action depending on the Request kind.
-    fn handle_request(parent: &str, tx_id: usize, request: PointType, services: Arc<Mutex<Services>>) -> RouterReply {
+    fn handle_request(parent: &str, tx_id: usize, request: PointType, services: Arc<Mutex<Services>>, tx_queue_name: &str) -> RouterReply {
         match RequestKind::from(request.name()) {
             RequestKind::AuthSecret => {
                 RouterReply::new(
@@ -250,7 +265,7 @@ impl TcpServerConnection {
                         })
                     },
                 };
-                if let Err(err) = services.lock().unwrap().extend_subscription("tx_queue_name.service()", &parent, &points) {
+                if let Err(err) = services.lock().unwrap().extend_subscription(tx_queue_name, &parent, &points) {
                     warn!("{}.handle_request | extend_subscription failed with error: {:?}", parent, err);
                 };
                 RouterReply::new(None, None)

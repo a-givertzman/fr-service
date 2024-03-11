@@ -114,8 +114,8 @@ impl RouterReply {
     }
 }
 
-// type Rautes = dyn Fn(PointType, Arc<Mutex<Services>>)-> RouterReply;
 pub struct JdsRoutes<F> {
+    parent: String,
     id: String,
     services: Arc<Mutex<Services>>,
     jds_stream: JdsDeserialize,
@@ -128,8 +128,10 @@ impl<F> JdsRoutes<F> {
     ///
     /// 
     pub fn new(parent: impl Into<String>, services: Arc<Mutex<Services>>, jds_stream: JdsDeserialize, req_reply_send: Sender<PointType>, rautes: F) -> Self {
-        let self_id = format!("{}/JdsRoutes", parent.into());
+        let parent = parent.into();
+        let self_id = format!("{}/JdsRoutes", parent);
         Self {
+            parent,
             id: self_id, 
             services,
             jds_stream,
@@ -149,7 +151,7 @@ impl<F> Object for JdsRoutes<F> {
 /// 
 impl<F> TcpStreamRead for JdsRoutes<F> where
     F: Fn(String, PointType, Arc<Mutex<Services>>) -> RouterReply,
-    F: Send + Sync + 'static {
+    F: Send + Sync {
     ///
     /// Reads single point from source
     fn read(&mut self, tcp_stream: &mut BufReader<TcpStream>) -> ConnectionStatus<Result<PointType, String>, String> {
@@ -157,7 +159,7 @@ impl<F> TcpStreamRead for JdsRoutes<F> where
             ConnectionStatus::Active(point) => {
                 match point {
                     Ok(point) => {
-                        let result = (&self.rautes)(self.id.clone(), point, self.services.clone());
+                        let result = (&self.rautes)(self.parent.clone(), point, self.services.clone());
                         match result.retply {
                             Some(point) => if let Err(err) = self.req_reply_send.send(point) {
                                 error!("{}.read | Send reply error: {:?}", self.id, err)
