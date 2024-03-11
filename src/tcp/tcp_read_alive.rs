@@ -1,5 +1,5 @@
 use concat_string::concat_string;
-use log::{warn, info, LevelFilter};
+use log::{error, info, warn, LevelFilter};
 use std::{
     io::{BufReader, Read}, net::TcpStream, 
     sync::{atomic::{AtomicBool, Ordering}, mpsc::Sender, Arc, Mutex}, 
@@ -7,7 +7,7 @@ use std::{
 };
 use crate::{core_::{
     net::{connection_status::ConnectionStatus, protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}}, object::object::Object, point::point_type::PointType
-}, services::task::service_cycle::ServiceCycle};
+}, services::{services::Services, task::service_cycle::ServiceCycle}};
 
 use super::steam_read::{StreamRead, TcpStreamRead};
 
@@ -105,36 +105,53 @@ impl TcpReadAlive {
     }
 }
 
-type Rautes = fn(point: PointType) -> Option<PointType>;
-pub struct Router {
+pub struct RouterReply {
+    pass: Option<PointType>,
+    retply: Option<PointType>,
+}
+impl RouterReply {
+    pub fn new(pass: Option<PointType>, retply: Option<PointType>) -> Self {
+        Self { pass, retply }
+    }
+}
+
+// type Rautes = dyn Fn(PointType, Arc<Mutex<Services>>)-> RouterReply;
+pub struct JdsRouter<F> {
     id: String,
+    services: Arc<Mutex<Services>>,
     jds_stream: JdsDeserialize,
-    rautes: Rautes,
+    tx_send: Sender<PointType>,
+    rautes: F ,
 }
 ///
 /// 
-impl Router {
+impl<F> JdsRouter<F> {
     ///
     /// 
-    pub fn new(parent: impl Into<String>, jds_stream: JdsDeserialize, rautes: Rautes) -> Self {
+    pub fn new(parent: impl Into<String>, services: Arc<Mutex<Services>>, jds_stream: JdsDeserialize, tx_send: Sender<PointType>, rautes: F) -> Self {
         let self_id = format!("{}/TcpReadAlive", parent.into());
         Self {
             id: self_id, 
+            services,
             jds_stream,
+            tx_send,
             rautes,
         }
     }
 }
 ///
 /// 
-impl Object for Router {
+impl<F> Object for JdsRouter<F> {
     fn id(&self) -> &str {
         &self.id
     }
 }
 ///
 /// 
-impl TcpStreamRead for Router {
+impl<F> TcpStreamRead for JdsRouter<F> where
+    F: Fn(String, PointType, Arc<Mutex<Services>>) -> RouterReply,
+    F: Send + Sync + 'static {
+    // T: Send + 'static {
     ///
     /// Reads single point from source
     fn read(&mut self, tcp_stream: &mut BufReader<TcpStream>) -> ConnectionStatus<Result<PointType, String>, String> {
@@ -142,7 +159,15 @@ impl TcpStreamRead for Router {
             ConnectionStatus::Active(point) => {
                 match point {
                     Ok(point) => {
-                        match (self.rautes)(point) {
+                        let result = (&self.rautes)(self.id.clone(), point, self.services.clone());
+                        match result.retply {
+                            Some(point) => match self.tx_send.send(point) {
+                                Ok(_) => {},
+                                Err(err) => error!("{}.read | Send reply error: {:?}", self.id, err),
+                            },
+                            None => todo!(),
+                        };
+                        match result.pass {
                             Some(point) => ConnectionStatus::Active(Ok(point)),
                             None => ConnectionStatus::Active(Err(concat_string!(self.id, ".read | Filtered by routes"))),
                         }

@@ -1,14 +1,14 @@
-use std::{collections::HashMap, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{Receiver, RecvTimeoutError}, Arc, Mutex, RwLock}, thread::{self, JoinHandle}, time::{Duration, Instant}};
+use std::{collections::HashMap, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, RecvTimeoutError, Sender}, Arc, Mutex, RwLock}, thread::{self, JoinHandle}, time::{Duration, Instant}};
 use hashers::fx_hash::FxHasher;
-use log::{error, info, trace};
+use log::{info, warn};
+use serde_json::json;
 use crate::{
-    conf::tcp_server_config::TcpServerConfig, 
-    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, net::protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}}, 
-    services::{multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, services::Services}, 
-    tcp::{tcp_read_alive::{Router, TcpReadAlive}, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive},
+    conf::{point_config::point_name::PointName, tcp_server_config::TcpServerConfig}, 
+    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, net::protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, 
+    services::{jds_service::request_kind::RequestKind, multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, services::Services}, 
+    tcp::{tcp_read_alive::{JdsRouter, RouterReply, TcpReadAlive}, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive},
 };
 use super::connections::Action;
-use concat_string::concat_string;
 
 ///
 /// Single Jds over TCP connection
@@ -36,44 +36,8 @@ impl TcpServerConnection {
         }
     }
     ///
-    /// Waiting for Subscribe request confirmation from JdsService for the Connection
-    fn await_subscribe_rec_con(self_id: String, services: Arc<Mutex<Services>>, restart: Arc<AtomicBool>) {
-        // match *filter.clone().lock().unwrap() {
-        //     Some(_) => {
-        //         let _ = thread::Builder::new().name(format!("{}.await_subscribe_rec_con", self_id.clone())).spawn(move || {
-        //             let jds_service = services.lock().unwrap().get("JdsService");
-        //             let jds_points = jds_service.lock().unwrap().points().iter().fold(vec![], |mut points, point_conf| {
-        //                 let point_name = &concat_string!(self_id, point_conf.name);
-        //                 points.push(SubscriptionCriteria::new(point_name, Cot::ReqCon));
-        //                 points.push(SubscriptionCriteria::new(point_name, Cot::ReqErr));
-        //                 points
-        //             });
-        //             let (_, jds_recv) = jds_service.lock().unwrap().subscribe(&self_id, &jds_points);
-        //             loop {
-        //                 match jds_recv.recv() {
-        //                     Ok(point) => {
-        //                         trace!("{}.await_subscribe_rec_con | Point: {:?}", self_id, point);
-        //                         let mut filter_lock = filter.lock().unwrap();
-        //                         *filter_lock = None;
-        //                         restart.store(true, Ordering::SeqCst);
-        //                         break;
-        //                     },
-        //                     Err(err) => {
-        //                         error!("{}.await_subscribe_rec_con | Receive error: {:?}", self_id, err);
-        //                     },
-        //                 }
-        //             }
-        //             match jds_service.lock().unwrap().unsubscribe(&self_id, &jds_points) {
-        //                 Ok(_) => {},
-        //                 Err(err) => {
-        //                     error!("{}.await_subscribe_rec_con | Unsubscribe error: {:?}", self_id, err);
-        //                 },
-        //             };
-        //         });
-        //     },
-        //     None => {},
-        // }
-    }
+    /// 
+   
     ///
     /// 
     pub fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
@@ -87,7 +51,6 @@ impl TcpServerConnection {
         let exit_pair = Arc::new(AtomicBool::new(false));
         let action_recv = self.action_recv.pop().unwrap();
         let services = self.services.clone();
-        // let filter = Arc::new(Mutex::new(self.filter.clone()));
         let tx_queue_name = QueueName::new(&self_conf_tx);
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
@@ -105,33 +68,41 @@ impl TcpServerConnection {
                 points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ReqErr));
                 points
             });
-            let send = services.lock().unwrap().get_link(&self_conf_tx);
+            // let send = services.lock().unwrap().get_link(&self_conf_tx);
             let (send, recv) = services.lock().unwrap().subscribe(tx_queue_name.service(), &self_id, &points);
             let buffered = rx_max_length > 0;
+            let req_reply_send = send.clone();
             let mut tcp_read_alive = TcpReadAlive::new(
                 &self_id,
-                Arc::new(Mutex::new(Router::new(
+                Arc::new(Mutex::new(JdsRouter::new(
                     &self_id,
+                    services.clone(),
                     JdsDeserialize::new(
                         self_id.clone(),
                         JdsDecodeMessage::new(
                             &self_id,
                         ),
                     ),
-                |point| {
+                    req_reply_send,
+                |self_id, point, services| {
+                        let self_id: String = self_id;
+                        let point: PointType = point;
                         match point.cot() {
-                            Cot::Inf => Some(point),
-                            Cot::Act => Some(point),
-                            Cot::ActCon => Some(point),
-                            Cot::ActErr => Some(point),
+                            Cot::Inf => RouterReply::new(Some(point), None),
+                            Cot::Act => RouterReply::new(Some(point), None),
+                            Cot::ActCon => RouterReply::new(Some(point), None),
+                            Cot::ActErr => RouterReply::new(Some(point), None),
                             Cot::Req => {
-                                None
+                                RouterReply::new(
+                                    None, 
+                                    match_request(&self_id, &self_id, 0, point, services),
+                                )
                             },
-                            Cot::ReqCon => Some(point),
-                            Cot::ReqErr => Some(point),
-                            Cot::Read => Some(point),
-                            Cot::Write => Some(point),
-                            Cot::All => Some(point),
+                            Cot::ReqCon => RouterReply::new(Some(point), None),
+                            Cot::ReqErr => RouterReply::new(Some(point), None),
+                            Cot::Read => RouterReply::new(Some(point), None),
+                            Cot::Write => RouterReply::new(Some(point), None),
+                            Cot::All => RouterReply::new(Some(point), None),
                         }
                     },
                 ))),
@@ -205,3 +176,74 @@ impl TcpServerConnection {
         handle
     }    
 }
+
+
+fn send_reply(self_id: &str, tx_send: &Sender<PointType>, reply: PointType) {
+}
+///
+/// Detecting kind of the request stored as json string in the incoming point.
+/// Performs the action depending on the Request kind.
+fn match_request(parent: &str, self_id: &str, tx_id: usize, request: PointType, services: Arc<Mutex<Services>>) -> Option<PointType> {
+    match RequestKind::from(request.name()) {
+        RequestKind::AuthSecret => {
+            Some(
+                PointType::String(Point::new(
+                    tx_id, 
+                    &PointName::new(&parent, "JdsService/Auth.Secret").full(),
+                    r#"{
+                        \"reply\": \"Auth.Secret Reply\"
+                    }"#.to_string(), 
+                    Status::Ok, 
+                    Cot::ReqCon, 
+                    chrono::offset::Utc::now(),
+                ))
+            )
+        },
+        RequestKind::AuthSsh => {
+            Some(
+                PointType::String(Point::new(
+                    tx_id, 
+                    &PointName::new(&parent, "JdsService/Auth.Secret").full(),
+                    r#"{
+                        \"reply\": \"Auth.Ssh Reply\"
+                    }"#.to_string(), 
+                    Status::Ok, 
+                    Cot::ReqCon, 
+                    chrono::offset::Utc::now(),
+                )),
+            )
+        },
+        RequestKind::Points => {
+            let points = services.lock().unwrap().points();
+            let points = json!(points).to_string();
+            Some(
+                PointType::String(Point::new(
+                    tx_id, 
+                    &PointName::new(&parent, "JdsService/Points").full(),
+                    points, 
+                    Status::Ok, 
+                    Cot::ReqCon, 
+                    chrono::offset::Utc::now(),
+                )),
+            )
+        },
+        RequestKind::Subscribe => {
+            Some(
+                PointType::String(Point::new(
+                    tx_id, 
+                    &PointName::new(&parent, "JdsService/Subscribe").full(),
+                    r#"{
+                        \"reply\": \"Subscribe\"
+                    }"#.to_string(), 
+                    Status::Ok, 
+                    Cot::ReqCon, 
+                    chrono::offset::Utc::now(),
+                )),
+            )
+        },
+        RequestKind::Unknown => {
+            warn!("{}.run | Unknown request name: {:?}", self_id, request.name());
+            None
+        },
+    }
+} 

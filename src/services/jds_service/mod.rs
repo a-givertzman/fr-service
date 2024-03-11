@@ -6,5 +6,5 @@
 //! - "Points" - all points configurations requested
 //! - "Auth" request - authentication requested
 ///
-pub mod jds_service;
+// pub mod jds_service;
 pub mod request_kind;
