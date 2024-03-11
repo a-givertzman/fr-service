@@ -5,14 +5,10 @@ use serde_json::json;
 use crate::{
     conf::{point_config::point_name::PointName, tcp_server_config::TcpServerConfig}, 
     core_::{
-        constants::constants::RECV_TIMEOUT, 
-        cot::cot::Cot, 
-        status::status::Status,
-        net::protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, 
-        point::{point::Point, point_type::PointType},
+        constants::constants::RECV_TIMEOUT, cot::cot::Cot, net::protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, point::{point::Point, point_type::PointType}, status::status::Status
     }, 
     services::{jds_service::request_kind::RequestKind, multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, services::Services}, 
-    tcp::{tcp_read_alive::{JdsRoutes, RouterReply, TcpReadAlive}, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive},
+    tcp::{jds_routes::{JdsRoutes, RouterReply}, tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive},
 };
 use super::connections::Action;
 
@@ -74,19 +70,18 @@ impl TcpServerConnection {
             receivers.write().unwrap().insert(Cot::Req, services.lock().unwrap().get_link(&self_conf_tx));
             // let recv = services.lock().unwrap().get_link(&self_conf_tx);
             let points = services.lock().unwrap().points().iter().fold(vec![], |mut points, point_conf| {
-                points.push(SubscriptionCriteria::new(&point_conf.name, Cot::Inf));
-                points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ActCon));
-                points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ActErr));
+                // points.push(SubscriptionCriteria::new(&point_conf.name, Cot::Inf));
+                // points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ActCon));
+                // points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ActErr));
                 points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ReqCon));
                 points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ReqErr));
                 points
             });
-            // let send = services.lock().unwrap().get_link(&self_conf_tx);
+            let send = services.lock().unwrap().get_link(&self_conf_tx);
             println!("{}.run | tx_queue_name: {:?}", self_id, tx_queue_name);
-            let (send, recv) = services.lock().unwrap().subscribe(&tx_queue_name.service(), &self_id, &points);
+            let (req_reply_send, recv) = services.lock().unwrap().subscribe(&tx_queue_name.service(), &self_id, &points);
             *SHARED_TX_QUEUE_NAME.write().unwrap() = tx_queue_name.service().to_owned();
             let buffered = rx_max_length > 0;
-            let req_reply_send = send.clone();
             let mut tcp_read_alive = TcpReadAlive::new(
                 &self_id,
                 Arc::new(Mutex::new(JdsRoutes::new(
@@ -99,13 +94,13 @@ impl TcpServerConnection {
                         ),
                     ),
                     req_reply_send,
-                    |self_id, point, services| {
-                        let self_id: String = self_id;
+                    |parent, point, services| {
+                        let parent: String = parent;
                         let point: PointType = point;
-                        println!("{}.run | point from socket: {:?}", self_id, point);
-                        println!("{}.run | point.json from socket: {:?}", self_id, json!(&point).to_string());
+                        // println!("{}.run | point from socket: {:?}", parent, point);
+                        // println!("{}.run | point.json from socket: {:?}", parent, json!(&point).to_string());
                         match point.cot() {
-                            Cot::Req => Self::handle_request(&self_id, 0, point, services, &SHARED_TX_QUEUE_NAME.read().unwrap()),
+                            Cot::Req => Self::handle_request(&parent, 0, point, services, &SHARED_TX_QUEUE_NAME.read().unwrap()),
                             _        => RouterReply::new(Some(point), None),
                         }
                     },

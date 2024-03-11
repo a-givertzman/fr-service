@@ -73,22 +73,22 @@ impl Service for TaskTestReceiver {
                 }
                 match inRecv.recv() {
                     Ok(point) => {
+                        debug!("{}.run | received: {}, (value: {:?})", self_id, count, point.value());
+                        trace!("{}.run | received SQL: {:?}", self_id, point.as_string().value);
+                        // debug!("{}.run | value: {}\treceived SQL: {:?}", value, sql);
                         count += 1;
                         received.lock().unwrap().push(point.clone());
                         if count >= iterations {
                             break 'inner;
                         }
-                        debug!("{}.run | received: {}, (value: {:?})", self_id, count, point.value());
-                        trace!("{}.run | received SQL: {:?}", self_id, point.as_string().value);
-                        // debug!("{}.run | value: {}\treceived SQL: {:?}", value, sql);
                     },
                     Err(err) => {
                         warn!("{}.run | Error receiving from queue: {:?}", self_id, err);
                         errorCount += 1;
-                        if errorCount > 10 {
-                            warn!("{}.run | Error receiving count > 10, exit...", self_id);
-                            break 'inner;
-                        }        
+                        // if errorCount > 10 {
+                        //     warn!("{}.run | Error receiving count > 10, exit...", self_id);
+                        //     break 'inner;
+                        // }        
                     },
                 };
                 if exit.load(Ordering::Relaxed) {

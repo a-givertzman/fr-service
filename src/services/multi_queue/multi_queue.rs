@@ -70,12 +70,12 @@ impl Service for MultiQueue {
         self.receiver_dictionary.insert(inner_receiver_id, receiver_id.to_string());
         if points.is_empty() {
             self.subscriptions.lock().unwrap().add_broadcast(inner_receiver_id, send.clone());
-            debug!("{}.subscribe | Broadcast subscription registered, receiver: {} ({})", self.id, receiver_id, inner_receiver_id);
+            debug!("{}.subscribe | Broadcast subscription registered, receiver: \n\t{} ({})", self.id, receiver_id, inner_receiver_id);
         } else {
             for subscription_criteria in points {
                 self.subscriptions.lock().unwrap().add_multicast(inner_receiver_id, &subscription_criteria.destination(), send.clone());
             }
-            debug!("{}.subscribe | Multicast subscription registered, receiver: {} ({})", self.id, receiver_id, inner_receiver_id);
+            debug!("{}.subscribe | Multicast subscription registered, receiver: \n\t{} ({}) \n\tpoints: {:#?}", self.id, receiver_id, inner_receiver_id, points);
         }
         self.subscriptions_changed.store(true, Ordering::SeqCst);
         (send, recv)
@@ -159,9 +159,8 @@ impl Service for MultiQueue {
             let inner_receiver_id = PointTxId::fromStr(receiver_id);
             debug!("{}.run | Lock subscriptions...", self_id);
             self.subscriptions.lock().unwrap().add_broadcast(inner_receiver_id, send.clone());
+            debug!("{}.subscribe | Broadcast subscription registered, receiver: \n\t{} ({})", self.id, receiver_id, inner_receiver_id);
             debug!("{}.run | Lock subscriptions - ok", self_id);
-
-            // staticSubscriptions.insert(PointTxId::fromStr(sendQueue), txSend);
         }
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
@@ -179,7 +178,7 @@ impl Service for MultiQueue {
                 match recv.recv_timeout(RECV_TIMEOUT) {
                     Ok(point) => {
                         let point_id = SubscriptionCriteria::new(&point.name(), point.cot()).destination();
-                        trace!("{}.run | received: {:?}", self_id, point);
+                        debug!("{}.run | received: {:?}", self_id, point);
                         for (receiver_id, sender) in subscriptions.iter(&point_id) {
                             // for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {
                             match receiver_id != point.tx_id() {

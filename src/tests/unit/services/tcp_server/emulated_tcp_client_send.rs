@@ -1,9 +1,10 @@
+use const_format::formatcp;
 use log::{info, warn, debug};
 use serde_json::json;
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc}, thread::{JoinHandle, self}, time::Duration, net::{TcpStream, SocketAddr}, io::Write};
 use testing::entities::test_value::Value;
 use crate::{
-    conf::point_config::point_name::PointName, core_::{
+    conf::point_config::{point_config::PointConfig, point_name::PointName}, core_::{
         cot::cot::Cot, net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::{point::Point, point_tx_id::PointTxId, point_type::{PointType, ToPoint}}, state::{switch_state::{Switch, SwitchCondition, SwitchState}, switch_state_changed::SwitchStateChanged}, status::status::Status
     }, services::service::service::Service, tcp::steam_read::StreamRead 
 };
@@ -111,15 +112,6 @@ impl Object for EmulatedTcpClientSend {
 impl Service for EmulatedTcpClientSend {
     //
     //
-    fn get_link(&mut self, _name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
-        panic!("{}.get_link | Does not support static producer", self.id())
-        // match self.rxSend.get(name) {
-        //     Some(send) => send.clone(),
-        //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
-        // }
-    }
-    //
-    //
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
         let self_id = self.id.clone();
@@ -145,16 +137,16 @@ impl Service for EmulatedTcpClientSend {
                                 &self_id,
                                 JdsSerialize::new(&self_id, recv)
                             );
-                            let request = PointType::String(Point::new(
-                                0, 
-                                &PointName::new(&point_path, "/Subscribe").full(),
-                                json!(["/test/Jds/test"]).to_string(),
-                                Status::Ok,
-                                Cot::Req,
-                                chrono::offset::Utc::now(),
-                            ));
-                            send.send(request).unwrap();
-                            thread::sleep(Duration::from_millis(100));
+                            // let request = PointType::String(Point::new(
+                            //     0, 
+                            //     &PointName::new(&point_path, "/Subscribe").full(),
+                            //     json!(["/test/Jds/test"]).to_string(),
+                            //     Status::Ok,
+                            //     Cot::Req,
+                            //     chrono::offset::Utc::now(),
+                            // ));
+                            // send.send(request).unwrap();
+                            // thread::sleep(Duration::from_millis(100));
                             let tx_id = PointTxId::fromStr(&self_id);
                             let mut sent_count = 0;
                             let mut progress_percent = 0.0;
@@ -236,6 +228,22 @@ impl Service for EmulatedTcpClientSend {
         info!("{}.run | starting - ok", self.id);
         handle
     }
+    //
+    //
+    // fn points(&self) -> Vec<crate::conf::point_config::point_config::PointConfig> {
+    //     let types = vec!["Bool", "Int", "Float", "String"];
+    //     types.iter().map(|type_| {
+    //         let conf = format!(
+    //             r#"{}:
+    //                 type: {}      # Bool / Int / Float / String / Json
+    //                 comment: Auth request, contains token / pass string"#, 
+    //             PointName::new(&self.point_path, "/test").full(),
+    //             type_,
+    //         );
+    //         let conf = serde_yaml::from_str(&conf).unwrap();
+    //         PointConfig::from_yaml(&self.point_path, &conf)
+    //     }).collect()
+    // }
     //
     //
     fn exit(&self) {
