@@ -1,4 +1,3 @@
-#![allow(non_snake_case)]
 #[cfg(test)]
 
 mod tests {
@@ -149,8 +148,8 @@ mod tests {
         for (target, conf) in test_data {
             let target: serde_yaml::Value = serde_yaml::from_str(target).unwrap();
             let result = conf.as_yaml();
-            // debug!("{} | Serialized PointConfig: {:?}", self_id, json!(result).to_string());
-            println!("{:?}", json!(result).to_string());
+            debug!("{} | Serialized PointConfig: {:?}", self_id, json!(result).to_string());
+            // println!("{:?}", json!(result).to_string());
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
         test_duration.exit();
