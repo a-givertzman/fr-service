@@ -21,7 +21,7 @@ impl SubscriptionCriteria {
     /// Detailed definition of the subscription;
     /// - "name" - full name of the point to be subscribed;
     /// - "cot" - the cause & direction of the transmission to be subscribed;
-    pub fn new(name: &str, cot: Cot) -> Self {
+    pub fn new(name: impl Into<String>, cot: Cot) -> Self {
         Self {
             name: name.into(),
             cot,

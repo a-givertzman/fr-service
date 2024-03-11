@@ -1,6 +1,6 @@
 use std::{collections::HashMap, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, RecvTimeoutError, Sender}, Arc, Mutex, RwLock}, thread::{self, JoinHandle}, time::{Duration, Instant}};
 use hashers::fx_hash::FxHasher;
-use log::{info, warn};
+use log::{debug, info, warn};
 use serde_json::json;
 use crate::{
     conf::{point_config::point_name::PointName, tcp_server_config::TcpServerConfig}, 
@@ -172,7 +172,7 @@ impl TcpServerConnection {
                     None,
                     Some(PointType::String(Point::new(
                         tx_id, 
-                        &PointName::new(&parent, "JdsService/Auth.Secret").full(),
+                        &PointName::new(&parent, "/Auth.Secret").full(),
                         r#"{
                             \"reply\": \"Auth.Secret Reply\"
                         }"#.to_string(), 
@@ -187,7 +187,7 @@ impl TcpServerConnection {
                     None,
                     Some(PointType::String(Point::new(
                         tx_id, 
-                        &PointName::new(&parent, "JdsService/Auth.Secret").full(),
+                        &PointName::new(&parent, "/Auth.Secret").full(),
                         r#"{
                             \"reply\": \"Auth.Ssh Reply\"
                         }"#.to_string(), 
@@ -204,7 +204,7 @@ impl TcpServerConnection {
                     None,
                     Some(PointType::String(Point::new(
                         tx_id, 
-                        &PointName::new(&parent, "JdsService/Points").full(),
+                        &PointName::new(&parent, "/Points").full(),
                         points, 
                         Status::Ok, 
                         Cot::ReqCon, 
@@ -213,19 +213,46 @@ impl TcpServerConnection {
                 )
             },
             RequestKind::Subscribe => {
-                RouterReply::new(
-                    None,
-                    Some(PointType::String(Point::new(
-                        tx_id, 
-                        &PointName::new(&parent, "JdsService/Subscribe").full(),
-                        r#"{
-                            \"reply\": \"Subscribe\"
-                        }"#.to_string(), 
-                        Status::Ok, 
-                        Cot::ReqCon, 
-                        chrono::offset::Utc::now(),
-                    ))),
-                )
+                let points = match serde_json::from_str(&request.value().as_string()) {
+                    Ok(points) => {
+                        let points: serde_json::Value = points;
+                        match points.as_array() {
+                            Some(points) => {
+                                debug!("{}.handle_request | 'Subscribe' request (multicast): {:?}", parent, request);
+                                points.iter().fold(vec![], |mut points, point| {
+                                    if let Some(point_name) = point.as_str() {
+                                        points.extend(
+                                            Self::map_points_to_creteria(point_name, vec![Cot::Inf, Cot::ActCon, Cot::ActErr])
+                                        );
+                                    }
+                                    points
+                                })
+                            },
+                            None => {
+                                debug!("{}.handle_request | 'Subscribe' request (broadcast): {:?}", parent, request);
+                                services.lock().unwrap().points().iter().fold(vec![], |mut points, point_conf| {
+                                    points.extend(
+                                        Self::map_points_to_creteria(&point_conf.name, vec![Cot::Inf, Cot::ActCon, Cot::ActErr])
+                                    );
+                                    points
+                                })        
+                            },
+                        }
+                    },
+                    Err(err) => {
+                        warn!("{}.handle_request | 'Subscribe' request parsing error: {:?}\n\t request: {:?}", parent, err, request);
+                        services.lock().unwrap().points().iter().fold(vec![], |mut points, point_conf| {
+                            points.extend(
+                                Self::map_points_to_creteria(&point_conf.name, vec![Cot::Inf, Cot::ActCon, Cot::ActErr])
+                            );
+                            points
+                        })
+                    },
+                };
+                if let Err(err) = services.lock().unwrap().extend_subscription("tx_queue_name.service()", &parent, &points) {
+                    warn!("{}.handle_request | extend_subscription failed with error: {:?}", parent, err);
+                };
+                RouterReply::new(None, None)
             },
             RequestKind::Unknown => {
                 warn!("{}.handle_request | Unknown request name: {:?}", parent, request.name());
@@ -233,4 +260,9 @@ impl TcpServerConnection {
             },
         }
     } 
+    fn map_points_to_creteria<'a>(point_name: &'a str, cots: Vec<Cot>) -> Box<dyn Iterator<Item = SubscriptionCriteria> + 'a> {
+        Box::new(cots.into_iter().map(|cot| {
+            SubscriptionCriteria::new(point_name.to_string(), cot)
+        }))
+    }
 }
