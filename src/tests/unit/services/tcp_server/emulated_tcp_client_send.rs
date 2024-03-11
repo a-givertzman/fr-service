@@ -4,10 +4,9 @@ use log::{info, warn, debug};
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc}, thread::{JoinHandle, self}, time::Duration, net::{TcpStream, SocketAddr}, io::Write};
 use testing::entities::test_value::Value;
 use crate::{
-    core_::{
+    conf::point_config::point_name::PointName, core_::{
         net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}, state::{switch_state::{Switch, SwitchCondition, SwitchState}, switch_state_changed::SwitchStateChanged}
-    },
-    services::service::service::Service, tcp::steam_read::StreamRead, 
+    }, services::service::service::Service, tcp::steam_read::StreamRead 
 };
 
 
@@ -20,6 +19,7 @@ use crate::{
 pub struct EmulatedTcpClientSend {
     id: String,
     addr: SocketAddr,
+    point_path: String,
     test_data: Vec<Value>,
     sent: Arc<Mutex<Vec<PointType>>>,
     disconnect: Vec<i8>,
@@ -29,11 +29,12 @@ pub struct EmulatedTcpClientSend {
 ///
 /// 
 impl EmulatedTcpClientSend {
-    pub fn new(parent: impl Into<String>, addr: &str, test_data: Vec<Value>, disconnect: Vec<i8>, waitOnFinish: bool) -> Self {
+    pub fn new(parent: impl Into<String>, point_path: impl Into<String>, addr: &str, test_data: Vec<Value>, disconnect: Vec<i8>, waitOnFinish: bool) -> Self {
         let self_id = format!("{}/EmulatedTcpClientSend", parent.into());
         Self {
             id: self_id.clone(),
             addr: addr.parse().unwrap(),
+            point_path: point_path.into(),
             test_data,
             sent: Arc::new(Mutex::new(vec![])),
             disconnect,
@@ -123,6 +124,7 @@ impl Service for EmulatedTcpClientSend {
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
         let self_id = self.id.clone();
+        let point_path = self.point_path.clone();
         let exit = self.exit.clone();
         let addr = self.addr.clone();
         let mut test_data = self.test_data.clone();
@@ -149,7 +151,7 @@ impl Service for EmulatedTcpClientSend {
                             let mut progressPercent = 0.0;
                             while test_data.len() > 0 {
                                 let value = test_data.remove(0);
-                                let point = value.to_point(txId, "test");
+                                let point = value.to_point(txId, &PointName::new(&point_path, "/test").full());
                                 send.send(point.clone()).unwrap();
                                 match JdsMessage.read() {
                                     Ok(bytes) => {

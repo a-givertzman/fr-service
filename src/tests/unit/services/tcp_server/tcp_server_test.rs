@@ -136,6 +136,7 @@ mod tests {
         println!("");
         let self_id = "test TcpServer | Receive";
         println!("\n{}", self_id);
+        let self_id = "test";
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
 
@@ -186,6 +187,7 @@ mod tests {
         services.lock().unwrap().insert("TaskTestReceiver", receiver.clone());
         let emulatedTcpClient = Arc::new(Mutex::new(EmulatedTcpClientSend::new(
             self_id,
+            "/test/Jds/",
             &tcpAddr,
             test_data.clone(),
             vec![],

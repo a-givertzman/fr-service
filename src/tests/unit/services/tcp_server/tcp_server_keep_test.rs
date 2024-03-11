@@ -183,6 +183,7 @@ mod tests {
         services.lock().unwrap().insert("TaskTestReceiver", receiver.clone());
         let emulatedTcpClient = Arc::new(Mutex::new(EmulatedTcpClientSend::new(
             self_id,
+            "/test/Jds/",
             &tcpAddr,
             test_data.clone(),
             vec![25, 50, 75],
