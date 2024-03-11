@@ -118,7 +118,6 @@ impl TcpServerConnection {
             );
             let keep_timeout = conf.keepTimeout.unwrap_or(Duration::from_secs(3));
             let mut duration = Instant::now();
-            // Self::await_subscribe_rec_con(self_id.clone(), services.clone(), filter.clone(), exit_pair.clone());
             loop {
                 exit_pair.store(false, Ordering::SeqCst);
                 match action_recv.recv_timeout(RECV_TIMEOUT) {
