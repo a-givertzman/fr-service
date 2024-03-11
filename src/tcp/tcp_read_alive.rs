@@ -161,9 +161,8 @@ impl<F> TcpStreamRead for JdsRouter<F> where
                     Ok(point) => {
                         let result = (&self.rautes)(self.id.clone(), point, self.services.clone());
                         match result.retply {
-                            Some(point) => match self.tx_send.send(point) {
-                                Ok(_) => {},
-                                Err(err) => error!("{}.read | Send reply error: {:?}", self.id, err),
+                            Some(point) => if let Err(err) = self.tx_send.send(point) {
+                                error!("{}.read | Send reply error: {:?}", self.id, err)
                             },
                             None => todo!(),
                         };

@@ -84,17 +84,12 @@ impl TcpServerConnection {
                         ),
                     ),
                     req_reply_send,
-                |self_id, point, services| {
+                    |self_id, point, services| {
                         let self_id: String = self_id;
                         let point: PointType = point;
                         match point.cot() {
-                            Cot::Req => {
-                                RouterReply::new(
-                                    None, 
-                                    match_request(&self_id, &self_id, 0, point, services),
-                                )
-                            },
-                            _ => RouterReply::new(Some(point), None),
+                            Cot::Req => Self::handle_request(&self_id, 0, point, services),
+                            _        => RouterReply::new(Some(point), None),
                         }
                     },
                 ))),
@@ -167,75 +162,75 @@ impl TcpServerConnection {
         info!("{}.run | Started", self_id_clone);
         handle
     }    
+    ///
+    /// Detecting kind of the request stored as json string in the incoming point.
+    /// Performs the action depending on the Request kind.
+    fn handle_request(parent: &str, tx_id: usize, request: PointType, services: Arc<Mutex<Services>>) -> RouterReply {
+        match RequestKind::from(request.name()) {
+            RequestKind::AuthSecret => {
+                RouterReply::new(
+                    None,
+                    Some(PointType::String(Point::new(
+                        tx_id, 
+                        &PointName::new(&parent, "JdsService/Auth.Secret").full(),
+                        r#"{
+                            \"reply\": \"Auth.Secret Reply\"
+                        }"#.to_string(), 
+                        Status::Ok, 
+                        Cot::ReqCon, 
+                        chrono::offset::Utc::now(),
+                    ))),
+                )
+            },
+            RequestKind::AuthSsh => {
+                RouterReply::new(
+                    None,
+                    Some(PointType::String(Point::new(
+                        tx_id, 
+                        &PointName::new(&parent, "JdsService/Auth.Secret").full(),
+                        r#"{
+                            \"reply\": \"Auth.Ssh Reply\"
+                        }"#.to_string(), 
+                        Status::Ok, 
+                        Cot::ReqCon, 
+                        chrono::offset::Utc::now(),
+                    ))),
+                )
+            },
+            RequestKind::Points => {
+                let points = services.lock().unwrap().points();
+                let points = json!(points).to_string();
+                RouterReply::new(
+                    None,
+                    Some(PointType::String(Point::new(
+                        tx_id, 
+                        &PointName::new(&parent, "JdsService/Points").full(),
+                        points, 
+                        Status::Ok, 
+                        Cot::ReqCon, 
+                        chrono::offset::Utc::now(),
+                    ))),
+                )
+            },
+            RequestKind::Subscribe => {
+                RouterReply::new(
+                    None,
+                    Some(PointType::String(Point::new(
+                        tx_id, 
+                        &PointName::new(&parent, "JdsService/Subscribe").full(),
+                        r#"{
+                            \"reply\": \"Subscribe\"
+                        }"#.to_string(), 
+                        Status::Ok, 
+                        Cot::ReqCon, 
+                        chrono::offset::Utc::now(),
+                    ))),
+                )
+            },
+            RequestKind::Unknown => {
+                warn!("{}.handle_request | Unknown request name: {:?}", parent, request.name());
+                RouterReply::new(None, None)
+            },
+        }
+    } 
 }
-
-
-fn send_reply(self_id: &str, tx_send: &Sender<PointType>, reply: PointType) {
-}
-///
-/// Detecting kind of the request stored as json string in the incoming point.
-/// Performs the action depending on the Request kind.
-fn match_request(parent: &str, self_id: &str, tx_id: usize, request: PointType, services: Arc<Mutex<Services>>) -> Option<PointType> {
-    match RequestKind::from(request.name()) {
-        RequestKind::AuthSecret => {
-            Some(
-                PointType::String(Point::new(
-                    tx_id, 
-                    &PointName::new(&parent, "JdsService/Auth.Secret").full(),
-                    r#"{
-                        \"reply\": \"Auth.Secret Reply\"
-                    }"#.to_string(), 
-                    Status::Ok, 
-                    Cot::ReqCon, 
-                    chrono::offset::Utc::now(),
-                ))
-            )
-        },
-        RequestKind::AuthSsh => {
-            Some(
-                PointType::String(Point::new(
-                    tx_id, 
-                    &PointName::new(&parent, "JdsService/Auth.Secret").full(),
-                    r#"{
-                        \"reply\": \"Auth.Ssh Reply\"
-                    }"#.to_string(), 
-                    Status::Ok, 
-                    Cot::ReqCon, 
-                    chrono::offset::Utc::now(),
-                )),
-            )
-        },
-        RequestKind::Points => {
-            let points = services.lock().unwrap().points();
-            let points = json!(points).to_string();
-            Some(
-                PointType::String(Point::new(
-                    tx_id, 
-                    &PointName::new(&parent, "JdsService/Points").full(),
-                    points, 
-                    Status::Ok, 
-                    Cot::ReqCon, 
-                    chrono::offset::Utc::now(),
-                )),
-            )
-        },
-        RequestKind::Subscribe => {
-            Some(
-                PointType::String(Point::new(
-                    tx_id, 
-                    &PointName::new(&parent, "JdsService/Subscribe").full(),
-                    r#"{
-                        \"reply\": \"Subscribe\"
-                    }"#.to_string(), 
-                    Status::Ok, 
-                    Cot::ReqCon, 
-                    chrono::offset::Utc::now(),
-                )),
-            )
-        },
-        RequestKind::Unknown => {
-            warn!("{}.run | Unknown request name: {:?}", self_id, request.name());
-            None
-        },
-    }
-} 
