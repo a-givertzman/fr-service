@@ -88,21 +88,13 @@ impl TcpServerConnection {
                         let self_id: String = self_id;
                         let point: PointType = point;
                         match point.cot() {
-                            Cot::Inf => RouterReply::new(Some(point), None),
-                            Cot::Act => RouterReply::new(Some(point), None),
-                            Cot::ActCon => RouterReply::new(Some(point), None),
-                            Cot::ActErr => RouterReply::new(Some(point), None),
                             Cot::Req => {
                                 RouterReply::new(
                                     None, 
                                     match_request(&self_id, &self_id, 0, point, services),
                                 )
                             },
-                            Cot::ReqCon => RouterReply::new(Some(point), None),
-                            Cot::ReqErr => RouterReply::new(Some(point), None),
-                            Cot::Read => RouterReply::new(Some(point), None),
-                            Cot::Write => RouterReply::new(Some(point), None),
-                            Cot::All => RouterReply::new(Some(point), None),
+                            _ => RouterReply::new(Some(point), None),
                         }
                     },
                 ))),
