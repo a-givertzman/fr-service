@@ -29,4 +29,4 @@ pub mod queue_name;
 
 pub mod tcp_server;
 
-pub mod jds_service;
+// pub mod jds_service;

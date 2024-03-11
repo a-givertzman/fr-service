@@ -19,7 +19,7 @@ pub trait Service: Object {
     ///
     /// Returns Receiver
     #[allow(unused_variables)]
-    fn subscribe(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Receiver<PointType> {
+    fn subscribe(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> (Sender<PointType>, Receiver<PointType>) {
         panic!("{}.subscribe | Does not supported", self.id())
     }
     ///

@@ -1,19 +1,21 @@
 use log::{warn, info, LevelFilter};
 use std::{
-    io::BufReader, net::TcpStream, 
+    io::{BufReader, Read}, net::TcpStream, 
     sync::{atomic::{AtomicBool, Ordering}, mpsc::Sender, Arc, Mutex}, 
     thread::{self, JoinHandle}, time::Duration,
 };
 use crate::{core_::{
-    net::{connection_status::ConnectionStatus, protocols::jds::{jds_deserialize::JdsDeserialize, jds_decode_message::JdsDecodeMessage}}, 
-    point::point_type::PointType,
+    net::{connection_status::ConnectionStatus, protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}}, object::object::Object, point::point_type::PointType
 }, services::task::service_cycle::ServiceCycle};
+
+use super::steam_read::{StreamRead, TcpStreamRead};
 
 ///
 /// Transfering points from JdsStream (socket) to the Channel Sender<PointType>
 pub struct TcpReadAlive {
     id: String,
-    jds_stream: Arc<Mutex<JdsDeserialize>>,
+    src_stream: Arc<Mutex<dyn TcpStreamRead>>,
+    // src_stream: Arc<Mutex<impl StreamRead>>,
     send: Sender<PointType>,
     cycle: Duration,
     exit: Arc<AtomicBool>,
@@ -25,17 +27,19 @@ impl TcpReadAlive {
     /// - [parent] - the ID if the parent entity
     /// - [exit] - notification from parent to exit 
     /// - [exitPair] - notification from / to sibling pair to exit 
-    pub fn new(parent: impl Into<String>, send: Sender<PointType>, cycle: Duration, exit: Option<Arc<AtomicBool>>, exit_pair: Option<Arc<AtomicBool>>) -> Self {
+    pub fn new(
+        parent: impl Into<String>, 
+        src_stream: Arc<Mutex<dyn TcpStreamRead>>,
+        dest: Sender<PointType>, 
+        cycle: Duration, 
+        exit: Option<Arc<AtomicBool>>, 
+        exit_pair: Option<Arc<AtomicBool>>
+    ) -> Self {
         let self_id = format!("{}/TcpReadAlive", parent.into());
         Self {
             id: self_id.clone(),
-            jds_stream: Arc::new(Mutex::new(JdsDeserialize::new(
-                self_id.clone(),
-                JdsDecodeMessage::new(
-                    self_id,
-                ),
-            ))),
-            send: send,
+            src_stream,
+            send: dest,
             cycle,
             exit: exit.unwrap_or(Arc::new(AtomicBool::new(false))),
             exit_pair: exit_pair.unwrap_or(Arc::new(AtomicBool::new(false))),
@@ -50,7 +54,7 @@ impl TcpReadAlive {
         let exit_pair = self.exit_pair.clone();
         let mut cycle = ServiceCycle::new(self.cycle);
         let send = self.send.clone();
-        let jds_stream = self.jds_stream.clone();
+        let jds_stream = self.src_stream.clone();
         info!("{}.run | Preparing thread...", self.id);
         let handle = thread::Builder::new().name(format!("{} - Read", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
@@ -98,4 +102,57 @@ impl TcpReadAlive {
     pub fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
     }
-}    
+}
+
+
+pub struct Router {
+    id: String,
+    jds_stream: JdsDeserialize,
+}
+///
+/// 
+impl Router {
+    ///
+    /// 
+    pub fn new(parent: impl Into<String>, jds_stream: JdsDeserialize) -> Self {
+        let self_id = format!("{}/TcpReadAlive", parent.into());
+        Self {
+            id: self_id, 
+            jds_stream,
+        }
+    }
+}
+///
+/// 
+impl Object for Router {
+    fn id(&self) -> &str {
+        &self.id
+    }
+}
+///
+/// 
+impl TcpStreamRead for Router {
+    ///
+    /// Reads single point from source
+    fn read(&mut self, tcp_stream: &mut BufReader<TcpStream>) -> ConnectionStatus<Result<PointType, String>, String> {
+        match self.jds_stream.read(tcp_stream) {
+            ConnectionStatus::Active(point) => {
+                match point {
+                    Ok(point) => {
+                        ConnectionStatus::Active(Ok(point))
+                    },
+                    Err(err) => {
+                        if log::max_level() == LevelFilter::Trace {
+                            warn!("{}.run | error: {:?}", self.id, err);
+                        }
+                        ConnectionStatus::Active(Err(err))
+                    },
+                }
+            },
+            ConnectionStatus::Closed(err) => {
+                warn!("{}.run | error: {:?}", self.id, err);
+                ConnectionStatus::Closed(err)
+            },
+        }
+    }
+}

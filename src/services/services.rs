@@ -55,7 +55,7 @@ impl Services {
     ///
     /// Returns Receiver
     /// - service - the name of the service to subscribe on
-    pub fn subscribe(&mut self, service: &str, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Receiver<PointType> {
+    pub fn subscribe(&mut self, service: &str, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> (Sender<PointType>, Receiver<PointType>) {
         match self.map.get(service) {
             Some(srvc) => {
                 debug!("{}.subscribe | Lock service '{:?}'...", self.id, service);

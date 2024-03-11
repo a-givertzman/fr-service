@@ -62,7 +62,7 @@ impl Service for MockMultiQueue {
     }
     //
     //
-    fn subscribe(&mut self, receiverId: &str, points: &Vec<SubscriptionCriteria>) -> Receiver<PointType> {
+    fn subscribe(&mut self, receiverId: &str, points: &Vec<SubscriptionCriteria>) -> (Sender<PointType>, Receiver<PointType>) {
         let (send, recv) = mpsc::channel();
         let receiverId = PointTxId::fromStr(receiverId);
         if points.is_empty() {
@@ -72,7 +72,7 @@ impl Service for MockMultiQueue {
                 self.subscriptions.lock().unwrap().add_multicast(receiverId, &subscription_criteria.destination(), send.clone());
             }
         }
-        recv
+        (send, recv)
     }
     //
     //

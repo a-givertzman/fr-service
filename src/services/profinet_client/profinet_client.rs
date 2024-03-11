@@ -151,7 +151,7 @@ impl ProfinetClient {
             for name in &points {
                 println!("\t{:?}", name);
             }
-            let rx_recv = services.lock().unwrap().subscribe(&conf.rx, &self_id, &points);
+            let (_, rx_recv) = services.lock().unwrap().subscribe(&conf.rx, &self_id, &points);
             // let mut cycle = ServiceCycle::new(cycle_interval);
             let mut client = S7Client::new(self_id.clone(), conf.ip.clone());
             'main: while !exit.load(Ordering::SeqCst) {

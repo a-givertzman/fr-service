@@ -82,7 +82,7 @@ impl Service for MockTcpServer {
         let mqServiceName = QueueName::new(&self.multiQueue);
         let mqServiceName = mqServiceName.service();
         debug!("{}.run | Lock services...", self_id);
-        let rxRecv = self.services.lock().unwrap().subscribe(mqServiceName, &self_id, &vec![]);
+        let (_, rxRecv) = self.services.lock().unwrap().subscribe(mqServiceName, &self_id, &vec![]);
         let txSend = self.services.lock().unwrap().get_link(&self.multiQueue);
         debug!("{}.run | Lock services - ok", self_id);
         let received = self.received.clone();

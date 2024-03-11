@@ -5,7 +5,7 @@ use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Order
 use log::{info, debug};
 
 use crate::{
-    conf::tcp_client_config::TcpClientConfig, core_::{net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::point_type::PointType}, services::{service::service::Service, services::Services}, tcp::{
+    conf::tcp_client_config::TcpClientConfig, core_::{net::protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::point_type::PointType}, services::{service::service::Service, services::Services}, tcp::{
         tcp_client_connect::TcpClientConnect, tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive
     } 
 };
@@ -90,6 +90,14 @@ impl Service for TcpClient {
         );
         let mut tcpReadAlive = TcpReadAlive::new(
             &self_id,
+            Arc::new(Mutex::new(
+                JdsDeserialize::new(
+                    self_id.clone(),
+                    JdsDecodeMessage::new(
+                        &self_id,
+                    ),
+                ),
+            )),
             txSend,
             Duration::from_millis(10),
             Some(exit.clone()),

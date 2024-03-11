@@ -3,9 +3,9 @@ use hashers::fx_hash::FxHasher;
 use log::{error, info, trace};
 use crate::{
     conf::tcp_server_config::TcpServerConfig, 
-    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}}, 
+    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, net::protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}}, 
     services::{multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, services::Services}, 
-    tcp::{steam_read::StreamFilter, tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive},
+    tcp::{steam_read::StreamFilter, tcp_read_alive::{Router, TcpReadAlive}, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive},
 };
 use super::connections::Action;
 use concat_string::concat_string;
@@ -50,7 +50,7 @@ impl TcpServerConnection {
                         points.push(SubscriptionCriteria::new(point_name, Cot::ReqErr));
                         points
                     });
-                    let jds_recv = jds_service.lock().unwrap().subscribe(&self_id, &jds_points);
+                    let (_, jds_recv) = jds_service.lock().unwrap().subscribe(&self_id, &jds_points);
                     loop {
                         match jds_recv.recv() {
                             Ok(point) => {
@@ -108,10 +108,19 @@ impl TcpServerConnection {
                 points
             });
             let send = services.lock().unwrap().get_link(&self_conf_tx);
-            let recv = services.lock().unwrap().subscribe(tx_queue_name.service(), &self_id, &points);
+            let (send, recv) = services.lock().unwrap().subscribe(tx_queue_name.service(), &self_id, &points);
             let buffered = rx_max_length > 0;
             let mut tcp_read_alive = TcpReadAlive::new(
                 &self_id,
+                Arc::new(Mutex::new(Router::new(
+                    &self_id,
+                    JdsDeserialize::new(
+                        self_id.clone(),
+                        JdsDecodeMessage::new(
+                            &self_id,
+                        ),
+                    ),
+                ))),
                 send,
                 Duration::from_millis(10),
                 Some(exit.clone()),

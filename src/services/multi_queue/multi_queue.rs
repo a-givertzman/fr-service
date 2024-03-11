@@ -64,12 +64,12 @@ impl Service for MultiQueue {
     }
     //
     //
-    fn subscribe(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Receiver<PointType> {
+    fn subscribe(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> (Sender<PointType>, Receiver<PointType>) {
         let (send, recv) = mpsc::channel();
         let inner_receiver_id = PointTxId::fromStr(receiver_id);
         self.receiver_dictionary.insert(inner_receiver_id, receiver_id.to_string());
         if points.is_empty() {
-            self.subscriptions.lock().unwrap().add_broadcast(inner_receiver_id, send);
+            self.subscriptions.lock().unwrap().add_broadcast(inner_receiver_id, send.clone());
             debug!("{}.subscribe | Broadcast subscription registered, receiver: {} ({})", self.id, receiver_id, inner_receiver_id);
         } else {
             for subscription_criteria in points {
@@ -78,7 +78,7 @@ impl Service for MultiQueue {
             debug!("{}.subscribe | Multicast subscription registered, receiver: {} ({})", self.id, receiver_id, inner_receiver_id);
         }
         self.subscriptions_changed.store(true, Ordering::SeqCst);
-        recv
+        (send, recv)
     }
     //
     //
