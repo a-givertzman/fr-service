@@ -40,7 +40,7 @@ impl TcpSocket {
     }
     /// 
     pub fn write(&mut self, bytes: &[u8]) -> Result<usize, String> {
-        match &self.tcpStreamW.write(&bytes) {
+        match &self.tcpStreamW.write(bytes) {
             Ok(len) => {
                 Ok(*len)
             },

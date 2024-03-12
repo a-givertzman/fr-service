@@ -96,14 +96,11 @@ impl TcpClientConnect {
                         }
                     }
                 };
-                match exit.try_recv() {
-                    Ok(exit) => {
-                        debug!("TcpClientConnect({}).inner_connect | exit: {}", id, exit);
-                        if exit {
-                            break;
-                        }
-                    },
-                    Err(_) => {},
+                if let Ok(exit) = exit.try_recv() {
+                    debug!("TcpClientConnect({}).inner_connect | exit: {}", id, exit);
+                    if exit {
+                        break;
+                    }
                 }
                 cycle.wait();
             }

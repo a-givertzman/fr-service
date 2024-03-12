@@ -41,7 +41,7 @@ impl TcpStreamWrite {
             Ok(bytes) => {
                 while let Some(bytes) = self.buffer.first() {
                     trace!("{}.write | bytes: {:?}", self.id, bytes);
-                    match tcp_stream.write(&bytes) {
+                    match tcp_stream.write(bytes) {
                         Ok(_) => {
                             self.buffer.popFirst();
                         },
@@ -63,7 +63,7 @@ impl TcpStreamWrite {
                         if log::max_level() == LevelFilter::Trace {
                             warn!("{}", message);
                         }
-                        return ConnectionStatus::Closed(message);
+                        ConnectionStatus::Closed(message)
                     },
                 }
             },

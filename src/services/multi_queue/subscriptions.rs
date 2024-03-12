@@ -100,20 +100,20 @@ impl Subscriptions {
         let mut changed = false;
         let mut messages = vec![];
         let keys: Vec<String> = self.multicast.keys().map(|v| v.clone()).collect();
-        for pointId in keys {
-            match self.multicast.get_mut(&pointId) {
+        for point_id in keys {
+            match self.multicast.get_mut(&point_id) {
                 Some(senders) => {
                     match senders.remove(receiver_id) {
                         Some(_) => {
                             changed = changed | true;
                         },
                         None => {
-                            messages.push(format!("{}.run | Multicast Subscription '{}', receiver '{}' - not found", self.id, pointId, receiver_id));
+                            messages.push(format!("{}.run | Multicast Subscription '{}', receiver '{}' - not found", self.id, point_id, receiver_id));
                         },
                     }
                 },
                 None => {
-                    messages.push(format!("{}.run | Multicast Subscription '{}' - not found", self.id, pointId));
+                    messages.push(format!("{}.run | Multicast Subscription '{}' - not found", self.id, point_id));
                 }
             }
         }
