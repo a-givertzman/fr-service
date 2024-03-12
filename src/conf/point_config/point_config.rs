@@ -12,8 +12,8 @@ use super::point_config_history::PointConfigHistory;
 /// The configuration of the Point
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PointConfig {
-    // #[serde(skip)]
-    #[serde(default)]
+    #[serde(skip)]
+    // #[serde(default)]
     pub name: String,
     #[serde(rename = "type")]
     #[serde(alias = "type", alias = "Type")]
@@ -79,7 +79,7 @@ impl PointConfig {
     }
     ///
     /// Returns yaml representation
-    pub fn as_yaml(&self) -> serde_yaml::Value {
+    pub fn to_yaml(&self) -> serde_yaml::Value {
         let result: serde_yaml::Value = serde_yaml::to_value(&self).unwrap();
         let mut wrap = HashMap::new();
         wrap.insert(self.name.clone(), result);
@@ -87,8 +87,8 @@ impl PointConfig {
     }
     ///
     /// Converts json into PointConfig
-    pub fn from_json(value: &str) -> Result<Self, String> {
-        match serde_json::from_str(value) {
+    pub fn from_json(value: serde_json::Value) -> Result<Self, String> {
+        match serde_json::from_value(value.clone()) {
             Ok(map) => {
                 let  map: HashMap<String, PointConfig> = map;
                 match map.into_iter().next() {
@@ -97,7 +97,7 @@ impl PointConfig {
                         Ok(conf)
                     },
                     None => {
-                        Err(format!("PointConfig.from_json | Error parsing: {:?} - doesn't contains PointConfig", value))
+                        Err(format!("PointConfig.from_json | Error parsing: {:?} - doesn't contains proper PointConfig", value))
                     },
                 }
             },
@@ -106,8 +106,8 @@ impl PointConfig {
     }
     ///
     /// Returns json containing internally taggged PointConfig
-    pub fn as_json(&self) -> serde_json::Value {
-        let mut result: serde_json::Value = serde_json::to_value(&self).unwrap();
+    pub fn to_json(&self) -> serde_json::Value {
+        let result: serde_json::Value = serde_json::to_value(&self).unwrap();
         let mut wrap = HashMap::new();
         wrap.insert(self.name.clone(), result);
         serde_json::to_value(wrap).unwrap()

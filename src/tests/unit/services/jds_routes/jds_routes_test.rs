@@ -493,7 +493,10 @@ mod jds_routes {
         let target = PointType::String(Point::new(0, &PointName::new(&parent, "Jds/Points").full(), "".to_owned(), Status::Ok, Cot::ReqCon, chrono::offset::Utc::now()));
         // assert!(result.name() == target.name(), "\nresult: {:?}\ntarget: {:?}", result.name(), target.name());
         // assert!(result.value() == target.value(), "\nresult: {:?}\ntarget: {:?}", result.value(), target.value());
-        let points: HashMap<String, PointConfig> = serde_json::from_str(&result.value().as_string()).unwrap();
+        let points: HashMap<String, serde_json::Value> = serde_json::from_str(&result.value().as_string()).unwrap();
+        let points: HashMap<_, PointConfig> = points.iter().map(|(name, value)| {
+            (name, PointConfig::from_json(value.clone()).unwrap())
+        }).collect();
         println!("{} | Points request reply: {:#?}", self_id, points);
         for target in point_configs(self_id) {
             match points.get(&target.name) {

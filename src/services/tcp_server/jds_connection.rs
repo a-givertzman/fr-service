@@ -79,8 +79,8 @@ impl JdsConnection {
             },
             RequestKind::Points => {
                 debug!("{}/JdsConnection.handle_request | Request '{}': \n\t{:?}", parent, RequestKind::POINTS, request);
-                let points: HashMap<String, PointConfig> = services.lock().unwrap().points().iter().map(|conf| {
-                    (conf.name.clone(), conf.clone())
+                let points: HashMap<String, serde_json::Value> = services.lock().unwrap().points().iter().map(|conf| {
+                    (conf.name.clone(), conf.to_json())
                 }).collect();
                 let points = json!(points).to_string();
                 RouterReply::new(

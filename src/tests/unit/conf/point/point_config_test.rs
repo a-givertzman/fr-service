@@ -1,6 +1,6 @@
 #[cfg(test)]
 
-mod tests {
+mod point_config {
     use std::{sync::Once, time::Duration};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use log::debug;
@@ -31,7 +31,7 @@ mod tests {
     }
     
     #[test]
-    fn test_point_config_serialize() {
+    fn serialize() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
@@ -147,7 +147,7 @@ mod tests {
         ];
         for (target, conf) in test_data {
             let target: serde_yaml::Value = serde_yaml::from_str(target).unwrap();
-            let result = conf.as_yaml();
+            let result = conf.to_yaml();
             debug!("{} | Serialized PointConfig: {:?}", self_id, json!(result).to_string());
             // println!("{:?}", json!(result).to_string());
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
@@ -157,7 +157,7 @@ mod tests {
 
     
     #[test]
-    fn test_point_config_deserialize() {
+    fn deserialize() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
