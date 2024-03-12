@@ -1,9 +1,5 @@
-#![allow(non_snake_case)]
-
 use std::io::{Read, ErrorKind};
-
 use log::{warn, trace};
-
 use crate::core_::net::{connection_status::ConnectionStatus, protocols::jds::jds_define::JDS_END_OF_TRANSMISSION};
 
 
@@ -35,9 +31,9 @@ impl JdsDecodeMessage {
     }
     ///
     /// Reads sequence of bytes from TcpStream
-    pub fn read(&mut self, tcpStream: impl Read) -> ConnectionStatus<Result<Vec<u8>, String>, String> {
+    pub fn read(&mut self, tcp_stream: impl Read) -> ConnectionStatus<Result<Vec<u8>, String>, String> {
         let mut bytes = self.remainder.clone();
-        match Self::readAll(&self.id, &mut bytes, tcpStream) {
+        match Self::read_all(&self.id, &mut bytes, tcp_stream) {
             ConnectionStatus::Active(result) => {
                 match result {
                     Ok(_) => {
@@ -61,11 +57,11 @@ impl JdsDecodeMessage {
     /// - returns Closed:
     ///    - if read 0 bytes
     ///    - if on error
-    fn readAll(self_id: &str, bytes: &mut Vec<u8>, stream: impl Read) -> ConnectionStatus<Result<(), String>, String> {
+    fn read_all(self_id: &str, bytes: &mut Vec<u8>, stream: impl Read) -> ConnectionStatus<Result<(), String>, String> {
         for byte in stream.bytes() {
             match byte {
                 Ok(byte) => {
-                    // debug!("{}.readAll |     read len: {:?}", self_id, len);
+                    // debug!("{}.read_all |     read len: {:?}", self_id, len);
                     match byte {
                         JDS_END_OF_TRANSMISSION => {
                             return ConnectionStatus::Active(Ok(()));
@@ -76,26 +72,25 @@ impl JdsDecodeMessage {
                     };
                 },
                 Err(err) => {
-                    warn!("{}.readAll | error reading from socket: {:?}", self_id, err);
-                    warn!("{}.readAll | error kind: {:?}", self_id, err.kind());
-                    match Self::matchErrorKind(err.kind()) {
+                    warn!("{}.read_all | error reading from socket: {:?}", self_id, err);
+                    warn!("{}.read_all | error kind: {:?}", self_id, err.kind());
+                    match Self::match_error_kind(err.kind()) {
                         Status::Active => {
-                            return ConnectionStatus::Active(Err(format!("{}.readAll | tcp stream is empty", self_id)));
+                            return ConnectionStatus::Active(Err(format!("{}.read_all | tcp stream is empty", self_id)));
                         },
                         Status::Closed => {
-                            return ConnectionStatus::Closed(format!("{}.readAll | tcp stream is closed, error: {:?}", self_id, err));
+                            return ConnectionStatus::Closed(format!("{}.read_all | tcp stream is closed, error: {:?}", self_id, err));
                         },
                     }
                 },
             };
         };
-        trace!("{}.readAll | read bytes: {:?}", self_id, bytes);
-        ConnectionStatus::Closed(format!("{}.readAll | tcp stream is closed", self_id))
-        // ConnectionStatus::Active(Err(format!("{}.readAll | tcp stream is empty", self_id)))
+        trace!("{}.read_all | read bytes: {:?}", self_id, bytes);
+        ConnectionStatus::Closed(format!("{}.read_all | tcp stream is closed", self_id))
     }
     ///
     /// 
-    fn matchErrorKind(kind: ErrorKind) -> Status {
+    fn match_error_kind(kind: ErrorKind) -> Status {
         match kind {
             std::io::ErrorKind::NotFound => todo!(),
             std::io::ErrorKind::PermissionDenied => Status::Closed,
