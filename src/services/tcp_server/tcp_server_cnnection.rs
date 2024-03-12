@@ -12,11 +12,14 @@ use crate::{
 };
 use super::{connections::Action, tcp_server_auth::TcpServerAuth};
 
-
+///
+/// 
 pub enum JdsState {
     Unknown,
     Authenticated,
 }
+///
+/// 
 impl From<usize> for JdsState {
     fn from(value: usize) -> Self {
         match value {
@@ -26,12 +29,8 @@ impl From<usize> for JdsState {
         }
     }
 }
-impl Into<usize> for JdsState {
-    fn into(self) -> usize {
-        self as usize
-    }
-}
-
+///
+/// 
 pub struct Shared {
     pub tx_queue_name: String,
     pub jds_state: JdsState,
@@ -104,7 +103,7 @@ impl TcpServerConnection {
             });
             let send = services.lock().unwrap().get_link(&self_conf_tx);
             println!("{}.run | tx_queue_name: {:?}", self_id, tx_queue_name);
-            let (req_reply_send, recv) = services.lock().unwrap().subscribe(&tx_queue_name.service(), &self_id, &points);
+            let (req_reply_send, recv) = services.lock().unwrap().subscribe(tx_queue_name.service(), &self_id, &points);
             shared_options.write().unwrap().tx_queue_name = tx_queue_name.service().to_owned();
             let buffered = rx_max_length > 0;
             let mut tcp_read_alive = TcpReadAlive::new(
@@ -176,8 +175,8 @@ impl TcpServerConnection {
                                 info!("{}.run | Action - Continue received", self_id);
                                 let h_read = tcp_read_alive.run(tcp_stream.try_clone().unwrap());
                                 let h_write = tcp_write_alive.run(tcp_stream);
-                                h_read.join().expect(format!("{}.run | Error joining TcpReadAlive thread, probable exit with errors", self_id).as_str());
-                                h_write.join().expect(format!("{}.run | Error joining TcpWriteAlive thread, probable exit with errors", self_id).as_str());
+                                h_read.join().unwrap_or_else(|_| panic!("{}.run | Error joining TcpReadAlive thread, probable exit with errors", self_id));
+                                h_write.join().unwrap_or_else(|_| panic!("{}.run | Error joining TcpWriteAlive thread, probable exit with errors", self_id));
                                 info!("{}.run | Finished", self_id);
                                 duration = Instant::now();
                             },

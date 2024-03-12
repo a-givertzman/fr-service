@@ -48,7 +48,7 @@ impl TcpServer {
     fn setup_connection(self_id: String, connection_id: &String, stream: TcpStream, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>, connections: Arc<Mutex<TcpServerConnections>>) {
         info!("{}.setup_connection | Trying to repair Connection '{}'...", self_id, connection_id);
         // let connectionsLock = connections.lock().unwrap();
-        let repair_result = connections.lock().unwrap().repair(&connection_id, stream.try_clone().unwrap());
+        let repair_result = connections.lock().unwrap().repair(connection_id, stream.try_clone().unwrap());
         match repair_result {
             Ok(_) => {
                 info!("{}.setup_connection | Connection '{}' - reparied", self_id, connection_id);
