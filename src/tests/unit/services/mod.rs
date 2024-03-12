@@ -12,6 +12,6 @@ mod services;
 
 mod profinet_client;
 
-mod jds_routes;
+mod jds_connection;
 
 mod service;
