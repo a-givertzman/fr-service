@@ -1,7 +1,7 @@
 use std::{collections::HashMap, sync::{Arc, Mutex, RwLock}};
 use log::{debug, warn};
 use serde_json::json;
-use crate::{conf::point_config::{point_config::PointConfig, point_name::PointName}, core_::{auth::ssh::auth_ssh::AuthSsh, cot::cot::Cot, net::protocols::jds::{jds_routes::RouterReply, request_kind::RequestKind}, point::{point::Point, point_type::PointType}, status::status::Status}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, services::Services, tcp_server::tcp_server_cnnection::JdsState}};
+use crate::{conf::point_config::{point_config::PointConfig, point_name::PointName}, core_::{auth::ssh::auth_ssh::AuthSsh, cot::cot::Cot, net::protocols::jds::{jds_routes::RouterReply, request_kind::RequestKind}, point::{point::Point, point_type::PointType}, status::status::Status}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, services::Services, server::tcp_server_cnnection::JdsState}};
 use super::tcp_server_cnnection::Shared;
 
 pub struct JdsConnection {}
@@ -15,7 +15,7 @@ impl JdsConnection {
             RequestKind::AuthSecret => {
                 debug!("{}/JdsConnection.handle_request | Request '{}': \n\t{:?}", parent, RequestKind::AUTH_SECRET, request);
                 let (cot, message) = match &shared.auth {
-                    crate::services::tcp_server::tcp_server_auth::TcpServerAuth::Secret(auth_secret) => {
+                    crate::services::server::tcp_server_auth::TcpServerAuth::Secret(auth_secret) => {
                         let secret = match request {
                             PointType::String(request) => request.value,
                             _ => String::new(),
@@ -46,7 +46,7 @@ impl JdsConnection {
             RequestKind::AuthSsh => {
                 debug!("{}/JdsConnection.handle_request | Request '{}': \n\t{:?}", parent, RequestKind::AUTH_SSH, request);
                 let (cot, message) = match &shared.auth {
-                    crate::services::tcp_server::tcp_server_auth::TcpServerAuth::Ssh(auth_ssh_path) => {
+                    crate::services::server::tcp_server_auth::TcpServerAuth::Ssh(auth_ssh_path) => {
                         let secret = match request {
                             PointType::String(request) => request.value,
                             _ => String::new(),

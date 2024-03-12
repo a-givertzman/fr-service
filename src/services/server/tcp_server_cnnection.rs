@@ -7,7 +7,7 @@ use crate::{
     core_::{
         constants::constants::RECV_TIMEOUT, cot::cot::Cot, net::protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_encode_message::JdsEncodeMessage, jds_routes::{JdsRoutes, RouterReply}, jds_serialize::JdsSerialize}, point::point_type::PointType 
     }, 
-    services::{multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, services::Services, tcp_server::jds_connection::JdsConnection}, 
+    services::{multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, services::Services, server::jds_connection::JdsConnection}, 
     tcp::{tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive},
 };
 use super::{connections::Action, tcp_server_auth::TcpServerAuth};

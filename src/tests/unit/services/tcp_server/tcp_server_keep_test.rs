@@ -7,7 +7,7 @@ mod tcp_server {
     use crate::{
         tests::unit::services::tcp_server::{emulated_tcp_client_recv::EmulatedTcpClientRecv, emulated_tcp_client_send::EmulatedTcpClientSend},
         conf::{tcp_server_config::TcpServerConfig, multi_queue_config::MultiQueueConfig}, 
-        services::{tcp_server::tcp_server::TcpServer, services::Services, service::service::Service, task::{task_test_producer::TaskTestProducer, task_test_receiver::TaskTestReceiver}, multi_queue::multi_queue::MultiQueue}, 
+        services::{server::tcp_server::TcpServer, services::Services, service::service::Service, task::{task_test_producer::TaskTestProducer, task_test_receiver::TaskTestReceiver}, multi_queue::multi_queue::MultiQueue}, 
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.

@@ -27,4 +27,4 @@ pub mod multi_queue;
 
 pub mod queue_name;
 
-pub mod tcp_server;
+pub mod server;

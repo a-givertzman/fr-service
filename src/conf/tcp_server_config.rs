@@ -3,7 +3,7 @@
 use log::{trace, debug, error};
 use std::{fs, time::Duration, net::SocketAddr};
 
-use crate::{conf::{conf_tree::ConfTree, service_config::ServiceConfig}, services::tcp_server::tcp_server_auth::TcpServerAuth};
+use crate::{conf::{conf_tree::ConfTree, service_config::ServiceConfig}, services::server::tcp_server_auth::TcpServerAuth};
 
 
 ///
