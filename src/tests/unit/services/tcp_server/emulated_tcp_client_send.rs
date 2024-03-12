@@ -1,11 +1,9 @@
-use const_format::formatcp;
 use log::{info, warn, debug};
-use serde_json::json;
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc}, thread::{JoinHandle, self}, time::Duration, net::{TcpStream, SocketAddr}, io::Write};
 use testing::entities::test_value::Value;
 use crate::{
-    conf::point_config::{point_config::PointConfig, point_name::PointName}, core_::{
-        cot::cot::Cot, net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::{point::Point, point_tx_id::PointTxId, point_type::{PointType, ToPoint}}, state::{switch_state::{Switch, SwitchCondition, SwitchState}, switch_state_changed::SwitchStateChanged}, status::status::Status
+    conf::point_config::point_name::PointName, core_::{
+        net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}, state::{switch_state::{Switch, SwitchCondition, SwitchState}, switch_state_changed::SwitchStateChanged}
     }, services::service::service::Service, tcp::steam_read::StreamRead 
 };
 

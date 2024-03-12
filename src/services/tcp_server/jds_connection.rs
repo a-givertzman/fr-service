@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use log::{debug, warn};
 use serde_json::json;
 
-use crate::{conf::point_config::point_name::PointName, core_::{cot::cot::Cot, net::protocols::jds::{jds_routes::RouterReply, request_kind::RequestKind}, point::{point::Point, point_type::PointType}, status::status::Status}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, services::Services}};
+use crate::{conf::point_config::point_name::PointName, core_::{cot::cot::Cot, net::protocols::jds::{jds_routes::RouterReply, request_kind::RequestKind}, object::object::Object, point::{point::Point, point_type::PointType}, status::status::Status}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, services::Services}};
 
 pub struct JdsConnection {}
 impl JdsConnection {
@@ -13,6 +13,7 @@ impl JdsConnection {
     pub fn handle_request(parent: &str, tx_id: usize, request: PointType, services: Arc<Mutex<Services>>, tx_queue_name: &str) -> RouterReply {
         match RequestKind::from(request.name()) {
             RequestKind::AuthSecret => {
+                debug!("{}/JdsConnection.handle_request | Request '{}': \n\t{:?}", parent, RequestKind::AUTH_SECRET, request);
                 RouterReply::new(
                     None,
                     Some(PointType::String(Point::new(
@@ -28,6 +29,7 @@ impl JdsConnection {
                 )
             },
             RequestKind::AuthSsh => {
+                debug!("{}/JdsConnection.handle_request | Request '{}': \n\t{:?}", parent, RequestKind::AUTH_SSH, request);
                 RouterReply::new(
                     None,
                     Some(PointType::String(Point::new(
@@ -43,6 +45,7 @@ impl JdsConnection {
                 )
             },
             RequestKind::Points => {
+                debug!("{}/JdsConnection.handle_request | Request '{}': \n\t{:?}", parent, RequestKind::POINTS, request);
                 let points = services.lock().unwrap().points();
                 let points = json!(points).to_string();
                 RouterReply::new(
@@ -58,6 +61,7 @@ impl JdsConnection {
                 )
             },
             RequestKind::Subscribe => {
+                debug!("{}/JdsConnection.handle_request | Request '{}': \n\t{:?}", parent, RequestKind::SUBSCRIBE, request);
                 let points = match serde_json::from_str(&request.value().as_string()) {
                     Ok(points) => {
                         let points: serde_json::Value = points;
@@ -100,7 +104,8 @@ impl JdsConnection {
                 RouterReply::new(None, None)
             },
             RequestKind::Unknown => {
-                warn!("{}.handle_request | Unknown request name: {:?}", parent, request.name());
+                debug!("{}/JdsConnection.handle_request | Unknown request: \n\t{:?}", parent, request);
+                warn!("{}/JdsConnection.handle_request | Unknown request name: {:?}", parent, request.name());
                 RouterReply::new(None, None)
             },
         }

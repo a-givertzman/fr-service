@@ -1,6 +1,7 @@
-use std::{collections::HashMap, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{Receiver, RecvTimeoutError}, Arc, Mutex, RwLock}, thread::{self, JoinHandle}, time::{Duration, Instant}};
+use std::{collections::HashMap, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, mpsc::{Receiver, RecvTimeoutError}, Arc, Mutex, RwLock}, thread::{self, JoinHandle}, time::{Duration, Instant}};
 use hashers::fx_hash::FxHasher;
-use log::info;
+use log::{debug, info, warn};
+use serde_json::json;
 use crate::{
     conf::tcp_server_config::TcpServerConfig, 
     core_::{
@@ -14,9 +15,29 @@ use super::connections::Action;
 use once_cell::sync::Lazy;
 
 
+enum JdsState {
+    Unknown,
+    Authenticated,
+}
+impl From<usize> for JdsState {
+    fn from(value: usize) -> Self {
+        match value {
+            0 => Self::Unknown,
+            1 => Self::Authenticated,
+            _ => Self::Unknown,
+        }
+    }
+}
+impl Into<usize> for JdsState {
+    fn into(self) -> usize {
+        self as usize
+    }
+}
+
 static SHARED_TX_QUEUE_NAME: Lazy<RwLock<String>> = Lazy::new(|| {
     RwLock::new(String::new())
 });
+static SHARED_JDS_STATE: AtomicUsize = AtomicUsize::new(0);
 
 ///
 /// Single Jds over TCP connection
@@ -93,11 +114,22 @@ impl TcpServerConnection {
                     |parent, point, services| {
                         let parent: String = parent;
                         let point: PointType = point;
-                        // println!("{}.run | point from socket: {:?}", parent, point);
-                        // println!("{}.run | point.json from socket: {:?}", parent, json!(&point).to_string());
+                        // println!("{}.run | point from socket: \n\t{:?}", parent, point);
                         match point.cot() {
                             Cot::Req => JdsConnection::handle_request(&parent, 0, point, services, &SHARED_TX_QUEUE_NAME.read().unwrap()),
-                            _        => RouterReply::new(Some(point), None),
+                            _        => {
+                                match SHARED_JDS_STATE.load(Ordering::SeqCst).into() {
+                                    JdsState::Unknown => {
+                                        warn!("{}.run | Rejected point from socket: \n\t{:?}", parent, json!(&point).to_string());
+                                        RouterReply::new(None, None)
+                                    },
+                                    JdsState::Authenticated => {
+                                        debug!("{}.run | Passed point from socket: \n\t{:?}", parent, json!(&point).to_string());
+                                        RouterReply::new(Some(point), None)
+                                    },
+                                }
+                                // RouterReply::new(Some(point), None)
+                            },
                         }
                     },
                 ))),
