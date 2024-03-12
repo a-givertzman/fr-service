@@ -1,7 +1,7 @@
-use std::sync::{Arc, Mutex};
+use std::{collections::HashMap, sync::{Arc, Mutex, RwLock}};
 use log::{debug, warn};
 use serde_json::json;
-use crate::{conf::point_config::point_name::PointName, core_::{auth::ssh::auth_ssh::AuthSsh, cot::cot::Cot, net::protocols::jds::{jds_routes::RouterReply, request_kind::RequestKind}, point::{point::Point, point_type::PointType}, status::status::Status}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, services::Services, tcp_server::tcp_server_cnnection::JdsState}};
+use crate::{conf::point_config::{point_config::PointConfig, point_name::PointName}, core_::{auth::ssh::auth_ssh::AuthSsh, cot::cot::Cot, net::protocols::jds::{jds_routes::RouterReply, request_kind::RequestKind}, point::{point::Point, point_type::PointType}, status::status::Status}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, services::Services, tcp_server::tcp_server_cnnection::JdsState}};
 use super::tcp_server_cnnection::Shared;
 
 pub struct JdsConnection {}
@@ -9,7 +9,8 @@ impl JdsConnection {
     ///
     /// Detecting kind of the request stored as json string in the incoming point.
     /// Performs the action depending on the Request kind.
-    pub fn handle_request(parent: &str, tx_id: usize, request: PointType, services: Arc<Mutex<Services>>, shared: &mut Shared) -> RouterReply {
+    pub fn handle_request(parent: &str, tx_id: usize, request: PointType, services: Arc<Mutex<Services>>, shared: Arc<RwLock<Shared>>) -> RouterReply {
+        let mut shared = shared.write().unwrap();
         match RequestKind::from(request.name()) {
             RequestKind::AuthSecret => {
                 debug!("{}/JdsConnection.handle_request | Request '{}': \n\t{:?}", parent, RequestKind::AUTH_SECRET, request);
@@ -78,7 +79,9 @@ impl JdsConnection {
             },
             RequestKind::Points => {
                 debug!("{}/JdsConnection.handle_request | Request '{}': \n\t{:?}", parent, RequestKind::POINTS, request);
-                let points = services.lock().unwrap().points();
+                let points: HashMap<String, PointConfig> = services.lock().unwrap().points().iter().map(|conf| {
+                    (conf.name.clone(), conf.clone())
+                }).collect();
                 let points = json!(points).to_string();
                 RouterReply::new(
                     None,

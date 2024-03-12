@@ -1,10 +1,10 @@
-use std::{io::BufReader, net::TcpStream, sync::{mpsc::Sender, Arc, Mutex}};
+use std::{io::BufReader, net::TcpStream, sync::{mpsc::Sender, Arc, Mutex, RwLock}};
 use log::{error, warn, LevelFilter};
 use crate::{
     core_::{
         net::{connection_status::ConnectionStatus, protocols::jds::jds_deserialize::JdsDeserialize}, object::object::Object, point::point_type::PointType 
     }, 
-    services::services::Services, tcp::steam_read::TcpStreamRead,
+    services::{services::Services, tcp_server::tcp_server_cnnection::Shared}, tcp::steam_read::TcpStreamRead,
 };
 use concat_string::concat_string;
 
@@ -35,14 +35,15 @@ pub struct JdsRoutes<F> {
     services: Arc<Mutex<Services>>,
     jds_deserialize: JdsDeserialize,
     req_reply_send: Sender<PointType>,
-    rautes: F ,
+    rautes: F,
+    shared: Arc<RwLock<Shared>>,
 }
 ///
 /// 
 impl<F> JdsRoutes<F> {
     ///
     /// 
-    pub fn new(parent: impl Into<String>, services: Arc<Mutex<Services>>, jds_deserialize: JdsDeserialize, req_reply_send: Sender<PointType>, rautes: F) -> Self {
+    pub fn new(parent: impl Into<String>, services: Arc<Mutex<Services>>, jds_deserialize: JdsDeserialize, req_reply_send: Sender<PointType>, rautes: F, shared: Arc<RwLock<Shared>>) -> Self {
         let parent = parent.into();
         let self_id = format!("{}/JdsRoutes", parent);
         Self {
@@ -52,6 +53,7 @@ impl<F> JdsRoutes<F> {
             jds_deserialize,
             req_reply_send,
             rautes,
+            shared,
         }
     }
 }
@@ -65,7 +67,7 @@ impl<F> Object for JdsRoutes<F> {
 ///
 /// 
 impl<F> TcpStreamRead for JdsRoutes<F> where
-    F: Fn(String, PointType, Arc<Mutex<Services>>) -> RouterReply,
+    F: Fn(String, PointType, Arc<Mutex<Services>>, Arc<RwLock<Shared>>) -> RouterReply,
     F: Send + Sync {
     ///
     /// Reads single point from source
@@ -74,7 +76,7 @@ impl<F> TcpStreamRead for JdsRoutes<F> where
             ConnectionStatus::Active(point) => {
                 match point {
                     Ok(point) => {
-                        let result = (&self.rautes)(self.parent.clone(), point, self.services.clone());
+                        let result = (&self.rautes)(self.parent.clone(), point, self.services.clone(), self.shared.clone());
                         match result.retply {
                             Some(point) => if let Err(err) = self.req_reply_send.send(point) {
                                 error!("{}.read | Send reply error: {:?}", self.id, err)

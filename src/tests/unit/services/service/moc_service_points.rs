@@ -47,6 +47,7 @@ impl Service for MockServicePoints {
         debug!("{}.run | Not implemented", self.id);
     }    
     fn points(&self) -> Vec<PointConfig> {
+        debug!("{}.points | Returning: {:#?}", self.id, self.points);
         self.points.clone()
     }
 }

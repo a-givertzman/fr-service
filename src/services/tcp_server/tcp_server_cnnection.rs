@@ -12,8 +12,6 @@ use crate::{
 };
 use super::{connections::Action, tcp_server_auth::TcpServerAuth};
 
-use once_cell::sync::Lazy;
-
 
 pub enum JdsState {
     Unknown,
@@ -39,14 +37,6 @@ pub struct Shared {
     pub jds_state: JdsState,
     pub auth: TcpServerAuth,
 }
-static SHARED: Lazy<RwLock<Shared>> = Lazy::new(|| {
-    RwLock::new(Shared {
-        tx_queue_name: String::new(), 
-        jds_state: JdsState::Unknown, 
-        auth: TcpServerAuth::None, 
-    })
-});
-
 
 ///
 /// Single Jds over TCP connection
@@ -80,11 +70,15 @@ impl TcpServerConnection {
         let self_id = self.id.clone();
         let self_id_clone = self.id.clone();
         let conf = self.conf.clone();
-        SHARED.write().unwrap().auth = conf.auth.clone();
-        match conf.auth {
-            TcpServerAuth::None => SHARED.write().unwrap().jds_state = JdsState::Authenticated,
-            _                   => SHARED.write().unwrap().jds_state = JdsState::Unknown,
-        };
+        let shared_options: Arc<RwLock<Shared>> = Arc::new(RwLock::new(Shared {
+                tx_queue_name: String::new(), 
+                jds_state: match conf.auth {
+                    TcpServerAuth::None => JdsState::Authenticated,
+                    _                   => JdsState::Unknown,
+                }, 
+                auth: conf.auth.clone(), 
+        }));
+        ;
         let self_conf_tx = conf.tx.clone();
         let rx_max_length = conf.rxMaxLength;
         let exit = self.exit.clone();
@@ -111,7 +105,7 @@ impl TcpServerConnection {
             let send = services.lock().unwrap().get_link(&self_conf_tx);
             println!("{}.run | tx_queue_name: {:?}", self_id, tx_queue_name);
             let (req_reply_send, recv) = services.lock().unwrap().subscribe(&tx_queue_name.service(), &self_id, &points);
-            SHARED.write().unwrap().tx_queue_name = tx_queue_name.service().to_owned();
+            shared_options.write().unwrap().tx_queue_name = tx_queue_name.service().to_owned();
             let buffered = rx_max_length > 0;
             let mut tcp_read_alive = TcpReadAlive::new(
                 &self_id,
@@ -125,14 +119,14 @@ impl TcpServerConnection {
                         ),
                     ),
                     req_reply_send,
-                    |parent, point, services| {
+                    |parent, point, services, shared| {
                         let parent: String = parent;
                         let point: PointType = point;
                         // println!("{}.run | point from socket: \n\t{:?}", parent, point);
                         match point.cot() {
-                            Cot::Req => JdsConnection::handle_request(&parent, 0, point, services, &mut SHARED.write().unwrap()),
+                            Cot::Req => JdsConnection::handle_request(&parent, 0, point, services, shared),
                             _        => {
-                                match SHARED.read().unwrap().jds_state {
+                                match shared.read().unwrap().jds_state {
                                     JdsState::Unknown => {
                                         warn!("{}.run | Rejected point from socket: \n\t{:?}", parent, json!(&point).to_string());
                                         RouterReply::new(None, None)
@@ -146,6 +140,7 @@ impl TcpServerConnection {
                             },
                         }
                     },
+                    shared_options,
                 ))),
                 send,
                 Duration::from_millis(10),
