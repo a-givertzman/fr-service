@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use crate::{core_::{failure::recv_error::RecvError, object::object::Object}, tcp::steam_read::StreamRead};
+use crate::{core_::{failure::recv_error::RecvError, object::object::Object, point::point_type::PointType}, tcp::steam_read::StreamRead};
 
 use super::{jds_serialize::JdsSerialize, jds_define::JDS_END_OF_TRANSMISSION};
 
