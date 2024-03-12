@@ -105,7 +105,7 @@ impl TcpServerConnections {
     /// Waits for all connections handles being finished
     pub fn wait(&mut self) {
         info!("{}.run | connections.lock...", self.id);
-        while self.connections.len() > 0 {
+        while !self.connections.is_empty() {
             info!("{}.run | connections.lock - ok", self.id);
             // let mut connectionsLock = connections.lock().unwrap();
             let keys: Vec<String> = self.connections.keys().map(|k| {k.to_string()}).collect();

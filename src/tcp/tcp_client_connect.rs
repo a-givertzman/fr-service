@@ -74,7 +74,7 @@ impl TcpClientConnect {
     pub fn connect(&mut self) -> Option<TcpStream> {
         info!("TcpClientConnect({}).connect | connecting...", self.id);
         let id = self.id.clone();
-        let addr = self.addr.clone();
+        let addr = self.addr;
         info!("TcpClientConnect({}).inner_connect | connecting to: {:?}...", id, addr);
         let cycle = self.reconnect;
         let selfStream = self.stream.clone();

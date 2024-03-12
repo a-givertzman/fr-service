@@ -35,7 +35,7 @@ impl JdsConnection {
                     None,
                     Some(PointType::String(Point::new(
                         tx_id, 
-                        &PointName::new(&parent, "/Auth.Secret").full(),
+                        &PointName::new(parent, "/Auth.Secret").full(),
                         message.to_owned(), 
                         Status::Ok, 
                         cot, 
@@ -69,7 +69,7 @@ impl JdsConnection {
                     None,
                     Some(PointType::String(Point::new(
                         tx_id, 
-                        &PointName::new(&parent, "/Auth.Ssh").full(),
+                        &PointName::new(parent, "/Auth.Ssh").full(),
                         message.to_owned(), 
                         Status::Ok, 
                         cot, 
@@ -87,7 +87,7 @@ impl JdsConnection {
                     None,
                     Some(PointType::String(Point::new(
                         tx_id, 
-                        &PointName::new(&parent, "/Points").full(),
+                        &PointName::new(parent, "/Points").full(),
                         points, 
                         Status::Ok, 
                         Cot::ReqCon, 
@@ -133,7 +133,7 @@ impl JdsConnection {
                         })
                     },
                 };
-                if let Err(err) = services.lock().unwrap().extend_subscription(&shared.tx_queue_name, &parent, &points) {
+                if let Err(err) = services.lock().unwrap().extend_subscription(&shared.tx_queue_name, parent, &points) {
                     warn!("{}.handle_request | extend_subscription failed with error: {:?}", parent, err);
                 };
                 RouterReply::new(None, None)
