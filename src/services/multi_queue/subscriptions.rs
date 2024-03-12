@@ -99,13 +99,13 @@ impl Subscriptions {
     pub fn remove_all(&mut self, receiver_id: &usize) -> Result<(), String> {
         let mut changed = false;
         let mut messages = vec![];
-        let keys: Vec<String> = self.multicast.keys().map(|v| v.clone()).collect();
+        let keys: Vec<String> = self.multicast.keys().cloned().collect();
         for point_id in keys {
             match self.multicast.get_mut(&point_id) {
                 Some(senders) => {
                     match senders.remove(receiver_id) {
                         Some(_) => {
-                            changed = changed | true;
+                            changed |= true;
                         },
                         None => {
                             messages.push(format!("{}.run | Multicast Subscription '{}', receiver '{}' - not found", self.id, point_id, receiver_id));
@@ -119,7 +119,7 @@ impl Subscriptions {
         }
         match self.broadcast.remove(receiver_id) {
             Some(_) => {
-                changed = changed | true;
+                changed |= true;
             },
             None => {
                 messages.push(format!("{}.run | Broadcast Subscription by receiver '{}' - not found", self.id, receiver_id));
