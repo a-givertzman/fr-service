@@ -1,45 +1,77 @@
 use std::sync::{Arc, Mutex};
-
 use log::{debug, warn};
 use serde_json::json;
-
-use crate::{conf::point_config::point_name::PointName, core_::{cot::cot::Cot, net::protocols::jds::{jds_routes::RouterReply, request_kind::RequestKind}, object::object::Object, point::{point::Point, point_type::PointType}, status::status::Status}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, services::Services}};
+use crate::{conf::point_config::point_name::PointName, core_::{auth::ssh::auth_ssh::AuthSsh, cot::cot::Cot, net::protocols::jds::{jds_routes::RouterReply, request_kind::RequestKind}, point::{point::Point, point_type::PointType}, status::status::Status}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, services::Services, tcp_server::tcp_server_cnnection::JdsState}};
+use super::tcp_server_cnnection::Shared;
 
 pub struct JdsConnection {}
 impl JdsConnection {
     ///
     /// Detecting kind of the request stored as json string in the incoming point.
     /// Performs the action depending on the Request kind.
-    pub fn handle_request(parent: &str, tx_id: usize, request: PointType, services: Arc<Mutex<Services>>, tx_queue_name: &str) -> RouterReply {
+    pub fn handle_request(parent: &str, tx_id: usize, request: PointType, services: Arc<Mutex<Services>>, shared: &mut Shared) -> RouterReply {
         match RequestKind::from(request.name()) {
             RequestKind::AuthSecret => {
                 debug!("{}/JdsConnection.handle_request | Request '{}': \n\t{:?}", parent, RequestKind::AUTH_SECRET, request);
+                let (cot, message) = match &shared.auth {
+                    crate::services::tcp_server::tcp_server_auth::TcpServerAuth::Secret(auth_secret) => {
+                        let secret = match request {
+                            PointType::String(request) => request.value,
+                            _ => String::new(),
+                        };
+                        if secret == auth_secret.token() {
+                            shared.jds_state = JdsState::Authenticated;
+                            (Cot::ReqCon, "Authentication successful")
+                        } else {
+                            (Cot::ReqErr, "Authentication error: Invalid secret or kind of auth request")
+                        }
+                    },
+                    _ => {
+                        (Cot::ReqErr, "Authentication error: Invalid secret or kind of auth request")
+                    }
+                };
                 RouterReply::new(
                     None,
                     Some(PointType::String(Point::new(
                         tx_id, 
                         &PointName::new(&parent, "/Auth.Secret").full(),
-                        r#"{
-                            \"reply\": \"Auth.Secret Reply\"
-                        }"#.to_string(), 
+                        message.to_owned(), 
                         Status::Ok, 
-                        Cot::ReqCon, 
+                        cot, 
                         chrono::offset::Utc::now(),
                     ))),
                 )
             },
             RequestKind::AuthSsh => {
                 debug!("{}/JdsConnection.handle_request | Request '{}': \n\t{:?}", parent, RequestKind::AUTH_SSH, request);
+                let (cot, message) = match &shared.auth {
+                    crate::services::tcp_server::tcp_server_auth::TcpServerAuth::Ssh(auth_ssh_path) => {
+                        let secret = match request {
+                            PointType::String(request) => request.value,
+                            _ => String::new(),
+                        };
+                        match AuthSsh::new(&auth_ssh_path.path()).validate(&secret) {
+                            Ok(_) => {
+                                shared.jds_state = JdsState::Authenticated;
+                                (Cot::ReqCon, "Authentication successful".to_owned())
+                            },
+                            Err(err) => {
+                                (Cot::ReqErr, format!("Authentication error: {}", err))
+                            },
+                        }
+                    },
+                    _ => {
+                        (Cot::ReqErr, "Authentication error: Invalid secret or kind of auth request".to_owned())
+                    }
+                };
                 RouterReply::new(
                     None,
                     Some(PointType::String(Point::new(
                         tx_id, 
-                        &PointName::new(&parent, "/Auth.Secret").full(),
-                        r#"{
-                            \"reply\": \"Auth.Ssh Reply\"
-                        }"#.to_string(), 
+                        &PointName::new(&parent, "/Auth.Ssh").full(),
+                        message.to_owned(), 
                         Status::Ok, 
-                        Cot::ReqCon, 
+                        cot, 
                         chrono::offset::Utc::now(),
                     ))),
                 )
@@ -98,7 +130,7 @@ impl JdsConnection {
                         })
                     },
                 };
-                if let Err(err) = services.lock().unwrap().extend_subscription(tx_queue_name, &parent, &points) {
+                if let Err(err) = services.lock().unwrap().extend_subscription(&shared.tx_queue_name, &parent, &points) {
                     warn!("{}.handle_request | extend_subscription failed with error: {:?}", parent, err);
                 };
                 RouterReply::new(None, None)

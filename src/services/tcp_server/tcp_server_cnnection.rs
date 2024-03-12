@@ -1,4 +1,4 @@
-use std::{collections::HashMap, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, mpsc::{Receiver, RecvTimeoutError}, Arc, Mutex, RwLock}, thread::{self, JoinHandle}, time::{Duration, Instant}};
+use std::{collections::HashMap, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{Receiver, RecvTimeoutError}, Arc, Mutex, RwLock}, thread::{self, JoinHandle}, time::{Duration, Instant}};
 use hashers::fx_hash::FxHasher;
 use log::{debug, info, warn};
 use serde_json::json;
@@ -10,12 +10,12 @@ use crate::{
     services::{multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, services::Services, tcp_server::jds_connection::JdsConnection}, 
     tcp::{tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive},
 };
-use super::connections::Action;
+use super::{connections::Action, tcp_server_auth::TcpServerAuth};
 
 use once_cell::sync::Lazy;
 
 
-enum JdsState {
+pub enum JdsState {
     Unknown,
     Authenticated,
 }
@@ -34,10 +34,19 @@ impl Into<usize> for JdsState {
     }
 }
 
-static SHARED_TX_QUEUE_NAME: Lazy<RwLock<String>> = Lazy::new(|| {
-    RwLock::new(String::new())
+pub struct Shared {
+    pub tx_queue_name: String,
+    pub jds_state: JdsState,
+    pub auth: TcpServerAuth,
+}
+static SHARED: Lazy<RwLock<Shared>> = Lazy::new(|| {
+    RwLock::new(Shared {
+        tx_queue_name: String::new(), 
+        jds_state: JdsState::Unknown, 
+        auth: TcpServerAuth::None, 
+    })
 });
-static SHARED_JDS_STATE: AtomicUsize = AtomicUsize::new(0);
+
 
 ///
 /// Single Jds over TCP connection
@@ -71,6 +80,11 @@ impl TcpServerConnection {
         let self_id = self.id.clone();
         let self_id_clone = self.id.clone();
         let conf = self.conf.clone();
+        SHARED.write().unwrap().auth = conf.auth.clone();
+        match conf.auth {
+            TcpServerAuth::None => SHARED.write().unwrap().jds_state = JdsState::Authenticated,
+            _                   => SHARED.write().unwrap().jds_state = JdsState::Unknown,
+        };
         let self_conf_tx = conf.tx.clone();
         let rx_max_length = conf.rxMaxLength;
         let exit = self.exit.clone();
@@ -97,7 +111,7 @@ impl TcpServerConnection {
             let send = services.lock().unwrap().get_link(&self_conf_tx);
             println!("{}.run | tx_queue_name: {:?}", self_id, tx_queue_name);
             let (req_reply_send, recv) = services.lock().unwrap().subscribe(&tx_queue_name.service(), &self_id, &points);
-            *SHARED_TX_QUEUE_NAME.write().unwrap() = tx_queue_name.service().to_owned();
+            SHARED.write().unwrap().tx_queue_name = tx_queue_name.service().to_owned();
             let buffered = rx_max_length > 0;
             let mut tcp_read_alive = TcpReadAlive::new(
                 &self_id,
@@ -116,9 +130,9 @@ impl TcpServerConnection {
                         let point: PointType = point;
                         // println!("{}.run | point from socket: \n\t{:?}", parent, point);
                         match point.cot() {
-                            Cot::Req => JdsConnection::handle_request(&parent, 0, point, services, &SHARED_TX_QUEUE_NAME.read().unwrap()),
+                            Cot::Req => JdsConnection::handle_request(&parent, 0, point, services, &mut SHARED.write().unwrap()),
                             _        => {
-                                match SHARED_JDS_STATE.load(Ordering::SeqCst).into() {
+                                match SHARED.read().unwrap().jds_state {
                                     JdsState::Unknown => {
                                         warn!("{}.run | Rejected point from socket: \n\t{:?}", parent, json!(&point).to_string());
                                         RouterReply::new(None, None)
