@@ -95,7 +95,8 @@ mod tests {
     use std::{sync::Once, time::Duration};
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::services::jds_service::request_kind::RequestKind;
+
+    use crate::core_::net::protocols::jds::request_kind::RequestKind;
     ///
     static INIT: Once = Once::new();
     ///
