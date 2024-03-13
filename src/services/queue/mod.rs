@@ -1,5 +1,3 @@
-pub mod queues;
-
 pub mod queue_recv;
 
 pub mod queue_send;

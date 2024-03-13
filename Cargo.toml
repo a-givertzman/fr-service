@@ -10,6 +10,10 @@ build = "build.rs"
 log = "^0.4"
 env_logger = "^0.11"
 
+testing = { git = "https://github.com/a-givertzman/rust-testing.git", tag = "0.0.2" }
+debugging = { git = "https://github.com/a-givertzman/rust-debuging.git", tag = "0.0.1" }
+api-tools = { git = "https://github.com/a-givertzman/rust-api-tools.git", tag = "0.0.5" }
+
 # num = "^0.4"
 # derive-new = "^0.5"
 
@@ -26,6 +30,7 @@ rand = "^0.8"
 chrono = "^0.4"
 
 indexmap = "^2.2"
+hashers = "^1.0"
 
 # snap7 = "^0.0"
 snap7-sys = "^0.1"
@@ -34,7 +39,8 @@ libloading = "^0.8"
 bindgen = "^0.69"
 once_cell = "^1.19"
 
-
+concat-string = "^1.0"
+const_format = "^0.2"
 
 # [[bin]]
 # name = "task_test"

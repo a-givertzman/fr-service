@@ -1,12 +1,14 @@
 #![allow(non_snake_case)]
 
-use crate::{tcp::steam_read::StreamRead, core_::failure::recv_error::RecvError};
+use crate::{core_::{failure::recv_error::RecvError, object::object::Object}, tcp::steam_read::StreamRead};
 #[cfg(test)]
 mod tests {
     use log::{warn, info, debug};
     use rand::Rng;
     use std::{sync::{Once, Arc, Mutex, atomic::{AtomicUsize, Ordering}}, time::{Duration, Instant}, thread, net::{TcpListener, TcpStream}, io::Read};
-    use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, net::connection_status::ConnectionStatus, testing::test_session::TestSession}, tcp::tcp_stream_write::TcpStreamWrite, tests::unit::tcp::tcp_stream_write_test::MockStreamRead}; 
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+    use testing::session::test_session::TestSession;
+    use crate::{core_::net::connection_status::ConnectionStatus, tcp::tcp_stream_write::TcpStreamWrite, tests::unit::tcp::tcp_stream_write_test::MockStreamRead}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -15,7 +17,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -26,7 +28,7 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     static INDEX: AtomicUsize = AtomicUsize::new(0);
@@ -45,27 +47,28 @@ mod tests {
     #[test]
     fn test_TcpStreamWrite() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
-        println!("test TcpStreamWrite");
+        let self_id = "test TcpStreamWrite";
+        println!("\n{}", self_id);
         let count = 1000;
-        let testDuration = Duration::from_secs(10);
+        let test_duration = Duration::from_secs(10);
         let sent = Arc::new(AtomicUsize::new(0));
         let received = Arc::new(Mutex::new(vec![]));
         let messageLen = 10;
-        let mut testData = vec![];
+        let mut test_data = vec![];
         for _ in 0..count {
-            testData.push(randomBytes(messageLen))
+            test_data.push(randomBytes(messageLen))
         }
-        info!("testData: {:?}", testData);
+        info!("test_data: {:?}", test_data);
         let mut tcpStreamWrite = TcpStreamWrite::new(
             "test",
             true,
             Some(10000),
-            Box::new(MockStreamRead { buffer: testData.clone()}),
+            Box::new(MockStreamRead::new( self_id, test_data.clone())),
         );
-        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
+        let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
 
         mockTcpServer(addr.clone(), count, messageLen, received.clone());
         thread::sleep(Duration::from_micros(100));
@@ -101,17 +104,17 @@ mod tests {
                     thread::sleep(Duration::from_millis(100));
                 },
             };
-            assert!(timer.elapsed() < testDuration, "Transfering {}/{} messages taks too mach time {:?} of {:?}", received.lock().unwrap().len(), count, timer.elapsed(), testDuration);
+            assert!(timer.elapsed() < test_duration, "Transfering {}/{} messages taks too mach time {:?} of {:?}", received.lock().unwrap().len(), count, timer.elapsed(), test_duration);
             // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
             warn!("sent total: {}/{}", sent.load(Ordering::SeqCst), count);
         }
         let waitDuration = Duration::from_millis(10);
-        let mut waitAttempts = testDuration.as_micros() / waitDuration.as_micros();
+        let mut waitAttempts = test_duration.as_micros() / waitDuration.as_micros();
         while received.lock().unwrap().len() < count {
             debug!("waiting while all data beeng received {}/{}...", received.lock().unwrap().len(), count);
             thread::sleep(waitDuration);
             waitAttempts -= 1;
-            assert!(waitAttempts > 0, "Transfering {}/{} messages taks too mach time {:?} of {:?}", received.lock().unwrap().len(), count, timer.elapsed(), testDuration);
+            assert!(waitAttempts > 0, "Transfering {}/{} messages taks too mach time {:?} of {:?}", received.lock().unwrap().len(), count, timer.elapsed(), test_duration);
         }
         println!("elapsed: {:?}", timer.elapsed());
         println!("total test events: {:?}", count);
@@ -120,7 +123,7 @@ mod tests {
         println!("recv events: {:?}", received.len());
         assert!(sent.load(Ordering::SeqCst) == count, "sent: {:?}\ntarget: {:?}", sent, count);
         assert!(received.len() == count, "received: {:?}\ntarget: {:?}", received.len(), count);
-        for target in testData {
+        for target in test_data {
             let result = match received.first() {
                 Some(bytes) => {
                     debug!("\nresult: {:?}\ntarget: {:?}", bytes, target);
@@ -184,7 +187,18 @@ mod tests {
 }
 
 struct MockStreamRead<T> {
+    id: String,
     buffer: Vec<T>
+}
+impl<T> MockStreamRead<T> {
+    pub fn new(parent: &str, buffer: Vec<T>) -> Self {
+        Self { id: format!("{}/{}", parent, "MockStreamRead"), buffer }
+    }
+}
+impl<T> Object for MockStreamRead<T> {
+    fn id(&self) -> &str {
+        &self.id
+    }
 }
 impl<T: Sync> StreamRead<T, RecvError> for MockStreamRead<T> {
     fn read(&mut self) -> Result<T, RecvError> {

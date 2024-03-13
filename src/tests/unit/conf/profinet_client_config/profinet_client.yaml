@@ -9,9 +9,9 @@ service ProfinetClient Ied01:
     ip: '192.168.100.243'
     rack: 0
     slot: 1
-    db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
-        # description: 'db899 | Exhibit - drive data'
-        number: 899
+    db db222:                       # multiple DB blocks are allowed, must have unique namewithing parent device
+        # description: 'db222 | Exhibit - drive data'
+        number: 222
         offset: 0
         size: 34
         cycle: 10 ms
@@ -27,13 +27,13 @@ service ProfinetClient Ied01:
         point Drive.Current: 
             type: 'Real'
             offset: 12
-            history: 1
+            history: read
         point Drive.Torque: 
             type: 'Real'
             offset: 16
     db db999:                       # multiple DB blocks are allowed, must have unique namewithing parent device
-        description: 'db899 | Exhibit - drive data'
-        number: 899
+        description: 'db999 | Exhibit - drive data'
+        number: 999
         offset: 0
         size: 34
         cycle: 10 ms

@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 use crate::core_::failure::error_string::ErrorString;
 
 ///

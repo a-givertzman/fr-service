@@ -48,7 +48,7 @@ impl MetricConfig {
     ///         input2:
     ///             fn SqlMetric:
     ///                 ...
-    pub fn new(confTree: &ConfTree, vars: &mut Vec<String>) -> MetricConfig {
+    pub fn new(parent: &str, confTree: &ConfTree, vars: &mut Vec<String>) -> MetricConfig {
         println!("\n");
         trace!("MetricConfig.new | confTree: {:?}", confTree);
         // self conf from first sub node
@@ -72,12 +72,12 @@ impl MetricConfig {
                             if inputConf.isMapping() {
                                 inputs.insert(
                                     (&inputConf).key.to_string(), 
-                                    FnConfig::new(&inputConf.next().unwrap(), vars),
+                                    FnConfig::new(parent, &inputConf.next().unwrap(), vars),
                                 );
                             } else {
                                 inputs.insert(
                                     (&inputConf).key.to_string(), 
-                                    FnConfig::new(&inputConf, vars),
+                                    FnConfig::new(parent, &inputConf, vars),
                                 );
                             };
                         }
@@ -100,19 +100,19 @@ impl MetricConfig {
     }
     ///
     /// creates config from serde_yaml::Value of following format:
-    pub(crate) fn fromYamlValue(value: &serde_yaml::Value, vars: &mut Vec<String>) -> MetricConfig {
-        Self::new(&ConfTree::newRoot(value.clone()).next().unwrap(), vars)
+    pub(crate) fn from_yaml(parent: &str, value: &serde_yaml::Value, vars: &mut Vec<String>) -> MetricConfig {
+        Self::new(parent, &ConfTree::newRoot(value.clone()).next().unwrap(), vars)
     }
     ///
     /// reads config from path
     #[allow(dead_code)]
-    pub fn read(path: &str) -> MetricConfig {
+    pub fn read(parent: &str, path: &str) -> MetricConfig {
         let mut vars = vec![];
         match fs::read_to_string(&path) {
             Ok(yamlString) => {
                 match serde_yaml::from_str(&yamlString) {
                     Ok(config) => {
-                        MetricConfig::fromYamlValue(&config, &mut vars)
+                        MetricConfig::from_yaml(parent, &config, &mut vars)
                     },
                     Err(err) => {
                         panic!("MetricConfig.read | Error in config: {:?}\n\terror: {:?}", yamlString, err)

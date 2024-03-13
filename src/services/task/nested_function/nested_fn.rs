@@ -74,7 +74,7 @@ impl NestedFn {
                         let input = Self::function(parent, txId, name, inputConf, taskNodes ,services.clone());
                         let queueName = conf.param("queue").name();
                         let servicesLock = services.lock();
-                        let sendQueue = servicesLock.unwrap().getLink(&queueName);
+                        let sendQueue = servicesLock.unwrap().get_link(&queueName);
                         Self::toApiQueue(parent, input, sendQueue)
                         // Self::toApiQueue(inputName, queue, input)
                     },
@@ -136,10 +136,10 @@ impl NestedFn {
                 let name = format!("const {:?} '{}'", conf.type_, value);
                 println!("NestedFn.function | Const: {:?}...", &name);
                 let value = match conf.type_.clone() {
-                    FnConfPointType::Bool => value.parse::<bool>().unwrap().toPoint(txId, &name),
-                    FnConfPointType::Int => value.parse::<i64>().unwrap().toPoint(txId, &name),
-                    FnConfPointType::Float => value.parse::<f64>().unwrap().toPoint(txId, &name),
-                    FnConfPointType::String => value.toPoint(txId, &name),
+                    FnConfPointType::Bool => value.parse::<bool>().unwrap().to_point(txId, &name),
+                    FnConfPointType::Int => value.parse::<i64>().unwrap().to_point(txId, &name),
+                    FnConfPointType::Float => value.parse::<f64>().unwrap().to_point(txId, &name),
+                    FnConfPointType::String => value.to_point(txId, &name),
                     FnConfPointType::Unknown => panic!("NestedFn.function | Point type required"),
                 };
                 let fnConst = Self::fnConst(&name, value);
@@ -150,10 +150,10 @@ impl NestedFn {
             FnConfKind::Point(conf) => {                
                 println!("NestedFn.function | Input (Point): {:?} ({:?})...", inputName, conf.name);
                 let initial = match conf.type_.clone() {
-                    FnConfPointType::Bool => false.toPoint(txId, &conf.name),
-                    FnConfPointType::Int => 0.toPoint(txId, &conf.name),
-                    FnConfPointType::Float => 0.0.toPoint(txId, &conf.name),
-                    FnConfPointType::String => "".toPoint(txId, &conf.name),
+                    FnConfPointType::Bool => false.to_point(txId, &conf.name),
+                    FnConfPointType::Int => 0.to_point(txId, &conf.name),
+                    FnConfPointType::Float => 0.0.to_point(txId, &conf.name),
+                    FnConfPointType::String => "".to_point(txId, &conf.name),
                     FnConfPointType::Unknown => panic!("NestedFn.function | Point type required"),
                 };
                 let pointName = conf.name.clone();
@@ -164,7 +164,7 @@ impl NestedFn {
                 }
                 input
             },
-            FnConfKind::PointConf(conf) => {
+            FnConfKind::PointConf(_conf) => {
                 panic!("NestedFn.function | PointConf is not supported in the nested functions yet");
             }
             // FnConfKind::Metric(conf) => {

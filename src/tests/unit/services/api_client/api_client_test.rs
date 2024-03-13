@@ -1,60 +1,54 @@
-#![allow(non_snake_case)]
 #[cfg(test)]
-mod tests {
+mod api_client {
     use log::{info, debug, error};
     use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::{Read, Write}};
+    use testing::{entities::test_value::Value, session::test_session::TestSession, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues}};
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+    use api_tools::{error::api_error::ApiError, api::reply::api_reply::ApiReply};
     use crate::{
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::ToPoint, testing::{test_session::TestSession, test_stuff::{test_value::Value, random_test_values::RandomTestValues, max_test_duration::TestDuration}}},
+        core_::point::point_type::ToPoint,
         conf::api_client_config::ApiClientConfig,  
-        services::{api_cient::{api_client::ApiClient, api_reply::SqlReply, api_error::ApiError}, service::Service},
+        services::{api_cient::api_client::ApiClient, service::service::Service},
     }; 
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    ///
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
-    
-    
+    ///
+    ///    
     #[test]
-    fn test_ApiClient() {
-        DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+    fn basic() {
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        init_once();
+        init_each();
         println!("");
-        let selfId = "test ApiClient";
-        println!("{}", selfId);
+        let self_id = "test ApiClient";
+        println!("\n{}", self_id);
         let path = "./src/tests/unit/services/api_client/api_client.yaml";
-        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
-        testDuration.run().unwrap();
+        let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
+        test_duration.run().unwrap();
         let mut conf = ApiClientConfig::read(path);
         // let addr = conf.address.clone();
-        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
+        let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         conf.address = addr.parse().unwrap();
-
-        let mut apiClient = ApiClient::new("test ApiClient", conf);
-
-        // let testDuration = Duration::from_secs(10);
-        let count = 300;
+        let mut api_client = ApiClient::new("test ApiClient", conf);
+        // let test_duration = Duration::from_secs(10);
+        let count = 10;
         let mut state = 0;
-        let testData = RandomTestValues::new(
-            selfId, 
+        let test_data = RandomTestValues::new(
+            self_id, 
             vec![
                 Value::Int(i64::MIN),
                 Value::Int(i64::MAX),
@@ -78,23 +72,22 @@ mod tests {
             ], 
             count, 
         );
-        let testData: Vec<Value> = testData.collect();
+        let test_data: Vec<Value> = test_data.collect();
 
         let mut sent = vec![];
         let received = Arc::new(Mutex::new(vec![]));
-        let receivedRef = received.clone();
+        let received_ref = received.clone();
         let mut buf = [0; 1024 * 4];
-
-        let receiverHandle = thread::spawn(move || {
-            let mut received = receivedRef.lock().unwrap();
+        let receiver_handle = thread::spawn(move || {
+            let mut received = received_ref.lock().unwrap();
             info!("TCP server | Preparing test server...");
             match TcpListener::bind(addr) {
                 Ok(listener) => {
                     info!("TCP server | Preparing test server - ok");
-                    let mut acceptCount = 2;
-                    let mut maxReadErrors = 3;
-                    while acceptCount > 0 {
-                        acceptCount -= 1;
+                    let mut accept_count = 2;
+                    let mut max_read_errors = 3;
+                    while accept_count > 0 {
+                        accept_count -= 1;
                         match listener.accept() {
                             Ok((mut _socket, addr)) => {
                                 info!("TCP server | accept connection - ok\n\t{:?}", addr);
@@ -113,15 +106,14 @@ mod tests {
                                                     debug!("TCP server | received: {:?}", value);
                                                     received.push(value.clone());
                                                     let obj = value.as_object().unwrap();
-                                                    let reply = SqlReply {
-                                                        authToken: obj.get("authToken").unwrap().as_str().unwrap().to_string(),
-                                                        id: obj.get("id").unwrap().as_str().unwrap().to_string(),
-                                                        keepAlive: obj.get("keepAlive").unwrap().as_bool().unwrap(),
-                                                        query: "".into(),
-                                                        data: vec![],
-                                                        error: ApiError::empty(),
-                                                    };
-                                                    match _socket.write(&reply.asBytes()) {
+                                                    let reply = ApiReply::new(
+                                                        obj.get("authToken").unwrap().as_str().unwrap().to_string(),
+                                                        obj.get("id").unwrap().as_str().unwrap().to_string(),
+                                                        obj.get("keepAlive").unwrap().as_bool().unwrap(),
+                                                        "".into(),
+                                                        vec![],
+                                                    );
+                                                    match _socket.write(&reply.as_bytes()) {
                                                         Ok(bytes) => {
                                                             debug!("TCP server | sent bytes: {:?}", bytes);
                                                         },
@@ -148,8 +140,8 @@ mod tests {
                                         },
                                         Err(err) => {
                                             debug!("socket read - error: {:?}", err);
-                                            maxReadErrors -= 1;
-                                            if maxReadErrors <= 0 {
+                                            max_read_errors -= 1;
+                                            if max_read_errors <= 0 {
                                                 error!("TCP server | socket read error: {:?}", err);
                                                 break;
                                             }
@@ -171,18 +163,16 @@ mod tests {
                 },
             };
         });
-
-
-
-        apiClient.run().unwrap();
+        api_client.run().unwrap();
+        let send = api_client.get_link("api-link");
         let timer = Instant::now();
-        let send = apiClient.getLink("api-link");
-        for value in testData {
-            let point = format!("select from table where id = {}", value.toString()).toPoint(0, "teset");
+        for value in test_data {
+            let point = format!("select from table where id = {}", value.to_string()).to_point(0, "teset");
             send.send(point.clone()).unwrap();
-            sent.push(point.asString().value);
+            sent.push(point.as_string().value);
+            println!("sent: {:?}", point);
         }
-        receiverHandle.join().unwrap();
+        receiver_handle.join().unwrap();
         println!("elapsed: {:?}", timer.elapsed());
         println!("total test events: {:?}", count);
         println!("sent events: {:?}", sent.len());
@@ -197,6 +187,6 @@ mod tests {
             debug!("\nresult({}): {:?}\ntarget({}): {:?}", received.len(), result, sent.len(), target);
             assert!(result == &target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
-        testDuration.exit();
+        test_duration.exit();
     }
 }

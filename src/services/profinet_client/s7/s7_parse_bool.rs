@@ -4,8 +4,8 @@ use log::{debug, warn};
 use std::array::TryFromSliceError;
 use chrono::{DateTime, Utc};
 use crate::{
-    core_::{point::{point::Point, point_type::PointType}, status::status::Status, types::bool::Bool},
-    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress}, 
+    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress, point_config_history::PointConfigHistory}, 
+    core_::{cot::cot::Cot, point::{point::Point, point_type::PointType}, status::status::Status, types::bool::Bool}, 
     services::profinet_client::parse_point::ParsePoint,
 };
 
@@ -20,7 +20,7 @@ pub struct S7ParseBool {
     pub status: Status,
     pub offset: Option<u32>,
     pub bit: Option<u8>,
-    pub history: Option<u8>,
+    pub history: PointConfigHistory,
     pub alarm: Option<u8>,
     pub comment: Option<String>,
     pub timestamp: DateTime<Utc>,
@@ -44,7 +44,7 @@ impl S7ParseBool {
             isChanged: false,
             offset: config.clone().address.unwrap_or(PointConfigAddress::empty()).offset,
             bit: config.clone().address.unwrap_or(PointConfigAddress::empty()).bit,
-            history: config.history,
+            history: config.history.clone(),
             alarm: config.alarm,
             comment: config.comment.clone(),
             timestamp: Utc::now(),
@@ -82,7 +82,8 @@ impl S7ParseBool {
                 &self.name, 
                 Bool(self.value), 
                 self.status, 
-                self.timestamp
+                Cot::Inf,
+                self.timestamp,
             )))
             // debug!("{} point Bool: {:?}", self.id, dsPoint.value);
         } else {
@@ -122,7 +123,7 @@ impl S7ParseBool {
 impl ParsePoint for S7ParseBool {
     //
     //
-    fn nextSimple(&mut self, bytes: &Vec<u8>) -> Option<PointType> {
+    fn next_simple(&mut self, bytes: &Vec<u8>) -> Option<PointType> {
         self.addRawSimple(bytes);
         self.toPoint()
     }
@@ -134,14 +135,19 @@ impl ParsePoint for S7ParseBool {
     }
     //
     //
-    fn nextStatus(&mut self, status: Status) -> Option<PointType> {
+    fn next_status(&mut self, status: Status) -> Option<PointType> {
         self.status = status;
         self.timestamp = Utc::now();
         self.toPoint()
     }
     //
     //
-    fn isChanged(&self) -> bool {
+    fn is_changed(&self) -> bool {
         self.isChanged
+    }
+    //
+    //
+    fn address(&self) -> PointConfigAddress {
+        PointConfigAddress { offset: self.offset, bit: self.bit }
     }
 }

@@ -1,3 +1,7 @@
+//!
+//! Implementations for read all kind of configurations
+//! used in the application
+///
 pub mod conf_tree;
 
 pub mod fn_conf_keywd;
@@ -29,3 +33,5 @@ pub mod point_config;
 pub mod fn_point_config;
 
 pub mod profinet_client_config;
+
+pub mod jds_service_config;

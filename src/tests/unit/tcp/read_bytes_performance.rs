@@ -4,8 +4,10 @@ mod tests {
     use chrono::{DateTime, Utc};
     use log::{info, debug, error, trace};
     use std::{sync::{Once, atomic::{AtomicUsize, Ordering}, Arc}, time::{Duration, Instant}, net::{TcpStream, TcpListener}, thread, io::{Read, BufReader, Write}};
+    use testing::session::test_session::TestSession;
+    use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
     use crate::core_::{
-        debug::debug_session::{DebugSession, LogLevel, Backtrace}, net::protocols::jds::jds_define::JDS_END_OF_TRANSMISSION, point::{point_type::PointType, point::Point}, status::status::Status, testing::test_session::TestSession, types::bool::Bool
+        cot::cot::Cot, net::protocols::jds::jds_define::JDS_END_OF_TRANSMISSION, point::{point::Point, point_type::PointType}, status::status::Status, types::bool::Bool
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -15,7 +17,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -26,7 +28,7 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
@@ -41,34 +43,67 @@ mod tests {
     #[test]
     fn test_read_bytes_performance() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
         println!("test read bytes from socket performance");
         let name = "/server/line1/ied1/test1";
         let ts = ts();
         // debug!("timestamp: {:?}", ts);j
-        let testData = [
-            (format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": false,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Bool(Point::new(0, name, Bool(false), Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": true,    "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Bool(Point::new(0, name, Bool(true), Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": 1,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Int(Point::new(0, name, 1, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": -9223372036854775808,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Int(Point::new(0, name, -9223372036854775808, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value":  9223372036854775807,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Int(Point::new(0, name,  9223372036854775807, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  0.0, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(0, name,  0.0, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value": -1.1, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(0, name, -1.1, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  1.1, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(0, name,  1.1, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value": -1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(0, name, -1.7976931348623157e308, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(0, name,  1.7976931348623157e308, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "String","name": "{}", "value": "~!@#$%^&*()_+`1234567890-=","status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::String(Point::new(0, name, "~!@#$%^&*()_+`1234567890-=".to_string(), Status::Ok, ts))),
+        let test_data = [
+            (
+                format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": false,   "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Bool(Point::new(0, name, Bool(false), Status::Ok, Cot::default(), ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": true,    "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Bool(Point::new(0, name, Bool(true), Status::Ok, Cot::default(), ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": 1,   "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Int(Point::new(0, name, 1, Status::Ok, Cot::default(), ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": -9223372036854775808,   "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Int(Point::new(0, name, -9223372036854775808, Status::Ok, Cot::default(), ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value":  9223372036854775807,   "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Int(Point::new(0, name,  9223372036854775807, Status::Ok, Cot::default(), ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  0.0, "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Float(Point::new(0, name,  0.0, Status::Ok, Cot::default(), ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value": -1.1, "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Float(Point::new(0, name, -1.1, Status::Ok, Cot::default(), ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  1.1, "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Float(Point::new(0, name,  1.1, Status::Ok, Cot::default(), ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value": -1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Float(Point::new(0, name, -1.7976931348623157e308, Status::Ok, Cot::default(), ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Float(Point::new(0, name,  1.7976931348623157e308, Status::Ok, Cot::default(), ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "String","name": "{}", "value": "~!@#$%^&*()_+`1234567890-=","status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::String(Point::new(0, name, "~!@#$%^&*()_+`1234567890-=".to_string(), Status::Ok, Cot::default(), ts))
+            ),
         ];
         //
         //
-        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
+        let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         let received = Arc::new(AtomicUsize::new(0));
         let count = 100_000;
-        let testDataLen = testData.len();
-        let total = count * testDataLen;
-        mockTcpServer(addr.to_string(), count, testData.clone(), received.clone());
+        let test_dataLen = test_data.len();
+        let total = count * test_dataLen;
+        mockTcpServer(addr.to_string(), count, test_data.clone(), received.clone());
         thread::sleep(Duration::from_micros(100));
         {
             println!("\nReading from stream.read(byte)...");
@@ -89,9 +124,9 @@ mod tests {
                                                 break 'read;
                                             }
                                             let msg = String::from_utf8(buffer).unwrap();
-                                            let recvIndex = (received.load(Ordering::SeqCst) - 1) % testDataLen;
+                                            let recvIndex = (received.load(Ordering::SeqCst) - 1) % test_dataLen;
                                             trace!("socket read - received[{}]: {:?}", recvIndex, msg);
-                                            assert!(msg == testData[recvIndex].0);
+                                            assert!(msg == test_data[recvIndex].0);
                                             buffer = vec![];
                                         },
                                         _ => {
@@ -116,12 +151,12 @@ mod tests {
         }
         //
         // reading from stream.bytes
-        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
+        let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         let received = Arc::new(AtomicUsize::new(0));
         // let count = 10000;
-        let testDataLen = testData.len();
-        let total = count * testDataLen;
-        mockTcpServer(addr.to_string(), count, testData.clone(), received.clone());
+        let test_dataLen = test_data.len();
+        let total = count * test_dataLen;
+        mockTcpServer(addr.to_string(), count, test_data.clone(), received.clone());
         thread::sleep(Duration::from_micros(100));
         {
             println!("\nReading from stream.bytes...");
@@ -142,9 +177,9 @@ mod tests {
                                                 break;
                                             }
                                             let msg = String::from_utf8(buffer).unwrap();
-                                            let recvIndex = (received.load(Ordering::SeqCst) - 1) % testDataLen;
+                                            let recvIndex = (received.load(Ordering::SeqCst) - 1) % test_dataLen;
                                             trace!("socket read - received[{}]: {:?}", recvIndex, msg);
-                                            assert!(msg == testData[recvIndex].0);
+                                            assert!(msg == test_data[recvIndex].0);
                                             buffer = vec![];
                                         },
                                         _ => {
@@ -169,12 +204,12 @@ mod tests {
         }
         //
         // reading from BufReader<stream>
-        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
+        let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         let received = Arc::new(AtomicUsize::new(0));
         // let count = 10000;
-        let testDataLen = testData.len();
-        let total = count * testDataLen;
-        mockTcpServer(addr.to_string(), count, testData.clone(), received.clone());
+        let test_dataLen = test_data.len();
+        let total = count * test_dataLen;
+        mockTcpServer(addr.to_string(), count, test_data.clone(), received.clone());
         thread::sleep(Duration::from_micros(100));
         {
             println!("\nreading from BufReader<stream>...");
@@ -196,9 +231,9 @@ mod tests {
                                                 break;
                                             }
                                             let msg = String::from_utf8(buffer).unwrap();
-                                            let recvIndex = (received.load(Ordering::SeqCst) - 1) % testDataLen;
+                                            let recvIndex = (received.load(Ordering::SeqCst) - 1) % test_dataLen;
                                             trace!("socket read - received[{}]: {:?}", recvIndex, msg);
-                                            assert!(msg == testData[recvIndex].0);
+                                            assert!(msg == test_data[recvIndex].0);
                                             buffer = vec![];
                                         },
                                         _ => {
@@ -221,14 +256,14 @@ mod tests {
                 };
             }
         }        
-        // for (json, target) in testData {
+        // for (json, target) in test_data {
         //     let result = PointType::fromJsonBytes(json.as_bytes().to_vec()).unwrap();
         //     assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         // }
     }
     ///
     /// 
-    fn mockTcpServer(addr: String, count: usize, testData: [(String, PointType); 11], received: Arc<AtomicUsize>) {
+    fn mockTcpServer(addr: String, count: usize, test_data: [(String, PointType); 11], received: Arc<AtomicUsize>) {
         let mut sent = 0;
         thread::spawn(move || {
             info!("TCP server | Preparing test server...");
@@ -244,7 +279,7 @@ mod tests {
                                 info!("TCP server | accept connection - ok\n\t{:?}", addr);
                                 let EOT = [4];
                                 for _ in 0..count {
-                                    for (msg, _) in &testData {
+                                    for (msg, _) in &test_data {
                                         // for e in buf.iter_mut() {*e = 0;}
                                         let bytes = msg.as_bytes();
                                         match _socket.write(&[bytes, &EOT].concat()) {

@@ -4,10 +4,9 @@
 mod tests {
     use log::{debug, info};
     use std::{sync::Once, rc::Rc, cell::RefCell};
-    
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-        point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
+        core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
         services::task::nested_function::{fn_::FnOut, 
         fn_input::FnInput, fn_add::FnAdd},
     };
@@ -19,7 +18,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -30,7 +29,7 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach(initial: PointType) -> FnInOutRef {
+    fn init_each(initial: PointType) -> FnInOutRef {
         Rc::new(RefCell::new(
             Box::new(
                 FnInput::new("test", initial)
@@ -42,19 +41,19 @@ mod tests {
     #[test]
     fn test_bool() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
+        init_once();
         info!("test_bool");
-        let mut value1Stored = false.toPoint(0, "bool");
-        let mut value2Stored = false.toPoint(0, "bool");
+        let mut value1Stored = false.to_point(0, "bool");
+        let mut value2Stored = false.to_point(0, "bool");
         let mut target: PointType;
-        let input1 = initEach(value1Stored.clone());
-        let input2 = initEach(value2Stored.clone());
+        let input1 = init_each(value1Stored.clone());
+        let input2 = init_each(value2Stored.clone());
         let mut fnAdd = FnAdd::new(
             "test",
             input1.clone(),
             input2.clone(),
         );
-        let testData = vec![
+        let test_data = vec![
             (false, false),
             (false, true),
             (false, false),
@@ -63,20 +62,20 @@ mod tests {
             (true, true),
             (false, false),
         ];
-        for (value1, value2) in testData {
-            let point1 = value1.toPoint(0, "test");
-            let point2 = value2.toPoint(0, "test");
+        for (value1, value2) in test_data {
+            let point1 = value1.to_point(0, "test");
+            let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
             let state = fnAdd.out();
             debug!("value1: {:?}   |   state: {:?}", value1, state);
             value1Stored = point1.clone();
-            target = PointType::Bool(value1Stored.asBool() + value2Stored.asBool());
+            target = PointType::Bool(value1Stored.as_bool() + value2Stored.as_bool());
             assert_eq!(state, target);
             input2.borrow_mut().add(point2.clone());
             let state = fnAdd.out();
             debug!("value2: {:?}   |   state: {:?}", value2, state);
             value2Stored = point2.clone();
-            target = PointType::Bool(value1Stored.asBool() + value2Stored.asBool());
+            target = PointType::Bool(value1Stored.as_bool() + value2Stored.as_bool());
             assert_eq!(state, target);
             println!("");
         }        
@@ -86,19 +85,19 @@ mod tests {
     #[test]
     fn test_int() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
+        init_once();
         info!("test_int");
-        let mut value1Stored = 0.toPoint(0, "int");
-        let mut value2Stored = 0.toPoint(0, "int");
+        let mut value1Stored = 0.to_point(0, "int");
+        let mut value2Stored = 0.to_point(0, "int");
         let mut target: PointType;
-        let input1 = initEach(value1Stored.clone());
-        let input2 = initEach(value2Stored.clone());
+        let input1 = init_each(value1Stored.clone());
+        let input2 = init_each(value2Stored.clone());
         let mut fnAdd = FnAdd::new(
             "test",
             input1.clone(),
             input2.clone(),
         );
-        let testData = vec![
+        let test_data = vec![
             (1, 1),
             (2, 2),
             (5, 5),
@@ -112,20 +111,20 @@ mod tests {
             (i64::MAX, 0),
             (0, i64::MAX),
         ];
-        for (value1, value2) in testData {
-            let point1 = value1.toPoint(0, "test");
-            let point2 = value2.toPoint(0, "test");
+        for (value1, value2) in test_data {
+            let point1 = value1.to_point(0, "test");
+            let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
             let state = fnAdd.out();
             debug!("value1: {:?}   |   state: {:?}", value1, state);
             value1Stored = point1.clone();
-            target = PointType::Int(value1Stored.asInt() + value2Stored.asInt());
+            target = PointType::Int(value1Stored.as_int() + value2Stored.as_int());
             assert_eq!(state, target);
             input2.borrow_mut().add(point2.clone());
             let state = fnAdd.out();
             debug!("value2: {:?}   |   state: {:?}", value2, state);
             value2Stored = point2.clone();
-            target = PointType::Int(value1Stored.asInt() + value2Stored.asInt());
+            target = PointType::Int(value1Stored.as_int() + value2Stored.as_int());
             assert_eq!(state, target);
             println!("");
         }        

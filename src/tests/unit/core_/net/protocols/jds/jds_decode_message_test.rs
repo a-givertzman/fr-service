@@ -6,8 +6,11 @@ mod tests {
     use log::{info, debug, trace, error, warn};
     use rand::Rng;
     use std::{sync::{Once, atomic::{AtomicUsize, Ordering}, Arc}, time::{Duration, Instant}, net::{TcpStream, TcpListener}, thread, io::{Write, BufReader}};
+    use testing::session::test_session::TestSession;
+    use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
     use crate::core_::{
-        debug::debug_session::{DebugSession, LogLevel, Backtrace}, net::{protocols::jds::jds_decode_message::JdsDecodeMessage, connection_status::ConnectionStatus}, point::{point_type::PointType, point::Point}, status::status::Status, testing::test_session::TestSession, types::bool::Bool
+        cot::cot::Cot, net::{connection_status::ConnectionStatus, protocols::jds::jds_decode_message::JdsDecodeMessage}, 
+        point::{point::Point, point_type::PointType}, status::status::Status, types::bool::Bool,
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -17,7 +20,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -28,7 +31,7 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
@@ -42,35 +45,68 @@ mod tests {
     #[test]
     fn test_jds_decode_message() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
         println!("test_jds_decode_message");
         let name = "/server/line1/ied1/test1";
         let ts = ts();
         let txId = 0;
         // debug!("timestamp: {:?}", ts);j
-        let testData = [
-            (format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": false,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Bool(Point::new(txId, name, Bool(false), Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": true,    "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Bool(Point::new(txId, name, Bool(true), Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": 1,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Int(Point::new(txId, name, 1, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": -9223372036854775808,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Int(Point::new(txId, name, -9223372036854775808, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value":  9223372036854775807,   "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Int(Point::new(txId, name,  9223372036854775807, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  0.0, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(txId, name,  0.0, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value": -1.1, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(txId, name, -1.1, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  1.1, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(txId, name,  1.1, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value": -1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(txId, name, -1.7976931348623157e308, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::Float(Point::new(txId, name,  1.7976931348623157e308, Status::Ok, ts))),
-            (format!(r#"{{"id": "1", "type": "String","name": "{}", "value": "~!@#$%^&*()_+`1234567890-=","status": 0, "timestamp":"{}"}}"#, name, tsStr(ts)), PointType::String(Point::new(txId, name, "~!@#$%^&*()_+`1234567890-=".to_string(), Status::Ok, ts))),
+        let test_data = [
+            (
+                format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": false,   "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Bool(Point::new(txId, name, Bool(false), Status::Ok, Cot::default(), ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": true,    "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Bool(Point::new(txId, name, Bool(true), Status::Ok, Cot::default(), ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": 1,   "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Int(Point::new(txId, name, 1, Status::Ok, Cot::default(), ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": -9223372036854775808,   "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Int(Point::new(txId, name, -9223372036854775808, Status::Ok, Cot::default(), ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value":  9223372036854775807,   "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Int(Point::new(txId, name,  9223372036854775807, Status::Ok, Cot::default(), ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  0.0, "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Float(Point::new(txId, name,  0.0, Status::Ok, Cot::default(), ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value": -1.1, "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Float(Point::new(txId, name, -1.1, Status::Ok, Cot::default(), ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  1.1, "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Float(Point::new(txId, name,  1.1, Status::Ok, Cot::default(), ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value": -1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Float(Point::new(txId, name, -1.7976931348623157e308, Status::Ok, Cot::default(), ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::Float(Point::new(txId, name,  1.7976931348623157e308, Status::Ok, Cot::default(), ts))
+            ),
+            (
+                format!(r#"{{"id": "1", "type": "String","name": "{}", "value": "~!@#$%^&*()_+`1234567890-=","status": 0, "timestamp":"{}"}}"#, 
+                name, tsStr(ts)), PointType::String(Point::new(txId, name, "~!@#$%^&*()_+`1234567890-=".to_string(), Status::Ok, Cot::default(), ts))
+            ),
         ];
         //
         //
-        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
+        let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         let received = Arc::new(AtomicUsize::new(0));
         let count = 1000;
-        let testDataLen = testData.len();
-        let total = count * testDataLen;
-        mockTcpServer(addr.to_string(), count, testData.clone(), received.clone());
+        let test_dataLen = test_data.len();
+        let total = count * test_dataLen;
+        mockTcpServer(addr.to_string(), count, test_data.clone(), received.clone());
         thread::sleep(Duration::from_micros(100));
         {
             println!("\nReading from stream.read(byte)...");
@@ -87,9 +123,9 @@ mod tests {
                                         Ok(bytes) => {
                                             received.fetch_add(1, Ordering::SeqCst);
                                             let msg = String::from_utf8(bytes).unwrap();
-                                            let recvIndex = (received.load(Ordering::SeqCst) - 1) % testDataLen;
+                                            let recvIndex = (received.load(Ordering::SeqCst) - 1) % test_dataLen;
                                             trace!("socket read - received[{}]: {:?}", recvIndex, msg);
-                                            assert!(msg == testData[recvIndex].0);
+                                            assert!(msg == test_data[recvIndex].0);
                                             // debug!("socket read - received: {:?}", received.load(Ordering::SeqCst));
                                         },
                                         Err(err) => {
@@ -117,7 +153,7 @@ mod tests {
     }
     ///
     /// TcpServer setup
-    fn mockTcpServer(addr: String, count: usize, testData: [(String, PointType); 11], received: Arc<AtomicUsize>) {
+    fn mockTcpServer(addr: String, count: usize, test_data: [(String, PointType); 11], received: Arc<AtomicUsize>) {
         let mut sent = 0;
         thread::spawn(move || {
             info!("TCP server | Preparing test server...");
@@ -134,7 +170,7 @@ mod tests {
                                 info!("TCP server | accept connection - ok\n\t{:?}", addr);
                                 let EOT = [4];
                                 for _ in 0..count {
-                                    for (msg, _) in &testData {
+                                    for (msg, _) in &test_data {
                                         let pos: usize = rng.gen_range(5..(msg.len() - 5));
                                         // for e in buf.iter_mut() {*e = 0;}
                                         let (msg1, msg2) = msg.split_at(pos);

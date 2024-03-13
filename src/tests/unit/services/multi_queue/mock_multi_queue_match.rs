@@ -5,8 +5,10 @@ use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, 
 use log::{info, warn, error, debug, trace};
 
 use crate::{
-    services::{services::Services, service::Service, multi_queue::subscriptions::Subscriptions}, 
-    core_::point::{point_type::PointType, point_tx_id::PointTxId},
+    core_::{object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}}, 
+    services::{
+        multi_queue::{subscription_criteria::SubscriptionCriteria, subscriptions::Subscriptions}, service::service::Service, services::Services 
+    },
 };
 
 
@@ -30,11 +32,11 @@ impl MockMultiQueueMatch {
     /// Creates new instance of [ApiClient]
     /// - [parent] - the ID if the parent entity
     pub fn new(parent: impl Into<String>, txQueues: Vec<String>, rxQueue: impl Into<String>, services: Arc<Mutex<Services>>) -> Self {
-        let selfId = format!("{}/MockMultiQueueMatch", parent.into());
+        let self_id = format!("{}/MockMultiQueueMatch", parent.into());
         let (send, recv) = mpsc::channel();
         Self {
-            id: selfId.clone(),
-            subscriptions: Arc::new(Mutex::new(Subscriptions::new(selfId))),
+            id: self_id.clone(),
+            subscriptions: Arc::new(Mutex::new(Subscriptions::new(self_id))),
             rxSend: HashMap::from([(rxQueue.into(), send)]),
             rxRecv: vec![recv],
             sendQueues: txQueues,
@@ -45,15 +47,17 @@ impl MockMultiQueueMatch {
 }
 ///
 /// 
-impl Service for MockMultiQueueMatch {
-    //
-    //
+impl Object for MockMultiQueueMatch {
     fn id(&self) -> &str {
         &self.id
     }
+}
+///
+/// 
+impl Service for MockMultiQueueMatch {
     //
     //
-    fn getLink(&mut self, name: &str) -> Sender<PointType> {
+    fn get_link(&mut self, name: &str) -> Sender<PointType> {
         match self.rxSend.get(name) {
             Some(send) => send.clone(),
             None => panic!("{}.run | link '{:?}' - not found", self.id, name),
@@ -61,24 +65,24 @@ impl Service for MockMultiQueueMatch {
     }
     //
     //
-    fn subscribe(&mut self, receiverId: &str, points: &Vec<String>) -> Receiver<PointType> {
+    fn subscribe(&mut self, receiverId: &str, points: &Vec<SubscriptionCriteria>) -> (Sender<PointType>, Receiver<PointType>) {
         let (send, recv) = mpsc::channel();
         let receiverId = PointTxId::fromStr(receiverId);
         if points.is_empty() {
-            self.subscriptions.lock().unwrap().addBroadcast(receiverId, send.clone());
+            self.subscriptions.lock().unwrap().add_broadcast(receiverId, send.clone());
         } else {
-            for pointId in points {
-                self.subscriptions.lock().unwrap().addMulticast(receiverId, pointId, send.clone());
+            for subscription_criteria in points {
+                self.subscriptions.lock().unwrap().add_multicast(receiverId, &subscription_criteria.destination(), send.clone());
             }
         }
-        recv
+        (send, recv)
     }
     //
     //
-    fn unsubscribe(&mut self, receiverId: &str, points: &Vec<String>) -> Result<(), String> {
+    fn unsubscribe(&mut self, receiverId: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
         let receiverId = PointTxId::fromStr(receiverId);
-        for pointId in points {
-            match self.subscriptions.lock().unwrap().remove(&receiverId, pointId) {
+        for subscription_criteria in points {
+            match self.subscriptions.lock().unwrap().remove(&receiverId, &subscription_criteria.destination()) {
                 Ok(_) => {},
                 Err(err) => {
                     return Err(err)
@@ -91,32 +95,32 @@ impl Service for MockMultiQueueMatch {
     //
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
-        let selfId = self.id.clone();
+        let self_id = self.id.clone();
         let exit = self.exit.clone();
         let recv = self.rxRecv.pop().unwrap();
         let subscriptions = self.subscriptions.clone();
         let mut staticSubscriptions: HashMap<usize, Sender<PointType>> = HashMap::new();
         for sendQueue in &self.sendQueues {
-            debug!("{}.run | Lock services...", selfId);
-            let txSend = self.services.lock().unwrap().getLink(sendQueue);
-            debug!("{}.run | Lock services - ok", selfId);
+            debug!("{}.run | Lock services...", self_id);
+            let txSend = self.services.lock().unwrap().get_link(sendQueue);
+            debug!("{}.run | Lock services - ok", self_id);
             staticSubscriptions.insert(PointTxId::fromStr(sendQueue), txSend);
         }
-        let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
-            info!("{}.run | Preparing thread - ok", selfId);
+        let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
+            info!("{}.run | Preparing thread - ok", self_id);
             loop {
                 let subscriptions = subscriptions.lock().unwrap();
                 match recv.recv() {
                     Ok(point) => {
                         let pointId = point.name();
-                        trace!("{}.run | received: {:?}", selfId, point);
+                        trace!("{}.run | received: {:?}", self_id, point);
                         for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {
-                            match receiverId != point.txId() {
+                            match receiverId != point.tx_id() {
                                 true => {
                                     match sender.send(point.clone()) {
                                         Ok(_) => {},
                                         Err(err) => {
-                                            error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", selfId, pointId, receiverId, err);
+                                            error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", self_id, pointId, receiverId, err);
                                         },
                                     };
                                 },
@@ -125,7 +129,7 @@ impl Service for MockMultiQueueMatch {
                         }
                     },
                     Err(err) => {
-                        warn!("{}.run | recv error: {:?}", selfId, err);
+                        warn!("{}.run | recv error: {:?}", self_id, err);
                     },
                 }
                 if exit.load(Ordering::SeqCst) {
@@ -165,35 +169,35 @@ impl Service for MockMultiQueueMatch {
     // //
     // fn serveRx(&mut self, recv: Receiver<PointType>) -> Result<JoinHandle<()>, std::io::Error> {
     //     info!("{}.run | starting...", self.id);
-    //     let selfId = self.id.clone();
+    //     let self_id = self.id.clone();
     //     let exit = self.exit.clone();
     //     let subscriptions = self.subscriptions.clone();
     //     let mut staticSubscriptions: HashMap<String, Sender<PointType>> = HashMap::new();
     //     for sendQueue in &self.sendQueues {
-    //         debug!("{}.run | Lock services...", selfId);
-    //         let txSend = self.services.lock().unwrap().getLink(sendQueue);
-    //         debug!("{}.run | Lock services - ok", selfId);
+    //         debug!("{}.run | Lock services...", self_id);
+    //         let txSend = self.services.lock().unwrap().get_link(sendQueue);
+    //         debug!("{}.run | Lock services - ok", self_id);
     //         staticSubscriptions.insert(sendQueue.to_string(), txSend);
     //     }
-    //     let _handle = thread::Builder::new().name(format!("{} - MockMultiQueueMatch.run", selfId.clone())).spawn(move || {
-    //         info!("{}.run | Preparing thread - ok", selfId);
+    //     let _handle = thread::Builder::new().name(format!("{} - MockMultiQueueMatch.run", self_id.clone())).spawn(move || {
+    //         info!("{}.run | Preparing thread - ok", self_id);
     //         loop {
     //             let subscriptions = subscriptions.lock().unwrap();
     //             match recv.recv() {
     //                 Ok(point) => {
     //                     let pointId = point.name();
-    //                     trace!("{}.run | received: {:?}", selfId, point);
+    //                     trace!("{}.run | received: {:?}", self_id, point);
     //                     for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {
     //                         match sender.send(point.clone()) {
     //                             Ok(_) => {},
     //                             Err(err) => {
-    //                                 error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", selfId, pointId, receiverId, err);
+    //                                 error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", self_id, pointId, receiverId, err);
     //                             },
     //                         };
     //                     }
     //                 },
     //                 Err(err) => {
-    //                     warn!("{}.run | recv error: {:?}", selfId, err);
+    //                     warn!("{}.run | recv error: {:?}", self_id, err);
     //                 },
     //             }
     //             if exit.load(Ordering::SeqCst) {

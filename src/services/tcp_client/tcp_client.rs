@@ -5,15 +5,9 @@ use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Order
 use log::{info, debug};
 
 use crate::{
-    core_::{point::point_type::PointType, net::protocols::jds::{jds_serialize::JdsSerialize, jds_encode_message::JdsEncodeMessage}},
-    conf::tcp_client_config::TcpClientConfig,
-    services::{service::Service, services::Services}, 
-    tcp::{
-        tcp_client_connect::TcpClientConnect, 
-        tcp_stream_write::TcpStreamWrite, 
-        tcp_write_alive::TcpWriteAlive, 
-        tcp_read_alive::TcpReadAlive
-    }, 
+    conf::tcp_client_config::TcpClientConfig, core_::{net::protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::point_type::PointType}, services::{service::service::Service, services::Services}, tcp::{
+        tcp_client_connect::TcpClientConnect, tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive
+    } 
 };
 
 
@@ -53,17 +47,17 @@ impl TcpClient {
         }
     }
 }
+impl Object for TcpClient {
+    fn id(&self) -> &str {
+        &self.id
+    }
+}
 ///
 /// 
 impl Service for TcpClient {
     //
-    //
-    fn id(&self) -> &str {
-        &self.id
-    }
-    //
     // 
-    fn getLink(&mut self, name: &str) -> Sender<PointType> {
+    fn get_link(&mut self, name: &str) -> Sender<PointType> {
         match self.inSend.get(name) {
             Some(send) => send.clone(),
             None => panic!("{}.run | link '{:?}' - not found", self.id, name),
@@ -73,15 +67,15 @@ impl Service for TcpClient {
     //
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
-        let selfId = self.id.clone();
+        let self_id = self.id.clone();
         let conf = self.conf.clone();
         let exit = self.exit.clone();
         let exitPair = Arc::new(AtomicBool::new(false));
         info!("{}.run | rx queue name: {:?}", self.id, conf.rx);
         info!("{}.run | tx queue name: {:?}", self.id, conf.tx);
-        debug!("{}.run | Lock services...", selfId);
-        let txSend = self.services.lock().unwrap().getLink(&conf.tx);
-        debug!("{}.run | Lock services - ok", selfId);
+        debug!("{}.run | Lock services...", self_id);
+        let txSend = self.services.lock().unwrap().get_link(&conf.tx);
+        debug!("{}.run | Lock services - ok", self_id);
         let buffered = conf.rxBuffered; // TODO Read this from config
         let inRecv = self.inRecv.pop().unwrap();
         // let (cyclic, cycleInterval) = match conf.cycle {
@@ -90,28 +84,36 @@ impl Service for TcpClient {
         // };
         let reconnect = conf.reconnectCycle.unwrap_or(Duration::from_secs(3));
         let mut tcpClientConnect = TcpClientConnect::new(
-            selfId.clone(), 
+            self_id.clone(), 
             conf.address, 
             reconnect,
         );
         let mut tcpReadAlive = TcpReadAlive::new(
-            &selfId,
+            &self_id,
+            Arc::new(Mutex::new(
+                JdsDeserialize::new(
+                    self_id.clone(),
+                    JdsDecodeMessage::new(
+                        &self_id,
+                    ),
+                ),
+            )),
             txSend,
             Duration::from_millis(10),
             Some(exit.clone()),
             Some(exitPair.clone()),
         );
         let tcpWriteAlive = TcpWriteAlive::new(
-            &selfId,
+            &self_id,
             Duration::from_millis(10),
             Arc::new(Mutex::new(TcpStreamWrite::new(
-                &selfId,
+                &self_id,
                 buffered,
                 Some(conf.rxMaxLength as usize),
                 Box::new(JdsEncodeMessage::new(
-                    &selfId,
+                    &self_id,
                     JdsSerialize::new(
-                        &selfId,
+                        &self_id,
                         inRecv,
                     ),
                 )),
@@ -119,9 +121,9 @@ impl Service for TcpClient {
             Some(exit.clone()),
             Some(exitPair.clone()),
         );
-        info!("{}.run | Preparing thread...", selfId);
-        let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
-            info!("{}.run | Preparing thread - ok", selfId);
+        info!("{}.run | Preparing thread...", self_id);
+        let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
+            info!("{}.run | Preparing thread - ok", self_id);
             loop {
                 exitPair.store(false, Ordering::SeqCst);
                 match tcpClientConnect.connect() {

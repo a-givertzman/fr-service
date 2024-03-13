@@ -2,7 +2,8 @@
 #[cfg(test)]
 mod tests {
     use std::sync::Once;
-    use crate::core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, retain_buffer::retain_buffer::RetainBuffer}; 
+    use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
+    use crate::core_::retain_buffer::retain_buffer::RetainBuffer; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -11,7 +12,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -22,15 +23,15 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
     #[test]
     fn test_RetainBuffer() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
         println!("test RetainBuffer");
         let mut buffer = RetainBuffer::new("test", "", Some(3));
@@ -54,8 +55,8 @@ mod tests {
     #[test]
     fn test_RetainBuffer_capacity() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
         println!("test RetainBuffer capacity");
         let mut buffer = RetainBuffer::new("test", "", Some(3));

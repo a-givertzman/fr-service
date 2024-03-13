@@ -3,8 +3,8 @@
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}, time::Duration};
 
 use log::{info, warn, debug, trace};
-
-use crate::{core_::{point::point_type::PointType, testing::test_stuff::test_value::Value}, services::{services::Services, service::Service}};
+use testing::entities::test_value::Value;
+use crate::{core_::{object::object::Object, point::point_type::{PointType, ToPoint}}, services::{service::service::Service, services::Services}};
 
 
 pub struct MockSendService {
@@ -15,7 +15,7 @@ pub struct MockSendService {
     // outRecv: Vec<Receiver<PointType>>,
     sendQueue: String,
     services: Arc<Mutex<Services>>,
-    testData: Vec<Value>,
+    test_data: Vec<Value>,
     sent: Arc<Mutex<Vec<PointType>>>,
     delay: Option<Duration>,
     exit: Arc<AtomicBool>,
@@ -23,18 +23,18 @@ pub struct MockSendService {
 ///
 /// 
 impl MockSendService {
-    pub fn new(parent: impl Into<String>, _recvQueue: &str, sendQueue: &str, services: Arc<Mutex<Services>>, testData: Vec<Value>, delay: Option<Duration>) -> Self {
-        let selfId = format!("{}/MockSendService", parent.into());
+    pub fn new(parent: impl Into<String>, _recvQueue: &str, sendQueue: &str, services: Arc<Mutex<Services>>, test_data: Vec<Value>, delay: Option<Duration>) -> Self {
+        let self_id = format!("{}/MockSendService", parent.into());
         // let (send, recv) = mpsc::channel::<PointType>();
         Self {
-            id: selfId.clone(),
+            id: self_id.clone(),
             // rxSend: HashMap::from([(recvQueue.to_string(), send)]),
             // inRecv: vec![recv],
             // txSend: HashMap::new(),
             // outRecv: vec![],
             sendQueue: sendQueue.to_string(),
             services,
-            testData,
+            test_data,
             sent: Arc::new(Mutex::new(vec![])),
             delay,
             exit: Arc::new(AtomicBool::new(false)),
@@ -53,16 +53,18 @@ impl MockSendService {
 }
 ///
 /// 
-impl Service for MockSendService {
-    //
-    //
+impl Object for MockSendService {
     fn id(&self) -> &str {
         &self.id
     }
+}
+///
+/// 
+impl Service for MockSendService {
     //
     //
-    fn getLink(&mut self, _name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
-        panic!("{}.getLink | Does not support getLink", self.id())
+    fn get_link(&mut self, _name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
+        panic!("{}.get_link | Does not support get_link", self.id())
         // match self.rxSend.get(name) {
         //     Some(send) => send.clone(),
         //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
@@ -72,26 +74,26 @@ impl Service for MockSendService {
     //
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
-        let selfId = self.id.clone();
+        let self_id = self.id.clone();
         let exit = self.exit.clone();
-        debug!("{}.run | Lock services...", selfId);
+        debug!("{}.run | Lock services...", self_id);
         let services = self.services.lock().unwrap();
-        debug!("{}.run | Lock services - ok", selfId);
-        let txSend = services.getLink(&self.sendQueue);
-        let testData = self.testData.clone();
+        debug!("{}.run | Lock services - ok", self_id);
+        let txSend = services.get_link(&self.sendQueue);
+        let test_data = self.test_data.clone();
         let sent = self.sent.clone();
         let delay = self.delay.clone();
-        let _handle = thread::Builder::new().name(format!("{}.run", selfId)).spawn(move || {
-            info!("{}.run | Preparing thread - ok", selfId);
-            for value in testData {
-                let point = value.toPoint(0,&format!("{}/test", selfId));
+        let _handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
+            info!("{}.run | Preparing thread - ok", self_id);
+            for value in test_data {
+                let point = value.to_point(0,&format!("{}/test", self_id));
                 match txSend.send(point.clone()) {
                     Ok(_) => {
-                        trace!("{}.run | send: {:?}", selfId, point);
+                        trace!("{}.run | send: {:?}", self_id, point);
                         sent.lock().unwrap().push(point);
                     },
                     Err(err) => {
-                        warn!("{}.run | send error: {:?}", selfId, err);
+                        warn!("{}.run | send error: {:?}", self_id, err);
                     },
                 }
                 if exit.load(Ordering::SeqCst) {

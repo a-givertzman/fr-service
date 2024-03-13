@@ -4,7 +4,7 @@ use std::{sync::{mpsc::{Sender, Receiver}, Arc, atomic::{AtomicBool, Ordering}, 
 
 use log::{warn, info};
 
-use crate::{core_::point::point_type::PointType, services::service::Service};
+use crate::{core_::{object::object::Object, point::point_type::PointType}, services::service::service::Service};
 
 pub struct MockMultiqueue {
     id: String,
@@ -30,22 +30,26 @@ impl MockMultiqueue {
         self.received.clone()
     }
 }
-impl Service for MockMultiqueue {
-    //
-    //
+///
+/// 
+impl Object for MockMultiqueue {
     fn id(&self) -> &str {
         &self.id
     }
+}
+///
+/// 
+impl Service for MockMultiqueue {
     //
     //
-    fn getLink(&mut self, name: &str) -> Sender<PointType> {
+    fn get_link(&mut self, name: &str) -> Sender<PointType> {
         assert!(name == "queue", "{}.run | link '{:?}' - not found", self.id, name);
         self.send.clone()
     }
     //
     // 
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
-        let selfId = self.id.clone();
+        let self_id = self.id.clone();
         let exit = self.exit.clone();
         let recv = self.recv.pop().unwrap();
         let received = self.received.clone();
@@ -64,7 +68,7 @@ impl Service for MockMultiqueue {
                                 }
                             },
                             Err(err) => {
-                                warn!("{}.run | recv error: {:?}", selfId, err);
+                                warn!("{}.run | recv error: {:?}", self_id, err);
                             },
                         }
                         if exit.load(Ordering::SeqCst) {
@@ -79,7 +83,7 @@ impl Service for MockMultiqueue {
                                 received.lock().unwrap().push(point);
                             },
                             Err(err) => {
-                                warn!("{}.run | recv error: {:?}", selfId, err);
+                                warn!("{}.run | recv error: {:?}", self_id, err);
                             },
                         }
                         if exit.load(Ordering::SeqCst) {

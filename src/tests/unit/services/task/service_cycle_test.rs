@@ -4,8 +4,11 @@ use log::warn;
 use log::{info, debug};
 use std::{sync::Once, time::{Duration, Instant}};
 use rand::Rng;
-
-use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, aprox_eq::aprox_eq::AproxEq}, services::task::service_cycle::ServiceCycle};
+use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+use crate::{
+    core_::aprox_eq::aprox_eq::AproxEq, 
+    services::task::service_cycle::ServiceCycle,
+};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -14,7 +17,7 @@ static INIT: Once = Once::new();
 
 ///
 /// once called initialisation
-fn initOnce() {
+fn init_once() {
     INIT.call_once(|| {
             // implement your initialisation code to be called only once for current test file
         }
@@ -25,15 +28,15 @@ fn initOnce() {
 ///
 /// returns:
 ///  - ...
-fn initEach() -> () {
+fn init_each() -> () {
 
 }
 
 #[test]
 fn test_ServiceCycle() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
-    initEach();
+    init_once();
+    init_each();
     println!("");
     println!("test ServiceCycle");
     fn load(num: usize) {
@@ -80,7 +83,7 @@ fn test_ServiceCycle() {
             let cycleElapsed = t.elapsed();
             debug!("cycle done in: {:?}", cycleElapsed.as_secs_f64());
             if mathElapsed.as_millis() >= targetCycleInterval.into() {
-                if ! mathElapsed.as_secs_f64().aproxEq(cycleElapsed.as_secs_f64(), digits) {
+                if ! mathElapsed.as_secs_f64().aprox_eq(cycleElapsed.as_secs_f64(), digits) {
                     errors += 1;
                     warn!( 
                         "values must be aprox equals ({} digits): mathElapsed: {:?} != cycleElapsed {:?}", 
@@ -92,7 +95,7 @@ fn test_ServiceCycle() {
             } else {
                 let targetInSecs = (targetCycleInterval as f64) / 1000.0;
                 let digits = 4 - length as usize;
-                if ! targetInSecs.aproxEq(cycleElapsed.as_secs_f64(), digits) {
+                if ! targetInSecs.aprox_eq(cycleElapsed.as_secs_f64(), digits) {
                     errors += 1;
                     warn!(
                         "values must be aprox equals ({} digits): targetInSecs: {:?} != cycleElapsed {:?}", 

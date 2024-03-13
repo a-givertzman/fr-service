@@ -1,13 +1,11 @@
-#![allow(non_snake_case)]
 #[cfg(test)]
 
 mod tests {
-    use log::{warn, info, debug};
-    use std::{sync::Once, time::{Duration, Instant}};
-    use crate::{conf::{point_config::{point_config::PointConfig, point_config_type::PointConfigType}, profinet_client_config::profinet_client_config::ProfinetClientConfig}, core_::{
-        debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-        testing::test_stuff::max_test_duration::TestDuration,
-    }}; 
+    use log::debug;
+    use std::{sync::Once, time::Duration};
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+    use testing::stuff::max_test_duration::TestDuration;
+    use crate::conf::{point_config::{point_config::PointConfig, point_config_history::PointConfigHistory, point_config_type::PointConfigType}, profinet_client_config::profinet_client_config::ProfinetClientConfig}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -16,7 +14,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -27,42 +25,45 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
     #[test]
-    fn profinet_clientConfig() {
+    fn profinet_client_config() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
-        let selfId = "test ProfinetClientConfig";
-        println!("{}", selfId);
-        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
-        testDuration.run().unwrap();
+        let self_name = "Ied01";
+        let self_id = "test ProfinetClientConfig";
+        println!("\n{}", self_id);
+        let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
+        test_duration.run().unwrap();
         let path = "./src/tests/unit/conf/profinet_client_config/profinet_client.yaml";
         let config = ProfinetClientConfig::read(path);
-        debug!("config: {:?}", &config);
-        debug!("config points:");
-        let targetPoints = [
-            PointConfig { name: String::from("Drive.Speed"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: String::from("Drive.OutputVoltage"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: String::from("Drive.DCVoltage"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: String::from("Drive.Current"), _type: PointConfigType::Float, history: Some(1), alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: String::from("Drive.Torque"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: String::from("Drive.positionFromMru"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: String::from("Drive.positionFromHoist"), _type: PointConfigType::Float, history: None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: String::from("Capacitor.Capacity"), _type: PointConfigType::Int, history: None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: String::from("ChargeIn.On"), _type: PointConfigType::Bool, history: None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: String::from("ChargeOut.On"), _type: PointConfigType::Bool, history: None, alarm: None, address: None, filters: None, comment: None },
+        let target_points = [
+            // 222
+            PointConfig { name: format!("/{}/db222/Drive.Speed", self_name), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: format!("/{}/db222/Drive.OutputVoltage", self_name), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: format!("/{}/db222/Drive.DCVoltage", self_name), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: format!("/{}/db222/Drive.Current", self_name), _type: PointConfigType::Float, history: PointConfigHistory::Read, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: format!("/{}/db222/Drive.Torque", self_name), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            // 999
+            PointConfig { name: format!("/{}/db999/Drive.positionFromMru", self_name), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: format!("/{}/db999/Drive.positionFromHoist", self_name), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: format!("/{}/db999/Capacitor.Capacity", self_name), _type: PointConfigType::Int, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: format!("/{}/db999/ChargeIn.On", self_name), _type: PointConfigType::Bool, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { name: format!("/{}/db999/ChargeOut.On", self_name), _type: PointConfigType::Bool, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
         ];
-        let configPoints = config.points();
-        for point in &configPoints {
+        debug!("result config: {:?}", &config);
+        debug!("result points:");
+        let config_points = config.points();
+        for point in &config_points {
             println!("\t {:?}", point);
         }
-        for target in &targetPoints {
-            let result = configPoints.iter().find(|point| {
+        for target in &target_points {
+            let result = config_points.iter().find(|point| {
                 point.name == target.name
             });
             assert!(result.is_some(), "result points does not contains '{}'", target.name);
@@ -70,8 +71,8 @@ mod tests {
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
         let result = config.points().len();
-        let target = targetPoints.len();
+        let target = target_points.len();
         assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
-        testDuration.exit();
+        test_duration.exit();
     }
 }

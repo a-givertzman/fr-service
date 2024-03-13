@@ -2,10 +2,9 @@
 #[cfg(test)]
 use log::{debug, info};
 use std::{sync::Once, rc::Rc, cell::RefCell};
-
+use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
 use crate::{
-    core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, 
-    point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
+    core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
     services::task::nested_function::{fn_::FnOut, 
     fn_count::{FnCount, self}, fn_input::FnInput, reset_counter::AtomicReset},
 };
@@ -17,7 +16,7 @@ static INIT: Once = Once::new();
 
 ///
 /// once called initialisation
-fn initOnce() {
+fn init_once() {
     INIT.call_once(|| {
             // implement your initialisation code to be called only once for current test file
         }
@@ -28,7 +27,7 @@ fn initOnce() {
 ///
 /// returns:
 ///  - ...
-fn initEach(initial: PointType) -> FnInOutRef {
+fn init_each(initial: PointType) -> FnInOutRef {
     fn_count::COUNT.reset();
     Rc::new(RefCell::new(Box::new(
         FnInput::new("test", initial)
@@ -39,15 +38,15 @@ fn initEach(initial: PointType) -> FnInOutRef {
 #[test]
 fn test_single() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
+    init_once();
     info!("test_single");
-    let input = initEach(false.toPoint(0, "bool"));
+    let input = init_each(false.to_point(0, "bool"));
     let mut fnCount = FnCount::new(
         "test",
         0.0, 
         input.clone(),
     );
-    let testData = vec![
+    let test_data = vec![
         (false, 0),
         (false, 0),
         (true, 1),
@@ -63,14 +62,14 @@ fn test_single() {
         (false, 5),
         (false, 5),
     ];
-    for (value, targetState) in testData {
-        let point = value.toPoint(0, "test");
+    for (value, targetState) in test_data {
+        let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = fnCount.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.asFloat().value, targetState as f64);
+        assert_eq!(state.as_float().value, targetState as f64);
     }        
 }
 // 
@@ -78,15 +77,15 @@ fn test_single() {
 #[test]
 fn test_multiple() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
+    init_once();
     info!("test_multiple");
-    let input = initEach(false.toPoint(0, "bool"));
+    let input = init_each(false.to_point(0, "bool"));
     let mut fnCount = FnCount::new(
         "test",
         0.0, 
         input.clone(),
     );
-    let testData = vec![
+    let test_data = vec![
         (false, 0),
         (false, 0),
         (true, 1),
@@ -102,29 +101,29 @@ fn test_multiple() {
         (false, 5),
         (false, 5),
     ];
-    for (value, targetState) in testData {
-        let point = value.toPoint(0, "test");
+    for (value, targetState) in test_data {
+        let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = fnCount.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.asFloat().value, targetState as f64);
+        assert_eq!(state.as_float().value, targetState as f64);
     }        
 }
 
 #[test]
 fn test_multiple_reset() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
+    init_once();
     info!("test_multiple_reset");
-    let input = initEach(false.toPoint(0, "bool"));
+    let input = init_each(false.to_point(0, "bool"));
     let mut fnCount = FnCount::new(
         "test",
         0.0, 
         input.clone(),
     );
-    let testData = vec![
+    let test_data = vec![
         (false, 0, false),
         (false, 0, false),
         (true, 1, false),
@@ -140,16 +139,16 @@ fn test_multiple_reset() {
         (false, 0, true),
         (false, 0, false),
     ];
-    for (value, targetState, reset) in testData {
+    for (value, targetState, reset) in test_data {
         if reset {
             fnCount.reset();
         }
-        let point = value.toPoint(0, "test");
+        let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
         let state = fnCount.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.asFloat().value, targetState as f64);
+        assert_eq!(state.as_float().value, targetState as f64);
     }        
 }

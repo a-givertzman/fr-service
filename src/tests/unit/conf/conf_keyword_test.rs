@@ -3,8 +3,8 @@
 mod tests {
     use log::debug;
     use std::{sync::Once, str::FromStr};
-    
-    use crate::{conf::conf_keywd::{ConfKeywd, ConfKeywdValue, ConfKind}, core_::debug::debug_session::*};
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+    use crate::conf::conf_keywd::{ConfKeywd, ConfKeywdValue, ConfKind};
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -13,7 +13,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -24,7 +24,7 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
@@ -32,36 +32,37 @@ mod tests {
     #[test]
     fn test_create_valid() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("test_create_valid");
-        // let (initial, switches) = initEach();
-        let testData = vec![
-            ("service ApiClient", ConfKeywd::Service( ConfKeywdValue {prefix: String::new(), kind: ConfKind::Service, name: String::from("ApiClient")} )),
-            ("service MultiQueue", ConfKeywd::Service( ConfKeywdValue {prefix: String::new(), kind: ConfKind::Service, name: String::from("MultiQueue")} )),
-            ("task Task1", ConfKeywd::Task( ConfKeywdValue {prefix: String::new(), kind: ConfKind::Task, name: String::from("Task1")} )),
-            ("task task1", ConfKeywd::Task( ConfKeywdValue {prefix: String::new(), kind: ConfKind::Task, name: String::from("task1")} )),
-            ("in queue queue", ConfKeywd::Queue( ConfKeywdValue {prefix: String::from("in"), kind: ConfKind::Queue, name: String::from("queue")} )),
-            ("in link link", ConfKeywd::Link( ConfKeywdValue {prefix: String::from("in"), kind: ConfKind::Link, name: String::from("link")} )),
-            ("in queue in-queue", ConfKeywd::Queue( ConfKeywdValue {prefix: String::from("in"), kind: ConfKind::Queue, name: String::from("in-queue")} )),
-            ("out queue", ConfKeywd::Queue( ConfKeywdValue {prefix: String::from("out"), kind: ConfKind::Queue, name: String::new()} )),
-            ("out link", ConfKeywd::Link( ConfKeywdValue {prefix: String::from("out"), kind: ConfKind::Link, name: String::new()} )),
+        // let (initial, switches) = init_each();
+        let test_data = vec![
+            ("service ApiClient", ConfKeywd::Service( ConfKeywdValue {prefix: format!(""), kind: ConfKind::Service, name: format!("ApiClient"), sufix: format!("")} )),
+            ("service ApiClient ApiClient1", ConfKeywd::Service( ConfKeywdValue {prefix: format!(""), kind: ConfKind::Service, name: format!("ApiClient"), sufix: format!("ApiClient1")} )),
+            ("service MultiQueue", ConfKeywd::Service( ConfKeywdValue {prefix: format!(""), kind: ConfKind::Service, name: format!("MultiQueue"), sufix: format!("")} )),
+            ("task Task1", ConfKeywd::Task( ConfKeywdValue {prefix: format!(""), kind: ConfKind::Task, name: format!("Task1"), sufix: format!("")} )),
+            ("task task1", ConfKeywd::Task( ConfKeywdValue {prefix: format!(""), kind: ConfKind::Task, name: format!("task1"), sufix: format!("")} )),
+            ("in queue queue1", ConfKeywd::Queue( ConfKeywdValue {prefix: format!("in"), kind: ConfKind::Queue, name: format!("queue1"), sufix: format!("")} )),
+            ("in link link", ConfKeywd::Link( ConfKeywdValue {prefix: format!("in"), kind: ConfKind::Link, name: format!("link"), sufix: format!("")} )),
+            ("in queue in-queue", ConfKeywd::Queue( ConfKeywdValue {prefix: format!("in"), kind: ConfKind::Queue, name: format!("in-queue"), sufix: format!("")} )),
+            ("out queue", ConfKeywd::Queue( ConfKeywdValue {prefix: format!("out"), kind: ConfKind::Queue, name: format!(""), sufix: format!("")} )),
+            ("out link", ConfKeywd::Link( ConfKeywdValue {prefix: format!("out"), kind: ConfKind::Link, name: format!(""), sufix: format!("")} )),
         ];
-        for (value, target) in testData {
-            let fnConfigType = ConfKeywd::from_str(value).unwrap();
-            debug!("value: {:?}   |   ConfKind: {:?}   |   target: {:?}", value, fnConfigType, target);
-            assert_eq!(fnConfigType, target);
+        for (value, target) in test_data {
+            let result = ConfKeywd::from_str(value).unwrap();
+            debug!("value: {:?}   |   ConfKind: {:?}   |   target: {:?}", value, result, target);
+            assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
     }
     
     // #[test]
     // fn test_create_invalid() {
     //     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    //     initOnce();
-    //     initEach();
+    //     init_once();
+    //     init_each();
     //     info!("test_create_invalid");
-    //     // let (initial, switches) = initEach();
-    //     let testData: Vec<(&str, Result<&str, ()>)> = vec![
+    //     // let (initial, switches) = init_each();
+    //     let test_data: Vec<(&str, Result<&str, ()>)> = vec![
     //         ("fn:name", Err(())),
     //         ("fn\nname", Err(())),
     //         ("fn: name", Err(())),
@@ -87,7 +88,7 @@ mod tests {
     //         ("pointName", Err(())),
     //         ("point_name", Err(())),
     //     ];
-    //     for (value, target) in testData {
+    //     for (value, target) in test_data {
     //         let fnConfigType = ConfKeywd::from_str(value);
     //         debug!("value: {:?}   |   fnConfigType: {:?}   |   target: {:?}", value, fnConfigType, target);
     //         assert_eq!(fnConfigType.is_err(), true);

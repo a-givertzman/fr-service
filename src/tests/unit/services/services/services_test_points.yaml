@@ -28,13 +28,13 @@ task task1:
                     input2: point float '/path/Point.Name'
         in2 point CraneMovement.BoomDown: 
             type: 'Float'
-            history: 1
+            history: r
             comment: 'Some indication'
             input: const float 0.07
 
         in3 point CraneMovement.WinchUp: 
             type: 'Float'
-            history: 1
+            history: r
             comment: 'Some indication'
             input: var0
 

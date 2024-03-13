@@ -4,9 +4,7 @@ use log::debug;
 use std::{time::Instant, sync::atomic::{AtomicUsize, Ordering}};
 
 use crate::core_::{
-    types::{type_of::DebugTypeOf, fn_in_out_ref::FnInOutRef},
-    state::switch_state::{SwitchState, Switch, SwitchCondition}, 
-    point::{point_type::PointType, point::Point}, 
+    cot::cot::Cot, point::{point::Point, point_type::PointType}, state::switch_state::{Switch, SwitchCondition, SwitchState}, types::{fn_in_out_ref::FnInOutRef, type_of::DebugTypeOf} 
 };
 
 use super::{fn_::{FnInOut, FnIn, FnOut}, fn_kind::FnKind};
@@ -130,7 +128,7 @@ impl FnOut for FnTimer {
             PointType::Bool(point) => point.value.0,
             PointType::Int(point) => point.value > 0,
             PointType::Float(point) => point.value > 0.0,
-            _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, point.printTypeOf(), point),
+            _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, point.print_type_of(), point),
         };
         self.state.add(value);
         let state = self.state.state();
@@ -161,10 +159,11 @@ impl FnOut for FnTimer {
         };
         PointType::Float(
             Point {
-                txId: *point.txId(),
+                tx_id: *point.tx_id(),
                 name: format!("{}.out", self.id),
                 value: self.totalElapsed + self.sessionElapsed,
                 status: point.status(),
+                cot: Cot::Inf,
                 timestamp: point.timestamp(),
             }
         )

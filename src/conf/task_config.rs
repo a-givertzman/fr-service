@@ -68,23 +68,23 @@ impl TaskConfig {
         let mut vars = vec![];
         match confTree.next() {
             Some(selfConf) => {
-                let selfId = format!("TaskConfig({})", selfConf.key);
-                trace!("{}.new | MAPPING VALUE", selfId);
-                let mut selfConf = ServiceConfig::new(&selfId, selfConf);
-                trace!("{}.new | selfConf: {:?}", selfId, selfConf);
+                let self_id = format!("TaskConfig({})", selfConf.key);
+                trace!("{}.new | MAPPING VALUE", self_id);
+                let mut selfConf = ServiceConfig::new(&self_id, selfConf);
+                trace!("{}.new | selfConf: {:?}", self_id, selfConf);
                 let selfName = selfConf.name();
-                debug!("{}.new | name: {:?}", selfId, selfName);
+                debug!("{}.new | name: {:?}", self_id, selfName);
                 let cycle = selfConf.getDuration("cycle");
-                debug!("{}.new | cycle: {:?}", selfId, cycle);
+                debug!("{}.new | cycle: {:?}", self_id, cycle);
                 let (rx, rxMaxLength) = selfConf.getInQueue().unwrap();
-                debug!("{}.new | RX: {},\tmax-length: {:?}", selfId, rx, rxMaxLength);
+                debug!("{}.new | RX: {},\tmax-length: {:?}", self_id, rx, rxMaxLength);
                 let mut nodeIndex = 0;
                 let mut nodes = IndexMap::new();
                 for key in &selfConf.keys {
                     let nodeConf = selfConf.get(key).unwrap();
-                    trace!("{}.new | nodeConf: {:?}", selfId, nodeConf);
+                    trace!("{}.new | nodeConf: {:?}", self_id, nodeConf);
                     nodeIndex += 1;
-                    let nodeConf = FnConfig::new(&nodeConf, &mut vars);
+                    let nodeConf = FnConfig::new(&selfName, &nodeConf, &mut vars);
                     nodes.insert(
                         format!("{}-{}", nodeConf.name(), nodeIndex),
                         nodeConf,
@@ -106,7 +106,7 @@ impl TaskConfig {
     }
     ///
     /// creates config from serde_yaml::Value of following format:
-    pub(crate) fn fromYamlValue(value: &serde_yaml::Value) -> TaskConfig {
+    pub(crate) fn from_yaml(value: &serde_yaml::Value) -> TaskConfig {
         Self::new(&mut ConfTree::newRoot(value.clone()))
     }
     ///
@@ -117,7 +117,7 @@ impl TaskConfig {
             Ok(yamlString) => {
                 match serde_yaml::from_str(&yamlString) {
                     Ok(config) => {
-                        TaskConfig::fromYamlValue(&config)
+                        TaskConfig::from_yaml(&config)
                     },
                     Err(err) => {
                         panic!("TaskConfig.read | Error in config: {:?}\n\terror: {:?}", yamlString, err)

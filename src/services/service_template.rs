@@ -1,12 +1,16 @@
-#![allow(non_snake_case)]
-
+//!
+//! Service implements kind of bihavior
+//! Basic configuration parameters:
+//! ```yaml
+//! service ServiceName Id:
+//!     parameter: value    # meaning
+//!     parameter: value    # meaning
+//! ```
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread::{self, JoinHandle}};
-
 use log::info;
-
 use crate::{
-    services::{services::Services, service::Service}, 
-    conf::tcp_server_config::TcpServerConfig, core_::point::point_type::PointType,
+    services::{services::Services, service::service::Service}, 
+    conf::tcp_server_config::ServiceNameConfig, core_::point::point_type::PointType,
 };
 
 
@@ -14,20 +18,20 @@ use crate::{
 /// Binds TCP socket server
 /// Listening socket for incoming connections
 /// Verified incoming connections handles in the separate thread
-pub struct TcpServer {
+pub struct ServiceName {
     id: String,
-    conf: TcpServerConfig,
+    conf: ServiceNameConfig,
     services: Arc<Mutex<Services>>,
     exit: Arc<AtomicBool>,
 }
 ///
 /// 
-impl TcpServer {
+impl ServiceName {
     ///
     /// 
-    pub fn new(parent: impl Into<String>, conf: TcpServerConfig, services: Arc<Mutex<Services>>) -> Self {
+    pub fn new(parent: impl Into<String>, conf: ServiceNameConfig, services: Arc<Mutex<Services>>) -> Self {
         Self {
-            id: format!("{}/TcpClient({})", parent.into(), conf.name),
+            id: format!("{}/ServiceName({})", parent.into(), conf.name),
             conf: conf.clone(),
             services,
             exit: Arc::new(AtomicBool::new(false)),
@@ -36,7 +40,7 @@ impl TcpServer {
 }
 ///
 /// 
-impl Service for TcpServer {
+impl Service for ServiceName {
     //
     //
     fn id(&self) -> &str {
@@ -44,8 +48,8 @@ impl Service for TcpServer {
     }
     //
     // 
-    fn getLink(&mut self, name: &str) -> Sender<PointType> {
-        panic!("{}.getLink | Does not support getLink", self.id())
+    fn get_link(&mut self, name: &str) -> Sender<PointType> {
+        panic!("{}.get_link | Does not support get_link", self.id())
         // match self.rxSend.get(name) {
         //     Some(send) => send.clone(),
         //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
@@ -55,10 +59,10 @@ impl Service for TcpServer {
     //
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
-        let selfId = self.id.clone();
+        let self_id = self.id.clone();
         let exit = self.exit.clone();
-        info!("{}.run | Preparing thread...", selfId);
-        let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
+        info!("{}.run | Preparing thread...", self_id);
+        let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             loop {
                 if exit.load(Ordering::SeqCst) {
                     break;

@@ -61,7 +61,7 @@ impl FnOut for FnToApiQueue {
     //
     fn out(&mut self) -> PointType {
         let point = self.input.borrow_mut().out();
-        let sql = point.asString().value;
+        let sql = point.as_string().value;
         if sql != self.state {
             self.state = sql.clone();
             match self.txSend.send(point.clone()) {

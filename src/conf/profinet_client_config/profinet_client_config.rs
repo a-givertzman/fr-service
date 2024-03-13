@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 use indexmap::IndexMap;
 use log::{debug, error, trace};
 use std::{fs, str::FromStr, time::Duration};
@@ -43,7 +41,7 @@ pub struct ProfinetClientConfig {
     pub(crate) name: String,
     pub(crate) cycle: Option<Duration>,
     pub(crate) rx: String,
-    pub(crate) rxMaxLength: i64,
+    pub(crate) rx_max_len: i64,
     pub(crate) tx: String,
     pub(crate) protocol: String,
     pub(crate) description: String,
@@ -57,60 +55,61 @@ pub struct ProfinetClientConfig {
 impl ProfinetClientConfig {
     ///
     /// Creates new instance of the [ProfinetClientConfig]:
-    pub fn new(confTree: &mut ConfTree) -> Self {
+    pub fn new(conf_tree: &mut ConfTree) -> Self {
         println!("\n");
-        trace!("ProfinetClientConfig.new | confTree: {:?}", confTree);
+        trace!("ProfinetClientConfig.new | confTree: {:?}", conf_tree);
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item
-        if confTree.count() > 1 {
-            error!("ProfinetClientConfig.new | ProfinetClientConfig conf must have single item, additional items was ignored: {:?}", confTree)
+        if conf_tree.count() > 1 {
+            error!("ProfinetClientConfig.new | ProfinetClientConfig conf must have single item, additional items was ignored: {:?}", conf_tree)
         };
-        match confTree.next() {
-            Some(selfConf) => {
-                let selfId = format!("ProfinetClientConfig({})", selfConf.key);
-                trace!("{}.new | MAPPING VALUE", selfId);
-                let mut selfConf = ServiceConfig::new(&selfId, selfConf);
-                trace!("{}.new | selfConf: {:?}", selfId, selfConf);
-                let selfName = selfConf.name();
-                debug!("{}.new | name: {:?}", selfId, selfName);
-                let cycle = selfConf.getDuration("cycle");
-                debug!("{}.new | cycle: {:?}", selfId, cycle);
-                let (rx, rxMaxLength) = selfConf.getInQueue().unwrap();
-                debug!("{}.new | RX: {},\tmax-length: {}", selfId, rx, rxMaxLength);
-                let tx = selfConf.getOutQueue().unwrap();
-                debug!("{}.new | TX: {}", selfId, tx);
-                let protocol = selfConf.getParamValue("protocol").unwrap().as_str().unwrap().to_string();
-                debug!("{}.new | protocol: {:?}", selfId, protocol);
-                let description = selfConf.getParamValue("description").unwrap().as_str().unwrap().to_string();
-                debug!("{}.new | description: {:?}", selfId, description);
-                let ip = selfConf.getParamValue("ip").unwrap().as_str().unwrap().to_string();
-                debug!("{}.new | ip: {:?}", selfId, ip);
-                let rack = selfConf.getParamValue("rack").unwrap().as_u64().unwrap();
-                debug!("{}.new | rack: {:?}", selfId, rack);
-                let slot = selfConf.getParamValue("slot").unwrap().as_u64().unwrap();
-                debug!("{}.new | slot: {:?}", selfId, slot);
+        match conf_tree.next() {
+            Some(self_conf) => {
+                let self_id = format!("ProfinetClientConfig({})", self_conf.key);
+                trace!("{}.new | MAPPING VALUE", self_id);
+                let mut self_conf = ServiceConfig::new(&self_id, self_conf);
+                trace!("{}.new | selfConf: {:?}", self_id, self_conf);
+                let self_name = self_conf.name();
+                let device_name = self_conf.sufix();
+                debug!("{}.new | name: {:?}", self_id, self_name);
+                let cycle = self_conf.getDuration("cycle");
+                debug!("{}.new | cycle: {:?}", self_id, cycle);
+                let (rx, rx_max_len) = self_conf.getInQueue().unwrap();
+                debug!("{}.new | RX: {},\tmax-length: {}", self_id, rx, rx_max_len);
+                let tx = self_conf.getOutQueue().unwrap();
+                debug!("{}.new | TX: {}", self_id, tx);
+                let protocol = self_conf.getParamValue("protocol").unwrap().as_str().unwrap().to_string();
+                debug!("{}.new | protocol: {:?}", self_id, protocol);
+                let description = self_conf.getParamValue("description").unwrap().as_str().unwrap().to_string();
+                debug!("{}.new | description: {:?}", self_id, description);
+                let ip = self_conf.getParamValue("ip").unwrap().as_str().unwrap().to_string();
+                debug!("{}.new | ip: {:?}", self_id, ip);
+                let rack = self_conf.getParamValue("rack").unwrap().as_u64().unwrap();
+                debug!("{}.new | rack: {:?}", self_id, rack);
+                let slot = self_conf.getParamValue("slot").unwrap().as_u64().unwrap();
+                debug!("{}.new | slot: {:?}", self_id, slot);
                 let mut dbs = IndexMap::new();
-                for key in &selfConf.keys {
+                for key in &self_conf.keys {
                     let keyword = Keywd::from_str(key).unwrap();
                     if keyword.kind() == Kind::Db {
-                        let deviceName = keyword.name();
-                        let mut deviceConf = selfConf.get(key).unwrap();
-                        debug!("{}.new | DB '{}'", selfId, deviceName);
-                        trace!("{}.new | DB '{}'   |   conf: {:?}", selfId, deviceName, deviceConf);
-                        let nodeConf = ProfinetDbConfig::new(&deviceName, &mut deviceConf);
+                        let db_name = keyword.name();
+                        let mut device_conf = self_conf.get(key).unwrap();
+                        debug!("{}.new | DB '{}'", self_id, db_name);
+                        trace!("{}.new | DB '{}'   |   conf: {:?}", self_id, db_name, device_conf);
+                        let node_conf = ProfinetDbConfig::new(&device_name, &db_name, &mut device_conf);
                         dbs.insert(
-                            deviceName,
-                            nodeConf,
+                            db_name,
+                            node_conf,
                         );
                     } else {
-                        debug!("{}.new | device expected, but found {:?}", selfId, keyword);
+                        debug!("{}.new | device expected, but found {:?}", self_id, keyword);
                     }
                 }
                 ProfinetClientConfig {
-                    name: selfName,
+                    name: self_name,
                     cycle,
                     rx,
-                    rxMaxLength: rxMaxLength,
+                    rx_max_len,
                     tx,
                     protocol,
                     description,
@@ -127,7 +126,7 @@ impl ProfinetClientConfig {
     }
     ///
     /// creates config from serde_yaml::Value of following format:
-    pub(crate) fn fromYamlValue(value: &serde_yaml::Value) -> ProfinetClientConfig {
+    pub(crate) fn from_yaml_value(value: &serde_yaml::Value) -> ProfinetClientConfig {
         Self::new(&mut ConfTree::newRoot(value.clone()))
     }
     ///
@@ -135,13 +134,13 @@ impl ProfinetClientConfig {
     #[allow(dead_code)]
     pub fn read(path: &str) -> ProfinetClientConfig {
         match fs::read_to_string(&path) {
-            Ok(yamlString) => {
-                match serde_yaml::from_str(&yamlString) {
+            Ok(yaml_string) => {
+                match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
-                        ProfinetClientConfig::fromYamlValue(&config)
+                        ProfinetClientConfig::from_yaml_value(&config)
                     },
                     Err(err) => {
-                        panic!("ProfinetClientConfig.read | Error in config: {:?}\n\terror: {:?}", yamlString, err)
+                        panic!("ProfinetClientConfig.read | Error in config: {:?}\n\terror: {:?}", yaml_string, err)
                     },
                 }
             },
@@ -153,8 +152,8 @@ impl ProfinetClientConfig {
     ///
     /// Returns list of configurations of the defined points
     pub fn points(&self) -> Vec<PointConfig> {
-        self.dbs.iter().fold(vec![], |mut points, (_deviceName, deviceConf)| {
-            points.extend(deviceConf.points());
+        self.dbs.iter().fold(vec![], |mut points, (_device_name, device_conf)| {
+            points.extend(device_conf.points());
             points
         })
     }

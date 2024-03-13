@@ -14,6 +14,6 @@ pub mod conf_keyword_test;
 
 pub mod tcp_server_config;
 
-pub mod point_config_test;
+pub mod point;
 
 pub mod profinet_client_config;

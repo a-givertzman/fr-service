@@ -4,8 +4,8 @@
 mod tests {
     use log::{debug, info};
     use std::sync::Once;
-    
-    use crate::core_::{state::switch_state::{Switch, SwitchCondition, SwitchState}, debug::debug_session::{DebugSession, LogLevel, Backtrace}};
+    use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
+    use crate::core_::state::switch_state::{Switch, SwitchCondition, SwitchState};
     
     #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
     enum ProcessState {
@@ -22,7 +22,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -34,7 +34,7 @@ mod tests {
     ///     - initialState: ProcessState
     ///     - switches: Vec<Switch<ProcessState, u8>>
     /// )
-    fn initEach() -> (ProcessState, Vec<Switch<ProcessState, i8>>) {
+    fn init_each() -> (ProcessState, Vec<Switch<ProcessState, i8>>) {
         (
             ProcessState::Off,
             vec![
@@ -91,16 +91,16 @@ mod tests {
     #[test]
     fn test_single() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         info!("test_single");
     
-        let (initial, switches) = initEach();
+        let (initial, switches) = init_each();
         let mut switchState: SwitchState<ProcessState, i8> = SwitchState::new(
             initial,
             switches,
         );
-        let testData = vec![
+        let test_data = vec![
             (0, ProcessState::Off),
             (0, ProcessState::Off),
             (1, ProcessState::Off),
@@ -125,7 +125,7 @@ mod tests {
             (1, ProcessState::Off),
             (1, ProcessState::Off),
         ];
-        for (value, targetState) in testData {
+        for (value, targetState) in test_data {
             switchState.add(value);
             let state = switchState.state();
             debug!("value: {:?}   |   state: {:?}", value, state);
@@ -141,16 +141,16 @@ mod tests {
     #[test]
     fn test_start_step_back() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         info!("test_start_step_back");
     
-        let (initial, switches) = initEach();
+        let (initial, switches) = init_each();
         let mut switchState: SwitchState<ProcessState, i8> = SwitchState::new(
             initial,
             switches,
         );
-        let testData = vec![
+        let test_data = vec![
             (0, ProcessState::Off),
             (0, ProcessState::Off),
             (1, ProcessState::Off),
@@ -175,7 +175,7 @@ mod tests {
             (1, ProcessState::Off),
             (1, ProcessState::Off),
         ];
-        for (value, targetState) in testData {
+        for (value, targetState) in test_data {
             switchState.add(value);
             let state = switchState.state();
             debug!("value: {:?}   |   state: {:?}", value, state);
@@ -186,16 +186,16 @@ mod tests {
     #[test]
     fn test_stot_step_back() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         info!("test_stot_step_back");
     
-        let (initial, switches) = initEach();
+        let (initial, switches) = init_each();
         let mut switchState: SwitchState<ProcessState, i8> = SwitchState::new(
             initial,
             switches,
         );
-        let testData = vec![
+        let test_data = vec![
             (0, ProcessState::Off),
             (0, ProcessState::Off),
             (1, ProcessState::Off),
@@ -220,7 +220,7 @@ mod tests {
             (1, ProcessState::Off),
             (1, ProcessState::Off),
         ];
-        for (value, targetState) in testData {
+        for (value, targetState) in test_data {
             switchState.add(value);
             let state = switchState.state();
             debug!("value: {:?}   |   state: {:?}", value, state);

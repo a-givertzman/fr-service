@@ -3,13 +3,9 @@
 mod tests {
     use log::{info, debug, trace, warn};
     use std::{sync::{Once, mpsc::{Sender, self, Receiver}, Arc, Mutex, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread};
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        core_::{
-            debug::debug_session::{DebugSession, LogLevel, Backtrace},
-            point::point_type::{ToPoint, PointType},
-        },
-        conf::task_config::TaskConfig, 
-        services::{task::{task_nodes::TaskNodes, nested_function::{fn_kind::FnKind, fn_count::{self}, fn_ge, reset_counter::AtomicReset, sql_metric}}, services::Services, service::Service},
+        conf::task_config::TaskConfig, core_::{object::object::Object, point::point_type::{PointType, ToPoint}}, services::{service::service::Service, services::Services, task::{nested_function::{fn_count, fn_ge, fn_kind::FnKind, sql_metric}, task_nodes::TaskNodes}}
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -19,7 +15,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -30,7 +26,7 @@ mod tests {
     ///
     /// returns:
     ///  - Rc<RefCell<Box<dyn FnInOut>>>...
-    fn initEach() {
+    fn init_each() {
         // fn_ge::COUNT.reset();
         // fn_count::COUNT.reset();
         // sql_metric::COUNT.reset();
@@ -39,74 +35,74 @@ mod tests {
     #[test]
     fn test_TaskNodes() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
         println!("test TaskNodes");
         let path = "./src/tests/unit/services/task/task_nodes/task_nodes.yaml";
         let mut taskNodes = TaskNodes::new("test");
         let conf = TaskConfig::read(path);
         debug!("conf: {:?}", conf);
-        let selfId = "test";
-        // let outName = format!("{}/SqlMetric1", selfId);
+        let self_id = "test";
+        // let outName = format!("{}/SqlMetric1", self_id);
         // let outName = outName.as_str();
         // debug!("outName: {:?}", outName);
-        let services = Arc::new(Mutex::new(Services::new(selfId)));
-        let mockService = Arc::new(Mutex::new(MockService::new(selfId, "queue")));
+        let services = Arc::new(Mutex::new(Services::new(self_id)));
+        let mockService = Arc::new(Mutex::new(MockService::new(self_id, "queue")));
         services.lock().unwrap().insert("ApiClient", mockService.clone());
         taskNodes.buildNodes("test", conf, services);
-        let testData = vec![
+        let test_data = vec![
             (
                 "/path/Point.Name1", 101, 
                 HashMap::from([
-                    (format!("{}/SqlMetric{}", selfId, sql_metric::COUNT.load(Ordering::SeqCst)), "101, 1102, 0, 0"),
-                    (format!("{}/FnCount{}.out", selfId, fn_count::COUNT.load(Ordering::SeqCst)), "101"),
+                    (format!("{}/SqlMetric{}", self_id, sql_metric::COUNT.load(Ordering::SeqCst)), "101, 1102, 0, 0"),
+                    (format!("{}/FnCount{}.out", self_id, fn_count::COUNT.load(Ordering::SeqCst)), "101"),
                 ])
             ),
             (
                 "/path/Point.Name1", 201, 
                 HashMap::from([
-                    (format!("{}/SqlMetric{}", selfId, sql_metric::COUNT.load(Ordering::SeqCst)), "201, 1202, 0, 0"),
-                    (format!("{}/FnCount{}.out", selfId, fn_count::COUNT.load(Ordering::SeqCst)), "302"),
+                    (format!("{}/SqlMetric{}", self_id, sql_metric::COUNT.load(Ordering::SeqCst)), "201, 1202, 0, 0"),
+                    (format!("{}/FnCount{}.out", self_id, fn_count::COUNT.load(Ordering::SeqCst)), "302"),
                 ])
                 
             ),
             (
                 "/path/Point.Name1", 301, 
                 HashMap::from([
-                    (format!("{}/SqlMetric{}", selfId, sql_metric::COUNT.load(Ordering::SeqCst)), "301, 1302, 0, 0"),
-                    (format!("{}/FnCount{}.out", selfId, fn_count::COUNT.load(Ordering::SeqCst)), "603"),
+                    (format!("{}/SqlMetric{}", self_id, sql_metric::COUNT.load(Ordering::SeqCst)), "301, 1302, 0, 0"),
+                    (format!("{}/FnCount{}.out", self_id, fn_count::COUNT.load(Ordering::SeqCst)), "603"),
                 ])
                 
             ),
             (
                 "/path/Point.Name2", 202, 
                 HashMap::from([
-                    (format!("{}/SqlMetric{}", selfId, sql_metric::COUNT.load(Ordering::SeqCst)), "301, 1302, 202, 0"),
-                    (format!("{}/FnGe{}.out", selfId, fn_ge::COUNT.load(Ordering::SeqCst)), "true"),
+                    (format!("{}/SqlMetric{}", self_id, sql_metric::COUNT.load(Ordering::SeqCst)), "301, 1302, 202, 0"),
+                    (format!("{}/FnGe{}.out", self_id, fn_ge::COUNT.load(Ordering::SeqCst)), "true"),
                 ])
                 
             ),
             (
                 "/path/Point.Name3", 303, 
                 HashMap::from([
-                    (format!("{}/SqlMetric{}", selfId, sql_metric::COUNT.load(Ordering::SeqCst)), "301, 1302, 202, 303"),
-                    (format!("{}/FnGe{}.out", selfId, fn_ge::COUNT.load(Ordering::SeqCst)), "false"),
+                    (format!("{}/SqlMetric{}", self_id, sql_metric::COUNT.load(Ordering::SeqCst)), "301, 1302, 202, 303"),
+                    (format!("{}/FnGe{}.out", self_id, fn_ge::COUNT.load(Ordering::SeqCst)), "false"),
                 ])
                 
             ),
             (
                 "/path/Point.Name3", 304, 
                 HashMap::from([
-                    (format!("{}/SqlMetric{}", selfId, sql_metric::COUNT.load(Ordering::SeqCst)), "301, 1302, 202, 304"),
-                    (format!("{}/FnGe{}.out", selfId, fn_ge::COUNT.load(Ordering::SeqCst)), "false"),
+                    (format!("{}/SqlMetric{}", self_id, sql_metric::COUNT.load(Ordering::SeqCst)), "301, 1302, 202, 304"),
+                    (format!("{}/FnGe{}.out", self_id, fn_ge::COUNT.load(Ordering::SeqCst)), "false"),
                 ])
                 
             ),
         ];
         mockService.lock().unwrap().run().unwrap();
-        for (name, value, targetValue) in testData {
-            let point = value.toPoint(0, name);
+        for (name, value, targetValue) in test_data {
+            let point = value.to_point(0, name);
             // let inputName = &point.name();
             debug!("input point name: {:?}  value: {:?}", name, value);
             match &taskNodes.getEvalNode(&name) {
@@ -173,13 +169,17 @@ mod tests {
     }
     ///
     /// 
-    impl Service for MockService {
+    impl Object for MockService {
         fn id(&self) -> &str {
-            todo!()
+            &self.id
         }
+    }
+    ///
+    /// 
+    impl Service for MockService {
         //
         //
-        fn getLink(&mut self, name: &str) -> Sender<PointType> {
+        fn get_link(&mut self, name: &str) -> Sender<PointType> {
             match self.links.get(name) {
                 Some(send) => send.clone(),
                 None => panic!("{}.run | link '{:?}' - not found", self.id, name),
@@ -189,17 +189,17 @@ mod tests {
         //
         fn run(&mut self) -> Result<std::thread::JoinHandle<()>, std::io::Error> {
             info!("{}.run | starting...", self.id);
-            let selfId = self.id.clone();
+            let self_id = self.id.clone();
             let exit = self.exit.clone();
             let rxRecv = self.rxRecv.pop().unwrap();
-            let handle = thread::Builder::new().name(format!("{}.run", selfId.clone())).spawn(move || {
+            let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
                 loop {
                     match rxRecv.recv() {
                         Ok(point) => {
-                            debug!("{}.run | received: {:?}", selfId, point);
+                            debug!("{}.run | received: {:?}", self_id, point);
                         },
                         Err(err) => {
-                            warn!("{}.run | error: {:?}", selfId, err);
+                            warn!("{}.run | error: {:?}", self_id, err);
                         },
                     }
                     if exit.load(Ordering::SeqCst) {

@@ -1,3 +1,6 @@
+///
+/// Contains Name of the Queue in the separate format
+/// Service.Queue -> Service & Queue
 #[derive(Debug, Clone)]
 pub struct QueueName {
     service: String,
@@ -7,10 +10,10 @@ pub struct QueueName {
 /// 
 impl QueueName {
     ///
-    /// 
+    /// Creates new instance of the QueueName from the string like "Service.Queue"
     pub fn new(name: &str) -> Self {
-        let parts: Vec<&str> = name.split(".").collect();
-        let service = match parts.get(0) {
+        let parts: Vec<&str> = name.split('.').collect();
+        let service = match parts.first() {
             Some(value) => value.to_owned().to_owned(),
             None => panic!("QueueName.new | {} does not have structure 'Service.queue'", name),
         };

@@ -51,18 +51,18 @@ impl MultiQueueConfig {
         };
         match confTree.next() {
             Some(selfConf) => {
-                let selfId = format!("MultiQueueConfig({})", selfConf.key);
-                trace!("{}.new | MAPPING VALUE", selfId);
-                let mut selfConf = ServiceConfig::new(&selfId, selfConf);
-                trace!("{}.new | selfConf: {:?}", selfId, selfConf);
+                let self_id = format!("MultiQueueConfig({})", selfConf.key);
+                trace!("{}.new | MAPPING VALUE", self_id);
+                let mut selfConf = ServiceConfig::new(&self_id, selfConf);
+                trace!("{}.new | selfConf: {:?}", self_id, selfConf);
                 let selfName = selfConf.name();
-                debug!("{}.new | selfName: {:?}", selfId, selfName);
+                debug!("{}.new | selfName: {:?}", self_id, selfName);
                 let (rx, rxMaxLength) = selfConf.getInQueue().unwrap();
-                debug!("{}.new | RX: {},\tmax-length: {}", selfId, rx, rxMaxLength);
+                debug!("{}.new | RX: {},\tmax-length: {}", self_id, rx, rxMaxLength);
                 let tx = match selfConf.getParamByKeyword("out", ConfKind::Queue) {
                     Ok((keyword, queueConf)) => {
                         let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
-                        trace!("{}.new | self tx-queue param {}: {:?}", selfId, name, queueConf);
+                        trace!("{}.new | self tx-queue param {}: {:?}", self_id, name, queueConf);
                         let queues: Vec<String> = match queueConf.conf.as_sequence() {
                             Some(queues) => {
                                 queues.iter().map(|value| {
@@ -73,9 +73,9 @@ impl MultiQueueConfig {
                         };
                         queues
                     },
-                    Err(err) => panic!("{}.new | out queue - not found in : {:?}\n\terror: {:?}", selfId, selfConf, err),
+                    Err(err) => panic!("{}.new | out queue - not found in : {:?}\n\terror: {:?}", self_id, selfConf, err),
                 };
-                debug!("{}.new | TX: {:?}", selfId, tx);
+                debug!("{}.new | TX: {:?}", self_id, tx);
                 MultiQueueConfig {
                     name: selfName,
                     rx,
@@ -90,7 +90,7 @@ impl MultiQueueConfig {
     }
     ///
     /// creates config from serde_yaml::Value of following format:
-    pub(crate) fn fromYamlValue(value: &serde_yaml::Value) -> MultiQueueConfig {
+    pub(crate) fn from_yaml(value: &serde_yaml::Value) -> MultiQueueConfig {
         Self::new(&mut ConfTree::newRoot(value.clone()))
     }
     ///
@@ -101,7 +101,7 @@ impl MultiQueueConfig {
             Ok(yamlString) => {
                 match serde_yaml::from_str(&yamlString) {
                     Ok(config) => {
-                        MultiQueueConfig::fromYamlValue(&config)
+                        MultiQueueConfig::from_yaml(&config)
                     },
                     Err(err) => {
                         panic!("MultiQueueConfig.read | Error in config: {:?}\n\terror: {:?}", yamlString, err)

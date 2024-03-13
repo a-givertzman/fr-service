@@ -66,15 +66,15 @@ impl FnOut for FnAdd {
         trace!("{}.out | value2: {:?}", self.id, &value2);
         let out = match value1 {
             PointType::Bool(value1) => {
-                PointType::Bool(value1 + value2.asBool())
+                PointType::Bool(value1 + value2.as_bool())
             },
             PointType::Int(value1) => {
-                PointType::Int(value1 + value2.asInt())
+                PointType::Int(value1 + value2.as_int())
             },
             PointType::Float(value1) => {
-                PointType::Float(value1 + value2.asFloat())
+                PointType::Float(value1 + value2.as_float())
             },
-            _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, value1.printTypeOf(), value1),
+            _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, value1.print_type_of(), value1),
         };
         trace!("{}.out | out: {:?}", self.id, &out);
         out

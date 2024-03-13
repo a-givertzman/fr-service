@@ -5,7 +5,6 @@ use log::{trace, warn};
 use regex::RegexBuilder;
 use serde::Deserialize;
 
-
 ///
 /// 
 #[derive(Debug, Deserialize, PartialEq, Eq, Hash, Clone)]
@@ -30,6 +29,8 @@ impl FromStr for ConfKind {
         }
     }
 }
+///
+/// 
 impl ToString for ConfKind {
     fn to_string(&self) -> String {
         match self {
@@ -48,6 +49,7 @@ pub struct ConfKeywdValue {
     pub prefix: String,
     pub kind: ConfKind,
     pub name: String,
+    pub sufix: String,
 }
 
 ///
@@ -97,17 +99,28 @@ impl ConfKeywd {
             ConfKeywd::Link(v) => v.name.clone(),
         }
     }
+    pub fn sufix(&self) -> String {
+        match self {
+            ConfKeywd::Task(v) => v.sufix.clone(),
+            ConfKeywd::Service(v) => v.sufix.clone(),
+            ConfKeywd::Queue(v) => v.sufix.clone(),
+            ConfKeywd::Link(v) => v.sufix.clone(),
+        }
+    }
 }
-
+///
+/// 
 impl FromStr for ConfKeywd {
     type Err = String;
     fn from_str(input: &str) -> Result<ConfKeywd, String> {
         trace!("FnConfKeywd.from_str | input: {}", input);
-        let re = r#"(?:(?:(\w+)|))(?:(?:\s|)(task|service|queue|link){1}(?:$|(?:[ \t]['"]*(\S+)['"]*)))"#;
+        // let re = r#"(?:(?:(\w+)|))(?:(?:\s|)(task|service|queue|link){1}(?:$|(?:[ \t]['"]*(\S+)['"]*)))"#;
+        let re = r#"(?:(?:(\w+)[ \t])?(task|service|queue|link){1}(?:$|(?:[ \t](\S+)(?:[ \t](\S+))?)))"#;
         let re = RegexBuilder::new(re).multi_line(false).build().unwrap();
         let groupPrefix = 1;
         let groupKind = 2;
         let groupName = 3;
+        let groupSufix = 4;
         match re.captures(input) {
             Some(caps) => {
                 let prefix = match &caps.get(groupPrefix) {
@@ -138,16 +151,20 @@ impl FromStr for ConfKeywd {
                         }
                     },
                 };
+                let sufix = match &caps.get(groupSufix) {
+                    Some(first) => String::from(first.as_str()),
+                    None => String::new(),
+                };
                 match &name {
                     Ok(name) => {
                         match &caps.get(groupKind) {
                             Some(keyword) => {
                                 match keyword.as_str() {
-                                    "task" => Ok( ConfKeywd::Task( ConfKeywdValue { prefix, kind, name: name.to_string() } )),
-                                    "service" => Ok( ConfKeywd::Service( ConfKeywdValue { prefix, kind, name: name.to_string() } )),
-                                    "queue" => Ok( ConfKeywd::Queue( ConfKeywdValue { prefix, kind, name: name.to_string() } )),
-                                    "link" => Ok( ConfKeywd::Link( ConfKeywdValue { prefix, kind, name: name.to_string() } )),
-                                    _      => Err(format!("Unknown keyword '{:?}'", &keyword)),
+                                    "task"      => Ok( ConfKeywd::Task( ConfKeywdValue { prefix, kind, name: name.to_string(), sufix } )),
+                                    "service"   => Ok( ConfKeywd::Service( ConfKeywdValue { prefix, kind, name: name.to_string(), sufix } )),
+                                    "queue"     => Ok( ConfKeywd::Queue( ConfKeywdValue { prefix, kind, name: name.to_string(), sufix } )),
+                                    "link"      => Ok( ConfKeywd::Link( ConfKeywdValue { prefix, kind, name: name.to_string(), sufix } )),
+                                    _           => Err(format!("Unknown keyword '{:?}'", &keyword)),
                                 }
                             },
                             None => {

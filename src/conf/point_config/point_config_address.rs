@@ -1,9 +1,8 @@
-#![allow(non_snake_case)]
-
 use serde::{Serialize, Deserialize};
 
 ///
-/// 
+/// General implementation of the PointConfig.address
+/// For specific protocols can have custom implementations
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PointConfigAddress {
     #[serde(skip_serializing_if = "Option::is_none")]

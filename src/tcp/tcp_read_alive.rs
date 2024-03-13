@@ -1,22 +1,25 @@
-#![allow(non_snake_case)]
-
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread::{JoinHandle, self}, time::Duration, net::TcpStream, io::BufReader};
-
-use log::{warn, info, LevelFilter};
-
+use concat_string::concat_string;
+use log::{debug, error, info, warn, LevelFilter};
+use std::{
+    io::BufReader, net::TcpStream, 
+    sync::{atomic::{AtomicBool, Ordering}, mpsc::Sender, Arc, Mutex}, 
+    thread::{self, JoinHandle}, time::Duration,
+};
 use crate::{core_::{
-    net::{connection_status::ConnectionStatus, protocols::jds::{jds_deserialize::JdsDeserialize, jds_decode_message::JdsDecodeMessage}}, 
-    point::point_type::PointType,
-}, services::task::service_cycle::ServiceCycle};
+    net::{connection_status::ConnectionStatus, protocols::jds::jds_deserialize::JdsDeserialize}, object::object::Object, point::point_type::PointType
+}, services::{services::Services, task::service_cycle::ServiceCycle}};
 
+use super::steam_read::TcpStreamRead;
 
+///
+/// Transfering points from JdsStream (socket) to the Channel Sender<PointType>
 pub struct TcpReadAlive {
     id: String,
-    jdsStream: Arc<Mutex<JdsDeserialize>>,
+    stream_read: Arc<Mutex<dyn TcpStreamRead>>,
     send: Sender<PointType>,
     cycle: Duration,
     exit: Arc<AtomicBool>,
-    exitPair: Arc<AtomicBool>,
+    exit_pair: Arc<AtomicBool>,
 }
 impl TcpReadAlive {
     ///
@@ -24,70 +27,73 @@ impl TcpReadAlive {
     /// - [parent] - the ID if the parent entity
     /// - [exit] - notification from parent to exit 
     /// - [exitPair] - notification from / to sibling pair to exit 
-    pub fn new(parent: impl Into<String>, send: Sender<PointType>, cycle: Duration, exit: Option<Arc<AtomicBool>>, exitPair: Option<Arc<AtomicBool>>) -> Self {
-        let selfId = format!("{}/TcpReadAlive", parent.into());
+    pub fn new(
+        parent: impl Into<String>, 
+        stream_read: Arc<Mutex<dyn TcpStreamRead>>,
+        dest: Sender<PointType>, 
+        cycle: Duration, 
+        exit: Option<Arc<AtomicBool>>, 
+        exit_pair: Option<Arc<AtomicBool>>
+    ) -> Self {
+        let self_id = format!("{}/TcpReadAlive", parent.into());
         Self {
-            id: selfId.clone(),
-            jdsStream: Arc::new(Mutex::new(JdsDeserialize::new(
-                selfId.clone(),
-                JdsDecodeMessage::new(
-                    selfId,
-                ),
-            ))),
-            send: send,
+            id: self_id.clone(),
+            stream_read,
+            send: dest,
             cycle,
             exit: exit.unwrap_or(Arc::new(AtomicBool::new(false))),
-            exitPair: exitPair.unwrap_or(Arc::new(AtomicBool::new(false))),
+            exit_pair: exit_pair.unwrap_or(Arc::new(AtomicBool::new(false))),
         }
     }
     ///
     /// Main loop of the [TcpReadAlive]
-    pub fn run(&mut self, tcpStream: TcpStream) -> JoinHandle<()> {
+    pub fn run(&mut self, tcp_stream: TcpStream) -> JoinHandle<()> {
         info!("{}.run | starting...", self.id);
-        let selfId = self.id.clone();
+        let self_id = self.id.clone();
         let exit = self.exit.clone();
-        let exitPair = self.exitPair.clone();
+        let exit_pair = self.exit_pair.clone();
         let mut cycle = ServiceCycle::new(self.cycle);
         let send = self.send.clone();
-        let jdsStream = self.jdsStream.clone();
+        let jds_stream = self.stream_read.clone();
         info!("{}.run | Preparing thread...", self.id);
-        let handle = thread::Builder::new().name(format!("{} - Read", selfId.clone())).spawn(move || {
-            info!("{}.run | Preparing thread - ok", selfId);
-            let mut tcpStream = BufReader::new(tcpStream);
-            let mut jdsStream = jdsStream.lock().unwrap();
-            info!("{}.run | Main loop started", selfId);
+        let handle = thread::Builder::new().name(format!("{} - Read", self_id.clone())).spawn(move || {
+            info!("{}.run | Preparing thread - ok", self_id);
+            let mut tcp_stream = BufReader::new(tcp_stream);
+            let mut jds_stream = jds_stream.lock().unwrap();
+            info!("{}.run | Main loop started", self_id);
             loop {
                 cycle.start();
-                match jdsStream.read(&mut tcpStream) {
+                match jds_stream.read(&mut tcp_stream) {
                     ConnectionStatus::Active(point) => {
                         match point {
                             Ok(point) => {
+                                // debug!("{}.run | read point: {:?}", self_id, point);
                                 match send.send(point) {
                                     Ok(_) => {},
                                     Err(err) => {
-                                        warn!("{}.run | write to queue error: {:?}", selfId, err);
+                                        warn!("{}.run | write to queue error: {:?}", self_id, err);
                                     },
                                 };
                             },
                             Err(err) => {
                                 if log::max_level() == LevelFilter::Trace {
-                                    warn!("{}.run | error: {:?}", selfId, err);
+                                    warn!("{}.run | error: {:?}", self_id, err);
                                 }
                             },
                         }
                     },
                     ConnectionStatus::Closed(err) => {
-                        warn!("{}.run | error: {:?}", selfId, err);
-                        exitPair.store(true, Ordering::SeqCst);
+                        warn!("{}.run | error: {:?}", self_id, err);
+                        exit_pair.store(true, Ordering::SeqCst);
                         break;
                     },
                 };
-                if exit.load(Ordering::SeqCst) | exitPair.load(Ordering::SeqCst) {
+                if exit.load(Ordering::SeqCst) | exit_pair.load(Ordering::SeqCst) {
                     break;
                 }
                 cycle.wait();
             }
-            info!("{}.run | Exit", selfId);
+            info!("{}.run | Exit", self_id);
         }).unwrap();
         info!("{}.run | started", self.id);
         handle
@@ -97,4 +103,4 @@ impl TcpReadAlive {
     pub fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
     }
-}    
+}

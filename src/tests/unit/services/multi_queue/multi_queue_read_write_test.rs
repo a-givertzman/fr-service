@@ -3,10 +3,11 @@
 mod tests {
     use log::{info, debug};
     use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}};
+    use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues}};
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::{test_value::Value, max_test_duration::TestDuration, random_test_values::RandomTestValues}}, 
         conf::multi_queue_config::MultiQueueConfig, 
-        services::{multi_queue::multi_queue::MultiQueue, services::Services, service::Service}, 
+        services::{multi_queue::multi_queue::MultiQueue, services::Services, service::service::Service}, 
         tests::unit::services::multi_queue::mock_recv_send_service::MockRecvSendService,
     }; 
     
@@ -17,7 +18,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -28,21 +29,21 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
     #[test]
     fn test_MultiQueue_static_single() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
-        let selfId = "test_multi_queue - Static subscriptions - Single send";
-        println!("{}", selfId);
+        let self_id = "test_multi_queue - Static subscriptions - Single send";
+        println!("\n{}", self_id);
         let iterations = 10;
-        let testData = RandomTestValues::new(
-            selfId, 
+        let test_data = RandomTestValues::new(
+            self_id, 
             vec![
                 Value::Int(i64::MIN),
                 Value::Int(i64::MAX),
@@ -66,12 +67,12 @@ mod tests {
             ], 
             iterations, 
         );
-        let testData: Vec<Value> = testData.collect();
-        let testDataLen = testData.len();
+        let test_data: Vec<Value> = test_data.collect();
+        let test_dataLen = test_data.len();
         let count = 3;
-        let totalCount = count * testDataLen;
-        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
-        testDuration.run().unwrap();
+        let totalCount = count * test_dataLen;
+        let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
+        test_duration.run().unwrap();
         let mut conf = r#"
             service MultiQueue:
                 in queue in-queue:
@@ -82,7 +83,7 @@ mod tests {
             conf = format!("{}\n                    - MockRecvSendService{}.in-queue", conf, i)
         }
         let conf = serde_yaml::from_str(&conf).unwrap();
-        let mqConf = MultiQueueConfig::fromYamlValue(&conf);
+        let mqConf = MultiQueueConfig::from_yaml(&conf);
         // let mqConf = MultiQueueConfig::read(path);
         debug!("mqConf: {:?}", mqConf);
         let services = Arc::new(Mutex::new(Services::new("test")));
@@ -97,7 +98,7 @@ mod tests {
                 "in-queue",//MultiQueue.
                 "MultiQueue.in-queue",
                 services.clone(),
-                testData.clone(),
+                test_data.clone(),
                 Some(totalCount),
             )));
             services.lock().unwrap().insert(&format!("MockRecvSendService{}", i), rsService.clone());
@@ -133,6 +134,6 @@ mod tests {
             service.lock().unwrap().exit();
         }
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
-        testDuration.exit();
+        test_duration.exit();
     }
 }

@@ -3,7 +3,9 @@
 mod tests {
     use log::{warn, info, debug};
     use std::{sync::{Once, atomic::{AtomicBool, Ordering}, Arc}, time::Duration, thread, net::TcpListener};
-    use crate::{core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_session::TestSession}, tcp::tcp_client_connect::TcpClientConnect}; 
+    use testing::session::test_session::TestSession;
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+    use crate::tcp::tcp_client_connect::TcpClientConnect; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -12,7 +14,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -23,18 +25,18 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
     #[test]
     fn test_success_connection() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
         println!("test success connection");
-        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
+        let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         let timeout = Duration::from_millis(3500); // ms
         let mut connect = TcpClientConnect::new("test", &addr, Duration::from_millis(500));
 
@@ -95,12 +97,12 @@ mod tests {
     #[test]
     fn test_failure_connection() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
         println!("test failure connection");
         let timeout = Duration::from_millis(1500); // ms
-        let addr = "127.0.0.1:".to_owned() + &TestSession::freeTcpPortStr();
+        let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         let mut connect = TcpClientConnect::new("test", &addr, Duration::from_millis(500));
         let connectExit = connect.exit();
         let ok = Arc::new(AtomicBool::new(false));

@@ -1,13 +1,11 @@
 #![allow(non_snake_case)]
-use indexmap::IndexMap;
 #[cfg(test)]
 use log::{debug, info};
 use std::sync::Once;
-
-use crate::{
-    core_::{debug::debug_session::*, testing::test_stuff::test_value::Value},
-    conf::conf_tree::ConfTree,
-};
+use indexmap::IndexMap;
+use testing::entities::test_value::Value;
+use debugging ::session::debug_session::{Backtrace, DebugSession, LogLevel};
+use crate::conf::conf_tree::ConfTree;
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;
@@ -16,7 +14,7 @@ static INIT: Once = Once::new();
 
 ///
 /// once called initialisation
-fn initOnce() {
+fn init_once() {
     INIT.call_once(|| {
             // implement your initialisation code to be called only once for current test file
         }
@@ -27,7 +25,7 @@ fn initOnce() {
 ///
 /// returns:
 ///  - ...
-fn initEach() -> () {
+fn init_each() -> () {
 
 }
 
@@ -51,11 +49,11 @@ impl Node {
 #[test]
 fn test_config_tree_valid() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
-    initEach();
+    init_once();
+    init_each();
     info!("test_config_tree_valid");
-    // let (initial, switches) = initEach();
-    let testData: Vec<(&str, Node)> = vec![
+    // let (initial, switches) = init_each();
+    let test_data: Vec<(&str, Node)> = vec![
         // (
         //     r#"let newVar:
         //         input const '13.55'
@@ -91,14 +89,14 @@ fn test_config_tree_valid() {
                     input: const 1.1
             "#,
             Node::Map(IndexMap::from([
-                (String::from("let newVar2"), Node::Map(IndexMap::from([
-                    (String::from("input"), Node::End(ConfTree { key: String::from("input"), conf: serde_yaml::from_str("const 2.2").unwrap() })), 
+                (format!("let newVar2"), Node::Map(IndexMap::from([
+                    (format!("input"), Node::End(ConfTree { key: format!("input"), conf: serde_yaml::from_str("const 2.2").unwrap() })), 
                 ]))),
-                (String::from("let newVar3"), Node::Map(IndexMap::from([
-                    (String::from("input"), Node::End(ConfTree { key: String::from("input"), conf: serde_yaml::from_str("const 3.3").unwrap() })), 
+                (format!("let newVar3"), Node::Map(IndexMap::from([
+                    (format!("input"), Node::End(ConfTree { key: format!("input"), conf: serde_yaml::from_str("const 3.3").unwrap() })), 
                 ]))),
-                (String::from("let newVar1"), Node::Map(IndexMap::from([
-                    (String::from("input"), Node::End(ConfTree { key: String::from("input"), conf: serde_yaml::from_str("const 1.1").unwrap() })), 
+                (format!("let newVar1"), Node::Map(IndexMap::from([
+                    (format!("input"), Node::End(ConfTree { key: format!("input"), conf: serde_yaml::from_str("const 1.1").unwrap() })), 
                 ]))),
             ]))
         ),
@@ -113,15 +111,15 @@ fn test_config_tree_valid() {
                             inputConst2: newVar1
             "#,
             Node::Map(IndexMap::from([
-                (String::from("let newVar1"), Node::Map(IndexMap::from([
-                    (String::from("input2"), Node::End(ConfTree { key: String::from("input2"), conf: serde_yaml::from_str("point '/Path/Point.Name/'").unwrap() })), 
-                    (String::from("input3"), Node::Map(IndexMap::from([
-                        (String::from("fn count"), Node::Map(IndexMap::from([
-                            (String::from("inputConst1"), Node::End(ConfTree { key: String::from("inputConst1"), conf: serde_yaml::from_str("const '13.5'").unwrap() })), 
-                            (String::from("inputConst2"), Node::End(ConfTree { key: String::from("inputConst2"), conf: serde_yaml::from_str("newVar1").unwrap() }))
+                (format!("let newVar1"), Node::Map(IndexMap::from([
+                    (format!("input2"), Node::End(ConfTree { key: format!("input2"), conf: serde_yaml::from_str("point '/Path/Point.Name/'").unwrap() })), 
+                    (format!("input3"), Node::Map(IndexMap::from([
+                        (format!("fn count"), Node::Map(IndexMap::from([
+                            (format!("inputConst1"), Node::End(ConfTree { key: format!("inputConst1"), conf: serde_yaml::from_str("const '13.5'").unwrap() })), 
+                            (format!("inputConst2"), Node::End(ConfTree { key: format!("inputConst2"), conf: serde_yaml::from_str("newVar1").unwrap() }))
                         ])))
                     ]))), 
-                    (String::from("input1"), Node::End(ConfTree { key: String::from("input1"), conf: serde_yaml::from_str("const 177.3").unwrap() }))
+                    (format!("input1"), Node::End(ConfTree { key: format!("input1"), conf: serde_yaml::from_str("const 177.3").unwrap() }))
                 ]))),
             ]))
         ),
@@ -160,27 +158,27 @@ fn test_config_tree_valid() {
                     cycle: 200
             "#,
             Node::Map(IndexMap::from([
-                (String::from("serviceCMA"), Node::Map(IndexMap::from([
-                    (String::from("nodeType"), Node::End(ConfTree { key: String::from("nodeType"), conf: serde_yaml::from_str("API Client").unwrap() })), 
-                    (String::from("address"), Node::End(ConfTree { key: String::from("address"), conf: serde_yaml::from_str("127.0.0.1:8899").unwrap() })), 
-                    (String::from("cycle"), Node::End(ConfTree { key: String::from("cycle"), conf: serde_yaml::from_str("1000").unwrap() })),
+                (format!("serviceCMA"), Node::Map(IndexMap::from([
+                    (format!("nodeType"), Node::End(ConfTree { key: format!("nodeType"), conf: serde_yaml::from_str("API Client").unwrap() })), 
+                    (format!("address"), Node::End(ConfTree { key: format!("address"), conf: serde_yaml::from_str("127.0.0.1:8899").unwrap() })), 
+                    (format!("cycle"), Node::End(ConfTree { key: format!("cycle"), conf: serde_yaml::from_str("1000").unwrap() })),
                 ]))), 
-                (String::from("serviceAPI"), Node::Map(IndexMap::from([
-                    (String::from("nodeType"), Node::End(ConfTree { key: String::from("nodeType"), conf: serde_yaml::from_str("API Client").unwrap() })), 
-                    (String::from("address"), Node::End(ConfTree { key: String::from("address"), conf: serde_yaml::from_str("127.0.0.1:8899").unwrap() })), 
-                    (String::from("cycle"), Node::End(ConfTree { key: String::from("cycle"), conf: serde_yaml::from_str("2000").unwrap() })),
+                (format!("serviceAPI"), Node::Map(IndexMap::from([
+                    (format!("nodeType"), Node::End(ConfTree { key: format!("nodeType"), conf: serde_yaml::from_str("API Client").unwrap() })), 
+                    (format!("address"), Node::End(ConfTree { key: format!("address"), conf: serde_yaml::from_str("127.0.0.1:8899").unwrap() })), 
+                    (format!("cycle"), Node::End(ConfTree { key: format!("cycle"), conf: serde_yaml::from_str("2000").unwrap() })),
                 ]))), 
-                (String::from("serviceTask"), Node::Map(IndexMap::from([
-                    (String::from("cycle"), Node::End(ConfTree { key: String::from("cycle"), conf: serde_yaml::from_str("200").unwrap() }))
+                (format!("serviceTask"), Node::Map(IndexMap::from([
+                    (format!("cycle"), Node::End(ConfTree { key: format!("cycle"), conf: serde_yaml::from_str("200").unwrap() }))
                 ]))),
             ]))
         ),
     ];
-    for (value, target) in testData {
+    for (value, target) in test_data {
         // debug!("test value: {:?}", value);
         let conf: serde_yaml::Value = serde_yaml::from_str(value).unwrap();
         debug!("test conf: {:?}", conf);
-        // let conf = testData.get("/").unwrap();
+        // let conf = test_data.get("/").unwrap();
         let confTree = ConfTree::newRoot(conf);
         debug!("confTree: {:?}", confTree);
         let res = inputs(&confTree);
@@ -217,11 +215,11 @@ fn inputs(confTree: &ConfTree) -> Node {
 #[test]
 fn test_config_tree_as_type() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
-    initEach();
+    init_once();
+    init_each();
     info!("test_config_tree_valid");
-    // let (initial, switches) = initEach();
-    let testData: Vec<(&str, IndexMap<&str, Value>)> = vec![
+    // let (initial, switches) = init_each();
+    let test_data: Vec<(&str, IndexMap<&str, Value>)> = vec![
         (
             r#"
                 boolTrue: true
@@ -248,7 +246,7 @@ fn test_config_tree_as_type() {
         ),
 
     ];
-    for (value, targets) in testData {
+    for (value, targets) in test_data {
         // debug!("test value: {:?}", value);
         let conf: serde_yaml::Value = serde_yaml::from_str(value).unwrap();
         debug!("test conf: {:?}", conf);

@@ -2,9 +2,9 @@
 #[cfg(test)]
 use log::{debug, info};
 use std::{sync::Once, rc::Rc, cell::RefCell};
-
+use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
 use crate::{
-    core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
+    core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
     services::task::nested_function::{fn_::FnOut, fn_input::FnInput, fn_ge::FnGe}
 };
 
@@ -15,7 +15,7 @@ static INIT: Once = Once::new();
 
 ///
 /// once called initialisation
-fn initOnce() {
+fn init_once() {
     INIT.call_once(|| {
             // implement your initialisation code to be called only once for current test file
         }
@@ -26,7 +26,7 @@ fn initOnce() {
 ///
 /// returns:
 ///  - ...
-fn initEach(initial: PointType) -> FnInOutRef {
+fn init_each(initial: PointType) -> FnInOutRef {
     Rc::new(RefCell::new(Box::new(
         FnInput::new("test", initial)
     )))
@@ -36,18 +36,18 @@ fn initEach(initial: PointType) -> FnInOutRef {
 #[test]
 fn test_single_int() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
+    init_once();
     info!("test_single");
 
-    // let (initial, switches) = initEach();
-    let input1 = initEach(0.toPoint(0, "point1"));
-    let input2 = initEach(0.toPoint(0, "point2"));
+    // let (initial, switches) = init_each();
+    let input1 = init_each(0.to_point(0, "point1"));
+    let input2 = init_each(0.to_point(0, "point2"));
     let mut fnTrip = FnGe::new(
         "test",
         input1.clone(),
         input2.clone(),
     );
-    let testData = vec![
+    let test_data = vec![
         (-1, 0, false),
         (0, 1, false),
         (-2, -1, false),
@@ -61,34 +61,34 @@ fn test_single_int() {
         (0, 1, false),
         (-1, 0, false),
     ];
-    for (value1, value2, targetState) in testData {
-        let point1 = value1.toPoint(0, "point1");
-        let point2 = value2.toPoint(0, "point2");
+    for (value1, value2, targetState) in test_data {
+        let point1 = value1.to_point(0, "point1");
+        let point2 = value2.to_point(0, "point2");
         input1.borrow_mut().add(point1);
         input2.borrow_mut().add(point2);
         // debug!("input: {:?}", &input);
         let state = fnTrip.out();
         // debug!("input: {:?}", &mut input);
         debug!("value1: {:?}  >=  value2: {:?}  |   state: {:?}", value1, value2, state);
-        assert_eq!(state.asBool().value.0, targetState);
+        assert_eq!(state.as_bool().value.0, targetState);
     }        
 }
 
 #[test]
 fn test_multiple_int() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
+    init_once();
     info!("test_single");
 
-    // let (initial, switches) = initEach();
-    let input1 = initEach(0.toPoint(0, "point1"));
-    let input2 = initEach(0.toPoint(0, "point2"));
+    // let (initial, switches) = init_each();
+    let input1 = init_each(0.to_point(0, "point1"));
+    let input2 = init_each(0.to_point(0, "point2"));
     let mut fnTrip = FnGe::new(
         "test",
         input1.clone(),
         input2.clone(),
     );
-    let testData = vec![
+    let test_data = vec![
         (-1, 0, false),
         (0, 1, false),
         (1, 2, false),
@@ -106,34 +106,34 @@ fn test_multiple_int() {
         (1, 2, false),
         (0, 1, false),
     ];
-    for (value1, value2, targetState) in testData {
-        let point1 = value1.toPoint(0, "point1");
-        let point2 = value2.toPoint(0, "point2");
+    for (value1, value2, targetState) in test_data {
+        let point1 = value1.to_point(0, "point1");
+        let point2 = value2.to_point(0, "point2");
         input1.borrow_mut().add(point1);
         input2.borrow_mut().add(point2);
         // debug!("input: {:?}", &input);
         let state = fnTrip.out();
         // debug!("input: {:?}", &mut input);
         debug!("value1: {:?}  >=  value2: {:?}  |   state: {:?}", value1, value2, state);
-        assert_eq!(state.asBool().value.0, targetState);
+        assert_eq!(state.as_bool().value.0, targetState);
     }        
 }
 
 #[test]
 fn test_multiple_float() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
-    initOnce();
+    init_once();
     info!("test_single");
 
-    // let (initial, switches) = initEach();
-    let input1 = initEach(0.0.toPoint(0, "point1"));
-    let input2 = initEach(0.0.toPoint(0, "point2"));
+    // let (initial, switches) = init_each();
+    let input1 = init_each(0.0.to_point(0, "point1"));
+    let input2 = init_each(0.0.to_point(0, "point2"));
     let mut fnTrip = FnGe::new(
         "test",
         input1.clone(),
         input2.clone(),
     );
-    let testData = vec![
+    let test_data = vec![
         (-0.1, 0.0, false),
         (1.0, 1.1, false),
         (2.0, 2.2, false),
@@ -151,9 +151,9 @@ fn test_multiple_float() {
         (0.0, 1.0, false),
         (-0.1, 0.0, false),
     ];
-    for (value1, value2, targetState) in testData {
-        let point1 = value1.toPoint(0, "point1");
-        let point2 = value2.toPoint(0, "point2");
+    for (value1, value2, targetState) in test_data {
+        let point1 = value1.to_point(0, "point1");
+        let point2 = value2.to_point(0, "point2");
         input1.borrow_mut().add(point1);
         input2.borrow_mut().add(point2);
         // debug!("input: {:?}", &input);
@@ -161,6 +161,6 @@ fn test_multiple_float() {
         // debug!("input: {:?}", &mut input);
         debug!("value1: {:?}  >=  value2: {:?}  |   state: {:?}", value1, value2, state);
 
-        assert_eq!(state.asBool().value.0, targetState);
+        assert_eq!(state.as_bool().value.0, targetState);
     }        
 }

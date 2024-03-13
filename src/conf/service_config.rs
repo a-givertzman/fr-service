@@ -63,6 +63,17 @@ impl ServiceConfig {
     }
     ///
     /// 
+    pub fn sufix(&self) -> String {
+        match ConfKeywd::from_str(&self.conf.key) {
+            Ok(selfKeyword) => {
+                trace!("{}.sufix | selfKeyword: {:?}", self.id, selfKeyword);
+                selfKeyword.sufix()
+            },
+            Err(err) => panic!("{}.name | Unknown metric name in {:?}\n\tdetales: {:?}", self.id, self.conf.key, err),
+        }
+    }
+    ///
+    /// 
     pub fn getParamValue(&mut self, name: &str) -> Result<serde_yaml::Value, String> {
         match self.removeKey(name) {
             Ok(_) => {

@@ -1,0 +1,15 @@
+#![allow(non_snake_case)]
+use testing::entities::test_value::Value;
+
+use crate::core_::point::point_type::{PointType, ToPoint};
+
+impl ToPoint for Value {
+    fn to_point(&self, txId: usize, name: &str) -> PointType {
+        match self {
+            Value::Bool(value) => value.to_point(txId, name),
+            Value::Int(value) => value.to_point(txId, name),
+            Value::Float(value) => value.to_point(txId, name),
+            Value::String(value) => value.to_point(txId, name),
+        }
+    }
+}

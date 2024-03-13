@@ -4,9 +4,9 @@
 mod tests {
     use log::trace;
     use std::{sync::{Once, Arc, Mutex}, env, time::Duration};
-    
+    use testing::stuff::max_test_duration::TestDuration;
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, testing::test_stuff::max_test_duration::TestDuration}, 
         conf::task_config::TaskConfig, 
         services::{task::task::Task, services::Services},
     };
@@ -18,7 +18,7 @@ mod tests {
     
     ///
     /// once called initialisation
-    fn initOnce() {
+    fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
             }
@@ -29,7 +29,7 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn initEach() -> () {
+    fn init_each() -> () {
     
     }
     
@@ -38,20 +38,20 @@ mod tests {
     #[test]
     fn services_points() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
-        initOnce();
-        initEach();
+        init_once();
+        init_each();
         println!("");
-        let selfId = "test Services.points";
-        println!("{}", selfId);
-        let testDuration = TestDuration::new(selfId, Duration::from_secs(10));
-        testDuration.run().unwrap();
+        let self_id = "test Services.points";
+        println!("\n{}", self_id);
+        let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
+        test_duration.run().unwrap();
         trace!("dir: {:?}", env::current_dir());
         let path = "./src/tests/unit/services/services/services_test_points.yaml";
         let config = TaskConfig::read(path);
         trace!("config: {:?}", &config);
         println!(" points: {:?}", config.points());
-        let services = Arc::new(Mutex::new(Services::new(selfId)));        
-        let task = Arc::new(Mutex::new(Task::new(selfId, config, services.clone())));
+        let services = Arc::new(Mutex::new(Services::new(self_id)));        
+        let task = Arc::new(Mutex::new(Task::new(self_id, config, services.clone())));
         services.lock().unwrap().insert("Task", task.clone());
         let target  = 3;
         let points = services.lock().unwrap().points();
@@ -62,7 +62,7 @@ mod tests {
             println!("\t {:?}", point);
         }
         assert!(pointsCount == target, "\nresult: {:?}\ntarget: {:?}", pointsCount, target);
-        testDuration.exit();
+        test_duration.exit();
     }
 }
 

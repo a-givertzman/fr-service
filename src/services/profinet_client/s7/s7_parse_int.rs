@@ -4,7 +4,9 @@ use log::{debug, warn};
 use std::array::TryFromSliceError;
 use chrono::{DateTime, Utc};
 use crate::{
-    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress}, core_::{filter::filter::Filter, point::{point::Point, point_type::PointType}, status::status::Status}, services::profinet_client::parse_point::ParsePoint
+    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress, point_config_history::PointConfigHistory},
+    core_::{cot::cot::Cot, filter::filter::Filter, point::{point::Point, point_type::PointType}, status::status::Status}, 
+    services::profinet_client::parse_point::ParsePoint,
 };
 
 
@@ -18,7 +20,7 @@ pub struct S7ParseInt {
     pub value: Box<dyn Filter<Item = i64>>,
     pub status: Status,
     pub offset: Option<u32>,
-    pub history: Option<u8>,
+    pub history: PointConfigHistory,
     pub alarm: Option<u8>,
     pub comment: Option<String>,
     pub timestamp: DateTime<Utc>,
@@ -43,7 +45,7 @@ impl S7ParseInt {
             status: Status::Invalid,
             isChanged: false,
             offset: config.clone().address.unwrap_or(PointConfigAddress::empty()).offset,
-            history: config.history,
+            history: config.history.clone(),
             alarm: config.alarm,
             comment: config.comment.clone(),
             timestamp: Utc::now(),
@@ -77,7 +79,8 @@ impl S7ParseInt {
                 &self.name, 
                 self.value.value(),
                 self.status, 
-                self.timestamp
+                Cot::Inf,
+                self.timestamp,
             )))
             // debug!("{} point Bool: {:?}", self.id, dsPoint.value);
         } else {
@@ -115,7 +118,7 @@ impl S7ParseInt {
 impl ParsePoint for S7ParseInt {
     //
     //
-    fn nextSimple(&mut self, bytes: &Vec<u8>) -> Option<PointType> {
+    fn next_simple(&mut self, bytes: &Vec<u8>) -> Option<PointType> {
         self.addRawSimple(bytes);
         self.toPoint()
     }
@@ -127,14 +130,19 @@ impl ParsePoint for S7ParseInt {
     }
     //
     //
-    fn nextStatus(&mut self, status: Status) -> Option<PointType> {
+    fn next_status(&mut self, status: Status) -> Option<PointType> {
         self.status = status;
         self.timestamp = Utc::now();
         self.toPoint()
     }
     //
     //
-    fn isChanged(&self) -> bool {
+    fn is_changed(&self) -> bool {
         self.isChanged
+    }
+    //
+    //
+    fn address(&self) -> PointConfigAddress {
+        PointConfigAddress { offset: self.offset, bit: None }
     }
 }

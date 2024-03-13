@@ -2,24 +2,24 @@
 
 use log::{info, trace, warn, debug};
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{JoinHandle, self}, time::Duration, net::{TcpStream, SocketAddr}, io::Write};
+use testing::entities::test_value::Value;
 use crate::{
     core_::{
-        testing::test_stuff::test_value::Value, point::point_type::PointType, 
         net::{
             connection_status::ConnectionStatus,
-            protocols::jds::{jds_deserialize::JdsDeserialize, jds_decode_message::JdsDecodeMessage}, 
-        }, state::{switch_state::{SwitchState, Switch, SwitchCondition}, switch_state_changed::SwitchStateChanged},
+            protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}, 
+        }, object::object::Object, point::point_type::PointType, state::{switch_state::{Switch, SwitchCondition, SwitchState}, switch_state_changed::SwitchStateChanged}
     },
-    services::service::Service, 
+    services::service::service::Service, 
 };
 
 
 ///
 /// Jast connects to the tcp socket on [address]
-/// - all point from [testData] will be sent via socket
+/// - all point from [test_data] will be sent via socket
 /// - all received point in the received() method
 /// - if [recvLimit] is some then thread exit when riched recvLimit
-/// - [disconnect] - contains percentage (0..100) of testData / iterations, where socket will be disconnected and connected again
+/// - [disconnect] - contains percentage (0..100) of test_data / iterations, where socket will be disconnected and connected again
 pub struct EmulatedTcpClientRecv {
     id: String,
     addr: SocketAddr,
@@ -34,9 +34,9 @@ pub struct EmulatedTcpClientRecv {
 /// 
 impl EmulatedTcpClientRecv {
     pub fn new(parent: impl Into<String>, addr: &str, recvLimit: Option<usize>, mustReceived: Option<Value>, disconnect: Vec<i8>) -> Self {
-        let selfId = format!("{}/EmulatedTcpClientRecv", parent.into());
+        let self_id = format!("{}/EmulatedTcpClientRecv", parent.into());
         Self {
-            id: selfId.clone(),
+            id: self_id.clone(),
             addr: addr.parse().unwrap(),
             received: Arc::new(Mutex::new(vec![])),
             recvLimit,
@@ -135,16 +135,18 @@ impl EmulatedTcpClientRecv {
 }
 ///
 /// 
-impl Service for EmulatedTcpClientRecv {
-    //
-    //
+impl Object for EmulatedTcpClientRecv {
     fn id(&self) -> &str {
         &self.id
     }
+}
+///
+/// 
+impl Service for EmulatedTcpClientRecv {
     //
     //
-    fn getLink(&mut self, _name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
-        panic!("{}.getLink | Does not support static producer", self.id())
+    fn get_link(&mut self, _name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
+        panic!("{}.get_link | Does not support static producer", self.id())
         // match self.rxSend.get(name) {
         //     Some(send) => send.clone(),
         //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
@@ -154,7 +156,7 @@ impl Service for EmulatedTcpClientRecv {
     //
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
-        let selfId = self.id.clone();
+        let self_id = self.id.clone();
         let exit = self.exit.clone();
         let markerReceived = self.markerReceived.clone();
         let addr = self.addr.clone();
@@ -162,18 +164,18 @@ impl Service for EmulatedTcpClientRecv {
         let recvLimit = self.recvLimit.clone();
         let mustReceived = self.mustReceived.clone();
         let disconnect = self.disconnect.iter().map(|v| {(*v as f32) / 100.0}).collect();
-        let handle = thread::Builder::new().name(format!("{}.run Read", selfId)).spawn(move || {
-            info!("{}.run | Preparing thread Read - ok", selfId);
+        let handle = thread::Builder::new().name(format!("{}.run Read", self_id)).spawn(move || {
+            info!("{}.run | Preparing thread Read - ok", self_id);
             let mut switchState = Self::switchState(1, disconnect, 1.0);
             let mut switchStateChanged = false;
             'connect: loop {
                 match TcpStream::connect(addr) {
                     Ok(mut tcpStream) => {
-                        info!("{}.run | connected on: {:?}", selfId, addr);
+                        info!("{}.run | connected on: {:?}", self_id, addr);
                         let mut jdsDeserialize = JdsDeserialize::new(
-                            selfId.clone(),
+                            self_id.clone(),
                             JdsDecodeMessage::new(
-                                selfId.clone(),
+                                self_id.clone(),
                             ),
                         );
                         match recvLimit {
@@ -184,48 +186,48 @@ impl Service for EmulatedTcpClientRecv {
                                     loop {
                                         match jdsDeserialize.read(&tcpStream) {
                                             ConnectionStatus::Active(result) => {
-                                                trace!("{}.run | received: {:?}", selfId, result);
+                                                trace!("{}.run | received: {:?}", self_id, result);
                                                 match result {
                                                     Ok(point) => {
-                                                        debug!("{}.run | received: {:?}", selfId, point);
+                                                        debug!("{}.run | received: {:?}", self_id, point);
                                                         received.lock().unwrap().push(point.clone());
                                                         receivedCount += 1;
                                                         progressPercent = (receivedCount as f32) / (recvLimit as f32);
                                                         switchState.add(progressPercent);
                                                         if let Some(mustReceived) = &mustReceived {
                                                             let markerReceived_ = match mustReceived {
-                                                                Value::Bool(value) => value == &point.asBool().value.0,
-                                                                Value::Int(value) => value == &point.asInt().value,
-                                                                Value::Float(value) => value == &point.asFloat().value,
-                                                                Value::String(value) => value == &point.asString().value,
+                                                                Value::Bool(value) => value == &point.as_bool().value.0,
+                                                                Value::Int(value) => value == &point.as_int().value,
+                                                                Value::Float(value) => value == &point.as_float().value,
+                                                                Value::String(value) => value == &point.as_string().value,
                                                             };
                                                             if markerReceived_ {
-                                                                info!("{}.run | received marker {:?}, exiting...", selfId, point);
+                                                                info!("{}.run | received marker {:?}, exiting...", self_id, point);
                                                                 markerReceived.store(markerReceived_, Ordering::SeqCst);
                                                                 break;
                                                             }
                                                         }
                                                     },
                                                     Err(err) => {
-                                                        warn!("{}.run | read socket error: {:?}", selfId, err);
+                                                        warn!("{}.run | read socket error: {:?}", self_id, err);
                                                     },
                                                 }
                                             },
                                             ConnectionStatus::Closed(err) => {
-                                                warn!("{}.run | socket connection closed: {:?}", selfId, err);
+                                                warn!("{}.run | socket connection closed: {:?}", self_id, err);
                                                 break;
                                             },
                                         };
                                         if switchStateChanged {
                                             switchStateChanged = false;
-                                            info!("{}.run | state: {} progress percent: {}", selfId, switchState.state(), progressPercent);
+                                            info!("{}.run | state: {} progress percent: {}", self_id, switchState.state(), progressPercent);
                                             tcpStream.shutdown(std::net::Shutdown::Both).unwrap();
                                             drop(tcpStream);
                                             thread::sleep(Duration::from_millis(1000));
                                             break;
                                         }
                                         if switchState.changed() {
-                                            info!("{}.run | state: {} progress percent: {}", selfId, switchState.state(), progressPercent);
+                                            info!("{}.run | state: {} progress percent: {}", self_id, switchState.state(), progressPercent);
                                             switchStateChanged = true;
                                             tcpStream.flush().unwrap();
                                         } 
@@ -243,18 +245,18 @@ impl Service for EmulatedTcpClientRecv {
                                 loop {
                                     match jdsDeserialize.read(&tcpStream) {
                                         ConnectionStatus::Active(result) => {
-                                            trace!("{}.run | received: {:?}", selfId, result);
+                                            trace!("{}.run | received: {:?}", self_id, result);
                                             match result {
                                                 Ok(point) => {
                                                     received.lock().unwrap().push(point);
                                                 },
                                                 Err(err) => {
-                                                    warn!("{}.run | read socket error: {:?}", selfId, err);
+                                                    warn!("{}.run | read socket error: {:?}", self_id, err);
                                                 },
                                             }
                                         },
                                         ConnectionStatus::Closed(err) => {
-                                            warn!("{}.run | socket connection closed: {:?}", selfId, err);
+                                            warn!("{}.run | socket connection closed: {:?}", self_id, err);
                                             break;
                                         },
                                     };
@@ -266,7 +268,7 @@ impl Service for EmulatedTcpClientRecv {
                         };
                     },
                     Err(err) => {
-                        warn!("{}.run | connection error: {:?}", selfId, err);
+                        warn!("{}.run | connection error: {:?}", self_id, err);
                         thread::sleep(Duration::from_millis(1000))
                     },
                 }
@@ -274,7 +276,7 @@ impl Service for EmulatedTcpClientRecv {
                     break 'connect;
                 }
             }
-            info!("{}.run | Exit thread Recv", selfId);
+            info!("{}.run | Exit thread Recv", self_id);
         });
         info!("{}.run | starting - ok", self.id);
         handle
