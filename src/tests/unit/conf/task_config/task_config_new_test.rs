@@ -76,7 +76,7 @@ mod tests {
                     name: format!("task1"),
                     cycle: Some(Duration::from_millis(100)),
                     rx: format!("recv-queue"),
-                    rxMaxLength: 10000,
+                    rx_max_length: 10000,
                     vars: vec![format!("VarName2")],
                     nodes: IndexMap::from([                    
                         (format!("SqlMetric-1"), FnConfKind::Fn( FnConfig {
@@ -132,7 +132,7 @@ mod tests {
                     name: format!("task1"),
                     cycle: Some(Duration::from_millis(100)),
                     rx: format!("recv-queue"),
-                    rxMaxLength: 10000,
+                    rx_max_length: 10000,
                     vars: vec![format!("VarName2")],
                     nodes: IndexMap::from([                    
                         (format!("VarName2-1"), FnConfKind::Var( FnConfig { 

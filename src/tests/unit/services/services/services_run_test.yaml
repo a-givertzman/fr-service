@@ -1,17 +1,13 @@
-# let VarName1:
-#     input:
-#         fn functionName:
-#             input: point '/path/Point.Name/'
+name: ApplicationName
+description: Short explanation / purpose etc.
 
-# link api-link
-#     max-length: 10000
-# queue api-queue:
-#     max-length: 10000
+service MultiQueue:
+    in queue in-queue:
+        max-length: 10000
+    out queue:
+        - TaskTestReceiver.queue
 
-# queue recv-queue:
-#     max-length: 10000
-
-task task1:
+task Task1:
     cycle: 1 ms
     in queue recv-queue:
         max-length: 10000
@@ -38,11 +34,137 @@ task task1:
             comment: 'Some indication'
             input: var0
 
-# service ApiClient:
+service ApiClient:
+    cycle: 1 ms
+    reconnect: 1 s  # default 3 s
+    address: 127.0.0.1:8080
+    database: test_api_query
+    in queue api-link:
+        max-length: 10000
+    out queue: MultiQueue.queue
+    auth_token: 123!@#
+    # debug: true
 
-# service CmaClient:
+service TcpServer:
+    cycle: 1 ms
+    reconnect: 1 s  # default 3 s
+    address: {}
+    auth: none      # auth: none / auth-secret: pass: ... / auth-ssh: path: ...
+    in queue link:
+        max-length: 10000
+    out queue: MultiQueue.in-queue
 
-# service CmaServer:
+service TcpClient:
+    cycle: 1 ms
+    reconnect: 1 s  # default 3 s
+    address: 127.0.0.1:8080
+    in queue link:
+        max-length: 10000
+    out queue: MultiQueue.queue
 
-# service ExternalDevice:
-#     protocol: profinet
+service ProfinetClient Ied01:
+    cycle: 1 ms                         # operating cycle time of the module
+    in queue in-queue:
+        max-length: 10000
+    out queue: MultiQueue.in-queue
+    # name Ied01:                       # device will be executed in the independent thread, must have unique name
+    protocol: 'profinet'
+    description: 'S7-IED-01'
+    ip: '192.168.100.243'
+    rack: 0
+    slot: 1
+    db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
+        # description: 'db899 | Exhibit - drive data'
+        number: 899
+        offset: 0
+        size: 34
+        cycle: 10 ms
+        point Drive.Speed: 
+            type: 'Real'
+            offset: 0
+        point Drive.OutputVoltage: 
+            type: 'Real'
+            offset: 4
+        point Drive.DCVoltage: 
+            type: 'Real'
+            offset: 8
+        point Drive.Current: 
+            type: 'Real'
+            offset: 12
+            history: r
+        point Drive.Torque: 
+            type: 'Real'
+            offset: 16
+    db db999:                       # multiple DB blocks are allowed, must have unique namewithing parent device
+        description: 'db899 | Exhibit - drive data'
+        number: 899
+        offset: 0
+        size: 34
+        cycle: 10 ms
+        point Drive.positionFromMru: 
+            type: 'Real'
+            offset: 20
+        point Drive.positionFromHoist: 
+            type: 'Real'
+            offset: 24
+        point Capacitor.Capacity: 
+            type: 'Int'
+            offset: 28
+        point ChargeIn.On: 
+            type: 'Bool'
+            offset: 30
+            bit: 0
+        point ChargeOut.On: 
+            type: 'Bool'
+            offset: 32
+            bit: 0
+
+service ProfinetClient Ied02:
+    cycle: 1 ms                         # operating cycle time of the module
+    in queue in-queue:
+        max-length: 10000
+    out queue: MultiQueue.in-queue
+    name Ied02:                       # device will be executed in the independent thread, must have unique name
+    protocol: 'profinet'
+    description: 'S7-IED-02'
+    ip: '192.168.100.243'
+    rack: 0
+    slot: 1
+    db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
+        description: 'db899 | Exhibit - drive data'
+        number: 899
+        offset: 0
+        size: 34
+        delay: 10
+        point Drive.Speed: 
+            type: 'Real'
+            offset: 0
+        point Drive.OutputVoltage: 
+            type: 'Real'
+            offset: 4
+        point Drive.DCVoltage: 
+            type: 'Real'
+            offset: 8
+        point Drive.Current: 
+            type: 'Real'
+            offset: 12
+        point Drive.Torque: 
+            type: 'Real'
+            offset: 16
+        point Drive.positionFromMru: 
+            type: 'Real'
+            offset: 20
+        point Drive.positionFromHoist: 
+            type: 'Real'
+            offset: 24
+        point Capacitor.Capacity: 
+            type: 'Int'
+            offset: 28
+        point ChargeIn.On: 
+            type: 'Bool'
+            offset: 30
+            bit: 0
+        point ChargeOut.On: 
+            type: 'Bool'
+            offset: 32
+            bit: 0

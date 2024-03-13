@@ -10,12 +10,9 @@ mod tests {
         fn_::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType}, 
         task_config::TaskConfig,
     };
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    ///
+    ///     
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -24,15 +21,12 @@ mod tests {
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
+    fn init_each() -> () {}
+    ///
+    ///     
     #[test]
     fn test_task_config_read_valid() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -43,7 +37,7 @@ mod tests {
             name: format!("task1"),
             cycle: Some(Duration::from_millis(100)),
             rx: format!("recv-queue"),
-            rxMaxLength: 10000,
+            rx_max_length: 10000,
             vars: vec![format!("VarName2")],
             nodes: IndexMap::from([                    
                 (format!("SqlMetric-1"), FnConfKind::Fn( FnConfig { 

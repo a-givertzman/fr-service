@@ -37,7 +37,7 @@ mod services_points {
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
         trace!("dir: {:?}", env::current_dir());
-        let path = "./src/tests/unit/services/services/services_test_points.yaml";
+        let path = "./src/tests/unit/services/services/services_points_test.yaml";
         let config = TaskConfig::read(path);
         trace!("config: {:?}", &config);
         println!(" points: {:?}", config.points());
