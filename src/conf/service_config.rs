@@ -58,7 +58,7 @@ impl ServiceConfig {
                 trace!("{}.name | selfKeyword: {:?}", self.id, selfKeyword);
                 selfKeyword.name()
             },
-            Err(err) => panic!("{}.name | Unknown metric name in {:?}\n\tdetales: {:?}", self.id, self.conf.key, err),
+            Err(err) => panic!("{}.name | Keyword error in {:?}\n\tdetales: {:?}", self.id, self.conf.key, err),
         }
     }
     ///
@@ -69,7 +69,7 @@ impl ServiceConfig {
                 trace!("{}.sufix | selfKeyword: {:?}", self.id, selfKeyword);
                 selfKeyword.sufix()
             },
-            Err(err) => panic!("{}.name | Unknown metric name in {:?}\n\tdetales: {:?}", self.id, self.conf.key, err),
+            Err(err) => panic!("{}.name | Keyword error in {:?}\n\tdetales: {:?}", self.id, self.conf.key, err),
         }
     }
     ///

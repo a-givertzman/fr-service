@@ -1,12 +1,9 @@
 use indexmap::IndexMap;
 use log::{debug, trace};
 use std::{fs, str::FromStr, time::Duration};
-
 use crate::conf::{
     conf_keywd::{ConfKeywd, ConfKind}, conf_tree::ConfTree, service_config::ServiceConfig
 };
-
-
 ///
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
@@ -56,7 +53,7 @@ pub struct ServicesConfig {
     pub(crate) name: String,
     pub(crate) description: String,
     pub(crate) cycle: Option<Duration>,
-    pub(crate) nodes: IndexMap<String, ConfTree>,
+    pub(crate) nodes: IndexMap<ConfKeywd, ConfTree>,
 }
 ///
 /// 
@@ -72,10 +69,10 @@ impl ServicesConfig {
         trace!("{}.new | MAPPING VALUE", self_id);
         let mut self_conf = ServiceConfig::new(&self_id, conf_tree.to_owned());
         trace!("{}.new | selfConf: {:?}", self_id, self_conf);
-        let self_name = self_conf.name();
+        let self_name = self_conf.getParamValue("name").unwrap().as_str().unwrap().to_owned();
         // let service_name = self_conf.sufix();
         debug!("{}.new | name: {:?}", self_id, self_name);
-        let description = self_conf.getParamValue("description").unwrap().as_str().unwrap().to_string();
+        let description = self_conf.getParamValue("description").unwrap().as_str().unwrap().to_owned();
         debug!("{}.new | description: {:?}", self_id, description);
         let cycle = self_conf.getDuration("cycle");
         debug!("{}.new | cycle: {:?}", self_id, cycle);
@@ -85,11 +82,14 @@ impl ServicesConfig {
             match keyword.kind() {
                 ConfKind::Service | ConfKind::Task => {
                     let node_name = keyword.name();
-                    let mut node_conf = self_conf.get(key).unwrap();
-                    debug!("{}.new | DB '{}'", self_id, node_name);
-                    trace!("{}.new | DB '{}'   |   conf: {:?}", self_id, node_name, node_conf);
+                    let node_conf = self_conf.get(key).unwrap();
+                    if log::max_level() == log::LevelFilter::Debug {
+                        debug!("{}.new | service '{}'", self_id, node_name);
+                    } else if log::max_level() == log::LevelFilter::Trace {
+                        trace!("{}.new | DB '{}'   |   conf: {:?}", self_id, node_name, node_conf);
+                    }
                     nodes.insert(
-                        node_name,
+                        keyword,
                         node_conf,
                     );
                 },

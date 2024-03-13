@@ -1,12 +1,8 @@
 use std::{collections::HashMap, sync::{Arc, Mutex, mpsc::{Sender, Receiver}}};
-use log::debug;
+use log::{debug, info};
 use crate::{
-    core_::point::point_type::PointType, 
-    conf::point_config::point_config::PointConfig,
-    services::{
-        multi_queue::subscription_criteria::SubscriptionCriteria,
-        queue_name::QueueName,
-        service::service::Service,
+    conf::{api_client_config::ApiClientConfig, conf_tree::ConfTree, point_config::point_config::PointConfig, services::services_config::ServicesConfig, task_config::TaskConfig}, core_::{object::object::Object, point::point_type::PointType}, services::{
+        api_cient::api_client::ApiClient, multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, service::service::Service, task::task::Task
     }
 };
 
@@ -104,5 +100,38 @@ impl Services {
             points.append(&mut service_points);
         };
         points
+    }
+    ///
+    /// Executes all hollded services
+    pub fn run(self) -> Result<(), String>  {
+        let path = "config.yaml";
+        let conf: ServicesConfig = ServicesConfig::read(path);
+        let self_id = self.id.clone();
+        let parent = conf.name.clone();
+        let services = Arc::new(Mutex::new(self));
+        for (node_keywd, mut node_conf) in conf.nodes {
+            let node_name = node_keywd.name();
+            let node_sufix = node_keywd.sufix();
+            info!("{}.run | Configuring service: {}({})...", self_id, node_name, node_sufix);
+            let service = Self::match_service(&self_id, &parent, &node_name, &node_sufix, &mut node_conf, services.clone());
+            services.lock().unwrap().insert(&node_sufix, service);
+            info!("{}.run | Configuring service: {}({}) - ok", self_id, node_name, node_sufix);
+        }
+        Ok(())
+    }
+    ///
+    /// 
+    fn match_service(self_id: &str, parent: &str, node_name: &str, node_sufix: &str, node_conf: &mut ConfTree, services: Arc<Mutex<Services>>) -> Arc<Mutex<dyn Service + Send>> {
+        match node_name {
+            "ApiClient" => {
+                Arc::new(Mutex::new(ApiClient::new(parent, ApiClientConfig::new(node_conf))))
+            },
+            "Task" => {
+                Arc::new(Mutex::new(Task::new(parent, TaskConfig::new(node_conf), services.clone())))
+            },
+            _ => {
+                panic!("{}.run | Unknown service: {}({})", self_id, node_name, node_sufix);
+            },
+        }
     }
 }
