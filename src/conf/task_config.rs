@@ -3,14 +3,14 @@
 use indexmap::IndexMap;
 use log::{trace, debug, error};
 use std::{fs, time::Duration};
-
 use crate::conf::{
-    fn_config::FnConfig, conf_tree::ConfTree, service_config::ServiceConfig,
+    fn_::{
+        fn_config::FnConfig,
+        fn_conf_kind::FnConfKind,
+    },
+    conf_tree::ConfTree, service_config::ServiceConfig,
     point_config::point_config::PointConfig,
 };
-
-use super::fn_conf_kind::FnConfKind;
-
 
 ///
 /// creates config from serde_yaml::Value of following format:

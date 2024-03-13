@@ -11,7 +11,7 @@ use crate::{
         point::{point_type::{PointType, ToPoint}, point::Point, point_tx_id::PointTxId}, 
         format::format::Format, 
     }, 
-    conf::fn_config::FnConfig, 
+    conf::fn_::fn_config::FnConfig, 
     services::{task::task_nodes::TaskNodes, services::Services},
 };
 
@@ -70,7 +70,7 @@ impl SqlMetric {
         });
         for name in inputConfNames {
             debug!("{}.new | input name: {:?}", self_id, name);
-            let inputConf = conf.inputConf(&name);
+            let inputConf = conf.input_conf(&name);
             inputs.insert(
                 name.to_string(), 
                 NestedFn::new(&self_id, txId, inputConf, taskNodes, services.clone()),

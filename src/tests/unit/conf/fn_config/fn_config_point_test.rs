@@ -6,7 +6,10 @@ mod tests {
     use std::sync::Once;
     use indexmap::IndexMap;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::conf::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig, fn_point_config::FnPointConfig, point_config::{point_config::PointConfig, point_config_history::PointConfigHistory, point_config_type::PointConfigType}};
+    use crate::conf::{
+        point_config::{point_config::PointConfig, point_config_history::PointConfigHistory, point_config_type::PointConfigType},
+        fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig, fn_point_config::FnPointConfig},
+    };
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;

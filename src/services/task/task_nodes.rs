@@ -7,7 +7,7 @@ use log::{debug, trace};
 
 use crate::{
     core_::{types::fn_in_out_ref::FnInOutRef, point::{point_type::PointType, point_tx_id::PointTxId}}, 
-    conf::{task_config::TaskConfig, fn_conf_kind::FnConfKind}, 
+    conf::{task_config::TaskConfig, fn_::fn_conf_kind::FnConfKind}, 
     services::{task::nested_function::{nested_fn::NestedFn, fn_kind::FnKind}, services::Services},
 };
 

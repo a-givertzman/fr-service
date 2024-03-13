@@ -2,7 +2,7 @@ use std::{collections::HashMap, str::FromStr};
 use log::{trace, debug};
 use serde::{Serialize, Deserialize};
 use crate::conf::{
-    conf_tree::ConfTree, fn_conf_keywd::FnConfKeywd, point_config::{
+    conf_tree::ConfTree, fn_::fn_conf_keywd::FnConfKeywd, point_config::{
         point_config_address::PointConfigAddress, point_config_filters::PointConfigFilter, point_config_type::PointConfigType, point_name::PointName
     }
 };

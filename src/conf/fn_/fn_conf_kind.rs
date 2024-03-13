@@ -1,4 +1,4 @@
-use crate::conf::{fn_config::FnConfig, point_config::point_config::PointConfig, fn_point_config::FnPointConfig};
+use crate::conf::{fn_::{fn_config::FnConfig, fn_point_config::FnPointConfig}, point_config::point_config::PointConfig};
 
 ///
 /// The kinde of the Function config, incapsulating config it self
