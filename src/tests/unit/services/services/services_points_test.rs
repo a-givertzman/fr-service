@@ -1,7 +1,6 @@
-#![allow(non_snake_case)]
 #[cfg(test)]
 
-mod tests {
+mod services_points {
     use log::trace;
     use std::{sync::{Once, Arc, Mutex}, env, time::Duration};
     use testing::stuff::max_test_duration::TestDuration;
@@ -10,12 +9,9 @@ mod tests {
         conf::task_config::TaskConfig, 
         services::{task::task::Task, services::Services},
     };
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    ///
+    ///     
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -24,17 +20,12 @@ mod tests {
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
-
-
+    fn init_each() -> () {}
+    ///
+    /// 
     #[test]
     fn services_points() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -55,13 +46,13 @@ mod tests {
         services.lock().unwrap().insert("Task", task.clone());
         let target  = 3;
         let points = services.lock().unwrap().points();
-        let pointsCount = points.len();
+        let points_count = points.len();
         println!("\n");
-        println!(" points count: {:?}", pointsCount);
+        println!(" points count: {:?}", points_count);
         for point in points {
             println!("\t {:?}", point);
         }
-        assert!(pointsCount == target, "\nresult: {:?}\ntarget: {:?}", pointsCount, target);
+        assert!(points_count == target, "\nresult: {:?}\ntarget: {:?}", points_count, target);
         test_duration.exit();
     }
 }

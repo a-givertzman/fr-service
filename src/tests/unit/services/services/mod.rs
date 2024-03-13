@@ -1,1 +1,1 @@
-pub mod services_test;
+pub mod services_points_test;
