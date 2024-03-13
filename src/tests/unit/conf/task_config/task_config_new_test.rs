@@ -1,6 +1,6 @@
 #[cfg(test)]
 
-mod fn_config {
+mod task_config_new {
     use indexmap::IndexMap;
     use log::{info, debug};
     use std::{sync::Once, time::Duration};
@@ -27,11 +27,11 @@ mod fn_config {
     ///
     /// 
     #[test]
-    fn new_valid() {
+    fn valid() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        info!("test_task_config_new_valid");
+        info!("test");
         // let (initial, switches) = init_each();
         let test_data = [
             // (

@@ -76,8 +76,6 @@ mod task_config_read {
                 ),
             ])
         };
-        
-        // let (initial, switches) = init_each();
         trace!("dir: {:?}", env::current_dir());
         let path = "./src/tests/unit/conf/task_config/task_config_test.yaml";
         let metric_config = TaskConfig::read(path);
