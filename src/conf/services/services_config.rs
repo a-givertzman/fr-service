@@ -34,7 +34,7 @@ use crate::conf::{
 ///            type: 'Real'
 ///            offset: 0
 ///                 ...
-/// task task1:
+/// service Task task1:
 ///     cycle: 1 ms
 ///     in queue recv-queue:
 ///         max-length: 10000

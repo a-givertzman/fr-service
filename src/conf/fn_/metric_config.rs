@@ -52,8 +52,8 @@ impl MetricConfig {
                 debug!("MetricConfig.new | MAPPING VALUE");
                 trace!("MetricConfig.new | confTree: {:?}", conf_tree);
                 let self_name = match FnConfKeywd::from_str(&conf_tree.key) {
-                    Ok(selfKeyword) => {
-                        selfKeyword.data()
+                    Ok(self_keyword) => {
+                        self_keyword.data()
                     },
                     Err(err) => {
                         panic!("MetricConfig.new | Unknown metric name in {:?}\n\tdetales: {:?}", &conf_tree.key, err)
@@ -61,18 +61,18 @@ impl MetricConfig {
                 };
                 let mut inputs = IndexMap::new();
                 match conf_tree.get("inputs") {
-                    Some(inputsNode) => {
-                        for inputConf in inputsNode.subNodes().unwrap() {
-                            trace!("MetricConfig.new | input conf: {:?}\t|\t{:?}", inputConf.key, inputConf.conf);
-                            if inputConf.isMapping() {
+                    Some(inputs_node) => {
+                        for input_conf in inputs_node.subNodes().unwrap() {
+                            trace!("MetricConfig.new | input conf: {:?}\t|\t{:?}", input_conf.key, input_conf.conf);
+                            if input_conf.isMapping() {
                                 inputs.insert(
-                                    (&inputConf).key.to_string(), 
-                                    FnConfig::new(parent, &inputConf.next().unwrap(), vars),
+                                    (&input_conf).key.to_string(), 
+                                    FnConfig::new(parent, &input_conf.next().unwrap(), vars),
                                 );
                             } else {
                                 inputs.insert(
-                                    (&inputConf).key.to_string(), 
-                                    FnConfig::new(parent, &inputConf, vars),
+                                    (&input_conf).key.to_string(), 
+                                    FnConfig::new(parent, &input_conf, vars),
                                 );
                             };
                         }
@@ -104,13 +104,13 @@ impl MetricConfig {
     pub fn read(parent: &str, path: &str) -> MetricConfig {
         let mut vars = vec![];
         match fs::read_to_string(&path) {
-            Ok(yamlString) => {
-                match serde_yaml::from_str(&yamlString) {
+            Ok(yaml_string) => {
+                match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
                         MetricConfig::from_yaml(parent, &config, &mut vars)
                     },
                     Err(err) => {
-                        panic!("MetricConfig.read | Error in config: {:?}\n\terror: {:?}", yamlString, err)
+                        panic!("MetricConfig.read | Error in config: {:?}\n\terror: {:?}", yaml_string, err)
                     },
                 }
             },

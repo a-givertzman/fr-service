@@ -9,7 +9,7 @@
 # queue recv-queue:
 #     max-length: 10000
 
-task task1:
+service Task task1:
     cycle: 1 ms
     recv-queue: recv-queue
     let Var1:

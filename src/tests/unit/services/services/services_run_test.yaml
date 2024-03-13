@@ -7,7 +7,7 @@ service MultiQueue:
     out queue:
         - TaskTestReceiver.queue
 
-task Task1:
+service Task Task1:
     cycle: 1 ms
     in queue recv-queue:
         max-length: 10000

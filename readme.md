@@ -187,7 +187,7 @@ service MultiQueue:
         - CmaClient.in-queue
         - CmaServer.in-queue
 
-task CoreTask:
+service Task CoreTask:
     cycle: 1 ms
     in queue api-link:
         max-length: 10000
@@ -201,7 +201,7 @@ task CoreTask:
                 const float 0.05
 
 
-task OperatingCycle:
+service Task OperatingCycle:
     cycle: 500 ms       # operating cycle time of the task
     in queue api-link:
         max-length: 10000
@@ -243,7 +243,7 @@ task OperatingCycle:
                 input1: point float '/path/Point.Name2'
                 input1: point float '/path/Point.Name3'
 
-task FaultDetection:
+service Task FaultDetection:
     cycle: 100 ms       # operating cycle time of the module
     outputQueue: operatingCycleQueue
     fn ToApiQueue:              # Metric 1
