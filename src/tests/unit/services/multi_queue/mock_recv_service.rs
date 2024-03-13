@@ -4,7 +4,7 @@ use std::{collections::HashMap, sync::{mpsc::{Sender, Receiver, self}, Arc, Mute
 
 use log::{info, trace};
 
-use crate::{core_::{point::point_type::PointType, constants::constants::RECV_TIMEOUT}, services::service::Service};
+use crate::{core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::point_type::PointType}, services::service::service::Service};
 
 
 pub struct MockRecvService {
@@ -43,12 +43,14 @@ impl MockRecvService {
 }
 ///
 /// 
-impl Service for MockRecvService {
-    //
-    //
+impl Object for MockRecvService {
     fn id(&self) -> &str {
         &self.id
     }
+}
+///
+/// 
+impl Service for MockRecvService {
     //
     //
     fn get_link(&mut self, name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {

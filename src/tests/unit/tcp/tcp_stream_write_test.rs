@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use crate::{tcp::steam_read::StreamRead, core_::failure::recv_error::RecvError};
+use crate::{core_::{failure::recv_error::RecvError, object::object::Object}, tcp::steam_read::StreamRead};
 #[cfg(test)]
 mod tests {
     use log::{warn, info, debug};
@@ -50,7 +50,8 @@ mod tests {
         init_once();
         init_each();
         println!("");
-        println!("test TcpStreamWrite");
+        let self_id = "test TcpStreamWrite";
+        println!("\n{}", self_id);
         let count = 1000;
         let test_duration = Duration::from_secs(10);
         let sent = Arc::new(AtomicUsize::new(0));
@@ -65,7 +66,7 @@ mod tests {
             "test",
             true,
             Some(10000),
-            Box::new(MockStreamRead { buffer: test_data.clone()}),
+            Box::new(MockStreamRead::new( self_id, test_data.clone())),
         );
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
 
@@ -186,7 +187,18 @@ mod tests {
 }
 
 struct MockStreamRead<T> {
+    id: String,
     buffer: Vec<T>
+}
+impl<T> MockStreamRead<T> {
+    pub fn new(parent: &str, buffer: Vec<T>) -> Self {
+        Self { id: format!("{}/{}", parent, "MockStreamRead"), buffer }
+    }
+}
+impl<T> Object for MockStreamRead<T> {
+    fn id(&self) -> &str {
+        &self.id
+    }
 }
 impl<T: Sync> StreamRead<T, RecvError> for MockStreamRead<T> {
     fn read(&mut self) -> Result<T, RecvError> {

@@ -2,7 +2,7 @@
 #[cfg(test)]
 
 mod tests {
-    use log::{debug, info};
+    use log::debug;
     use std::sync::Once;
     use indexmap::IndexMap;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
@@ -37,7 +37,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test FnConfig | new valid";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let test_data = [
             (
                 r#"let newVar:

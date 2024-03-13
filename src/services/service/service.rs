@@ -1,34 +1,38 @@
 use std::{sync::mpsc::{Sender, Receiver}, thread::JoinHandle};
-
 use crate::{
-    core_::point::point_type::PointType, conf::point_config::point_config::PointConfig,
-    services::multi_queue::subscription_criteria::SubscriptionCriteria,
+    conf::point_config::point_config::PointConfig, core_::{object::object::Object, point::point_type::PointType}, services::multi_queue::subscription_criteria::SubscriptionCriteria
 };
 
 ///
 /// Interface for application service
 /// - Running in the individual thread
-pub trait Service {
-    ///
-    /// Returns service's ID
-    fn id(&self) -> &str;
+pub trait Service: Object {
+    // ///
+    // /// Returns service's ID
+    // fn id(&self) -> &str;
     ///
     /// Returns copy of the Sender - service's incoming queue
     #[allow(unused_variables)]
     fn get_link(&mut self, name: &str) -> Sender<PointType> {
-        panic!("{}.getLink | Does not supports getLink", self.id())
+        panic!("{}.get_link | Does not supported", self.id())
     }
     ///
     /// Returns Receiver
     #[allow(unused_variables)]
-    fn subscribe(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Receiver<PointType> {
-        panic!("{}.subscribe | Does not support subscriptions", self.id())
+    fn subscribe(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> (Sender<PointType>, Receiver<PointType>) {
+        panic!("{}.subscribe | Does not supported", self.id())
+    }
+    ///
+    /// Extends the sucessfully with additiuonal points
+    #[allow(unused_variables)]
+    fn extend_subscription(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
+        panic!("{}.extend_subscription | Does not supported", self.id())
     }
     ///
     /// Canceling the subsciption
     #[allow(unused_variables)]
     fn unsubscribe(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
-        panic!("{}.unsubscribe | Does not support subscriptions", self.id())
+        panic!("{}.unsubscribe | Does not supported", self.id())
     }
     ///
     /// Starts service's main loop in the individual thread

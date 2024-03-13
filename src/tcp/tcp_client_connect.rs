@@ -74,7 +74,7 @@ impl TcpClientConnect {
     pub fn connect(&mut self) -> Option<TcpStream> {
         info!("TcpClientConnect({}).connect | connecting...", self.id);
         let id = self.id.clone();
-        let addr = self.addr.clone();
+        let addr = self.addr;
         info!("TcpClientConnect({}).inner_connect | connecting to: {:?}...", id, addr);
         let cycle = self.reconnect;
         let selfStream = self.stream.clone();
@@ -96,14 +96,11 @@ impl TcpClientConnect {
                         }
                     }
                 };
-                match exit.try_recv() {
-                    Ok(exit) => {
-                        debug!("TcpClientConnect({}).inner_connect | exit: {}", id, exit);
-                        if exit {
-                            break;
-                        }
-                    },
-                    Err(_) => {},
+                if let Ok(exit) = exit.try_recv() {
+                    debug!("TcpClientConnect({}).inner_connect | exit: {}", id, exit);
+                    if exit {
+                        break;
+                    }
                 }
                 cycle.wait();
             }

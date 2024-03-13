@@ -36,7 +36,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test FilterThresholdAbs 0.0 - 1.0 - 0.0";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
         let test_data = [
@@ -86,7 +86,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test FilterThresholdAbs (-1.0) - 1.0 - (-1.0)";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
         let test_data = [
@@ -157,7 +157,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test FilterThresholdAbs 0.0 - 1.0 - 0.0 | factor";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
         let test_data = [
@@ -207,7 +207,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test FilterThresholdAbs (-1.0) - 1.0 - (-1.0) | factor";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
         let test_data = [

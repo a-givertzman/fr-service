@@ -4,7 +4,7 @@ use std::{sync::{mpsc::{Sender, Receiver}, Arc, atomic::{AtomicBool, Ordering}, 
 
 use log::{warn, info};
 
-use crate::{core_::point::point_type::PointType, services::service::Service};
+use crate::{core_::{object::object::Object, point::point_type::PointType}, services::service::service::Service};
 
 pub struct MockMultiqueue {
     id: String,
@@ -30,12 +30,16 @@ impl MockMultiqueue {
         self.received.clone()
     }
 }
-impl Service for MockMultiqueue {
-    //
-    //
+///
+/// 
+impl Object for MockMultiqueue {
     fn id(&self) -> &str {
         &self.id
     }
+}
+///
+/// 
+impl Service for MockMultiqueue {
     //
     //
     fn get_link(&mut self, name: &str) -> Sender<PointType> {

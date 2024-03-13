@@ -36,7 +36,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test TcpServerConfig";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let test_data = [
             format!(r#"
                 service TcpServer:

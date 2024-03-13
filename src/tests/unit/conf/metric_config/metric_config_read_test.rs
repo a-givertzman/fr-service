@@ -2,7 +2,7 @@
 #[cfg(test)]
 
 mod tests{
-    use log::{trace, info};
+    use log::trace;
     use std::{sync::Once, env};
     use indexmap::IndexMap;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
@@ -37,7 +37,7 @@ mod tests{
         init_each();
         println!("");
         let self_id = "test MetricConfig | read valid";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let target = MetricConfig { 
             name: format!("SqlMetric"), 
             table: format!("table_name"), 

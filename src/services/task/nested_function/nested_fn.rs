@@ -74,7 +74,7 @@ impl NestedFn {
                         let input = Self::function(parent, txId, name, inputConf, taskNodes ,services.clone());
                         let queueName = conf.param("queue").name();
                         let servicesLock = services.lock();
-                        let sendQueue = servicesLock.unwrap().getLink(&queueName);
+                        let sendQueue = servicesLock.unwrap().get_link(&queueName);
                         Self::toApiQueue(parent, input, sendQueue)
                         // Self::toApiQueue(inputName, queue, input)
                     },

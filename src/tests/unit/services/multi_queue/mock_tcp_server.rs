@@ -4,8 +4,8 @@ use log::{info, warn, debug, trace};
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}};
 use testing::entities::test_value::Value;
 use crate::{
-    core_::{constants::constants::RECV_TIMEOUT, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, 
-    services::{queue_name::QueueName, service::Service, services::Services},
+    core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, 
+    services::{queue_name::QueueName, service::service::Service, services::Services},
 };
 
 
@@ -56,16 +56,18 @@ impl MockTcpServer {
 }
 ///
 /// 
-impl Service for MockTcpServer {
-    //
-    //
+impl Object for MockTcpServer {
     fn id(&self) -> &str {
         &self.id
     }
+}
+///
+/// 
+impl Service for MockTcpServer {
     //
     //
     fn get_link(&mut self, _name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
-        panic!("{}.getLink | Does not support static producer", self.id())
+        panic!("{}.get_link | Does not support static producer", self.id())
         // match self.rxSend.get(name) {
         //     Some(send) => send.clone(),
         //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
@@ -80,8 +82,8 @@ impl Service for MockTcpServer {
         let mqServiceName = QueueName::new(&self.multiQueue);
         let mqServiceName = mqServiceName.service();
         debug!("{}.run | Lock services...", self_id);
-        let rxRecv = self.services.lock().unwrap().subscribe(mqServiceName, &self_id, &vec![]);
-        let txSend = self.services.lock().unwrap().getLink(&self.multiQueue);
+        let (_, rxRecv) = self.services.lock().unwrap().subscribe(mqServiceName, &self_id, &vec![]);
+        let txSend = self.services.lock().unwrap().get_link(&self.multiQueue);
         debug!("{}.run | Lock services - ok", self_id);
         let received = self.received.clone();
         let recvLimit = self.recvLimit.clone();

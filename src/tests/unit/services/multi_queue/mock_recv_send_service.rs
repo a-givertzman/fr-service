@@ -3,7 +3,10 @@
 use log::{info, warn, debug, trace};
 use std::{collections::HashMap, sync::{mpsc::{Sender, self, Receiver}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}};
 use testing::entities::test_value::Value;
-use crate::{core_::{constants::constants::RECV_TIMEOUT, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, services::{service::Service, services::Services}};
+use crate::{
+    core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, 
+    services::{service::service::Service, services::Services},
+};
 
 
 pub struct MockRecvSendService {
@@ -55,12 +58,14 @@ impl MockRecvSendService {
 }
 ///
 /// 
-impl Service for MockRecvSendService {
-    //
-    //
+impl Object for MockRecvSendService {
     fn id(&self) -> &str {
         &self.id
     }
+}
+///
+/// 
+impl Service for MockRecvSendService {
     //
     //
     fn get_link(&mut self, name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
@@ -119,7 +124,7 @@ impl Service for MockRecvSendService {
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         debug!("{}.run | Lock services...", self_id);
-        let txSend = self.services.lock().unwrap().getLink(&self.txQueue);
+        let txSend = self.services.lock().unwrap().get_link(&self.txQueue);
         debug!("{}.run | Lock services - ok", self_id);
         let test_data = self.test_data.clone();
         let sent = self.sent.clone();

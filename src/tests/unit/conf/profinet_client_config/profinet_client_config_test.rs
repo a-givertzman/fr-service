@@ -37,7 +37,7 @@ mod tests {
         println!("");
         let self_name = "Ied01";
         let self_id = "test ProfinetClientConfig";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
         let path = "./src/tests/unit/conf/profinet_client_config/profinet_client.yaml";

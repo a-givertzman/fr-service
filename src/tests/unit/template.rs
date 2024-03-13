@@ -1,12 +1,11 @@
-#![allow(non_snake_case)]
 #[cfg(test)]
 
 mod tests {
     use log::{warn, info, debug};
     use std::{sync::Once, time::{Duration, Instant}};
-    use debugging::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::core_::testing::test_stuff::max_test_duration::TestDuration; 
-    
+    use testing::stuff::max_test_duration::TestDuration;
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
     
@@ -36,7 +35,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test Template";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
         assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);

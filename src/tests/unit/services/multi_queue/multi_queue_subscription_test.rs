@@ -10,7 +10,7 @@ mod tests {
     };
     use crate::{
         core_::point::point_type::PointType, 
-        conf::multi_queue_config::MultiQueueConfig, services::{multi_queue::multi_queue::MultiQueue, services::Services, service::Service}, 
+        conf::multi_queue_config::MultiQueueConfig, services::{multi_queue::multi_queue::MultiQueue, services::Services, service::service::Service}, 
         tests::unit::services::multi_queue::{mock_tcp_server::MockTcpServer, mock_recv_send_service::MockRecvSendService},
     }; 
     
@@ -43,7 +43,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test_multi_queue - Static subscriptions - Single send";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
 
         let count = 3;              // count of the MockRecvSendService & MockTcpServer instances
         let iterations = 1000;      // test data length

@@ -4,7 +4,7 @@ use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, Joi
 
 use log::{info, warn, debug, trace};
 use testing::entities::test_value::Value;
-use crate::{core_::point::point_type::{PointType, ToPoint}, services::{service::Service, services::Services}};
+use crate::{core_::{object::object::Object, point::point_type::{PointType, ToPoint}}, services::{service::service::Service, services::Services}};
 
 
 pub struct MockSendService {
@@ -53,16 +53,18 @@ impl MockSendService {
 }
 ///
 /// 
-impl Service for MockSendService {
-    //
-    //
+impl Object for MockSendService {
     fn id(&self) -> &str {
         &self.id
     }
+}
+///
+/// 
+impl Service for MockSendService {
     //
     //
     fn get_link(&mut self, _name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
-        panic!("{}.getLink | Does not support getLink", self.id())
+        panic!("{}.get_link | Does not support get_link", self.id())
         // match self.rxSend.get(name) {
         //     Some(send) => send.clone(),
         //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
@@ -77,7 +79,7 @@ impl Service for MockSendService {
         debug!("{}.run | Lock services...", self_id);
         let services = self.services.lock().unwrap();
         debug!("{}.run | Lock services - ok", self_id);
-        let txSend = services.getLink(&self.sendQueue);
+        let txSend = services.get_link(&self.sendQueue);
         let test_data = self.test_data.clone();
         let sent = self.sent.clone();
         let delay = self.delay.clone();

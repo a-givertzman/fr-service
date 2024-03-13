@@ -1,16 +1,12 @@
-#![allow(non_snake_case)]
-
 use std::{collections::HashMap, sync::{Arc, Mutex, mpsc::{Sender, Receiver}}};
-
 use log::debug;
-
 use crate::{
     core_::point::point_type::PointType, 
     conf::point_config::point_config::PointConfig,
     services::{
         multi_queue::subscription_criteria::SubscriptionCriteria,
         queue_name::QueueName,
-        service::Service,
+        service::service::Service,
     }
 };
 
@@ -40,7 +36,7 @@ impl Services {
         self.map.insert(id.to_string(), service);
     }
     ///
-    /// Returns Service's link
+    /// Returns Service
     pub fn get(&self, name: &str) -> Arc<Mutex<dyn Service>> {
         match self.map.get(name) {
             Some(srvc) => srvc.clone(),
@@ -49,7 +45,7 @@ impl Services {
     }
     ///
     /// Returns copy of the Sender - service's incoming queue
-    pub fn getLink(&self, name: &str) -> Sender<PointType> {
+    pub fn get_link(&self, name: &str) -> Sender<PointType> {
         let name = QueueName::new(name);
         match self.map.get(name.service()) {
             Some(srvc) => srvc.lock().unwrap().get_link(name.queue()),
@@ -58,12 +54,42 @@ impl Services {
     }
     ///
     /// Returns Receiver
-    pub fn subscribe(&mut self, service: &str, receiverId: &str, points: &Vec<SubscriptionCriteria>) -> Receiver<PointType> {
+    /// - service - the name of the service to subscribe on
+    pub fn subscribe(&mut self, service: &str, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> (Sender<PointType>, Receiver<PointType>) {
         match self.map.get(service) {
             Some(srvc) => {
                 debug!("{}.subscribe | Lock service '{:?}'...", self.id, service);
-                let r = srvc.lock().unwrap().subscribe(receiverId, points);
+                let r = srvc.lock().unwrap().subscribe(receiver_id, points);
                 debug!("{}.subscribe | Lock service '{:?}' - ok", self.id, service);
+                r
+            },
+            None => panic!("{}.get | service '{:?}' - not found", self.id, service),
+        }
+    }
+    ///
+    /// Returns ok if subscription extended sucessfully
+    /// - service - the name of the service to extend subscribtion on
+    pub fn extend_subscription(&mut self, service: &str, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
+        // panic!("{}.extend_subscription | Not implemented yet", self.id);
+        match self.map.get(service) {
+            Some(srvc) => {
+                debug!("{}.extend_subscription | Lock service '{:?}'...", self.id, service);
+                let r = srvc.lock().unwrap().extend_subscription(receiver_id, points);
+                debug!("{}.extend_subscription | Lock service '{:?}' - ok", self.id, service);
+                r
+            },
+            None => panic!("{}.get | service '{:?}' - not found", self.id, service),
+        }
+    }
+    ///
+    /// Returns ok if subscription removed sucessfully
+    /// - service - the name of the service to unsubscribe on
+    fn unsubscribe(&mut self, service: &str, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
+        match self.map.get(service) {
+            Some(srvc) => {
+                debug!("{}.unsubscribe | Lock service '{:?}'...", self.id, service);
+                let r = srvc.lock().unwrap().unsubscribe(receiver_id, points);
+                debug!("{}.unsubscribe | Lock service '{:?}' - ok", self.id, service);
                 r
             },
             None => panic!("{}.get | service '{:?}' - not found", self.id, service),
@@ -74,17 +100,9 @@ impl Services {
     pub fn points(&self) -> Vec<PointConfig> {
         let mut points = vec![];
         for service in self.map.values() {
-            let mut servicePoints = service.lock().unwrap().points();
-            points.append(&mut servicePoints);
+            let mut service_points = service.lock().unwrap().points();
+            points.append(&mut service_points);
         };
         points
     }
-    // ///
-    // /// 
-    // pub fn get_mut(&mut self, name: &str) -> Arc<Mutex<dyn Service>> {
-    //     match self.map.get_mut(name) {
-    //         Some(srvc) => srvc,
-    //         None => panic!("{}.get | service '{:?}' - not found", self.id, name),
-    //     }
-    // }
 }

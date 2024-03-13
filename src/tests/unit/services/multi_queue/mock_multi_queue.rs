@@ -5,7 +5,7 @@ use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, 
 use log::{info, warn, error, debug, trace};
 
 use crate::{
-    core_::point::{point_tx_id::PointTxId, point_type::PointType}, services::{multi_queue::{subscription_criteria::SubscriptionCriteria, subscriptions::Subscriptions}, service::Service, services::Services}
+    core_::{object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}}, services::{multi_queue::{subscription_criteria::SubscriptionCriteria, subscriptions::Subscriptions}, service::service::Service, services::Services}
 };
 
 
@@ -44,12 +44,14 @@ impl MockMultiQueue {
 }
 ///
 /// 
-impl Service for MockMultiQueue {
-    //
-    //
+impl Object for MockMultiQueue {
     fn id(&self) -> &str {
         &self.id
     }
+}
+///
+/// 
+impl Service for MockMultiQueue {
     //
     //
     fn get_link(&mut self, name: &str) -> Sender<PointType> {
@@ -60,17 +62,17 @@ impl Service for MockMultiQueue {
     }
     //
     //
-    fn subscribe(&mut self, receiverId: &str, points: &Vec<SubscriptionCriteria>) -> Receiver<PointType> {
+    fn subscribe(&mut self, receiverId: &str, points: &Vec<SubscriptionCriteria>) -> (Sender<PointType>, Receiver<PointType>) {
         let (send, recv) = mpsc::channel();
         let receiverId = PointTxId::fromStr(receiverId);
         if points.is_empty() {
-            self.subscriptions.lock().unwrap().addBroadcast(receiverId, send.clone());
+            self.subscriptions.lock().unwrap().add_broadcast(receiverId, send.clone());
         } else {
             for subscription_criteria in points {
-                self.subscriptions.lock().unwrap().addMulticast(receiverId, &subscription_criteria.destination(), send.clone());
+                self.subscriptions.lock().unwrap().add_multicast(receiverId, &subscription_criteria.destination(), send.clone());
             }
         }
-        recv
+        (send, recv)
     }
     //
     //
@@ -97,7 +99,7 @@ impl Service for MockMultiQueue {
         let mut staticSubscriptions: HashMap<usize, Sender<PointType>> = HashMap::new();
         for sendQueue in &self.sendQueues {
             debug!("{}.run | Lock services...", self_id);
-            let txSend = self.services.lock().unwrap().getLink(sendQueue);
+            let txSend = self.services.lock().unwrap().get_link(sendQueue);
             debug!("{}.run | Lock services - ok", self_id);
             staticSubscriptions.insert(PointTxId::fromStr(sendQueue), txSend);
         }
@@ -165,7 +167,7 @@ impl Service for MockMultiQueue {
     //     let mut staticSubscriptions: HashMap<String, Sender<PointType>> = HashMap::new();
     //     for sendQueue in &self.sendQueues {
     //         debug!("{}.run | Lock services...", self_id);
-    //         let txSend = self.services.lock().unwrap().getLink(sendQueue);
+    //         let txSend = self.services.lock().unwrap().get_link(sendQueue);
     //         debug!("{}.run | Lock services - ok", self_id);
     //         staticSubscriptions.insert(sendQueue.to_string(), txSend);
     //     }

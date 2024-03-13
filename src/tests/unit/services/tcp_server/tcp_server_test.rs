@@ -8,7 +8,7 @@ mod tests {
     use crate::{
         tests::unit::services::tcp_server::{emulated_tcp_client_recv::EmulatedTcpClientRecv, emulated_tcp_client_send::EmulatedTcpClientSend},
         conf::{tcp_server_config::TcpServerConfig, multi_queue_config::MultiQueueConfig}, 
-        services::{tcp_server::tcp_server::TcpServer, services::Services, service::Service, task::{task_test_producer::TaskTestProducer, task_test_receiver::TaskTestReceiver}, multi_queue::multi_queue::MultiQueue}, 
+        services::{server::tcp_server::TcpServer, services::Services, service::service::Service, task::{task_test_producer::TaskTestProducer, task_test_receiver::TaskTestReceiver}, multi_queue::multi_queue::MultiQueue}, 
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -40,7 +40,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test TcpServer | Send";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
         test_duration.run().unwrap();
 
@@ -135,7 +135,8 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test TcpServer | Receive";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
+        let self_id = "test";
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
 
@@ -186,6 +187,7 @@ mod tests {
         services.lock().unwrap().insert("TaskTestReceiver", receiver.clone());
         let emulatedTcpClient = Arc::new(Mutex::new(EmulatedTcpClientSend::new(
             self_id,
+            "/test/Jds/",
             &tcpAddr,
             test_data.clone(),
             vec![],
@@ -193,10 +195,10 @@ mod tests {
         )));
         let mqServiceHandle = mqService.lock().unwrap().run().unwrap();
         let tcpServerHandle = tcpServer.lock().unwrap().run().unwrap();
+        let receiverHandle = receiver.lock().unwrap().run().unwrap();
         thread::sleep(Duration::from_millis(100));
         let emulatedTcpClientHandle = emulatedTcpClient.lock().unwrap().run().unwrap();
         thread::sleep(Duration::from_millis(100));
-        let receiverHandle = receiver.lock().unwrap().run().unwrap();
         receiverHandle.wait().unwrap();
         
         let received = receiver.lock().unwrap().received();
@@ -219,6 +221,3 @@ mod tests {
         test_duration.exit();
     }
 }
-
-
-// pub struct 

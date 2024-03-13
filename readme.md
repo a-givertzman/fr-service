@@ -522,3 +522,98 @@ Allows to avoid unnecessary transmissions of the same value
     $$delta \leq threshold :\quad value ignored$$
 
 </details>
+
+#### JDS Protocol
+
+</details>
+
+##### Request "Points"
+
+- Req
+
+```json
+{
+    "type":"String",    Bool / Int / Float / String
+    "value":"",
+    "name":"/App/Jds/Points",
+    "status":0,
+    "cot":"Req",    Inf / Act / ActCon / ActErr / Req / ReqCon / ReqErr
+    "timestamp":"2024-03-11T14:33:19.510314994+00:00"
+}
+```
+
+- ReqCon
+
+```json
+{
+    "type":"String",    Bool / Int / Float / String
+    "value":"{
+        "Point.Name.0":{"address":{"bit":0,"offset":0},"alarm":0,"comment":"Test Point Bool","filters":{"threshold":5.0},"type":"Bool"},
+        "Point.Name.1":{"address":{"bit":0,"offset":0},"alarm":0,"comment":"Test Point Bool","filters":{"factor":0.1,"threshold":5.0},"type":"Bool"},
+        "PointName1":{"address":{"offset":0},"comment":"Test Point","history":"r","type":"Int"},
+        "PointName2":{"address":{"offset":0},"alarm":4,"comment":"Test Point","type":"Int"},
+        "PointName3":{"address":{"offset":12},"comment":"Test Point","history":"w","type":"Int"},
+        "PointName4":{"address":{"offset":12},"comment":"Test Point","history":"rw","type":"Int"}
+    }",
+    "name":"/App/Jds/Points",
+    "status":0,
+    "cot":"RecCon",    Inf / Act / ActCon / ActErr / Req / ReqCon / ReqErr
+    "timestamp":"2024-03-11T14:33:19.510314994+00:00"
+}
+```
+
+- ReqErr
+
+```json
+{
+    "type":"String",    Bool / Int / Float / String
+    "value":"",
+    "name":"/App/Jds/Points",
+    "status":0,
+    "cot":"ReqErr",    Inf / Act / ActCon / ActErr / Req / ReqCon / ReqErr
+    "timestamp":"2024-03-11T14:33:19.510314994+00:00"
+}
+```
+
+##### Request "Subscribe"
+
+- Req
+
+```json
+{
+    "type":"String",    Bool / Int / Float / String
+    "value":"[]",
+    "name":"/App/Jds/Subscribe",
+    "status":0,
+    "cot":"Req",    Inf / Act / ActCon / ActErr / Req / ReqCon / ReqErr
+    "timestamp":"2024-03-11T14:33:19.510314994+00:00"
+}
+```
+
+- ReqCon
+
+```json
+{
+    "type":"String",    Bool / Int / Float / String
+    "value":"",
+    "name":"/App/Jds/Subscribe",
+    "status":0,
+    "cot":"RecCon",    Inf / Act / ActCon / ActErr / Req / ReqCon / ReqErr
+    "timestamp":"2024-03-11T14:33:19.510314994+00:00"
+}
+```
+
+ReqErr
+
+```json
+{
+    "type":"String",    Bool / Int / Float / String
+    "value":"",
+    "name":"/App/Jds/Subscribe",
+    "status":0,
+    "cot":"ReqErr",    Inf / Act / ActCon / ActErr / Req / ReqCon / ReqErr
+    "timestamp":"2024-03-11T14:33:19.510314994+00:00"
+}
+```
+
+</details>

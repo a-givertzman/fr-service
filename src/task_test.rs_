@@ -13,7 +13,7 @@ use std::{sync::{Once, mpsc::{Sender, Receiver, self}, Arc, Mutex}, env, time::{
 use crate::{
     core_::{debug::debug_session::{DebugSession, LogLevel, Backtrace}, point::point_type::PointType}, 
     conf::task_config::TaskConfig, 
-    services::{task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}, queues::queues::Queues, services::Services, service::Service},
+    services::{task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}, queues::queues::Queues, services::Services, service::service::Service},
 };
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.

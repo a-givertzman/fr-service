@@ -37,7 +37,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test FnConfig | point";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let testPoint1 = PointConfig {
             name: format!("/{}/CraneMovement.BoomUp", self_id),
             _type: PointConfigType::Int,

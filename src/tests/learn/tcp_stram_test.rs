@@ -37,7 +37,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test TcpStream read on close";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
         let tcpPort = TestSession::free_tcp_port_str();

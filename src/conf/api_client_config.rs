@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 
 use log::{trace, debug, error};
+use serde_json::json;
 use std::{fs, time::Duration, net::SocketAddr};
 
 use crate::conf::{conf_tree::ConfTree, service_config::ServiceConfig};
@@ -16,15 +17,19 @@ use crate::conf::{conf_tree::ConfTree, service_config::ServiceConfig};
 ///     in queue api-link:
 ///         max-length: 10000
 ///     out queue: MultiQueue.queue
+///     debug: false                # API debug mode, optional, default false
 ///                         ...
 #[derive(Debug, PartialEq, Clone)]
 pub struct ApiClientConfig {
     pub(crate) name: String,
     pub(crate) address: SocketAddr,
+    pub(crate) database: String,
+    pub(crate) auth_token: String,
     pub(crate) cycle: Option<Duration>,
     pub(crate) reconnectCycle: Option<Duration>,
     pub(crate) rx: String,
     pub(crate) rxMaxLength: i64,
+    pub(crate) debug: bool,
 }
 ///
 /// 
@@ -39,6 +44,7 @@ impl ApiClientConfig {
     ///     in queue api-link:
     ///         max-length: 10000
     ///     out queue: MultiQueue.queue
+    ///     debug: false                # API debug mode, optional, default false
     ///                     ...
     pub fn new(confTree: &mut ConfTree) -> Self {
         println!("\n");
@@ -58,19 +64,28 @@ impl ApiClientConfig {
                 debug!("{}.new | name: {:?}", self_id, selfName);
                 let address: SocketAddr = selfConf.getParamValue("address").unwrap().as_str().unwrap().parse().unwrap();
                 debug!("{}.new | address: {:?}", self_id, address);
+                let database = selfConf.getParamValue("database").unwrap().as_str().unwrap().to_string();
+                debug!("{}.new | database: {:?}", self_id, database);
+                let auth_token = selfConf.getParamValue("auth_token").unwrap_or(serde_yaml::Value::default()).as_str().unwrap_or("").to_string();
+                debug!("{}.new | auth_token: {:?}", self_id, auth_token);
                 let cycle = selfConf.getDuration("cycle");
                 debug!("{}.new | cycle: {:?}", self_id, cycle);
                 let reconnectCycle = selfConf.getDuration("reconnect");
                 debug!("{}.new | reconnectCycle: {:?}", self_id, reconnectCycle);
                 let (rx, rxMaxLength) = selfConf.getInQueue().unwrap();
                 debug!("{}.new | RX: {},\tmax-length: {:?}", self_id, rx, rxMaxLength);
+                let debug: bool = selfConf.getParamValue("debug").unwrap_or(serde_yaml::Value::default()).as_bool().unwrap_or(false);
+                debug!("{}.new | debug: {:?}", self_id, debug);
                 Self {
                     name: selfName,
                     address,
+                    database,
+                    auth_token,
                     cycle,
                     reconnectCycle,
                     rx,
                     rxMaxLength: rxMaxLength,
+                    debug,
                 }
             },
             None => {

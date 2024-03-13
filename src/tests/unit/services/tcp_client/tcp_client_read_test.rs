@@ -10,7 +10,7 @@ mod tests {
     use crate::{
         conf::tcp_client_config::TcpClientConfig, core_::{
             net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, point::point_type::{PointType, ToPoint} 
-        }, services::{service::Service, services::Services, tcp_client::tcp_client::TcpClient}, tcp::steam_read::StreamRead, tests::unit::services::tcp_client::mock_multiqueue::MockMultiqueue 
+        }, services::{service::service::Service, services::Services, tcp_client::tcp_client::TcpClient}, tcp::steam_read::StreamRead, tests::unit::services::tcp_client::mock_multiqueue::MockMultiqueue 
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -43,7 +43,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test TcpClient READ";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let path = "./src/tests/unit/services/tcp_client/tcp_client.yaml";
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();

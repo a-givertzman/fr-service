@@ -5,9 +5,7 @@ mod tests {
     use std::{sync::{Once, mpsc::{Sender, self, Receiver}, Arc, Mutex, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        core_::point::point_type::{ToPoint, PointType},
-        conf::task_config::TaskConfig, 
-        services::{task::{task_nodes::TaskNodes, nested_function::{fn_kind::FnKind, fn_count::{self}, fn_ge, sql_metric}}, services::Services, service::Service},
+        conf::task_config::TaskConfig, core_::{object::object::Object, point::point_type::{PointType, ToPoint}}, services::{service::service::Service, services::Services, task::{nested_function::{fn_count, fn_ge, fn_kind::FnKind, sql_metric}, task_nodes::TaskNodes}}
     }; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -171,10 +169,14 @@ mod tests {
     }
     ///
     /// 
-    impl Service for MockService {
+    impl Object for MockService {
         fn id(&self) -> &str {
-            todo!()
+            &self.id
         }
+    }
+    ///
+    /// 
+    impl Service for MockService {
         //
         //
         fn get_link(&mut self, name: &str) -> Sender<PointType> {

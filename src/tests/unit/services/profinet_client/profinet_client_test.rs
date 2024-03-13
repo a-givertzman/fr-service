@@ -6,7 +6,7 @@ mod tests {
     use std::{sync::{Arc, Mutex, Once}, thread, time::Duration};
     use testing::stuff::{max_test_duration::TestDuration, wait::WaitTread};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::{conf::{multi_queue_config::MultiQueueConfig, profinet_client_config::profinet_client_config::ProfinetClientConfig}, services::{multi_queue::multi_queue::MultiQueue, profinet_client::profinet_client::ProfinetClient, service::Service, services::Services}}; 
+    use crate::{conf::{multi_queue_config::MultiQueueConfig, profinet_client_config::profinet_client_config::ProfinetClientConfig}, services::{multi_queue::multi_queue::MultiQueue, profinet_client::profinet_client::ProfinetClient, service::service::Service, services::Services}}; 
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
@@ -37,7 +37,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test ProfinetClient";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
         let services = Arc::new(Mutex::new(Services::new(self_id)));

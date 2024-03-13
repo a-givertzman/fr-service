@@ -5,15 +5,9 @@ use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Order
 use log::{info, debug};
 
 use crate::{
-    core_::{point::point_type::PointType, net::protocols::jds::{jds_serialize::JdsSerialize, jds_encode_message::JdsEncodeMessage}},
-    conf::tcp_client_config::TcpClientConfig,
-    services::{service::Service, services::Services}, 
-    tcp::{
-        tcp_client_connect::TcpClientConnect, 
-        tcp_stream_write::TcpStreamWrite, 
-        tcp_write_alive::TcpWriteAlive, 
-        tcp_read_alive::TcpReadAlive
-    }, 
+    conf::tcp_client_config::TcpClientConfig, core_::{net::protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::point_type::PointType}, services::{service::service::Service, services::Services}, tcp::{
+        tcp_client_connect::TcpClientConnect, tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive
+    } 
 };
 
 
@@ -53,14 +47,14 @@ impl TcpClient {
         }
     }
 }
-///
-/// 
-impl Service for TcpClient {
-    //
-    //
+impl Object for TcpClient {
     fn id(&self) -> &str {
         &self.id
     }
+}
+///
+/// 
+impl Service for TcpClient {
     //
     // 
     fn get_link(&mut self, name: &str) -> Sender<PointType> {
@@ -80,7 +74,7 @@ impl Service for TcpClient {
         info!("{}.run | rx queue name: {:?}", self.id, conf.rx);
         info!("{}.run | tx queue name: {:?}", self.id, conf.tx);
         debug!("{}.run | Lock services...", self_id);
-        let txSend = self.services.lock().unwrap().getLink(&conf.tx);
+        let txSend = self.services.lock().unwrap().get_link(&conf.tx);
         debug!("{}.run | Lock services - ok", self_id);
         let buffered = conf.rxBuffered; // TODO Read this from config
         let inRecv = self.inRecv.pop().unwrap();
@@ -96,6 +90,14 @@ impl Service for TcpClient {
         );
         let mut tcpReadAlive = TcpReadAlive::new(
             &self_id,
+            Arc::new(Mutex::new(
+                JdsDeserialize::new(
+                    self_id.clone(),
+                    JdsDecodeMessage::new(
+                        &self_id,
+                    ),
+                ),
+            )),
             txSend,
             Duration::from_millis(10),
             Some(exit.clone()),

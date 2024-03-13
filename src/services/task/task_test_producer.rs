@@ -5,7 +5,7 @@ use std::{sync::{mpsc::Sender, Arc, atomic::{AtomicBool, Ordering}, Mutex}, thre
 use log::{debug, warn, info, trace};
 use testing::entities::test_value::Value;
 
-use crate::{core_::point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}, services::{service::Service, services::Services}};
+use crate::{core_::{object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, services::{service::service::Service, services::Services}};
 
 
 ///
@@ -43,21 +43,14 @@ impl TaskTestProducer {
 }
 ///
 /// 
-impl Service for TaskTestProducer {
-    //
-    //
+impl Object for TaskTestProducer {
     fn id(&self) -> &str {
         &self.id
     }
-    //
-    //
-    fn get_link(&mut self, _name: &str) -> Sender<PointType> {
-        panic!("{}.getLink | Does not support getLink", self.id())
-        // match self.rxSend.get(name) {
-        //     Some(send) => send.clone(),
-        //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
-        // }        
-    }
+}
+///
+/// 
+impl Service for TaskTestProducer {
     //
     // 
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
@@ -65,7 +58,7 @@ impl Service for TaskTestProducer {
         let txId = PointTxId::fromStr(&self_id);
         let cycle = self.cycle.clone();
         let delayed = !cycle.is_zero();
-        let txSend = self.services.lock().unwrap().getLink(&self.link);
+        let txSend = self.services.lock().unwrap().get_link(&self.link);
         let sent = self.sent.clone();
         let test_data = self.test_data.clone();
         thread::Builder::new().name(self_id.clone()).spawn(move || {

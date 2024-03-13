@@ -37,7 +37,7 @@ mod tests {
         init_each();
         println!("");
         let self_id = "test FnConfig | read valid";
-        println!("{}", self_id);
+        println!("\n{}", self_id);
         let target = FnConfKind::Var( FnConfig { 
             name: "VarName2".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                 ("input".to_string(), FnConfKind::Fn( FnConfig { 
