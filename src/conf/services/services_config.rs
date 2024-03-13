@@ -61,7 +61,7 @@ impl ServicesConfig {
     ///
     /// Creates new instance of the [ServicesConfig]:
     pub fn new(conf_tree: &mut ConfTree) -> Self {
-        println!("\n");
+        println!("");
         trace!("ServicesConfig.new | confTree: {:?}", conf_tree);
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item
@@ -77,6 +77,7 @@ impl ServicesConfig {
         let cycle = self_conf.getDuration("cycle");
         debug!("{}.new | cycle: {:?}", self_id, cycle);
         let mut nodes = IndexMap::new();
+        println!("");
         for key in &self_conf.keys {
             let keyword = ConfKeywd::from_str(key).unwrap();
             match keyword.kind() {
@@ -84,7 +85,11 @@ impl ServicesConfig {
                     let node_name = keyword.name();
                     let node_conf = self_conf.get(key).unwrap();
                     if log::max_level() == log::LevelFilter::Debug {
-                        debug!("{}.new | service '{}'", self_id, node_name);
+                        let sufix = match keyword.sufix().is_empty() {
+                            true => "".to_owned(),
+                            false => format!(": '{}'", keyword.sufix()),
+                        };
+                        debug!("{}.new | service '{}'{}", self_id, node_name, sufix);
                     } else if log::max_level() == log::LevelFilter::Trace {
                         trace!("{}.new | DB '{}'   |   conf: {:?}", self_id, node_name, node_conf);
                     }

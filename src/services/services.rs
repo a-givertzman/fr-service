@@ -104,11 +104,15 @@ impl Services {
     ///
     /// Executes all hollded services
     pub fn run(self) -> Result<(), String>  {
-        let path = "config.yaml";
-        let conf: ServicesConfig = ServicesConfig::read(path);
         let self_id = self.id.clone();
+        info!("{}.run | Starting application...", self_id);
+        let path = "config.yaml";
+        info!("{}.run |     Reading configuration...", self_id);
+        let conf: ServicesConfig = ServicesConfig::read(path);
+        info!("{}.run |     Reading configuration - ok", self_id);
         let parent = conf.name.clone();
         let services = Arc::new(Mutex::new(self));
+        info!("{}.run |     Starting services...", self_id);
         for (node_keywd, mut node_conf) in conf.nodes {
             let node_name = node_keywd.name();
             let node_sufix = node_keywd.sufix();
@@ -117,6 +121,13 @@ impl Services {
             services.lock().unwrap().insert(&node_sufix, service);
             info!("{}.run | Configuring service: {}({}) - ok", self_id, node_name, node_sufix);
         }
+        info!("{}.run |     All services configured", self_id);
+
+        info!("{}.run |     Starting services...", self_id);
+
+        info!("{}.run |     All services started", self_id);
+
+        info!("{}.run | Application started", self_id);
         Ok(())
     }
     ///
