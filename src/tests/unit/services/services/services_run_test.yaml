@@ -73,7 +73,7 @@ service ProfinetClient Ied01:
     ip: '192.168.100.243'
     rack: 0
     slot: 1
-    db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
+    db db899:                           # multiple DB blocks are allowed, must have unique namewithing parent device
         # description: 'db899 | Exhibit - drive data'
         number: 899
         offset: 0
@@ -95,7 +95,7 @@ service ProfinetClient Ied01:
         point Drive.Torque: 
             type: 'Real'
             offset: 16
-    db db999:                       # multiple DB blocks are allowed, must have unique namewithing parent device
+    db db999:                           # multiple DB blocks are allowed, must have unique namewithing parent device
         description: 'db899 | Exhibit - drive data'
         number: 899
         offset: 0
@@ -124,13 +124,13 @@ service ProfinetClient Ied02:
     in queue in-queue:
         max-length: 10000
     out queue: MultiQueue.in-queue
-    name Ied02:                       # device will be executed in the independent thread, must have unique name
+    name Ied02:                         # device will be executed in the independent thread, must have unique name
     protocol: 'profinet'
     description: 'S7-IED-02'
     ip: '192.168.100.243'
     rack: 0
     slot: 1
-    db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
+    db db899:                           # multiple DB blocks are allowed, must have unique namewithing parent device
         description: 'db899 | Exhibit - drive data'
         number: 899
         offset: 0
