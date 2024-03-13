@@ -177,16 +177,16 @@ impl ProfinetClient {
                                                     error!("{}.write | DB '{}' - write - error: {:?}", self_id, db_name, err);
                                                     if errors_limit.add().is_err() {
                                                         error!("{}.write | DB '{}' - exceeded writing errors limit, trying to reconnect...", self_id, db_name);
-                                                        match tx_send.send(PointType::String(Point::new_string(
+                                                        if let Err(err) = tx_send.send(PointType::String(Point::new(
                                                             tx_id,
                                                             &point_name, 
-                                                            format!("Error write point '': {}", err),
+                                                            format!("Write error: {}", err),
+                                                            Status::Ok,
+                                                            Cot::ActCon,
+                                                            chrono::offset::Utc::now(),
                                                         ))) {
-                                                            Ok(_) => {},
-                                                            Err(err) => {
-                                                                error!("{}.write | Error sending to queue: {:?}", self_id, err);
-                                                                // break 'main;
-                                                            },
+                                                            error!("{}.write | Error sending to queue: {:?}", self_id, err);
+                                                            // break 'main;
                                                         };
                                                         if let Err(err) = client.close() {
                                                             error!("{}.write | {:?}", self_id, err);
@@ -255,7 +255,9 @@ impl Service for ProfinetClient {
 }
 
 ///
-/// 
+/// Counts errors by calling method 'add()'
+/// - returns Ok if 'limit' of errors is not exceeded
+/// - returns Err if count of errors >= 'limit'
 struct ErrorsLimit {
     value: usize,
     limit: usize,
@@ -269,7 +271,9 @@ impl ErrorsLimit {
         Self { value: limit, limit }
     }
     ///
-    /// 
+    /// Counts errors
+    /// - returns Ok if 'limit' of errors is not exceeded
+    /// - returns Err if count of errors >= 'limit'
     pub fn add(&mut self) -> Result<(), ()> {
         if self.value > 0 {
             self.value -= 1;
@@ -279,7 +283,7 @@ impl ErrorsLimit {
         }
     }
     ///
-    /// 
+    /// Reset counter
     pub fn reset(&mut self) {
         self.value = self.limit;
     }
