@@ -56,23 +56,18 @@ impl TaskNodes {
     ///
     /// Returns input by it's name
     pub fn getEvalNode(&mut self, name: &str) -> Option<&mut TaskEvalNode> {
-        self.inputs.get_mut(name.into())
+        self.inputs.get_mut(name)
     }
     ///
     /// Returns input by it's name
     pub fn getInput(&self, name: &str) -> Option<FnInOutRef> {
-        match self.inputs.get(name.into()) {
-            Some(node) => {
-                Some(node.getInput())
-            },
-            None => None,
-        }
+        self.inputs.get(name).map(|node| node.getInput())
     }
     ///
     /// Returns variable by it's name
     pub fn getVar(&self, name: &str) -> Option<&FnInOutRef> {
         trace!("TaskNodes.getVar | trying to find variable {:?} in {:?}", &name, self.vars);
-        self.vars.get(name.into())
+        self.vars.get(name)
     }
     ///
     /// Adding new input refeerence
@@ -151,7 +146,7 @@ impl TaskNodes {
                         Some(evalNode) => {
                             debug!("TaskNodes.finishNewNode | updating input: {:?}", inputName);
                             let len = vars.len();
-                            evalNode.addVars(&mut vars.clone());
+                            evalNode.addVars(&vars.clone());
                             if out.borrow().kind() != &FnKind::Var {
                                 evalNode.addOut(out.clone());
                             }

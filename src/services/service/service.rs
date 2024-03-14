@@ -19,19 +19,19 @@ pub trait Service: Object {
     ///
     /// Returns Receiver
     #[allow(unused_variables)]
-    fn subscribe(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> (Sender<PointType>, Receiver<PointType>) {
+    fn subscribe(&mut self, receiver_id: &str, points: &[SubscriptionCriteria]) -> (Sender<PointType>, Receiver<PointType>) {
         panic!("{}.subscribe | Does not supported", self.id())
     }
     ///
     /// Extends the sucessfully with additiuonal points
     #[allow(unused_variables)]
-    fn extend_subscription(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
+    fn extend_subscription(&mut self, receiver_id: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
         panic!("{}.extend_subscription | Does not supported", self.id())
     }
     ///
     /// Canceling the subsciption
     #[allow(unused_variables)]
-    fn unsubscribe(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
+    fn unsubscribe(&mut self, receiver_id: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
         panic!("{}.unsubscribe | Does not supported", self.id())
     }
     ///

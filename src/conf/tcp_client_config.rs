@@ -49,16 +49,16 @@ impl TcpClientConfig {
         trace!("{}.new | selfConf: {:?}", self_id, self_conf);
         let self_name = self_conf.name();
         debug!("{}.new | name: {:?}", self_id, self_name);
-        let self_address: SocketAddr = self_conf.getParamValue("address").unwrap().as_str().unwrap().parse().unwrap();
+        let self_address: SocketAddr = self_conf.get_param_value("address").unwrap().as_str().unwrap().parse().unwrap();
         debug!("{}.new | address: {:?}", self_id, self_address);
-        let cycle = self_conf.getDuration("cycle");
+        let cycle = self_conf.get_duration("cycle");
         debug!("{}.new | cycle: {:?}", self_id, cycle);
-        let reconnect_cycle = self_conf.getDuration("reconnect");
+        let reconnect_cycle = self_conf.get_duration("reconnect");
         debug!("{}.new | reconnectCycle: {:?}", self_id, reconnect_cycle);
-        let (rx, rx_max_len) = self_conf.getInQueue().unwrap();
+        let (rx, rx_max_len) = self_conf.get_in_queue().unwrap();
         let rx_buffered = rx_max_len > 0;
         debug!("{}.new | RX: {},\tmax-length: {}", self_id, rx, rx_max_len);
-        let tx = self_conf.getOutQueue().unwrap();
+        let tx = self_conf.get_out_queue().unwrap();
         debug!("{}.new | TX: {}", self_id, tx);
         TcpClientConfig {
             name: self_name,

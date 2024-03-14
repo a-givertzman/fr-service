@@ -55,7 +55,7 @@ impl S7ParseInt {
     //
     fn convert(
         &self,
-        bytes: &Vec<u8>,
+        bytes: &[u8],
         start: usize,
         _bit: usize,
     ) -> Result<i16, TryFromSliceError> {
@@ -89,12 +89,12 @@ impl S7ParseInt {
     }
     //
     // 
-    fn addRawSimple(&mut self, bytes: &Vec<u8>) {
+    fn addRawSimple(&mut self, bytes: &[u8]) {
         self.addRaw(bytes, Utc::now())
     }
     //
     //
-    fn addRaw(&mut self, bytes: &Vec<u8>, timestamp: DateTime<Utc>) {
+    fn addRaw(&mut self, bytes: &[u8], timestamp: DateTime<Utc>) {
         let result = self.convert(bytes, self.offset.unwrap() as usize, 0);
         match result {
             Ok(newVal) => {
@@ -118,13 +118,13 @@ impl S7ParseInt {
 impl ParsePoint for S7ParseInt {
     //
     //
-    fn next_simple(&mut self, bytes: &Vec<u8>) -> Option<PointType> {
+    fn next_simple(&mut self, bytes: &[u8]) -> Option<PointType> {
         self.addRawSimple(bytes);
         self.toPoint()
     }
     //
     //
-    fn next(&mut self, bytes: &Vec<u8>, timestamp: DateTime<Utc>) -> Option<PointType> {
+    fn next(&mut self, bytes: &[u8], timestamp: DateTime<Utc>) -> Option<PointType> {
         self.addRaw(bytes, timestamp);
         self.toPoint()
     }

@@ -51,19 +51,19 @@ impl ApiClientConfig {
         trace!("{}.new | selfConf: {:?}", self_id, self_conf);
         let self_name = self_conf.name();
         debug!("{}.new | name: {:?}", self_id, self_name);
-        let address: SocketAddr = self_conf.getParamValue("address").unwrap().as_str().unwrap().parse().unwrap();
+        let address: SocketAddr = self_conf.get_param_value("address").unwrap().as_str().unwrap().parse().unwrap();
         debug!("{}.new | address: {:?}", self_id, address);
-        let database = self_conf.getParamValue("database").unwrap().as_str().unwrap().to_string();
+        let database = self_conf.get_param_value("database").unwrap().as_str().unwrap().to_string();
         debug!("{}.new | database: {:?}", self_id, database);
-        let auth_token = self_conf.getParamValue("auth_token").unwrap_or(serde_yaml::Value::default()).as_str().unwrap_or("").to_string();
+        let auth_token = self_conf.get_param_value("auth_token").unwrap_or(serde_yaml::Value::default()).as_str().unwrap_or("").to_string();
         debug!("{}.new | auth_token: {:?}", self_id, auth_token);
-        let cycle = self_conf.getDuration("cycle");
+        let cycle = self_conf.get_duration("cycle");
         debug!("{}.new | cycle: {:?}", self_id, cycle);
-        let reconnect_cycle = self_conf.getDuration("reconnect");
+        let reconnect_cycle = self_conf.get_duration("reconnect");
         debug!("{}.new | reconnectCycle: {:?}", self_id, reconnect_cycle);
-        let (rx, rx_max_len) = self_conf.getInQueue().unwrap();
+        let (rx, rx_max_len) = self_conf.get_in_queue().unwrap();
         debug!("{}.new | RX: {},\tmax-length: {:?}", self_id, rx, rx_max_len);
-        let debug: bool = self_conf.getParamValue("debug").unwrap_or(serde_yaml::Value::default()).as_bool().unwrap_or(false);
+        let debug: bool = self_conf.get_param_value("debug").unwrap_or(serde_yaml::Value::default()).as_bool().unwrap_or(false);
         debug!("{}.new | debug: {:?}", self_id, debug);
         Self {
             name: self_name,

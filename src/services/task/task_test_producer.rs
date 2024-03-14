@@ -56,7 +56,7 @@ impl Service for TaskTestProducer {
     fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
         let self_id = self.id.clone();
         let txId = PointTxId::fromStr(&self_id);
-        let cycle = self.cycle.clone();
+        let cycle = self.cycle;
         let delayed = !cycle.is_zero();
         let txSend = self.services.lock().unwrap().get_link(&self.link);
         let sent = self.sent.clone();

@@ -67,9 +67,9 @@ impl TaskConfig {
         trace!("{}.new | selfConf: {:?}", self_id, self_conf);
         let self_name = self_conf.sufix();
         debug!("{}.new | name: {:?}", self_id, self_name);
-        let cycle = self_conf.getDuration("cycle");
+        let cycle = self_conf.get_duration("cycle");
         debug!("{}.new | cycle: {:?}", self_id, cycle);
-        let (rx, rx_max_length) = self_conf.getInQueue().unwrap();
+        let (rx, rx_max_length) = self_conf.get_in_queue().unwrap();
         debug!("{}.new | RX: {},\tmax-length: {:?}", self_id, rx, rx_max_length);
         let mut node_index = 0;
         let mut nodes = IndexMap::new();

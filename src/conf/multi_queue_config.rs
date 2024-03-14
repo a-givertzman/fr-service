@@ -49,9 +49,9 @@ impl MultiQueueConfig {
         trace!("{}.new | self_conf: {:?}", self_id, self_conf);
         let self_name = self_conf.name();
         debug!("{}.new | self_name: {:?}", self_id, self_name);
-        let (rx, rx_max_length) = self_conf.getInQueue().unwrap();
+        let (rx, rx_max_length) = self_conf.get_in_queue().unwrap();
         debug!("{}.new | RX: {},\tmax-length: {}", self_id, rx, rx_max_length);
-        let tx = match self_conf.getParamByKeyword("out", ConfKind::Queue) {
+        let tx = match self_conf.get_param_by_keyword("out", ConfKind::Queue) {
             Ok((keyword, queue_conf)) => {
                 let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
                 trace!("{}.new | self tx-queue param {}: {:?}", self_id, name, queue_conf);

@@ -43,7 +43,7 @@ impl TcpServerConfig {
     ///     out queue: MultiQueue.queue
     ///                     ...
     pub fn new(conf_tree: &mut ConfTree) -> TcpServerConfig {
-        println!("");
+        println!();
         trace!("TcpServerConfig.new | confTree: {:?}", conf_tree);
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item
@@ -53,23 +53,23 @@ impl TcpServerConfig {
         trace!("{}.new | selfConf: {:?}", self_id, self_conf);
         let self_name = self_conf.name();
         debug!("{}.new | name: {:?}", self_id, self_name);
-        let self_address: SocketAddr = self_conf.getParamValue("address").unwrap().as_str().unwrap().parse().unwrap();
+        let self_address: SocketAddr = self_conf.get_param_value("address").unwrap().as_str().unwrap().parse().unwrap();
         debug!("{}.new | address: {:?}", self_id, self_address);
-        let cycle = self_conf.getDuration("cycle");
+        let cycle = self_conf.get_duration("cycle");
         debug!("{}.new | cycle: {:?}", self_id, cycle);
-        let reconnect_cycle = self_conf.getDuration("reconnect");
+        let reconnect_cycle = self_conf.get_duration("reconnect");
         debug!("{}.new | reconnectCycle: {:?}", self_id, reconnect_cycle);
-        let keep_timeout = self_conf.getDuration("keep-timeout");
+        let keep_timeout = self_conf.get_duration("keep-timeout");
         debug!("{}.new | keepTimeout: {:?}", self_id, reconnect_cycle);
-        let auth = self_conf.getParamConf("auth");
-        let auth = auth.or(self_conf.getParamConf("auth-secret"));
-        let auth = auth.or(self_conf.getParamConf("auth-ssh"));
+        let auth = self_conf.get_param_conf("auth");
+        let auth = auth.or(self_conf.get_param_conf("auth-secret"));
+        let auth = auth.or(self_conf.get_param_conf("auth-ssh"));
         let auth = auth.expect("{}.new | 'auth' or 'auth-secret' or 'auth-ssh' - not found");
         let auth = TcpServerAuth::new(auth);
         debug!("{}.new | auth: {:?}", self_id, auth);
-        let (rx, rxMaxLength) = self_conf.getInQueue().unwrap();
-        debug!("{}.new | RX: {},\tmax-length: {}", self_id, rx, rxMaxLength);
-        let tx = self_conf.getOutQueue().unwrap();
+        let (rx, rx_max_len) = self_conf.get_in_queue().unwrap();
+        debug!("{}.new | RX: {},\tmax-length: {}", self_id, rx, rx_max_len);
+        let tx = self_conf.get_out_queue().unwrap();
         debug!("{}.new | TX: {}", self_id, tx);
         TcpServerConfig {
             name: self_name,
@@ -79,7 +79,7 @@ impl TcpServerConfig {
             keep_timeout,
             auth,
             rx,
-            rx_max_len: rxMaxLength,
+            rx_max_len,
             tx,
         }
     }
@@ -99,14 +99,14 @@ impl TcpServerConfig {
     /// reads config from path
     #[allow(dead_code)]
     pub fn read(path: &str) -> TcpServerConfig {
-        match fs::read_to_string(&path) {
-            Ok(yamlString) => {
-                match serde_yaml::from_str(&yamlString) {
+        match fs::read_to_string(path) {
+            Ok(yaml_string) => {
+                match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
                         TcpServerConfig::from_yaml(&config)
                     },
                     Err(err) => {
-                        panic!("TcpServerConfig.read | Error in config: {:?}\n\terror: {:?}", yamlString, err)
+                        panic!("TcpServerConfig.read | Error in config: {:?}\n\terror: {:?}", yaml_string, err)
                     },
                 }
             },

@@ -107,7 +107,7 @@ impl NestedFn {
                     Some((input_conf_name, input_conf)) => {
                         let var = Self::fn_var(               
                             var_name, 
-                            Self::function(parent, tx_id, &input_conf_name, input_conf, task_nodes, services),
+                            Self::function(parent, tx_id, input_conf_name, input_conf, task_nodes, services),
                         );
                         println!("NestedFn.function | Var: {:?}: {:?}", &conf.name, var.clone());
                         task_nodes.addVar(conf.name.clone(), var.clone());

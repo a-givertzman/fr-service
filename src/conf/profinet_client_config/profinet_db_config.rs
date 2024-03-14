@@ -27,17 +27,17 @@ impl ProfinetDbConfig {
         trace!("{}.new | MAPPING VALUE", self_id);
         let mut self_conf = ServiceConfig::new(&self_id, self_conf);
         trace!("{}.new | selfConf: {:?}", self_id, self_conf);
-        let self_name = PointName::new(parent, &name).full();
+        let self_name = PointName::new(parent, name).full();
         debug!("{}.new | name: {:?}", self_id, self_name);
-        let cycle = self_conf.getDuration("cycle");
+        let cycle = self_conf.get_duration("cycle");
         debug!("{}.new | cycle: {:?}", self_id, cycle);
-        let description = self_conf.getParamValue("description").unwrap_or(serde_yaml::Value::String(String::new())).as_str().unwrap().to_string();
+        let description = self_conf.get_param_value("description").unwrap_or(serde_yaml::Value::String(String::new())).as_str().unwrap().to_string();
         debug!("{}.new | description: {:?}", self_id, description);
-        let number = self_conf.getParamValue("number").unwrap().as_u64().unwrap();
+        let number = self_conf.get_param_value("number").unwrap().as_u64().unwrap();
         debug!("{}.new | number: {:?}", self_id, number);
-        let offset = self_conf.getParamValue("offset").unwrap().as_u64().unwrap();
+        let offset = self_conf.get_param_value("offset").unwrap().as_u64().unwrap();
         debug!("{}.new | offset: {:?}", self_id, offset);
-        let size = self_conf.getParamValue("size").unwrap().as_u64().unwrap();
+        let size = self_conf.get_param_value("size").unwrap().as_u64().unwrap();
         debug!("{}.new | size: {:?}", self_id, size);
         let mut points = vec![];
         for key in &self_conf.keys {

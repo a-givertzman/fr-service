@@ -126,14 +126,11 @@ impl Service for TcpClient {
             info!("{}.run | Preparing thread - ok", self_id);
             loop {
                 exitPair.store(false, Ordering::SeqCst);
-                match tcpClientConnect.connect() {
-                    Some(tcpStream) => {
-                        let hR = tcpReadAlive.run(tcpStream.try_clone().unwrap());
-                        let hW = tcpWriteAlive.run(tcpStream);
-                        hR.join().unwrap();
-                        hW.join().unwrap();
-                    },
-                    None => {},
+                if let Some(tcpStream) = tcpClientConnect.connect() {
+                    let hR = tcpReadAlive.run(tcpStream.try_clone().unwrap());
+                    let hW = tcpWriteAlive.run(tcpStream);
+                    hR.join().unwrap();
+                    hW.join().unwrap();
                 };
                 if exit.load(Ordering::SeqCst) {
                     break;

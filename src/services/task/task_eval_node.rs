@@ -54,7 +54,7 @@ impl TaskEvalNode {
     /// 
     pub fn addVars(&mut self, vars: &Vec<FnInOutRef>) {
         for var in vars {
-            if !self.containsVar(&var) {
+            if !self.containsVar(var) {
                 self.vars.push(var.clone());
             }
         }

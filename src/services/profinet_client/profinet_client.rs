@@ -43,7 +43,7 @@ impl ProfinetClient {
     fn yield_status(self_id: &str, dbs: &mut IndexMap<String, ProfinetDb>, tx_send: &Sender<PointType>) {
         for (db_name, db) in dbs {
             debug!("{}.run | DB '{}' - reading...", self_id, db_name);
-            match db.yield_status(Status::Invalid, &tx_send) {
+            match db.yield_status(Status::Invalid, tx_send) {
                 Ok(_) => {},
                 Err(err) => {
                     error!("{}.lostConnection | send errors: \n\t{:?}", self_id, err);
@@ -163,7 +163,7 @@ impl ProfinetClient {
                             match rx_recv.recv_timeout(RECV_TIMEOUT) {
                                 Ok(point) => {
                                     let point_name = point.name();
-                                    let db_name = point_name.split("/").skip(1).next().unwrap();
+                                    let db_name = point_name.split('/').nth(1).unwrap();
                                     debug!("{}.write | DB '{}' - writing point '{}'...", self_id, db_name, point.name());
                                     // let dbName = point.name().split("/").skip(1).collect::<String>();
                                     match dbs.get_mut(db_name) {

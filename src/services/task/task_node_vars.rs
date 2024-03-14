@@ -34,7 +34,7 @@ impl TaskNodeVars {
     ///
     /// 
     fn names(collection: &HashMap<String, FnInOutRef>) -> Vec<String> {
-        collection.keys().map(|v| v.clone()).collect()
+        collection.keys().cloned().collect()
     }
     ///
     /// Returns all collected var names

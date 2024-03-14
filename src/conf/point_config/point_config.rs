@@ -80,7 +80,7 @@ impl PointConfig {
     ///
     /// Returns yaml representation
     pub fn to_yaml(&self) -> serde_yaml::Value {
-        let result: serde_yaml::Value = serde_yaml::to_value(&self).unwrap();
+        let result: serde_yaml::Value = serde_yaml::to_value(self).unwrap();
         let mut wrap = HashMap::new();
         wrap.insert(self.name.clone(), result);
         serde_yaml::to_value(wrap).unwrap()
@@ -107,7 +107,7 @@ impl PointConfig {
     ///
     /// Returns json containing internally taggged PointConfig
     pub fn to_json(&self) -> serde_json::Value {
-        let result: serde_json::Value = serde_json::to_value(&self).unwrap();
+        let result: serde_json::Value = serde_json::to_value(self).unwrap();
         let mut wrap = HashMap::new();
         wrap.insert(self.name.clone(), result);
         serde_json::to_value(wrap).unwrap()

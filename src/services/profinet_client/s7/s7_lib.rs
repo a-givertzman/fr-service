@@ -10,7 +10,7 @@ pub static S7LIB: Lazy<LibSnap7> = Lazy::new(|| {
     println!("initializing LibSnap7...");
     let paths = [
         format!("{}/libsnap7.so", env::current_dir().unwrap().display()),
-        format!("/usr/lib/libsnap7.so"),
+        "/usr/lib/libsnap7.so".to_owned(),
     ];
     for path in paths {
         println!("initializing LibSnap7 | check '{}'...", path);

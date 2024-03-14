@@ -63,7 +63,7 @@ impl Services {
     ///
     /// Returns Receiver
     /// - service - the name of the service to subscribe on
-    pub fn subscribe(&mut self, service: &str, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> (Sender<PointType>, Receiver<PointType>) {
+    pub fn subscribe(&mut self, service: &str, receiver_id: &str, points: &[SubscriptionCriteria]) -> (Sender<PointType>, Receiver<PointType>) {
         match self.map.get(service) {
             Some(srvc) => {
                 debug!("{}.subscribe | Lock service '{:?}'...", self.id, service);
@@ -77,7 +77,7 @@ impl Services {
     ///
     /// Returns ok if subscription extended sucessfully
     /// - service - the name of the service to extend subscribtion on
-    pub fn extend_subscription(&mut self, service: &str, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
+    pub fn extend_subscription(&mut self, service: &str, receiver_id: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
         // panic!("{}.extend_subscription | Not implemented yet", self.id);
         match self.map.get(service) {
             Some(srvc) => {
@@ -92,7 +92,7 @@ impl Services {
     ///
     /// Returns ok if subscription removed sucessfully
     /// - service - the name of the service to unsubscribe on
-    fn unsubscribe(&mut self, service: &str, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
+    fn unsubscribe(&mut self, service: &str, receiver_id: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
         match self.map.get(service) {
             Some(srvc) => {
                 debug!("{}.unsubscribe | Lock service '{:?}'...", self.id, service);

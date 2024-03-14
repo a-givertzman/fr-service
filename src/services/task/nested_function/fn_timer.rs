@@ -148,12 +148,9 @@ impl FnOut for FnTimer {
             },
             FnTimerState::Done => {
                 self.sessionElapsed = 0.0;
-                match self.start {
-                    Some(start) => {
-                        self.totalElapsed += start.elapsed().as_secs_f64();
-                        self.start = None;
-                    },
-                    None => {},
+                if let Some(start) = self.start {
+                    self.totalElapsed += start.elapsed().as_secs_f64();
+                    self.start = None;
                 }
             },
         };
@@ -173,7 +170,7 @@ impl FnOut for FnTimer {
     fn reset(&mut self) {
         self.start = None;
         self.sessionElapsed = 0.0;
-        self.totalElapsed = self.initial.into();
+        self.totalElapsed = self.initial;
         self.state.reset();
         self.input.borrow_mut().reset();
     }

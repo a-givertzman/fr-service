@@ -66,8 +66,7 @@ pub enum S7Error {
 /// 
 impl S7Error {
     pub fn text(code: i32) -> String {
-        let mut err = Vec::<u8>::new();
-        err.resize(1024, 0);
+        let mut err = vec![0; 1024];
         unsafe {
             S7LIB.Cli_ErrorText(
                 code as c_int,

@@ -64,7 +64,7 @@ impl Service for MultiQueue {
     }
     //
     //
-    fn subscribe(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> (Sender<PointType>, Receiver<PointType>) {
+    fn subscribe(&mut self, receiver_id: &str, points: &[SubscriptionCriteria]) -> (Sender<PointType>, Receiver<PointType>) {
         let (send, recv) = mpsc::channel();
         let inner_receiver_id = PointTxId::fromStr(receiver_id);
         self.receiver_dictionary.insert(inner_receiver_id, receiver_id.to_string());
@@ -82,7 +82,7 @@ impl Service for MultiQueue {
     }
     //
     //
-    fn extend_subscription(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
+    fn extend_subscription(&mut self, receiver_id: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
         let inner_receiver_id = PointTxId::fromStr(receiver_id);
         // self.receiver_dictionary.insert(inner_receiver_id, receiver_id.to_string());
         if points.is_empty() {
@@ -109,14 +109,14 @@ impl Service for MultiQueue {
     }
     //
     //
-    fn unsubscribe(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
+    fn unsubscribe(&mut self, receiver_id: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
         let mut changed = false;
         let inner_receiver_id = PointTxId::fromStr(receiver_id);
         if points.is_empty() {
             match self.subscriptions.lock().unwrap().remove_all(&inner_receiver_id) {
                 Ok(_) => {
                     self.receiver_dictionary.remove(&inner_receiver_id);
-                    changed = changed | true;
+                    changed |= true;
                     debug!("{}.unsubscribe | Broadcast subscription removed, receiver: {} ({})", self.id, receiver_id, inner_receiver_id);
                 },
                 Err(err) => {
@@ -128,7 +128,7 @@ impl Service for MultiQueue {
                 match self.subscriptions.lock().unwrap().remove(&inner_receiver_id, &subscription_criteria.destination()) {
                     Ok(_) => {
                         self.receiver_dictionary.remove(&inner_receiver_id);
-                        changed = changed | true;
+                        changed |= true;
                         debug!("{}.unsubscribe | Multicat subscription '{}' removed, receiver: {} ({})", self.id, subscription_criteria.destination(), receiver_id, inner_receiver_id);
                     },
                     Err(err) => {
@@ -168,7 +168,7 @@ impl Service for MultiQueue {
             let mut subscriptions = subscriptions_ref.lock().unwrap().clone();
             debug!("{}.run | Lock subscriptions - ok", self_id);
             loop {
-                if subscriptions_changed.load(Ordering::Relaxed) == true {
+                if subscriptions_changed.load(Ordering::Relaxed) {
                     subscriptions_changed.store(false, Ordering::SeqCst);
                     debug!("{}.run | Subscriptions changes detected", self_id);
                     debug!("{}.run | Lock subscriptions...", self_id);

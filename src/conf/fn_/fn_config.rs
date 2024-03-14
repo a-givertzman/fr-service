@@ -62,12 +62,12 @@ impl FnConfig {
             debug!("FnConfig.new | MAPPING VALUE");
             trace!("FnConfig.new | confTree: {:?}", conf_tree);
             match FnConfKeywd::from_str(conf_tree.key.as_str()) {
-                Ok(selfKeyword) => {
-                    trace!("FnConfig.new | selfKeyword parsed: {:?}", selfKeyword);
+                Ok(self_keyword) => {
+                    trace!("FnConfig.new | selfKeyword parsed: {:?}", self_keyword);
                     // parse sub nodes
                     // let mut inputs = IndexMap::new();
                     trace!("FnConfig.new | build inputs...");
-                    match selfKeyword {
+                    match self_keyword {
                         FnConfKeywd::Const(value) => {
                             let fn_name = if value.data.is_empty() {
                                 conf_tree.conf.as_str().unwrap().to_string()
@@ -140,8 +140,8 @@ impl FnConfig {
                 match FnConfKeywd::from_str(conf_tree.conf.as_str().unwrap()) {
                     // keyword parsed successefully
                     //  - take input name and input Value / Fn from the keyword
-                    Ok(fnKeyword) => {
-                        match fnKeyword {
+                    Ok(fn_keyword) => {
+                        match fn_keyword {
                             FnConfKeywd::Const(value) => {
                                 FnConfKind::Const(
                                     FnConfig {
@@ -264,13 +264,13 @@ impl FnConfig {
     pub fn read(parent: &str, path: &str) -> FnConfKind {
         let mut vars = vec![];
         match fs::read_to_string(&path) {
-            Ok(yamlString) => {
-                match serde_yaml::from_str(&yamlString) {
+            Ok(yaml_string) => {
+                match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
                         FnConfig::from_yaml(parent, &config, &mut vars)
                     },
                     Err(err) => {
-                        panic!("FnConfig.read | Error in config: {:?}\n\terror: {:?}", yamlString, err)
+                        panic!("FnConfig.read | Error in config: {:?}\n\terror: {:?}", yaml_string, err)
                     },
                 }
             },
@@ -325,8 +325,8 @@ impl FnConfig {
     /// Returns list of configurations of the defined points
     pub fn points(&self) -> Vec<PointConfig> {
         let mut points = vec![];
-        for (_, inputKind) in &self.inputs {
-            let mut input_points = inputKind.points();
+        for (_, input_kind) in &self.inputs {
+            let mut input_points = input_kind.points();
             points.append(&mut input_points);
         }
         points
