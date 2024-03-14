@@ -34,8 +34,10 @@ jobs:
       - name: Static analisis
         run: |
           cargo check
+          cargo clippy
       # - run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
       # - run: cargo build --release
       - name: Unit tests
-        run: cargo test --release -- --show-output
+        run: |
+          cargo test --release -- --show-output
   
