@@ -56,7 +56,7 @@ impl TaskConfig {
     ///                 fn SqlMetric:
     ///                     ...
     pub fn new(conf_tree: &mut ConfTree) -> TaskConfig {
-        println!("");
+        println!();
         trace!("TaskConfig.new | confTree: {:?}", conf_tree);
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item
@@ -108,7 +108,7 @@ impl TaskConfig {
     /// reads config from path
     #[allow(dead_code)]
     pub fn read(path: &str) -> TaskConfig {
-        match fs::read_to_string(&path) {
+        match fs::read_to_string(path) {
             Ok(yaml_string) => {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {

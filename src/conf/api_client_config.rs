@@ -41,7 +41,7 @@ impl ApiClientConfig {
     ///     debug: false                # API debug mode, optional, default false
     ///                     ...
     pub fn new(conf_tree: &mut ConfTree) -> Self {
-        println!("\n");
+        println!();
         trace!("ApiClientConfig.new | confTree: {:?}", conf_tree);
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item
@@ -55,7 +55,7 @@ impl ApiClientConfig {
         debug!("{}.new | address: {:?}", self_id, address);
         let database = self_conf.get_param_value("database").unwrap().as_str().unwrap().to_string();
         debug!("{}.new | database: {:?}", self_id, database);
-        let auth_token = self_conf.get_param_value("auth_token").unwrap_or(serde_yaml::Value::default()).as_str().unwrap_or("").to_string();
+        let auth_token = self_conf.get_param_value("auth_token").unwrap_or_default().as_str().unwrap_or("").to_string();
         debug!("{}.new | auth_token: {:?}", self_id, auth_token);
         let cycle = self_conf.get_duration("cycle");
         debug!("{}.new | cycle: {:?}", self_id, cycle);
@@ -63,7 +63,7 @@ impl ApiClientConfig {
         debug!("{}.new | reconnectCycle: {:?}", self_id, reconnect_cycle);
         let (rx, rx_max_len) = self_conf.get_in_queue().unwrap();
         debug!("{}.new | RX: {},\tmax-length: {:?}", self_id, rx, rx_max_len);
-        let debug: bool = self_conf.get_param_value("debug").unwrap_or(serde_yaml::Value::default()).as_bool().unwrap_or(false);
+        let debug: bool = self_conf.get_param_value("debug").unwrap_or_default().as_bool().unwrap_or(false);
         debug!("{}.new | debug: {:?}", self_id, debug);
         Self {
             name: self_name,
@@ -92,7 +92,7 @@ impl ApiClientConfig {
     ///
     /// reads config from path
     pub fn read(path: &str) -> ApiClientConfig {
-        match fs::read_to_string(&path) {
+        match fs::read_to_string(path) {
             Ok(yaml_string) => {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {

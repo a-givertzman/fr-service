@@ -37,7 +37,7 @@ mod tcp_server {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         let self_id = "test TcpServer keep lost connection | Send";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
@@ -130,7 +130,7 @@ mod tcp_server {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         let self_id = "test TcpServer keep lost connection | Receive";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(30));

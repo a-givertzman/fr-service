@@ -39,7 +39,7 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         println!("test JdsSerialize");
         let name = "/server/line1/ied1/test1";
         let ts = ts();

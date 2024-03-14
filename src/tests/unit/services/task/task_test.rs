@@ -40,7 +40,7 @@ mod tests {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         let self_id = "test_task_struct";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));

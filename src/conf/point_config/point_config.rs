@@ -53,7 +53,7 @@ impl PointConfig {
     ///         factor: 1.5         // multiplier for absolute threshold delta - in this case the delta will be accumulated
     ///     comment: Test Point 
     pub fn new(parent: &str, conf_tree: &ConfTree) -> Self {
-        // println!("\n");
+        // println!();
         trace!("PointConfig.new | confTree: {:?}", conf_tree);
         let mut pc: PointConfig = serde_yaml::from_value(conf_tree.conf.clone()).unwrap();
         let keyword = FnConfKeywd::from_str(&conf_tree.key);

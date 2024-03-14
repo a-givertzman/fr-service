@@ -31,7 +31,7 @@ mod services_points {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         let self_id = "test Services.points";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
@@ -47,7 +47,7 @@ mod services_points {
         let target  = 3;
         let points = services.lock().unwrap().points();
         let points_count = points.len();
-        println!("\n");
+        println!();
         println!(" points count: {:?}", points_count);
         for point in points {
             println!("\t {:?}", point);

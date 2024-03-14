@@ -20,7 +20,7 @@ impl ProfinetDbConfig {
     ///
     /// Creates new instance of the ProfinetDbConfig
     pub fn new(parent: &str, name: &str, conf_tree: &mut ConfTree) -> Self {
-        // println!("\n");
+        // println!();
         trace!("ProfinetDeviceConfig.new | confTree: {:?}", conf_tree);
         let self_conf = conf_tree.clone();
         let self_id = format!("ProfinetDeviceConfig({})", self_conf.key);

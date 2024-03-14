@@ -51,7 +51,7 @@ impl FnConfig {
     ///             input fn functionName:
     ///                 input: point '/path/Point.Name/'```
     pub fn new(parent: &str, conf_tree: &ConfTree, vars: &mut Vec<String>) -> FnConfKind {
-        println!("\n");
+        println!();
         trace!("FnConfig.new | confTree: {:?}", conf_tree);
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item

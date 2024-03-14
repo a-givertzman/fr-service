@@ -36,7 +36,7 @@ impl MultiQueueConfig {
     ///         - ServiceN.in-queue
     ///                     ...
     pub fn new(conf_tree: &mut ConfTree) -> MultiQueueConfig {
-        println!("\n");
+        println!();
         trace!("MultiQueueConfig.new | confTree: {:?}", conf_tree);
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item
@@ -91,7 +91,7 @@ impl MultiQueueConfig {
     /// reads config from path
     #[allow(dead_code)]
     pub fn read(path: &str) -> MultiQueueConfig {
-        match fs::read_to_string(&path) {
+        match fs::read_to_string(path) {
             Ok(yaml_string) => {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {

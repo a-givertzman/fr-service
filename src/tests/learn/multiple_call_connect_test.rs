@@ -35,7 +35,7 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         println!("test_task_cycle");
         let mut connect = TestConnect::new();
         let mut closed = false;

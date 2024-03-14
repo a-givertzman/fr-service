@@ -38,7 +38,7 @@ mod tests {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         let self_id = "test FnConfig | point";
         println!("\n{}", self_id);
         let testPoint1 = PointConfig {

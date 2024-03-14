@@ -39,7 +39,7 @@ impl TcpClientConfig {
     ///     out queue: MultiQueue.queue
     ///                     ...
     pub fn new(conf_tree: &mut ConfTree) -> TcpClientConfig {
-        println!("\n");
+        println!();
         trace!("TcpClientConfig.new | confTree: {:?}", conf_tree);
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item
@@ -87,7 +87,7 @@ impl TcpClientConfig {
     /// reads config from path
     #[allow(dead_code)]
     pub fn read(path: &str) -> TcpClientConfig {
-        match fs::read_to_string(&path) {
+        match fs::read_to_string(path) {
             Ok(yaml_string) => {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {

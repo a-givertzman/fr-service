@@ -59,7 +59,7 @@ mod tests {
     fn test_state() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
-        println!("");
+        println!();
         println!("test SwitchState");
 
         let steps: Vec<f64> = vec![0.25, 0.50, 0.75];
@@ -88,7 +88,7 @@ mod tests {
     fn test_state_empty_steps() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
-        println!("");
+        println!();
         println!("test SwitchState empty steps");
 
         let steps: Vec<f64> = vec![];

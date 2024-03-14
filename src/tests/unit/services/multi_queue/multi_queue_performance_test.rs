@@ -40,7 +40,7 @@ mod tests {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         let self_id = "test MultiQueue Performance";
         println!("\n{}", self_id);
         let iterations = ITERATIONS;
@@ -148,7 +148,7 @@ mod tests {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         let self_id = "test MultiQueue Performance with matching by producer ID";
         println!("\n{}", self_id);
         let iterations = ITERATIONS;

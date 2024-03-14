@@ -42,7 +42,7 @@ mod services {
         // println!(" points: {:?}", config.points());
         let services = Services::new(self_id);
         services.run().unwrap();
-        println!("\n");
+        println!();
         // println!(" points count: {:?}", points_count);
         // for point in points {
         //     println!("\t {:?}", point);

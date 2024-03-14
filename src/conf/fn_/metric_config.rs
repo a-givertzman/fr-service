@@ -44,7 +44,7 @@ impl MetricConfig {
     ///             fn SqlMetric:
     ///                 ...
     pub fn new(parent: &str, conf_tree: &ConfTree, vars: &mut Vec<String>) -> MetricConfig {
-        println!("\n");
+        println!();
         trace!("MetricConfig.new | confTree: {:?}", conf_tree);
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item

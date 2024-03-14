@@ -37,7 +37,7 @@ mod tests {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         println!("test TaskNodes");
         let path = "./src/tests/unit/services/task/task_nodes/task_nodes.yaml";
         let mut taskNodes = TaskNodes::new("test");

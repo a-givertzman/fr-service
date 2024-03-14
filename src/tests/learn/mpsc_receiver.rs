@@ -27,7 +27,7 @@ mod tests {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         println!("test mpsc::Receiver");
         let (send, recv) = mpsc::channel();
         let iterations = 10000;

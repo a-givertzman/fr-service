@@ -34,7 +34,7 @@ mod tests {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         let self_name = "Ied01";
         let self_id = "test ProfinetClientConfig";
         println!("\n{}", self_id);

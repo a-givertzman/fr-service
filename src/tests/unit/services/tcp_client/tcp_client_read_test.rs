@@ -41,7 +41,7 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         let self_id = "test TcpClient READ";
         println!("\n{}", self_id);
         let path = "./src/tests/unit/services/tcp_client/tcp_client.yaml";

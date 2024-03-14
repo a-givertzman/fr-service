@@ -35,7 +35,7 @@ mod tests{
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         let self_id = "test MetricConfig | read valid";
         println!("\n{}", self_id);
         let target = MetricConfig { 

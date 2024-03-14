@@ -41,7 +41,7 @@ fn init_once() {
 fn test_int() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     init_once();
-    println!("");
+    println!();
     let self_id = "test_int";
     println!("\n{}", self_id);
     let path = "./src/tests/unit/services/task/sql_metric/sql_metric_int_test.yaml";
@@ -127,7 +127,7 @@ fn test_int() {
 fn test_float() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     init_once();
-    println!("");
+    println!();
     let self_id = "test_float";
     println!("\n{}", self_id);
     let path = "./src/tests/unit/services/task/sql_metric/sql_metric_float_test.yaml";

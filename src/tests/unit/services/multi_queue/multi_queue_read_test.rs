@@ -37,7 +37,7 @@ mod tests {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         let self_id = "test_multi_queue - Static subscriptions - Single send";
         println!("\n{}", self_id);
 

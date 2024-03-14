@@ -33,7 +33,7 @@ mod api_client {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         let self_id = "test ApiClient";
         println!("\n{}", self_id);
         let path = "./src/tests/unit/services/api_client/api_client.yaml";

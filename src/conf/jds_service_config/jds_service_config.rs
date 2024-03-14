@@ -28,7 +28,7 @@ impl JdsServiceConfig {
     ///
     /// Creates new instance of the [JdsServiceConfig]:
     pub fn new(conf_tree: &mut ConfTree) -> Self {
-        println!("\n");
+        println!();
         trace!("JdsServiceConfig.new | confTree: {:?}", conf_tree);
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item
