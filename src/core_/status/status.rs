@@ -5,7 +5,7 @@ const OBSOLETE      : i64 = 2;
 const TIME_INVALID  : i64 = 3;
 const INVALID       : i64 = 10;
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 #[repr(u32)]
 pub enum Status {
     Ok              = OK as u32,
@@ -16,6 +16,11 @@ pub enum Status {
 }
 ///
 /// 
+impl PartialOrd for Status {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
 impl Ord for Status {
     fn cmp(&self, other: &Self) -> Ordering {
         Into::<u32>::into(*self).cmp(&Into::<u32>::into(*other))
@@ -50,16 +55,21 @@ impl From<u64> for Status {
 }
 ///
 /// 
-impl Into<u64> for Status {
-    fn into(self) -> u64 {
-        Into::<u32>::into(self) as u64
+impl From<Status> for u64 {
+    fn from(value: Status) -> Self {
+        Into::<u32>::into(value) as u64
     }
 }
+// impl Into<u64> for Status {
+//     fn into(self) -> u64 {
+//         Into::<u32>::into(self) as u64
+//     }
+// }
 ///
 /// 
-impl Into<u32> for Status {
-    fn into(self) -> u32 {
-        match self {
+impl From<Status> for u32 {
+    fn from(value: Status) -> Self {
+        match value {
             Status::Ok              => OK as u32,
             Status::Obsolete        => OBSOLETE as u32,
             Status::TimeInvalid     => TIME_INVALID as u32,
@@ -68,3 +78,14 @@ impl Into<u32> for Status {
         } 
     }
 }
+// impl Into<u32> for Status {
+//     fn into(self) -> u32 {
+//         match self {
+//             Status::Ok              => OK as u32,
+//             Status::Obsolete        => OBSOLETE as u32,
+//             Status::TimeInvalid     => TIME_INVALID as u32,
+//             Status::Invalid         => INVALID as u32,
+//             Status::Unknown(value) => value as u32,
+//         } 
+//     }
+// }

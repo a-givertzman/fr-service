@@ -31,7 +31,7 @@ impl FnVar {
         Self {
             id: format!("{}/FnTimer{}", parent.into(), COUNT.load(Ordering::Relaxed)),
             kind: FnKind::Var,
-            input: input,
+            input,
             result: None, 
         }
     }

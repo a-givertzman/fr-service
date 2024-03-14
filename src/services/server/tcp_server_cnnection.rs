@@ -77,7 +77,6 @@ impl TcpServerConnection {
                 }, 
                 auth: conf.auth.clone(), 
         }));
-        ;
         let self_conf_tx = conf.tx.clone();
         let rx_max_length = conf.rx_max_len;
         let exit = self.exit.clone();

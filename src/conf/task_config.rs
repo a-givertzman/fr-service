@@ -1,5 +1,5 @@
 use indexmap::IndexMap;
-use log::{trace, debug, error};
+use log::{trace, debug};
 use std::{fs, time::Duration};
 use crate::conf::{
     fn_::{

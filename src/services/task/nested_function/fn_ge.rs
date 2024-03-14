@@ -92,9 +92,9 @@ impl FnOut for FnGe {
                 tx_id: *txId,
                 name: format!("{}.out", self.id),
                 value: Bool(value),
-                status: status,
+                status,
                 cot: Cot::Inf,
-                timestamp: timestamp,
+                timestamp,
             }
         )
     }

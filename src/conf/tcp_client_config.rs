@@ -1,4 +1,4 @@
-use log::{trace, debug, error};
+use log::{trace, debug};
 use std::{fs, time::Duration, net::SocketAddr};
 use crate::conf::{conf_tree::ConfTree, service_config::ServiceConfig};
 ///

@@ -20,8 +20,8 @@ impl<T> FilterThreshold<T> {
         Self {
             value: initial,
             isChanged: true,
-            threshold: threshold, 
-            factor: factor,
+            threshold, 
+            factor,
             acc: 0.0,
         }
     }
@@ -71,7 +71,7 @@ impl Filter for FilterThreshold<f64> {
     ///
     /// 
     fn add(&mut self, value: Self::Item) {
-        let delta = (self.value as f64) - (value as f64);
+        let delta = self.value - value;
         let delta = if self.factor > 0.0 {
             self.acc += delta * self.factor;
             self.acc.abs()

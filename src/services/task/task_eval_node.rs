@@ -23,7 +23,7 @@ impl TaskEvalNode {
         TaskEvalNode { 
             parentName: parentName.into(), 
             name: name.into(), 
-            input: input, 
+            input, 
             vars:  vec![],
             outs: vec![],
         }

@@ -227,7 +227,7 @@ impl FnConfig {
                         Err(_) => {
                             trace!("FnConfig.buildInputs | sub node NO KEYWORD");
                             inputs.insert(
-                                (&sub_node).key.clone(), 
+                                (sub_node).key.clone(), 
                                 FnConfig::new(parent, &sub_node, vars),
                             );
                         },
@@ -237,8 +237,8 @@ impl FnConfig {
             None => {
                 trace!("FnConfig.buildInputs | sub node not found, possible Const or Var");
                 inputs.insert(
-                    (&conf_tree).key.clone(), 
-                    FnConfig::new(parent, &conf_tree, vars),
+                    (conf_tree).key.clone(), 
+                    FnConfig::new(parent, conf_tree, vars),
                 );
             },
         }
@@ -263,7 +263,7 @@ impl FnConfig {
     #[allow(dead_code)]
     pub fn read(parent: &str, path: &str) -> FnConfKind {
         let mut vars = vec![];
-        match fs::read_to_string(&path) {
+        match fs::read_to_string(path) {
             Ok(yaml_string) => {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {

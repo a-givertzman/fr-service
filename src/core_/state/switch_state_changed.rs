@@ -44,6 +44,6 @@ impl<TState: std::fmt::Debug + Eq + Ord + core::hash::Hash + Clone, TInput: Clon
     ///
     /// 
     pub fn isMax(&self) -> bool {
-        self.switchState.isMax()
+        self.switchState.is_max()
     }
 }

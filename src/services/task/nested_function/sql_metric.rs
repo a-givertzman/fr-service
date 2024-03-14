@@ -93,11 +93,11 @@ impl SqlMetric {
             id: self_id,
             txId,
             kind: FnKind::Fn,
-            inputs: inputs,
+            inputs,
             // initial: initial,
             // table: table,
             sql,
-            sqlNames: sqlNames,
+            sqlNames,
         }
     }
 }

@@ -31,13 +31,10 @@ impl<T> RetainBuffer<T> {
     /// Appends an element to the back of a buffer,
     /// - if capacity exeeded ferst element will be lost.
     pub fn push(&mut self, value: T) {
-        match self.capacity {
-            Some(capacity) => {
-                if self.vec.len() >= capacity {
-                    self.vec.pop_front();
-                }
-            },
-            None => {},
+        if let Some(capacity) = self.capacity {
+            if self.vec.len() >= capacity {
+                self.vec.pop_front();
+            }
         }
         self.vec.push_back(value);
     }

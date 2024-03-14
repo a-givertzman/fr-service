@@ -66,15 +66,10 @@ impl ConfTree {
     /// returns tree node by it's key if exists
     pub fn get(&self, key: &str) -> Option<ConfTree> {
         if self.conf.is_mapping() {
-            match self.conf.as_mapping().unwrap().get(key) {
-                Some(value) => {
-                    Some(ConfTree {
-                        key: key.to_string(),
-                        conf: value.clone(),
-                    })
-                },
-                None => None,
-            }
+            self.conf.as_mapping().unwrap().get(key).map(|value| ConfTree {
+                key: key.to_string(),
+                conf: value.clone(),
+            })
         } else {
             None
         }

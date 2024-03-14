@@ -9,7 +9,7 @@ impl<T> DebugTypeOf<T> for T {
 }
 
 pub trait TypeOf<T> {
-    fn type_of<'a>(&self) -> &str {
+    fn type_of(&self) -> &str {
         std::any::type_name::<T>()
     }
 }

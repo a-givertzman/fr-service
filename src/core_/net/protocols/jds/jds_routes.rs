@@ -76,12 +76,11 @@ impl<F> TcpStreamRead for JdsRoutes<F> where
             ConnectionStatus::Active(point) => {
                 match point {
                     Ok(point) => {
-                        let result = (&self.rautes)(self.parent.clone(), point, self.services.clone(), self.shared.clone());
-                        match result.retply {
-                            Some(point) => if let Err(err) = self.req_reply_send.send(point) {
+                        let result = (self.rautes)(self.parent.clone(), point, self.services.clone(), self.shared.clone());
+                        if let Some(point) = result.retply {
+                            if let Err(err) = self.req_reply_send.send(point) {
                                 error!("{}.read | Send reply error: {:?}", self.id, err)
-                            },
-                            None => {},
+                            }
                         };
                         match result.pass {
                             Some(point) => ConnectionStatus::Active(Ok(point)),

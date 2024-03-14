@@ -34,7 +34,7 @@ impl FnCount {
             kind:FnKind::Fn,
             input,
             count: initial,
-            initial: initial,
+            initial,
         }
     }
 }

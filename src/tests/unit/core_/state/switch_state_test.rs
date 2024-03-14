@@ -131,9 +131,9 @@ mod tests {
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state, targetState);
             if state == ProcessState::Stop {
-                assert_eq!(switchState.isMax(), true);
+                assert_eq!(switchState.is_max(), true);
             } else {
-                assert_eq!(switchState.isMax(), false);
+                assert_eq!(switchState.is_max(), false);
             }
         }
     }

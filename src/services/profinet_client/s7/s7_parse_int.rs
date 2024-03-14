@@ -39,8 +39,8 @@ impl S7ParseInt {
     ) -> S7ParseInt {
         S7ParseInt {
             txId: 0,
-            path: path,
-            name: name,
+            path,
+            name,
             value: filter,
             status: Status::Invalid,
             isChanged: false,

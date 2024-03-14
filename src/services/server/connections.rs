@@ -24,8 +24,8 @@ struct Connection {
 impl Connection {
     pub fn new(handle: JoinHandle<()>, send: Sender<Action>,) -> Self {
         Self {
-            handle: handle,
-            send: send,
+            handle,
+            send,
         }
     }
     ///

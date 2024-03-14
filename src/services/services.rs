@@ -1,7 +1,9 @@
 use std::{collections::HashMap, sync::{mpsc::{Receiver, Sender}, Arc, Mutex}, thread::JoinHandle};
 use log::{debug, error, info};
 use crate::{
-    conf::{api_client_config::ApiClientConfig, conf_tree::ConfTree, multi_queue_config::MultiQueueConfig, point_config::point_config::PointConfig, profinet_client_config::profinet_client_config::ProfinetClientConfig, services::services_config::ServicesConfig, task_config::TaskConfig, tcp_client_config::TcpClientConfig, tcp_server_config::TcpServerConfig}, core_::{object::object::Object, point::point_type::PointType}, services::{
+    core_::point::point_type::PointType, 
+    conf::{api_client_config::ApiClientConfig, conf_tree::ConfTree, multi_queue_config::MultiQueueConfig, point_config::point_config::PointConfig, profinet_client_config::profinet_client_config::ProfinetClientConfig, services::services_config::ServicesConfig, task_config::TaskConfig, tcp_client_config::TcpClientConfig, tcp_server_config::TcpServerConfig}, 
+    services::{
         api_cient::api_client::ApiClient, multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, service::service::Service, task::task::Task
     }
 };
@@ -18,12 +20,12 @@ pub struct Services {
 ///
 /// 
 impl Services {
-    const API_CLIENT: &str = "ApiClient";
-    const MULTI_QUEUE: &str = "MultiQueue";
-    const PROFINET_CLIENT: &str = "ProfinetClient";
-    const TASK: &str = "Task";
-    const TCP_CLIENT: &str = "TcpClient";
-    const TCP_SERVER: &str = "TcpServer";
+    const API_CLIENT: &'static str = "ApiClient";
+    const MULTI_QUEUE: &'static str = "MultiQueue";
+    const PROFINET_CLIENT: &'static str = "ProfinetClient";
+    const TASK: &'static str = "Task";
+    const TCP_CLIENT: &'static str = "TcpClient";
+    const TCP_SERVER: &'static str = "TcpServer";
     // const : &str = "";
     // const : &str = "";
     ///

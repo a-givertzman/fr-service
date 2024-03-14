@@ -66,12 +66,12 @@ impl MetricConfig {
                             trace!("MetricConfig.new | input conf: {:?}\t|\t{:?}", input_conf.key, input_conf.conf);
                             if input_conf.isMapping() {
                                 inputs.insert(
-                                    (&input_conf).key.to_string(), 
+                                    (input_conf).key.to_string(), 
                                     FnConfig::new(parent, &input_conf.next().unwrap(), vars),
                                 );
                             } else {
                                 inputs.insert(
-                                    (&input_conf).key.to_string(), 
+                                    (input_conf).key.to_string(), 
                                     FnConfig::new(parent, &input_conf, vars),
                                 );
                             };
@@ -83,10 +83,10 @@ impl MetricConfig {
                 }
                 MetricConfig {
                     name: self_name,
-                    table: (&conf_tree).asStr("table").unwrap().to_string(),
-                    sql: (&conf_tree).asStr("sql").unwrap().to_string(),
-                    initial: (&conf_tree).asF64("initial").unwrap(),
-                    inputs: inputs,
+                    table: (conf_tree).asStr("table").unwrap().to_string(),
+                    sql: (conf_tree).asStr("sql").unwrap().to_string(),
+                    initial: (conf_tree).asF64("initial").unwrap(),
+                    inputs,
                     vars: vars.clone(),
                 }
         } else {
@@ -103,7 +103,7 @@ impl MetricConfig {
     #[allow(dead_code)]
     pub fn read(parent: &str, path: &str) -> MetricConfig {
         let mut vars = vec![];
-        match fs::read_to_string(&path) {
+        match fs::read_to_string(path) {
             Ok(yaml_string) => {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {

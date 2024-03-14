@@ -37,8 +37,8 @@ impl S7ParseBool {
     ) -> S7ParseBool {
         S7ParseBool {
             txId: 0,
-            path: path,
-            name: name,
+            path,
+            name,
             value: false,
             status: Status::Invalid,
             isChanged: false,

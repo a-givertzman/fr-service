@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 use log::trace;
 use std::{collections::HashMap, fmt::Debug, hash::Hash};
 
@@ -38,27 +36,27 @@ pub struct SwitchState<TState, TInput> {
 
 impl<TState: Debug + Eq + Ord + Hash + Clone, TInput: Clone> SwitchState<TState, TInput> {
     pub fn new(initial: TState, switches: Vec<Switch<TState, TInput>>) -> Self {
-        let mut switchesSet = HashMap::new();
+        let mut switches_set = HashMap::new();
         for switch in switches {
             // let key = format!("{:?}", switch.state);
-            switchesSet.insert(switch.state.clone(), switch);
+            switches_set.insert(switch.state.clone(), switch);
         }
-        trace!("SwitchState{{switches: {:?}}}", &switchesSet);
+        trace!("SwitchState{{switches: {:?}}}", &switches_set);
         Self { 
             initial: initial.clone(),
             state: initial,
-            switches: switchesSet,
+            switches: switches_set,
         }
     }
     ///
     pub fn add(& mut self, value: TInput) {
         let key = self.state.clone(); 
-        let switchRef = &self.switches[&key];
+        let switch_ref = &self.switches[&key];
         // let switch: Switch<T, U> = switchRef.clone().to_owned();
-        for switchCondition in &switchRef.conditions {            
-            let cond = (switchCondition.condition)(value.clone());
+        for switch_condition in &switch_ref.conditions {            
+            let cond = (switch_condition.condition)(value.clone());
             if cond {
-                self.state = switchCondition.target.clone();
+                self.state = switch_condition.target.clone();
             }
         };
     }
@@ -73,7 +71,7 @@ impl<TState: Debug + Eq + Ord + Hash + Clone, TInput: Clone> SwitchState<TState,
     }
     ///
     /// 
-    pub fn isMax(&self) -> bool {
+    pub fn is_max(&self) -> bool {
         match self.switches.keys().max() {
             Some(max) => {
                 self.state == *max

@@ -42,7 +42,7 @@ impl JdsServiceConfig {
                 let mut self_conf = ServiceConfig::new(&self_id, self_conf);
                 trace!("{}.new | selfConf: {:?}", self_id, self_conf);
                 let self_name = self_conf.name();
-                let self_addr = self_conf.sufix();
+                // let self_addr = self_conf.sufix();
                 debug!("{}.new | name: {:?}", self_id, self_name);
                 let cycle = self_conf.get_duration("cycle");
                 debug!("{}.new | cycle: {:?}", self_id, cycle);

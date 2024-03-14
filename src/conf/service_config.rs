@@ -20,7 +20,7 @@ impl ServiceConfig {
         Self { 
             id: format!("{}/ServiceConfig", parent),
             key: conf.key.clone(),
-            conf: conf,
+            conf,
             keys,
         }
     }

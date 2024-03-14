@@ -37,9 +37,9 @@ impl Format {
     pub fn new(input: &str) -> Self {
         let re = r#"\{(.*?)\}"#;
         let re = RegexBuilder::new(re).multi_line(true).build().unwrap();
-        let names = re.captures_iter(&input).map(|cap| {
+        let names = re.captures_iter(input).map(|cap| {
             let fullName = cap.get(1).unwrap().as_str().to_string();
-            let mut parts = fullName.split(".").map(|part| part.into());
+            let mut parts = fullName.split('.').map(|part| part.into());
             let name = parts.next().unwrap();
             let sufix = parts.next();
             (fullName, (name, sufix))
@@ -47,7 +47,7 @@ impl Format {
         trace!("Format.new | names {:?}", &names);
         Self {
             input: input.into(),
-            names: names,
+            names,
             values: HashMap::new(),
         }
     }
@@ -62,29 +62,26 @@ impl Format {
         let mut input = self.input.clone();
         for (fullName, (name, sufix)) in &self.names {
             trace!("Format.out | fullName {:?}", fullName);
-            match self.values.get(fullName) {
-                Some(point) => {
-                    let value = match sufix {
-                        Some(sufix) => {
-                            match sufix.as_str() {
-                                "name" => point.name(),
-                                "value" => Self::pointValueToString(point),
-                                "timestamp" => point.timestamp().to_string(),
-                                "status" => point.status().to_string(),
-                                _ => panic!("Format.out | Unknown input sufix in: {:?}, allowed: .value or .timestamp", &name),
-                            }
-                        },
-                        None => {
-                            trace!("Format.out | name: {:?}, sufix: None, taking point.value by default", &name);
-                            Self::pointValueToString(point)
-                        },
-                    };
-                    let pattern = format!("{{{}}}", fullName);
-                    trace!("Format.out | replacing pattern {:?} with value: {:?}", pattern, value);
-                    input = input.replace(&pattern, &value);
-                    trace!("Format.out | result: {:?}", input);
-                },
-                None => {},
+            if let Some(point) = self.values.get(fullName) {
+                let value = match sufix {
+                    Some(sufix) => {
+                        match sufix.as_str() {
+                            "name" => point.name(),
+                            "value" => Self::pointValueToString(point),
+                            "timestamp" => point.timestamp().to_string(),
+                            "status" => point.status().to_string(),
+                            _ => panic!("Format.out | Unknown input sufix in: {:?}, allowed: .value or .timestamp", &name),
+                        }
+                    },
+                    None => {
+                        trace!("Format.out | name: {:?}, sufix: None, taking point.value by default", &name);
+                        Self::pointValueToString(point)
+                    },
+                };
+                let pattern = format!("{{{}}}", fullName);
+                trace!("Format.out | replacing pattern {:?} with value: {:?}", pattern, value);
+                input = input.replace(&pattern, &value);
+                trace!("Format.out | result: {:?}", input);
             };
         };
         input

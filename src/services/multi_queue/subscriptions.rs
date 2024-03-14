@@ -1,5 +1,5 @@
 use log::{warn, trace};
-use std::{borrow::BorrowMut, collections::HashMap, hash::BuildHasherDefault, sync::mpsc::Sender};
+use std::{collections::HashMap, hash::BuildHasherDefault, sync::mpsc::Sender};
 use hashers::fx_hash::FxHasher;
 use crate::core_::point::point_type::PointType;
 
