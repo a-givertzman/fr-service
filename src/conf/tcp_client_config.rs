@@ -1,11 +1,6 @@
-#![allow(non_snake_case)]
-
 use log::{trace, debug, error};
 use std::{fs, time::Duration, net::SocketAddr};
-
 use crate::conf::{conf_tree::ConfTree, service_config::ServiceConfig};
-
-
 ///
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
@@ -22,10 +17,10 @@ pub struct TcpClientConfig {
     pub(crate) name: String,
     pub(crate) address: SocketAddr,
     pub(crate) cycle: Option<Duration>,
-    pub(crate) reconnectCycle: Option<Duration>,
+    pub(crate) reconnect_cycle: Option<Duration>,
     pub(crate) rx: String,
-    pub(crate) rxBuffered: bool,
-    pub(crate) rxMaxLength: i64,
+    pub(crate) rx_buffered: bool,
+    pub(crate) rx_max_len: i64,
     pub(crate) tx: String,
 }
 ///
@@ -43,71 +38,68 @@ impl TcpClientConfig {
     ///         max-length: 10000
     ///     out queue: MultiQueue.queue
     ///                     ...
-    pub fn new(confTree: &mut ConfTree) -> TcpClientConfig {
+    pub fn new(conf_tree: &mut ConfTree) -> TcpClientConfig {
         println!("\n");
-        trace!("TcpClientConfig.new | confTree: {:?}", confTree);
+        trace!("TcpClientConfig.new | confTree: {:?}", conf_tree);
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item
-        if confTree.count() > 1 {
-            error!("TcpClientConfig.new | FnConf must have single item, additional items was ignored: {:?}", confTree)
-        };
-        match confTree.next() {
-            Some(selfConf) => {
-                let self_id = format!("TcpClientConfig({})", selfConf.key);
-                trace!("{}.new | MAPPING VALUE", self_id);
-                let mut selfConf = ServiceConfig::new(&self_id, selfConf);
-                trace!("{}.new | selfConf: {:?}", self_id, selfConf);
-                let selfName = selfConf.name();
-                debug!("{}.new | name: {:?}", self_id, selfName);
-                let selfAddress: SocketAddr = selfConf.getParamValue("address").unwrap().as_str().unwrap().parse().unwrap();
-                debug!("{}.new | address: {:?}", self_id, selfAddress);
-                let cycle = selfConf.getDuration("cycle");
-                debug!("{}.new | cycle: {:?}", self_id, cycle);
-                let reconnectCycle = selfConf.getDuration("reconnect");
-                debug!("{}.new | reconnectCycle: {:?}", self_id, reconnectCycle);
-                let (rx, rxMaxLength) = selfConf.getInQueue().unwrap();
-                let rxBuffered = rxMaxLength > 0;
-                debug!("{}.new | RX: {},\tmax-length: {}", self_id, rx, rxMaxLength);
-                let tx = selfConf.getOutQueue().unwrap();
-                debug!("{}.new | TX: {}", self_id, tx);
-                TcpClientConfig {
-                    name: selfName,
-                    address: selfAddress,
-                    cycle,
-                    reconnectCycle,
-                    rx,
-                    rxBuffered: rxBuffered,
-                    rxMaxLength: rxMaxLength,
-                    tx,
-                }
-            },
-            None => {
-                panic!("TcpClientConfig.new | Configuration is empty")
-            },
+        let self_id = format!("TcpClientConfig({})", conf_tree.key);
+        trace!("{}.new | MAPPING VALUE", self_id);
+        let mut self_conf = ServiceConfig::new(&self_id, conf_tree.clone());
+        trace!("{}.new | selfConf: {:?}", self_id, self_conf);
+        let self_name = self_conf.name();
+        debug!("{}.new | name: {:?}", self_id, self_name);
+        let self_address: SocketAddr = self_conf.getParamValue("address").unwrap().as_str().unwrap().parse().unwrap();
+        debug!("{}.new | address: {:?}", self_id, self_address);
+        let cycle = self_conf.getDuration("cycle");
+        debug!("{}.new | cycle: {:?}", self_id, cycle);
+        let reconnect_cycle = self_conf.getDuration("reconnect");
+        debug!("{}.new | reconnectCycle: {:?}", self_id, reconnect_cycle);
+        let (rx, rx_max_len) = self_conf.getInQueue().unwrap();
+        let rx_buffered = rx_max_len > 0;
+        debug!("{}.new | RX: {},\tmax-length: {}", self_id, rx, rx_max_len);
+        let tx = self_conf.getOutQueue().unwrap();
+        debug!("{}.new | TX: {}", self_id, tx);
+        TcpClientConfig {
+            name: self_name,
+            address: self_address,
+            cycle,
+            reconnect_cycle,
+            rx,
+            rx_buffered,
+            rx_max_len,
+            tx,
         }
     }
     ///
     /// creates config from serde_yaml::Value of following format:
     pub(crate) fn from_yaml(value: &serde_yaml::Value) -> TcpClientConfig {
-        Self::new(&mut ConfTree::newRoot(value.clone()))
+        match value.as_mapping().unwrap().into_iter().next() {
+            Some((key, value)) => {
+                Self::new(&mut ConfTree::new(key.as_str().unwrap().to_owned(), value.clone()))
+            },
+            None => {
+                panic!("TcpClientConfig.from_yaml | Format error or empty conf: {:#?}", value)
+            },
+        }
     }
     ///
     /// reads config from path
     #[allow(dead_code)]
     pub fn read(path: &str) -> TcpClientConfig {
         match fs::read_to_string(&path) {
-            Ok(yamlString) => {
-                match serde_yaml::from_str(&yamlString) {
+            Ok(yaml_string) => {
+                match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
                         TcpClientConfig::from_yaml(&config)
                     },
                     Err(err) => {
-                        panic!("TcpClientConfig.read | Error in config: {:?}\n\terror: {:?}", yamlString, err)
+                        panic!("TcpClientConfig.read | Error in config: {:?}\n\terror: {:#?}", yaml_string, err)
                     },
                 }
             },
             Err(err) => {
-                panic!("TcpClientConfig.read | File {} reading error: {:?}", path, err)
+                panic!("TcpClientConfig.read | File {} reading error: {:#?}", path, err)
             },
         }
     }

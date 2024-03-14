@@ -79,7 +79,7 @@ impl TcpServerConnection {
         }));
         ;
         let self_conf_tx = conf.tx.clone();
-        let rx_max_length = conf.rxMaxLength;
+        let rx_max_length = conf.rx_max_len;
         let exit = self.exit.clone();
         let exit_pair = Arc::new(AtomicBool::new(false));
         let action_recv = self.action_recv.pop().unwrap();
@@ -164,7 +164,7 @@ impl TcpServerConnection {
                 Some(exit.clone()),
                 Some(exit_pair.clone()),
             );
-            let keep_timeout = conf.keepTimeout.unwrap_or(Duration::from_secs(3));
+            let keep_timeout = conf.keep_timeout.unwrap_or(Duration::from_secs(3));
             let mut duration = Instant::now();
             loop {
                 exit_pair.store(false, Ordering::SeqCst);

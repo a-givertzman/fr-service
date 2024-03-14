@@ -76,13 +76,13 @@ impl Service for TcpClient {
         debug!("{}.run | Lock services...", self_id);
         let txSend = self.services.lock().unwrap().get_link(&conf.tx);
         debug!("{}.run | Lock services - ok", self_id);
-        let buffered = conf.rxBuffered; // TODO Read this from config
+        let buffered = conf.rx_buffered; // TODO Read this from config
         let inRecv = self.inRecv.pop().unwrap();
         // let (cyclic, cycleInterval) = match conf.cycle {
         //     Some(interval) => (interval > Duration::ZERO, interval),
         //     None => (false, Duration::ZERO),
         // };
-        let reconnect = conf.reconnectCycle.unwrap_or(Duration::from_secs(3));
+        let reconnect = conf.reconnect_cycle.unwrap_or(Duration::from_secs(3));
         let mut tcpClientConnect = TcpClientConnect::new(
             self_id.clone(), 
             conf.address, 
@@ -109,7 +109,7 @@ impl Service for TcpClient {
             Arc::new(Mutex::new(TcpStreamWrite::new(
                 &self_id,
                 buffered,
-                Some(conf.rxMaxLength as usize),
+                Some(conf.rx_max_len as usize),
                 Box::new(JdsEncodeMessage::new(
                     &self_id,
                     JdsSerialize::new(

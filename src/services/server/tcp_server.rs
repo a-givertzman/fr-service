@@ -130,7 +130,7 @@ impl Service for TcpServer {
         let exit = self.exit.clone();
         let connections = self.connections.clone();
         let services = self.services.clone();
-        let reconnect_cycle = conf.reconnectCycle.unwrap_or(Duration::ZERO);
+        let reconnect_cycle = conf.reconnect_cycle.unwrap_or(Duration::ZERO);
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);

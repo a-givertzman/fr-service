@@ -25,7 +25,7 @@ mod services {
     /// 
     #[test]
     fn run() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
         let self_id = "test";

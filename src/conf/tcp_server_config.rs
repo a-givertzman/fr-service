@@ -1,11 +1,6 @@
-#![allow(non_snake_case)]
-
-use log::{trace, debug, error};
+use log::{trace, debug};
 use std::{fs, time::Duration, net::SocketAddr};
-
 use crate::{conf::{conf_tree::ConfTree, service_config::ServiceConfig}, services::server::tcp_server_auth::TcpServerAuth};
-
-
 ///
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
@@ -24,11 +19,11 @@ pub struct TcpServerConfig {
     pub(crate) name: String,
     pub(crate) cycle: Option<Duration>,
     pub(crate) address: SocketAddr,
-    pub(crate) reconnectCycle: Option<Duration>,
-    pub(crate) keepTimeout: Option<Duration>,
+    pub(crate) reconnect_cycle: Option<Duration>,
+    pub(crate) keep_timeout: Option<Duration>,
     pub(crate) auth: TcpServerAuth,
     pub(crate) rx: String,
-    pub(crate) rxMaxLength: i64,
+    pub(crate) rx_max_len: i64,
     pub(crate) tx: String,
 }
 ///
@@ -47,61 +42,58 @@ impl TcpServerConfig {
     ///         max-length: 10000
     ///     out queue: MultiQueue.queue
     ///                     ...
-    pub fn new(confTree: &mut ConfTree) -> TcpServerConfig {
-        println!("\n");
-        trace!("TcpServerConfig.new | confTree: {:?}", confTree);
+    pub fn new(conf_tree: &mut ConfTree) -> TcpServerConfig {
+        println!("");
+        trace!("TcpServerConfig.new | confTree: {:?}", conf_tree);
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item
-        if confTree.count() > 1 {
-            error!("TcpServerConfig.new | FnConf must have single item, additional items was ignored: {:?}", confTree)
-        };
-        match confTree.next() {
-            Some(selfConf) => {
-                let self_id = format!("TcpServerConfig({})", selfConf.key);
-                trace!("{}.new | MAPPING VALUE", self_id);
-                let mut selfConf = ServiceConfig::new(&self_id, selfConf);
-                trace!("{}.new | selfConf: {:?}", self_id, selfConf);
-                let selfName = selfConf.name();
-                debug!("{}.new | name: {:?}", self_id, selfName);
-                let selfAddress: SocketAddr = selfConf.getParamValue("address").unwrap().as_str().unwrap().parse().unwrap();
-                debug!("{}.new | address: {:?}", self_id, selfAddress);
-                let cycle = selfConf.getDuration("cycle");
-                debug!("{}.new | cycle: {:?}", self_id, cycle);
-                let reconnectCycle = selfConf.getDuration("reconnect");
-                debug!("{}.new | reconnectCycle: {:?}", self_id, reconnectCycle);
-                let keepTimeout = selfConf.getDuration("keep-timeout");
-                debug!("{}.new | keepTimeout: {:?}", self_id, reconnectCycle);
-                let auth = selfConf.getParamConf("auth");
-                let auth = auth.or(selfConf.getParamConf("auth-secret"));
-                let auth = auth.or(selfConf.getParamConf("auth-ssh"));
-                let auth = auth.expect("{}.new | 'auth' or 'auth-secret' or 'auth-ssh' - not found");
-                let auth = TcpServerAuth::new(auth);
-                debug!("{}.new | auth: {:?}", self_id, auth);
-                let (rx, rxMaxLength) = selfConf.getInQueue().unwrap();
-                debug!("{}.new | RX: {},\tmax-length: {}", self_id, rx, rxMaxLength);
-                let tx = selfConf.getOutQueue().unwrap();
-                debug!("{}.new | TX: {}", self_id, tx);
-                TcpServerConfig {
-                    name: selfName,
-                    cycle,
-                    address: selfAddress,
-                    reconnectCycle,
-                    keepTimeout,
-                    auth,
-                    rx,
-                    rxMaxLength: rxMaxLength,
-                    tx,
-                }
-            },
-            None => {
-                panic!("TcpServerConfig.new | Configuration is empty")
-            },
+        let self_id = format!("TcpServerConfig({})", conf_tree.key);
+        trace!("{}.new | MAPPING VALUE", self_id);
+        let mut self_conf = ServiceConfig::new(&self_id, conf_tree.clone());
+        trace!("{}.new | selfConf: {:?}", self_id, self_conf);
+        let self_name = self_conf.name();
+        debug!("{}.new | name: {:?}", self_id, self_name);
+        let self_address: SocketAddr = self_conf.getParamValue("address").unwrap().as_str().unwrap().parse().unwrap();
+        debug!("{}.new | address: {:?}", self_id, self_address);
+        let cycle = self_conf.getDuration("cycle");
+        debug!("{}.new | cycle: {:?}", self_id, cycle);
+        let reconnect_cycle = self_conf.getDuration("reconnect");
+        debug!("{}.new | reconnectCycle: {:?}", self_id, reconnect_cycle);
+        let keep_timeout = self_conf.getDuration("keep-timeout");
+        debug!("{}.new | keepTimeout: {:?}", self_id, reconnect_cycle);
+        let auth = self_conf.getParamConf("auth");
+        let auth = auth.or(self_conf.getParamConf("auth-secret"));
+        let auth = auth.or(self_conf.getParamConf("auth-ssh"));
+        let auth = auth.expect("{}.new | 'auth' or 'auth-secret' or 'auth-ssh' - not found");
+        let auth = TcpServerAuth::new(auth);
+        debug!("{}.new | auth: {:?}", self_id, auth);
+        let (rx, rxMaxLength) = self_conf.getInQueue().unwrap();
+        debug!("{}.new | RX: {},\tmax-length: {}", self_id, rx, rxMaxLength);
+        let tx = self_conf.getOutQueue().unwrap();
+        debug!("{}.new | TX: {}", self_id, tx);
+        TcpServerConfig {
+            name: self_name,
+            cycle,
+            address: self_address,
+            reconnect_cycle,
+            keep_timeout,
+            auth,
+            rx,
+            rx_max_len: rxMaxLength,
+            tx,
         }
     }
     ///
     /// creates config from serde_yaml::Value of following format:
     pub(crate) fn from_yaml(value: &serde_yaml::Value) -> TcpServerConfig {
-        Self::new(&mut ConfTree::newRoot(value.clone()))
+        match value.as_mapping().unwrap().into_iter().next() {
+            Some((key, value)) => {
+                Self::new(&mut ConfTree::new(key.as_str().unwrap().to_owned(), value.clone()))
+            },
+            None => {
+                panic!("TcpServerConfig.from_yaml | Format error or empty conf: {:#?}", value)
+            },
+        }
     }
     ///
     /// reads config from path

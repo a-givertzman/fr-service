@@ -56,56 +56,53 @@ impl TaskConfig {
     ///                 fn SqlMetric:
     ///                     ...
     pub fn new(conf_tree: &mut ConfTree) -> TaskConfig {
-        println!("\n");
+        println!("");
         trace!("TaskConfig.new | confTree: {:?}", conf_tree);
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item
-        if conf_tree.count() > 1 {
-            error!("TaskConfig.new | FnConf must have single item, additional items was ignored: {:?}", conf_tree)
-        };
         let mut vars = vec![];
-        match conf_tree.next() {
-            Some(self_conf) => {
-                let self_id = format!("TaskConfig({})", self_conf.key);
-                trace!("{}.new | MAPPING VALUE", self_id);
-                let mut self_conf = ServiceConfig::new(&self_id, self_conf);
-                trace!("{}.new | selfConf: {:?}", self_id, self_conf);
-                let self_name = self_conf.sufix();
-                debug!("{}.new | name: {:?}", self_id, self_name);
-                let cycle = self_conf.getDuration("cycle");
-                debug!("{}.new | cycle: {:?}", self_id, cycle);
-                let (rx, rx_max_length) = self_conf.getInQueue().unwrap();
-                debug!("{}.new | RX: {},\tmax-length: {:?}", self_id, rx, rx_max_length);
-                let mut node_index = 0;
-                let mut nodes = IndexMap::new();
-                for key in &self_conf.keys {
-                    let node_conf = self_conf.get(key).unwrap();
-                    trace!("{}.new | nodeConf: {:?}", self_id, node_conf);
-                    node_index += 1;
-                    let node_conf = FnConfig::new(&self_name, &node_conf, &mut vars);
-                    nodes.insert(
-                        format!("{}-{}", node_conf.name(), node_index),
-                        node_conf,
-                    );
-                }
-                TaskConfig {
-                    name: self_name,
-                    cycle,
-                    rx,
-                    rx_max_length,
-                    nodes,
-                    vars,
-                }
-            },
-            None => {
-                panic!("TaskConfig.new | Configuration is empty")
-            },
+        let self_id = format!("TaskConfig({})", conf_tree.key);
+        trace!("{}.new | MAPPING VALUE", self_id);
+        let mut self_conf = ServiceConfig::new(&self_id, conf_tree.clone());
+        trace!("{}.new | selfConf: {:?}", self_id, self_conf);
+        let self_name = self_conf.sufix();
+        debug!("{}.new | name: {:?}", self_id, self_name);
+        let cycle = self_conf.getDuration("cycle");
+        debug!("{}.new | cycle: {:?}", self_id, cycle);
+        let (rx, rx_max_length) = self_conf.getInQueue().unwrap();
+        debug!("{}.new | RX: {},\tmax-length: {:?}", self_id, rx, rx_max_length);
+        let mut node_index = 0;
+        let mut nodes = IndexMap::new();
+        for key in &self_conf.keys {
+            let node_conf = self_conf.get(key).unwrap();
+            trace!("{}.new | nodeConf: {:?}", self_id, node_conf);
+            node_index += 1;
+            let node_conf = FnConfig::new(&self_name, &node_conf, &mut vars);
+            nodes.insert(
+                format!("{}-{}", node_conf.name(), node_index),
+                node_conf,
+            );
+        }
+        TaskConfig {
+            name: self_name,
+            cycle,
+            rx,
+            rx_max_length,
+            nodes,
+            vars,
         }
     }
     ///
     /// creates config from serde_yaml::Value of following format:
     pub(crate) fn from_yaml(value: &serde_yaml::Value) -> TaskConfig {
-        Self::new(&mut ConfTree::newRoot(value.clone()))
+        match value.as_mapping().unwrap().into_iter().next() {
+            Some((key, value)) => {
+                Self::new(&mut ConfTree::new(key.as_str().unwrap().to_owned(), value.clone()))
+            },
+            None => {
+                panic!("TaskConfig.from_yaml | Format error or empty conf: {:#?}", value)
+            },
+        }        
     }
     ///
     /// reads config from path

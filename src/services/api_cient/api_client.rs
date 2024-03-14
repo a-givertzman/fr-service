@@ -112,9 +112,9 @@ impl Service for ApiClient {
             None => (false, Duration::ZERO),
         };
         // let reconnect = if conf.reconnectCycle.is_some() {conf.reconnectCycle.unwrap()} else {Duration::from_secs(3)};
-        let _queue_max_length = conf.rxMaxLength;
+        let _queue_max_length = conf.rx_max_len;
         let _handle = thread::Builder::new().name(format!("{} - main", self_id)).spawn(move || {
-            let mut buffer = RetainBuffer::new(&self_id, "", Some(conf.rxMaxLength as usize));
+            let mut buffer = RetainBuffer::new(&self_id, "", Some(conf.rx_max_len as usize));
             let mut cycle = ServiceCycle::new(cycle_interval);
             // let mut connect = TcpClientConnect::new(self_id.clone() + "/TcpSocketClientConnect", conf.address, reconnect);
             let api_keep_alive = true;

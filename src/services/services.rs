@@ -1,26 +1,38 @@
-use std::{collections::HashMap, sync::{Arc, Mutex, mpsc::{Sender, Receiver}}};
-use log::{debug, info};
+use std::{collections::HashMap, sync::{mpsc::{Receiver, Sender}, Arc, Mutex}, thread::JoinHandle};
+use log::{debug, error, info};
 use crate::{
-    conf::{api_client_config::ApiClientConfig, conf_tree::ConfTree, point_config::point_config::PointConfig, services::services_config::ServicesConfig, task_config::TaskConfig}, core_::{object::object::Object, point::point_type::PointType}, services::{
+    conf::{api_client_config::ApiClientConfig, conf_tree::ConfTree, multi_queue_config::MultiQueueConfig, point_config::point_config::PointConfig, profinet_client_config::profinet_client_config::ProfinetClientConfig, services::services_config::ServicesConfig, task_config::TaskConfig, tcp_client_config::TcpClientConfig, tcp_server_config::TcpServerConfig}, core_::{object::object::Object, point::point_type::PointType}, services::{
         api_cient::api_client::ApiClient, multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, service::service::Service, task::task::Task
     }
 };
+
+use super::{multi_queue::multi_queue::MultiQueue, profinet_client::profinet_client::ProfinetClient, server::tcp_server::TcpServer, tcp_client::tcp_client::TcpClient};
 
 ///
 /// Holds a map of the all services in app by there names
 pub struct Services {
     id: String,
     map: HashMap<String, Arc<Mutex<dyn Service + Send>>>,
+    handles: HashMap<String, JoinHandle<()>>,
 }
 ///
 /// 
 impl Services {
+    const API_CLIENT: &str = "ApiClient";
+    const MULTI_QUEUE: &str = "MultiQueue";
+    const PROFINET_CLIENT: &str = "ProfinetClient";
+    const TASK: &str = "Task";
+    const TCP_CLIENT: &str = "TcpClient";
+    const TCP_SERVER: &str = "TcpServer";
+    // const : &str = "";
+    // const : &str = "";
     ///
     /// Creates new instance of the ReatinBuffer
     pub fn new(parent: impl Into<String>) -> Self {
         Self {
             id: format!("{}/Services", parent.into()),
             map: HashMap::new(),
+            handles: HashMap::new(),
         }
     }
     ///
@@ -112,37 +124,70 @@ impl Services {
         info!("{}.run |     Reading configuration - ok", self_id);
         let parent = conf.name.clone();
         let services = Arc::new(Mutex::new(self));
-        info!("{}.run |     Starting services...", self_id);
+        info!("{}.run |     Configuring services...", self_id);
         for (node_keywd, mut node_conf) in conf.nodes {
             let node_name = node_keywd.name();
             let node_sufix = node_keywd.sufix();
-            info!("{}.run | Configuring service: {}({})...", self_id, node_name, node_sufix);
+            info!("{}.run |         Configuring service: {}({})...", self_id, node_name, node_sufix);
+            debug!("{}.run |         Config: {:#?}", self_id, node_conf);
             let service = Self::match_service(&self_id, &parent, &node_name, &node_sufix, &mut node_conf, services.clone());
-            services.lock().unwrap().insert(&node_sufix, service);
-            info!("{}.run | Configuring service: {}({}) - ok", self_id, node_name, node_sufix);
+            let id = if node_sufix.is_empty() {&node_name} else {&node_sufix};
+            services.lock().unwrap().insert(id, service);
+            info!("{}.run |         Configuring service: {}({}) - ok\n", self_id, node_name, node_sufix);
         }
-        info!("{}.run |     All services configured", self_id);
+        info!("{}.run |     All services configured\n", self_id);
 
         info!("{}.run |     Starting services...", self_id);
+        for (name, service) in &services.lock().unwrap().map {
+            info!("{}.run |         Starting service: {}...", self_id, name);
+            match service.lock().unwrap().run() {
+                Ok(handle) => {
+                    services.lock().unwrap().insert_handle(name, handle);
+                    info!("{}.run |         Starting service: {} - ok", self_id, name);
+                },
+                Err(err) => {
+                    error!("{}.run | Error starting service '{}': {:#?}", self_id, name, err);
+                },
+            };
+        }
+        info!("{}.run |     All services started\n", self_id);
 
-        info!("{}.run |     All services started", self_id);
-
-        info!("{}.run | Application started", self_id);
+        info!("{}.run | Application started\n", self_id);
         Ok(())
     }
     ///
     /// 
     fn match_service(self_id: &str, parent: &str, node_name: &str, node_sufix: &str, node_conf: &mut ConfTree, services: Arc<Mutex<Services>>) -> Arc<Mutex<dyn Service + Send>> {
         match node_name {
-            "ApiClient" => {
+            Services::API_CLIENT => {
                 Arc::new(Mutex::new(ApiClient::new(parent, ApiClientConfig::new(node_conf))))
             },
-            "Task" => {
+            Services::MULTI_QUEUE => {
+                Arc::new(Mutex::new(MultiQueue::new(parent, MultiQueueConfig::new(node_conf), services)))
+            },
+            Services::PROFINET_CLIENT => {
+                Arc::new(Mutex::new(ProfinetClient::new(parent, ProfinetClientConfig::new(node_conf), services)))
+            },
+            Services::TASK => {
                 Arc::new(Mutex::new(Task::new(parent, TaskConfig::new(node_conf), services.clone())))
+            },
+            Services::TCP_CLIENT => {
+                Arc::new(Mutex::new(TcpClient::new(parent, TcpClientConfig::new(node_conf), services.clone())))
+            },
+            Services::TCP_SERVER => {
+                Arc::new(Mutex::new(TcpServer::new(parent, TcpServerConfig::new(node_conf), services.clone())))
             },
             _ => {
                 panic!("{}.run | Unknown service: {}({})", self_id, node_name, node_sufix);
             },
         }
+    }
+    ///
+    /// Inserts new pair service_id & service_join_handle
+    fn insert_handle(&mut self, id:&str, handle: JoinHandle<()>) {
+        if self.handles.contains_key(id) {
+            panic!("{}.insert | Duplicated service name '{:?}'", self.id, id);
+        }
+        self.handles.insert(id.to_string(), handle);
     }
 }
