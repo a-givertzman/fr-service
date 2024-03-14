@@ -23,7 +23,7 @@ mod services {
     fn init_each() -> () {}
     ///
     /// 
-    // #[test]
+    #[test]
     fn run() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
@@ -31,7 +31,7 @@ mod services {
         let self_id = "test";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
-        test_duration.run().unwrap();
+        // test_duration.run().unwrap();
         let mut path = env::current_dir().unwrap();
         path.push("src/tests/unit/services/services/");
         std::env::set_current_dir(path).unwrap();

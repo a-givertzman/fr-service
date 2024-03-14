@@ -120,7 +120,7 @@ impl TcpServerConnection {
                     |parent, point, services, shared| {
                         let parent: String = parent;
                         let point: PointType = point;
-                        // println!("{}.run | point from socket: \n\t{:?}", parent, point);
+                        println!("{}.run | point from socket: \n\t{:?}", parent, point);
                         match point.cot() {
                             Cot::Req => JdsConnection::handle_request(&parent, 0, point, services, shared),
                             _        => {

@@ -1,5 +1,6 @@
-use std::{collections::HashMap, sync::{mpsc::{Receiver, Sender}, Arc, Mutex}, thread::JoinHandle};
+use std::{collections::HashMap, sync::{mpsc::{Receiver, Sender}, Arc, Mutex}, thread::{self, JoinHandle}, time::Duration};
 use log::{debug, error, info};
+use testing::stuff::wait::WaitTread;
 use crate::{
     core_::point::point_type::PointType, 
     conf::{api_client_config::ApiClientConfig, conf_tree::ConfTree, multi_queue_config::MultiQueueConfig, point_config::point_config::PointConfig, profinet_client_config::profinet_client_config::ProfinetClientConfig, services::services_config::ServicesConfig, task_config::TaskConfig, tcp_client_config::TcpClientConfig, tcp_server_config::TcpServerConfig}, 
@@ -139,12 +140,14 @@ impl Services {
         }
         info!("{}.run |     All services configured\n", self_id);
 
+        thread::sleep(Duration::from_millis(1000));
         info!("{}.run |     Starting services...", self_id);
-        for (name, service) in &services.lock().unwrap().map {
+        let services_iter = services.lock().unwrap().map.clone();
+        for (name, service) in services_iter {
             info!("{}.run |         Starting service: {}...", self_id, name);
             match service.lock().unwrap().run() {
                 Ok(handle) => {
-                    services.lock().unwrap().insert_handle(name, handle);
+                    services.lock().unwrap().insert_handle(&name, handle);
                     info!("{}.run |         Starting service: {} - ok", self_id, name);
                 },
                 Err(err) => {
@@ -155,6 +158,19 @@ impl Services {
         info!("{}.run |     All services started\n", self_id);
 
         info!("{}.run | Application started\n", self_id);
+        
+        let name = "TcpServer";
+        info!("{}.run | Waiting service being finished: {}...", self_id, name);
+        let handle = services.lock().unwrap().handles.remove(name);
+        match handle {
+            Some(handle) => {
+                handle.wait().unwrap()
+            },
+            None => {
+                panic!("{}.run | Error get handle: {}", self_id, name);
+            },
+        };
+
         Ok(())
     }
     ///
