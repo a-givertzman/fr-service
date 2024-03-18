@@ -1,6 +1,6 @@
 use std::{time::Duration, str::FromStr};
 use log::{debug, trace};
-use super::{conf_tree::ConfTree, conf_duration::ConfDuration, conf_keywd::{ConfKind, ConfKeywd}};
+use super::{conf_duration::ConfDuration, conf_keywd::{ConfKeywd, ConfKind}, conf_subscribe::ConfSubscribe, conf_tree::ConfTree};
 ///
 /// 
 #[derive(Debug, PartialEq, Clone)]
@@ -133,21 +133,13 @@ impl ServiceConfig {
     }
     ///
     /// 
-    pub fn subscribe(&mut self) -> Result<([String], i64), String> {
-        let prefix = "in";
-        let sub_param = "max-length";
-        match self.get_param_by_keyword(prefix, ConfKind::Queue) {
-            Ok((keyword, self_recv_queue)) => {
-                let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
-                debug!("{}.getQueue | self in-queue params {}: {:?}", self.id, name, self_recv_queue);
-                let max_length = match self_recv_queue.get(sub_param) {
-                    Some(conf_tree) => Ok(conf_tree.conf),
-                    None => Err(format!("{}.getQueue | '{}' - not found in: {:?}", self.id, name, self.conf)),
-                }.unwrap().as_i64().unwrap();
-                Ok((keyword.name(), max_length))
+    pub fn subscribe(&mut self) -> Result<ConfSubscribe, String> {
+        match self.get_param_value("subscribe") {
+            Ok(conf) => {
+                Ok(ConfSubscribe::new(conf))
             },
-            Err(err) => Err(format!("{}.getQueue | {} queue - not found in: {:?}\n\terror: {:?}", self.id, prefix, self.conf, err)),
-        }        
+            Err(err) => Err(err),
+        }
     }    
     ///
     /// 
