@@ -133,6 +133,24 @@ impl ServiceConfig {
     }
     ///
     /// 
+    pub fn subscribe(&mut self) -> Result<([String], i64), String> {
+        let prefix = "in";
+        let sub_param = "max-length";
+        match self.get_param_by_keyword(prefix, ConfKind::Queue) {
+            Ok((keyword, self_recv_queue)) => {
+                let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
+                debug!("{}.getQueue | self in-queue params {}: {:?}", self.id, name, self_recv_queue);
+                let max_length = match self_recv_queue.get(sub_param) {
+                    Some(conf_tree) => Ok(conf_tree.conf),
+                    None => Err(format!("{}.getQueue | '{}' - not found in: {:?}", self.id, name, self.conf)),
+                }.unwrap().as_i64().unwrap();
+                Ok((keyword.name(), max_length))
+            },
+            Err(err) => Err(format!("{}.getQueue | {} queue - not found in: {:?}\n\terror: {:?}", self.id, prefix, self.conf, err)),
+        }        
+    }    
+    ///
+    /// 
     pub fn get_in_queue(&mut self) -> Result<(String, i64), String> {
         let prefix = "in";
         let sub_param = "max-length";

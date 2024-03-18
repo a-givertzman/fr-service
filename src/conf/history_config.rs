@@ -57,14 +57,13 @@ impl HistoryConfig {
     ///                     ...
     pub fn new(conf_tree: &mut ConfTree) -> Self {
         println!();
-        trace!("HistoryConfig.new | confTree: {:?}", conf_tree);
+        trace!("HistoryConfig.new | conf_tree: {:?}", conf_tree);
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item
         let mut vars = vec![];
         let self_id = format!("HistoryConfig({})", conf_tree.key);
-        trace!("{}.new | MAPPING VALUE", self_id);
         let mut self_conf = ServiceConfig::new(&self_id, conf_tree.clone());
-        trace!("{}.new | selfConf: {:?}", self_id, self_conf);
+        trace!("{}.new | self_conf: {:?}", self_id, self_conf);
         let self_name = self_conf.sufix();
         debug!("{}.new | name: {:?}", self_id, self_name);
         let cycle = self_conf.get_duration("cycle");
