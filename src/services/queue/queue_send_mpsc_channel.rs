@@ -18,7 +18,7 @@ pub struct QueueSendMpscChannel<T> {
 impl<T> QueueSendMpscChannel<T> {
     pub fn new(send: Sender<T>) -> Self {
         Self {
-            send: send,
+            send,
         }
     }
 }

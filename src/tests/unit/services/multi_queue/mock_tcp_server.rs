@@ -1,11 +1,11 @@
 #![allow(non_snake_case)]
 
 use log::{info, warn, debug, trace};
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}};
+use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread};
 use testing::entities::test_value::Value;
 use crate::{
     core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, 
-    services::{queue_name::QueueName, service::service::Service, services::Services},
+    services::{queue_name::QueueName, service::{service::Service, service_handles::ServiceHandles}, services::Services},
 };
 
 
@@ -75,8 +75,8 @@ impl Service for MockTcpServer {
     }
     //
     //
-    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
-        info!("{}.run | starting...", self.id);
+    fn run(&mut self) -> Result<ServiceHandles, String> {
+        info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         let mqServiceName = QueueName::new(&self.multiQueue);
@@ -87,7 +87,7 @@ impl Service for MockTcpServer {
         debug!("{}.run | Lock services - ok", self_id);
         let received = self.received.clone();
         let recvLimit = self.recvLimit.clone();
-        let _handle = thread::Builder::new().name(format!("{}.run | Recv", self_id)).spawn(move || {
+        let handle_recv = thread::Builder::new().name(format!("{}.run | Recv", self_id)).spawn(move || {
             info!("{}.run | Preparing thread Recv - ok", self_id);
             match recvLimit {
                 Some(recvLimit) => {
@@ -131,7 +131,7 @@ impl Service for MockTcpServer {
         let exit = self.exit.clone();
         let test_data = self.test_data.clone();
         let sent = self.sent.clone();
-        let handle = thread::Builder::new().name(format!("{}.run | Send", self_id)).spawn(move || {
+        let handle_send = thread::Builder::new().name(format!("{}.run | Send", self_id)).spawn(move || {
             info!("{}.run | Preparing thread Send - ok", self_id);
             for value in test_data.iter() {
                 let point = value.to_point(txId,&format!("{}/test", self_id));
@@ -150,7 +150,18 @@ impl Service for MockTcpServer {
             }
             info!("{}.run | Exit thread Send", self_id);
         });
-        handle
+        match (handle_recv, handle_send) {
+            (Ok(handle_recv), Ok(handle_send)) => Ok(ServiceHandles::new(vec![
+                (format!("{}/read", self.id), handle_recv),
+                (format!("{}/write", self.id), handle_send),
+                ])),
+            // TODO Exit 'write if read returns error'
+            (Ok(_handle_recv), Err(err)) => Err(format!("{}.run | Error starting inner thread 'send': {:#?}", self.id, err)),
+            // TODO Exit 'read if write returns error'
+            (Err(err), Ok(_handle_send)) => Err(format!("{}.run | Error starting inner thread 'recv': {:#?}", self.id, err)),
+            (Err(read_err), Err(write_err)) => Err(format!("{}.run | Error starting inner thread: \n\t  recv: {:#?}\n\t send: {:#?}", self.id, read_err, write_err)),
+        }
+
     }
     //
     //

@@ -2,7 +2,7 @@ use std::{collections::HashMap, str::FromStr};
 use log::{trace, debug};
 use serde::{Serialize, Deserialize};
 use crate::conf::{
-    conf_tree::ConfTree, fn_conf_keywd::FnConfKeywd, point_config::{
+    conf_tree::ConfTree, fn_::fn_conf_keywd::FnConfKeywd, point_config::{
         point_config_address::PointConfigAddress, point_config_filters::PointConfigFilter, point_config_type::PointConfigType, point_name::PointName
     }
 };
@@ -53,7 +53,7 @@ impl PointConfig {
     ///         factor: 1.5         // multiplier for absolute threshold delta - in this case the delta will be accumulated
     ///     comment: Test Point 
     pub fn new(parent: &str, conf_tree: &ConfTree) -> Self {
-        // println!("\n");
+        // println!();
         trace!("PointConfig.new | confTree: {:?}", conf_tree);
         let mut pc: PointConfig = serde_yaml::from_value(conf_tree.conf.clone()).unwrap();
         let keyword = FnConfKeywd::from_str(&conf_tree.key);
@@ -80,7 +80,7 @@ impl PointConfig {
     ///
     /// Returns yaml representation
     pub fn to_yaml(&self) -> serde_yaml::Value {
-        let result: serde_yaml::Value = serde_yaml::to_value(&self).unwrap();
+        let result: serde_yaml::Value = serde_yaml::to_value(self).unwrap();
         let mut wrap = HashMap::new();
         wrap.insert(self.name.clone(), result);
         serde_yaml::to_value(wrap).unwrap()
@@ -107,7 +107,7 @@ impl PointConfig {
     ///
     /// Returns json containing internally taggged PointConfig
     pub fn to_json(&self) -> serde_json::Value {
-        let result: serde_json::Value = serde_json::to_value(&self).unwrap();
+        let result: serde_json::Value = serde_json::to_value(self).unwrap();
         let mut wrap = HashMap::new();
         wrap.insert(self.name.clone(), result);
         serde_json::to_value(wrap).unwrap()

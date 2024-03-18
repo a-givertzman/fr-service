@@ -1,18 +1,17 @@
-#![allow(non_snake_case)]
 #[cfg(test)]
 
-mod tests {
+mod task_config_read {
     use indexmap::IndexMap;
     use log::{trace, info};
     use std::{sync::Once, env, time::Duration};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType, task_config::TaskConfig};
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    use crate::conf::{
+        fn_::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType}, 
+        task_config::TaskConfig,
+    };
+    ///
+    ///     
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -21,26 +20,23 @@ mod tests {
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
+    fn init_each() -> () {}
+    ///
+    ///     
     #[test]
-    fn test_task_config_read_valid() {
+    fn valid() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
-        info!("test_task_config_read_valid");
+        info!("test");
         let target = TaskConfig {
-            name: format!("task1"),
+            name: format!("Task1"),
             cycle: Some(Duration::from_millis(100)),
             rx: format!("recv-queue"),
-            rxMaxLength: 10000,
+            rx_max_length: 10000,
             vars: vec![format!("VarName2")],
             nodes: IndexMap::from([                    
                 (format!("SqlMetric-1"), FnConfKind::Fn( FnConfig { 
@@ -80,12 +76,10 @@ mod tests {
                 ),
             ])
         };
-        
-        // let (initial, switches) = init_each();
         trace!("dir: {:?}", env::current_dir());
         let path = "./src/tests/unit/conf/task_config/task_config_test.yaml";
-        let metricConfig = TaskConfig::read(path);
-        trace!("fnConfig: {:?}", metricConfig);
-        assert_eq!(metricConfig, target);
+        let metric_config = TaskConfig::read(path);
+        trace!("fnConfig: {:?}", metric_config);
+        assert_eq!(metric_config, target);
     }
 }    

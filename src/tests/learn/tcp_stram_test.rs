@@ -1,17 +1,14 @@
-#![allow(non_snake_case)]
 #[cfg(test)]
-mod tests {
+
+mod tcp_stream {
     use log::{info, warn, debug};
-    use std::{sync::Once, net::{TcpStream, TcpListener}, io::{Read, Write, BufReader}, thread::{self, JoinHandle}, time::Duration};
+    use std::{sync::Once, net::{TcpStream, TcpListener}, io::{Read, Write, BufReader}, thread, time::Duration};
     use testing::{session::test_session::TestSession, stuff::{wait::WaitTread, max_test_duration::TestDuration}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::core_::constants::constants::RECV_TIMEOUT; 
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    use crate::{core_::constants::constants::RECV_TIMEOUT, services::service::service_handles::ServiceHandles}; 
+    ///
+    ///     
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -20,31 +17,28 @@ mod tests {
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-
-    #[ignore = "learn - all must be ignored"]
+    fn init_each() -> () {}
+    ///
+    /// 
+    #[ignore = "Learn - all must be ignored"]
     #[test]
-    fn test_tcp_stream_read() {
+    fn read() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         let self_id = "test TcpStream read on close";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
-        let tcpPort = TestSession::free_tcp_port_str();
-        let tcpAddr = format!("127.0.0.1:{}", tcpPort);
-        let handle = server(&tcpAddr).unwrap();
+        let tcp_port = TestSession::free_tcp_port_str();
+        let tcp_addr = format!("127.0.0.1:{}", tcp_port);
+        let handle = server(&tcp_addr).unwrap();
         thread::sleep(Duration::from_millis(100));
-        match TcpStream::connect(tcpAddr) {
+        match TcpStream::connect(tcp_addr) {
             Ok(stream) => {
                 match stream.set_read_timeout(Some(RECV_TIMEOUT)) {
                     Ok(_) => {
@@ -69,7 +63,7 @@ mod tests {
     }
     ///
     /// 
-    fn server(addr: &str) -> Result<JoinHandle<()>, std::io::Error> {
+    fn server(addr: &str) -> Result<ServiceHandles, String> {
         let self_id = "Emuleted TcpServer";
         let addr = addr.to_string();
         info!("{}.run | Preparing thread...", self_id);
@@ -135,6 +129,16 @@ mod tests {
             };
             info!("{}.run | Exit...", self_id);
         });
-        handle
+        match handle {
+            Ok(handle) => {
+                info!("{}.run | Starting - ok", self_id);
+                Ok(ServiceHandles::new(vec![(self_id.to_owned(), handle)]))
+            },
+            Err(err) => {
+                let message = format!("{}.run | Start faled: {:#?}", self_id, err);
+                warn!("{}", message);
+                Err(message)
+            },
+        }        
     }
 }

@@ -173,10 +173,10 @@ impl FromStr for FnConfKeywd {
                         match &caps.get(groupKind) {
                             Some(keyword) => {
                                 match keyword.as_str() {
-                                    "fn"  => Ok( FnConfKeywd::Fn( FnConfKeywdValue { input: input, type_: type_, data } )),
-                                    "let"  => Ok( FnConfKeywd::Var( FnConfKeywdValue { input: input, type_: type_, data } )),
-                                    "const"  => Ok( FnConfKeywd::Const( FnConfKeywdValue { input: input, type_: type_, data } )),
-                                    "point" => Ok( FnConfKeywd::Point( FnConfKeywdValue { input: input, type_: type_, data } )),
+                                    "fn"  => Ok( FnConfKeywd::Fn( FnConfKeywdValue { input, type_, data } )),
+                                    "let"  => Ok( FnConfKeywd::Var( FnConfKeywdValue { input, type_, data } )),
+                                    "const"  => Ok( FnConfKeywd::Const( FnConfKeywdValue { input, type_, data } )),
+                                    "point" => Ok( FnConfKeywd::Point( FnConfKeywdValue { input, type_, data } )),
                                     _      => Err(format!("Unknown keyword '{}'", &input)),
                                 }
                             },

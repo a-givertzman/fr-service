@@ -27,12 +27,12 @@ mod tests {
     }
     ///
     /// 
-    #[ignore = "learn - all must be ignored"]
+    #[ignore = "Learn - all must be ignored"]
     #[test]
     fn map_in_rv_lock() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
-        println!("");
+        println!();
         let self_id = "test access to map behaind RvLock";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
@@ -107,12 +107,12 @@ mod tests {
     }
     ///
     /// 
-    #[ignore = "learn - all must be ignored"]
+    #[ignore = "Learn - all must be ignored"]
     #[test]
     fn just_map() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
-        println!("");
+        println!();
         let self_id = "test direct access to map";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
@@ -185,12 +185,12 @@ mod tests {
     }    
     ///
     /// 
-    #[ignore = "learn - all must be ignored"]
+    #[ignore = "Learn - all must be ignored"]
     #[test]
     fn map_in_mutex() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
-        println!("");
+        println!();
         let self_id = "test access to map behaind Mutex";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
@@ -265,12 +265,12 @@ mod tests {
     }
     ///
     /// 
-    #[ignore = "learn - all must be ignored"]
+    #[ignore = "Learn - all must be ignored"]
     #[test]
     fn matching() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
-        println!("");
+        println!();
         let self_id = "test access values using match";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));

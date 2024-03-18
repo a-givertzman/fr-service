@@ -187,7 +187,7 @@ service MultiQueue:
         - CmaClient.in-queue
         - CmaServer.in-queue
 
-task CoreTask:
+service Task CoreTask:
     cycle: 1 ms
     in queue api-link:
         max-length: 10000
@@ -201,7 +201,7 @@ task CoreTask:
                 const float 0.05
 
 
-task OperatingCycle:
+service Task OperatingCycle:
     cycle: 500 ms       # operating cycle time of the task
     in queue api-link:
         max-length: 10000
@@ -243,7 +243,7 @@ task OperatingCycle:
                 input1: point float '/path/Point.Name2'
                 input1: point float '/path/Point.Name3'
 
-task FaultDetection:
+service Task FaultDetection:
     cycle: 100 ms       # operating cycle time of the module
     outputQueue: operatingCycleQueue
     fn ToApiQueue:              # Metric 1
@@ -258,102 +258,176 @@ task FaultDetection:
 <details>
 
 ```yaml
-server:
-    net: TCP                # TCP/UDP
-    protocol:               # CMA-Json / CMA-Byte
-    addres: 127.0.0.1:8882  # Self local addres
-    cycle: 100 ms           # operating cycle time of the module
-    in:
-        queue dataCacheQueue:
-            max-length: 10000
-    out:
-client API:
-    addres: 127.0.0.1:8080  # Self local addres
-    cycle: 100 ms           # operating cycle time of the module
-    auth:                   # some auth credentials
-    in:
-        queue operatingCycleQueue:
-            max-length: 10000
-        queue faultDetectionQueue:
-            max-length: 10000
-    out:
-data-cache:
-    client CMA:
-        addres: 127.0.0.1:8881  # Self local addres
-        cycle: 100 ms           # operating cycle time of the module
-        auth:                   # some auth credentials
-        in:
-        out:
-tasks:
-    task OperatingCycle:
-        cycle: 500 ms       # operating cycle time of the task
-        outputQueue: operatingCycleQueue
-        metrics:
-            fn MetricName1:
-                initial: 0      # начальное значение
-                input: 
-                    var VarName1:
-                        fn count:
-                            input: 
-                                - /line1/ied1/db1/Dev1.State
-            fn MetricName2:
-                initial: 0      # начальное значение
-                input: 
-                    var VarName2:
-                        fn timer:
-                            initial: VarName1
-                            input:
-                                fn or:
-                                    input: 
-                                        - /line1/ied1/db1/Dev2.State
-                                        - /line1/ied1/db1/Dev3.State
-                                        - /line1/ied1/db1/Dev4.State
-    task FaultDetection:
-        cycle: 100 ms       # operating cycle time of the module
-        outputQueue: operatingCycleQueue
-        metrics:
-            fn MetricName1:
-                ...
-            fn MetricName2:
-                ...
-```
+name: ApplicationName
+description: Short explanation / purpose etc.
 
-</details>
-Given configuration creates following classes
+service MultiQueue:
+    in queue in-queue:
+        max-length: 10000
+    out queue:
+        - TaskTestReceiver.queue
 
-```JS
-inputs = {
-    '/line1/ied1/db1/Dev1.State': FnInput{}
-    '/line1/ied1/db1/Dev2.State': FnInput{}
-    '/line1/ied1/db1/Dev3.State': FnInput{}
-    '/line1/ied1/db1/Dev4.State': FnInput{}
-}
-outs = {
-    'VarName1': FnOut{
-        input: FnCount{
-            input: '/line1/ied1/db1/Dev1.State'
-        },
-    },
-    'VarName2': FnOut{
-        input: FnTimer{
-            input: FnOr{
-                input: '/line1/ied1/db1/Dev2.State'
-                input: '/line1/ied1/db1/Dev3.State'
-                input: '/line1/ied1/db1/Dev4.State'
-            },
-        },
-    },
-}
-metrics = {
-    'MetricName1': Metric{
-        id: 'MetricName1',
-        input: VarName1,
-    },
-    'MetricName2': Metric{
-        id: 'MetricName1',
-        input: VarName2,
-    },
-}
+service Task Task1:
+    cycle: 1 ms
+    in queue recv-queue:
+        max-length: 10000
+    let var0: 
+        input: const float 2.224
+
+    fn ToMultiQueue:
+        in1 point CraneMovement.BoomUp: 
+            type: 'Int'
+            comment: 'Some indication'
+            input fn add:
+                input1 fn add:
+                    input1: const float 0.2
+                    input2: point float '/path/Point.Name'
+        in2 point CraneMovement.BoomDown: 
+            type: 'Float'
+            history: r
+            comment: 'Some indication'
+            input: const float 0.07
+
+        in3 point CraneMovement.WinchUp: 
+            type: 'Float'
+            history: r
+            comment: 'Some indication'
+            input: var0
+
+service ApiClient:
+    cycle: 1 ms
+    reconnect: 1 s  # default 3 s
+    address: 127.0.0.1:8080
+    database: test_api_query
+    in queue api-link:
+        max-length: 10000
+    out queue: MultiQueue.queue
+    auth_token: 123!@#
+    # debug: true
+
+service TcpServer:
+    cycle: 1 ms
+    reconnect: 1 s  # default 3 s
+    address: {}
+    auth: none      # auth: none / auth-secret: pass: ... / auth-ssh: path: ...
+    in queue link:
+        max-length: 10000
+    out queue: MultiQueue.in-queue
+
+service TcpClient:
+    cycle: 1 ms
+    reconnect: 1 s  # default 3 s
+    address: 127.0.0.1:8080
+    in queue link:
+        max-length: 10000
+    out queue: MultiQueue.queue
+
+service ProfinetClient Ied01:
+    cycle: 1 ms                         # operating cycle time of the module
+    in queue in-queue:
+        max-length: 10000
+    out queue: MultiQueue.in-queue
+    # name Ied01:                       # device will be executed in the independent thread, must have unique name
+    protocol: 'profinet'
+    description: 'S7-IED-01'
+    ip: '192.168.100.243'
+    rack: 0
+    slot: 1
+    db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
+        # description: 'db899 | Exhibit - drive data'
+        number: 899
+        offset: 0
+        size: 34
+        cycle: 10 ms
+        point Drive.Speed: 
+            type: 'Real'
+            offset: 0
+        point Drive.OutputVoltage: 
+            type: 'Real'
+            offset: 4
+        point Drive.DCVoltage: 
+            type: 'Real'
+            offset: 8
+        point Drive.Current: 
+            type: 'Real'
+            offset: 12
+            history: r
+        point Drive.Torque: 
+            type: 'Real'
+            offset: 16
+    db db999:                       # multiple DB blocks are allowed, must have unique namewithing parent device
+        description: 'db899 | Exhibit - drive data'
+        number: 899
+        offset: 0
+        size: 34
+        cycle: 10 ms
+        point Drive.positionFromMru: 
+            type: 'Real'
+            offset: 20
+        point Drive.positionFromHoist: 
+            type: 'Real'
+            offset: 24
+        point Capacitor.Capacity: 
+            type: 'Int'
+            offset: 28
+        point ChargeIn.On: 
+            type: 'Bool'
+            offset: 30
+            bit: 0
+        point ChargeOut.On: 
+            type: 'Bool'
+            offset: 32
+            bit: 0
+
+service ProfinetClient Ied02:
+    cycle: 1 ms                         # operating cycle time of the module
+    in queue in-queue:
+        max-length: 10000
+    out queue: MultiQueue.in-queue
+    name Ied02:                       # device will be executed in the independent thread, must have unique name
+    protocol: 'profinet'
+    description: 'S7-IED-02'
+    ip: '192.168.100.243'
+    rack: 0
+    slot: 1
+    db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
+        description: 'db899 | Exhibit - drive data'
+        number: 899
+        offset: 0
+        size: 34
+        delay: 10
+        point Drive.Speed: 
+            type: 'Real'
+            offset: 0
+        point Drive.OutputVoltage: 
+            type: 'Real'
+            offset: 4
+        point Drive.DCVoltage: 
+            type: 'Real'
+            offset: 8
+        point Drive.Current: 
+            type: 'Real'
+            offset: 12
+        point Drive.Torque: 
+            type: 'Real'
+            offset: 16
+        point Drive.positionFromMru: 
+            type: 'Real'
+            offset: 20
+        point Drive.positionFromHoist: 
+            type: 'Real'
+            offset: 24
+        point Capacitor.Capacity: 
+            type: 'Int'
+            offset: 28
+        point ChargeIn.On: 
+            type: 'Bool'
+            offset: 30
+            bit: 0
+        point ChargeOut.On: 
+            type: 'Bool'
+            offset: 32
+            bit: 0
 ```
 
 #### Point

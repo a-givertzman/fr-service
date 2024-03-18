@@ -45,6 +45,7 @@ mod jds_routes {
         reply
     }
     /// 
+    /// Generets configurations of points
     fn point_configs(parent: &str) -> Vec<PointConfig> {
         vec![
             PointConfig::from_yaml(parent, &serde_yaml::from_str(&format!(
@@ -74,12 +75,13 @@ mod jds_routes {
         ]
     }
     ///
+    /// 
     #[test]
     fn reject() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         let self_id = "test";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
@@ -215,12 +217,13 @@ mod jds_routes {
         test_duration.exit();
     }
     ///
+    /// 
     #[test]
     fn request_auth_secret() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         let self_id = "test";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
@@ -356,13 +359,14 @@ mod jds_routes {
         // Reseting dureation timer
         test_duration.exit();
     }
-
+    ///
+    /// 
     #[test]
     fn request_points() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         let self_id = "test";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
@@ -529,13 +533,14 @@ mod jds_routes {
         // Reseting dureation timer
         test_duration.exit();
     }    
-
+    ///
+    /// 
     // #[test]
     fn auth_ssh() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         let self_id = "test JdsService";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));

@@ -28,13 +28,13 @@ mod tests {
     
     }
 
-    #[ignore = "learn - all must be ignored"]
+    #[ignore = "Learn - all must be ignored"]
     #[test]
     fn test_mpsc_receiver() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         println!("test mpsc::Receiver");
         let self_id = "test";
         let (send, recv) = mpsc::channel();

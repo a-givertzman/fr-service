@@ -21,7 +21,7 @@ impl ConfTree {
     }
     ///
     /// creates ConfTree instance holding the key and serde_yaml::Value
-    fn newSub(key: String, conf: serde_yaml::Value) -> Self {
+    pub fn new(key: String, conf: serde_yaml::Value) -> Self {
         Self {key, conf}
     }
     ///
@@ -50,7 +50,7 @@ impl ConfTree {
     pub fn subNodes(&self) -> Option<impl Iterator<Item = ConfTree> + '_> {
         if self.conf.is_mapping() {
             let iter = self.conf.as_mapping().unwrap().into_iter().map( |(key, value)| {
-                ConfTree::newSub(
+                ConfTree::new(
                     key.as_str().unwrap().to_string(),
                     value.clone(),
                 )
@@ -66,15 +66,10 @@ impl ConfTree {
     /// returns tree node by it's key if exists
     pub fn get(&self, key: &str) -> Option<ConfTree> {
         if self.conf.is_mapping() {
-            match self.conf.as_mapping().unwrap().get(key) {
-                Some(value) => {
-                    Some(ConfTree {
-                        key: key.to_string(),
-                        conf: value.clone(),
-                    })
-                },
-                None => None,
-            }
+            self.conf.as_mapping().unwrap().get(key).map(|value| ConfTree {
+                key: key.to_string(),
+                conf: value.clone(),
+            })
         } else {
             None
         }

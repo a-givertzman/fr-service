@@ -11,7 +11,7 @@ use crate::{
         point::{point_type::{PointType, ToPoint}, point::Point, point_tx_id::PointTxId}, 
         format::format::Format, 
     }, 
-    conf::fn_config::FnConfig, 
+    conf::fn_::fn_config::FnConfig, 
     services::{task::task_nodes::TaskNodes, services::Services},
 };
 
@@ -60,17 +60,18 @@ impl SqlMetric {
         let mut inputs = IndexMap::new();
         let inputConfs = conf.inputs.clone();
         let inputConfNames = inputConfs.keys().filter(|v| {
-            let delete = match v.as_str() {
-                "initial" => true,
-                "table" => true,
-                "sql" => true,
-                _ => false
-            };
+            // let delete = match v.as_str() {
+            //     "initial" => true,
+            //     "table" => true,
+            //     "sql" => true,
+            //     _ => false
+            // };
+            let delete = matches!(v.as_str(), "initial" | "table" | "sql");
             !delete
         });
         for name in inputConfNames {
             debug!("{}.new | input name: {:?}", self_id, name);
-            let inputConf = conf.inputConf(&name);
+            let inputConf = conf.input_conf(name);
             inputs.insert(
                 name.to_string(), 
                 NestedFn::new(&self_id, txId, inputConf, taskNodes, services.clone()),
@@ -92,11 +93,11 @@ impl SqlMetric {
             id: self_id,
             txId,
             kind: FnKind::Fn,
-            inputs: inputs,
+            inputs,
             // initial: initial,
             // table: table,
             sql,
-            sqlNames: sqlNames,
+            sqlNames,
         }
     }
 }
@@ -135,7 +136,7 @@ impl FnOut for SqlMetric {
                 Some(input) => {
                     trace!("{}.out | input: {:?} - found", self_id, name);
                     let point = input.borrow_mut().out();
-                    self.sql.insert(&fullName, point);
+                    self.sql.insert(fullName, point);
                 },
                 None => {
                     panic!("{}.out | input: {:?} - not found", self_id, name);

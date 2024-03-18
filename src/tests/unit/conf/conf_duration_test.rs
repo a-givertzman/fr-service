@@ -3,7 +3,7 @@
 use log::{debug, info};
 use std::{sync::Once, str::FromStr};
 use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-use crate::conf::{fn_conf_keywd::FnConfKeywd, conf_duration::{ConfDuration, ConfDurationUnit}};
+use crate::conf::{fn_::fn_conf_keywd::FnConfKeywd, conf_duration::{ConfDuration, ConfDurationUnit}};
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
 // use super::*;

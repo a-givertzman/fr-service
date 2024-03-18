@@ -1,7 +1,13 @@
-use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread::{self, JoinHandle}};
+use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread};
 use log::{debug, error, info, trace, warn};
 use crate::{
-    conf::multi_queue_config::MultiQueueConfig, core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, service::service::Service, services::Services}
+    conf::multi_queue_config::MultiQueueConfig, 
+    core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}}, 
+    services::{
+        multi_queue::subscription_criteria::SubscriptionCriteria, 
+        service::{service::Service, service_handles::ServiceHandles}, 
+        services::Services,
+    },
 };
 use concat_string::concat_string;
 use super::subscriptions::Subscriptions;
@@ -64,7 +70,7 @@ impl Service for MultiQueue {
     }
     //
     //
-    fn subscribe(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> (Sender<PointType>, Receiver<PointType>) {
+    fn subscribe(&mut self, receiver_id: &str, points: &[SubscriptionCriteria]) -> (Sender<PointType>, Receiver<PointType>) {
         let (send, recv) = mpsc::channel();
         let inner_receiver_id = PointTxId::fromStr(receiver_id);
         self.receiver_dictionary.insert(inner_receiver_id, receiver_id.to_string());
@@ -82,7 +88,7 @@ impl Service for MultiQueue {
     }
     //
     //
-    fn extend_subscription(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
+    fn extend_subscription(&mut self, receiver_id: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
         let inner_receiver_id = PointTxId::fromStr(receiver_id);
         // self.receiver_dictionary.insert(inner_receiver_id, receiver_id.to_string());
         if points.is_empty() {
@@ -109,14 +115,14 @@ impl Service for MultiQueue {
     }
     //
     //
-    fn unsubscribe(&mut self, receiver_id: &str, points: &Vec<SubscriptionCriteria>) -> Result<(), String> {
+    fn unsubscribe(&mut self, receiver_id: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
         let mut changed = false;
         let inner_receiver_id = PointTxId::fromStr(receiver_id);
         if points.is_empty() {
             match self.subscriptions.lock().unwrap().remove_all(&inner_receiver_id) {
                 Ok(_) => {
                     self.receiver_dictionary.remove(&inner_receiver_id);
-                    changed = changed | true;
+                    changed |= true;
                     debug!("{}.unsubscribe | Broadcast subscription removed, receiver: {} ({})", self.id, receiver_id, inner_receiver_id);
                 },
                 Err(err) => {
@@ -128,7 +134,7 @@ impl Service for MultiQueue {
                 match self.subscriptions.lock().unwrap().remove(&inner_receiver_id, &subscription_criteria.destination()) {
                     Ok(_) => {
                         self.receiver_dictionary.remove(&inner_receiver_id);
-                        changed = changed | true;
+                        changed |= true;
                         debug!("{}.unsubscribe | Multicat subscription '{}' removed, receiver: {} ({})", self.id, subscription_criteria.destination(), receiver_id, inner_receiver_id);
                     },
                     Err(err) => {
@@ -144,8 +150,8 @@ impl Service for MultiQueue {
     }
     //
     //
-    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
-        info!("{}.run | starting...", self.id);
+    fn run(&mut self) -> Result<ServiceHandles, String> {
+        info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         let recv = self.rx_recv.pop().unwrap();
@@ -168,7 +174,7 @@ impl Service for MultiQueue {
             let mut subscriptions = subscriptions_ref.lock().unwrap().clone();
             debug!("{}.run | Lock subscriptions - ok", self_id);
             loop {
-                if subscriptions_changed.load(Ordering::Relaxed) == true {
+                if subscriptions_changed.load(Ordering::Relaxed) {
                     subscriptions_changed.store(false, Ordering::SeqCst);
                     debug!("{}.run | Subscriptions changes detected", self_id);
                     debug!("{}.run | Lock subscriptions...", self_id);
@@ -204,8 +210,17 @@ impl Service for MultiQueue {
             }
             info!("{}.run | Exit", self_id);
         });
-        info!("{}.run | started", self.id);
-        handle
+        match handle {
+            Ok(handle) => {
+                info!("{}.run | Started", self.id);
+                Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
+            },
+            Err(err) => {
+                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                warn!("{}", message);
+                Err(message)
+            },
+        }
     }
     //
     //

@@ -33,8 +33,8 @@ impl FnCount {
             id: format!("{}/FnCount{}", parent.into(), COUNT.load(Ordering::Relaxed)),
             kind:FnKind::Fn,
             input,
-            count: initial.clone(),
-            initial: initial,
+            count: initial,
+            initial,
         }
     }
 }

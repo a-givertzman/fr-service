@@ -28,7 +28,7 @@ impl JdsServiceConfig {
     ///
     /// Creates new instance of the [JdsServiceConfig]:
     pub fn new(conf_tree: &mut ConfTree) -> Self {
-        println!("\n");
+        println!();
         trace!("JdsServiceConfig.new | confTree: {:?}", conf_tree);
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item
@@ -42,13 +42,13 @@ impl JdsServiceConfig {
                 let mut self_conf = ServiceConfig::new(&self_id, self_conf);
                 trace!("{}.new | selfConf: {:?}", self_id, self_conf);
                 let self_name = self_conf.name();
-                let self_addr = self_conf.sufix();
+                // let self_addr = self_conf.sufix();
                 debug!("{}.new | name: {:?}", self_id, self_name);
-                let cycle = self_conf.getDuration("cycle");
+                let cycle = self_conf.get_duration("cycle");
                 debug!("{}.new | cycle: {:?}", self_id, cycle);
-                let (rx, rx_max_len) = self_conf.getInQueue().unwrap();
+                let (rx, rx_max_len) = self_conf.get_in_queue().unwrap();
                 debug!("{}.new | RX: {},\tmax-length: {}", self_id, rx, rx_max_len);
-                let tx = self_conf.getOutQueue().unwrap();
+                let tx = self_conf.get_out_queue().unwrap();
                 debug!("{}.new | TX: {}", self_id, tx);
                 JdsServiceConfig {
                     name: self_name,
@@ -71,7 +71,7 @@ impl JdsServiceConfig {
     /// reads config from path
     #[allow(dead_code)]
     pub fn read(path: &str) -> JdsServiceConfig {
-        match fs::read_to_string(&path) {
+        match fs::read_to_string(path) {
             Ok(yaml_string) => {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {

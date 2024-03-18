@@ -77,7 +77,7 @@ mod tests {
             value2Stored = point2.clone();
             target = PointType::Bool(value1Stored.as_bool() + value2Stored.as_bool());
             assert_eq!(state, target);
-            println!("");
+            println!();
         }        
     }
 
@@ -126,7 +126,7 @@ mod tests {
             value2Stored = point2.clone();
             target = PointType::Int(value1Stored.as_int() + value2Stored.as_int());
             assert_eq!(state, target);
-            println!("");
+            println!();
         }        
     }
 }

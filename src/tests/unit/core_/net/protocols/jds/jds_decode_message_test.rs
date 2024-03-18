@@ -47,7 +47,7 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         println!("test_jds_decode_message");
         let name = "/server/line1/ied1/test1";
         let ts = ts();

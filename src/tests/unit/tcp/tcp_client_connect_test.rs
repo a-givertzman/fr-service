@@ -34,7 +34,7 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         println!("test success connection");
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         let timeout = Duration::from_millis(3500); // ms
@@ -99,7 +99,7 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         println!("test failure connection");
         let timeout = Duration::from_millis(1500); // ms
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();

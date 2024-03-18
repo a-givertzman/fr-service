@@ -1,18 +1,17 @@
-#![allow(non_snake_case)]
 #[cfg(test)]
 
-mod tests {
+mod task_config_new {
     use indexmap::IndexMap;
     use log::{info, debug};
     use std::{sync::Once, time::Duration};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::conf::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType, task_config::TaskConfig};
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    use crate::conf::{
+        task_config::TaskConfig,
+        fn_::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType},
+    };
+    ///
+    ///     
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -21,21 +20,18 @@ mod tests {
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
+    fn init_each() -> () {}
+    ///
+    /// 
     #[test]
-    fn test_fn_config_new_valid() {
+    fn valid() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        info!("test_task_config_new_valid");
+        info!("test");
         // let (initial, switches) = init_each();
         let test_data = [
             // (
@@ -50,7 +46,7 @@ mod tests {
             //     ]) }
             // ),
             (
-                r#"task task1:
+                r#"service Task Task1:
                     cycle: 100 ms
                     in queue recv-queue:
                         max-length: 10000
@@ -70,10 +66,10 @@ mod tests {
                             const int 1
                 "#, 
                 TaskConfig {
-                    name: format!("task1"),
+                    name: format!("Task1"),
                     cycle: Some(Duration::from_millis(100)),
                     rx: format!("recv-queue"),
-                    rxMaxLength: 10000,
+                    rx_max_length: 10000,
                     vars: vec![format!("VarName2")],
                     nodes: IndexMap::from([                    
                         (format!("SqlMetric-1"), FnConfKind::Fn( FnConfig {
@@ -112,7 +108,7 @@ mod tests {
                 },
             ),
             (
-                r#"task task1:
+                r#"service Task Task2:
                     cycle: 100 ms
                     in queue recv-queue:
                         max-length: 10000
@@ -126,10 +122,10 @@ mod tests {
                                     input: point bool '/path/Point.Name'
                 "#, 
                 TaskConfig {
-                    name: format!("task1"),
+                    name: format!("Task2"),
                     cycle: Some(Duration::from_millis(100)),
                     rx: format!("recv-queue"),
-                    rxMaxLength: 10000,
+                    rx_max_length: 10000,
                     vars: vec![format!("VarName2")],
                     nodes: IndexMap::from([                    
                         (format!("VarName2-1"), FnConfKind::Var( FnConfig { 
@@ -159,14 +155,13 @@ mod tests {
         for (value, target) in test_data {
             debug!("test value: {:?}", value);
             let conf: serde_yaml::Value = serde_yaml::from_str(value).unwrap();
-    
             debug!("value: {:?}   |   conf: {:?}   |   target: {:?}", "_", conf, target);
             // let fnKeyword = FnConfigKeyword::from_str(conf.as_str().unwrap()).unwrap();
             // debug!("\tfnKeyword: {:?}", fnKeyword);
             // let mut vars = vec![];
-            let fnConfig = TaskConfig::from_yaml(&conf);
-            debug!("\tfnConfig: {:?}", fnConfig);
-            assert_eq!(fnConfig, target);
+            let fn_config = TaskConfig::from_yaml(&conf);
+            debug!("\tfnConfig: {:?}", fn_config);
+            assert_eq!(fn_config, target, "\n result: {:#?}\n target: {:#?}", fn_config, target);
         }
     }
 }

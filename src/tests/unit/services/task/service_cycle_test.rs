@@ -37,7 +37,7 @@ fn test_ServiceCycle() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     init_once();
     init_each();
-    println!("");
+    println!();
     println!("test ServiceCycle");
     fn load(num: usize) {
         for _ in 0..num {
@@ -52,7 +52,7 @@ fn test_ServiceCycle() {
     const TARGET_CYCLE_INTERVALS: [u64; 2] = [1, 10];
     for targetCycleInterval in TARGET_CYCLE_INTERVALS {  // ms
         let mut max: usize = 10;
-        println!("");
+        println!();
         info!("target cycle interval: {} ms", targetCycleInterval);
         let length = targetCycleInterval.checked_ilog10().unwrap_or(0) + 1;
         let digits = 4 - length as usize;

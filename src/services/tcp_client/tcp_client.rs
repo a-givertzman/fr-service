@@ -1,17 +1,13 @@
-#![allow(non_snake_case)]
+use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Ordering}, Mutex}, time::Duration, collections::HashMap, thread};
 
-use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Ordering}, Mutex}, time::Duration, collections::HashMap, thread::{self, JoinHandle}};
-
-use log::{info, debug};
+use log::{debug, info, warn};
+use testing::stuff::wait::WaitTread;
 
 use crate::{
-    conf::tcp_client_config::TcpClientConfig, core_::{net::protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::point_type::PointType}, services::{service::service::Service, services::Services}, tcp::{
+    conf::tcp_client_config::TcpClientConfig, core_::{net::protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::point_type::PointType}, services::{service::{service::Service, service_handles::ServiceHandles}, services::Services}, tcp::{
         tcp_client_connect::TcpClientConnect, tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive
     } 
 };
-
-
-
 ///
 /// - Holding single input queue
 /// - Received string messages pops from the queue into the end of local buffer
@@ -19,12 +15,12 @@ use crate::{
 /// - Sent messages immediately removed from the buffer
 pub struct TcpClient {
     id: String,
-    inSend: HashMap<String, Sender<PointType>>,
-    inRecv: Vec<Receiver<PointType>>,
+    in_send: HashMap<String, Sender<PointType>>,
+    in_recv: Vec<Receiver<PointType>>,
     conf: TcpClientConfig,
     services: Arc<Mutex<Services>>,
-    tcpRecvAlive: Option<Arc<Mutex<TcpReadAlive>>>,
-    tcpSendAlive: Option<Arc<Mutex<TcpWriteAlive>>>,
+    tcp_recv_alive: Option<Arc<Mutex<TcpReadAlive>>>,
+    tcp_send_alive: Option<Arc<Mutex<TcpWriteAlive>>>,
     exit: Arc<AtomicBool>,
 }
 ///
@@ -37,12 +33,12 @@ impl TcpClient {
         let (send, recv) = mpsc::channel();
         Self {
             id: format!("{}/TcpClient({})", parent.into(), conf.name),
-            inRecv: vec![recv],
-            inSend: HashMap::from([(conf.rx.clone(), send)]),
+            in_recv: vec![recv],
+            in_send: HashMap::from([(conf.rx.clone(), send)]),
             conf: conf.clone(),
             services,
-            tcpRecvAlive: None,
-            tcpSendAlive: None,
+            tcp_recv_alive: None,
+            tcp_send_alive: None,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -58,37 +54,37 @@ impl Service for TcpClient {
     //
     // 
     fn get_link(&mut self, name: &str) -> Sender<PointType> {
-        match self.inSend.get(name) {
+        match self.in_send.get(name) {
             Some(send) => send.clone(),
             None => panic!("{}.run | link '{:?}' - not found", self.id, name),
         }
     }
     //
     //
-    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
-        info!("{}.run | starting...", self.id);
+    fn run(&mut self) -> Result<ServiceHandles, String> {
+        info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let conf = self.conf.clone();
         let exit = self.exit.clone();
-        let exitPair = Arc::new(AtomicBool::new(false));
+        let exit_pair = Arc::new(AtomicBool::new(false));
         info!("{}.run | rx queue name: {:?}", self.id, conf.rx);
         info!("{}.run | tx queue name: {:?}", self.id, conf.tx);
         debug!("{}.run | Lock services...", self_id);
-        let txSend = self.services.lock().unwrap().get_link(&conf.tx);
+        let tx_send = self.services.lock().unwrap().get_link(&conf.tx);
         debug!("{}.run | Lock services - ok", self_id);
-        let buffered = conf.rxBuffered; // TODO Read this from config
-        let inRecv = self.inRecv.pop().unwrap();
+        let buffered = conf.rx_buffered; // TODO Read this from config
+        let in_recv = self.in_recv.pop().unwrap();
         // let (cyclic, cycleInterval) = match conf.cycle {
         //     Some(interval) => (interval > Duration::ZERO, interval),
         //     None => (false, Duration::ZERO),
         // };
-        let reconnect = conf.reconnectCycle.unwrap_or(Duration::from_secs(3));
-        let mut tcpClientConnect = TcpClientConnect::new(
+        let reconnect = conf.reconnect_cycle.unwrap_or(Duration::from_secs(3));
+        let mut tcp_client_connect = TcpClientConnect::new(
             self_id.clone(), 
             conf.address, 
             reconnect,
         );
-        let mut tcpReadAlive = TcpReadAlive::new(
+        let mut tcp_read_alive = TcpReadAlive::new(
             &self_id,
             Arc::new(Mutex::new(
                 JdsDeserialize::new(
@@ -98,64 +94,70 @@ impl Service for TcpClient {
                     ),
                 ),
             )),
-            txSend,
+            tx_send,
             Duration::from_millis(10),
             Some(exit.clone()),
-            Some(exitPair.clone()),
+            Some(exit_pair.clone()),
         );
-        let tcpWriteAlive = TcpWriteAlive::new(
+        let tcp_write_alive = TcpWriteAlive::new(
             &self_id,
             Duration::from_millis(10),
             Arc::new(Mutex::new(TcpStreamWrite::new(
                 &self_id,
                 buffered,
-                Some(conf.rxMaxLength as usize),
+                Some(conf.rx_max_len as usize),
                 Box::new(JdsEncodeMessage::new(
                     &self_id,
                     JdsSerialize::new(
                         &self_id,
-                        inRecv,
+                        in_recv,
                     ),
                 )),
             ))),
             Some(exit.clone()),
-            Some(exitPair.clone()),
+            Some(exit_pair.clone()),
         );
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
             loop {
-                exitPair.store(false, Ordering::SeqCst);
-                match tcpClientConnect.connect() {
-                    Some(tcpStream) => {
-                        let hR = tcpReadAlive.run(tcpStream.try_clone().unwrap());
-                        let hW = tcpWriteAlive.run(tcpStream);
-                        hR.join().unwrap();
-                        hW.join().unwrap();
-                    },
-                    None => {},
+                exit_pair.store(false, Ordering::SeqCst);
+                if let Some(tcp_stream) = tcp_client_connect.connect() {
+                    let h_r = tcp_read_alive.run(tcp_stream.try_clone().unwrap());
+                    let h_w = tcp_write_alive.run(tcp_stream);
+                    h_r.wait().unwrap();
+                    h_w.wait().unwrap();
                 };
                 if exit.load(Ordering::SeqCst) {
                     break;
                 }
             }
         });
-        info!("{}.run | started", self.id);
-        handle
+        match handle {
+            Ok(handle) => {
+                info!("{}.run | Starting - ok", self.id);
+                Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
+            },
+            Err(err) => {
+                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                warn!("{}", message);
+                Err(message)
+            },
+        }
     }
     //
     //
     fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
-        match &self.tcpRecvAlive {
-            Some(tcpRecvAlive) => {
-                tcpRecvAlive.lock().unwrap().exit()
+        match &self.tcp_recv_alive {
+            Some(tcp_recv_alive) => {
+                tcp_recv_alive.lock().unwrap().exit()
             },
             None => {},
         }
-        match &self.tcpSendAlive {
-            Some(tcpSendAlive) => {
-                tcpSendAlive.lock().unwrap().exit()
+        match &self.tcp_send_alive {
+            Some(tcp_send_alive) => {
+                tcp_send_alive.lock().unwrap().exit()
             },
             None => {},
         }

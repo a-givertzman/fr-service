@@ -183,7 +183,7 @@ fn test_config_tree_valid() {
         debug!("confTree: {:?}", confTree);
         let res = inputs(&confTree);
         debug!("result: {:?}", res);
-        println!("\n");
+        println!();
         assert_eq!(res, target);
         let mut target = target.asMap().iter();
         for (_name, node) in res.asMap() {

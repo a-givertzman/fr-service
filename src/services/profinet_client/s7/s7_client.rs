@@ -75,8 +75,7 @@ impl S7Client {
     /// This is the main function to read data from a PLC.
     /// With it you can read DB, Inputs, Outputs, Merkers, Timers and Counters
     pub fn read(&self, db_num: u32, start: u32, size: u32) -> Result<Vec<u8>, String> {
-        let mut buf = Vec::<u8>::new();
-        buf.resize(size as usize, 0);
+        let mut buf = vec![0; size as usize];
         let code;
         unsafe {
             code = S7LIB.Cli_DBRead(
@@ -85,7 +84,7 @@ impl S7Client {
                 start as c_int,
                 size as c_int,
                 buf.as_mut_ptr() as *mut c_void,
-            ) as i32;
+            );
         }
         match code {
             0 => Ok(buf),

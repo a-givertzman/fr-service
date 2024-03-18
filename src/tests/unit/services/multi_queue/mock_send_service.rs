@@ -1,18 +1,14 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}, time::Duration};
+use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread, time::Duration};
 
 use log::{info, warn, debug, trace};
 use testing::entities::test_value::Value;
-use crate::{core_::{object::object::Object, point::point_type::{PointType, ToPoint}}, services::{service::service::Service, services::Services}};
+use crate::{core_::{object::object::Object, point::point_type::{PointType, ToPoint}}, services::{service::{service::Service, service_handles::ServiceHandles}, services::Services}};
 
 
 pub struct MockSendService {
     id: String,
-    // rxSend: HashMap<String, Sender<PointType>>,
-    // inRecv: Vec<Receiver<PointType>>,
-    // txSend: HashMap<String, Sender<PointType>>,
-    // outRecv: Vec<Receiver<PointType>>,
     sendQueue: String,
     services: Arc<Mutex<Services>>,
     test_data: Vec<Value>,
@@ -23,15 +19,11 @@ pub struct MockSendService {
 ///
 /// 
 impl MockSendService {
-    pub fn new(parent: impl Into<String>, _recvQueue: &str, sendQueue: &str, services: Arc<Mutex<Services>>, test_data: Vec<Value>, delay: Option<Duration>) -> Self {
+    pub fn new(parent: impl Into<String>, sendQueue: &str, services: Arc<Mutex<Services>>, test_data: Vec<Value>, delay: Option<Duration>) -> Self {
         let self_id = format!("{}/MockSendService", parent.into());
         // let (send, recv) = mpsc::channel::<PointType>();
         Self {
             id: self_id.clone(),
-            // rxSend: HashMap::from([(recvQueue.to_string(), send)]),
-            // inRecv: vec![recv],
-            // txSend: HashMap::new(),
-            // outRecv: vec![],
             sendQueue: sendQueue.to_string(),
             services,
             test_data,
@@ -72,8 +64,8 @@ impl Service for MockSendService {
     }
     //
     //
-    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
-        info!("{}.run | starting...", self.id);
+    fn run(&mut self) -> Result<ServiceHandles, String> {
+        info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         debug!("{}.run | Lock services...", self_id);
@@ -83,7 +75,7 @@ impl Service for MockSendService {
         let test_data = self.test_data.clone();
         let sent = self.sent.clone();
         let delay = self.delay.clone();
-        let _handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
+        let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
             for value in test_data {
                 let point = value.to_point(0,&format!("{}/test", self_id));
@@ -107,7 +99,17 @@ impl Service for MockSendService {
                 }
             }
         });
-        _handle
+        match handle {
+            Ok(handle) => {
+                info!("{}.run | Starting - ok", self.id);
+                Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
+            },
+            Err(err) => {
+                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                warn!("{}", message);
+                Err(message)
+            },
+        }
     }
     //
     //

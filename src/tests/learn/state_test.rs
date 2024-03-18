@@ -55,12 +55,12 @@ mod tests {
         switchState
     }
     
-    #[ignore = "learn - all must be ignored"]
+    #[ignore = "Learn - all must be ignored"]
     #[test]
     fn test_state() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
-        println!("");
+        println!();
         println!("test SwitchState");
 
         let steps: Vec<f64> = vec![0.25, 0.50, 0.75];

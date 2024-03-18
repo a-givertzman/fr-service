@@ -1,5 +1,4 @@
 use chrono::DateTime;
-use serde::{Serialize, Deserialize};
 use crate::core_::{cot::cot::Cot, status::status::Status, types::bool::Bool};
 
 ///
@@ -61,7 +60,7 @@ impl Point<i64> {
         Point {
             tx_id,
             name: name.into(),
-            value: value,
+            value,
             status: Status::Ok,
             cot: Cot::default(),
             timestamp: chrono::offset::Utc::now(),
@@ -77,7 +76,7 @@ impl Point<f64> {
         Point {
             tx_id,
             name: name.into(),
-            value: value,
+            value,
             status: Status::Ok,
             cot: Cot::default(),
             timestamp: chrono::offset::Utc::now(),

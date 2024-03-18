@@ -37,8 +37,8 @@ impl S7ParseBool {
     ) -> S7ParseBool {
         S7ParseBool {
             txId: 0,
-            path: path,
-            name: name,
+            path,
+            name,
             value: false,
             status: Status::Invalid,
             isChanged: false,
@@ -54,7 +54,7 @@ impl S7ParseBool {
     //
     fn convert(
         &self,
-        bytes: &Vec<u8>,
+        bytes: &[u8],
         start: usize,
         bit: usize,
     ) -> Result<bool, TryFromSliceError> {
@@ -92,12 +92,12 @@ impl S7ParseBool {
     }
     //
     //
-    fn addRawSimple(&mut self, bytes: &Vec<u8>) {
+    fn addRawSimple(&mut self, bytes: &[u8]) {
         self.addRaw(bytes, Utc::now())
     }
     //
     //
-    fn addRaw(&mut self, bytes: &Vec<u8>, timestamp: DateTime<Utc>) {
+    fn addRaw(&mut self, bytes: &[u8], timestamp: DateTime<Utc>) {
         let result = self.convert(
             bytes,
             self.offset.unwrap() as usize,
@@ -123,13 +123,13 @@ impl S7ParseBool {
 impl ParsePoint for S7ParseBool {
     //
     //
-    fn next_simple(&mut self, bytes: &Vec<u8>) -> Option<PointType> {
+    fn next_simple(&mut self, bytes: &[u8]) -> Option<PointType> {
         self.addRawSimple(bytes);
         self.toPoint()
     }
     //
     //
-    fn next(&mut self, bytes: &Vec<u8>, timestamp: DateTime<Utc>) -> Option<PointType> {
+    fn next(&mut self, bytes: &[u8], timestamp: DateTime<Utc>) -> Option<PointType> {
         self.addRaw(bytes, timestamp);
         self.toPoint()
     }

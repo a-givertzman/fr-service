@@ -1,14 +1,12 @@
-use concat_string::concat_string;
-use log::{debug, error, info, warn, LevelFilter};
+use log::{info, warn, LevelFilter};
 use std::{
     io::BufReader, net::TcpStream, 
     sync::{atomic::{AtomicBool, Ordering}, mpsc::Sender, Arc, Mutex}, 
     thread::{self, JoinHandle}, time::Duration,
 };
 use crate::{core_::{
-    net::{connection_status::ConnectionStatus, protocols::jds::jds_deserialize::JdsDeserialize}, object::object::Object, point::point_type::PointType
-}, services::{services::Services, task::service_cycle::ServiceCycle}};
-
+    net::connection_status::ConnectionStatus, point::point_type::PointType
+}, services::task::service_cycle::ServiceCycle};
 use super::steam_read::TcpStreamRead;
 
 ///
@@ -48,7 +46,7 @@ impl TcpReadAlive {
     ///
     /// Main loop of the [TcpReadAlive]
     pub fn run(&mut self, tcp_stream: TcpStream) -> JoinHandle<()> {
-        info!("{}.run | starting...", self.id);
+        info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         let exit_pair = self.exit_pair.clone();

@@ -65,7 +65,7 @@ pub struct ConfKeywdValue {
 /// | in     | queue  | in-queue            |
 /// | out    | queue  | out-queue           |
 /// ````
-#[derive(Debug, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq, Hash)]
 pub enum ConfKeywd {
     Task(ConfKeywdValue),
     Service(ConfKeywdValue),

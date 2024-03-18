@@ -21,13 +21,13 @@ mod tests {
     fn init_each() -> () {}
     ///
     /// 
-    #[ignore = "learn - all must be ignored"]
+    #[ignore = "Learn - all must be ignored"]
     #[test]
     fn test_mpsc_receiver() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         println!("test mpsc::Receiver");
         let (send, recv) = mpsc::channel();
         let iterations = 10000;

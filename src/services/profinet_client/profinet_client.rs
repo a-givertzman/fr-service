@@ -6,7 +6,7 @@ use crate::{
     core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, object::object::Object, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, 
     services::{
         multi_queue::subscription_criteria::SubscriptionCriteria, profinet_client::{profinet_db::ProfinetDb, s7::s7_client::S7Client}, 
-        service::service::Service, services::Services, task::service_cycle::ServiceCycle
+        service::{service::Service, service_handles::ServiceHandles}, services::Services, task::service_cycle::ServiceCycle
     },
 };
 
@@ -43,7 +43,7 @@ impl ProfinetClient {
     fn yield_status(self_id: &str, dbs: &mut IndexMap<String, ProfinetDb>, tx_send: &Sender<PointType>) {
         for (db_name, db) in dbs {
             debug!("{}.run | DB '{}' - reading...", self_id, db_name);
-            match db.yield_status(Status::Invalid, &tx_send) {
+            match db.yield_status(Status::Invalid, tx_send) {
                 Ok(_) => {},
                 Err(err) => {
                     error!("{}.lostConnection | send errors: \n\t{:?}", self_id, err);
@@ -151,7 +151,7 @@ impl ProfinetClient {
             for name in &points {
                 println!("\t{:?}", name);
             }
-            let (_, rx_recv) = services.lock().unwrap().subscribe(&conf.rx, &self_id, &points);
+            let (_, rx_recv) = services.lock().unwrap().subscribe(&conf.subscribe, &self_id, &points);
             // let mut cycle = ServiceCycle::new(cycle_interval);
             let mut client = S7Client::new(self_id.clone(), conf.ip.clone());
             'main: while !exit.load(Ordering::SeqCst) {
@@ -163,7 +163,7 @@ impl ProfinetClient {
                             match rx_recv.recv_timeout(RECV_TIMEOUT) {
                                 Ok(point) => {
                                     let point_name = point.name();
-                                    let db_name = point_name.split("/").skip(1).next().unwrap();
+                                    let db_name = point_name.split('/').nth(1).unwrap();
                                     debug!("{}.write | DB '{}' - writing point '{}'...", self_id, db_name, point.name());
                                     // let dbName = point.name().split("/").skip(1).collect::<String>();
                                     match dbs.get_mut(db_name) {
@@ -239,13 +239,22 @@ impl Object for ProfinetClient {
 impl Service for ProfinetClient {
     //
     //
-    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
+    fn run(&mut self) -> Result<ServiceHandles, String> {
         let tx_send = self.services.lock().unwrap().get_link(&self.conf.tx);
         let handle_read = self.read(tx_send.clone());
         let handle_write = self.write(tx_send);
         info!("{}.run | started", self.id);
-        // TODO Add handle_write to result
-        handle_read
+        match (handle_read, handle_write) {
+            (Ok(handle_read), Ok(handle_write)) => Ok(ServiceHandles::new(vec![
+                (format!("{}/read", self.id), handle_read),
+                (format!("{}/write", self.id), handle_write),
+                ])),
+            // TODO Exit 'write if read returns error'
+            (Ok(handle_read), Err(err)) => Err(format!("{}.run | Error starting inner thread 'read': {:#?}", self.id, err)),
+            // TODO Exit 'read if write returns error'
+            (Err(err), Ok(handle_write)) => Err(format!("{}.run | Error starting inner thread 'write': {:#?}", self.id, err)),
+            (Err(read_err), Err(write_err)) => Err(format!("{}.run | Error starting inner thread: \n\t  read: {:#?}\n\t write: {:#?}", self.id, read_err, write_err)),
+        }
     }
     ///
     /// 

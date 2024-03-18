@@ -49,7 +49,7 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         let self_id = "test TcpStreamWrite";
         println!("\n{}", self_id);
         let count = 1000;

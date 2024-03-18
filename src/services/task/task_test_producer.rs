@@ -1,12 +1,7 @@
-#![allow(non_snake_case)]
-
-use std::{sync::{mpsc::Sender, Arc, atomic::{AtomicBool, Ordering}, Mutex}, thread::{self, JoinHandle}, time::Duration};
-
+use std::{sync::{Arc, atomic::{AtomicBool, Ordering}, Mutex}, thread, time::Duration};
 use log::{debug, warn, info, trace};
 use testing::entities::test_value::Value;
-
-use crate::{core_::{object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, services::{service::service::Service, services::Services}};
-
+use crate::{core_::{object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, services::{service::{service::Service, service_handles::ServiceHandles}, services::Services}};
 
 ///
 /// 
@@ -53,19 +48,19 @@ impl Object for TaskTestProducer {
 impl Service for TaskTestProducer {
     //
     // 
-    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
+    fn run(&mut self) -> Result<ServiceHandles, String> {
         let self_id = self.id.clone();
-        let txId = PointTxId::fromStr(&self_id);
-        let cycle = self.cycle.clone();
+        let tx_id = PointTxId::fromStr(&self_id);
+        let cycle = self.cycle;
         let delayed = !cycle.is_zero();
-        let txSend = self.services.lock().unwrap().get_link(&self.link);
+        let tx_send = self.services.lock().unwrap().get_link(&self.link);
         let sent = self.sent.clone();
         let test_data = self.test_data.clone();
-        thread::Builder::new().name(self_id.clone()).spawn(move || {
+        match thread::Builder::new().name(self_id.clone()).spawn(move || {
             debug!("{}.run | calculating step...", self_id);
             for value in test_data {
-                let point = value.to_point(txId, "/path/Point.Name");
-                match txSend.send(point.clone()) {
+                let point = value.to_point(tx_id, "/path/Point.Name");
+                match tx_send.send(point.clone()) {
                     Ok(_) => {
                         sent.lock().unwrap().push(point.clone());
                         trace!("{}.run | sent points: {:?}", self_id, sent.lock().unwrap().len());
@@ -81,7 +76,17 @@ impl Service for TaskTestProducer {
             info!("{}.run | All sent: {}", self_id, sent.lock().unwrap().len());
             // thread::sleep(Duration::from_secs_f32(0.1));
             // debug!("TaskTestProducer({}).run | calculating step - done ({:?})", name, cycle.elapsed());
-        })
+        }) {
+            Ok(handle) => {
+                info!("{}.run | Started", self.id);
+                Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
+            },
+            Err(err) => {
+                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                warn!("{}", message);
+                Err(message)
+            },
+        }
     }
     //
     //

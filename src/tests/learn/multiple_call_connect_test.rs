@@ -29,13 +29,13 @@ mod tests {
     
     }
     
-    #[ignore = "learn - all must be ignored"]
+    #[ignore = "Learn - all must be ignored"]
     #[test]
     fn test_task_cycle() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         println!("test_task_cycle");
         let mut connect = TestConnect::new();
         let mut closed = false;

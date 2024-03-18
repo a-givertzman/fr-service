@@ -1,6 +1,6 @@
 use crate::conf::{
     point_config::point_config::PointConfig,
-    fn_conf_kind::FnConfKind,
+    fn_::fn_conf_kind::FnConfKind,
 };
 
 

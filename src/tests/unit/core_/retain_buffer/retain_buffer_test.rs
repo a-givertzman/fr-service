@@ -32,7 +32,7 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         println!("test RetainBuffer");
         let mut buffer = RetainBuffer::new("test", "", Some(3));
         buffer.push(11);
@@ -57,7 +57,7 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         println!("test RetainBuffer capacity");
         let mut buffer = RetainBuffer::new("test", "", Some(3));
         buffer.push(11);

@@ -1,23 +1,18 @@
-#![allow(non_snake_case)]
 #[cfg(test)]
 
-
-mod tests {
+mod tcp_client {
     use log::{info, debug, warn, error, trace};
     use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::Write};
-    use testing::{session::test_session::TestSession, entities::test_value::Value, stuff::{random_test_values::RandomTestValues, max_test_duration::TestDuration}};
+    use testing::{entities::test_value::Value, session::test_session::TestSession, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         conf::tcp_client_config::TcpClientConfig, core_::{
             net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, point::point_type::{PointType, ToPoint} 
         }, services::{service::service::Service, services::Services, tcp_client::tcp_client::TcpClient}, tcp::steam_read::StreamRead, tests::unit::services::tcp_client::mock_multiqueue::MockMultiqueue 
     }; 
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    ///
+    ///     
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -26,22 +21,18 @@ mod tests {
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
-    
+    fn init_each() -> () {}
+    ///
+    /// 
     #[test]
-    fn test_TcpClient_read() {
+    fn read() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
-        println!("");
+        println!();
         let self_id = "test TcpClient READ";
         println!("\n{}", self_id);
         let path = "./src/tests/unit/services/tcp_client/tcp_client.yaml";
@@ -78,36 +69,35 @@ mod tests {
             iterations, 
         );
         let test_data: Vec<Value> = test_data.collect();
-        let totalCount = test_data.len();
+        let total_count = test_data.len();
 
         let services = Arc::new(Mutex::new(Services::new(self_id)));
-        let multiQueue = Arc::new(Mutex::new(MockMultiqueue::new(Some(totalCount))));
-        let tcpClient = Arc::new(Mutex::new(TcpClient::new(self_id, conf, services.clone())));
-        let multiQueueServiceId = "MultiQueue";
-        let tcpClientServiceId = "TcpClient";
-        services.lock().unwrap().insert(tcpClientServiceId, tcpClient.clone());
-        services.lock().unwrap().insert(multiQueueServiceId, multiQueue.clone());
+        let multi_queue = Arc::new(Mutex::new(MockMultiqueue::new(Some(total_count))));
+        let tcp_client = Arc::new(Mutex::new(TcpClient::new(self_id, conf, services.clone())));
+        let multi_queue_service_id = "MultiQueue";
+        let tcp_client_service_id = "TcpClient";
+        services.lock().unwrap().insert(tcp_client_service_id, tcp_client.clone());
+        services.lock().unwrap().insert(multi_queue_service_id, multi_queue.clone());
 
         let sent = Arc::new(Mutex::new(vec![]));
         debug!("Lock services...");
         let services = services.lock().unwrap();
         debug!("Lock services - ok");
-        debug!("Lock service {}...", tcpClientServiceId);
-        let tcpClient = services.get(tcpClientServiceId);
-        debug!("Lock service {} - ok", tcpClientServiceId);
+        debug!("Lock service {}...", tcp_client_service_id);
+        let tcp_client = services.get(tcp_client_service_id);
+        debug!("Lock service {} - ok", tcp_client_service_id);
         drop(services);
-        debug!("Running service {}...", multiQueueServiceId);
-        let handle = multiQueue.lock().unwrap().run().unwrap();
-        debug!("Running service {} - ok", multiQueueServiceId);
-        debug!("Running service {}...", tcpClientServiceId);
-        tcpClient.lock().unwrap().run().unwrap();
-        debug!("Running service {} - ok", tcpClientServiceId);
-        mockTcpServer(addr.to_string(), iterations, test_data.clone(), sent.clone(), multiQueue.clone());
+        debug!("Running service {}...", multi_queue_service_id);
+        let handle = multi_queue.lock().unwrap().run().unwrap();
+        debug!("Running service {} - ok", multi_queue_service_id);
+        debug!("Running service {}...", tcp_client_service_id);
+        tcp_client.lock().unwrap().run().unwrap();
+        debug!("Running service {} - ok", tcp_client_service_id);
+        mock_tcp_server(addr.to_string(), iterations, test_data.clone(), sent.clone(), multi_queue.clone());
         thread::sleep(Duration::from_micros(100));
-        
         let timer = Instant::now();
         debug!("Test - setup - ok");
-        handle.join().unwrap();
+        handle.wait();
         // let waitDuration = Duration::from_millis(100);
         // let mut waitAttempts = test_duration.as_micros() / waitDuration.as_micros();
         // while multiQueue.lock().unwrap().received().lock().unwrap().len() < totalCount {
@@ -118,14 +108,14 @@ mod tests {
         // }
         let mut sent = sent.lock().unwrap();
         println!("elapsed: {:?}", timer.elapsed());
-        println!("total test events: {:?}", totalCount);
+        println!("total test events: {:?}", total_count);
         println!("sent events: {:?}", sent.len());
-        let mq = multiQueue.lock().unwrap();
+        let mq = multi_queue.lock().unwrap();
         let received = mq.received();
         let mut received = received.lock().unwrap();
         println!("recv events: {:?}", received.len());
-        assert!(sent.len() == totalCount, "sent: {:?}\ntarget: {:?}", sent.len(), totalCount);
-        assert!(received.len() == totalCount, "received: {:?}\ntarget: {:?}", received.len(), totalCount);
+        assert!(sent.len() == total_count, "sent: {:?}\ntarget: {:?}", sent.len(), total_count);
+        assert!(received.len() == total_count, "received: {:?}\ntarget: {:?}", received.len(), total_count);
         while &sent.len() > &0 {
             let target = sent.pop().unwrap();
             let result = received.pop().unwrap();
@@ -139,7 +129,7 @@ mod tests {
     }
     ///
     /// TcpServer setup
-    fn mockTcpServer(addr: String, count: usize, test_data: Vec<Value>, sent: Arc<Mutex<Vec<PointType>>>, multiqueue: Arc<Mutex<MockMultiqueue>>) {
+    fn mock_tcp_server(addr: String, count: usize, test_data: Vec<Value>, sent: Arc<Mutex<Vec<PointType>>>, multiqueue: Arc<Mutex<MockMultiqueue>>) {
         thread::spawn(move || {
             info!("TCP server | Preparing test server...");
             let (send, recv) = std::sync::mpsc::channel();

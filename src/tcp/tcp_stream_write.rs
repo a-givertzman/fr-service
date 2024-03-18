@@ -1,5 +1,5 @@
 use std::io::Write;
-use log::{error, trace, warn, LevelFilter};
+use log::{trace, warn, LevelFilter};
 use crate::{
     tcp::steam_read::StreamRead, 
     core_::{retain_buffer::retain_buffer::RetainBuffer, net::connection_status::ConnectionStatus, failure::recv_error::RecvError},
