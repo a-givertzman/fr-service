@@ -63,7 +63,7 @@ impl TcpServer {
                     exit.clone()
                 );
                 match connection.run() {
-                    Ok(mut handles) => {
+                    Ok(handles) => {
                         if handles.len() != 1 {
                             panic!("{}.setup_connection | TcpServerConnection.run must return single handle, but returns {}", self_id, handles.len())
                         }

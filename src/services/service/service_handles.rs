@@ -13,9 +13,7 @@ impl ServiceHandles {
     /// 
     pub fn new(handles: Vec<(String, JoinHandle<()>)>) -> Self {
         Self {
-            handles: handles.into_iter().map(|(id, handle)| {
-                (id, handle)
-            }).collect()
+            handles: handles.into_iter().collect()
         }
     }
     ///

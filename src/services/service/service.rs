@@ -1,4 +1,4 @@
-use std::{sync::mpsc::{Sender, Receiver}, thread::JoinHandle};
+use std::sync::mpsc::{Sender, Receiver};
 use crate::{
     conf::point_config::point_config::PointConfig, core_::{object::object::Object, point::point_type::PointType}, services::multi_queue::subscription_criteria::SubscriptionCriteria
 };

@@ -68,13 +68,13 @@ impl Service for Task {
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         let services = self.services.clone();
-        let (cyclic, cycleInterval) = match conf.cycle {
+        let (cyclic, cycle_interval) = match conf.cycle {
             Some(interval) => (interval > Duration::ZERO, interval),
             None => (false, Duration::ZERO),
         };
         let in_recv = self.in_recv.pop().unwrap();
         let handle = thread::Builder::new().name(format!("{} - main", self_id)).spawn(move || {
-            let mut cycle = ServiceCycle::new(cycleInterval);
+            let mut cycle = ServiceCycle::new(cycle_interval);
             let mut task_nodes = TaskNodes::new(&self_id);
             task_nodes.buildNodes(&self_id, conf, services);
             debug!("{}.run | taskNodes: {:?}", self_id, task_nodes);

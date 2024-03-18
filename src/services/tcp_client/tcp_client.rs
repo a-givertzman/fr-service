@@ -122,9 +122,9 @@ impl Service for TcpClient {
             info!("{}.run | Preparing thread - ok", self_id);
             loop {
                 exit_pair.store(false, Ordering::SeqCst);
-                if let Some(tcpStream) = tcp_client_connect.connect() {
-                    let h_r = tcp_read_alive.run(tcpStream.try_clone().unwrap());
-                    let h_w = tcp_write_alive.run(tcpStream);
+                if let Some(tcp_stream) = tcp_client_connect.connect() {
+                    let h_r = tcp_read_alive.run(tcp_stream.try_clone().unwrap());
+                    let h_w = tcp_write_alive.run(tcp_stream);
                     h_r.wait().unwrap();
                     h_w.wait().unwrap();
                 };
@@ -150,14 +150,14 @@ impl Service for TcpClient {
     fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
         match &self.tcp_recv_alive {
-            Some(tcpRecvAlive) => {
-                tcpRecvAlive.lock().unwrap().exit()
+            Some(tcp_recv_alive) => {
+                tcp_recv_alive.lock().unwrap().exit()
             },
             None => {},
         }
         match &self.tcp_send_alive {
-            Some(tcpSendAlive) => {
-                tcpSendAlive.lock().unwrap().exit()
+            Some(tcp_send_alive) => {
+                tcp_send_alive.lock().unwrap().exit()
             },
             None => {},
         }
