@@ -1,7 +1,6 @@
 #[cfg(test)]
 
 mod services {
-    use log::{debug, trace};
     use std::{sync::Once, env, time::Duration};
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
