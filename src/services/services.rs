@@ -161,31 +161,35 @@ impl Services {
         info!("{}.run | Application started\n", self_id);
         let self_id_clone = self_id.clone();
         let services_clone = services.clone();
-        thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
-            let self_id = self_id_clone;
-            let signals = Signals::new(&[
-                SIGHUP,     // code: 1	This signal is sent to a process when its controlling terminal is closed or disconnected
-                SIGINT,     // code: 2	This signal is sent to a process when the user presses Control+C to interrupt its execution
-                SIGQUIT,    // code: 3	This signal is similar to SIGINT but is used to initiate a core dump of the process, which is useful for debugging
-                SIGILL,     // code: 4	This signal is sent to a process when it attempts to execute an illegal instruction
-                SIGABRT,    // code: 6	This signal is sent to a process when it calls the abort() function
-                SIGFPE,     // code: 8	This signal is sent to a process when it attempts to perform an arithmetic operation that is not allowed, such as division by zero
-                SIGKILL,    // code: 9	This signal is used to terminate a process immediately and cannot be caught or ignored
-                SIGSEGV,    // code: 11	This signal is sent to a process when it attempts to access memory that is not allocated to it
-                SIGTERM,    // Code: 15	This signal is sent to a process to request that it terminate gracefully.
-                SIGUSR1,    // code: 10	These signals can be used by a process for custom purposes
-                SIGUSR2,    // code: 12	Same as SIGUSR1, code: 10
-            ]);
-            match signals {
-                Ok(mut signals) => {
-                    thread::spawn(move || {
+        let signals = Signals::new(&[
+            SIGHUP,     // code: 1	This signal is sent to a process when its controlling terminal is closed or disconnected
+            SIGINT,     // code: 2	This signal is sent to a process when the user presses Control+C to interrupt its execution
+            SIGQUIT,    // code: 3	This signal is similar to SIGINT but is used to initiate a core dump of the process, which is useful for debugging
+            // SIGILL,     // code: 4	This signal is sent to a process when it attempts to execute an illegal instruction
+            SIGABRT,    // code: 6	This signal is sent to a process when it calls the abort() function
+            // SIGFPE,     // code: 8	This signal is sent to a process when it attempts to perform an arithmetic operation that is not allowed, such as division by zero
+            // SIGKILL,    // code: 9	This signal is used to terminate a process immediately and cannot be caught or ignored
+            // SIGSEGV,    // code: 11	This signal is sent to a process when it attempts to access memory that is not allocated to it
+            SIGTERM,    // Code: 15	This signal is sent to a process to request that it terminate gracefully.
+            SIGUSR1,    // code: 10	These signals can be used by a process for custom purposes
+            SIGUSR2,    // code: 12	Same as SIGUSR1, code: 10
+        ]);
+        match signals {
+            Ok(mut signals) => {
+                let self_id = self_id_clone;
+                thread::spawn(move || {
+                    let signals_handle = signals.handle();
+                    let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
                         for signal in signals.forever() {
+                            println!("{}.run Received signal {:?}", self_id, signal);
                             match signal {
                                 SIGINT | SIGQUIT | SIGTERM => {
                                     println!("{}.run Received signal {:?}", self_id, signal);
                                     println!("{}.run Application exit...", self_id);
                                     for (_id, service) in &services_clone.lock().unwrap().map {
-                                        service.lock().unwrap().exit()
+                                        println!("{}.run Stopping service '{}'...", self_id, _id);
+                                        service.lock().unwrap().exit();
+                                        println!("{}.run Stopping service '{}' - Ok", self_id, _id);
                                     }
                                     break;
                                 },
@@ -199,26 +203,29 @@ impl Services {
                                 },
                             }
                         }
-                    });
-                },
-                Err(err) => {
-                    panic!("{}.run | Application hook system signals error; {:#?}", self_id, err);
-                },
-            }
-        }).unwrap();
+                    }).unwrap();
+                    handle.wait().unwrap();
+                    signals_handle.close();
+                });
+            },
+            Err(err) => {
+                panic!("{}.run | Application hook system signals error; {:#?}", self_id, err);
+            },
+        }
         loop {
-            match services.lock().unwrap().handles.keys().next() {
+            let servece_ids: Vec<String> = services.lock().unwrap().handles.keys().cloned().collect();
+            match servece_ids.first() {
                 Some(service_id) => {
                     info!("{}.run | Waiting for service '{}' being finished...", self_id, service_id);
-                    match services.lock().unwrap().handles.remove_entry(service_id) {
-                        Some((_, handles)) => {
-                            handles.wait().unwrap()
-                        },
-                        None => {
-                            error!("{}.run | Service '{}' can't be found", self_id, service_id);
-                        },
-                    };
-
+                    let (_, handles) = services.lock().unwrap().handles.remove_entry(service_id).unwrap();
+                    handles.wait().unwrap();
+                    // match  {
+                    //     Some() => {
+                    //     },
+                    //     None => {
+                    //         error!("{}.run | Service '{}' can't be found", self_id, service_id);
+                    //     },
+                    // };
                 },
                 None => {
                     break;
