@@ -1,41 +1,42 @@
 //!
-//! Service implements kind of bihavior
+//! Service sending historian events to the database
+//! - Subscribe on points with history flag activated
+//! - Cyclically insert accumulated points into the history database via ApiClient
 //! Basic configuration parameters:
 //! ```yaml
-//! service ServiceName Id:
-//!     parameter: value    # meaning
-//!     parameter: value    # meaning
+//! service History History:
+//!     cycle: 100 ms
+//!     table: history
 //! ```
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread};
-use log::info;
+use log::{info, warn};
 use crate::{
     core_::{object::object::Object, point::point_type::PointType}, 
-    conf::tcp_server_config::ServiceNameConfig,
+    conf::history_config::HistoryConfig, 
     services::{
         services::Services,
-        service::service::Service,
-        service::service_handles::ServiceHandles, 
-    }, 
+        service::{service::Service, service_handles::ServiceHandles}, 
+    } 
 };
 
 ///
-/// Binds TCP socket server
-/// Listening socket for incoming connections
-/// Verified incoming connections handles in the separate thread
-pub struct ServiceName {
+/// History service
+/// - Subscribe on points with history flag activated
+/// - Cyclically insert accumulated points into the history database via ApiClient
+pub struct History {
     id: String,
-    conf: ServiceNameConfig,
+    conf: HistoryConfig,
     services: Arc<Mutex<Services>>,
     exit: Arc<AtomicBool>,
 }
 ///
 /// 
-impl ServiceName {
+impl History {
     ///
     /// 
-    pub fn new(parent: impl Into<String>, conf: ServiceNameConfig, services: Arc<Mutex<Services>>) -> Self {
+    pub fn new(parent: impl Into<String>, conf: HistoryConfig, services: Arc<Mutex<Services>>) -> Self {
         Self {
-            id: format!("{}/ServiceName({})", parent.into(), conf.name),
+            id: format!("{}/History({})", parent.into(), conf.name),
             conf: conf.clone(),
             services,
             exit: Arc::new(AtomicBool::new(false)),
@@ -44,23 +45,14 @@ impl ServiceName {
 }
 ///
 /// 
-impl Object for ServiceName {
+impl Object for History {
     fn id(&self) -> &str {
         &self.id
     }
 }
 ///
 /// 
-impl Service for ServiceName {
-    //
-    // 
-    fn get_link(&mut self, name: &str) -> Sender<PointType> {
-        panic!("{}.get_link | Does not support get_link", self.id())
-        // match self.rxSend.get(name) {
-        //     Some(send) => send.clone(),
-        //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
-        // }
-    }
+impl Service for History {
     //
     //
     fn run(&mut self) -> Result<ServiceHandles, String> {

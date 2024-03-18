@@ -29,3 +29,5 @@ pub mod profinet_client_config;
 pub mod jds_service_config;
 
 pub mod services;
+
+pub mod history_config;

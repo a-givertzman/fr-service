@@ -28,3 +28,5 @@ pub mod multi_queue;
 pub mod queue_name;
 
 pub mod server;
+
+pub mod history;
