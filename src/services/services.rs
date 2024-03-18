@@ -1,5 +1,7 @@
-use std::{collections::HashMap, sync::{mpsc::{Receiver, Sender}, Arc, Mutex}, thread::{self, JoinHandle}, time::Duration};
+use std::{collections::HashMap, process::exit, sync::{mpsc::{Receiver, Sender}, Arc, Mutex}, thread::{self, JoinHandle}, time::Duration};
+use libc::{SIGABRT, SIGFPE, SIGHUP, SIGILL, SIGINT, SIGKILL, SIGQUIT, SIGSEGV, SIGTERM, SIGUSR1, SIGUSR2};
 use log::{debug, error, info};
+use signal_hook::iterator::Signals;
 use testing::stuff::wait::WaitTread;
 use crate::{
     core_::point::point_type::PointType, 
@@ -9,14 +11,14 @@ use crate::{
     }
 };
 
-use super::{multi_queue::multi_queue::MultiQueue, profinet_client::profinet_client::ProfinetClient, server::tcp_server::TcpServer, tcp_client::tcp_client::TcpClient};
+use super::{multi_queue::multi_queue::MultiQueue, profinet_client::profinet_client::ProfinetClient, server::tcp_server::TcpServer, service::service_handles::ServiceHandles, tcp_client::tcp_client::TcpClient};
 
 ///
 /// Holds a map of the all services in app by there names
 pub struct Services {
     id: String,
     map: HashMap<String, Arc<Mutex<dyn Service + Send>>>,
-    handles: HashMap<String, JoinHandle<()>>,
+    handles: HashMap<String, ServiceHandles>,
 }
 ///
 /// 
@@ -148,32 +150,85 @@ impl Services {
             let handles = service.lock().unwrap().run();
             match handles {
                 Ok(handles) => {
-                    for (_, handle) in handles {
-                        services.lock().unwrap().insert_handle(&name, handle);
-                        info!("{}.run |         Starting service: {} - ok", self_id, name);
-                    }
+                    services.lock().unwrap().insert_handles(&name, handles);
+                    info!("{}.run |         Starting service: {} - ok", self_id, name);
                 },
                 Err(err) => {
-                    error!("{}.run | Error starting service '{}': {:#?}", self_id, name, err);
+                    error!("{}.run |         Error starting service '{}': {:#?}", self_id, name, err);
                 },
             };
         }
         info!("{}.run |     All services started\n", self_id);
 
         info!("{}.run | Application started\n", self_id);
-        
-        let name = "TcpServer";
-        info!("{}.run | Waiting service being finished: {}...", self_id, name);
-        let handle = services.lock().unwrap().handles.remove(name);
-        match handle {
-            Some(handle) => {
-                handle.wait().unwrap()
-            },
-            None => {
-                panic!("{}.run | Error get handle: {}", self_id, name);
-            },
-        };
 
+        let self_id_clone = self_id.clone();
+        let services_clone = services.clone();
+        let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
+            let self_id = self_id_clone;
+            let signals = Signals::new(&[
+                SIGHUP,     // code: 1	This signal is sent to a process when its controlling terminal is closed or disconnected
+                SIGINT,     // code: 2	This signal is sent to a process when the user presses Control+C to interrupt its execution
+                SIGQUIT,    // code: 3	This signal is similar to SIGINT but is used to initiate a core dump of the process, which is useful for debugging
+                SIGILL,     // code: 4	This signal is sent to a process when it attempts to execute an illegal instruction
+                SIGABRT,    // code: 6	This signal is sent to a process when it calls the abort() function
+                SIGFPE,     // code: 8	This signal is sent to a process when it attempts to perform an arithmetic operation that is not allowed, such as division by zero
+                SIGKILL,    // code: 9	This signal is used to terminate a process immediately and cannot be caught or ignored
+                SIGSEGV,    // code: 11	This signal is sent to a process when it attempts to access memory that is not allocated to it
+                SIGTERM,    // Code: 15	This signal is sent to a process to request that it terminate gracefully.
+                SIGUSR1,    // code: 10	These signals can be used by a process for custom purposes
+                SIGUSR2,    // code: 12	Same as SIGUSR1, code: 10
+            ]);
+            match signals {
+                Ok(mut signals) => {
+                    thread::spawn(move || {
+                        for signal in signals.forever() {
+                            match signal {
+                                SIGINT | SIGQUIT | SIGTERM => {
+                                    println!("{}.run Received signal {:?}", self_id, signal);
+                                    println!("{}.run Application exit...", self_id);
+                                    for (_id, service) in &services_clone.lock().unwrap().map {
+                                        service.lock().unwrap().exit()
+                                    }
+                                    break;
+                                },
+                                SIGKILL => {
+                                    println!("{}.run Received signal {:?}", self_id, signal);
+                                    println!("{}.run Application halt...", self_id);
+                                    exit(0);
+                                },
+                                _ => {
+                                    println!("{}.run Received unknown signal {:?}", self_id, signal);
+                                },
+                            }
+                        }
+                    });
+                },
+                Err(err) => {
+                    panic!("{}.run | Application hook system signals error; {:#?}", self_id, err);
+                },
+            }
+        });
+        
+        loop {
+            match services.lock().unwrap().handles.keys().next() {
+                Some(service_id) => {
+                    info!("{}.run | Waiting for service '{}' being finished...", self_id, service_id);
+                    match services.lock().unwrap().handles.remove_entry(service_id) {
+                        Some((_, handles)) => {
+                            handles.wait().unwrap()
+                        },
+                        None => {
+                            error!("{}.run | Service '{}' can't be found", self_id, service_id);
+                        },
+                    };
+
+                },
+                None => {
+                    break;
+                },
+            }
+        }
         Ok(())
     }
     ///
@@ -205,10 +260,10 @@ impl Services {
     }
     ///
     /// Inserts new pair service_id & service_join_handle
-    fn insert_handle(&mut self, id:&str, handle: JoinHandle<()>) {
+    fn insert_handles(&mut self, id:&str, handles: ServiceHandles) {
         if self.handles.contains_key(id) {
             panic!("{}.insert | Duplicated service name '{:?}'", self.id, id);
         }
-        self.handles.insert(id.to_string(), handle);
+        self.handles.insert(id.to_string(), handles);
     }
 }
