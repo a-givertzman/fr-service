@@ -169,46 +169,46 @@ impl Service for MultiQueue {
             debug!("{}.run | Lock subscriptions - ok", self_id);
         }
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
-                    info!("{}.run | Preparing thread - ok", self_id);
+            info!("{}.run | Preparing thread - ok", self_id);
+            debug!("{}.run | Lock subscriptions...", self_id);
+            let mut subscriptions = subscriptions_ref.lock().unwrap().clone();
+            debug!("{}.run | Lock subscriptions - ok", self_id);
+            loop {
+                if subscriptions_changed.load(Ordering::Relaxed) {
+                    subscriptions_changed.store(false, Ordering::SeqCst);
+                    debug!("{}.run | Subscriptions changes detected", self_id);
                     debug!("{}.run | Lock subscriptions...", self_id);
-                    let mut subscriptions = subscriptions_ref.lock().unwrap().clone();
+                    subscriptions = subscriptions_ref.lock().unwrap().clone();
                     debug!("{}.run | Lock subscriptions - ok", self_id);
-                    loop {
-                        if subscriptions_changed.load(Ordering::Relaxed) {
-                            subscriptions_changed.store(false, Ordering::SeqCst);
-                            debug!("{}.run | Subscriptions changes detected", self_id);
-                            debug!("{}.run | Lock subscriptions...", self_id);
-                            subscriptions = subscriptions_ref.lock().unwrap().clone();
-                            debug!("{}.run | Lock subscriptions - ok", self_id);
-                        }
-                        match recv.recv_timeout(RECV_TIMEOUT) {
-                            Ok(point) => {
-                                let point_id = SubscriptionCriteria::new(&point.name(), point.cot()).destination();
-                                debug!("{}.run | received: {:?}", self_id, point);
-                                for (receiver_id, sender) in subscriptions.iter(&point_id) {
-                                    // for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {
-                                    match receiver_id != point.tx_id() {
-                                        true => {
-                                            match sender.send(point.clone()) {
-                                                Ok(_) => {},
-                                                Err(err) => {
-                                                    error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", self_id, point_id, receiver_id, err);
-                                                },
-                                            };
+                }
+                match recv.recv_timeout(RECV_TIMEOUT) {
+                    Ok(point) => {
+                        let point_id = SubscriptionCriteria::new(&point.name(), point.cot()).destination();
+                        debug!("{}.run | received: {:?}", self_id, point);
+                        for (receiver_id, sender) in subscriptions.iter(&point_id) {
+                            // for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {
+                            match receiver_id != point.tx_id() {
+                                true => {
+                                    match sender.send(point.clone()) {
+                                        Ok(_) => {},
+                                        Err(err) => {
+                                            error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", self_id, point_id, receiver_id, err);
                                         },
-                                        false => {},
-                                    }
-                                }
-                            },
-                            Err(err) => {
-                                trace!("{}.run | recv timeout: {:?}", self_id, err);
-                            },
+                                    };
+                                },
+                                false => {},
+                            }
                         }
-                        if exit.load(Ordering::SeqCst) {
-                            break;
-                        }
-                    }
-                    info!("{}.run | Exit", self_id);
+                    },
+                    Err(err) => {
+                        trace!("{}.run | recv timeout: {:?}", self_id, err);
+                    },
+                }
+                if exit.load(Ordering::SeqCst) {
+                    break;
+                }
+            }
+            info!("{}.run | Exit", self_id);
         });
         match handle {
             Ok(handle) => {

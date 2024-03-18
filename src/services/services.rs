@@ -219,6 +219,7 @@ impl Services {
                     info!("{}.run | Waiting for service '{}' being finished...", self_id, service_id);
                     let (_, handles) = services.lock().unwrap().handles.remove_entry(service_id).unwrap();
                     handles.wait().unwrap();
+                    info!("{}.run | Waiting for service '{}' being finished - Ok", self_id, service_id);
                     // match  {
                     //     Some() => {
                     //     },
@@ -232,6 +233,7 @@ impl Services {
                 },
             }
         }
+        info!("{}.run | Application exit - Ok\n", self_id);
         Ok(())
     }
     ///
