@@ -13,20 +13,13 @@ use crate::conf::{
 ///
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
-/// service Task operatingMetric:
+/// service History History1:
 ///     cycle: 100 ms
-///     metrics:
-///         fn sqlUpdateMetric:
-///             table: "TableName"
-///             sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"
-///             initial: 123.456
-///             inputs:
-///                 input1:
-///                     fn functionName:
-///                         ...
-///                 input2:
-///                     fn SqlMetric:
-///                         ...
+///     table: history
+///     suscribe:
+///         MultiQueue:
+///             Inf: *
+/// ```
 #[derive(Debug, PartialEq, Clone)]
 pub struct HistoryConfig {
     pub(crate) name: String,

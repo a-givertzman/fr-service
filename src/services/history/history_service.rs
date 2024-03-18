@@ -4,9 +4,12 @@
 //! - Cyclically insert accumulated points into the history database via ApiClient
 //! Basic configuration parameters:
 //! ```yaml
-//! service History History:
+//! service History History1:
 //!     cycle: 100 ms
 //!     table: history
+//!     suscribe:
+//!         MultiQueue:
+//!             Inf: *
 //! ```
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread};
 use log::{info, warn};
