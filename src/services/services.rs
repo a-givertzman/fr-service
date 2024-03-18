@@ -141,7 +141,6 @@ impl Services {
             info!("{}.run |         Configuring service: {}({}) - ok\n", self_id, node_name, node_sufix);
         }
         info!("{}.run |     All services configured\n", self_id);
-
         thread::sleep(Duration::from_millis(1000));
         info!("{}.run |     Starting services...", self_id);
         let services_iter = services.lock().unwrap().map.clone();
@@ -159,12 +158,10 @@ impl Services {
             };
         }
         info!("{}.run |     All services started\n", self_id);
-
         info!("{}.run | Application started\n", self_id);
-
         let self_id_clone = self_id.clone();
         let services_clone = services.clone();
-        let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
+        thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
             let self_id = self_id_clone;
             let signals = Signals::new(&[
                 SIGHUP,     // code: 1	This signal is sent to a process when its controlling terminal is closed or disconnected
@@ -208,8 +205,7 @@ impl Services {
                     panic!("{}.run | Application hook system signals error; {:#?}", self_id, err);
                 },
             }
-        });
-        
+        }).unwrap();
         loop {
             match services.lock().unwrap().handles.keys().next() {
                 Some(service_id) => {
