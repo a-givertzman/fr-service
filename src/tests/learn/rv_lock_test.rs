@@ -27,7 +27,7 @@ mod tests {
     }
     ///
     /// 
-    #[ignore = "learn - all must be ignored"]
+    #[ignore = "Learn - all must be ignored"]
     #[test]
     fn map_in_rv_lock() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -107,7 +107,7 @@ mod tests {
     }
     ///
     /// 
-    #[ignore = "learn - all must be ignored"]
+    #[ignore = "Learn - all must be ignored"]
     #[test]
     fn just_map() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -185,7 +185,7 @@ mod tests {
     }    
     ///
     /// 
-    #[ignore = "learn - all must be ignored"]
+    #[ignore = "Learn - all must be ignored"]
     #[test]
     fn map_in_mutex() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -265,7 +265,7 @@ mod tests {
     }
     ///
     /// 
-    #[ignore = "learn - all must be ignored"]
+    #[ignore = "Learn - all must be ignored"]
     #[test]
     fn matching() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);

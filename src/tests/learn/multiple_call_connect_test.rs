@@ -29,7 +29,7 @@ mod tests {
     
     }
     
-    #[ignore = "learn - all must be ignored"]
+    #[ignore = "Learn - all must be ignored"]
     #[test]
     fn test_task_cycle() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);

@@ -23,7 +23,7 @@ mod tcp_stream {
     fn init_each() -> () {}
     ///
     /// 
-    #[ignore = "learn - all must be ignored"]
+    #[ignore = "Learn - all must be ignored"]
     #[test]
     fn read() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);

@@ -55,7 +55,7 @@ mod tests {
         switchState
     }
     
-    #[ignore = "learn - all must be ignored"]
+    #[ignore = "Learn - all must be ignored"]
     #[test]
     fn test_state() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
