@@ -9,10 +9,13 @@
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread::{self, JoinHandle}};
 use log::info;
 use crate::{
-    services::{services::Services, service::service::Service}, 
+    services::{
+        services::Services,
+        service::service::Service,
+        service::service_handles::ServiceHandles, 
+    }, 
     conf::tcp_server_config::ServiceNameConfig, core_::point::point_type::PointType,
 };
-
 
 ///
 /// Binds TCP socket server
@@ -40,12 +43,14 @@ impl ServiceName {
 }
 ///
 /// 
-impl Service for ServiceName {
-    //
-    //
+impl Object for TcpServer {
     fn id(&self) -> &str {
         &self.id
     }
+}
+///
+/// 
+impl Service for ServiceName {
     //
     // 
     fn get_link(&mut self, name: &str) -> Sender<PointType> {
@@ -57,8 +62,8 @@ impl Service for ServiceName {
     }
     //
     //
-    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
-        info!("{}.run | starting...", self.id);
+    fn run(&mut self) -> Result<ServiceHandles, String> {
+        info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         info!("{}.run | Preparing thread...", self_id);
@@ -70,7 +75,17 @@ impl Service for ServiceName {
             }
         });
         info!("{}.run | started", self.id);
-        handle
+        match handle {
+            Ok(handle) => {
+                info!("{}.run | Starting - ok", self.id);
+                Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
+            },
+            Err(err) => {
+                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                warn!("{}", message);
+                Err(message)
+            },
+        }
     }
     ///
     /// 

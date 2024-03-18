@@ -1,9 +1,11 @@
 use concat_string::concat_string;
 use log::{info, debug, trace, warn};
-use std::{sync::{mpsc::{Receiver, Sender, self}, Arc, atomic::{AtomicBool, Ordering}}, time::Duration, thread::{self, JoinHandle}, collections::HashMap};
+use std::{collections::HashMap, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc}, thread, time::Duration};
 use api_tools::{api::reply::api_reply::ApiReply, client::{api_query::{ApiQuery, ApiQueryKind, ApiQuerySql}, api_request::ApiRequest}};
 use crate::{
-    conf::api_client_config::ApiClientConfig, core_::{object::object::Object, point::point_type::PointType, retain_buffer::retain_buffer::RetainBuffer}, services::{service::service::Service, task::service_cycle::ServiceCycle} 
+    conf::api_client_config::ApiClientConfig, 
+    core_::{object::object::Object, point::point_type::PointType, retain_buffer::retain_buffer::RetainBuffer}, 
+    services::{service::{service::Service, service_handles::ServiceHandles}, task::service_cycle::ServiceCycle},
 };
 
 ///
@@ -101,8 +103,8 @@ impl Service for ApiClient {
     }
     //
     // 
-    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
-        info!("{}.run | starting...", self.id);
+    fn run(&mut self) -> Result<ServiceHandles, String> {
+        info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         let conf = self.conf.clone();
@@ -113,7 +115,7 @@ impl Service for ApiClient {
         };
         // let reconnect = if conf.reconnectCycle.is_some() {conf.reconnectCycle.unwrap()} else {Duration::from_secs(3)};
         let _queue_max_length = conf.rx_max_len;
-        let _handle = thread::Builder::new().name(format!("{} - main", self_id)).spawn(move || {
+        let handle = thread::Builder::new().name(format!("{} - main", self_id)).spawn(move || {
             let mut buffer = RetainBuffer::new(&self_id, "", Some(conf.rx_max_len as usize));
             let mut cycle = ServiceCycle::new(cycle_interval);
             // let mut connect = TcpClientConnect::new(self_id.clone() + "/TcpSocketClientConnect", conf.address, reconnect);
@@ -132,7 +134,7 @@ impl Service for ApiClient {
             );
             'send: loop {
                 cycle.start();
-                trace!("{}.run | step...", self_id);
+                trace!("{}.run | Step...", self_id);
                 Self::read_queue(&self_id, &recv, &mut buffer);
                 let mut count = buffer.len();
                 while count > 0 {
@@ -160,7 +162,7 @@ impl Service for ApiClient {
                 if exit.load(Ordering::SeqCst) {
                     break 'send;
                 }
-                trace!("{}.run | step - done ({:?})", self_id, cycle.elapsed());
+                trace!("{}.run | Step - done ({:?})", self_id, cycle.elapsed());
                 if cyclic {
                     cycle.wait();
                 }
@@ -244,8 +246,17 @@ impl Service for ApiClient {
             // };
             info!("{}.run | stopped", self_id);
         });
-        info!("{}.run | started", self.id);
-        _handle
+        match handle {
+            Ok(handle) => {
+                info!("{}.run | Starting - ok", self.id);
+                Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
+            },
+            Err(err) => {
+                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                warn!("{}", message);
+                Err(message)
+            },
+        }
     }
     //
     // 

@@ -1,16 +1,14 @@
 use log::{debug, info, warn};
 use std::{
-    net::{Shutdown, TcpListener, TcpStream}, sync::{atomic::{AtomicBool, Ordering}, mpsc, Arc, Mutex}, thread::{self, JoinHandle}, time::Duration
+    net::{Shutdown, TcpListener, TcpStream}, sync::{atomic::{AtomicBool, Ordering}, mpsc, Arc, Mutex}, thread, time::Duration
 };
 use crate::{
     conf::tcp_server_config::TcpServerConfig, 
     core_::{constants::constants::RECV_TIMEOUT, object::object::Object}, 
     services::{
-        service::service::Service, services::Services, task::service_cycle::ServiceCycle,
         server::{
-            tcp_server_cnnection::TcpServerConnection,
-            connections::{Action, TcpServerConnections},
-        },
+            connections::{Action, TcpServerConnections}, tcp_server_cnnection::TcpServerConnection
+        }, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::service_cycle::ServiceCycle
     }, 
 };
 ///
@@ -65,7 +63,11 @@ impl TcpServer {
                     exit.clone()
                 );
                 match connection.run() {
-                    Ok(handle) => {
+                    Ok(mut handles) => {
+                        if handles.len() != 1 {
+                            panic!("{}.setup_connection | TcpServerConnection.run must return single handle, but returns {}", self_id, handles.len())
+                        }
+                        let (_, handle) = handles.into_iter().next().unwrap();
                         match send.send(Action::Continue(stream)) {
                             Ok(_) => {},
                             Err(err) => {
@@ -123,8 +125,8 @@ impl Object for TcpServer {
 impl Service for TcpServer {
     //
     //
-    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
-        info!("{}.run | starting...", self.id);
+    fn run(&mut self) -> Result<ServiceHandles, String> {
+        info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let conf = self.conf.clone();
         let exit = self.exit.clone();
@@ -177,8 +179,17 @@ impl Service for TcpServer {
             connections.lock().unwrap().wait();
             info!("{}.run | Exit", self_id);
         });
-        info!("{}.run | Started", self.id);
-        handle
+        match handle {
+            Ok(handle) => {
+                info!("{}.run | Starting - ok", self.id);
+                Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
+            },
+            Err(err) => {
+                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                warn!("{}", message);
+                Err(message)
+            },
+        }        
     }
     ///
     /// 

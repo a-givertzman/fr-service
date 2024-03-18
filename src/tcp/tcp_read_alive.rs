@@ -46,7 +46,7 @@ impl TcpReadAlive {
     ///
     /// Main loop of the [TcpReadAlive]
     pub fn run(&mut self, tcp_stream: TcpStream) -> JoinHandle<()> {
-        info!("{}.run | starting...", self.id);
+        info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         let exit_pair = self.exit_pair.clone();

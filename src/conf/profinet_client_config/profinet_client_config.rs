@@ -12,6 +12,7 @@ use crate::conf::{
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
 /// service ProfinetClient Ied01:          # device will be executed in the independent thread, must have unique name
+///    subscribe: Multiqueue
 ///    in queue in-queue:
 ///        max-length: 10000
 ///    out queue: MultiQueue.in-queue
@@ -37,8 +38,9 @@ use crate::conf::{
 pub struct ProfinetClientConfig {
     pub(crate) name: String,
     pub(crate) cycle: Option<Duration>,
-    pub(crate) rx: String,
-    pub(crate) rx_max_len: i64,
+    // pub(crate) rx: String,
+    // pub(crate) rx_max_len: i64,
+    pub(crate) subscribe: String,
     pub(crate) tx: String,
     pub(crate) protocol: String,
     pub(crate) description: String,
@@ -65,8 +67,10 @@ impl ProfinetClientConfig {
         debug!("{}.new | name: {:?}", self_id, self_name);
         let cycle = self_conf.get_duration("cycle");
         debug!("{}.new | cycle: {:?}", self_id, cycle);
-        let (rx, rx_max_len) = self_conf.get_in_queue().unwrap();
-        debug!("{}.new | RX: {},\tmax-length: {}", self_id, rx, rx_max_len);
+        let subscribe = self_conf.get_param_value("subscribe").unwrap().as_str().unwrap().to_string();
+        debug!("{}.new | sudscribe: {:?}", self_id, subscribe);
+        // let (rx, rx_max_len) = self_conf.get_in_queue().unwrap();
+        // debug!("{}.new | RX: {},\tmax-length: {}", self_id, rx, rx_max_len);
         let tx = self_conf.get_out_queue().unwrap();
         debug!("{}.new | TX: {}", self_id, tx);
         let protocol = self_conf.get_param_value("protocol").unwrap().as_str().unwrap().to_string();
@@ -99,8 +103,9 @@ impl ProfinetClientConfig {
         ProfinetClientConfig {
             name: self_name,
             cycle,
-            rx,
-            rx_max_len,
+            // rx,
+            // rx_max_len,
+            subscribe,
             tx,
             protocol,
             description,

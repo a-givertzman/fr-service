@@ -1,18 +1,14 @@
-#![allow(non_snake_case)]
 #[cfg(test)]
 
-mod tests {
+mod profinet_client {
     use log::debug;
     use std::{sync::{Arc, Mutex, Once}, thread, time::Duration};
     use testing::stuff::{max_test_duration::TestDuration, wait::WaitTread};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{conf::{multi_queue_config::MultiQueueConfig, profinet_client_config::profinet_client_config::ProfinetClientConfig}, services::{multi_queue::multi_queue::MultiQueue, profinet_client::profinet_client::ProfinetClient, service::service::Service, services::Services}}; 
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    ///
+    /// 
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -21,22 +17,19 @@ mod tests {
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
+    fn init_each() -> () {}
+    ///
+    /// 
     #[test]
-    fn profinet_client() {
+    fn basic() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
         println!();
-        let self_id = "test ProfinetClient";
+        let self_id = "test";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
@@ -48,24 +41,22 @@ mod tests {
                 out queue: queue
         "#.to_string();
         let conf = serde_yaml::from_str(&conf).unwrap();
-        let mqConf = MultiQueueConfig::from_yaml(&conf);
-        let mqService = Arc::new(Mutex::new(MultiQueue::new(self_id, mqConf, services.clone())));
-        services.lock().unwrap().insert("MultiQueue", mqService.clone());
-
+        let mq_conf = MultiQueueConfig::from_yaml(&conf);
+        let mq_service = Arc::new(Mutex::new(MultiQueue::new(self_id, mq_conf, services.clone())));
+        services.lock().unwrap().insert("MultiQueue", mq_service.clone());
         let path = "./src/tests/unit/services/profinet_client/profinet_client.yaml";
         let conf = ProfinetClientConfig::read(path);
         debug!("config: {:?}", &conf);
         debug!("config points:");
-
         let client = Arc::new(Mutex::new(ProfinetClient::new(self_id, conf, services.clone())));
         services.lock().unwrap().insert("ProfinetClient", client.clone());
-
-        mqService.lock().unwrap().run().unwrap();
-        let clientHandle = client.lock().unwrap().run().unwrap();
+        let mq_service_handle = mq_service.lock().unwrap().run().unwrap();
+        let client_handle = client.lock().unwrap().run().unwrap();
         thread::sleep(Duration::from_millis(3000));
         client.lock().unwrap().exit();
-        mqService.lock().unwrap().exit();
-        clientHandle.wait().unwrap();
+        mq_service.lock().unwrap().exit();
+        client_handle.wait().unwrap();
+        mq_service_handle.wait().unwrap();
         // let targetPoints = [
         //     PointConfig { name: format!("Drive.Speed"), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
         //     PointConfig { name: format!("Drive.OutputVoltage"), _type: PointConfigType::Float, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },

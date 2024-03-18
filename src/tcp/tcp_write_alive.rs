@@ -32,7 +32,7 @@ impl TcpWriteAlive {
     ///
     /// 
     pub fn run(&self, mut tcp_stream: TcpStream) -> JoinHandle<()> {
-        info!("{}.run | starting...", self.id);
+        info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         let exit_pair = self.exit_pair.clone();

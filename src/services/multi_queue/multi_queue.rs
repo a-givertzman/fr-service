@@ -1,7 +1,13 @@
-use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread::{self, JoinHandle}};
+use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread};
 use log::{debug, error, info, trace, warn};
 use crate::{
-    conf::multi_queue_config::MultiQueueConfig, core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, service::service::Service, services::Services}
+    conf::multi_queue_config::MultiQueueConfig, 
+    core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}}, 
+    services::{
+        multi_queue::subscription_criteria::SubscriptionCriteria, 
+        service::{service::Service, service_handles::ServiceHandles}, 
+        services::Services,
+    },
 };
 use concat_string::concat_string;
 use super::subscriptions::Subscriptions;
@@ -144,8 +150,8 @@ impl Service for MultiQueue {
     }
     //
     //
-    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
-        info!("{}.run | starting...", self.id);
+    fn run(&mut self) -> Result<ServiceHandles, String> {
+        info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         let recv = self.rx_recv.pop().unwrap();
@@ -163,49 +169,58 @@ impl Service for MultiQueue {
             debug!("{}.run | Lock subscriptions - ok", self_id);
         }
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
-            info!("{}.run | Preparing thread - ok", self_id);
-            debug!("{}.run | Lock subscriptions...", self_id);
-            let mut subscriptions = subscriptions_ref.lock().unwrap().clone();
-            debug!("{}.run | Lock subscriptions - ok", self_id);
-            loop {
-                if subscriptions_changed.load(Ordering::Relaxed) {
-                    subscriptions_changed.store(false, Ordering::SeqCst);
-                    debug!("{}.run | Subscriptions changes detected", self_id);
+                    info!("{}.run | Preparing thread - ok", self_id);
                     debug!("{}.run | Lock subscriptions...", self_id);
-                    subscriptions = subscriptions_ref.lock().unwrap().clone();
+                    let mut subscriptions = subscriptions_ref.lock().unwrap().clone();
                     debug!("{}.run | Lock subscriptions - ok", self_id);
-                }
-                match recv.recv_timeout(RECV_TIMEOUT) {
-                    Ok(point) => {
-                        let point_id = SubscriptionCriteria::new(&point.name(), point.cot()).destination();
-                        debug!("{}.run | received: {:?}", self_id, point);
-                        for (receiver_id, sender) in subscriptions.iter(&point_id) {
-                            // for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {
-                            match receiver_id != point.tx_id() {
-                                true => {
-                                    match sender.send(point.clone()) {
-                                        Ok(_) => {},
-                                        Err(err) => {
-                                            error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", self_id, point_id, receiver_id, err);
-                                        },
-                                    };
-                                },
-                                false => {},
-                            }
+                    loop {
+                        if subscriptions_changed.load(Ordering::Relaxed) {
+                            subscriptions_changed.store(false, Ordering::SeqCst);
+                            debug!("{}.run | Subscriptions changes detected", self_id);
+                            debug!("{}.run | Lock subscriptions...", self_id);
+                            subscriptions = subscriptions_ref.lock().unwrap().clone();
+                            debug!("{}.run | Lock subscriptions - ok", self_id);
                         }
-                    },
-                    Err(err) => {
-                        trace!("{}.run | recv timeout: {:?}", self_id, err);
-                    },
-                }
-                if exit.load(Ordering::SeqCst) {
-                    break;
-                }
-            }
-            info!("{}.run | Exit", self_id);
+                        match recv.recv_timeout(RECV_TIMEOUT) {
+                            Ok(point) => {
+                                let point_id = SubscriptionCriteria::new(&point.name(), point.cot()).destination();
+                                debug!("{}.run | received: {:?}", self_id, point);
+                                for (receiver_id, sender) in subscriptions.iter(&point_id) {
+                                    // for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {
+                                    match receiver_id != point.tx_id() {
+                                        true => {
+                                            match sender.send(point.clone()) {
+                                                Ok(_) => {},
+                                                Err(err) => {
+                                                    error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", self_id, point_id, receiver_id, err);
+                                                },
+                                            };
+                                        },
+                                        false => {},
+                                    }
+                                }
+                            },
+                            Err(err) => {
+                                trace!("{}.run | recv timeout: {:?}", self_id, err);
+                            },
+                        }
+                        if exit.load(Ordering::SeqCst) {
+                            break;
+                        }
+                    }
+                    info!("{}.run | Exit", self_id);
         });
-        info!("{}.run | started", self.id);
-        handle
+        match handle {
+            Ok(handle) => {
+                info!("{}.run | Started", self.id);
+                Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
+            },
+            Err(err) => {
+                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                warn!("{}", message);
+                Err(message)
+            },
+        }
     }
     //
     //

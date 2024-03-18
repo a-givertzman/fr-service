@@ -1,16 +1,36 @@
-use std::{collections::HashMap, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{Receiver, RecvTimeoutError}, Arc, Mutex, RwLock}, thread::{self, JoinHandle}, time::{Duration, Instant}};
+use std::{
+    thread, 
+    time::{Duration, Instant},
+    collections::HashMap, hash::BuildHasherDefault, 
+    sync::{atomic::{AtomicBool, Ordering}, 
+    mpsc::{Receiver, RecvTimeoutError}, Arc, Mutex, RwLock}, 
+};
 use hashers::fx_hash::FxHasher;
 use log::{debug, info, warn};
 use serde_json::json;
 use crate::{
     conf::tcp_server_config::TcpServerConfig, 
     core_::{
-        constants::constants::RECV_TIMEOUT, cot::cot::Cot, net::protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_encode_message::JdsEncodeMessage, jds_routes::{JdsRoutes, RouterReply}, jds_serialize::JdsSerialize}, point::point_type::PointType 
+        cot::cot::Cot, 
+        constants::constants::RECV_TIMEOUT, 
+        point::point_type::PointType,
+        net::protocols::jds::{
+            jds_decode_message::JdsDecodeMessage, 
+            jds_deserialize::JdsDeserialize, 
+            jds_encode_message::JdsEncodeMessage, 
+            jds_routes::{JdsRoutes, RouterReply}, jds_serialize::JdsSerialize,
+        }, 
     }, 
-    services::{multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, services::Services, server::jds_connection::JdsConnection}, 
+    services::{
+        multi_queue::subscription_criteria::SubscriptionCriteria, 
+        queue_name::QueueName, 
+        server::jds_connection::JdsConnection, 
+        service::service_handles::ServiceHandles, 
+        services::Services,
+        server::{connections::Action, tcp_server_auth::TcpServerAuth}
+    }, 
     tcp::{tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive},
 };
-use super::{connections::Action, tcp_server_auth::TcpServerAuth};
 
 ///
 /// 
@@ -64,10 +84,9 @@ impl TcpServerConnection {
     }
     ///
     /// Main loop of the connection 
-    pub fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
-        info!("{}.run | starting...", self.id);
+    pub fn run(&mut self) -> Result<ServiceHandles, String> {
+        info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
-        let self_id_clone = self.id.clone();
         let conf = self.conf.clone();
         let shared_options: Arc<RwLock<Shared>> = Arc::new(RwLock::new(Shared {
                 tx_queue_name: String::new(), 
@@ -205,7 +224,16 @@ impl TcpServerConnection {
             }
             info!("{}.run | Exit", self_id);
         });
-        info!("{}.run | Started", self_id_clone);
-        handle
-    }    
+        match handle {
+            Ok(handle) => {
+                info!("{}.run | Starting - ok", self.id);
+                Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
+            },
+            Err(err) => {
+                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                warn!("{}", message);
+                Err(message)
+            },
+        }
+    }
 }

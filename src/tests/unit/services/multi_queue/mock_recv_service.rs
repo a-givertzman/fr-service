@@ -1,32 +1,30 @@
-#![allow(non_snake_case)]
+use std::{collections::HashMap, sync::{mpsc::{Sender, Receiver, self}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread};
 
-use std::{collections::HashMap, sync::{mpsc::{Sender, Receiver, self}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{self, JoinHandle}};
+use log::{info, trace, warn};
 
-use log::{info, trace};
-
-use crate::{core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::point_type::PointType}, services::service::service::Service};
+use crate::{core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::point_type::PointType}, services::service::{service::Service, service_handles::ServiceHandles}};
 
 
 pub struct MockRecvService {
     id: String,
-    rxSend: HashMap<String, Sender<PointType>>,
-    rxRecv: Vec<Receiver<PointType>>,
+    rx_send: HashMap<String, Sender<PointType>>,
+    rx_recv: Vec<Receiver<PointType>>,
     received: Arc<Mutex<Vec<PointType>>>,
-    recvLimit: Option<usize>,
+    recv_limit: Option<usize>,
     exit: Arc<AtomicBool>,
 }
 ///
 /// 
 impl MockRecvService {
-    pub fn new(parent: impl Into<String>, rxQueue: &str, recvLimit: Option<usize>) -> Self {
+    pub fn new(parent: impl Into<String>, rx_queue: &str, recv_limit: Option<usize>) -> Self {
         let self_id = format!("{}/MockRecvService", parent.into());
         let (send, recv) = mpsc::channel::<PointType>();
         Self {
             id: self_id.clone(),
-            rxSend: HashMap::from([(rxQueue.to_string(), send)]),
-            rxRecv: vec![recv],
+            rx_send: HashMap::from([(rx_queue.to_string(), send)]),
+            rx_recv: vec![recv],
             received: Arc::new(Mutex::new(vec![])),
-            recvLimit,
+            recv_limit,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -54,35 +52,35 @@ impl Service for MockRecvService {
     //
     //
     fn get_link(&mut self, name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
-        match self.rxSend.get(name) {
+        match self.rx_send.get(name) {
             Some(send) => send.clone(),
             None => panic!("{}.run | link '{:?}' - not found", self.id, name),
         }
     }
     //
     //
-    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
-        info!("{}.run | starting...", self.id);
+    fn run(&mut self) -> Result<ServiceHandles, String> {
+        info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let exit = self.exit.clone();
-        let inRecv = self.rxRecv.pop().unwrap();
+        let in_recv = self.rx_recv.pop().unwrap();
         let received = self.received.clone();
-        let recvLimit = self.recvLimit.clone();
+        let recv_limit = self.recv_limit.clone();
         let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
-            match recvLimit {
+            match recv_limit {
                 Some(recvLimit) => {
-                    let mut receivedCount = 0;
+                    let mut received_count = 0;
                     loop {
-                        match inRecv.recv_timeout(RECV_TIMEOUT) {
+                        match in_recv.recv_timeout(RECV_TIMEOUT) {
                             Ok(point) => {
                                 trace!("{}.run | received: {:?}", self_id, point);
                                 received.lock().unwrap().push(point);
-                                receivedCount += 1;
+                                received_count += 1;
                             },
                             Err(_) => {},
                         };
-                        if receivedCount >= recvLimit {
+                        if received_count >= recvLimit {
                             break;
                         }
                         if exit.load(Ordering::SeqCst) {
@@ -92,7 +90,7 @@ impl Service for MockRecvService {
                 },
                 None => {
                     loop {
-                        match inRecv.recv_timeout(RECV_TIMEOUT) {
+                        match in_recv.recv_timeout(RECV_TIMEOUT) {
                             Ok(point) => {
                                 trace!("{}.run | received: {:?}", self_id, point);
                                 received.lock().unwrap().push(point);
@@ -106,7 +104,17 @@ impl Service for MockRecvService {
                 },
             }
         });
-        handle
+        match handle {
+            Ok(handle) => {
+                info!("{}.run | Starting - ok", self.id);
+                Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
+            },
+            Err(err) => {
+                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                warn!("{}", message);
+                Err(message)
+            },
+        }        
     }
     //
     //

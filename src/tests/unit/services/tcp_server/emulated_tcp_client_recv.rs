@@ -10,7 +10,7 @@ use crate::{
             protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}, 
         }, object::object::Object, point::point_type::PointType, state::{switch_state::{Switch, SwitchCondition, SwitchState}, switch_state_changed::SwitchStateChanged}
     },
-    services::service::service::Service, 
+    services::service::{service::Service, service_handles::ServiceHandles}, 
 };
 
 
@@ -154,8 +154,8 @@ impl Service for EmulatedTcpClientRecv {
     }
     //
     //
-    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
-        info!("{}.run | starting...", self.id);
+    fn run(&mut self) -> Result<ServiceHandles, String> {
+        info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         let markerReceived = self.markerReceived.clone();
@@ -278,8 +278,17 @@ impl Service for EmulatedTcpClientRecv {
             }
             info!("{}.run | Exit thread Recv", self_id);
         });
-        info!("{}.run | starting - ok", self.id);
-        handle
+        match handle {
+            Ok(handle) => {
+                info!("{}.run | Starting - ok", self.id);
+                Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
+            },
+            Err(err) => {
+                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                warn!("{}", message);
+                Err(message)
+            },
+        }        
     }
     //
     //

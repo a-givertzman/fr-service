@@ -9,12 +9,9 @@ mod tcp_server {
         conf::{tcp_server_config::TcpServerConfig, multi_queue_config::MultiQueueConfig}, 
         services::{server::tcp_server::TcpServer, services::Services, service::service::Service, task::{task_test_producer::TaskTestProducer, task_test_receiver::TaskTestReceiver}, multi_queue::multi_queue::MultiQueue}, 
     }; 
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    ///
+    ///
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -23,15 +20,12 @@ mod tcp_server {
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
+    fn init_each() -> () {}
+    ///
+    ///     
     #[test]
     fn keep_send() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);

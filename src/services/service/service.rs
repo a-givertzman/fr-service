@@ -3,6 +3,8 @@ use crate::{
     conf::point_config::point_config::PointConfig, core_::{object::object::Object, point::point_type::PointType}, services::multi_queue::subscription_criteria::SubscriptionCriteria
 };
 
+use super::service_handles::ServiceHandles;
+
 ///
 /// Interface for application service
 /// - Running in the individual thread
@@ -36,7 +38,7 @@ pub trait Service: Object {
     }
     ///
     /// Starts service's main loop in the individual thread
-    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error>;
+    fn run(&mut self) -> Result<ServiceHandles, String>;
     ///
     /// Returns list of configurations of the defined points
     fn points(&self) -> Vec<PointConfig> {

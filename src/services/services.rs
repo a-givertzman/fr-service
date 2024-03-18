@@ -145,10 +145,13 @@ impl Services {
         let services_iter = services.lock().unwrap().map.clone();
         for (name, service) in services_iter {
             info!("{}.run |         Starting service: {}...", self_id, name);
-            match service.lock().unwrap().run() {
-                Ok(handle) => {
-                    services.lock().unwrap().insert_handle(&name, handle);
-                    info!("{}.run |         Starting service: {} - ok", self_id, name);
+            let handles = service.lock().unwrap().run();
+            match handles {
+                Ok(handles) => {
+                    for (_, handle) in handles {
+                        services.lock().unwrap().insert_handle(&name, handle);
+                        info!("{}.run |         Starting service: {} - ok", self_id, name);
+                    }
                 },
                 Err(err) => {
                     error!("{}.run | Error starting service '{}': {:#?}", self_id, name, err);

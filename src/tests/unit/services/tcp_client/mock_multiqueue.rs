@@ -4,7 +4,7 @@ use std::{sync::{mpsc::{Sender, Receiver}, Arc, atomic::{AtomicBool, Ordering}, 
 
 use log::{warn, info};
 
-use crate::{core_::{object::object::Object, point::point_type::PointType}, services::service::service::Service};
+use crate::{core_::{object::object::Object, point::point_type::PointType}, services::service::{service::Service, service_handles::ServiceHandles}};
 
 pub struct MockMultiqueue {
     id: String,
@@ -48,7 +48,7 @@ impl Service for MockMultiqueue {
     }
     //
     // 
-    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
+    fn run(&mut self) -> Result<ServiceHandles, String> {
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         let recv = self.recv.pop().unwrap();
@@ -93,8 +93,8 @@ impl Service for MockMultiqueue {
                 },
             }
         });
-        info!("{}.run | Started", self.id);
-        Ok(handle)
+        info!("{}.run | Starting - ok", self.id);
+        Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
     }
     //
     // 

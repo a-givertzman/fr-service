@@ -1,9 +1,8 @@
 //!
 //! MockServicePoints implements points() method only.
 //! Which returns exactly the vector from which it was created
-use std::thread::JoinHandle;
 use log::debug;
-use crate::{conf::point_config::point_config::PointConfig, core_::object::object::Object, services::service::service::Service};
+use crate::{conf::point_config::point_config::PointConfig, core_::object::object::Object, services::service::{service::Service, service_handles::ServiceHandles}};
 ///
 /// MockServicePoints implements points() method only.
 /// Which returns exactly the vector from which it was created
@@ -35,11 +34,10 @@ impl Object for MockServicePoints {
 impl Service for MockServicePoints {
     //
     //
-    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
+    fn run(&mut self) -> Result<ServiceHandles, String> {
         let message = format!("{}.run | Not implemented", self.id);
-        let error = std::io::Error::new(std::io::ErrorKind::Unsupported, message);
-        debug!("{}", error);
-        Err(error)
+        debug!("{}", message);
+        Err(message)
     }
     ///
     /// 

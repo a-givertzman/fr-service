@@ -1,10 +1,10 @@
 use log::{info, warn, debug};
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc}, thread::{JoinHandle, self}, time::Duration, net::{TcpStream, SocketAddr}, io::Write};
+use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc}, thread, time::Duration, net::{TcpStream, SocketAddr}, io::Write};
 use testing::entities::test_value::Value;
 use crate::{
     conf::point_config::point_name::PointName, core_::{
         net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}, state::{switch_state::{Switch, SwitchCondition, SwitchState}, switch_state_changed::SwitchStateChanged}
-    }, services::service::service::Service, tcp::steam_read::StreamRead 
+    }, services::service::{service::Service, service_handles::ServiceHandles}, tcp::steam_read::StreamRead 
 };
 
 
@@ -110,8 +110,8 @@ impl Object for EmulatedTcpClientSend {
 impl Service for EmulatedTcpClientSend {
     //
     //
-    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
-        info!("{}.run | starting...", self.id);
+    fn run(&mut self) -> Result<ServiceHandles, String> {
+        info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let point_path = self.point_path.clone();
         let exit = self.exit.clone();
@@ -223,9 +223,17 @@ impl Service for EmulatedTcpClientSend {
             }
             info!("{}.run | Exit", self_id);
         });
-        info!("{}.run | starting - ok", self.id);
-        handle
-    }
+        match handle {
+            Ok(handle) => {
+                info!("{}.run | Starting - ok", self.id);
+                Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
+            },
+            Err(err) => {
+                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                warn!("{}", message);
+                Err(message)
+            },
+        }    }
     //
     //
     // fn points(&self) -> Vec<crate::conf::point_config::point_config::PointConfig> {

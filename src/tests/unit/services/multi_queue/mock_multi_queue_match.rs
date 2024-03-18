@@ -1,13 +1,13 @@
 #![allow(non_snake_case)]
 
-use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread::{self, JoinHandle}};
+use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread};
 
 use log::{info, warn, error, debug, trace};
 
 use crate::{
     core_::{object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}}, 
     services::{
-        multi_queue::{subscription_criteria::SubscriptionCriteria, subscriptions::Subscriptions}, service::service::Service, services::Services 
+        multi_queue::{subscription_criteria::SubscriptionCriteria, subscriptions::Subscriptions}, service::{service::Service, service_handles::ServiceHandles}, services::Services 
     },
 };
 
@@ -93,8 +93,8 @@ impl Service for MockMultiQueueMatch {
     }
     //
     //
-    fn run(&mut self) -> Result<JoinHandle<()>, std::io::Error> {
-        info!("{}.run | starting...", self.id);
+    fn run(&mut self) -> Result<ServiceHandles, String> {
+        info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         let recv = self.rxRecv.pop().unwrap();
@@ -137,8 +137,17 @@ impl Service for MockMultiQueueMatch {
                 }
             }
         });
-        info!("{}.run | started", self.id);
-        handle
+        match handle {
+            Ok(handle) => {
+                info!("{}.run | Starting - ok", self.id);
+                Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
+            },
+            Err(err) => {
+                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                warn!("{}", message);
+                Err(message)
+            },
+        }        
     }
     //
     //
@@ -167,8 +176,8 @@ impl Service for MockMultiQueueMatch {
 
     // //
     // //
-    // fn serveRx(&mut self, recv: Receiver<PointType>) -> Result<JoinHandle<()>, std::io::Error> {
-    //     info!("{}.run | starting...", self.id);
+    // fn serveRx(&mut self, recv: Receiver<PointType>) -> Result<ServiceHandle, String> {
+    //     info!("{}.run | Starting...", self.id);
     //     let self_id = self.id.clone();
     //     let exit = self.exit.clone();
     //     let subscriptions = self.subscriptions.clone();
