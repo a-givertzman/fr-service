@@ -150,10 +150,10 @@ impl ProfinetDb {
                         Err(message)
                     },
                     PointType::Int(point) => {
-                        client.write(self.number, address.offset.unwrap(), 2, &mut point.value.to_be_bytes())
+                        client.write(self.number, address.offset.unwrap(), 2, &mut (point.value as i16).to_be_bytes())
                     },
                     PointType::Float(point) => {
-                        client.write(self.number, address.offset.unwrap(), 4, &mut point.value.to_be_bytes())
+                        client.write(self.number, address.offset.unwrap(), 4, &mut (point.value as f32).to_be_bytes())
                     },
                     PointType::String(point) => {
                         message = format!("{}.write | Write 'String' to the S7 Device - not implemented, point: {:?}", self.id, point.name);

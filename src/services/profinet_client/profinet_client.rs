@@ -156,6 +156,7 @@ impl ProfinetClient {
             let mut client = S7Client::new(self_id.clone(), conf.ip.clone());
             'main: while !exit.load(Ordering::SeqCst) {
                 let mut errors_limit = ErrorsLimit::new(3);
+                thread::sleep(Duration::from_millis(50));
                 match client.connect() {
                     Ok(_) => {
                         'write: while !exit.load(Ordering::SeqCst) {
@@ -163,15 +164,16 @@ impl ProfinetClient {
                             match rx_recv.recv_timeout(RECV_TIMEOUT) {
                                 Ok(point) => {
                                     let point_name = point.name();
-                                    let db_name = point_name.split('/').nth(1).unwrap();
-                                    debug!("{}.write | DB '{}' - writing point '{}'...", self_id, db_name, point.name());
-                                    // let dbName = point.name().split("/").skip(1).collect::<String>();
+                                    let point_value = point.value();
+                                    let db_name = point_name.split('/').nth(2).unwrap();
+                                    debug!("{}.write | DB '{}' - writing point '{}'\t({:?})...", self_id, db_name, point_name, point_value);
+                                    // let dbName = point_name.split("/").skip(1).collect::<String>();
                                     match dbs.get_mut(db_name) {
                                         Some(db) => {
                                             match db.write(&client, point) {
                                                 Ok(_) => {
                                                     errors_limit.reset();
-                                                    debug!("{}.write | DB '{}' - write - ok", self_id, db_name);
+                                                    debug!("{}.write | DB '{}' - writing point '{}'\t({:?}) - ok", self_id, db_name, point_name, point_value);
                                                 },
                                                 Err(err) => {
                                                     error!("{}.write | DB '{}' - write - error: {:?}", self_id, db_name, err);
@@ -220,7 +222,6 @@ impl ProfinetClient {
                         debug!("{}.write | Connection error: {:?}", self_id, err);
                     },
                 }
-                thread::sleep(Duration::from_millis(1000))
             }
         });
         info!("{}.write | started", self.id);
