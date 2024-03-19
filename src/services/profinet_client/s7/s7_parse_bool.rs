@@ -1,6 +1,4 @@
-#![allow(non_snake_case)]
-
-use log::{debug, warn};
+use log::warn;
 use std::array::TryFromSliceError;
 use chrono::{DateTime, Utc};
 use crate::{
@@ -13,7 +11,7 @@ use crate::{
 ///
 #[derive(Debug, Clone)]
 pub struct S7ParseBool {
-    pub txId: usize,
+    pub tx_id: usize,
     pub path: String,
     pub name: String,
     pub value: bool,
@@ -24,7 +22,7 @@ pub struct S7ParseBool {
     pub alarm: Option<u8>,
     pub comment: Option<String>,
     pub timestamp: DateTime<Utc>,
-    isChanged: bool,
+    is_changed: bool,
 }
 impl S7ParseBool {
     ///
@@ -36,12 +34,12 @@ impl S7ParseBool {
         // filter: Filter<T>,
     ) -> S7ParseBool {
         S7ParseBool {
-            txId: 0,
+            tx_id: 0,
             path,
             name,
             value: false,
             status: Status::Invalid,
-            isChanged: false,
+            is_changed: false,
             offset: config.clone().address.unwrap_or(PointConfigAddress::empty()).offset,
             bit: config.clone().address.unwrap_or(PointConfigAddress::empty()).bit,
             history: config.history.clone(),
@@ -72,10 +70,10 @@ impl S7ParseBool {
     }
     ///
     /// 
-    fn toPoint(&self) -> Option<PointType> {
-        if self.isChanged {
+    fn to_point(&self) -> Option<PointType> {
+        if self.is_changed {
             Some(PointType::Bool(Point::new(
-                self.txId, 
+                self.tx_id, 
                 &self.name, 
                 Bool(self.value), 
                 self.status, 
@@ -89,25 +87,24 @@ impl S7ParseBool {
     }
     //
     //
-    fn addRawSimple(&mut self, bytes: &[u8]) {
-        self.addRaw(bytes, Utc::now())
+    fn add_raw_simple(&mut self, bytes: &[u8]) {
+        self.add_raw(bytes, Utc::now())
     }
     //
     //
-    fn addRaw(&mut self, bytes: &[u8], timestamp: DateTime<Utc>) {
-        warn!("S7ParseBool.addRaw | offset: {:?} \t bit: {:?}", self.offset, self.bit);
+    fn add_raw(&mut self, bytes: &[u8], timestamp: DateTime<Utc>) {
         let result = self.convert(
             bytes,
             self.offset.unwrap() as usize,
             self.bit.unwrap() as usize,
         );
         match result {
-            Ok(newVal) => {
-                if newVal != self.value {
-                    self.value = newVal;
+            Ok(new_val) => {
+                if new_val != self.value {
+                    self.value = new_val;
                     self.status = Status::Ok;
                     self.timestamp = timestamp;
-                    self.isChanged = true;
+                    self.is_changed = true;
                 }
             }
             Err(e) => {
@@ -122,16 +119,16 @@ impl ParsePoint for S7ParseBool {
     //
     //
     fn next_simple(&mut self, bytes: &[u8]) -> Option<PointType> {
-        self.addRawSimple(bytes);
-        self.toPoint()
+        self.add_raw_simple(bytes);
+        self.to_point()
     }
     //
     //
     fn next(&mut self, bytes: &[u8], timestamp: DateTime<Utc>) -> Option<PointType> {
-        self.addRaw(bytes, timestamp);
-        match self.toPoint() {
+        self.add_raw(bytes, timestamp);
+        match self.to_point() {
             Some(point) => {
-                self.isChanged = false;
+                self.is_changed = false;
                 Some(point)
             },
             None => None,
@@ -142,12 +139,12 @@ impl ParsePoint for S7ParseBool {
     fn next_status(&mut self, status: Status) -> Option<PointType> {
         self.status = status;
         self.timestamp = Utc::now();
-        self.toPoint()
+        self.to_point()
     }
     //
     //
     fn is_changed(&self) -> bool {
-        self.isChanged
+        self.is_changed
     }
     //
     //
