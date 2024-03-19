@@ -58,12 +58,9 @@ impl S7ParseBool {
         start: usize,
         bit: usize,
     ) -> Result<bool, TryFromSliceError> {
-        // debug!("S7ParseBool.convert | start: {},  end: {:?}", start, start + 2);
-        // let raw: [u8; 2] = (bytes[start..(start + 2)]).try_into().unwrap();
-        // debug!("S7ParseBool.convert | raw: {:?}", raw);
         match bytes[start..(start + 2)].try_into() {
             Ok(v) => {
-                let i = i16::from_be_bytes(v);
+                let i = i16::from_le_bytes(v);
                 let b: i16 = i >> bit & 1;
                 Ok(b > 0)
             }
