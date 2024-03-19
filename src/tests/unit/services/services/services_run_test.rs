@@ -23,7 +23,7 @@ mod services {
     ///
     /// 
     #[test]
-    #[ignore = "To be implemented and activated later"]
+    // #[ignore = "To be implemented and activated later"]
     fn run() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();

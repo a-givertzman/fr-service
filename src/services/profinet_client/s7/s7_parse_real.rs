@@ -58,14 +58,14 @@ impl S7ParseReal {
         start: usize,
         _bit: usize,
     ) -> Result<f32, TryFromSliceError> {
-        // debug!("[S7ParsePoint<f32>.convert] start: {},  end: {:?}", start, start + 4);
+        // debug!("S7ParseReal.convert | start: {},  end: {:?}", start, start + 4);
         // let raw: [u8; 4] = (bytes[start..(start + 4)]).try_into().unwrap();
-        // debug!("[S7ParsePoint<f32>.convert] raw: {:?}", raw);
+        // debug!("S7ParseReal.convert | raw: {:?}", raw);
         match bytes[start..(start + 4)].try_into() {
             // Ok(v) => Ok(f32::from_le_bytes(v)),
             Ok(v) => Ok(f32::from_be_bytes(v)),
             Err(e) => {
-                debug!("[S7ParsePoint<f32>.convert] error: {}", e);
+                debug!("S7ParseReal.convert | error: {}", e);
                 Err(e)
             }
         }
@@ -108,7 +108,7 @@ impl S7ParseReal {
             }
             Err(e) => {
                 self.status = Status::Invalid;
-                warn!("[S7ParsePoint<f32>.addRaw] convertion error: {:?}", e);
+                warn!("S7ParseReal.addRaw | convertion error: {:?}", e);
             }
         }
     }    
@@ -126,7 +126,13 @@ impl ParsePoint for S7ParseReal {
     //
     fn next(&mut self, bytes: &[u8], timestamp: DateTime<Utc>) -> Option<PointType> {
         self.addRaw(bytes, timestamp);
-        self.toPoint()
+        match self.toPoint() {
+            Some(point) => {
+                self.isChanged = false;
+                Some(point)
+            },
+            None => None,
+        }
     }
     //
     //

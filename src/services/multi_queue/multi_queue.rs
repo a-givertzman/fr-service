@@ -184,7 +184,7 @@ impl Service for MultiQueue {
                 match recv.recv_timeout(RECV_TIMEOUT) {
                     Ok(point) => {
                         let point_id = SubscriptionCriteria::new(&point.name(), point.cot()).destination();
-                        debug!("{}.run | received: {:?}", self_id, point);
+                        debug!("{}.run | received: \n\t{:?}", self_id, point);
                         for (receiver_id, sender) in subscriptions.iter(&point_id) {
                             // for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {
                             match receiver_id != point.tx_id() {

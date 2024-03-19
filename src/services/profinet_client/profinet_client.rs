@@ -1,6 +1,6 @@
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}}, thread::{self, JoinHandle}, time::Duration};
 use indexmap::IndexMap;
-use log::{debug, error, info};
+use log::{debug, error, info, trace};
 use crate::{
     conf::{point_config::point_config::PointConfig, profinet_client_config::profinet_client_config::ProfinetClientConfig}, 
     core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, object::object::Object, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, 
@@ -81,11 +81,11 @@ impl ProfinetClient {
                         'read: while !exit.load(Ordering::SeqCst) {
                             cycle.start();
                             for (db_name, db) in &mut dbs {
-                                debug!("{}read| DB '{}' - reading...", self_id, db_name);
+                                trace!("{}read| DB '{}' - reading...", self_id, db_name);
                                 match db.read(&client, &tx_send) {
                                     Ok(_) => {
                                         error_limit.reset();
-                                        debug!("{}read| DB '{}' - reading - ok", self_id, db_name);
+                                        trace!("{}read| DB '{}' - reading - ok", self_id, db_name);
                                     },
                                     Err(err) => {
                                         error!("{}read| DB '{}' - reading - error: {:?}", self_id, db_name, err);

@@ -73,6 +73,7 @@ impl ProfinetDb {
                             let mut message = String::new();
                             for (_key, parse_point) in &mut self.points {
                                 if let Some(point) = parse_point.next(&bytes, timestamp) {
+                                    // debug!("{}.read | point: {:?}", self.id, point);
                                     match tx_send.send(point) {
                                         Ok(_) => {},
                                         Err(err) => {

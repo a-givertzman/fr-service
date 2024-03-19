@@ -58,9 +58,9 @@ impl S7ParseBool {
         start: usize,
         bit: usize,
     ) -> Result<bool, TryFromSliceError> {
-        // debug!("[S7ParsePoint<bool>.convert] start: {},  end: {:?}", start, start + 2);
+        // debug!("S7ParseBool.convert | start: {},  end: {:?}", start, start + 2);
         // let raw: [u8; 2] = (bytes[start..(start + 2)]).try_into().unwrap();
-        // debug!("[S7ParsePoint<bool>.convert] raw: {:?}", raw);
+        // debug!("S7ParseBool.convert | raw: {:?}", raw);
         match bytes[start..(start + 2)].try_into() {
             Ok(v) => {
                 let i = i16::from_be_bytes(v);
@@ -68,7 +68,7 @@ impl S7ParseBool {
                 Ok(b > 0)
             }
             Err(e) => {
-                debug!("[S7ParsePoint<bool>.convert] error: {}", e);
+                warn!("S7ParseBool.convert | error: {}", e);
                 Err(e)
             }
         }
@@ -98,6 +98,7 @@ impl S7ParseBool {
     //
     //
     fn addRaw(&mut self, bytes: &[u8], timestamp: DateTime<Utc>) {
+        warn!("S7ParseBool.addRaw | offset: {:?} \t bit: {:?}", self.offset, self.bit);
         let result = self.convert(
             bytes,
             self.offset.unwrap() as usize,
@@ -114,7 +115,7 @@ impl S7ParseBool {
             }
             Err(e) => {
                 self.status = Status::Invalid;
-                warn!("[S7ParsePoint<bool>.addRaw] convertion error: {:?}", e);
+                warn!("S7ParseBool.addRaw | convertion error: {:?}", e);
             }
         }
     }    
@@ -131,7 +132,13 @@ impl ParsePoint for S7ParseBool {
     //
     fn next(&mut self, bytes: &[u8], timestamp: DateTime<Utc>) -> Option<PointType> {
         self.addRaw(bytes, timestamp);
-        self.toPoint()
+        match self.toPoint() {
+            Some(point) => {
+                self.isChanged = false;
+                Some(point)
+            },
+            None => None,
+        }
     }
     //
     //
