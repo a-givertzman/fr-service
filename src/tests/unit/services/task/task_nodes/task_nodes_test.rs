@@ -103,37 +103,37 @@ mod task_nodes {
             ),
         ];
         mock_service.lock().unwrap().run().unwrap();
-        for (name, value, targetValue) in test_data {
+        for (name, value, target_value) in test_data {
             let point = value.to_point(0, name);
             // let inputName = &point.name();
             debug!("input point name: {:?}  value: {:?}", name, value);
             match &task_nodes.getEvalNode(&name) {
-                Some(evalNode) => {
-                    let input = evalNode.getInput();
+                Some(eval_node) => {
+                    let input = eval_node.getInput();
                     input.borrow_mut().add(point.clone());
-                    debug!("evalNode: {:?}", evalNode.name());
+                    debug!("evalNode: {:?}", eval_node.name());
                     // debug!("evalNode outs: {:?}", evalNode.getOuts());
-                    for evalNodeVar in evalNode.getVars() {
-                        trace!("TaskEvalNode.eval | evalNode '{}' - var '{}' evaluating...", evalNode.name(), evalNodeVar.borrow().id());
-                        evalNodeVar.borrow_mut().eval();
-                        debug!("TaskEvalNode.eval | evalNode '{}' - var '{}' evaluated", evalNode.name(), evalNodeVar.borrow().id());
+                    for eval_node_var in eval_node.getVars() {
+                        trace!("TaskEvalNode.eval | evalNode '{}' - var '{}' evaluating...", eval_node.name(), eval_node_var.borrow().id());
+                        eval_node_var.borrow_mut().eval();
+                        debug!("TaskEvalNode.eval | evalNode '{}' - var '{}' evaluated", eval_node.name(), eval_node_var.borrow().id());
                     };
-                    for evalNodeOut in evalNode.getOuts() {
-                        trace!("TaskEvalNode.eval | evalNode '{}' out...", evalNode.name());
-                        let out = evalNodeOut.borrow_mut().out();
+                    for eval_node_out in eval_node.getOuts() {
+                        trace!("TaskEvalNode.eval | evalNode '{}' out...", eval_node.name());
+                        let out = eval_node_out.borrow_mut().out();
                         let out_value = match &out {
                             PointType::Bool(point) => point.value.to_string(),
                             PointType::Int(point) => point.value.to_string(),
                             PointType::Float(point) => point.value.to_string(),
                             PointType::String(point) => point.value.clone(),
                         };
-                        debug!("TaskEvalNode.eval | evalNode '{}' out - '{}': {:?}", evalNode.name(), evalNodeOut.borrow().id(), out);
-                        if evalNodeOut.borrow().kind() != &FnKind::Var {
+                        debug!("TaskEvalNode.eval | evalNode '{}' out - '{}': {:?}", eval_node.name(), eval_node_out.borrow().id(), out);
+                        if eval_node_out.borrow().kind() != &FnKind::Var {
                             let out_name = out.name();
                             debug!("TaskEvalNode.eval | out.name: '{}'", out_name);
-                            let target = match targetValue.get(out_name.as_str()) {
+                            let target = match target_value.get(out_name.as_str()) {
                                 Some(target) => target.to_string(),
-                                None => panic!("TaskEvalNode.eval | out.name '{}' - not foind in {:?}", out_name, targetValue),
+                                None => panic!("TaskEvalNode.eval | out.name '{}' - not foind in {:?}", out_name, target_value),
                             };
                             assert!(out_value == target, "\n   outValue: {} \ntargetValue: {}", out_value, target);
                         }

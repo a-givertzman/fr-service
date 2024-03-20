@@ -6,7 +6,7 @@ mod conf_subscribe {
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
 
-    use crate::conf::{conf_subscribe::ConfSubscribe, conf_tree::ConfTree};
+    use crate::conf::{conf_subscribe::ConfSubscribe, conf_tree::ConfTree, point_config::point_config::PointConfig};
     ///
     /// 
     static INIT: Once = Once::new();
@@ -34,8 +34,34 @@ mod conf_subscribe {
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
-
-        let conf = [
+        let points = [
+            r#"point Drive.Speed: 
+                type: 'Real'
+                address:
+                    offset: 0"#,
+            r#"point Drive.OutputVoltage: 
+                type: 'Real'
+                address:
+                    offset: 4"#,
+            r#"point Drive.DCVoltage: 
+                type: 'Real'
+                address:
+                    offset: 8"#,
+            r#"point Drive.Current: 
+                type: 'Real'
+                address:
+                    offset: 12
+                history: r"#,
+            r#"point Drive.Torque: 
+                type: 'Real'
+                address:
+                    offset: 16"#,
+        ];
+        let points = points.map(|conf| {
+            let conf = serde_yaml::from_str(conf).unwrap();
+            PointConfig::from_yaml(self_id, &conf)
+        });
+        let test_data = [
             r#"
                 subscribe: MultiQueue
             "#,
@@ -52,7 +78,7 @@ mod conf_subscribe {
             r#"
                 subscribe: 
                     MultiQueue:
-                        {cot: Inf, history: r}: '*'
+                        {cot: Inf, history: r}: []
             "#,
             r#"
                 subscribe: 
@@ -62,14 +88,15 @@ mod conf_subscribe {
                             - /App/Service/Point.Name.02
             "#,
         ];
-        for conf in conf {
+        for conf in test_data {
             match serde_yaml::from_str(conf) {
                 Ok(conf) => {
                     let conf: serde_yaml::Value = conf;
                     let (_key, conf) = conf.as_mapping().unwrap().into_iter().next().unwrap();
                     // let conf = ConfTree::new(key.as_str().unwrap(), conf.clone());
-                    let conf_subscribe = ConfSubscribe::new(conf.clone());
-                    println!("conf: {:#?}", conf);
+                    let conf_subscribe = ConfSubscribe::new(conf.clone(), points.to_vec());
+                    println!("\nconf          : {:#?}", conf);
+                    println!("conf_subscribe: {:#?}", conf_subscribe);
                 },
                 Err(err) => {
                     println!("Deserialize error: {:#?}", err);
@@ -136,7 +163,7 @@ mod conf_subscribe {
                     let conf: serde_yaml::Value = conf;
                     let (_key, conf) = conf.as_mapping().unwrap().into_iter().next().unwrap();
                     // let conf = ConfTree::new(key.as_str().unwrap(), conf.clone());
-                    let conf_subscribe = ConfSubscribe::new(conf.clone());
+                    let conf_subscribe = ConfSubscribe::new(conf.clone(), vec![]);
                     println!("conf: {:#?}", conf);
                 },
                 Err(err) => {

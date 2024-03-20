@@ -80,7 +80,7 @@ impl AsRef<str> for Cot {
             Cot::ReqErr => "ReqErr",
             Cot::Read => "Read",
             Cot::Write => "Write",
-            Cot::All => "*",
+            Cot::All => "",
         }
     }
 }

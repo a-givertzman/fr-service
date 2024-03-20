@@ -51,9 +51,9 @@ mod fn_conf_keywd {
             ("input7 point string /path/Point.Name", FnConfKeywd::Point( FnConfKeywdValue {input: format!("input7"), type_: FnConfPointType::String, data: format!("/path/Point.Name")} )),
         ];
         for (value, target) in test_data {
-            let fnConfigType = FnConfKeywd::from_str(value).unwrap();
-            debug!("value: {:?}   |   fnConfigType: {:?}   |   target: {:?}", value, fnConfigType, target);
-            assert_eq!(fnConfigType, target);
+            let fn_config_type = FnConfKeywd::from_str(value).unwrap();
+            debug!("value: {:?}   |   fnConfigType: {:?}   |   target: {:?}", value, fn_config_type, target);
+            assert_eq!(fn_config_type, target);
         }
     }
     
@@ -91,9 +91,9 @@ mod fn_conf_keywd {
             ("point_name", Err(())),
         ];
         for (value, target) in test_data {
-            let fnConfigType = FnConfKeywd::from_str(value);
-            debug!("value: {:?}   |   fnConfigType: {:?}   |   target: {:?}", value, fnConfigType, target);
-            assert_eq!(fnConfigType.is_err(), true);
+            let fn_config_type = FnConfKeywd::from_str(value);
+            debug!("value: {:?}   |   fnConfigType: {:?}   |   target: {:?}", value, fn_config_type, target);
+            assert_eq!(fn_config_type.is_err(), true);
         }
     }
 }
