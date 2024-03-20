@@ -1,28 +1,37 @@
 use std::collections::HashMap;
 use crate::services::multi_queue::subscription_criteria::SubscriptionCriteria;
 
+use super::point_config::point_config::PointConfig;
+
 ///
 /// Service Configuration, to be subscribed on some service / services, by number of criterias
 /// ------------------------------------------------------------------------------------------
 /// subscibe: MultiQueue    # - broadcast suscription to the MultiQueue
 /// ------------------------------------------------------------------------------------------
+/// subscribe:
+///     MultiQueue: {}      # - broadcast suscription to the MultiQueue
+///     AnotherService: {}  # - broadcast suscription to the AnotherService
+/// ------------------------------------------------------------------------------------------
 /// subscibe: 
 ///     MultiQueue:         # - multicast subscription to the MultiQueue
-///         Inf: *          #   - on all points having Cot::Inf
+///         Inf: []         #   - on all points having Cot::Inf
+/// subscribe: 
+///     MultiQueue:                     # - multicast subscription to the MultiQueue
+///         {cot: Inf, history: r}: []  #   - on all points having Cot::Inf and history::read
 /// ------------------------------------------------------------------------------------------
 /// subscibe:
-///     MultiQueue:         # - multicast subscription to the MultiQueue
-///         Act: *          #   - on all points having Cot::Act
-///         Inf:            #   - on concrete points having Cot::Inf 
+///     MultiQueue:                         # - multicast subscription to the MultiQueue
+///         Act: []                         #   - on all points having Cot::Act
+///         {cot: Inf, history: r}:         #   - on concrete points having Cot::Inf and history::read
 ///             - /App/Service/Point.Name.1
 ///             - /App/Service/Point.Name.2
-///     AnotherService:     # - multicast subscription to the AnotherService
-///         Inf: *          #   - on all points having Cot::Inf
+///     AnotherService:                     # - multicast subscription to the AnotherService
+///         Inf: []                         #   - on all points having Cot::Inf
 pub struct ConfSubscribe {
     subscriptions: HashMap<String, Vec<SubscriptionCriteria>>,
 }
 ///
-/// 
+/// Creates new instance from yaml
 impl ConfSubscribe {
     pub fn new(conf: serde_yaml::Value) -> Self {
         let self_id = format!("ConfSubscribe");
@@ -52,5 +61,10 @@ impl ConfSubscribe {
             panic!("{}.new | Invalid subscribe format: {:#?}", self_id, conf);
         };
         Self { subscriptions }
+    }
+    ///
+    /// Reurns list of SubscriptionCriteria's based on passed points (PointConfig list) and subscribe configuration
+    pub fn with(points: Vec<PointConfig>) -> Vec<SubscriptionCriteria> {
+        panic!("ConfSubscribe.with | Not implemented yet");
     }
 }
