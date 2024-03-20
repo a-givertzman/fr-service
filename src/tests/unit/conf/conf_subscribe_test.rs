@@ -1,12 +1,14 @@
 #[cfg(test)]
 
 mod conf_subscribe {
-    use log::{warn, info, debug};
-    use std::{collections::HashMap, sync::Once, time::{Duration, Instant}};
+    use std::{collections::HashMap, sync::Once, time::Duration};
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-
-    use crate::{conf::{conf_subscribe::ConfSubscribe, conf_tree::ConfTree, point_config::{point_config::PointConfig, point_name::PointName}}, core_::cot::cot::Cot, services::multi_queue::subscription_criteria::SubscriptionCriteria};
+    use crate::{
+        core_::cot::cot::Cot, 
+        services::multi_queue::subscription_criteria::SubscriptionCriteria,
+        conf::{conf_subscribe::ConfSubscribe, point_config::{point_config::PointConfig, point_name::PointName}}, 
+    };
     ///
     /// 
     static INIT: Once = Once::new();
@@ -66,7 +68,7 @@ mod conf_subscribe {
                 r#"
                     subscribe: MultiQueue
                 "#,
-                HashMap::from([("MultiQueue".to_owned(), vec![])])
+                HashMap::from([("MultiQueue".to_owned(), Some(vec![]))])
             ),
             (
                 r#"
@@ -75,8 +77,8 @@ mod conf_subscribe {
                         MultiQueue_02: {}
                 "#,
                 HashMap::from([
-                    ("MultiQueue_01".to_owned(), vec![]),
-                    ("MultiQueue_02".to_owned(), vec![]),
+                    ("MultiQueue_01".to_owned(), Some(vec![])),
+                    ("MultiQueue_02".to_owned(), Some(vec![])),
                 ])
             ),
             (
@@ -85,13 +87,13 @@ mod conf_subscribe {
                         MultiQueue:
                             Inf: []
                 "#,
-                HashMap::from([("MultiQueue".to_owned(), vec![
+                HashMap::from([("MultiQueue".to_owned(), Some(vec![
                     SubscriptionCriteria::new(PointName::new(self_id, "Drive.Speed").full(), Cot::Inf),
                     SubscriptionCriteria::new(PointName::new(self_id, "Drive.OutputVoltage").full(), Cot::Inf),
                     SubscriptionCriteria::new(PointName::new(self_id, "Drive.DCVoltage").full(), Cot::Inf),
                     SubscriptionCriteria::new(PointName::new(self_id, "Drive.Current").full(), Cot::Inf),
                     SubscriptionCriteria::new(PointName::new(self_id, "Drive.Torque").full(), Cot::Inf),
-                ])])
+                ]))])
             ),
             (
                 r#"
@@ -99,9 +101,9 @@ mod conf_subscribe {
                         MultiQueue:
                             {cot: Inf, history: r}: []
                 "#,
-                HashMap::from([("MultiQueue".to_owned(), vec![
+                HashMap::from([("MultiQueue".to_owned(), Some(vec![
                     SubscriptionCriteria::new(PointName::new(self_id, "Drive.Current").full(), Cot::Inf),
-                ])])
+                ]))])
             ),
             (
                 r#"
@@ -111,7 +113,7 @@ mod conf_subscribe {
                                 - /App/Service/Point.Name.01
                                 - /App/Service/Point.Name.02
                 "#,
-                HashMap::from([("MultiQueue".to_owned(), vec![])])
+                HashMap::from([("MultiQueue".to_owned(), None)])
             ),
         ];
         for (conf, target) in test_data {
@@ -119,10 +121,10 @@ mod conf_subscribe {
                 Ok(conf) => {
                     let conf: serde_yaml::Value = conf;
                     let (_key, conf) = conf.as_mapping().unwrap().into_iter().next().unwrap();
-                    let subscribe = ConfSubscribe::new(conf.clone());
+                    let conf = ConfSubscribe::new(conf.clone());
                     println!("\nconf     : {:#?}", conf);
-                    println!("subscribe: {:#?}", subscribe);
-                    let result = subscribe.with(&points.to_vec());
+                    let result = conf.with(&points.to_vec());
+                    println!("subscribe: {:#?}", result);
                     assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
                 },
                 Err(err) => {

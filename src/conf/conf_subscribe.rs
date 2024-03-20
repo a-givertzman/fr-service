@@ -46,15 +46,15 @@ impl ConfSubscribe {
     }
     ///
     /// 
-    pub fn with(&self, points: &Vec<PointConfig>) -> HashMap<String, Vec<SubscriptionCriteria>> {
+    pub fn with(&self, points: &Vec<PointConfig>) -> HashMap<String, Option<Vec<SubscriptionCriteria>>> {
         let point_configs = points;
         if self.conf.is_string() {
             let service = self.conf.as_str().unwrap().to_owned();
             HashMap::from([
-                (service, vec![])
+                (service, Some(vec![]))
             ])
         } else if self.conf.is_mapping() {
-            let mut subscriptions = HashMap::<String, Vec<SubscriptionCriteria>>::new();
+            let mut subscriptions = HashMap::<String, Option<Vec<SubscriptionCriteria>>>::new();
             for (service, criterias) in self.conf.as_mapping().unwrap() {
                 let service = service.as_str().unwrap();
                 let mut points = criterias.as_mapping().unwrap().into_iter().fold(vec![], |mut points, (options, names)| {
@@ -94,11 +94,15 @@ impl ConfSubscribe {
                     points.extend(creterias);
                     points
                 });
+                // let points = if points.is_empty() {None} else {Some(points)};
                 subscriptions.entry(service.to_owned())
                     .and_modify(|entry| {
-                        entry.append(&mut points)
+                        entry.as_mut().and_then(|v| {
+                            v.append(&mut points);
+                            Some(v)
+                        }).or(if points.is_empty() {None} else {Some(&mut points)});
                     })
-                    .or_insert(points);
+                    .or_insert(if points.is_empty() {None} else {Some(points)});
             }
             subscriptions
         } else {
