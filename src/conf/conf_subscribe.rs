@@ -48,7 +48,7 @@ impl ConfSubscribe {
                 let service = service.as_str().unwrap();
                 let mut points = criterias.as_mapping().unwrap().into_iter().fold(vec![], |mut points, (options, names)| {
                     let names = names.as_sequence().unwrap();
-                    let point = if names.is_empty() {
+                    let point_configs = if names.is_empty() {
                         point_configs.clone()
                     } else {
                         names.iter().filter_map(|name| {
@@ -56,8 +56,7 @@ impl ConfSubscribe {
                             point_configs.iter().find(|&point_conf| point_conf.name == name)
                         }).cloned().collect()
                     };
-
-                    let creterias = point.into_iter().filter_map(|point_conf| {
+                    let creterias = point_configs.into_iter().filter_map(|point_conf| {
                         if options.is_string() {
                             let cot = serde_yaml::from_value(options.clone()).unwrap();
                             Some(SubscriptionCriteria::new(point_conf.name, cot))
@@ -68,10 +67,10 @@ impl ConfSubscribe {
                             let alarm = options.get("alarm").map(|v| v.as_u64().unwrap());
                             let mut filter = false;
                             if let Some(history) = history {
-                                filter &= point_conf.history != history
+                                filter |= point_conf.history != history
                             }
                             if let Some(alarm) = alarm {
-                                filter &= point_conf.alarm.map(|v| v != alarm as u8).unwrap_or(true);
+                                filter |= point_conf.alarm.map(|v| v != alarm as u8).unwrap_or(true);
                             }
                             if !filter {
                                 return Some(SubscriptionCriteria::new(point_conf.name, cot))
