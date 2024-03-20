@@ -136,7 +136,7 @@ impl ServiceConfig {
     pub fn subscribe(&mut self) -> Result<ConfSubscribe, String> {
         match self.get_param_value("subscribe") {
             Ok(conf) => {
-                Ok(ConfSubscribe::new(conf, vec![]))
+                Ok(ConfSubscribe::new(conf))
             },
             Err(err) => Err(err),
         }

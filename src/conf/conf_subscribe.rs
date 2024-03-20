@@ -29,22 +29,33 @@ use super::point_config::point_config::PointConfig;
 ///         Inf: []                         #   - on all points having Cot::Inf
 #[derive(Debug)]
 pub struct ConfSubscribe {
-    subscriptions: HashMap<String, Vec<SubscriptionCriteria>>,
+    id: String,
+    conf: serde_yaml::Value,
+    // subscriptions: HashMap<String, Vec<SubscriptionCriteria>>,
 }
 ///
 /// Creates new instance from yaml
 impl ConfSubscribe {
-    pub fn new(conf: serde_yaml::Value, points: Vec<PointConfig>) -> Self {
-        let self_id = "ConfSubscribe".to_owned();
+    ///
+    /// Creates new instance of ConfSubscribe
+    pub fn new(conf: serde_yaml::Value) -> Self {
+        Self {
+            id: "ConfSubscribe".to_owned(),
+            conf,
+        }
+    }
+    ///
+    /// 
+    pub fn with(&self, points: &Vec<PointConfig>) -> HashMap<String, Vec<SubscriptionCriteria>> {
         let point_configs = points;
-        let subscriptions = if conf.is_string() {
-            let service = conf.as_str().unwrap().to_owned();
+        if self.conf.is_string() {
+            let service = self.conf.as_str().unwrap().to_owned();
             HashMap::from([
                 (service, vec![])
             ])
-        } else if conf.is_mapping() {
+        } else if self.conf.is_mapping() {
             let mut subscriptions = HashMap::<String, Vec<SubscriptionCriteria>>::new();
-            for (service, criterias) in conf.as_mapping().unwrap() {
+            for (service, criterias) in self.conf.as_mapping().unwrap() {
                 let service = service.as_str().unwrap();
                 let mut points = criterias.as_mapping().unwrap().into_iter().fold(vec![], |mut points, (options, names)| {
                     let names = names.as_sequence().unwrap();
@@ -77,7 +88,7 @@ impl ConfSubscribe {
                             }
                             None
                         } else {
-                            panic!("{}.new | Invalid subscribe options format: {:#?}", self_id, options);
+                            panic!("{}.new | Invalid subscribe options format: {:#?}", self.id, options);
                         }
                     });
                     points.extend(creterias);
@@ -91,13 +102,7 @@ impl ConfSubscribe {
             }
             subscriptions
         } else {
-            panic!("{}.new | Invalid subscribe format: {:#?}", self_id, conf);
-        };
-        Self { subscriptions }
-    }
-    ///
-    /// 
-    pub fn subscriptions(&self) -> HashMap<String, Vec<SubscriptionCriteria>> {
-        self.subscriptions.clone()
+            panic!("{}.new | Invalid subscribe format: {:#?}", self.id, self.conf);
+        }
     }
 }

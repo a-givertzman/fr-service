@@ -119,11 +119,10 @@ mod conf_subscribe {
                 Ok(conf) => {
                     let conf: serde_yaml::Value = conf;
                     let (_key, conf) = conf.as_mapping().unwrap().into_iter().next().unwrap();
-                    // let conf = ConfTree::new(key.as_str().unwrap(), conf.clone());
-                    let subscribe = ConfSubscribe::new(conf.clone(), points.to_vec());
+                    let subscribe = ConfSubscribe::new(conf.clone());
                     println!("\nconf     : {:#?}", conf);
                     println!("subscribe: {:#?}", subscribe);
-                    let result = subscribe.subscriptions();
+                    let result = subscribe.with(&points.to_vec());
                     assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
                 },
                 Err(err) => {
