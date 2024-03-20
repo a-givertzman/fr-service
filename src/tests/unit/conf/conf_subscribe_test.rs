@@ -2,11 +2,11 @@
 
 mod conf_subscribe {
     use log::{warn, info, debug};
-    use std::{sync::Once, time::{Duration, Instant}};
+    use std::{collections::HashMap, sync::Once, time::{Duration, Instant}};
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
 
-    use crate::conf::{conf_subscribe::ConfSubscribe, conf_tree::ConfTree, point_config::point_config::PointConfig};
+    use crate::{conf::{conf_subscribe::ConfSubscribe, conf_tree::ConfTree, point_config::{point_config::PointConfig, point_name::PointName}}, core_::cot::cot::Cot, services::multi_queue::subscription_criteria::SubscriptionCriteria};
     ///
     /// 
     static INIT: Once = Once::new();
@@ -62,117 +62,75 @@ mod conf_subscribe {
             PointConfig::from_yaml(self_id, &conf)
         });
         let test_data = [
-            r#"
-                subscribe: MultiQueue
-            "#,
-            r#"
-                subscribe:
-                    MultiQueue_01: {}
-                    MultiQueue_02: {}
-            "#,
-            r#"
-                subscribe: 
-                    MultiQueue:
-                        Inf: []
-            "#,
-            r#"
-                subscribe: 
-                    MultiQueue:
-                        {cot: Inf, history: r}: []
-            "#,
-            r#"
-                subscribe: 
-                    MultiQueue:
-                        {cot: Inf, history: r}:
-                            - /App/Service/Point.Name.01
-                            - /App/Service/Point.Name.02
-            "#,
+            (
+                r#"
+                    subscribe: MultiQueue
+                "#,
+                HashMap::from([("MultiQueue".to_owned(), vec![])])
+            ),
+            (
+                r#"
+                    subscribe:
+                        MultiQueue_01: {}
+                        MultiQueue_02: {}
+                "#,
+                HashMap::from([
+                    ("MultiQueue_01".to_owned(), vec![]),
+                    ("MultiQueue_02".to_owned(), vec![]),
+                ])
+            ),
+            (
+                r#"
+                    subscribe: 
+                        MultiQueue:
+                            Inf: []
+                "#,
+                HashMap::from([("MultiQueue".to_owned(), vec![
+                    SubscriptionCriteria::new(PointName::new(self_id, "Drive.Speed").full(), Cot::Inf),
+                    SubscriptionCriteria::new(PointName::new(self_id, "Drive.OutputVoltage").full(), Cot::Inf),
+                    SubscriptionCriteria::new(PointName::new(self_id, "Drive.DCVoltage").full(), Cot::Inf),
+                    SubscriptionCriteria::new(PointName::new(self_id, "Drive.Current").full(), Cot::Inf),
+                    SubscriptionCriteria::new(PointName::new(self_id, "Drive.Torque").full(), Cot::Inf),
+                ])])
+            ),
+            (
+                r#"
+                    subscribe: 
+                        MultiQueue:
+                            {cot: Inf, history: r}: []
+                "#,
+                HashMap::from([("MultiQueue".to_owned(), vec![
+                    SubscriptionCriteria::new(PointName::new(self_id, "Drive.Current").full(), Cot::Inf),
+                ])])
+            ),
+            (
+                r#"
+                    subscribe: 
+                        MultiQueue:
+                            {cot: Inf, history: r}:
+                                - /App/Service/Point.Name.01
+                                - /App/Service/Point.Name.02
+                "#,
+                HashMap::from([("MultiQueue".to_owned(), vec![])])
+            ),
         ];
-        for conf in test_data {
+        for (conf, target) in test_data {
             match serde_yaml::from_str(conf) {
                 Ok(conf) => {
                     let conf: serde_yaml::Value = conf;
                     let (_key, conf) = conf.as_mapping().unwrap().into_iter().next().unwrap();
                     // let conf = ConfTree::new(key.as_str().unwrap(), conf.clone());
-                    let conf_subscribe = ConfSubscribe::new(conf.clone(), points.to_vec());
-                    println!("\nconf          : {:#?}", conf);
-                    println!("conf_subscribe: {:#?}", conf_subscribe);
+                    let subscribe = ConfSubscribe::new(conf.clone(), points.to_vec());
+                    println!("\nconf     : {:#?}", conf);
+                    println!("subscribe: {:#?}", subscribe);
+                    let result = subscribe.subscriptions();
+                    assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
                 },
                 Err(err) => {
-                    println!("Deserialize error: {:#?}", err);
+                    panic!("Deserialize error: {:#?}", err);
                 },
             };
         }
-            
-        // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         test_duration.exit();
     }
-    ///
-    /// 
-    // #[test]
-    fn with() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
-        init_once();
-        init_each();
-        println!();
-        let self_id = "test";
-        println!("\n{}", self_id);
-        let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
-        test_duration.run().unwrap();
-
-        let conf = [
-            r#"
-            subscribe: MultiQueue
-#            service ProfinetClient Ied01:
-#                cycle: 500 ms                         # operating cycle time of the module
-            "#,
-            r#"
-            subscribe:
-                MultiQueue_01: {}
-                MultiQueue_02: {}
-#            service ProfinetClient Ied01:
-#                cycle: 500 ms                         # operating cycle time of the module
-            "#,
-            r#"
-            subscribe: 
-                MultiQueue:
-                    Inf: []
-            #service ProfinetClient Ied01:
-            #    cycle: 500 ms                         # operating cycle time of the module
-            "#,
-            r#"
-            subscribe: 
-                MultiQueue:
-                    {cot: Inf, history: r}: '*'
-            #service ProfinetClient Ied01:
-            #    cycle: 500 ms                         # operating cycle time of the module
-            "#,
-            r#"
-            subscribe: 
-                MultiQueue:
-                    {cot: Inf, history: r}:
-                        - /App/Service/Point.Name.01
-                        - /App/Service/Point.Name.02
-            #service ProfinetClient Ied01:
-            #    cycle: 500 ms                         # operating cycle time of the module
-            "#,
-        ];
-        for conf in conf {
-            match serde_yaml::from_str(conf) {
-                Ok(conf) => {
-                    let conf: serde_yaml::Value = conf;
-                    let (_key, conf) = conf.as_mapping().unwrap().into_iter().next().unwrap();
-                    // let conf = ConfTree::new(key.as_str().unwrap(), conf.clone());
-                    let conf_subscribe = ConfSubscribe::new(conf.clone(), vec![]);
-                    println!("conf: {:#?}", conf);
-                },
-                Err(err) => {
-                    println!("Deserialize error: {:#?}", err);
-                },
-            };
-        }
-            
-        // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
-        test_duration.exit();
-    }    
 }

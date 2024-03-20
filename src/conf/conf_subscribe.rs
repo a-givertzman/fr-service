@@ -95,9 +95,9 @@ impl ConfSubscribe {
         };
         Self { subscriptions }
     }
-    // ///
-    // /// Reurns list of SubscriptionCriteria's based on passed points (PointConfig list) and subscribe configuration
-    // pub fn with(points: Vec<PointConfig>) -> Vec<SubscriptionCriteria> {
-    //     panic!("ConfSubscribe.with | Not implemented yet");
-    // }
+    ///
+    /// 
+    pub fn subscriptions(&self) -> HashMap<String, Vec<SubscriptionCriteria>> {
+        self.subscriptions.clone()
+    }
 }

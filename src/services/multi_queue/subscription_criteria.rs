@@ -8,7 +8,7 @@ use crate::core_::cot::cot::Cot;
 /// Detailed definition of the subscription;
 /// - "name" - the name of the point to be subscribed;
 /// - "cot" - the cause & direction of the transmission to be subscribed;
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SubscriptionCriteria {
     name: String,
     cot: Cot,
