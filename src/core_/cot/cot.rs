@@ -58,18 +58,9 @@ impl Cot {
     pub fn contains(&self, rhs: Cot) -> bool {
         (*self & rhs) > 0
     }
-}
-///
-/// 
-impl Default for Cot {
-    fn default() -> Self {
-        Self::Inf
-    }
-}
-///
-/// 
-impl AsRef<str> for Cot {
-    fn as_ref(&self) -> &str {
+    ///
+    /// Returns string representation of the given Cot
+    pub fn as_str(&self) -> &str {
         match self {
             Cot::Inf => "Inf",
             Cot::Act => "Act",
@@ -82,6 +73,20 @@ impl AsRef<str> for Cot {
             Cot::Write => "Write",
             Cot::All => "",
         }
+    }
+}
+///
+/// 
+impl Default for Cot {
+    fn default() -> Self {
+        Self::Inf
+    }
+}
+///
+/// 
+impl AsRef<str> for Cot {
+    fn as_ref(&self) -> &str {
+        self.as_str()
     }
 }
 ///
