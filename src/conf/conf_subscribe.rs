@@ -45,7 +45,7 @@ impl ConfSubscribe {
     }
     ///
     /// Returns subscriptions based on the given points and number of configured criterias
-    pub fn with(&self, points: &Vec<PointConfig>) -> HashMap<String, Option<Vec<SubscriptionCriteria>>> {
+    pub fn with(&self, points: &[PointConfig]) -> HashMap<String, Option<Vec<SubscriptionCriteria>>> {
         if self.conf.is_string() {
             let service = self.conf.as_str().unwrap().to_owned();
             HashMap::from([
@@ -56,7 +56,7 @@ impl ConfSubscribe {
                 Some(conf) => {
                     conf.iter().fold(HashMap::new(), |mut subscriptions, (service, criterias_conf)| {
                         let service = service.as_str().unwrap();
-                        let criterias = Criterias::new(&self.id, &criterias_conf, points).build();
+                        let criterias = Criterias::new(&self.id, criterias_conf, points).build();
                         subscriptions
                             .entry(service.to_owned())
                             .and_modify(|entry| {
@@ -96,11 +96,11 @@ struct Criterias {
 ///
 /// 
 impl Criterias {
-    fn new(parent: &str, conf: &serde_yaml::Value, points: &Vec<PointConfig>) -> Self {
+    fn new(parent: &str, conf: &serde_yaml::Value, points: &[PointConfig]) -> Self {
         Self {
             id: format!("{}/Criterias", parent),
             conf: conf.clone(),
-            points: points.clone(),
+            points: points.to_vec(),
         }
     }
     ///
@@ -133,7 +133,7 @@ impl Criterias {
     }
     ///
     /// Creates list of Subscriptions based on the given point names, point configs, and filtering criterias
-    fn build_criterias(self_id: &str, options: &serde_yaml::Value, names: &serde_yaml::Value, point_configs: &Vec<PointConfig>) -> Option<Vec<SubscriptionCriteria>> {
+    fn build_criterias(self_id: &str, options: &serde_yaml::Value, names: &serde_yaml::Value, point_configs: &[PointConfig]) -> Option<Vec<SubscriptionCriteria>> {
         trace!("{}.build_criterias | options: {:?}", self_id, options);
         trace!("{}.build_criterias | names: {:?}", self_id, names);
         let names = names.as_sequence().unwrap();
@@ -159,7 +159,7 @@ impl Criterias {
                 .filter_map(|point_conf| {
                     Self::accept(&point_conf, &history, &alarm).then_some(SubscriptionCriteria::new(point_conf.name, cot))
                 });
-            if (&creterias).clone().peekable().peek().is_some() {
+            if (creterias).clone().peekable().peek().is_some() {
                 Some(creterias.collect())
             } else {
                 None
@@ -171,9 +171,9 @@ impl Criterias {
     ///
     /// Returns all configs if names is empty, 
     /// otherwise returns configs for given names
-    fn build_point_configs(names: &Vec<serde_yaml::Value>, configs: &Vec<PointConfig>) -> Vec<PointConfig> {
+    fn build_point_configs(names: &Vec<serde_yaml::Value>, configs: &[PointConfig]) -> Vec<PointConfig> {
         if names.is_empty() {
-            configs.clone()
+            configs.to_vec()
         } else {
             names.iter().filter_map(|name| {
                 let name: String = serde_yaml::from_value(name.clone()).unwrap();
