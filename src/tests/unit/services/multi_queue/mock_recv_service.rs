@@ -69,7 +69,7 @@ impl Service for MockRecvService {
         let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
             match recv_limit {
-                Some(recvLimit) => {
+                Some(recv_limit) => {
                     let mut received_count = 0;
                     loop {
                         match in_recv.recv_timeout(RECV_TIMEOUT) {
@@ -80,7 +80,7 @@ impl Service for MockRecvService {
                             },
                             Err(_) => {},
                         };
-                        if received_count >= recvLimit {
+                        if received_count >= recv_limit {
                             break;
                         }
                         if exit.load(Ordering::SeqCst) {

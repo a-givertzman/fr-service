@@ -161,7 +161,7 @@ impl Services {
         info!("{}.run | Application started\n", self_id);
         let self_id_clone = self_id.clone();
         let services_clone = services.clone();
-        let signals = Signals::new(&[
+        let signals = Signals::new([
             SIGHUP,     // code: 1	This signal is sent to a process when its controlling terminal is closed or disconnected
             SIGINT,     // code: 2	This signal is sent to a process when the user presses Control+C to interrupt its execution
             SIGQUIT,    // code: 3	This signal is similar to SIGINT but is used to initiate a core dump of the process, which is useful for debugging

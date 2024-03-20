@@ -42,15 +42,15 @@ impl PointConfig {
     /// creates PointConfig from serde_yaml::Value of following format:
     /// ```yaml
     /// PointName:
-    ///     type: bool      # bool / int / float / string / json
-    ///     history: 0      # 0 / 1
-    ///     alarm: 0        # 0..15
-    ///     address:
-    ///         offset: 0..65535
-    ///         bit: 0..255
-    ///     filter:
-    ///         threshold: 0.5      // absolute threshold delta
-    ///         factor: 1.5         // multiplier for absolute threshold delta - in this case the delta will be accumulated
+    ///     type: bool              # bool / int / float / string / json
+    ///     alarm: 0                # 0..15
+    ///     history: r              # ommit - None / r - Read / w - Write / rw - ReadWrite (Optional)
+    ///     address:                # Protocol-specific address in the source device (Optional)
+    ///         offset: 0..65535    #   0..65535
+    ///         bit: 0..255         #   0..255 (Optional)
+    ///     filter:                 # Filter conf, using such filter, point can be filtered immediately after input's parser
+    ///         threshold: 0.5      #   absolute threshold delta
+    ///         factor: 1.5         #   multiplier for absolute threshold delta - in this case the delta will be accumulated
     ///     comment: Test Point 
     pub fn new(parent: &str, conf_tree: &ConfTree) -> Self {
         // println!();

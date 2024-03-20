@@ -8,7 +8,7 @@ use crate::core_::cot::cot::Cot;
 /// Detailed definition of the subscription;
 /// - "name" - the name of the point to be subscribed;
 /// - "cot" - the cause & direction of the transmission to be subscribed;
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SubscriptionCriteria {
     name: String,
     cot: Cot,
@@ -34,7 +34,7 @@ impl SubscriptionCriteria {
         if let Some(dest) = &*self.dest.borrow() {
             return dest.clone();
         }
-        let dest = concat_string!(self.cot, "/", self.name);
+        let dest = concat_string!(self.cot.as_str(), "/", self.name);
         *self.dest.borrow_mut() = Some(dest.clone());
         dest
     }

@@ -513,11 +513,11 @@ Such as:
         alarm: 0                    # 0..15 (Optional)
         history: r                  # ommit - None / r - Read / w - Write / rw - ReadWrite (Optional)
         address:                    # Protocol-specific address in the source device (Optional)
-            offset: 0               # 0..65535
-            bit: 0                  # 0..255 (Optional)
-        filters:
-            threshold: 5.0          # 5 threshold
-            factor: 0.1
+            offset: 0               #   0..65535
+            bit: 0                  #   0..255 (Optional)
+        filters:                    # Filter conf, using such filter, point can be filtered immediately after input's parser
+            threshold: 5.0          #   Absolute threshold delta
+            factor: 0.1             #   Multiplier for absolute threshold delta - in this case the delta will be accumulated
         comment: Test Point Bool,   # Description to the point (Optional)
 ```
 

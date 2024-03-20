@@ -155,9 +155,9 @@ mod task {
         println!("received: {:?}", received.len());
         assert!(sent.len() == iterations, "\nresult: {:?}\ntarget: {:?}", sent.len(), iterations);
         assert!(received.len() == iterations, "\nresult: {:?}\ntarget: {:?}", received.len(), iterations);
-        for sentPoint in sent.iter() {
+        for sent_point in sent.iter() {
             let recv_point = received.pop().unwrap();
-            assert!(&recv_point == sentPoint, "\nresult: {:?}\ntarget: {:?}", recv_point, sentPoint);
+            assert!(&recv_point == sent_point, "\nresult: {:?}\ntarget: {:?}", recv_point, sent_point);
         }
     }
 }

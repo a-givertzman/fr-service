@@ -97,7 +97,7 @@ mod tcp_client {
         thread::sleep(Duration::from_micros(100));
         let timer = Instant::now();
         debug!("Test - setup - ok");
-        handle.wait();
+        handle.wait().unwrap();
         // let waitDuration = Duration::from_millis(100);
         // let mut waitAttempts = test_duration.as_micros() / waitDuration.as_micros();
         // while multiQueue.lock().unwrap().received().lock().unwrap().len() < totalCount {

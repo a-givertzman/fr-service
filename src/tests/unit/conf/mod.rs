@@ -1,19 +1,21 @@
-pub mod fn_conf_keyword_test;
+mod fn_conf_keyword_test;
 
-pub mod config_tree;
+mod config_tree;
 
-pub mod fn_config;
+mod fn_config;
 
-pub mod metric_config;
+mod metric_config;
 
-pub mod task_config;
+mod task_config;
 
-pub mod conf_duration_test;
+mod conf_duration_test;
 
-pub mod conf_keyword_test;
+mod conf_keyword_test;
 
-pub mod tcp_server_config;
+mod tcp_server_config;
 
-pub mod point;
+mod point;
 
-pub mod profinet_client_config;
+mod profinet_client_config;
+
+mod conf_subscribe_test;
