@@ -1,5 +1,5 @@
 use std::{collections::{hash_map::Iter, HashMap}, sync::{mpsc::{Receiver, Sender}, Arc, Mutex}};
-use log::debug;
+use log::{debug, trace};
 use crate::{
     core_::point::point_type::PointType, 
     conf::point_config::point_config::PointConfig, 
@@ -109,9 +109,11 @@ impl Services {
     pub fn points(&self) -> Vec<PointConfig> {
         let mut points = vec![];
         for service in self.map.values() {
-            let mut service_points = service.lock().unwrap().points();
+        debug!("{}.points | service: '{:?}'", self.id, service.lock().unwrap().id());
+        let mut service_points = service.lock().unwrap().points();
             points.append(&mut service_points);
         };
+        trace!("{}.points | points: '{:#?}'", self.id, points);
         points
     }
 }

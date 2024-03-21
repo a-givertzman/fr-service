@@ -134,7 +134,7 @@ fn test_float() {
         let state = input.borrow_mut().out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.as_float().value, value);
+        assert_eq!(state.as_double().value, value);
     }        
 }
 

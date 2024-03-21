@@ -85,7 +85,8 @@ fn test_int() {
                     let outValue = match &out {
                         PointType::Bool(point) => point.value.to_string(),
                         PointType::Int(point) => point.value.to_string(),
-                        PointType::Float(point) => point.value.to_string(),
+                        PointType::Real(point) => point.value.to_string(),
+                        PointType::Double(point) => point.value.to_string(),
                         PointType::String(point) => point.value.clone(),
                     };
                     debug!("TaskEvalNode.eval | evalNode '{}' out - '{}': {:?}", evalNode.name(), evalNodeOut.borrow().id(), out);
@@ -171,7 +172,8 @@ fn test_float() {
                     let outValue = match &out {
                         PointType::Bool(point) => point.value.to_string(),
                         PointType::Int(point) => point.value.to_string(),
-                        PointType::Float(point) => point.value.to_string(),
+                        PointType::Real(point) => point.value.to_string(),
+                        PointType::Double(point) => point.value.to_string(),
                         PointType::String(point) => point.value.clone(),
                     };
                     debug!("TaskEvalNode.eval | evalNode '{}' out - '{}': {:?}", evalNode.name(), evalNodeOut.borrow().id(), out);
@@ -186,7 +188,7 @@ fn test_float() {
                     let out = out.replace("{!}", &digits);
                     trace!("out: {}", out);
             
-                    debug!("value: {:?}   |   state: {:?}", point.as_float().value, outValue);
+                    debug!("value: {:?}   |   state: {:?}", point.as_double().value, outValue);
                     assert_eq!(
                         out, 
                         format!("UPDATE SelectMetric_test_table_name SET kind = '{:.1}' WHERE id = '{}';",targetValue, 3.33),

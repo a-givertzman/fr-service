@@ -69,7 +69,7 @@ fn test_single() {
         let state = fnCount.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.as_float().value, targetState as f64);
+        assert_eq!(state.as_double().value, targetState as f64);
     }        
 }
 // 
@@ -108,7 +108,7 @@ fn test_multiple() {
         let state = fnCount.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.as_float().value, targetState as f64);
+        assert_eq!(state.as_double().value, targetState as f64);
     }        
 }
 
@@ -149,6 +149,6 @@ fn test_multiple_reset() {
         let state = fnCount.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.as_float().value, targetState as f64);
+        assert_eq!(state.as_double().value, targetState as f64);
     }        
 }

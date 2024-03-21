@@ -89,20 +89,7 @@ impl Format {
     ///
     /// 
     fn pointValueToString(point: &PointType) -> String{
-        match point {
-            PointType::Bool(point) => {
-                point.value.to_string()
-            },
-            PointType::Int(point) => {
-                point.value.to_string()
-            },
-            PointType::Float(point) => {
-                point.value.to_string()
-            },
-            PointType::String(point) => {
-                point.value.to_string()
-            },
-        }
+        point.value().to_string()
     }
     ///
     /// Returns List of al names & sufixes in the following format:

@@ -60,10 +60,14 @@ mod profinet_client {
             Value::Int(1),
             Value::Int(2),
             Value::Int(3),
-            Value::Float(0.00101),
-            Value::Float(0.00201),
-            Value::Float(0.10201),
-            Value::Float(9.10201),
+            Value::Real(0.00101),
+            Value::Real(0.00201),
+            Value::Real(0.10201),
+            Value::Real(9.10201),
+            Value::Double(0.00101),
+            Value::Double(0.00201),
+            Value::Double(0.10201),
+            Value::Double(9.10201),
         ];
         let send = mq_service.lock().unwrap().get_link("in-queue");
         let (_, recv) = mq_service.lock().unwrap().subscribe(self_id, &[]);
@@ -73,8 +77,11 @@ mod profinet_client {
                 Value::Int(value) => {
                     PointType::Int(Point::new(tx_id, &PointName::new("/Ied01/db999/", "Capacitor.Capacity").full(), value, Status::Ok, Cot::Act, Utc::now()))
                 },
-                Value::Float(value) => {
-                    PointType::Float(Point::new(tx_id, &PointName::new("/Ied01/db899/", "Drive.Speed").full(), value, Status::Ok, Cot::Act, Utc::now()))
+                Value::Real(value) => {
+                    PointType::Real(Point::new(tx_id, &PointName::new("/Ied01/db899/", "Drive.Speed").full(), value, Status::Ok, Cot::Act, Utc::now()))
+                },
+                Value::Double(value) => {
+                    PointType::Double(Point::new(tx_id, &PointName::new("/Ied01/db899/", "Drive.Speed").full(), value, Status::Ok, Cot::Act, Utc::now()))
                 },
                 Value::String(value) => panic!("{} | String does not supported: {:?}", self_id, value),
             };
@@ -93,9 +100,14 @@ mod profinet_client {
                                 let target = point.as_int().value;
                                 assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
                             },
-                            PointType::Float(received_point) => {
+                            PointType::Real(received_point) => {
                                 let result = received_point.value;
-                                let target = point.as_float().value;
+                                let target = point.as_real().value;
+                                assert!(result.aprox_eq(target, 3), "\nresult: {:?}\ntarget: {:?}", result, target);
+                            },
+                            PointType::Double(received_point) => {
+                                let result = received_point.value;
+                                let target = point.as_double().value;
                                 assert!(result.aprox_eq(target, 3), "\nresult: {:?}\ntarget: {:?}", result, target);
                             },
                             PointType::String(value) => {

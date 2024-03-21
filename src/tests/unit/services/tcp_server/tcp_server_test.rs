@@ -99,7 +99,7 @@ mod tcp_server {
         thread::sleep(Duration::from_millis(100));
         let producer_handle = producer.lock().unwrap().run().unwrap();
         producer_handle.wait().unwrap();
-        emulated_tcp_client.lock().unwrap().waitAllReceived();
+        emulated_tcp_client.lock().unwrap().wait_all_received();
         
         let received = emulated_tcp_client.lock().unwrap().received();
         let mut received = received.lock().unwrap();

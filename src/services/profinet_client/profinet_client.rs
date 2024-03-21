@@ -257,8 +257,13 @@ impl Service for ProfinetClient {
             (Err(read_err), Err(write_err)) => Err(format!("{}.run | Error starting inner thread: \n\t  read: {:#?}\n\t write: {:#?}", self.id, read_err, write_err)),
         }
     }
-    ///
-    /// 
+    //
+    //
+    fn points(&self) -> Vec<PointConfig> {
+        self.conf.points()
+    }
+    //
+    // 
     fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
     }    

@@ -63,12 +63,12 @@ impl FnOut for FnCount {
         let value = match &point {
             PointType::Bool(point) => if point.value.0 {1.0} else {0.0},
             PointType::Int(point) => point.value as f64,
-            PointType::Float(point) => point.value,
+            PointType::Double(point) => point.value,
             _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id,  point.print_type_of(), point),
         };
         self.count += value;
         trace!("{}.out | input.out: {:?}   | state: {:?}", self.id, &value, self.count);
-        PointType::Float(
+        PointType::Double(
             Point {
                 tx_id: *point.tx_id(),
                 name: format!("{}.out", self.id),

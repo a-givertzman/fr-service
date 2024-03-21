@@ -42,7 +42,7 @@ impl FnGe {
             PointType::Int(point) => {
                 point.value as f64
             },
-            PointType::Float(point) => {
+            PointType::Double(point) => {
                 point.value
             },
             _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, point.print_type_of(), point),

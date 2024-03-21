@@ -71,8 +71,8 @@ impl FnOut for FnAdd {
             PointType::Int(value1) => {
                 PointType::Int(value1 + value2.as_int())
             },
-            PointType::Float(value1) => {
-                PointType::Float(value1 + value2.as_float())
+            PointType::Double(value1) => {
+                PointType::Double(value1 + value2.as_double())
             },
             _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, value1.print_type_of(), value1),
         };

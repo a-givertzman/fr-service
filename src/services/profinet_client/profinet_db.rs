@@ -152,7 +152,10 @@ impl ProfinetDb {
                     PointType::Int(point) => {
                         client.write(self.number, address.offset.unwrap(), 2, &mut (point.value as i16).to_be_bytes())
                     },
-                    PointType::Float(point) => {
+                    PointType::Real(point) => {
+                        client.write(self.number, address.offset.unwrap(), 4, &mut (point.value as f32).to_be_bytes())
+                    },
+                    PointType::Double(point) => {
                         client.write(self.number, address.offset.unwrap(), 4, &mut (point.value as f32).to_be_bytes())
                     },
                     PointType::String(point) => {
@@ -179,7 +182,7 @@ impl ProfinetDb {
                 PointConfigType::Int => {
                     (point_conf.name.clone(), Self::box_int(path, point_conf.name.clone(), point_conf))
                 },
-                PointConfigType::Float => {
+                PointConfigType::Double => {
                     (point_conf.name.clone(), Self::box_float(path, point_conf.name.clone(), point_conf))
                 },
                 _ => panic!("{}.configureParsePoints | Unknown type '{:?}' for S7 Device", self_id, point_conf._type)

@@ -12,6 +12,7 @@ use concat_string::concat_string;
 /// Container used in the JdsRoutes, contains of:
 ///     - pass - Point to be transmitted to the MultiQueue - returned from read method
 ///     - reply - Point to be sent back to the Client, contains reply in the value
+#[derive(Debug)]
 pub struct RouterReply {
     pass: Option<PointType>,
     retply: Option<PointType>,

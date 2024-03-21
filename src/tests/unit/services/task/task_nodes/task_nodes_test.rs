@@ -121,12 +121,7 @@ mod task_nodes {
                     for eval_node_out in eval_node.getOuts() {
                         trace!("TaskEvalNode.eval | evalNode '{}' out...", eval_node.name());
                         let out = eval_node_out.borrow_mut().out();
-                        let out_value = match &out {
-                            PointType::Bool(point) => point.value.to_string(),
-                            PointType::Int(point) => point.value.to_string(),
-                            PointType::Float(point) => point.value.to_string(),
-                            PointType::String(point) => point.value.clone(),
-                        };
+                        let out_value = out.value().to_string();
                         debug!("TaskEvalNode.eval | evalNode '{}' out - '{}': {:?}", eval_node.name(), eval_node_out.borrow().id(), out);
                         if eval_node_out.borrow().kind() != &FnKind::Var {
                             let out_name = out.name();

@@ -91,7 +91,7 @@ fn test_elapsed_repeat_false() {
         let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
-        let fnTimerElapsed = fnTimer.out().as_float().value;
+        let fnTimerElapsed = fnTimer.out().as_double().value;
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, fnTimerElapsed);
         assert!(fnTimerElapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fnTimerElapsed, target);
@@ -149,7 +149,7 @@ fn test_total_elapsed_repeat() {
         let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
-        let fnTimerElapsed = fnTimer.out().as_float().value;
+        let fnTimerElapsed = fnTimer.out().as_double().value;
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, fnTimerElapsed);
         assert!(fnTimerElapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fnTimerElapsed, target);
@@ -214,7 +214,7 @@ fn test_total_elapsed_repeat_reset() {
         let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
-        let fnTimerElapsed = fnTimer.out().as_float().value;
+        let fnTimerElapsed = fnTimer.out().as_double().value;
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}   |   target {}{}", value, fnTimerElapsed, target, if reset {"\t<-- reset"} else {""});
         assert!(fnTimerElapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fnTimerElapsed, target);
@@ -274,7 +274,7 @@ fn test_initial_repeat() {
         let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
-        let fnTimerElapsed = fnTimer.out().as_float().value;
+        let fnTimerElapsed = fnTimer.out().as_double().value;
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, fnTimerElapsed);
         assert!(fnTimerElapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fnTimerElapsed, target);

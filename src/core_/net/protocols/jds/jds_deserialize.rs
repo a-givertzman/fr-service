@@ -121,7 +121,7 @@ impl JdsDeserialize {
                                         let direction = Self::parse_cot(self_id, name, obj);
                                         let timestamp = obj.get("timestamp").unwrap().as_str().unwrap();
                                         let timestamp: DateTime<Utc> = chrono::DateTime::parse_from_rfc3339(timestamp).unwrap().with_timezone(&Utc);
-                                        Ok(PointType::Float(Point::new(
+                                        Ok(PointType::Double(Point::new(
                                             tx_id,
                                             name,
                                             value,

@@ -52,7 +52,7 @@ mod tests {
         };
         let testPoint2 = PointConfig {
             name: format!("/{}/CraneMovement.BoomDown", self_id),
-            _type: PointConfigType::Float,
+            _type: PointConfigType::Double,
             history: PointConfigHistory::Read,
             alarm: None,
             address: None,

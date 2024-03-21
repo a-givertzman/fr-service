@@ -76,23 +76,23 @@ mod tests {
             ),
             (
                 format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  0.0, "status": 0, "timestamp":"{}"}}"#, 
-                name, tsStr(ts)), PointType::Float(Point::new(txId, name,  0.0, Status::Ok, Cot::default(), ts))
+                name, tsStr(ts)), PointType::Double(Point::new(txId, name,  0.0, Status::Ok, Cot::default(), ts))
             ),
             (
                 format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value": -1.1, "status": 0, "timestamp":"{}"}}"#, 
-                name, tsStr(ts)), PointType::Float(Point::new(txId, name, -1.1, Status::Ok, Cot::default(), ts))
+                name, tsStr(ts)), PointType::Double(Point::new(txId, name, -1.1, Status::Ok, Cot::default(), ts))
             ),
             (
                 format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  1.1, "status": 0, "timestamp":"{}"}}"#, 
-                name, tsStr(ts)), PointType::Float(Point::new(txId, name,  1.1, Status::Ok, Cot::default(), ts))
+                name, tsStr(ts)), PointType::Double(Point::new(txId, name,  1.1, Status::Ok, Cot::default(), ts))
             ),
             (
                 format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value": -1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, 
-                name, tsStr(ts)), PointType::Float(Point::new(txId, name, -1.7976931348623157e308, Status::Ok, Cot::default(), ts))
+                name, tsStr(ts)), PointType::Double(Point::new(txId, name, -1.7976931348623157e308, Status::Ok, Cot::default(), ts))
             ),
             (
                 format!(r#"{{"id": "1", "type": "Float", "name": "{}", "value":  1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, 
-                name, tsStr(ts)), PointType::Float(Point::new(txId, name,  1.7976931348623157e308, Status::Ok, Cot::default(), ts))
+                name, tsStr(ts)), PointType::Double(Point::new(txId, name,  1.7976931348623157e308, Status::Ok, Cot::default(), ts))
             ),
             (
                 format!(r#"{{"id": "1", "type": "String","name": "{}", "value": "~!@#$%^&*()_+`1234567890-=","status": 0, "timestamp":"{}"}}"#, 

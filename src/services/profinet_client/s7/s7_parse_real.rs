@@ -69,7 +69,7 @@ impl S7ParseReal {
     /// 
     fn to_point(&self) -> Option<PointType> {
         if self.is_changed {
-            Some(PointType::Float(Point::new(
+            Some(PointType::Double(Point::new(
                 self.tx_id, 
                 &self.name, 
                 self.value.value(),

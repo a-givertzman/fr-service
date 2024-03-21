@@ -109,14 +109,31 @@ impl ConfTree {
         }
     }
     ///
-    /// returns tree node value as bool by it's key if exists
+    /// returns tree node value as f32 by it's key if exists
+    pub fn asF32(&self, key: &str) -> Result<f32, String> {
+        if self.conf.is_mapping() {
+            match self.conf.as_mapping().unwrap().get(key) {
+                Some(value) => {
+                    match value.as_f64() {
+                        Some(value) => {Ok(value as f32)},
+                        None => Err(format!("error getting REAL by key '{:?}' from node '{:?}'", &key, value)),
+                    }
+                },
+                None => Err(format!("Key '{:?}' not found in the node '{:?}'", &key, &self.conf)),
+            }
+        } else {
+            Err(format!("Key '{:?}' not found in the node '{:?}'", &key, &self.conf))
+        }
+    }
+    ///
+    /// returns tree node value as f64 by it's key if exists
     pub fn asF64(&self, key: &str) -> Result<f64, String> {
         if self.conf.is_mapping() {
             match self.conf.as_mapping().unwrap().get(key) {
                 Some(value) => {
                     match value.as_f64() {
                         Some(value) => {Ok(value)},
-                        None => Err(format!("error getting FLOAT by key '{:?}' from node '{:?}'", &key, value)),
+                        None => Err(format!("error getting DOUBLE by key '{:?}' from node '{:?}'", &key, value)),
                     }
                 },
                 None => Err(format!("Key '{:?}' not found in the node '{:?}'", &key, &self.conf)),
