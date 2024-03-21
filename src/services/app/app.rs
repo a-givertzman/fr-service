@@ -1,5 +1,5 @@
 use log::{debug, error, info};
-use std::{collections::HashMap, process::exit, sync::{Arc, Mutex}, thread, time::Duration};
+use std::{collections::HashMap, process::exit, sync::{Arc, Mutex, RwLock}, thread, time::Duration};
 use libc::{
     SIGABRT, SIGHUP, SIGINT, SIGKILL, SIGQUIT, SIGTERM, SIGUSR1, SIGUSR2,
     // SIGFPE, SIGILL, SIGSEGV, 
@@ -56,11 +56,12 @@ impl App {
 
     ///
     /// Executes all services
-    pub fn run(mut self) -> Result<(), String>  {
+    pub fn run(self) -> Result<(), String>  {
         let self_id = self.id.clone();
         info!("{}.run | Starting application...", self_id);
         let conf = self.conf.clone();
         let parent = conf.name.clone();
+        let app = Arc::new(RwLock::new(self));
         let services = Arc::new(Mutex::new(Services::new(&self_id)));
         info!("{}.run |     Configuring services...", self_id);
         for (node_keywd, mut node_conf) in conf.nodes {
@@ -76,14 +77,13 @@ impl App {
         info!("{}.run |     All services configured\n", self_id);
         thread::sleep(Duration::from_millis(1000));
         info!("{}.run |     Starting services...", self_id);
-        let mut services_lock = services.lock().unwrap();
-        let services_iter = services_lock.all();
+        let services_iter = services.lock().unwrap().all();
         for (name, service) in services_iter {
             info!("{}.run |         Starting service: {}...", self_id, name);
             let handles = service.lock().unwrap().run();
             match handles {
                 Ok(handles) => {
-                    self.insert_handles(&name, handles);
+                    app.write().unwrap().insert_handles(&name, handles);
                     info!("{}.run |         Starting service: {} - ok", self_id, name);
                 },
                 Err(err) => {
@@ -120,7 +120,8 @@ impl App {
                                 SIGINT | SIGQUIT | SIGTERM => {
                                     println!("{}.run Received signal {:?}", self_id, signal);
                                     println!("{}.run Application exit...", self_id);
-                                    for (_id, service) in services_clone.lock().unwrap().all() {
+                                    let services_iter = services_clone.lock().unwrap().all();
+                                    for (_id, service) in services_iter {
                                         println!("{}.run Stopping service '{}'...", self_id, _id);
                                         service.lock().unwrap().exit();
                                         println!("{}.run Stopping service '{}' - Ok", self_id, _id);
@@ -147,11 +148,11 @@ impl App {
             },
         }
         loop {
-            let servece_ids: Vec<String> = self.handles.keys().cloned().collect();
+            let servece_ids: Vec<String> = app.read().unwrap().handles.keys().cloned().collect();
             match servece_ids.first() {
                 Some(service_id) => {
                     info!("{}.run | Waiting for service '{}' being finished...", self_id, service_id);
-                    let (_, handles) = self.handles.remove_entry(service_id).unwrap();
+                    let (_, handles) = app.write().unwrap().handles.remove_entry(service_id).unwrap();
                     handles.wait().unwrap();
                     info!("{}.run | Waiting for service '{}' being finished - Ok", self_id, service_id);
                 },

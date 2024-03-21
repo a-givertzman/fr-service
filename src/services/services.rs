@@ -33,8 +33,8 @@ impl Services {
     }
     ///
     /// 
-    pub fn all(&mut self) -> HashMap<String, Arc<Mutex<dyn Service + Send>>> {
-        self.map.iter().map(|(id, service)| (id.clone(), service.clone())).collect()
+    pub fn all(&self) -> HashMap<String, Arc<Mutex<dyn Service + Send>>> {
+        self.map.clone()
     }
     ///
     /// 
