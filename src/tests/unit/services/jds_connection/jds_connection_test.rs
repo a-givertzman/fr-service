@@ -87,8 +87,10 @@ mod jds_routes {
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
         test_duration.run().unwrap();
         //
-        // Configuring MultiQueue service 
+        // Configuring Services 
         let services = Arc::new(Mutex::new(Services::new(self_id)));
+        //
+        // Configuring MultiQueue service 
         let conf = serde_yaml::from_str(r#"
             service MultiQueue:
                 in queue in-queue:

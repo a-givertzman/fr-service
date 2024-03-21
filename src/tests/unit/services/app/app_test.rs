@@ -4,7 +4,7 @@ mod services {
     use std::{sync::Once, env, time::Duration};
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::services::services::Services;
+    use crate::services::{app::app::App, services::Services};
     ///
     ///     
     static INIT: Once = Once::new();
@@ -33,20 +33,13 @@ mod services {
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         // test_duration.run().unwrap();
         let mut path = env::current_dir().unwrap();
-        path.push("src/tests/unit/services/services/");
+        path.push("src/tests/unit/services/app/");
         std::env::set_current_dir(path).unwrap();
         println!("working path: \n\t{:?}", env::current_dir().unwrap());
-        // let path = "./src/tests/unit/services/services/services_test_points.yaml";
-        // let config = TaskConfig::read(path);
-        // trace!("config: {:?}", &config);
-        // println!(" points: {:?}", config.points());
-        let services = Services::new(self_id);
-        services.run().unwrap();
+        let path = "./src/tests/unit/services/app/app.yaml";
+        let app = App::new(path);
+        app.run().unwrap();
         println!();
-        // println!(" points count: {:?}", points_count);
-        // for point in points {
-        //     println!("\t {:?}", point);
-        // }
         // assert!(points_count == target, "\nresult: {:?}\ntarget: {:?}", points_count, target);
         test_duration.exit();
     }
