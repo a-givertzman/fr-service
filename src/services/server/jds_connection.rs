@@ -136,10 +136,25 @@ impl JdsConnection {
                         })
                     },
                 };
-                if let Err(err) = services.lock().unwrap().extend_subscription(&shared.tx_queue_name, parent, &points) {
-                    warn!("{}.handle_request | extend_subscription failed with error: {:?}", parent, err);
+                let (cot, message) = match services.lock().unwrap().extend_subscription(&shared.tx_queue_name, parent, &points) {
+                    Ok(_) => (Cot::ReqCon, "".to_owned()),
+                    Err(err) => {
+                        let message = format!("{}.handle_request | extend_subscription failed with error: {:?}", parent, err);
+                        warn!("{}", message);
+                        (Cot::ReqErr, message)
+                    },
                 };
-                RouterReply::new(None, None)
+                RouterReply::new(
+                    None,
+                    Some(PointType::String(Point::new(
+                        tx_id, 
+                        &PointName::new(parent, "/Subscribe").full(),
+                        message, 
+                        Status::Ok, 
+                        cot, 
+                        chrono::offset::Utc::now(),
+                    ))),
+                )                
             },
             RequestKind::Unknown => {
                 debug!("{}/JdsConnection.handle_request | Unknown request: \n\t{:?}", parent, request);
