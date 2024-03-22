@@ -36,7 +36,7 @@ use crate::conf::{
 ///     in queue recv-queue:
 ///         max-length: 10000
 ///     let var0: 
-///         input: const float 2.224
+///         input: const real 2.224
 ///     
 ///     fn ToMultiQueue:
 ///         in1 point CraneMovement.BoomUp: 
@@ -44,8 +44,8 @@ use crate::conf::{
 ///             comment: 'Some indication'
 ///             input fn add:
 ///                 input1 fn add:
-///                     input1: const float 0.2
-///                     input2: point float '/path/Point.Name'
+///                     input1: const real 0.2
+///                     input2: point real '/path/Point.Name'
 ///     ...
 /// 
 #[derive(Debug, PartialEq, Clone)]

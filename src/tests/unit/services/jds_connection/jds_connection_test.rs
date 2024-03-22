@@ -50,25 +50,25 @@ mod jds_routes {
         vec![
             PointConfig::from_yaml(parent, &serde_yaml::from_str(&format!(
                 r#"{}:
-                    type: String      # Bool / Int / Float / String / Json
+                    type: String      # Bool / Int / Real / Double / String / Json
                     comment: Auth request, contains token / pass string"#, 
                 format!("Jds/{}", RequestKind::AUTH_SECRET),
             )).unwrap()),
             PointConfig::from_yaml(parent, &serde_yaml::from_str(&format!(
                 r#"{}:
-                    type: String      # Bool / Int / Float / String / Json
+                    type: String      # Bool / Int / Real / Double / String / Json
                     comment: Auth request, contains SSH key"#, 
                 format!("Jds/{}", RequestKind::AUTH_SSH),
             )).unwrap()),
             PointConfig::from_yaml(parent, &serde_yaml::from_str(&format!(
                 r#"{}:
-                    type: String      # Bool / Int / Float / String / Json
+                    type: String      # Bool / Int / Real / Double / String / Json
                     comment: Request all Ponts configurations"#, 
                 format!("Jds/{}", RequestKind::POINTS),
             )).unwrap()),
             PointConfig::from_yaml(parent, &serde_yaml::from_str(&format!(
                 r#"{}:
-                    type: String      # Bool / Int / Float / String / Json
+                    type: String      # Bool / Int / Real / Double / String / Json
                     comment: Request to begin transmossion of all configured Points"#, 
                 format!("Jds/{}", RequestKind::SUBSCRIBE),
             )).unwrap()),
@@ -501,7 +501,7 @@ mod jds_routes {
         // assert!(result.value() == target.value(), "\nresult: {:?}\ntarget: {:?}", result.value(), target.value());
         let points: HashMap<String, serde_json::Value> = serde_json::from_str(&result.value().as_string()).unwrap();
         let points: HashMap<_, PointConfig> = points.iter().map(|(name, value)| {
-            (name, PointConfig::from_json(value.clone()).unwrap())
+            (name, PointConfig::from_json(name, value).unwrap())
         }).collect();
         println!("{} | Points request reply: {:#?}", self_id, points);
         for target in point_configs(self_id) {
@@ -537,7 +537,8 @@ mod jds_routes {
     }    
     ///
     /// 
-    // #[test]
+    #[test]
+    #[ignore = "To be implementes..."]
     fn auth_ssh() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();

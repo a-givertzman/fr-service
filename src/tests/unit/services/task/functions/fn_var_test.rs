@@ -1,4 +1,3 @@
-#![allow(non_snake_case)]
 #[cfg(test)]
 
 mod tests {
@@ -12,12 +11,9 @@ mod tests {
             fn_input::FnInput, fn_var::FnVar
         },
     };
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    ///
+    /// 
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -26,8 +22,6 @@ mod tests {
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
@@ -38,15 +32,15 @@ mod tests {
             )
         ))
     }
-    
-
+    ///
+    ///
     #[test]
     fn test_bool() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("test_bool");
         let input = init_each(false.to_point(0, "bool"));
-        let mut fnVar = FnVar::new(
+        let mut fn_var = FnVar::new(
             "test",
             input.clone(),
         );
@@ -70,8 +64,8 @@ mod tests {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point.clone());
             // debug!("input: {:?}", &input);
-            fnVar.eval();
-            let state = fnVar.out();
+            fn_var.eval();
+            let state = fn_var.out();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state, point);
@@ -85,7 +79,7 @@ mod tests {
         init_once();
         info!("test_int");
         let input = init_each(false.to_point(0, "bool"));
-        let mut fnVar = FnVar::new(
+        let mut fn_var = FnVar::new(
             "test",
             input.clone(),
         );
@@ -106,27 +100,63 @@ mod tests {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point.clone());
             // debug!("input: {:?}", &input);
-            fnVar.eval();
-            let state = fnVar.out();
+            fn_var.eval();
+            let state = fn_var.out();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state, point);
         }        
     }
-
-
+    ///
+    ///
     #[test]
-    fn test_float() {
+    fn test_real() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
-        info!("test_float");
+        info!("test_real");
         let input = init_each(false.to_point(0, "bool"));
-        let mut fnVar = FnVar::new(
+        let mut fn_var = FnVar::new(
             "test",
             input.clone(),
         );
         let test_data = vec![
+            0.0f32,
+            0.1,
+            -0.2,
+            0.4,
+            0.123,
             0.0,
+            -0.234,
+            0.4,
+            0.23,
+            f32::MIN,
+            f32::MAX,
+        ];
+        for value in test_data {
+            let point = value.to_point(0, "test");
+            input.borrow_mut().add(point.clone());
+            // debug!("input: {:?}", &input);
+            fn_var.eval();
+            let state = fn_var.out();
+            // debug!("input: {:?}", &mut input);
+            debug!("value: {:?}   |   state: {:?}", value, state);
+            assert_eq!(state, point);
+        }        
+    }
+    ///
+    ///
+    #[test]
+    fn test_double() {
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
+        init_once();
+        info!("test_double");
+        let input = init_each(false.to_point(0, "bool"));
+        let mut fn_var = FnVar::new(
+            "test",
+            input.clone(),
+        );
+        let test_data = vec![
+            0.0f64,
             0.1,
             -0.2,
             0.4,
@@ -142,11 +172,11 @@ mod tests {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point.clone());
             // debug!("input: {:?}", &input);
-            fnVar.eval();
-            let state = fnVar.out();
+            fn_var.eval();
+            let state = fn_var.out();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state, point);
         }        
-    }
+    }    
 }

@@ -198,7 +198,7 @@ service Task CoreTask:
             offset: 14
             comment: 'Индикация опускания рукояти'
             input:
-                const float 0.05
+                const real 0.05
 
 
 service Task OperatingCycle:
@@ -215,14 +215,14 @@ service Task OperatingCycle:
             input let Var3:
                     input fn add:
                         input1 fn add:
-                            input1: const float 0.2
-                            input2: point float '/path/Point.Name'
+                            input1: const real 0.2
+                            input2: point real '/path/Point.Name'
                         input2:
-                            const float 0.05
+                            const real 0.05
             input3 fn add:
                 input1:
                     var0
-                input2: point float '/path/Point.Name'
+                input2: point real '/path/Point.Name'
 
     fn ToApiQueue:              # Metric 2
         queue: api-queue
@@ -230,7 +230,7 @@ service Task OperatingCycle:
             initial: 0.123      # начальное значение
             table: table_name
             sql: "insert into {table} (id, value, timestamp) values ({id}, {input.value}, {input3.value});"
-            input: point float '/path/Point.Name'
+            input: point real '/path/Point.Name'
 
     fn ToApiQueue:              # Metric 3
         queue: api-queue
@@ -239,9 +239,9 @@ service Task OperatingCycle:
             table: table_name
             sql: "insert into {table} (id, value, timestamp) values ({id}, {input.value}, {input3.value});"
             input fn or:
-                input1: point float '/path/Point.Name1'
-                input1: point float '/path/Point.Name2'
-                input1: point float '/path/Point.Name3'
+                input1: point real '/path/Point.Name1'
+                input1: point real '/path/Point.Name2'
+                input1: point real '/path/Point.Name3'
 
 service Task FaultDetection:
     cycle: 100 ms       # operating cycle time of the module
@@ -272,7 +272,7 @@ service Task Task1:
     in queue recv-queue:
         max-length: 10000
     let var0: 
-        input: const float 2.224
+        input: const real 2.224
 
     fn ToMultiQueue:
         in1 point CraneMovement.BoomUp: 
@@ -280,16 +280,16 @@ service Task Task1:
             comment: 'Some indication'
             input fn add:
                 input1 fn add:
-                    input1: const float 0.2
-                    input2: point float '/path/Point.Name'
+                    input1: const real 0.2
+                    input2: point real '/path/Point.Name'
         in2 point CraneMovement.BoomDown: 
-            type: 'Float'
+            type: 'real'
             history: r
             comment: 'Some indication'
-            input: const float 0.07
+            input: const real 0.07
 
         in3 point CraneMovement.WinchUp: 
-            type: 'Float'
+            type: 'real'
             history: r
             comment: 'Some indication'
             input: var0
@@ -465,7 +465,8 @@ The type of the containing information stored in the Point.value field. Fallowin
 
 - Bool - true / false
 - Int - i64 - The 64-bit signed integer type.
-- Float - f64 - A 64-bit floating point type (specifically, the "binary64" type defined in IEEE 754-2008).
+- Real - f32 - A 32-bit floating point type (specifically, the "binary32" type defined in IEEE 754-2008).
+- Double - f64 - A 64-bit floating point type (specifically, the "binary64" type defined in IEEE 754-2008).
 - String - string of the variable length
 
 ##### Point.value
@@ -509,7 +510,7 @@ Such as:
 
 ```yaml
     Point.Name:
-        type: Bool                  # Bool / Int / Float / String / Json
+        type: Bool                  # Bool / Int / Real / Double / String / Json
         alarm: 0                    # 0..15 (Optional)
         history: r                  # ommit - None / r - Read / w - Write / rw - ReadWrite (Optional)
         address:                    # Protocol-specific address in the source device (Optional)
@@ -531,7 +532,8 @@ Fallowing types are supported:
 
 - Bool - true / false
 - Int - i64 - The 64-bit signed integer type.
-- Float - f64 - A 64-bit floating point type (specifically, the "binary64" type defined in IEEE 754-2008).
+- Real - f32 - A 32-bit floating point type (specifically, the "binary32" type defined in IEEE 754-2008).
+- Double - f64 - A 64-bit floating point type (specifically, the "binary64" type defined in IEEE 754-2008).
 - String - string of the variable length
 - Json - coming soon
 
@@ -607,7 +609,7 @@ Allows to avoid unnecessary transmissions of the same value
 
 ```json
 {
-    "type":"String",    Bool / Int / Float / String
+    "type":"String",    Bool / Int / Real/ Double / String
     "value":"",
     "name":"/App/Jds/Points",
     "status":0,
@@ -620,7 +622,7 @@ Allows to avoid unnecessary transmissions of the same value
 
 ```json
 {
-    "type":"String",    Bool / Int / Float / String
+    "type":"String",    Bool / Int / Real / Double / String
     "value":"{
         "Point.Name.0":{"address":{"bit":0,"offset":0},"alarm":0,"comment":"Test Point Bool","filters":{"threshold":5.0},"type":"Bool"},
         "Point.Name.1":{"address":{"bit":0,"offset":0},"alarm":0,"comment":"Test Point Bool","filters":{"factor":0.1,"threshold":5.0},"type":"Bool"},
@@ -640,7 +642,7 @@ Allows to avoid unnecessary transmissions of the same value
 
 ```json
 {
-    "type":"String",    Bool / Int / Float / String
+    "type":"String",    Bool / Int / Real / Double / String
     "value":"",
     "name":"/App/Jds/Points",
     "status":0,
@@ -655,7 +657,7 @@ Allows to avoid unnecessary transmissions of the same value
 
 ```json
 {
-    "type":"String",    Bool / Int / Float / String
+    "type":"String",    Bool / Int / Real / Double / String
     "value":"[]",
     "name":"/App/Jds/Subscribe",
     "status":0,
@@ -668,7 +670,7 @@ Allows to avoid unnecessary transmissions of the same value
 
 ```json
 {
-    "type":"String",    Bool / Int / Float / String
+    "type":"String",    Bool / Int / Real / Double / String
     "value":"",
     "name":"/App/Jds/Subscribe",
     "status":0,
@@ -681,7 +683,7 @@ ReqErr
 
 ```json
 {
-    "type":"String",    Bool / Int / Float / String
+    "type":"String",    Bool / Int / Real / Double / String
     "value":"",
     "name":"/App/Jds/Subscribe",
     "status":0,

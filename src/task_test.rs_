@@ -100,7 +100,7 @@ fn main() {
                             PointType::Int(point) => {
                                 
                             },
-                            PointType::Float(point) => {                
+                            PointType::Real(point) => {                
                                 count += 1;
                                 let value = point.value;
                                 let target = format!(

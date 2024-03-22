@@ -237,11 +237,11 @@ impl Service for EmulatedTcpClientSend {
     //
     //
     // fn points(&self) -> Vec<crate::conf::point_config::point_config::PointConfig> {
-    //     let types = vec!["Bool", "Int", "Float", "String"];
+    //     let types = vec!["Bool", "Int", "Real", "Double", "String"];
     //     types.iter().map(|type_| {
     //         let conf = format!(
     //             r#"{}:
-    //                 type: {}      # Bool / Int / Float / String / Json
+    //                 type: {}      # Bool / Int / Real, Double / String / Json
     //                 comment: Auth request, contains token / pass string"#, 
     //             PointName::new(&self.point_path, "/test").full(),
     //             type_,

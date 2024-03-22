@@ -43,7 +43,7 @@ impl ToPoint for String {
 
 ///
 /// enum container for Point<T>
-/// - supported types: Bool, Int, Float
+/// - supported types: Bool, Int, Real, Double, String
 #[derive(Debug, Clone, PartialEq)]
 pub enum PointType {
     Bool(Point<Bool>),

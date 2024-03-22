@@ -1,5 +1,6 @@
 use std::io::{BufReader, Read};
 use chrono::{DateTime, Utc};
+use concat_string::concat_string;
 use log::{warn, trace, LevelFilter};
 use crate::{core_::{
     cot::cot::Cot, net::connection_status::ConnectionStatus, object::object::Object, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status, types::bool::Bool 
@@ -57,12 +58,13 @@ impl JdsDeserialize {
     ///
     /// Returns Cot parsed from the json::Map by it's key "cot" 
     fn parse_cot(self_id: &str, name: &str, obj: &serde_json::Map<String, serde_json::Value>) -> Cot {
+        trace!("{}.parse_cot | obj: {:#?}", self_id, obj);
         match obj.get("cot") {
             Some(value) => {
                 match serde_json::from_value(value.clone()) {
                     Ok(direction) => direction,
                     Err(err) => {
-                        let message = format!("{}.parse | Deserialize Point.direction error: {:?} in the: {}:{:?}", self_id, err, name, value);
+                        let message = concat_string!(self_id, ".parse_cot | Deserialize Point.cot error: \n\t", err.to_string(), "\n\t in the: ", name, ": ", value.to_string());
                         warn!("{}", message);
                         Cot::default()
                     },
@@ -114,7 +116,23 @@ impl JdsDeserialize {
                                             timestamp,
                                         )))
                                     },
-                                    Some("float") | Some("Float") => {
+                                    Some("real") | Some("Real") => {
+                                        let name = obj.get("name").unwrap().as_str().unwrap();
+                                        let value = obj.get("value").unwrap().as_f64().unwrap();
+                                        let status = obj.get("status").unwrap().as_i64().unwrap();
+                                        let direction = Self::parse_cot(self_id, name, obj);
+                                        let timestamp = obj.get("timestamp").unwrap().as_str().unwrap();
+                                        let timestamp: DateTime<Utc> = chrono::DateTime::parse_from_rfc3339(timestamp).unwrap().with_timezone(&Utc);
+                                        Ok(PointType::Real(Point::new(
+                                            tx_id,
+                                            name,
+                                            value as f32,
+                                            Status::from(status),
+                                            direction,
+                                            timestamp,
+                                        )))
+                                    },
+                                    Some("double") | Some("Double") => {
                                         let name = obj.get("name").unwrap().as_str().unwrap();
                                         let value = obj.get("value").unwrap().as_f64().unwrap();
                                         let status = obj.get("status").unwrap().as_i64().unwrap();
@@ -175,11 +193,15 @@ impl JdsDeserialize {
         }
     }    
 }
+///
+/// 
 impl Object for JdsDeserialize {
     fn id(&self) -> &str {
         &self.id
     }
 }
+///
+/// 
 impl TcpStreamRead for JdsDeserialize {
     fn read(&mut self, tcp_stream: &mut BufReader<std::net::TcpStream>) -> ConnectionStatus<Result<PointType, String>, String> {
         self.read(tcp_stream)

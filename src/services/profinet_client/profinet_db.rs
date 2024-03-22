@@ -182,8 +182,11 @@ impl ProfinetDb {
                 PointConfigType::Int => {
                     (point_conf.name.clone(), Self::box_int(path, point_conf.name.clone(), point_conf))
                 },
+                PointConfigType::Real => {
+                    (point_conf.name.clone(), Self::box_real(path, point_conf.name.clone(), point_conf))
+                },
                 PointConfigType::Double => {
-                    (point_conf.name.clone(), Self::box_float(path, point_conf.name.clone(), point_conf))
+                    (point_conf.name.clone(), Self::box_real(path, point_conf.name.clone(), point_conf))
                 },
                 _ => panic!("{}.configureParsePoints | Unknown type '{:?}' for S7 Device", self_id, point_conf._type)
                 // PointConfigType::String => {
@@ -212,12 +215,12 @@ impl ProfinetDb {
     }
     ///
     /// 
-    fn box_float(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
+    fn box_real(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
         Box::new(S7ParseReal::new(
             path, 
             name, 
             config,
-            Self::float_filter(config.filters.clone()),
+            Self::real_filter(config.filters.clone()),
         ))
     }
     ///
@@ -234,14 +237,26 @@ impl ProfinetDb {
     }
     ///
     /// 
-    fn float_filter(conf: Option<PointConfigFilter>) -> Box<dyn Filter<Item = f64>> {
+    fn real_filter(conf: Option<PointConfigFilter>) -> Box<dyn Filter<Item = f32>> {
         match conf {
             Some(conf) => {
                 Box::new(
-                    FilterThreshold::new(0.0, conf.threshold, conf.factor.unwrap_or(0.0))
+                    FilterThreshold::new(0.0f32, conf.threshold, conf.factor.unwrap_or(0.0))
                 )
             },
-            None => Box::new(FilterEmpty::<f64>::new(0.0)),
+            None => Box::new(FilterEmpty::<f32>::new(0.0)),
         }
     }
+    // ///
+    // /// 
+    // fn double_filter(conf: Option<PointConfigFilter>) -> Box<dyn Filter<Item = f64>> {
+    //     match conf {
+    //         Some(conf) => {
+    //             Box::new(
+    //                 FilterThreshold::new(0.0f64, conf.threshold, conf.factor.unwrap_or(0.0))
+    //             )
+    //         },
+    //         None => Box::new(FilterEmpty::<f64>::new(0.0)),
+    //     }
+    // }
 }

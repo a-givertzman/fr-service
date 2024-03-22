@@ -117,8 +117,8 @@ impl EmulatedTcpClientRecv {
     /// 
     pub fn wait_marker_received(&self) {
         match &self.must_received {
-            Some(mustReceived) => {
-                info!("{}.waitMarkerReceived | Wait for {:?} marker beeng received", self.id, mustReceived);
+            Some(must_received) => {
+                info!("{}.waitMarkerReceived | Wait for {:?} marker beeng received", self.id, must_received);
                 loop {
                     if self.marker_received.load(Ordering::SeqCst) {
                         break;

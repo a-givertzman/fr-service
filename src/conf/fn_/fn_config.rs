@@ -58,7 +58,7 @@ impl FnConfig {
         // if confTree.count() > 1 {
         //     error!("FnConfig.new | FnConf must have single item, additional items was ignored: {:?}", confTree)
         // };
-        if conf_tree.isMapping() {
+        let cfg = if conf_tree.isMapping() {
             debug!("FnConfig.new | MAPPING VALUE");
             trace!("FnConfig.new | confTree: {:?}", conf_tree);
             match FnConfKeywd::from_str(conf_tree.key.as_str()) {
@@ -202,7 +202,9 @@ impl FnConfig {
             } else {
                 panic!("FnConfig.new | Custom parameter of unknown type declared, but : {:?}", conf_tree.conf);
             }
-        }
+        };
+        trace!("FnConfig.new | Config created: {:#?}", cfg);
+        cfg
     }
     ///
     /// 

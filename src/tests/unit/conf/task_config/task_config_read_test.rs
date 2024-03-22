@@ -58,7 +58,7 @@ mod task_config_read {
                                             (format!("input"), FnConfKind::Fn( FnConfig { 
                                                 name: format!("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                                                     (format!("input1"), FnConfKind::Const( FnConfig { name: format!("someValue"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
-                                                    (format!("input2"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name"), type_: FnConfPointType::Float, inputs: IndexMap::new() } )), 
+                                                    (format!("input2"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name"), type_: FnConfPointType::Real, inputs: IndexMap::new() } )), 
                                                     (format!("input"), FnConfKind::Fn( FnConfig { 
                                                         name: format!("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                                                             (format!("input"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name"), type_: FnConfPointType::Bool, inputs: IndexMap::new() } )),

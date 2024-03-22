@@ -7,12 +7,9 @@ mod tests {
     use indexmap::IndexMap;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::conf::fn_::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType};
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    ///
+    /// 
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -21,15 +18,12 @@ mod tests {
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
+    fn init_each() -> () {}
+    ///
+    /// 
     #[test]
     fn test_fn_config_read_valid() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -55,7 +49,7 @@ mod tests {
                                     ]),
                                 } )),
                                 ("input2".to_string(), FnConfKind::Point( FnConfig { 
-                                    name: "/path/Point.Name/".to_string(), type_: FnConfPointType::Float, inputs: IndexMap::from([]) 
+                                    name: "/path/Point.Name/".to_string(), type_: FnConfPointType::Real, inputs: IndexMap::from([]) 
                                 } )),
                                 ("input1".to_string(), FnConfKind::Const( FnConfig { 
                                     name: "someValue".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([]) 

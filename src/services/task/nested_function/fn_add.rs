@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use log::trace;
+use log::{debug, trace};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::{
     core_::{point::point_type::PointType, types::{type_of::DebugTypeOf, fn_in_out_ref::FnInOutRef}},
@@ -61,15 +61,18 @@ impl FnOut for FnAdd {
     fn out(&mut self) -> PointType {
         // TODO Add overflow check
         let value1 = self.input1.borrow_mut().out();
-        trace!("{}.out | value1: {:?}", self.id, &value1);
+        debug!("{}.out | value1: {:?}", self.id, &value1);
         let value2 = self.input2.borrow_mut().out();
-        trace!("{}.out | value2: {:?}", self.id, &value2);
+        debug!("{}.out | value2: {:?}", self.id, &value2);
         let out = match value1 {
             PointType::Bool(value1) => {
                 PointType::Bool(value1 + value2.as_bool())
             },
             PointType::Int(value1) => {
                 PointType::Int(value1 + value2.as_int())
+            },
+            PointType::Real(value1) => {
+                PointType::Real(value1 + value2.as_real())
             },
             PointType::Double(value1) => {
                 PointType::Double(value1 + value2.as_double())

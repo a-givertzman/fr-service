@@ -59,7 +59,7 @@ mod task_config_new {
                                 initial: VarName2
                                 input fn functionName:
                                     input1: const someValue
-                                    input2: point float '/path/Point.Name'
+                                    input2: point real '/path/Point.Name'
                                     input fn functionName:
                                         input: point bool '/path/Point.Name'
                         input2:
@@ -88,7 +88,7 @@ mod task_config_new {
                                                     (format!("input"), FnConfKind::Fn( FnConfig { 
                                                         name: format!("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                                                             (format!("input1"), FnConfKind::Const( FnConfig { name: format!("someValue"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
-                                                            (format!("input2"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name"), type_: FnConfPointType::Float, inputs: IndexMap::new() } )), 
+                                                            (format!("input2"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name"), type_: FnConfPointType::Real, inputs: IndexMap::new() } )), 
                                                             (format!("input"), FnConfKind::Fn( FnConfig { 
                                                                 name: format!("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                                                                     (format!("input"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name"), type_: FnConfPointType::Bool, inputs: IndexMap::new() } )),
@@ -117,7 +117,7 @@ mod task_config_new {
                             initial: VarName2
                             input fn functionName:
                                 input1: const someValue
-                                input2: point float '/path/Point.Name'
+                                input2: point real '/path/Point.Name'
                                 input fn functionName:
                                     input: point bool '/path/Point.Name'
                 "#, 
@@ -136,7 +136,7 @@ mod task_config_new {
                                         (format!("input"), FnConfKind::Fn( FnConfig { 
                                             name: format!("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                                                 (format!("input1"), FnConfKind::Const( FnConfig { name: format!("someValue"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
-                                                (format!("input2"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name"), type_: FnConfPointType::Float, inputs: IndexMap::new() } )), 
+                                                (format!("input2"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name"), type_: FnConfPointType::Real, inputs: IndexMap::new() } )), 
                                                 (format!("input"), FnConfKind::Fn( FnConfig { 
                                                     name: format!("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                                                         (format!("input"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name"), type_: FnConfPointType::Bool, inputs: IndexMap::new() } )),

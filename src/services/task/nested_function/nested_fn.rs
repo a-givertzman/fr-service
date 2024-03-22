@@ -133,7 +133,8 @@ impl NestedFn {
                 let value = match conf.type_.clone() {
                     FnConfPointType::Bool => value.parse::<bool>().unwrap().to_point(tx_id, &name),
                     FnConfPointType::Int => value.parse::<i64>().unwrap().to_point(tx_id, &name),
-                    FnConfPointType::Float => value.parse::<f64>().unwrap().to_point(tx_id, &name),
+                    FnConfPointType::Real => value.parse::<f32>().unwrap().to_point(tx_id, &name),
+                    FnConfPointType::Double => value.parse::<f64>().unwrap().to_point(tx_id, &name),
                     FnConfPointType::String => value.to_point(tx_id, &name),
                     FnConfPointType::Unknown => panic!("NestedFn.function | Point type required"),
                 };
@@ -147,7 +148,8 @@ impl NestedFn {
                 let initial = match conf.type_.clone() {
                     FnConfPointType::Bool => false.to_point(tx_id, &conf.name),
                     FnConfPointType::Int => 0.to_point(tx_id, &conf.name),
-                    FnConfPointType::Float => 0.0.to_point(tx_id, &conf.name),
+                    FnConfPointType::Real => 0.0f32.to_point(tx_id, &conf.name),
+                    FnConfPointType::Double => 0.0f64.to_point(tx_id, &conf.name),
                     FnConfPointType::String => "".to_point(tx_id, &conf.name),
                     FnConfPointType::Unknown => panic!("NestedFn.function | Point type required"),
                 };

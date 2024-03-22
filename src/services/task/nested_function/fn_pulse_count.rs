@@ -1,18 +1,11 @@
-#![allow(non_snake_case)]
-
-use std::sync::atomic::{AtomicUsize, Ordering};
-
 use log::trace;
-
+use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::core_::{
     types::{type_of::DebugTypeOf, fn_in_out_ref::FnInOutRef},
     state::switch_state::{SwitchState, Switch, SwitchCondition}, 
     point::{point_type::PointType, point::Point}, 
 };
-
 use super::{fn_::{FnInOut, FnOut, FnIn}, fn_kind::FnKind};
-
-
 ///
 /// Counts number of raised fronts of boolean input
 #[derive(Debug)]
@@ -85,7 +78,8 @@ impl FnOut for FnPulseCount {
         let value = match &point {
             PointType::Bool(point) => point.value.0,
             PointType::Int(point) => point.value > 0,
-            PointType::Float(point) => point.value > 0.0,
+            PointType::Real(point) => point.value > 0.0,
+            PointType::Double(point) => point.value > 0.0,
             _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, point.typeOf(), point),
         };
         self.state.add(value);

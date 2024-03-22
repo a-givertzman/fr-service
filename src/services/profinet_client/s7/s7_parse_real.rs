@@ -14,7 +14,7 @@ pub struct S7ParseReal {
     pub tx_id: usize,
     pub path: String,
     pub name: String,
-    pub value: Box<dyn Filter<Item = f64>>,
+    pub value: Box<dyn Filter<Item = f32>>,
     pub status: Status,
     pub offset: Option<u32>,
     pub history: PointConfigHistory,
@@ -26,14 +26,13 @@ pub struct S7ParseReal {
 ///
 /// 
 impl S7ParseReal {
-    const ZERO_BYTES: [u8; 8] = [0u8; 8];
     ///
     /// 
     pub fn new(
         path: String,
         name: String,
         config: &PointConfig,
-        filter: Box<dyn Filter<Item = f64>>,
+        filter: Box<dyn Filter<Item = f32>>,
     ) -> S7ParseReal {
         S7ParseReal {
             tx_id: 0,
@@ -56,9 +55,9 @@ impl S7ParseReal {
         bytes: &[u8],
         start: usize,
         _bit: usize,
-    ) -> Result<f64, TryFromSliceError> {
+    ) -> Result<f32, TryFromSliceError> {
         match bytes[start..(start + 4)].try_into() {
-            Ok(v) => Ok(f32::from_be_bytes(v) as f64),
+            Ok(v) => Ok(f32::from_be_bytes(v)),
             Err(e) => {
                 warn!("S7ParseReal.convert | error: {}", e);
                 Err(e)
@@ -69,7 +68,7 @@ impl S7ParseReal {
     /// 
     fn to_point(&self) -> Option<PointType> {
         if self.is_changed {
-            Some(PointType::Double(Point::new(
+            Some(PointType::Real(Point::new(
                 self.tx_id, 
                 &self.name, 
                 self.value.value(),

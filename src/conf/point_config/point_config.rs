@@ -13,7 +13,6 @@ use super::point_config_history::PointConfigHistory;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PointConfig {
     #[serde(skip)]
-    // #[serde(default)]
     pub name: String,
     #[serde(rename = "type")]
     #[serde(alias = "type", alias = "Type")]
@@ -28,7 +27,6 @@ pub struct PointConfig {
     pub filters: Option<PointConfigFilter>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
-    
 }
 ///
 /// 
@@ -42,7 +40,7 @@ impl PointConfig {
     /// creates PointConfig from serde_yaml::Value of following format:
     /// ```yaml
     /// PointName:
-    ///     type: bool              # bool / int / float / string / json
+    ///     type: bool              # bool / int / real / string / json
     ///     alarm: 0                # 0..15
     ///     history: r              # ommit - None / r - Read / w - Write / rw - ReadWrite (Optional)
     ///     address:                # Protocol-specific address in the source device (Optional)
@@ -87,19 +85,23 @@ impl PointConfig {
     }
     ///
     /// Converts json into PointConfig
-    pub fn from_json(value: serde_json::Value) -> Result<Self, String> {
+    pub fn from_json(name: &str, value: &serde_json::Value) -> Result<Self, String> {
+        println!("PointConfig.from_json | value {:#?}", value);
         match serde_json::from_value(value.clone()) {
             Ok(map) => {
-                let  map: HashMap<String, PointConfig> = map;
-                match map.into_iter().next() {
-                    Some((name, mut conf)) => {
-                        conf.name = name;
-                        Ok(conf)
-                    },
-                    None => {
-                        Err(format!("PointConfig.from_json | Error parsing: {:?} - doesn't contains proper PointConfig", value))
-                    },
-                }
+                let  mut map: Self = map;
+                map.name = name.to_owned();
+                Ok(map)
+                // println!("PointConfig.from_json | map {:#?}", map);
+                // match map.into_iter().next() {
+                //     Some((name, mut conf)) => {
+                //         conf.name = name;
+                //         Ok(conf)
+                //     },
+                //     None => {
+                //         Err(format!("PointConfig.from_json | Error parsing: {:?} - doesn't contains proper PointConfig", value))
+                //     },
+                // }
             },
             Err(err) => Err(format!("PointConfig.from_json | Error: {:?}", err)),
         }

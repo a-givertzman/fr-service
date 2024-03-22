@@ -47,7 +47,8 @@ mod fn_conf_keywd {
             ("input3 point \"/path/Point.Name\"", FnConfKeywd::Point( FnConfKeywdValue {input: format!("input3"), type_: FnConfPointType::Unknown, data: format!("/path/Point.Name")} )),
             ("input4 point bool /path/Point.Name", FnConfKeywd::Point( FnConfKeywdValue {input: format!("input4"), type_: FnConfPointType::Bool, data: format!("/path/Point.Name")} )),
             ("input5 point int /path/Point.Name", FnConfKeywd::Point( FnConfKeywdValue {input: format!("input5"), type_: FnConfPointType::Int, data: format!("/path/Point.Name")} )),
-            ("input6 point float /path/Point.Name", FnConfKeywd::Point( FnConfKeywdValue {input: format!("input6"), type_: FnConfPointType::Float, data: format!("/path/Point.Name")} )),
+            ("input6 point real /path/Point.Name", FnConfKeywd::Point( FnConfKeywdValue {input: format!("input6"), type_: FnConfPointType::Real, data: format!("/path/Point.Name")} )),
+            ("input6 point double /path/Point.Name", FnConfKeywd::Point( FnConfKeywdValue {input: format!("input6"), type_: FnConfPointType::Double, data: format!("/path/Point.Name")} )),
             ("input7 point string /path/Point.Name", FnConfKeywd::Point( FnConfKeywdValue {input: format!("input7"), type_: FnConfPointType::String, data: format!("/path/Point.Name")} )),
         ];
         for (value, target) in test_data {
@@ -56,7 +57,8 @@ mod fn_conf_keywd {
             assert_eq!(fn_config_type, target);
         }
     }
-    
+    ///
+    /// 
     #[test]
     fn invalid() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);

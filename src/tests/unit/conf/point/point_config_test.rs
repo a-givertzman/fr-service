@@ -6,13 +6,16 @@ mod point_config {
     use log::debug;
     use serde_json::json;
     use testing::stuff::max_test_duration::TestDuration; 
-    use crate::conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress, point_config_filters::PointConfigFilter, point_config_history::PointConfigHistory, point_config_type::PointConfigType}; 
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    use crate::conf::point_config::{
+        point_config::PointConfig, 
+        point_config_address::PointConfigAddress, 
+        point_config_filters::PointConfigFilter, 
+        point_config_history::PointConfigHistory, 
+        point_config_type::PointConfigType,
+    }; 
+    ///
+    ///
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -21,15 +24,12 @@ mod point_config {
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
+    fn init_each() -> () {}
+    ///
+    /// 
     #[test]
     fn serialize() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -43,7 +43,7 @@ mod point_config {
         let test_data = [
             (r#"
                     Point.Name.0:
-                        type: Bool      # Bool / Int / Float / String / Json
+                        type: Bool      # Bool / Int / Real / String / Json
                         alarm: 0        # 0..15
                         address:
                             offset: 0   # 0..65535
@@ -62,7 +62,7 @@ mod point_config {
             ),
             (r#"
                     Point.Name.0:
-                        type: Bool      # Bool / Int / Float / String / Json
+                        type: Bool      # Bool / Int / Real / String / Json
                         alarm: 0        # 0..15
                         address:
                             offset: 0   # 0..65535
@@ -82,7 +82,7 @@ mod point_config {
             ),
             (r#"
                     PointName1:
-                        type: Int       # Bool / Int / Float / String / Json
+                        type: Int       # Bool / Int / Real / String / Json
                         history: r      # ommit - None / r - Read / w - Write / rw - ReadWrite
                         address:
                             offset: 0   # 0..65535
@@ -98,7 +98,7 @@ mod point_config {
             ),
             (r#"
                     PointName2:
-                        type: Int       # Bool / Int / Float / String / Json
+                        type: Int       # Bool / Int / Real / String / Json
                         alarm: 4        # 0..15
                         address:
                             offset: 0   # 0..65535
@@ -114,7 +114,7 @@ mod point_config {
             ),
             (r#"
                     PointName3:
-                        type: Int       # Bool / Int / Float / String / Json
+                        type: Int       # Bool / Int / Real / String / Json
                         history: w      # ommit - None / r - Read / w - Write / rw - ReadWrite
                         address:
                             offset: 12   # 0..65535
@@ -130,7 +130,7 @@ mod point_config {
             ),
             (r#"
                     PointName4:
-                        type: Int       # Bool / Int / Float / String / Json
+                        type: Int       # Bool / Int / Real / String / Json
                         history: rw     # ommit - None / r - Read / w - Write / rw - ReadWrite
                         address:
                             offset: 12   # 0..65535
@@ -154,22 +154,22 @@ mod point_config {
         }
         test_duration.exit();
     }
-
-    
+    ///
+    ///
     #[test]
-    fn deserialize() {
+    fn deserialize_yaml() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
         println!();
-        let self_id = "test PointConfig serialize";
+        let self_id = "deserialize_yaml";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
         let test_data = [
             (r#"
                     PointName0:
-                        type: bool      # Bool / Int / Float / String / Json
+                        type: bool      # Bool / Int / Real / String / Json
                         history: rw      # None / Read / Write
                         alarm: 0        # 0..15
                         address:
@@ -189,7 +189,7 @@ mod point_config {
             ),
             (r#"
                     PointName1:
-                        type: Int       # Bool / Int / Float / String / Json
+                        type: Int       # Bool / Int / Real / String / Json
                         history: w      # None / Read / Write
                         address:
                             offset: 0   # 0..65535
@@ -205,7 +205,7 @@ mod point_config {
             ),
             (r#"
                     PointName2:
-                        type: Int       # Bool / Int / Float / String / Json
+                        type: Int       # Bool / Int / Real / String / Json
                         alarm: 4        # 0..15
                         address:
                             offset: 0   # 0..65535
@@ -221,7 +221,7 @@ mod point_config {
             ),
             (r#"
                     PointName3:
-                        type: Int       # Bool / Int / Float / String / Json
+                        type: Int       # Bool / Int / Real / String / Json
                         address:
                             offset: 12   # 0..65535
                         comment: Test Point"#, 
@@ -242,4 +242,95 @@ mod point_config {
         }
         test_duration.exit();
     }
+    ///
+    ///
+    #[test]
+    fn deserialize_json() {
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        init_once();
+        init_each();
+        println!();
+        let self_id = "deserialize_json";
+        println!("\n{}", self_id);
+        let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
+        test_duration.run().unwrap();
+        let test_data = [
+            (&format!(r#"{{
+                "name": "/{}/PointName0",
+                "type": "bool",
+                "history": "rw",
+                "alarm": 0,
+                "address": {{
+                    "offset": 0,
+                    "bit": 0
+                }},
+                "filters": {{
+                    "threshold": 5
+                }},
+                "comment": "Test Point Bool"}}"#, self_id),
+                PointConfig { 
+                    name: format!("/{}/PointName0", self_id),
+                    _type: PointConfigType::Bool, 
+                    history: PointConfigHistory::ReadWrite, alarm: Some(0), 
+                    address: Some(PointConfigAddress { offset: Some(0), bit: Some(0) }), 
+                    filters: Some(PointConfigFilter { threshold: 5.0, factor: None }),
+                    comment: Some(format!("Test Point Bool")),
+                },
+            ),
+            // (r#"
+            //         PointName1:
+            //             type: Int       # Bool / Int / Real / String / Json
+            //             history: w      # None / Read / Write
+            //             address:
+            //                 offset: 0   # 0..65535
+            //             comment: Test Point"#, 
+            //     PointConfig { 
+            //         name: format!("/{}/PointName1", self_id),
+            //         _type: PointConfigType::Int, 
+            //         history: PointConfigHistory::Write, alarm: None, 
+            //         address: Some(PointConfigAddress { offset: Some(0), bit: None }), 
+            //         filters: None,
+            //         comment: Some(format!("Test Point")),
+            //     },
+            // ),
+            // (r#"
+            //         PointName2:
+            //             type: Int       # Bool / Int / Real / String / Json
+            //             alarm: 4        # 0..15
+            //             address:
+            //                 offset: 0   # 0..65535
+            //             comment: Test Point"#, 
+            //     PointConfig { 
+            //         name: format!("/{}/PointName2", self_id),
+            //         _type: PointConfigType::Int, 
+            //         history: PointConfigHistory::None, alarm: Some(4), 
+            //         address: Some(PointConfigAddress { offset: Some(0), bit: None }), 
+            //         filters: None,
+            //         comment: Some(format!("Test Point")),
+            //     },
+            // ),
+            // (r#"
+            //         PointName3:
+            //             type: Int       # Bool / Int / Real / String / Json
+            //             address:
+            //                 offset: 12   # 0..65535
+            //             comment: Test Point"#, 
+            //     PointConfig { 
+            //         name: format!("/{}/PointName3", self_id),
+            //         _type: PointConfigType::Int, 
+            //         history: PointConfigHistory::None, alarm: None, 
+            //         address: Some(PointConfigAddress { offset: Some(12), bit: None }), 
+            //         filters: None,
+            //         comment: Some(format!("Test Point")),
+            //     },
+            // ),
+        ];
+        for (conf, target) in test_data {
+            let conf = serde_json::from_str(conf).unwrap();
+            // println!("conf: {:#?}", conf);
+            let result = PointConfig::from_json(&target.name, &conf).unwrap();
+            assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
+        }
+        test_duration.exit();
+    }    
 }
