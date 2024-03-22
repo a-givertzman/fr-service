@@ -33,11 +33,9 @@ mod services {
         // let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         // test_duration.run().unwrap();
         let mut path = env::current_dir().unwrap();
-        path.push("src/tests/unit/services/app/");
-        std::env::set_current_dir(path).unwrap();
+        path.push("src/tests/unit/services/app/app.yaml");
         println!("working path: \n\t{:?}", env::current_dir().unwrap());
-        let path = "app.yaml";
-        let app = App::new(path);
+        let app = App::new(path.display().to_string());
         app.run().unwrap();
         println!();
         // assert!(points_count == target, "\nresult: {:?}\ntarget: {:?}", points_count, target);
