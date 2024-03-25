@@ -36,8 +36,11 @@ mod socket_read_performance {
         ts.to_rfc3339()
     }
     ///
-    /// 
-    #[ignore = "Performance test | run this test to compare performance of different methods socket reading"]
+    /// Performance comparation of different methods socket reading
+    /// - using stream.bytes() iterator
+    /// - using stream.read(byte) method
+    /// - using BufReader<stream>.bytes() iterator
+    #[ignore = "Performance test"]
     #[test]
     fn read_bytes() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -69,7 +72,6 @@ mod socket_read_performance {
                 format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value":  9223372036854775807,   "status": 0, "timestamp":"{}"}}"#, 
                 name, ts_str(ts)), PointType::Int(Point::new(0, name,  9223372036854775807, Status::Ok, Cot::default(), ts))
             ),
-
             (
                 format!(r#"{{"id": "1", "type": "Real", "name": "{}", "value":  0.0, "status": 0, "timestamp":"{}"}}"#, 
                 name, ts_str(ts)), PointType::Real(Point::new(0, name,  0.0, Status::Ok, Cot::default(), ts))
@@ -90,8 +92,6 @@ mod socket_read_performance {
                 format!(r#"{{"id": "1", "type": "Real", "name": "{}", "value":  3.4028235e38, "status": 0, "timestamp":"{}"}}"#, 
                 name, ts_str(ts)), PointType::Real(Point::new(0, name,  f32::MAX, Status::Ok, Cot::default(), ts))
             ),
-            
-
             (
                 format!(r#"{{"id": "1", "type": "Double", "name": "{}", "value":  0.0, "status": 0, "timestamp":"{}"}}"#, 
                 name, ts_str(ts)), PointType::Double(Point::new(0, name,  0.0, Status::Ok, Cot::default(), ts))
@@ -121,7 +121,7 @@ mod socket_read_performance {
         //
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         let received = Arc::new(AtomicUsize::new(0));
-        let count = 100_000;
+        let count = 10;
         let test_data_len = test_data.len();
         let total = count * test_data_len;
         mock_tcp_server(addr.to_string(), count, &test_data, received.clone());
@@ -170,11 +170,60 @@ mod socket_read_performance {
                 };
             }
         }
+        let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
+        let received = Arc::new(AtomicUsize::new(0));
+        let test_data_len = test_data.len();
+        let total = count * test_data_len;
+        mock_tcp_server(addr.to_string(), count, &test_data, received.clone());
+        {
+            println!("\nReading from BufReader<stream>.read(byte)...");
+            let time = Instant::now();
+            'main: loop {
+                match TcpStream::connect(&addr) {
+                    Ok(stream) => {
+                        let mut buffer = vec![];
+                        let mut byte = [0u8];
+                        let mut buf_reader = BufReader::new(stream);
+                        'read: loop {
+                            match buf_reader.read(&mut byte) {
+                                Ok(_) => {
+                                    match byte[0] {
+                                        JDS_END_OF_TRANSMISSION => {
+                                            received.fetch_add(1, Ordering::SeqCst);
+                                            // debug!("socket read - received: {:?}", received.load(Ordering::SeqCst));
+                                            if received.load(Ordering::SeqCst) >= total {
+                                                break 'read;
+                                            }
+                                            let msg = String::from_utf8(buffer).unwrap();
+                                            let recv_index = (received.load(Ordering::SeqCst) - 1) % test_data_len;
+                                            trace!("socket read - received[{}]: {:?}", recv_index, msg);
+                                            assert!(msg == test_data[recv_index].0);
+                                            buffer = vec![];
+                                        },
+                                        _ => {
+                                            buffer.push(byte[0]);
+                                            // println!("byte[0]: {:?} => {}", byte[0], String::from_utf8(byte.to_vec()).unwrap());
+                                        },
+                                    }
+                                },
+                                Err(_err) => {
+                                    break 'read;
+                                },
+                            }
+                        }
+                        println!("elapsed: {:?}", time.elapsed());
+                        println!("received: {:?}", received.load(Ordering::SeqCst));
+                        // println!("buffer: {:?}", buffer);
+                        break 'main;
+                    },
+                    Err(_) => {},
+                };
+            }
+        }        
         //
         // reading from stream.bytes
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         let received = Arc::new(AtomicUsize::new(0));
-        // let count = 10000;
         let test_data_len = test_data.len();
         let total = count * test_data_len;
         mock_tcp_server(addr.to_string(), count, &test_data, received.clone());

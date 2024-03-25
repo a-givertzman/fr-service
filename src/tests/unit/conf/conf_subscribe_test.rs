@@ -32,7 +32,7 @@ mod conf_subscribe {
         init_once();
         init_each();
         println!();
-        let self_id = "test";
+        let self_id = "conf_subscribe_test";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();

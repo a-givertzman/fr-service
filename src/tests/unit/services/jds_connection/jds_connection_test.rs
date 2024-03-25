@@ -82,7 +82,7 @@ mod jds_routes {
         init_once();
         init_each();
         println!();
-        let self_id = "test";
+        let self_id = "jds_connection_test";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
         test_duration.run().unwrap();
@@ -226,7 +226,7 @@ mod jds_routes {
         init_once();
         init_each();
         println!();
-        let self_id = "test";
+        let self_id = "jds_connection_test";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
         test_duration.run().unwrap();
@@ -369,7 +369,7 @@ mod jds_routes {
         init_once();
         init_each();
         println!();
-        let self_id = "test";
+        let self_id = "jds_connection_test";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
         test_duration.run().unwrap();
@@ -544,7 +544,7 @@ mod jds_routes {
         init_once();
         init_each();
         println!();
-        let self_id = "test JdsService";
+        let self_id = "jds_connection_test";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();

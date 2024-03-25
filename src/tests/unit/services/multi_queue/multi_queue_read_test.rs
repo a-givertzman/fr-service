@@ -33,7 +33,7 @@ mod multi_queue {
         init_once();
         init_each();
         println!();
-        let self_id = "test";
+        let self_id = "multi_queue_read_test";
         println!("\n{}", self_id);
         //
         // can be changed

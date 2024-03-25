@@ -27,8 +27,8 @@ mod multi_queue {
     /// Can be changed
     const ITERATIONS: usize = 1_000_000;
     ///
-    /// 
-    #[ignore = "Performance test | use to estimate performance of multiqueue without matching producer's id"]
+    /// Use to estimate performance of multiqueue without matching producer's id
+    #[ignore = "Performance test"]
     #[test]
     fn performance() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -133,8 +133,8 @@ mod multi_queue {
         test_duration.exit();
     }
     ///
-    /// 
-    #[ignore = "Performance test | use to estimate performance of multiqueue with matching producer's id"]
+    /// Use to estimate performance of multiqueue with matching producer's id
+    #[ignore = "Performance test"]
     #[test]
     fn match_performance() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);

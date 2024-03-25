@@ -47,7 +47,7 @@ mod multi_queue {
         init_once();
         init_each();
         println!();
-        let self_id = "test";
+        let self_id = "multi_queue_subscribe_test";
         println!("\n{}", self_id);
         let sender_count = 10;         // count of MockSendService's
         let receiver_count = 10;         // count of MockReceiver's
