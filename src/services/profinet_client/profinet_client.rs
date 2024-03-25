@@ -115,7 +115,7 @@ impl ProfinetClient {
                             thread::sleep(Duration::from_millis(1000))
                         }
                     });
-                    info!("{}read| started", self.id);
+                    info!("{}read| Started", self.id);
                     handle
                 } else {
                     info!("{}read| Disabled", self.id);
