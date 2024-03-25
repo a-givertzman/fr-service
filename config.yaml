@@ -65,6 +65,7 @@ service TcpServer:
 #     out queue: MultiQueue.in-queue
 
 service ProfinetClient ied12:
+    cycle: 500 ms
     subscribe: MultiQueue
     out queue: MultiQueue.in-queue
     protocol: 'profinet'
@@ -76,7 +77,6 @@ service ProfinetClient ied12:
         number: 902
         offset: 0
         size: 204
-        cycle: 500 ms
         point Settings.CraneMode.MainMode: 
             type: Int
             address:
@@ -508,6 +508,7 @@ service ProfinetClient ied12:
                 offset: 202
 
 service ProfinetClient ied13:
+    cycle: 1000 ms
     subscribe: MultiQueue
     out queue: MultiQueue.in-queue
     protocol: 'profinet'
@@ -519,7 +520,6 @@ service ProfinetClient ied13:
         number: 905
         offset: 0
         size: 148
-        cycle: 1000 ms
         point Winch.ValveEV1: 
             type: Bool
             address:
@@ -842,6 +842,7 @@ service ProfinetClient ied13:
                 offset: 146
 
 service ProfinetClient ied14:
+    cycle: 50 ms
     subscribe: MultiQueue
     out queue: MultiQueue.in-queue
     protocol: 'profinet'
@@ -853,7 +854,6 @@ service ProfinetClient ied14:
         number: 906
         offset: 0
         size: 200
-        cycle: 50 ms
         point CraneMovement.RotateLeft: 
             type: Int
             address:
