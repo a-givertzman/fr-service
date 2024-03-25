@@ -159,5 +159,5 @@ impl FnOut for SqlMetric {
 /// 
 impl FnInOut for SqlMetric {}
 ///
-/// 
+/// Global static counter of SqlMetric instances
 pub static COUNT: AtomicUsize = AtomicUsize::new(0);

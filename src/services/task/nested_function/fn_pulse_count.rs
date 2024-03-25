@@ -107,6 +107,6 @@ impl FnOut for FnPulseCount {
 /// 
 impl FnInOut for FnPulseCount {}
 ///
-/// 
+/// Global static counter of FnOut instances
 static COUNT: AtomicUsize = AtomicUsize::new(0);
 

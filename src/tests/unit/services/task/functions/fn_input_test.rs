@@ -106,7 +106,7 @@ mod fn_input {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("test_real");
-        let input = init_each(0.0.to_point(0, "real"));
+        let input = init_each(0.0f32.to_point(0, "real"));
         let test_data = vec![
             0.0f32,
             1.0f32,
@@ -142,7 +142,7 @@ mod fn_input {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("test_real");
-        let input = init_each(0.0.to_point(0, "real"));
+        let input = init_each(0.0f64.to_point(0, "real"));
         let test_data = vec![
             0.0f64,
             1.0f64,

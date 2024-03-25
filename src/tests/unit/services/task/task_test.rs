@@ -2,7 +2,7 @@
 
 mod task {
     use log::{trace, info, debug};
-    use std::{sync::{Once, Arc, Mutex}, env, time::{Instant, Duration}};
+    use std::{env, sync::{Arc, Mutex, Once}, thread, time::{Duration, Instant}};
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
@@ -34,7 +34,7 @@ mod task {
         println!();
         let self_id = "task_test";
         println!("\n{}", self_id);
-        let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
+        let test_duration = TestDuration::new(self_id, Duration::from_secs(3));
         test_duration.run().unwrap();
         //
         // can be changed
@@ -51,10 +51,22 @@ mod task {
             iterations,
         )));
         services.lock().unwrap().insert("TaskTestReceiver", receiver.clone());
-        
         let test_data = RandomTestValues::new(
             self_id, 
-            vec![], 
+            vec![
+                Value::Real(-7.035),
+                Value::Real(-2.5),
+                Value::Real(-5.5),
+                Value::Real(-1.5),
+                Value::Real(-1.0),
+                Value::Real(-0.1),
+                Value::Real(0.1),
+                Value::Real(1.0),
+                Value::Real(1.5),
+                Value::Real(5.5),
+                Value::Real(2.5),
+                Value::Real(7.035),
+            ], 
             iterations, 
         );
         let test_data: Vec<Value> = test_data.collect();
@@ -70,17 +82,18 @@ mod task {
         let task = Arc::new(Mutex::new(Task::new(self_id, config, services.clone())));
         services.lock().unwrap().insert("Task", task.clone());
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
-        let producer_handle = producer.lock().unwrap().run().unwrap();
-        trace!("task runing...");
-        let time = Instant::now();
+        info!("receiver runing - ok");
         let task_handle = task.lock().unwrap().run().unwrap();
-        trace!("task runing - ok");
-        producer_handle.wait().unwrap();
+        info!("task runing - ok");
+        thread::sleep(Duration::from_millis(100));
+        let producer_handle = producer.lock().unwrap().run().unwrap();
+        info!("producer runing - ok");
+        let time = Instant::now();
         receiver_handle.wait().unwrap();
-        debug!("task.lock.exit...");
+        producer.lock().unwrap().exit();
         task.lock().unwrap().exit();
-        debug!("task.lock.exit - ok");
         task_handle.wait().unwrap();
+        producer_handle.wait().unwrap();
         let sent = producer.lock().unwrap().sent().lock().unwrap().len();
         let result = receiver.lock().unwrap().received().lock().unwrap().len();
         println!(" elapsed: {:?}", time.elapsed());

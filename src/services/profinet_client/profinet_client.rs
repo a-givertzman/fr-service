@@ -74,7 +74,7 @@ impl ProfinetClient {
                 dbs.insert(db_name.clone(), db);
                 info!("{}read| configuring DB: {:?} - ok", self_id, db_name);
             }
-            let mut cycle = ServiceCycle::new(cycle_interval);
+            let mut cycle = ServiceCycle::new(&self_id, cycle_interval);
             let mut client = S7Client::new(self_id.clone(), conf.ip.clone());
             'main: while !exit.load(Ordering::SeqCst) {
                 let mut error_limit = ErrorsLimit::new(3);

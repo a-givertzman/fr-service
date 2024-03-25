@@ -78,7 +78,7 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("test_int");
-        let input = init_each(false.to_point(0, "bool"));
+        let input = init_each(0.to_point(0, "int"));
         let mut fn_var = FnVar::new(
             "test",
             input.clone(),
@@ -114,7 +114,7 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("test_real");
-        let input = init_each(false.to_point(0, "bool"));
+        let input = init_each(0.0f32.to_point(0, "real"));
         let mut fn_var = FnVar::new(
             "test",
             input.clone(),
@@ -150,7 +150,7 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("test_double");
-        let input = init_each(false.to_point(0, "bool"));
+        let input = init_each(0.0f64.to_point(0, "double"));
         let mut fn_var = FnVar::new(
             "test",
             input.clone(),

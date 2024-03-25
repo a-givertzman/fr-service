@@ -1,9 +1,6 @@
 use std::{sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex, RwLock}, thread, time::Duration};
-
 use log::{info, trace, warn};
-
 use crate::{core_::{object::object::Object, point::point_type::PointType}, services::{service::{service::Service, service_handles::ServiceHandles}, services::Services}};
-
 #[cfg(test)]
 
 mod multi_queue {
@@ -89,11 +86,16 @@ mod multi_queue {
         let mut sender_handles = vec![];
         let time = Instant::now();
         for i in 0..sender_count {
-            let point_content = format!("dynamic{}", i);
             let dynamic_test_data = RandomTestValues::new(
                 self_id, 
                 vec![
-                    Value::String(String::from(&point_content)),
+                    Value::String(format!("dynamic01{}", i)),
+                    Value::String(format!("dynamic02{}", i)),
+                    Value::String(format!("dynamic03{}", i)),
+                    Value::String(format!("dynamic04{}", i)),
+                    Value::String(format!("dynamic05{}", i)),
+                    Value::String(format!("dynamic06{}", i)),
+                    Value::String(format!("dynamic07{}", i)),
                 ], 
                 iterations, 
             );

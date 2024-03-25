@@ -2,8 +2,6 @@ use log::debug;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::core_::{cot::cot::Cot, point::{point::Point, point_type::PointType}, types::{bool::Bool, fn_in_out_ref::FnInOutRef, type_of::DebugTypeOf}};
 use super::{fn_::{FnInOut, FnIn, FnOut}, fn_kind::FnKind};
-
-
 ///
 /// Function | Greater than or equal to
 /// FnGe ( input1, input2 ) === input1.value >= input2.value
@@ -106,5 +104,5 @@ impl FnOut for FnGe {
 /// 
 impl FnInOut for FnGe {}
 ///
-/// 
+/// Global static counter of FnOut instances
 pub static COUNT: AtomicUsize = AtomicUsize::new(0);

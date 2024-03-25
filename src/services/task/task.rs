@@ -74,10 +74,10 @@ impl Service for Task {
         };
         let in_recv = self.in_recv.pop().unwrap();
         let handle = thread::Builder::new().name(format!("{} - main", self_id)).spawn(move || {
-            let mut cycle = ServiceCycle::new(cycle_interval);
+            let mut cycle = ServiceCycle::new(&self_id, cycle_interval);
             let mut task_nodes = TaskNodes::new(&self_id);
             task_nodes.buildNodes(&self_id, conf, services);
-            debug!("{}.run | taskNodes: {:?}", self_id, task_nodes);
+            debug!("{}.run | taskNodes: {:#?}", self_id, task_nodes);
             'main: loop {
                 cycle.start();
                 trace!("{}.run | calculation step...", self_id);

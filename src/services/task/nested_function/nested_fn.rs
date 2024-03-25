@@ -144,7 +144,7 @@ impl NestedFn {
                 fn_const
             },
             FnConfKind::Point(conf) => {                
-                println!("NestedFn.function | Input (Point): {:?} ({:?})...", input_name, conf.name);
+                println!("NestedFn.function | Input (Point<{:?}>): {:?} ({:?})...", conf.type_, input_name, conf.name);
                 let initial = match conf.type_.clone() {
                     FnConfPointType::Bool => false.to_point(tx_id, &conf.name),
                     FnConfPointType::Int => 0.to_point(tx_id, &conf.name),
@@ -153,6 +153,7 @@ impl NestedFn {
                     FnConfPointType::String => "".to_point(tx_id, &conf.name),
                     FnConfPointType::Unknown => panic!("NestedFn.function | Point type required"),
                 };
+                println!("NestedFn.function | Input initial: {:?}", initial);
                 let point_name = conf.name.clone();
                 task_nodes.addInput(&point_name, Self::fn_input(&point_name, initial));
                 let input = task_nodes.getInput(&point_name).unwrap();

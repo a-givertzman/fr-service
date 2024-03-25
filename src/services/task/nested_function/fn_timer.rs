@@ -179,5 +179,5 @@ impl FnOut for FnTimer {
 /// 
 impl FnInOut for FnTimer {}
 ///
-/// 
+/// Global static counter of FnOut instances
 static COUNT: AtomicUsize = AtomicUsize::new(0);

@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 use log::{debug, trace};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::{
@@ -9,8 +7,6 @@ use crate::{
         fn_kind::FnKind,
     },
 };
-
-
 ///
 /// Function do Add of input1 and input2
 #[derive(Debug)]
@@ -93,7 +89,7 @@ impl FnOut for FnAdd {
 /// 
 impl FnInOut for FnAdd {}
 ///
-/// 
+/// Global static counter of FnOut instances
 static COUNT: AtomicUsize = AtomicUsize::new(0);
 
 

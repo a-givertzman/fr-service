@@ -136,7 +136,7 @@ impl Service for TcpServer {
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
-            let mut cycle = ServiceCycle::new(reconnect_cycle);
+            let mut cycle = ServiceCycle::new(&self_id, reconnect_cycle);
             'main: loop {
                 cycle.start();
                 info!("{}.run | Open socket {}...", self_id, conf.address);
