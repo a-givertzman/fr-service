@@ -109,7 +109,7 @@ service CmaClient:
     out queue: MultiQueue.in-queue
 
 service ProfinetClient Ied01:
-    cycle: 1 ms                         # operating cycle time of the module
+    cycle: 1 ms                         # operating cycle time of the module, if 0 or ommited, module read cycle will be disable
     in queue in-queue:
         max-length: 10000
     out queue: MultiQueue.in-queue
@@ -124,7 +124,6 @@ service ProfinetClient Ied01:
         number: 899
         offset: 0
         size: 8
-        delay: 10
         point Drive.Speed: 
             type: 'Real'
             offset: 0
@@ -136,7 +135,6 @@ service ProfinetClient Ied01:
         number: 899
         offset: 0
         size: 6
-        delay: 10
         point Drive.positionFromHoist: 
             type: 'Real'
             offset: 0
@@ -145,7 +143,7 @@ service ProfinetClient Ied01:
             offset: 4
 
 service ProfinetClient Ied02:
-    cycle: 1 ms                         # operating cycle time of the module
+    cycle: 1 ms                         # operating cycle time of the module, if 0 or ommited, module read cycle will be disable
     in queue in-queue:
         max-length: 10000
     out queue: MultiQueue.in-queue
@@ -160,7 +158,6 @@ service ProfinetClient Ied02:
         number: 899
         offset: 0
         size: 34
-        delay: 10
         point ChargeIn.On: 
             type: 'Bool'
             offset: 30
@@ -323,7 +320,7 @@ service TcpClient:
     out queue: MultiQueue.queue
 
 service ProfinetClient Ied01:
-    cycle: 1 ms                         # operating cycle time of the module
+    cycle: 1 ms                         # operating cycle time of the module, if 0 or ommited, module read cycle will be disable
     in queue in-queue:
         max-length: 10000
     out queue: MultiQueue.in-queue
@@ -338,7 +335,6 @@ service ProfinetClient Ied01:
         number: 899
         offset: 0
         size: 34
-        cycle: 10 ms
         point Drive.Speed: 
             type: 'Real'
             offset: 0
@@ -360,7 +356,6 @@ service ProfinetClient Ied01:
         number: 899
         offset: 0
         size: 34
-        cycle: 10 ms
         point Drive.positionFromMru: 
             type: 'Real'
             offset: 20
@@ -380,7 +375,7 @@ service ProfinetClient Ied01:
             bit: 0
 
 service ProfinetClient Ied02:
-    cycle: 1 ms                         # operating cycle time of the module
+    cycle: 1 ms                         # operating cycle time of the module, if 0 or ommited, module read cycle will be disable
     in queue in-queue:
         max-length: 10000
     out queue: MultiQueue.in-queue
@@ -395,7 +390,6 @@ service ProfinetClient Ied02:
         number: 899
         offset: 0
         size: 34
-        delay: 10
         point Drive.Speed: 
             type: 'Real'
             offset: 0
