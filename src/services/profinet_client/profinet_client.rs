@@ -102,9 +102,7 @@ impl ProfinetClient {
                                                 break 'main;
                                             }
                                         }
-                                        if cyclic {
-                                            cycle.wait();
-                                        }
+                                        cycle.wait();
                                     }
                                     if status != Status::Ok {
                                         Self::yield_status(&self_id, &mut dbs, &tx_send);
