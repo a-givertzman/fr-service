@@ -66,7 +66,7 @@ impl ProfinetClient {
                         let mut dbs: IndexMap<String, ProfinetDb> = IndexMap::new();
                         for (db_name, db_conf) in conf.dbs {
                             info!("{}read| configuring DB: {:?}...", self_id, db_name);
-                            let db = ProfinetDb::new(&self_id, &db_conf);
+                            let db = ProfinetDb::new(app.clone(), &self_id, &db_conf);
                             dbs.insert(db_name.clone(), db);
                             info!("{}read| configuring DB: {:?} - ok", self_id, db_name);
                         }
