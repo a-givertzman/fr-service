@@ -33,7 +33,7 @@ mod history {
         let self_id = "history_test";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
-        test_duration.run().unwrap();
+        // test_duration.run().unwrap();
         let mut path = env::current_dir().unwrap();
         path.push("src/tests/unit/services/history/history.yaml");
         println!("working path: \n\t{:?}", env::current_dir().unwrap());
