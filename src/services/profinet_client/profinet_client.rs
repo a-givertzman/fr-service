@@ -61,68 +61,75 @@ impl ProfinetClient {
         let app = self.app.clone();
         let exit = self.exit.clone();
         let conf = self.conf.clone();
-        let (cyclic, cycle_interval) = match conf.cycle {
-            Some(interval) => (interval > Duration::ZERO, interval),
-            None => (false, Duration::ZERO),
-        };
-        info!("{}read| Preparing thread...", self_id);
-        let handle = thread::Builder::new().name(format!("{}.read", self_id)).spawn(move || {
-            let mut dbs: IndexMap<String, ProfinetDb> = IndexMap::new();
-            for (db_name, db_conf) in conf.dbs {
-                info!("{}read| configuring DB: {:?}...", self_id, db_name);
-                let db = ProfinetDb::new(app.clone(), &self_id, &db_conf);
-                dbs.insert(db_name.clone(), db);
-                info!("{}read| configuring DB: {:?} - ok", self_id, db_name);
-            }
-            let mut cycle = ServiceCycle::new(&self_id, cycle_interval);
-            let mut client = S7Client::new(self_id.clone(), conf.ip.clone());
-            'main: while !exit.load(Ordering::SeqCst) {
-                let mut error_limit = ErrorsLimit::new(3);
-                let mut status = Status::Ok;
-                match client.connect() {
-                    Ok(_) => {
-                        'read: while !exit.load(Ordering::SeqCst) {
-                            cycle.start();
-                            for (db_name, db) in &mut dbs {
-                                trace!("{}read| DB '{}' - reading...", self_id, db_name);
-                                match db.read(&client, &tx_send) {
-                                    Ok(_) => {
-                                        error_limit.reset();
-                                        trace!("{}read| DB '{}' - reading - ok", self_id, db_name);
-                                    },
-                                    Err(err) => {
-                                        error!("{}read| DB '{}' - reading - error: {:?}", self_id, db_name, err);
-                                        if error_limit.add().is_err() {
-                                            error!("{}read| DB '{}' - exceeded reading errors limit, trying to reconnect...", self_id, db_name);
-                                            status = Status::Invalid;
-                                            if let Err(err) = client.close() {
-                                                error!("{}read| {:?}", self_id, err);
-                                            };
-                                            break 'read;
+        match conf.cycle {
+            Some(cycle_interval) => {
+                if cycle_interval > Duration::ZERO {
+                    info!("{}read| Preparing thread...", self_id);
+                    let handle = thread::Builder::new().name(format!("{}.read", self_id)).spawn(move || {
+                        let mut dbs: IndexMap<String, ProfinetDb> = IndexMap::new();
+                        for (db_name, db_conf) in conf.dbs {
+                            info!("{}read| configuring DB: {:?}...", self_id, db_name);
+                            let db = ProfinetDb::new(app.clone(), &self_id, &db_conf);
+                            dbs.insert(db_name.clone(), db);
+                            info!("{}read| configuring DB: {:?} - ok", self_id, db_name);
+                        }
+                        let mut cycle = ServiceCycle::new(&self_id, cycle_interval);
+                        let mut client = S7Client::new(self_id.clone(), conf.ip.clone());
+                        'main: while !exit.load(Ordering::SeqCst) {
+                            let mut error_limit = ErrorsLimit::new(3);
+                            let mut status = Status::Ok;
+                            match client.connect() {
+                                Ok(_) => {
+                                    'read: while !exit.load(Ordering::SeqCst) {
+                                        cycle.start();
+                                        for (db_name, db) in &mut dbs {
+                                            trace!("{}read| DB '{}' - reading...", self_id, db_name);
+                                            match db.read(&client, &tx_send) {
+                                                Ok(_) => {
+                                                    error_limit.reset();
+                                                    trace!("{}read| DB '{}' - reading - ok", self_id, db_name);
+                                                },
+                                                Err(err) => {
+                                                    error!("{}read| DB '{}' - reading - error: {:?}", self_id, db_name, err);
+                                                    if error_limit.add().is_err() {
+                                                        error!("{}read| DB '{}' - exceeded reading errors limit, trying to reconnect...", self_id, db_name);
+                                                        status = Status::Invalid;
+                                                        if let Err(err) = client.close() {
+                                                            error!("{}read| {:?}", self_id, err);
+                                                        };
+                                                        break 'read;
+                                                    }
+                                                },
+                                            }
+                                            if exit.load(Ordering::SeqCst) {
+                                                break 'main;
+                                            }
                                         }
-                                    },
-                                }
-                                if exit.load(Ordering::SeqCst) {
-                                    break 'main;
-                                }
+                                        cycle.wait();
+                                    }
+                                    if status != Status::Ok {
+                                        Self::yield_status(&self_id, &mut dbs, &tx_send);
+                                    }
+                                },
+                                Err(err) => {
+                                    debug!("{}read| Connection error: {:?}", self_id, err);
+                                },
                             }
-                            if cyclic {
-                                cycle.wait();
-                            }
+                            thread::sleep(Duration::from_millis(1000))
                         }
-                        if status != Status::Ok {
-                            Self::yield_status(&self_id, &mut dbs, &tx_send);
-                        }
-                    },
-                    Err(err) => {
-                        debug!("{}read| Connection error: {:?}", self_id, err);
-                    },
+                    });
+                    info!("{}read| Started", self.id);
+                    handle
+                } else {
+                    info!("{}read| Disabled", self.id);
+                    thread::Builder::new().name(format!("{}.read", self_id)).spawn(move || {})
                 }
-                thread::sleep(Duration::from_millis(1000))
-            }
-        });
-        info!("{}read| started", self.id);
-        handle
+            },
+            None => {
+                info!("{}read| Disabled", self.id);
+                thread::Builder::new().name(format!("{}.read", self_id)).spawn(move || {})
+            },
+        }
     }
     ///
     /// Writes Point to the protocol (PROFINET device) specific address
