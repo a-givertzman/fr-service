@@ -41,10 +41,12 @@ pub struct ProfinetDb {
 impl ProfinetDb {
     ///
     /// Creates new instance of the [ProfinetDb]
-    pub fn new(parent: impl Into<String>, conf: &ProfinetDbConfig) -> Self {
+    /// - app - string represents application name, for point path
+    /// - parent - parent id, used for debugging
+    /// - conf - configuration of the [ProfinetDB]
+    pub fn new(app: impl Into<String>, parent: impl Into<String>, conf: &ProfinetDbConfig) -> Self {
         let self_id = format!("{}/ProfinetDb({})", parent.into(), conf.name);
         Self {
-            points: Self::configure_parse_points(&self_id, conf),
             id: self_id.clone(),
             name: conf.name.clone(),
             description: conf.description.clone(),
@@ -52,6 +54,7 @@ impl ProfinetDb {
             offset: conf.offset as u32,
             size: conf.size as u32,
             cycle: conf.cycle,
+            points: Self::configure_parse_points(&app.into(), &self_id, conf),
         }
     }
     ///
@@ -171,30 +174,23 @@ impl ProfinetDb {
     }
     ///
     /// Configuring ParsePoint objects depending on point configurations coming from [conf]
-    fn configure_parse_points(self_id: &str, conf: &ProfinetDbConfig) -> IndexMap<String, Box<dyn ParsePoint>> {
+    fn configure_parse_points(app: &str, self_id: &str, conf: &ProfinetDbConfig) -> IndexMap<String, Box<dyn ParsePoint>> {
         conf.points.iter().map(|point_conf| {
-            // (pointConf.name.clone(), pointConf.clone())
             let path = String::new();
             match point_conf._type {
                 PointConfigType::Bool => {
-                    (point_conf.name.clone(), Self::box_bool(path, point_conf.name.clone(), point_conf))
+                    (point_conf.name.clone(), Self::box_bool(app.to_owned(), point_conf.name.clone(), point_conf))
                 },
                 PointConfigType::Int => {
-                    (point_conf.name.clone(), Self::box_int(path, point_conf.name.clone(), point_conf))
+                    (point_conf.name.clone(), Self::box_int(app.to_owned(), point_conf.name.clone(), point_conf))
                 },
                 PointConfigType::Real => {
-                    (point_conf.name.clone(), Self::box_real(path, point_conf.name.clone(), point_conf))
+                    (point_conf.name.clone(), Self::box_real(app.to_owned(), point_conf.name.clone(), point_conf))
                 },
                 PointConfigType::Double => {
-                    (point_conf.name.clone(), Self::box_real(path, point_conf.name.clone(), point_conf))
+                    (point_conf.name.clone(), Self::box_real(app.to_owned(), point_conf.name.clone(), point_conf))
                 },
                 _ => panic!("{}.configureParsePoints | Unknown type '{:?}' for S7 Device", self_id, point_conf._type)
-                // PointConfigType::String => {
-                    
-                // },
-                // PointConfigType::Json => {
-                    
-                // },
             }
         }).collect()
     }

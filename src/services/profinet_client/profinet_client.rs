@@ -16,6 +16,7 @@ use crate::{
 /// Writes Point to the protocol (PROFINET device) specific address
 pub struct ProfinetClient {
     id: String,
+    app: String,
     rx_recv: Vec<Receiver<PointType>>,
     conf: ProfinetClientConfig,
     services: Arc<Mutex<Services>>,
@@ -26,9 +27,10 @@ pub struct ProfinetClient {
 impl ProfinetClient {
     ///
     /// 
-    pub fn new(parent: impl Into<String>, conf: ProfinetClientConfig, services: Arc<Mutex<Services>>) -> Self {
+    pub fn new(app:&str, parent: impl Into<String>, conf: ProfinetClientConfig, services: Arc<Mutex<Services>>) -> Self {
         Self {
             id: format!("{}/ProfinetClient({})", parent.into(), conf.name),
+            app: app.to_owned(),
             rx_recv: vec![],
             conf: conf.clone(),
             services,
@@ -56,6 +58,7 @@ impl ProfinetClient {
     fn read(&mut self, tx_send: Sender<PointType>) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.read | starting...", self.id);
         let self_id = self.id.clone();
+        let app = self.app.clone();
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         let (cyclic, cycle_interval) = match conf.cycle {
@@ -67,7 +70,7 @@ impl ProfinetClient {
             let mut dbs: IndexMap<String, ProfinetDb> = IndexMap::new();
             for (db_name, db_conf) in conf.dbs {
                 info!("{}read| configuring DB: {:?}...", self_id, db_name);
-                let db = ProfinetDb::new(&self_id, &db_conf);
+                let db = ProfinetDb::new(app.clone(), &self_id, &db_conf);
                 dbs.insert(db_name.clone(), db);
                 info!("{}read| configuring DB: {:?} - ok", self_id, db_name);
             }
@@ -126,6 +129,7 @@ impl ProfinetClient {
     fn write(&mut self, tx_send: Sender<PointType>) -> Result<JoinHandle<()>, std::io::Error> {
         let self_id = self.id.clone();
         let tx_id = PointTxId::fromStr(&self_id);
+        let app = self.app.clone();
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         let services = self.services.clone();
@@ -135,7 +139,7 @@ impl ProfinetClient {
             let mut points: Vec<PointConfig> = vec![];
             for (db_name, db_conf) in conf.dbs {
                 info!("{}.write | configuring DB: {:?}...", self_id, db_name);
-                let db = ProfinetDb::new(&self_id, &db_conf);
+                let db = ProfinetDb::new(app.clone(),&self_id, &db_conf);
                 dbs.insert(db_name.clone(), db);
                 info!("{}.write | configuring DB: {:?} - ok", self_id, db_name);
                 points.extend(db_conf.points());

@@ -175,7 +175,7 @@ impl App {
                 Arc::new(Mutex::new(MultiQueue::new(parent, MultiQueueConfig::new(node_conf), services)))
             },
             Services::PROFINET_CLIENT => {
-                Arc::new(Mutex::new(ProfinetClient::new(parent, ProfinetClientConfig::new(node_conf), services)))
+                Arc::new(Mutex::new(ProfinetClient::new(parent, parent, ProfinetClientConfig::new(node_conf), services)))
             },
             Services::TASK => {
                 Arc::new(Mutex::new(Task::new(parent, TaskConfig::new(node_conf), services.clone())))

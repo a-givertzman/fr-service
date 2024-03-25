@@ -50,7 +50,7 @@ mod profinet_client {
         let conf = ProfinetClientConfig::read(path);
         debug!("config: {:?}", &conf);
         debug!("config points:");
-        let client = Arc::new(Mutex::new(ProfinetClient::new(self_id, conf, services.clone())));
+        let client = Arc::new(Mutex::new(ProfinetClient::new(self_id, self_id, conf, services.clone())));
         services.lock().unwrap().insert("ProfinetClient", client.clone());
         let mq_service_handle = mq_service.lock().unwrap().run().unwrap();
         let client_handle = client.lock().unwrap().run().unwrap();
