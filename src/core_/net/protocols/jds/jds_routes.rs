@@ -33,6 +33,7 @@ impl RouterReply {
 pub struct JdsRoutes<F> {
     parent: String,
     id: String,
+    path: String,
     services: Arc<Mutex<Services>>,
     jds_deserialize: JdsDeserialize,
     req_reply_send: Sender<PointType>,
@@ -44,12 +45,22 @@ pub struct JdsRoutes<F> {
 impl<F> JdsRoutes<F> {
     ///
     /// 
-    pub fn new(parent: impl Into<String>, services: Arc<Mutex<Services>>, jds_deserialize: JdsDeserialize, req_reply_send: Sender<PointType>, rautes: F, shared: Arc<RwLock<Shared>>) -> Self {
+    pub fn new(
+        parent: impl Into<String>, 
+        path: impl Into<String>, 
+        services: Arc<Mutex<Services>>, 
+        jds_deserialize: JdsDeserialize, 
+        req_reply_send: Sender<PointType>, 
+        rautes: F, 
+        shared: Arc<RwLock<Shared>>,
+    ) -> Self {
         let parent = parent.into();
         let self_id = format!("{}/JdsRoutes", parent);
+        let path = format!("{}/Jds", path.into());
         Self {
             parent,
             id: self_id, 
+            path,
             services,
             jds_deserialize,
             req_reply_send,
@@ -68,7 +79,8 @@ impl<F> Object for JdsRoutes<F> {
 ///
 /// 
 impl<F> TcpStreamRead for JdsRoutes<F> where
-    F: Fn(String, PointType, Arc<Mutex<Services>>, Arc<RwLock<Shared>>) -> RouterReply,
+    //    parent, path
+    F: Fn(String, String, PointType, Arc<Mutex<Services>>, Arc<RwLock<Shared>>) -> RouterReply,
     F: Send + Sync {
     ///
     /// Reads single point from source
@@ -77,7 +89,7 @@ impl<F> TcpStreamRead for JdsRoutes<F> where
             ConnectionStatus::Active(point) => {
                 match point {
                     Ok(point) => {
-                        let result = (self.rautes)(self.parent.clone(), point, self.services.clone(), self.shared.clone());
+                        let result = (self.rautes)(self.parent.clone(), self.path.clone(), point, self.services.clone(), self.shared.clone());
                         if let Some(point) = result.retply {
                             if let Err(err) = self.req_reply_send.send(point) {
                                 error!("{}.read | Send reply error: {:?}", self.id, err)

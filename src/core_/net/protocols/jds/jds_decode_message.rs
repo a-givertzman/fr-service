@@ -1,13 +1,12 @@
 use std::io::{Read, ErrorKind};
 use log::{warn, trace};
 use crate::core_::net::{connection_status::ConnectionStatus, protocols::jds::jds_define::JDS_END_OF_TRANSMISSION};
-
-
+///
+/// 
 enum Status {
     Active,
     Closed,
 }
-
 ///
 /// Reads bytes from TcpStream
 /// splits bytes sequence with Jds.endOfTransmission = 4 separator

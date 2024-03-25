@@ -9,7 +9,7 @@ impl JdsConnection {
     ///
     /// Detecting kind of the request stored as json string in the incoming point.
     /// Performs the action depending on the Request kind.
-    pub fn handle_request(parent: &str, tx_id: usize, request: PointType, services: Arc<Mutex<Services>>, shared: Arc<RwLock<Shared>>) -> RouterReply {
+    pub fn handle_request(parent: &str, path: &str, tx_id: usize, request: PointType, services: Arc<Mutex<Services>>, shared: Arc<RwLock<Shared>>) -> RouterReply {
         let mut shared = shared.write().unwrap();
         match RequestKind::from(request.name()) {
             RequestKind::AuthSecret => {
@@ -35,7 +35,7 @@ impl JdsConnection {
                     None,
                     Some(PointType::String(Point::new(
                         tx_id, 
-                        &PointName::new(parent, "/Auth.Secret").full(),
+                        &PointName::new(path, "/Auth.Secret").full(),
                         message.to_owned(), 
                         Status::Ok, 
                         cot, 
@@ -69,7 +69,7 @@ impl JdsConnection {
                     None,
                     Some(PointType::String(Point::new(
                         tx_id, 
-                        &PointName::new(parent, "/Auth.Ssh").full(),
+                        &PointName::new(path, "/Auth.Ssh").full(),
                         message.to_owned(), 
                         Status::Ok, 
                         cot, 
@@ -88,7 +88,7 @@ impl JdsConnection {
                     None,
                     Some(PointType::String(Point::new(
                         tx_id, 
-                        &PointName::new(parent, "/Points").full(),
+                        &PointName::new(path, "/Points").full(),
                         points, 
                         Status::Ok, 
                         Cot::ReqCon, 
@@ -148,7 +148,7 @@ impl JdsConnection {
                     None,
                     Some(PointType::String(Point::new(
                         tx_id, 
-                        &PointName::new(parent, "/Subscribe").full(),
+                        &PointName::new(path, "/Subscribe").full(),
                         message, 
                         Status::Ok, 
                         cot, 

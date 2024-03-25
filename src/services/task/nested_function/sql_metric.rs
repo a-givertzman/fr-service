@@ -1,10 +1,6 @@
-#![allow(non_snake_case)]
-
 use std::{collections::HashMap, sync::{Arc, Mutex, atomic::{AtomicUsize, Ordering}}};
-
 use indexmap::IndexMap;
 use log::{debug, trace};
-
 use crate::{
     core_::{
         types::fn_in_out_ref::FnInOutRef,
@@ -14,10 +10,7 @@ use crate::{
     conf::fn_::fn_config::FnConfig, 
     services::{task::task_nodes::TaskNodes, services::Services},
 };
-
 use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn, fn_kind::FnKind};
-
-
 ///
 /// Function | SqlMetric
 ///     - values received from the [input]s puts into the target sql query
@@ -40,26 +33,26 @@ use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn, fn_kind::FnKind};
 #[derive(Debug)]
 pub struct SqlMetric {
     id: String,
-    txId: usize,
+    tx_id: usize,
     kind: FnKind,
     inputs: IndexMap<String, FnInOutRef>,
     // initial: f64,
     // table: String,
     sql: Format,
-    sqlNames: HashMap<String, (String, Option<String>)>,
+    sql_names: HashMap<String, (String, Option<String>)>,
 }
 ///
 /// 
 impl SqlMetric {
     //
     //
-    pub fn new(parent: &str, conf: &mut FnConfig, taskNodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> SqlMetric {
+    pub fn new(parent: &str, conf: &mut FnConfig, task_nodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> SqlMetric {
         COUNT.fetch_add(1, Ordering::SeqCst);
         let self_id = format!("{}/SqlMetric{}", parent, COUNT.load(Ordering::Relaxed));
-        let txId = PointTxId::fromStr(&self_id);
+        let tx_id = PointTxId::fromStr(&self_id);
         let mut inputs = IndexMap::new();
-        let inputConfs = conf.inputs.clone();
-        let inputConfNames = inputConfs.keys().filter(|v| {
+        let input_confs = conf.inputs.clone();
+        let input_conf_names = input_confs.keys().filter(|v| {
             // let delete = match v.as_str() {
             //     "initial" => true,
             //     "table" => true,
@@ -69,35 +62,35 @@ impl SqlMetric {
             let delete = matches!(v.as_str(), "initial" | "table" | "sql");
             !delete
         });
-        for name in inputConfNames {
+        for name in input_conf_names {
             debug!("{}.new | input name: {:?}", self_id, name);
-            let inputConf = conf.input_conf(name);
+            let input_conf = conf.input_conf(name);
             inputs.insert(
                 name.to_string(), 
-                NestedFn::new(&self_id, txId, inputConf, taskNodes, services.clone()),
+                NestedFn::new(&self_id, tx_id, input_conf, task_nodes, services.clone()),
             );
         }
         let id = conf.name.clone();
         // let initial = conf.param("initial").name.parse().unwrap();
         let table = conf.param("table").name();
         let mut sql = Format::new(&conf.param("sql").name());
-        sql.insert("id", id.clone().to_point(txId, ""));
-        sql.insert("table", table.clone().to_point(txId, ""));
+        sql.insert("id", id.clone().to_point(tx_id, ""));
+        sql.insert("table", table.clone().to_point(tx_id, ""));
         sql.prepare();
-        let mut sqlNames = sql.names();
-        sqlNames.remove("initial");
-        sqlNames.remove("table");
-        sqlNames.remove("sql");
-        sqlNames.remove("id");
+        let mut sql_names = sql.names();
+        sql_names.remove("initial");
+        sql_names.remove("table");
+        sql_names.remove("sql");
+        sql_names.remove("id");
         SqlMetric {
             id: self_id,
-            txId,
+            tx_id,
             kind: FnKind::Fn,
             inputs,
             // initial: initial,
             // table: table,
             sql,
-            sqlNames,
+            sql_names,
         }
     }
 }
@@ -130,13 +123,13 @@ impl FnOut for SqlMetric {
     //
     fn out(&mut self) -> PointType {
         let self_id = self.id.clone();
-        for (fullName, (name, sufix)) in &self.sqlNames {
+        for (full_name, (name, sufix)) in &self.sql_names {
             trace!("{}.out | name: {:?}, sufix: {:?}", self_id, name, sufix);
             match self.inputs.get(name) {
                 Some(input) => {
                     trace!("{}.out | input: {:?} - found", self_id, name);
                     let point = input.borrow_mut().out();
-                    self.sql.insert(fullName, point);
+                    self.sql.insert(full_name, point);
                 },
                 None => {
                     panic!("{}.out | input: {:?} - not found", self_id, name);
@@ -145,7 +138,7 @@ impl FnOut for SqlMetric {
         }
         debug!("{}.out | sql: {:?}", self_id, self.sql.out());
         PointType::String(Point::new_string(
-            self.txId,
+            self.tx_id,
             &self_id, 
             self.sql.out(),
         ))

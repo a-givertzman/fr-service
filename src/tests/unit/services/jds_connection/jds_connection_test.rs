@@ -118,7 +118,7 @@ mod jds_routes {
         "#, tcp_server_addr);
         let conf = serde_yaml::from_str(&conf).unwrap();
         let conf = TcpServerConfig::from_yaml(&conf);
-        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, conf, services.clone())));
+        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, self_id, conf, services.clone())));
         services.lock().unwrap().insert("TcpServer", tcp_server.clone());
         println!("{} | TcpServer - ready", self_id);
         //
@@ -261,7 +261,7 @@ mod jds_routes {
         "#, tcp_server_addr, secret);
         let conf = serde_yaml::from_str(&conf).unwrap();
         let conf = TcpServerConfig::from_yaml(&conf);
-        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, conf, services.clone())));
+        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, self_id, conf, services.clone())));
         services.lock().unwrap().insert("TcpServer", tcp_server.clone());
         println!("{} | TcpServer - ready", self_id);
         //
@@ -404,7 +404,7 @@ mod jds_routes {
         "#, tcp_server_addr, secret);
         let conf = serde_yaml::from_str(&conf).unwrap();
         let conf = TcpServerConfig::from_yaml(&conf);
-        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, conf, services.clone())));
+        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, self_id, conf, services.clone())));
         services.lock().unwrap().insert("TcpServer", tcp_server.clone());
         println!("{} | TcpServer - ready", self_id);
         //
@@ -577,7 +577,7 @@ mod jds_routes {
         "#, tcp_addr);
         let conf = serde_yaml::from_str(&conf).unwrap();
         let conf = TcpServerConfig::from_yaml(&conf);
-        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, conf, services.clone())));
+        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, self_id, conf, services.clone())));
         services.lock().unwrap().insert("TcpServer", tcp_server.clone());
         println!("{} | TcpServer - ready", self_id);
         //

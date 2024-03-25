@@ -60,7 +60,7 @@ impl App {
         let self_id = self.id.clone();
         info!("{}.run | Starting application...", self_id);
         let conf = self.conf.clone();
-        let parent = conf.name.clone();
+        let self_path = conf.name.clone();
         let app = Arc::new(RwLock::new(self));
         let services = Arc::new(Mutex::new(Services::new(&self_id)));
         info!("{}.run |     Configuring services...", self_id);
@@ -69,7 +69,7 @@ impl App {
             let node_sufix = node_keywd.sufix();
             info!("{}.run |         Configuring service: {}({})...", self_id, node_name, node_sufix);
             debug!("{}.run |         Config: {:#?}", self_id, node_conf);
-            let service = Self::match_service(&self_id, &parent, &node_name, &node_sufix, &mut node_conf, services.clone());
+            let service = Self::match_service(&self_id, &self_path, &node_name, &node_sufix, &mut node_conf, services.clone());
             let id = if node_sufix.is_empty() {&node_name} else {&node_sufix};
             services.lock().unwrap().insert(id, service);
             info!("{}.run |         Configuring service: {}({}) - ok\n", self_id, node_name, node_sufix);
@@ -166,25 +166,25 @@ impl App {
     }    
     ///
     /// 
-    fn match_service(self_id: &str, parent: &str, node_name: &str, node_sufix: &str, node_conf: &mut ConfTree, services: Arc<Mutex<Services>>) -> Arc<Mutex<dyn Service + Send>> {
+    fn match_service(self_id: &str, path: &str, node_name: &str, node_sufix: &str, node_conf: &mut ConfTree, services: Arc<Mutex<Services>>) -> Arc<Mutex<dyn Service + Send>> {
         match node_name {
             Services::API_CLIENT => {
-                Arc::new(Mutex::new(ApiClient::new(parent, ApiClientConfig::new(node_conf))))
+                Arc::new(Mutex::new(ApiClient::new(path, ApiClientConfig::new(node_conf))))
             },
             Services::MULTI_QUEUE => {
-                Arc::new(Mutex::new(MultiQueue::new(parent, MultiQueueConfig::new(node_conf), services)))
+                Arc::new(Mutex::new(MultiQueue::new(path, MultiQueueConfig::new(node_conf), services)))
             },
             Services::PROFINET_CLIENT => {
-                Arc::new(Mutex::new(ProfinetClient::new(parent, parent, ProfinetClientConfig::new(node_conf), services)))
+                Arc::new(Mutex::new(ProfinetClient::new(path, path, ProfinetClientConfig::new(node_conf), services)))
             },
             Services::TASK => {
-                Arc::new(Mutex::new(Task::new(parent, TaskConfig::new(node_conf), services.clone())))
+                Arc::new(Mutex::new(Task::new(path, TaskConfig::new(node_conf), services.clone())))
             },
             Services::TCP_CLIENT => {
-                Arc::new(Mutex::new(TcpClient::new(parent, TcpClientConfig::new(node_conf), services.clone())))
+                Arc::new(Mutex::new(TcpClient::new(path, TcpClientConfig::new(node_conf), services.clone())))
             },
             Services::TCP_SERVER => {
-                Arc::new(Mutex::new(TcpServer::new(parent, TcpServerConfig::new(node_conf), services.clone())))
+                Arc::new(Mutex::new(TcpServer::new(path, path, TcpServerConfig::new(node_conf), services.clone())))
             },
             _ => {
                 panic!("{}.run | Unknown service: {}({})", self_id, node_name, node_sufix);

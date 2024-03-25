@@ -91,25 +91,6 @@ mod sql_metric {
                             format!("UPDATE SelectMetric_test_table_name SET kind = '{:.1}' WHERE id = '{}';",target_value, 1.11),
                             // format!("insert into SelectMetric_test_table_name values(id, value, timestamp) (SqlMetric,{:.3},{})", targetValue, point.timestamp())
                         );
-    
-                        // match out {
-                        //     TaskNodeType::Var(var) => {
-                        //         var.borrow_mut().eval();
-                        //         debug!("var evalueted: {:?}", var.borrow_mut().out());
-                        //     },
-                        //     TaskNodeType::Metric(metric) => {
-                        //         // debug!("input: {:?}", &input);
-                        //         let state = metric.borrow_mut().out();
-                        //         let out = state.asString().value;
-                        //         trace!("out: {}", out);                    
-                        //         debug!("value: {:?}   |   state: {:?}", point.asInt().value, state.asString().value);
-                        //         assert_eq!(
-                        //             out, 
-                        //             format!("UPDATE SelectMetric_test_table_name SET kind = '{:.1}' WHERE id = '{}';",targetValue, 1.11),
-                        //             // format!("insert into SelectMetric_test_table_name values(id, value, timestamp) (SqlMetric,{:.3},{})", targetValue, point.timestamp())
-                        //         );
-                        //     },
-                        // }
                     }
                 },
                 None => {
@@ -135,7 +116,7 @@ mod sql_metric {
         nodes.buildNodes("test", conf, services);
         debug!("taskNodes: {:?}", nodes);
         let test_data = vec![
-            (1.1f32, "/path/Point.Name", 3.3),
+            (1.1f32, "/path/Point.Name", 3.3f32),
             (1.2f32, "/path/Point.Name", 3.4),
             (1.3f32, "/path/Point.Name", 3.5),
             (1.4f32, "/path/Point.Name", 3.6),
@@ -182,7 +163,7 @@ mod sql_metric {
                         let out = re.replace(&out_value, "$1{!}$3");
                         let out = out.replace("{!}", &digits);
                         trace!("out: {}", out);
-                        debug!("value: {:?}   |   state: {:?}", point.as_double().value, out_value);
+                        debug!("value: {:?}   |   state: {:?}", point.as_real().value, out_value);
                         assert_eq!(
                             out, 
                             format!("UPDATE SelectMetric_test_table_name SET kind = '{:.1}' WHERE id = '{}';",target_value, 3.33),

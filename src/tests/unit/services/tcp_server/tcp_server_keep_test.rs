@@ -61,7 +61,7 @@ mod tcp_server {
         "#, tcp_addr);
         let conf = serde_yaml::from_str(&conf).unwrap();
         let conf = TcpServerConfig::from_yaml(&conf);
-        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, conf, services.clone())));
+        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, self_id, conf, services.clone())));
         services.lock().unwrap().insert("TcpServer", tcp_server.clone());
 
         let mq_conf = r#"
@@ -154,7 +154,7 @@ mod tcp_server {
         "#, tcp_addr);
         let conf = serde_yaml::from_str(&conf).unwrap();
         let conf = TcpServerConfig::from_yaml(&conf);
-        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, conf, services.clone())));
+        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, self_id, conf, services.clone())));
         services.lock().unwrap().insert("TcpServer", tcp_server.clone());
 
         let mq_conf = r#"
