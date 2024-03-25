@@ -64,7 +64,7 @@ service TcpServer:
 #         max-length: 10000
 #     out queue: MultiQueue.in-queue
 
-service ProfinetClient Ied12:
+service ProfinetClient ied12:
     subscribe: MultiQueue
     out queue: MultiQueue.in-queue
     protocol: 'profinet'
@@ -72,7 +72,7 @@ service ProfinetClient Ied12:
     ip: '192.168.130.243'
     rack: 0
     slot: 1
-    db 902:
+    db db902_panel_controls:
         number: 902
         offset: 0
         size: 204
@@ -507,7 +507,7 @@ service ProfinetClient Ied12:
             address:
                 offset: 202
 
-service ProfinetClient Ied13:
+service ProfinetClient ied13:
     subscribe: MultiQueue
     out queue: MultiQueue.in-queue
     protocol: 'profinet'
@@ -515,7 +515,7 @@ service ProfinetClient Ied13:
     ip: '192.168.130.243'
     rack: 0
     slot: 1
-    db 905:
+    db db905_visual_data_fast:
         number: 905
         offset: 0
         size: 148
@@ -841,7 +841,7 @@ service ProfinetClient Ied13:
             address:
                 offset: 146
 
-service ProfinetClient Ied14:
+service ProfinetClient ied14:
     subscribe: MultiQueue
     out queue: MultiQueue.in-queue
     protocol: 'profinet'
@@ -849,7 +849,7 @@ service ProfinetClient Ied14:
     ip: '192.168.130.243'
     rack: 0
     slot: 1
-    db 906:
+    db db906_visual_data:
         number: 906
         offset: 0
         size: 200
