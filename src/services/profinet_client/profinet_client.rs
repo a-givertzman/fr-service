@@ -59,8 +59,8 @@ impl ProfinetClient {
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         match conf.cycle {
-            Some(interval) => {
-                if interval > Duration::ZERO {
+            Some(cycle_interval) => {
+                if cycle_interval > Duration::ZERO {
                     info!("{}read| Preparing thread...", self_id);
                     let handle = thread::Builder::new().name(format!("{}.read", self_id)).spawn(move || {
                         let mut dbs: IndexMap<String, ProfinetDb> = IndexMap::new();
