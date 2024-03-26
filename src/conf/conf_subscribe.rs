@@ -26,7 +26,7 @@ use super::point_config::{point_config::PointConfig, point_config_history::Point
 ///             - /App/Service/Point.Name.2
 ///     AnotherService:                     # - multicast subscription to the AnotherService
 ///         Inf: []                         #   - on all points having Cot::Inf
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ConfSubscribe {
     id: String,
     conf: serde_yaml::Value,
@@ -44,7 +44,10 @@ impl ConfSubscribe {
         }
     }
     ///
-    /// Returns subscriptions based on the given points and number of configured criterias
+    /// Returns subscriptions based on the given points and number of configured criterias:
+    ///     - HashMap:
+    ///         - key - service id
+    ///         - value - subscriptions
     pub fn with(&self, points: &[PointConfig]) -> HashMap<String, Option<Vec<SubscriptionCriteria>>> {
         if self.conf.is_string() {
             let service = self.conf.as_str().unwrap().to_owned();
@@ -80,6 +83,11 @@ impl ConfSubscribe {
         } else {
             panic!("{}.new | Invalid Subscribe option format: {:#?}", self.id, self.conf);
         }
+    }
+    ///
+    /// 
+    pub fn is_empty(&self) -> bool {
+        self.conf.is_null()
     }
 }
 

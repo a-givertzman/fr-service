@@ -10,6 +10,8 @@ use crate::conf::{
     point_config::point_config::PointConfig,
 };
 
+use super::conf_subscribe::ConfSubscribe;
+
 ///
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
@@ -33,7 +35,7 @@ pub struct TaskConfig {
     pub(crate) cycle: Option<Duration>,
     pub(crate) rx: String,
     pub(crate) rx_max_length: i64,
-    pub(crate) subscribe: String,
+    pub(crate) subscribe: ConfSubscribe,
     pub(crate) nodes: IndexMap<String, FnConfKind>,
     pub(crate) vars: Vec<String>,
 }
@@ -72,7 +74,7 @@ impl TaskConfig {
         debug!("{}.new | cycle: {:?}", self_id, cycle);
         let (rx, rx_max_length) = self_conf.get_in_queue().unwrap();
         debug!("{}.new | RX: {},\tmax-length: {:?}", self_id, rx, rx_max_length);
-        let subscribe = self_conf.get_param_value("subscribe").unwrap().as_str().unwrap().to_string();
+        let subscribe = ConfSubscribe::new(self_conf.get_param_value("subscribe").unwrap_or(serde_yaml::Value::Null));
         debug!("{}.new | sudscribe: {:?}", self_id, subscribe);
         let mut node_index = 0;
         let mut nodes = IndexMap::new();

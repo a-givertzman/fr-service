@@ -6,8 +6,7 @@ mod task_config_new {
     use std::{sync::Once, time::Duration};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::conf::{
-        task_config::TaskConfig,
-        fn_::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType},
+        conf_subscribe::ConfSubscribe, fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig}, task_config::TaskConfig
     };
     ///
     ///     
@@ -70,6 +69,7 @@ mod task_config_new {
                     cycle: Some(Duration::from_millis(100)),
                     rx: format!("recv-queue"),
                     rx_max_length: 10000,
+                    subscribe: ConfSubscribe::new(serde_yaml::Value::Null),
                     vars: vec![format!("VarName2")],
                     nodes: IndexMap::from([                    
                         (format!("SqlMetric-1"), FnConfKind::Fn( FnConfig {
@@ -126,6 +126,7 @@ mod task_config_new {
                     cycle: Some(Duration::from_millis(100)),
                     rx: format!("recv-queue"),
                     rx_max_length: 10000,
+                    subscribe: ConfSubscribe::new(serde_yaml::Value::Null),
                     vars: vec![format!("VarName2")],
                     nodes: IndexMap::from([                    
                         (format!("VarName2-1"), FnConfKind::Var( FnConfig { 
