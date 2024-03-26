@@ -11,10 +11,9 @@ service MultiQueue:
 #
 service Task HistoryTask:
     cycle: 10 s
-    in queue recv-queue:
-        max-length: 10_000
-    let var0: 
-        input: const real 2.224
+    subscribe: 
+        MultiQueue:                     # - multicast subscription to the MultiQueue
+            {history: rw}: []            #   - on all points having Cot::Inf and history::read
 
     fn ToApiQueue:
         queue: TaskTestReceiver.in-queue
