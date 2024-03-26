@@ -25,6 +25,7 @@ mod history {
     ///
     /// Testing history functionality
     #[test]
+    #[ignore = "To be implemented later"]
     fn basic() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();

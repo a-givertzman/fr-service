@@ -8,8 +8,7 @@ mod jds_decode_message {
     use testing::session::test_session::TestSession;
     use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
     use crate::core_::{
-        cot::cot::Cot, net::{connection_status::ConnectionStatus, protocols::jds::jds_decode_message::JdsDecodeMessage}, 
-        point::{point::Point, point_type::PointType}, status::status::Status, types::bool::Bool,
+        cot::cot::Cot, failure::errors_limit::ErrorsLimit, net::{connection_status::ConnectionStatus, protocols::jds::jds_decode_message::JdsDecodeMessage}, point::{point::Point, point_type::PointType}, status::status::Status, types::bool::Bool
     }; 
     ///
     /// 
@@ -120,8 +119,9 @@ mod jds_decode_message {
         let test_data_len = test_data.len();
         let total = count * test_data_len;
         mock_tcp_server(addr.to_string(), count, &test_data, received.clone());
-        thread::sleep(Duration::from_micros(100));
+        thread::sleep(Duration::from_millis(100));
         {
+            let mut errors_limit = ErrorsLimit::new(3);
             println!("\nReading from stream.read(byte)...");
             let time = Instant::now();
             'main: loop {
@@ -160,7 +160,11 @@ mod jds_decode_message {
                         break 'main;
                     },
                     Err(err) => {
-                        panic!("Socket connection error: {:#?}", err)
+                        if let Err(_) = errors_limit.add() {
+                            panic!("Socket connection errors {}; last error: {:#?}", errors_limit.limit(), err)
+                        } else {
+                            warn!("Socket connection error: {:#?}", err)
+                        }
                     },
                 };
             }

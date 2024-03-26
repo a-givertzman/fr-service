@@ -3,7 +3,7 @@ use indexmap::IndexMap;
 use log::{debug, error, info, trace};
 use crate::{
     conf::{point_config::point_config::PointConfig, profinet_client_config::profinet_client_config::ProfinetClientConfig}, 
-    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, object::object::Object, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, 
+    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, failure::errors_limit::ErrorsLimit, object::object::Object, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, 
     services::{
         multi_queue::subscription_criteria::SubscriptionCriteria, profinet_client::{profinet_db::ProfinetDb, s7::s7_client::S7Client}, 
         service::{service::Service, service_handles::ServiceHandles}, services::Services, task::service_cycle::ServiceCycle
@@ -278,39 +278,4 @@ impl Service for ProfinetClient {
     fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
     }    
-}
-
-///
-/// Counts errors by calling method 'add()'
-/// - returns Ok if 'limit' of errors is not exceeded
-/// - returns Err if count of errors >= 'limit'
-struct ErrorsLimit {
-    value: usize,
-    limit: usize,
-}
-///
-/// 
-impl ErrorsLimit {
-    ///
-    /// Creates new instance of the ErrorLimit wir the [limit]
-    pub fn new(limit: usize) -> Self {
-        Self { value: limit, limit }
-    }
-    ///
-    /// Counts errors
-    /// - returns Ok if 'limit' of errors is not exceeded
-    /// - returns Err if count of errors >= 'limit'
-    pub fn add(&mut self) -> Result<(), ()> {
-        if self.value > 0 {
-            self.value -= 1;
-            Ok(())
-        } else {
-            Err(())
-        }
-    }
-    ///
-    /// Reset counter
-    pub fn reset(&mut self) {
-        self.value = self.limit;
-    }
 }
