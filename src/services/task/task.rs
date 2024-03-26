@@ -78,7 +78,7 @@ impl Service for Task {
             let points = services.lock().unwrap().points();
             let subscriptions = conf.subscribe.with(&points);
             if subscriptions.len() > 1 {
-                panic!("{}.run | Error. Task does not supports multiple subscribtions for now: {:#?}", self_id, subscriptions);
+                panic!("{}.run | Error. Task does not supports multiple subscriptions for now: {:#?}.\n\tTry to use single subscription.", self_id, subscriptions);
             } else {
                 let subscriptions_first = subscriptions.clone().into_iter().next();
                 match subscriptions_first {
