@@ -33,6 +33,7 @@ pub struct TaskConfig {
     pub(crate) cycle: Option<Duration>,
     pub(crate) rx: String,
     pub(crate) rx_max_length: i64,
+    pub(crate) subscribe: String,
     pub(crate) nodes: IndexMap<String, FnConfKind>,
     pub(crate) vars: Vec<String>,
 }
@@ -71,6 +72,8 @@ impl TaskConfig {
         debug!("{}.new | cycle: {:?}", self_id, cycle);
         let (rx, rx_max_length) = self_conf.get_in_queue().unwrap();
         debug!("{}.new | RX: {},\tmax-length: {:?}", self_id, rx, rx_max_length);
+        let subscribe = self_conf.get_param_value("subscribe").unwrap().as_str().unwrap().to_string();
+        debug!("{}.new | sudscribe: {:?}", self_id, subscribe);
         let mut node_index = 0;
         let mut nodes = IndexMap::new();
         for key in &self_conf.keys {
@@ -88,6 +91,7 @@ impl TaskConfig {
             cycle,
             rx,
             rx_max_length,
+            subscribe,
             nodes,
             vars,
         }
