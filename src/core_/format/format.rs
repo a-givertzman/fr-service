@@ -70,7 +70,7 @@ impl Format {
                             "value" => Self::pointValueToString(point),
                             "timestamp" => point.timestamp().to_string(),
                             "status" => point.status().to_string(),
-                            _ => panic!("Format.out | Unknown input sufix in: {:?}, allowed: .value or .timestamp", &name),
+                            _ => panic!("Format.out | Unknown input sufix in: {:?}, allowed: .name / .value / .timestamp", &name),
                         }
                     },
                     None => {
