@@ -1,4 +1,4 @@
-use std::{collections::{hash_map::Iter, HashMap}, sync::{mpsc::{Receiver, Sender}, Arc, Mutex}};
+use std::{collections::HashMap, sync::{mpsc::{Receiver, Sender}, Arc, Mutex}};
 use log::{debug, trace};
 use crate::{
     core_::point::point_type::PointType, 
