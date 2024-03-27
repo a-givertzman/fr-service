@@ -20,3 +20,10 @@ service Task Task1:
                         input: point bool '/path/Point.Name'
         input2:
             const 1
+        input3: point any every
+        input4 fn PointId:
+            input: point any every
+        input5 fn PointId:
+            input: point int every
+        input6 fn PointId:
+            input: point real every

@@ -45,6 +45,60 @@ mod task_config_new {
             //     ]) }
             // ),
             (
+                r#"service Task Task0:
+                    cycle: 100 ms
+                    in queue recv-queue:
+                        max-length: 10000
+                    fn SqlMetric:
+                        initial: 123.123      # начальное значение
+                        table: table_name
+                        sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
+                        input1: point any every
+                        input2 fn PointId:
+                            input: point any every
+                        input3 fn PointId:
+                            input: point int every
+                        input4 fn PointId:
+                            input: point real every
+                "#, 
+                TaskConfig {
+                    name: format!("Task0"),
+                    cycle: Some(Duration::from_millis(100)),
+                    rx: format!("recv-queue"),
+                    rx_max_length: 10000,
+                    subscribe: ConfSubscribe::new(serde_yaml::Value::Null),
+                    vars: vec![],
+                    nodes: IndexMap::from([                    
+                        (format!("SqlMetric-1"), FnConfKind::Fn( FnConfig {
+                                type_: FnConfPointType::Unknown,
+                                name: format!("SqlMetric"), 
+                                inputs: IndexMap::from([
+                                    (format!("initial"), FnConfKind::Param( format!("123.123") )),
+                                    (format!("table"), FnConfKind::Param( format!("table_name") )),
+                                    (format!("sql"), FnConfKind::Param( String::from("UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';") )),
+                                    (format!("input1"), FnConfKind::Point( FnConfig { name: format!("every"), type_: FnConfPointType::Any, inputs: IndexMap::new() } )), 
+                                    (format!("input2"), FnConfKind::Fn( FnConfig { 
+                                        name: format!("PointId"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                            (format!("input"), FnConfKind::Point( FnConfig { name: format!("every"), type_: FnConfPointType::Any, inputs: IndexMap::new() } )), 
+                                        ]),
+                                    } )), 
+                                    (format!("input3"), FnConfKind::Fn( FnConfig { 
+                                        name: format!("PointId"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                            (format!("input"), FnConfKind::Point( FnConfig { name: format!("every"), type_: FnConfPointType::Int, inputs: IndexMap::new() } )), 
+                                        ]),
+                                    } )), 
+                                    (format!("input4"), FnConfKind::Fn( FnConfig { 
+                                        name: format!("PointId"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                            (format!("input"), FnConfKind::Point( FnConfig { name: format!("every"), type_: FnConfPointType::Real, inputs: IndexMap::new() } )), 
+                                        ]),
+                                    } )), 
+                                ]), 
+                            } ),
+                        ),
+                    ]),
+                },
+            ),
+            (
                 r#"service Task Task1:
                     cycle: 100 ms
                     in queue recv-queue:

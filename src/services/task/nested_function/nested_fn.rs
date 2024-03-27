@@ -136,6 +136,7 @@ impl NestedFn {
                     FnConfPointType::Real => value.parse::<f32>().unwrap().to_point(tx_id, &name),
                     FnConfPointType::Double => value.parse::<f64>().unwrap().to_point(tx_id, &name),
                     FnConfPointType::String => value.to_point(tx_id, &name),
+                    FnConfPointType::Any => panic!("NestedFn.function | Const of type 'any' - not supported"),
                     FnConfPointType::Unknown => panic!("NestedFn.function | Point type required"),
                 };
                 let fn_const = Self::fn_const(&name, value);
@@ -151,11 +152,12 @@ impl NestedFn {
                     FnConfPointType::Real => 0.0f32.to_point(tx_id, &conf.name),
                     FnConfPointType::Double => 0.0f64.to_point(tx_id, &conf.name),
                     FnConfPointType::String => "".to_point(tx_id, &conf.name),
+                    FnConfPointType::Any => false.to_point(tx_id, &conf.name),
                     FnConfPointType::Unknown => panic!("NestedFn.function | Point type required"),
                 };
                 println!("NestedFn.function | Input initial: {:?}", initial);
                 let point_name = conf.name.clone();
-                task_nodes.addInput(&point_name, Self::fn_input(&point_name, initial));
+                task_nodes.addInput(&point_name, Self::fn_input(&point_name, initial, conf.type_.clone()));
                 let input = task_nodes.getInput(&point_name).unwrap();
                 if log::max_level() == LevelFilter::Trace {
                     println!("NestedFn.function | input (Point): {:?}", input);
@@ -206,9 +208,9 @@ impl NestedFn {
     }
     // ///
     // /// 
-    fn fn_input(parent: &str, initial: PointType) -> FnInOutRef {
+    fn fn_input(parent: &str, initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
-            FnInput::new(parent, initial)
+            FnInput::new(parent, initial, type_)
         )))
     }
     // ///

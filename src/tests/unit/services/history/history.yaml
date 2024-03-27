@@ -22,7 +22,7 @@ service Task HistoryTask:
             table: 'public."event"'
             sql: "insert into {table} (pid,value,status,timestamp) values ({pid},{input1.value},{input1.status},{input1.status},{input1.timestamp});"
             input fn HistoryPoints:
-                input2: point any
+                input: point any every      # point: every point of any type
 
     # fn ToMultiQueue:
     #     in1 point CraneMovement.BoomUp: 

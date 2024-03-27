@@ -4,9 +4,8 @@ use log::{debug, info};
 use std::{sync::Once, time::{Instant, Duration}, thread,rc::Rc, cell::RefCell};
 use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
 use crate::{
-    core_::{aprox_eq::aprox_eq::AproxEq, point::point_type::{PointType, ToPoint}, 
-    types::fn_in_out_ref::FnInOutRef}, 
-    services::task::nested_function::{fn_::FnOut, fn_timer::FnTimer, fn_input::FnInput},
+    conf::fn_::fn_conf_keywd::FnConfPointType, core_::{aprox_eq::aprox_eq::AproxEq, point::point_type::{PointType, ToPoint}, 
+    types::fn_in_out_ref::FnInOutRef}, services::task::nested_function::{fn_::FnOut, fn_input::FnInput, fn_timer::FnTimer}
 };
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -27,10 +26,10 @@ fn init_once() {
 ///
 /// returns:
 ///  - ...
-fn init_each(initial: PointType) -> FnInOutRef {
+fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
     Rc::new(RefCell::new(
         Box::new(
-            FnInput::new("test", initial)
+            FnInput::new("test", initial, type_)
         )
     ))
 }
@@ -41,7 +40,7 @@ fn test_elapsed_repeat_false() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     init_once();
     info!("test_elapsed_repeat_false");
-    let input = init_each(false.to_point(0, "bool"));
+    let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
     let mut fnTimer = FnTimer::new(
         "id", 
         0,
@@ -104,7 +103,7 @@ fn test_total_elapsed_repeat() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     init_once();
     info!("test_total_elapsed_repeat");
-    let input = init_each(false.to_point(0, "bool"));
+    let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
     let mut fnTimer = FnTimer::new(
         "id", 
         0,
@@ -162,7 +161,7 @@ fn test_total_elapsed_repeat_reset() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     init_once();
     info!("test_total_elapsed_repeat_reset");
-    let input = init_each(false.to_point(0, "bool"));
+    let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
     let mut fnTimer = FnTimer::new(
         "id",
         0, 
@@ -229,7 +228,7 @@ fn test_initial_repeat() {
     init_once();
     info!("test_initial_repeat");
     let initial = 123.1234;
-    let input = init_each(false.to_point(0, "bool"));
+    let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
     let mut fnTimer = FnTimer::new(
         "id",
         initial, 

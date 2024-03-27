@@ -70,7 +70,23 @@ mod task_config_read {
                                     } ))
                                 ]) 
                             } )), 
-                            (format!("input2"), FnConfKind::Const( FnConfig { name: format!("1"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } ))
+                            (format!("input2"), FnConfKind::Const( FnConfig { name: format!("1"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
+                            (format!("input3"), FnConfKind::Point( FnConfig { name: format!("every"), type_: FnConfPointType::Any, inputs: IndexMap::new() } )), 
+                            (format!("input4"), FnConfKind::Fn( FnConfig { 
+                                name: format!("PointId"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                    (format!("input"), FnConfKind::Point( FnConfig { name: format!("every"), type_: FnConfPointType::Any, inputs: IndexMap::new() } )), 
+                                ]),
+                            } )), 
+                            (format!("input5"), FnConfKind::Fn( FnConfig { 
+                                name: format!("PointId"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                    (format!("input"), FnConfKind::Point( FnConfig { name: format!("every"), type_: FnConfPointType::Int, inputs: IndexMap::new() } )), 
+                                ]),
+                            } )), 
+                            (format!("input6"), FnConfKind::Fn( FnConfig { 
+                                name: format!("PointId"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                    (format!("input"), FnConfKind::Point( FnConfig { name: format!("every"), type_: FnConfPointType::Real, inputs: IndexMap::new() } )), 
+                                ]),
+                            } )), 
                         ]), 
                     } )
                 ),
@@ -83,3 +99,4 @@ mod task_config_read {
         assert_eq!(metric_config, target);
     }
 }    
+

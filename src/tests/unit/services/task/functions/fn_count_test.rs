@@ -4,9 +4,8 @@ use log::{debug, info};
 use std::{sync::Once, rc::Rc, cell::RefCell};
 use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
 use crate::{
-    core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
-    services::task::nested_function::{fn_::FnOut, 
-    fn_count::{FnCount, self}, fn_input::FnInput, reset_counter::AtomicReset},
+    conf::fn_::fn_conf_keywd::FnConfPointType, core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, services::task::nested_function::{fn_::FnOut, 
+    fn_count::{self, FnCount}, fn_input::FnInput, reset_counter::AtomicReset}
 };
 
 // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -27,10 +26,10 @@ fn init_once() {
 ///
 /// returns:
 ///  - ...
-fn init_each(initial: PointType) -> FnInOutRef {
+fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
     fn_count::COUNT.reset();
     Rc::new(RefCell::new(Box::new(
-        FnInput::new("test", initial)
+        FnInput::new("test", initial, type_)
     )))
 }
 
@@ -40,7 +39,7 @@ fn test_single() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     init_once();
     info!("test_single");
-    let input = init_each(false.to_point(0, "bool"));
+    let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
     let mut fnCount = FnCount::new(
         "test",
         0.0, 
@@ -79,7 +78,7 @@ fn test_multiple() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     init_once();
     info!("test_multiple");
-    let input = init_each(false.to_point(0, "bool"));
+    let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
     let mut fnCount = FnCount::new(
         "test",
         0.0, 
@@ -117,7 +116,7 @@ fn test_multiple_reset() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     init_once();
     info!("test_multiple_reset");
-    let input = init_each(false.to_point(0, "bool"));
+    let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
     let mut fnCount = FnCount::new(
         "test",
         0.0, 

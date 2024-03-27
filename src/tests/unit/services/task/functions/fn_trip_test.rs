@@ -5,8 +5,7 @@ mod fn_trip {
     use std::{sync::Once, rc::Rc, cell::RefCell};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
-        services::task::nested_function::{fn_::FnOut, fn_input::FnInput, fn_ge::FnGe}
+        conf::fn_::fn_conf_keywd::FnConfPointType, core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, services::task::nested_function::{fn_::FnOut, fn_ge::FnGe, fn_input::FnInput}
     };
     ///
     /// 
@@ -22,9 +21,9 @@ mod fn_trip {
     ///
     /// returns:
     ///  - ...
-    fn init_each(initial: PointType) -> FnInOutRef {
+    fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
-            FnInput::new("test", initial)
+            FnInput::new("test", initial, type_)
         )))
     }
     ///
@@ -35,8 +34,8 @@ mod fn_trip {
         init_once();
         info!("test_single");
         // let (initial, switches) = init_each();
-        let input1 = init_each(0.to_point(0, "point1"));
-        let input2 = init_each(0.to_point(0, "point2"));
+        let input1 = init_each(0.to_point(0, "point1"), FnConfPointType::Int);
+        let input2 = init_each(0.to_point(0, "point2"), FnConfPointType::Int);
         let mut fn_trip = FnGe::new(
             "test",
             input1.clone(),
@@ -77,8 +76,8 @@ mod fn_trip {
         info!("test_single");
     
         // let (initial, switches) = init_each();
-        let input1 = init_each(0.to_point(0, "point1"));
-        let input2 = init_each(0.to_point(0, "point2"));
+        let input1 = init_each(0.to_point(0, "point1"), FnConfPointType::Int);
+        let input2 = init_each(0.to_point(0, "point2"), FnConfPointType::Int);
         let mut fn_trip = FnGe::new(
             "test",
             input1.clone(),
@@ -122,8 +121,8 @@ mod fn_trip {
         init_once();
         info!("test_single");
         // let (initial, switches) = init_each();
-        let input1 = init_each(0.0.to_point(0, "point1"));
-        let input2 = init_each(0.0.to_point(0, "point2"));
+        let input1 = init_each(0.0.to_point(0, "point1"), FnConfPointType::Real);
+        let input2 = init_each(0.0.to_point(0, "point2"), FnConfPointType::Real);
         let mut fn_trip = FnGe::new(
             "test",
             input1.clone(),
@@ -168,8 +167,8 @@ mod fn_trip {
         init_once();
         info!("test_single");
         // let (initial, switches) = init_each();
-        let input1 = init_each(0.0.to_point(0, "point1"));
-        let input2 = init_each(0.0.to_point(0, "point2"));
+        let input1 = init_each(0.0.to_point(0, "point1"), FnConfPointType::Real);
+        let input2 = init_each(0.0.to_point(0, "point2"), FnConfPointType::Real);
         let mut fn_trip = FnGe::new(
             "test",
             input1.clone(),

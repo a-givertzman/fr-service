@@ -1,19 +1,14 @@
 #![allow(non_snake_case)]
-
 use std::sync::{Arc, Mutex};
-
 use indexmap::IndexMap;
-use log::{debug, trace};
-
+use log::{debug, trace, warn};
 use crate::{
-    core_::{types::fn_in_out_ref::FnInOutRef, point::{point_type::PointType, point_tx_id::PointTxId}}, 
-    conf::{task_config::TaskConfig, fn_::fn_conf_kind::FnConfKind}, 
-    services::{task::nested_function::{nested_fn::NestedFn, fn_kind::FnKind}, services::Services},
+    conf::{fn_::fn_conf_kind::FnConfKind, task_config::TaskConfig}, 
+    core_::{point::{point_tx_id::PointTxId, point_type::PointType}, types::fn_in_out_ref::FnInOutRef}, 
+    services::{services::Services, task::nested_function::{fn_kind::FnKind, nested_fn::NestedFn}},
 };
-
 use super::{task_node_vars::TaskNodeVars, task_eval_node::TaskEvalNode};
-
-
+///
 /// TaskNodes - holds the IndexMap<String, TaskNode> in the following structure:
 ///   ```
 ///   {
@@ -45,9 +40,9 @@ pub struct TaskNodes {
 impl TaskNodes {
     ///
     /// Creates new empty instance 
-    pub fn new(id: impl Into<String>) ->Self {
+    pub fn new(parent: impl Into<String>) ->Self {
         Self {
-            id: id.into(),
+            id: format!("{}/TaskNodes", parent.into()),
             inputs: IndexMap::new(),
             vars: IndexMap::new(),
             newNodeVars: None,
@@ -66,7 +61,7 @@ impl TaskNodes {
     ///
     /// Returns variable by it's name
     pub fn getVar(&self, name: &str) -> Option<&FnInOutRef> {
-        trace!("TaskNodes.getVar | trying to find variable {:?} in {:?}", &name, self.vars);
+        trace!("{}.getVar | trying to find variable {:?} in {:?}", self.id, &name, self.vars);
         self.vars.get(name)
     }
     ///
@@ -75,10 +70,10 @@ impl TaskNodes {
         match self.newNodeVars {
             Some(_) => {
                 if self.inputs.contains_key(&name.clone().into()) {
-                    trace!("TaskNodes.addInput | input {:?} - already added", &name);
+                    trace!("{}.addInput | input {:?} - already added", self.id, &name);
                 } else {
-                    debug!("TaskNodes.addInput | adding input {:?}", &name);
-                    trace!("TaskNodes.addInput | adding input {:?}: {:?}", &name, &input);
+                    debug!("{}.addInput | adding input {:?}", self.id, &name);
+                    trace!("{}.addInput | adding input {:?}: {:?}", self.id, &name, &input);
                     self.inputs.insert(
                         name.clone().into(), 
                         TaskEvalNode::new(self.id.clone(), name.clone(), input),
@@ -86,7 +81,7 @@ impl TaskNodes {
                 }
             },
             None => {
-                panic!("TaskNodes.addInput | Call beginNewNode first, then you can add inputs")
+                panic!("{}.addInput | Call beginNewNode first, then you can add inputs", self.id)
             },
         }
     }
@@ -98,10 +93,10 @@ impl TaskNodes {
         match self.newNodeVars {
             Some(_) => {
                 if self.vars.contains_key(&name.clone().into()) {
-                    panic!("TaskNodes.addVar | Dublicated variable name: {:?}", &name.clone().into());
+                    panic!("{}.addVar | Dublicated variable name: {:?}", self.id, &name.clone().into());
                 } else {
-                    debug!("TaskNodes.addVar | adding variable {:?}", &name.clone().into());
-                    trace!("TaskNodes.addVar | adding variable {:?}: {:?}", &name.clone().into(), &var);
+                    debug!("{}.addVar | adding variable {:?}", self.id, &name.clone().into());
+                    trace!("{}.addVar | adding variable {:?}: {:?}", &name.clone().into(), self.id, &var);
                     self.vars.insert(
                         name.clone().into(),
                         var,
@@ -109,7 +104,7 @@ impl TaskNodes {
                 }
                 self.newNodeVars.as_mut().unwrap().addVar(name.clone().into());
             },
-            None => panic!("TaskNodes.addInput | Error: call beginNewNode first, then you can add inputs"),
+            None => panic!("{}.addVar | Error: call beginNewNode first, then you can add inputs", self.id),
         }
     }
     ///
@@ -120,7 +115,7 @@ impl TaskNodes {
             Some(_) => {
                 self.newNodeVars.as_mut().unwrap().addVar(name.clone().into());
             },
-            None => panic!("TaskNodes.addInput | Error: call beginNewNode first, then you can add inputs"),
+            None => panic!("{}.addVarOut | Error: call beginNewNode first, then you can add inputs", self.id),
         }
     }    
     ///
@@ -136,38 +131,40 @@ impl TaskNodes {
                                 var.clone()
                             );
                         },
-                        None => panic!("TaskNodes.finishNewNode | Variable {:?} - not found", varName),
+                        None => panic!("{}.finishNewNode | Variable {:?} - not found", self.id, varName),
                     };
                 };
                 let inputs = out.borrow().inputs();
-                debug!("TaskNodes.finishNewNode | out {:?} \n\tdipending on inputs:: {:?}\n", &out, inputs);
+                debug!("{}.finishNewNode | out {:?} \n\tdipending on inputs:: {:?}\n", self.id, &out, inputs);
                 for inputName in inputs {
                     match self.inputs.get_mut(&inputName) {
                         Some(evalNode) => {
-                            debug!("TaskNodes.finishNewNode | updating input: {:?}", inputName);
+                            debug!("{}.finishNewNode | updating input: {:?}", self.id, inputName);
                             let len = vars.len();
                             evalNode.addVars(&vars.clone());
                             if out.borrow().kind() != &FnKind::Var {
                                 evalNode.addOut(out.clone());
                             }
-                            debug!("TaskNodes.finishNewNode | evalNode '{}' appended: {:?}", evalNode.name(), len);
+                            debug!("{}.finishNewNode | evalNode '{}' appended: {:?}", self.id, evalNode.name(), len);
                         },
-                        None => panic!("TaskNodes.finishNewNode | Input {:?} - not found", inputName),
+                        None => panic!("{}.finishNewNode | Input {:?} - not found", self.id, inputName),
                     };
                 };
                 self.newNodeVars = None;
-                trace!("\nTaskNodes.finishNewNode | self.inputs: {:?}\n", self.inputs);
+                trace!("\n{}.finishNewNode | self.inputs: {:?}\n", self.id, self.inputs);
             },
-            None => panic!("TaskNodes.finishNewNode | Call beginNewNode first, then you can add inputs & vars, then finish node"),
+            None => panic!("{}.finishNewNode | Call beginNewNode first, then you can add inputs & vars, then finish node", self.id),
         }
     }
     ///
     /// Creates all task nodes depending on it config
+    ///  - if Task config contains 'point [type] every' then single evaluation node allowed only
     pub fn buildNodes(&mut self, parent: &str, conf: TaskConfig, services: Arc<Mutex<Services>>) {
+        let mut idx = 0;
         let txId = PointTxId::fromStr(parent);
         for (_nodeName, mut nodeConf) in conf.nodes {
             let nodeName = nodeConf.name();
-            debug!("TaskNodes.buildNodes | node: {:?}", nodeName);
+            debug!("{}.buildNodes | node[{}]: {:?}", self.id, idx, nodeName);
             self.newNodeVars = Some(TaskNodeVars::new());
             let out = match nodeConf {
                 FnConfKind::Fn(_) => {
@@ -177,33 +174,59 @@ impl TaskNodes {
                     NestedFn::new(parent, txId, &mut nodeConf, self, services.clone())
                 },
                 FnConfKind::Const(conf) => {
-                    panic!("TaskNodes.buildNodes | Const is not supported in the root of the Task, config: {:?}: {:?}", nodeName, conf);
+                    panic!("{}.buildNodes | Const is not supported in the root of the Task, config: {:?}: {:?}", self.id, nodeName, conf);
                 },
                 FnConfKind::Point(conf) => {
-                    panic!("TaskNodes.buildNodes | Point is not supported in the root of the Task, config: {:?}: {:?}", nodeName, conf);
+                    panic!("{}.buildNodes | Point is not supported in the root of the Task, config: {:?}: {:?}", self.id, nodeName, conf);
                 },
                 FnConfKind::PointConf(conf) => {
-                    panic!("TaskNodes.buildNodes | PointConf is not supported in the root of the Task, config: {:?}: {:?}", nodeName, conf);
+                    panic!("{}.buildNodes | PointConf is not supported in the root of the Task, config: {:?}: {:?}", self.id, nodeName, conf);
                 },
                 FnConfKind::Param(conf) => {
-                    panic!("TaskNodes.buildNodes | Param (custom parameter) is not supported in the root of the Task, config: {:?}: {:?} - ", nodeName, conf);
+                    panic!("{}.buildNodes | Param (custom parameter) is not supported in the root of the Task, config: {:?}: {:?} - ", self.id, nodeName, conf);
                 },
             };
             self.finishNewNode(out);
+            idx += 1;
+        }
+        if let Some(evalNode) = self.getEvalNode("every") {
+            let eval_node_name = evalNode.name();
+            for (_name, input) in &self.inputs {
+                let len = input.getOuts().len();
+                if len > 1 {
+                    panic!("{}.buildNodes | evalNode '{}' - contains {} Out's, but single Out allowed when 'point [type] every' was used", self.id, eval_node_name, len);
+                }
+            }
         }
     }
     ///
-    /// 
+    /// Evaluates all containing node:
+    ///  - adding new point
+    ///  - evaluating each node
     pub fn eval(&mut self, point: PointType) {
-        let selfName = self.id.clone();
+        let self_id = self.id.clone();
         let pointName = point.name();
+        if let Some(evalNode) = self.getEvalNode("every") {
+            debug!("{}.eval | evalNode '{}' - adding point...", self_id, &evalNode.name());
+            evalNode.add(point.clone());
+        };
+        if let Some(evalNode) = self.getEvalNode(&pointName) {
+            debug!("{}.eval | evalNode '{}' - adding point...", self_id, &evalNode.name());
+            evalNode.add(point.clone());
+        };
         match self.getEvalNode(&pointName) {
             Some(evalNode) => {
-                debug!("Task({}).run | evalNode {} - evaluating...", selfName, &evalNode.name());                                            
+                debug!("{}.eval | evalNode '{}' - adding point...", self_id, &evalNode.name());
+                evalNode.add(point.clone());
+                debug!("{}.eval | evalNode '{}' - evaluating...", self_id, &evalNode.name());
                 evalNode.eval(point);
             },
             None => {
-                panic!("Task({}).run | evalNode {:?} - not fount", selfName, &pointName);
+                if let Some(evalNode) = self.getEvalNode("every") {
+                    debug!("{}.eval | evalNode '{}' - evaluating...", self_id, &evalNode.name());
+                    evalNode.eval(point)
+                };
+                warn!("{}.eval | evalNode '{}' - not fount, input point ignored", self.id, &pointName);
             },
         };
     }

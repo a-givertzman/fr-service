@@ -5,8 +5,7 @@ mod fn_input {
     use std::{sync::Once, rc::Rc, cell::RefCell};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
-        services::task::nested_function::fn_input::FnInput,
+        conf::fn_::fn_conf_keywd::FnConfPointType, core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, services::task::nested_function::fn_input::FnInput
     };
     ///
     /// 
@@ -22,10 +21,10 @@ mod fn_input {
     ///
     /// returns:
     ///  - ...
-    fn init_each(initial: PointType) -> FnInOutRef {
+    fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(
             Box::new(
-                FnInput::new("test", initial)
+                FnInput::new("test", initial, type_)
             )
         ))
     }
@@ -36,7 +35,7 @@ mod fn_input {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("test_int");
-        let input = init_each(0.to_point(0, "int"));
+        let input = init_each(0.to_point(0, "int"), FnConfPointType::Int);
         let test_data = vec![
             0,
             1,
@@ -70,7 +69,7 @@ mod fn_input {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("test_bool");
-        let input = init_each(false.to_point(0, "bool"));
+        let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
         let test_data = vec![
             false,
             false,
@@ -106,7 +105,7 @@ mod fn_input {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("test_real");
-        let input = init_each(0.0f32.to_point(0, "real"));
+        let input = init_each(0.0f32.to_point(0, "real"), FnConfPointType::Real);
         let test_data = vec![
             0.0f32,
             1.0f32,
@@ -142,7 +141,7 @@ mod fn_input {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("test_real");
-        let input = init_each(0.0f64.to_point(0, "real"));
+        let input = init_each(0.0f64.to_point(0, "real"), FnConfPointType::Double);
         let test_data = vec![
             0.0f64,
             1.0f64,
@@ -178,7 +177,7 @@ mod fn_input {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("test_string");
-        let input = init_each("0".to_point(0, "string"));
+        let input = init_each("0".to_point(0, "string"), FnConfPointType::String);
         let test_data = vec![
             "0",
             "1",

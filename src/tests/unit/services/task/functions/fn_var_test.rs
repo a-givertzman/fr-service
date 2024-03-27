@@ -5,11 +5,10 @@ mod tests {
     use std::{sync::Once, rc::Rc, cell::RefCell};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        core_::{
-            point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
-            services::task::nested_function::{fn_::FnOut,
+        conf::fn_::fn_conf_keywd::FnConfPointType, core_::{
+            point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, services::task::nested_function::{fn_::FnOut,
             fn_input::FnInput, fn_var::FnVar
-        },
+        }
     };
     ///
     /// 
@@ -25,10 +24,10 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn init_each(initial: PointType) -> FnInOutRef {
+    fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(
             Box::new(
-                FnInput::new("test", initial)
+                FnInput::new("test", initial, type_)
             )
         ))
     }
@@ -39,7 +38,7 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("test_bool");
-        let input = init_each(false.to_point(0, "bool"));
+        let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
         let mut fn_var = FnVar::new(
             "test",
             input.clone(),
@@ -78,7 +77,7 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("test_int");
-        let input = init_each(0.to_point(0, "int"));
+        let input = init_each(0.to_point(0, "int"), FnConfPointType::Int);
         let mut fn_var = FnVar::new(
             "test",
             input.clone(),
@@ -114,7 +113,7 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("test_real");
-        let input = init_each(0.0f32.to_point(0, "real"));
+        let input = init_each(0.0f32.to_point(0, "real"), FnConfPointType::Real);
         let mut fn_var = FnVar::new(
             "test",
             input.clone(),
@@ -150,7 +149,7 @@ mod tests {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("test_double");
-        let input = init_each(0.0f64.to_point(0, "double"));
+        let input = init_each(0.0f64.to_point(0, "double"), FnConfPointType::Double);
         let mut fn_var = FnVar::new(
             "test",
             input.clone(),

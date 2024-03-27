@@ -88,9 +88,16 @@ impl TaskEvalNode {
         &self.outs
     }
     ///
-    /// 
-    pub fn eval(&mut self, point: PointType) {
+    /// Adds new point to the hilding input reference
+    pub fn add(&mut self, point: PointType) {
         self.input.borrow_mut().add(point);
+    }
+    ///
+    /// Evaluates node:
+    ///  - eval all conaining vars
+    ///  - eval all conaining outs
+    pub fn eval(&mut self, point: PointType) {
+        // self.input.borrow_mut().add(point);
         for evalNodeVar in &self.vars {
             trace!("TaskEvalNode.eval | evalNode '{}/{}' - var '{}' evaluating...", self.parentName, self.name, evalNodeVar.borrow_mut().id());
             evalNodeVar.borrow_mut().eval();
