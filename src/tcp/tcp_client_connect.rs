@@ -72,39 +72,40 @@ impl TcpClientConnect {
     ///
     /// Opens a TCP connection to a remote host until succeed.
     pub fn connect(&mut self) -> Option<TcpStream> {
-        info!("TcpClientConnect({}).connect | connecting...", self.id);
+        let self_id = self.id.clone();
+        info!("{}.connect | connecting...", self_id);
         let id = self.id.clone();
         let addr = self.addr;
-        info!("TcpClientConnect({}).inner_connect | connecting to: {:?}...", id, addr);
+        info!("{}.connect | connecting to: {:?}...", id, addr);
         let cycle = self.reconnect;
         let selfStream = self.stream.clone();
         let exit = self.exitRecv.clone();
         let handle = thread::spawn(move || {
             let exit = exit.lock().unwrap();
-            let mut cycle = ServiceCycle::new(cycle);
+            let mut cycle = ServiceCycle::new(&self_id, cycle);
             loop {
                 cycle.start();
                 match TcpStream::connect(addr) {
                     Ok(stream) => {
                         selfStream.lock().unwrap().push(stream);
-                        info!("TcpClientConnect({}).inner_connect | connected to: \n\t{:?}", id, selfStream.lock().unwrap().first().unwrap());
+                        info!("{}.connect | connected to: \n\t{:?}", id, selfStream.lock().unwrap().first().unwrap());
                         break;
                     },
                     Err(err) => {
                         if log::max_level() == LevelFilter::Debug {
-                            warn!("TcpClientConnect({}).inner_connect | connection error: \n\t{:?}", id, err);
+                            warn!("{}.connect | connection error: \n\t{:?}", id, err);
                         }
                     }
                 };
                 if let Ok(exit) = exit.try_recv() {
-                    debug!("TcpClientConnect({}).inner_connect | exit: {}", id, exit);
+                    debug!("{}.connect | exit: {}", id, exit);
                     if exit {
                         break;
                     }
                 }
                 cycle.wait();
             }
-            debug!("TcpClientConnect({}).inner_connect | exit", id);
+            debug!("{}.connect | exit", id);
         });
         handle.join().unwrap();
         let mut tcpStream = self.stream.lock().unwrap();

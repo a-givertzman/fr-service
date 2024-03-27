@@ -1,44 +1,45 @@
-use std::{collections::HashMap, process::exit, sync::{mpsc::{Receiver, Sender}, Arc, Mutex}, thread::{self, JoinHandle}, time::Duration};
-use libc::{SIGABRT, SIGFPE, SIGHUP, SIGILL, SIGINT, SIGKILL, SIGQUIT, SIGSEGV, SIGTERM, SIGUSR1, SIGUSR2};
-use log::{debug, error, info};
-use signal_hook::iterator::Signals;
-use testing::stuff::wait::WaitTread;
+use std::{cell::RefCell, collections::HashMap, ffi::OsStr, fs, hash::BuildHasherDefault, io::Write, path::Path, rc::Rc, sync::{mpsc::{Receiver, Sender}, Arc, Mutex, RwLock}};
+use hashers::fx_hash::FxHasher;
+use indexmap::IndexMap;
+use log::{debug, error, trace};
+use serde::Serialize;
+use serde_json::json;
 use crate::{
     core_::point::point_type::PointType, 
-    conf::{api_client_config::ApiClientConfig, conf_tree::ConfTree, multi_queue_config::MultiQueueConfig, point_config::point_config::PointConfig, profinet_client_config::profinet_client_config::ProfinetClientConfig, services::services_config::ServicesConfig, task_config::TaskConfig, tcp_client_config::TcpClientConfig, tcp_server_config::TcpServerConfig}, 
+    conf::point_config::point_config::PointConfig, 
     services::{
-        api_cient::api_client::ApiClient, multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, service::service::Service, task::task::Task
+        multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, service::service::Service
     }
 };
 
-use super::{multi_queue::multi_queue::MultiQueue, profinet_client::profinet_client::ProfinetClient, server::tcp_server::TcpServer, service::service_handles::ServiceHandles, tcp_client::tcp_client::TcpClient};
-
 ///
 /// Holds a map of the all services in app by there names
-pub struct Services {
+pub struct ServicesBasic {
     id: String,
     map: HashMap<String, Arc<Mutex<dyn Service + Send>>>,
-    handles: HashMap<String, ServiceHandles>,
 }
 ///
 /// 
-impl Services {
-    const API_CLIENT: &'static str = "ApiClient";
-    const MULTI_QUEUE: &'static str = "MultiQueue";
-    const PROFINET_CLIENT: &'static str = "ProfinetClient";
-    const TASK: &'static str = "Task";
-    const TCP_CLIENT: &'static str = "TcpClient";
-    const TCP_SERVER: &'static str = "TcpServer";
-    // const : &str = "";
-    // const : &str = "";
+impl ServicesBasic {
+    pub const API_CLIENT: &'static str = "ApiClient";
+    pub const MULTI_QUEUE: &'static str = "MultiQueue";
+    pub const PROFINET_CLIENT: &'static str = "ProfinetClient";
+    pub const TASK: &'static str = "Task";
+    pub const TCP_CLIENT: &'static str = "TcpClient";
+    pub const TCP_SERVER: &'static str = "TcpServer";
     ///
-    /// Creates new instance of the ReatinBuffer
+    /// Creates new instance of the ServicesBasic
     pub fn new(parent: impl Into<String>) -> Self {
+        let self_id = format!("{}/ServicesBasic", parent.into());
         Self {
-            id: format!("{}/Services", parent.into()),
+            id: self_id.clone(),
             map: HashMap::new(),
-            handles: HashMap::new(),
         }
+    }
+    ///
+    /// 
+    pub fn all(&self) -> HashMap<String, Arc<Mutex<dyn Service + Send>>> {
+        self.map.clone()
     }
     ///
     /// 
@@ -113,162 +114,253 @@ impl Services {
     pub fn points(&self) -> Vec<PointConfig> {
         let mut points = vec![];
         for service in self.map.values() {
-            let mut service_points = service.lock().unwrap().points();
+        debug!("{}.points | service: '{:?}'", self.id, service.lock().unwrap().id());
+        let mut service_points = service.lock().unwrap().points();
             points.append(&mut service_points);
         };
+        trace!("{}.points | points: '{:#?}'", self.id, points);
         points
     }
+}
+
+
+///
+/// Holds a map of the all services in app by there names
+pub struct Services {
+    id: String,
+    services_basic: Arc<RwLock<ServicesBasic>>,
+    retain_points: RetainPointId,
+}
+///
+/// 
+impl Services {
     ///
-    /// Executes all hollded services
-    pub fn run(self) -> Result<(), String>  {
-        let self_id = self.id.clone();
-        info!("{}.run | Starting application...", self_id);
-        let path = "config.yaml";
-        info!("{}.run |     Reading configuration...", self_id);
-        let conf: ServicesConfig = ServicesConfig::read(path);
-        info!("{}.run |     Reading configuration - ok", self_id);
-        let parent = conf.name.clone();
-        let services = Arc::new(Mutex::new(self));
-        info!("{}.run |     Configuring services...", self_id);
-        for (node_keywd, mut node_conf) in conf.nodes {
-            let node_name = node_keywd.name();
-            let node_sufix = node_keywd.sufix();
-            info!("{}.run |         Configuring service: {}({})...", self_id, node_name, node_sufix);
-            debug!("{}.run |         Config: {:#?}", self_id, node_conf);
-            let service = Self::match_service(&self_id, &parent, &node_name, &node_sufix, &mut node_conf, services.clone());
-            let id = if node_sufix.is_empty() {&node_name} else {&node_sufix};
-            services.lock().unwrap().insert(id, service);
-            info!("{}.run |         Configuring service: {}({}) - ok\n", self_id, node_name, node_sufix);
+    /// Creates new instance of the Services
+    pub fn new(parent: impl Into<String>) -> Self {
+        let self_id = format!("{}/Services", parent.into());
+        let services_basic = Arc::new(RwLock::new(ServicesBasic::new(&self_id)));
+        let retain_points = RetainPointId::new(&self_id, "assets/retain_points.json", services_basic.clone());
+        Self {
+            id: self_id.clone(),
+            services_basic,
+            retain_points,
         }
-        info!("{}.run |     All services configured\n", self_id);
-        thread::sleep(Duration::from_millis(1000));
-        info!("{}.run |     Starting services...", self_id);
-        let services_iter = services.lock().unwrap().map.clone();
-        for (name, service) in services_iter {
-            info!("{}.run |         Starting service: {}...", self_id, name);
-            let handles = service.lock().unwrap().run();
-            match handles {
-                Ok(handles) => {
-                    services.lock().unwrap().insert_handles(&name, handles);
-                    info!("{}.run |         Starting service: {} - ok", self_id, name);
-                },
-                Err(err) => {
-                    error!("{}.run |         Error starting service '{}': {:#?}", self_id, name, err);
-                },
-            };
-        }
-        info!("{}.run |     All services started\n", self_id);
-        info!("{}.run | Application started\n", self_id);
-        let self_id_clone = self_id.clone();
-        let services_clone = services.clone();
-        let signals = Signals::new(&[
-            SIGHUP,     // code: 1	This signal is sent to a process when its controlling terminal is closed or disconnected
-            SIGINT,     // code: 2	This signal is sent to a process when the user presses Control+C to interrupt its execution
-            SIGQUIT,    // code: 3	This signal is similar to SIGINT but is used to initiate a core dump of the process, which is useful for debugging
-            // SIGILL,     // code: 4	This signal is sent to a process when it attempts to execute an illegal instruction
-            SIGABRT,    // code: 6	This signal is sent to a process when it calls the abort() function
-            // SIGFPE,     // code: 8	This signal is sent to a process when it attempts to perform an arithmetic operation that is not allowed, such as division by zero
-            // SIGKILL,    // code: 9	This signal is used to terminate a process immediately and cannot be caught or ignored
-            // SIGSEGV,    // code: 11	This signal is sent to a process when it attempts to access memory that is not allocated to it
-            SIGTERM,    // Code: 15	This signal is sent to a process to request that it terminate gracefully.
-            SIGUSR1,    // code: 10	These signals can be used by a process for custom purposes
-            SIGUSR2,    // code: 12	Same as SIGUSR1, code: 10
-        ]);
-        match signals {
-            Ok(mut signals) => {
-                let self_id = self_id_clone;
-                thread::spawn(move || {
-                    let signals_handle = signals.handle();
-                    let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
-                        for signal in signals.forever() {
-                            println!("{}.run Received signal {:?}", self_id, signal);
-                            match signal {
-                                SIGINT | SIGQUIT | SIGTERM => {
-                                    println!("{}.run Received signal {:?}", self_id, signal);
-                                    println!("{}.run Application exit...", self_id);
-                                    for (_id, service) in &services_clone.lock().unwrap().map {
-                                        println!("{}.run Stopping service '{}'...", self_id, _id);
-                                        service.lock().unwrap().exit();
-                                        println!("{}.run Stopping service '{}' - Ok", self_id, _id);
-                                    }
-                                    break;
-                                },
-                                SIGKILL => {
-                                    println!("{}.run Received signal {:?}", self_id, signal);
-                                    println!("{}.run Application halt...", self_id);
-                                    exit(0);
-                                },
-                                _ => {
-                                    println!("{}.run Received unknown signal {:?}", self_id, signal);
-                                },
-                            }
-                        }
-                    }).unwrap();
-                    handle.wait().unwrap();
-                    signals_handle.close();
-                });
-            },
-            Err(err) => {
-                panic!("{}.run | Application hook system signals error; {:#?}", self_id, err);
-            },
-        }
-        loop {
-            let servece_ids: Vec<String> = services.lock().unwrap().handles.keys().cloned().collect();
-            match servece_ids.first() {
-                Some(service_id) => {
-                    info!("{}.run | Waiting for service '{}' being finished...", self_id, service_id);
-                    let (_, handles) = services.lock().unwrap().handles.remove_entry(service_id).unwrap();
-                    handles.wait().unwrap();
-                    info!("{}.run | Waiting for service '{}' being finished - Ok", self_id, service_id);
-                    // match  {
-                    //     Some() => {
-                    //     },
-                    //     None => {
-                    //         error!("{}.run | Service '{}' can't be found", self_id, service_id);
-                    //     },
-                    // };
-                },
-                None => {
-                    break;
-                },
-            }
-        }
-        info!("{}.run | Application exit - Ok\n", self_id);
-        Ok(())
     }
     ///
     /// 
-    fn match_service(self_id: &str, parent: &str, node_name: &str, node_sufix: &str, node_conf: &mut ConfTree, services: Arc<Mutex<Services>>) -> Arc<Mutex<dyn Service + Send>> {
-        match node_name {
-            Services::API_CLIENT => {
-                Arc::new(Mutex::new(ApiClient::new(parent, ApiClientConfig::new(node_conf))))
+    pub fn all(&self) -> HashMap<String, Arc<Mutex<dyn Service + Send>>> {
+        self.services_basic.read().unwrap().all()
+    }
+    ///
+    /// 
+    pub fn insert(&mut self, id:&str, service: Arc<Mutex<dyn Service + Send>>) {
+        self.services_basic.write().unwrap().insert(id, service)
+    }
+    ///
+    /// Returns Service
+    pub fn get(&self, name: &str) -> Arc<Mutex<dyn Service>> {
+        self.services_basic.read().unwrap().get(name)
+    }
+    ///
+    /// Returns copy of the Sender - service's incoming queue
+    pub fn get_link(&self, name: &str) -> Sender<PointType> {
+        self.services_basic.read().unwrap().get_link(name)
+    }
+    ///
+    /// Returns Receiver
+    /// - service - the name of the service to subscribe on
+    pub fn subscribe(&mut self, service: &str, receiver_id: &str, points: &[SubscriptionCriteria]) -> (Sender<PointType>, Receiver<PointType>) {
+        self.services_basic.write().unwrap().subscribe(service, receiver_id, points)
+    }
+    ///
+    /// Returns ok if subscription extended sucessfully
+    /// - service - the name of the service to extend subscribtion on
+    pub fn extend_subscription(&mut self, service: &str, receiver_id: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
+        self.services_basic.write().unwrap().extend_subscription(service, receiver_id, points)
+    }
+    ///
+    /// Returns ok if subscription removed sucessfully
+    /// - service - the name of the service to unsubscribe on
+    fn unsubscribe(&mut self, service: &str, receiver_id: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
+        self.services_basic.write().unwrap().unsubscribe(service, receiver_id, points)
+    }
+    ///
+    /// Returns list of point configurations over the all services
+    pub fn points(&mut self) -> Vec<PointConfig> {
+        let points = self.retain_points.points();
+        // let mut points = vec![];
+        // for service in self.map.values() {
+        // debug!("{}.points | service: '{:?}'", self.id, service.lock().unwrap().id());
+        // let mut service_points = service.lock().unwrap().points();
+        //     points.append(&mut service_points);
+        // };
+        // trace!("{}.points | points: '{:#?}'", self.id, points);
+        points
+    }
+}
+
+///
+/// Stores unique Point ID in the json file
+struct RetainPointId {
+    id: String,
+    path: String,
+    services: Arc<RwLock<ServicesBasic>>,
+    cache: Vec<PointConfig>,
+}
+///
+/// 
+impl RetainPointId {
+    ///
+    /// Creates new instance of the RetainPointId
+    ///  - parent - the name of the parent object
+    ///  - services - Services thread safe mutable reference
+    ///  - path - path to the file, where point id's will be stored
+    pub fn new(parent: &str, path: &str, services: Arc<RwLock<ServicesBasic>>) -> Self {
+        Self {
+            id: format!("{}/RetainPointId", parent),
+            path: path.to_owned(),
+            services,
+            cache: vec![],
+        }
+    }
+    ///
+    /// 
+    pub fn points<'a>(&mut self) -> Vec<PointConfig> {
+        if self.cache.is_empty() {
+            let mut update_retained = false;
+            // let json_value = self.read(self.path.clone());
+            let mut retained = self.read(self.path.clone());
+            debug!("{}.points | retained: {:#?}", self.id, retained);
+            for point in self.services.read().unwrap().points() {
+                debug!("{}.points | point: {}...", self.id, point.name);
+
+                let cached = retained.get(&point.name);
+                let id = match cached {
+                    Some(id) => {
+                        debug!("{}.points |     found: {}", self.id, id);
+                        *id
+                    },
+                    None => {
+                        debug!("{}.points |     not found, calculating max...",self.id);
+                        update_retained = true;
+                        let id = retained
+                            .values()
+                            .max()
+                            .map_or(0, |id| id + 1);
+                        retained.insert(point.name.clone(), id);
+                        debug!("{}.points |     calculated: {}", self.id, id);
+                        id
+                    },
+                };
+                self.cache.push(
+                    PointConfig {
+                        id,
+                        name: point.name,
+                        _type: point._type,
+                        history: point.history,
+                        alarm: point.alarm,
+                        address: point.address,
+                        filters: point.filters,
+                        comment: point.comment,
+                    }
+                );
+            }
+            if update_retained {
+                self.write(&self.path, retained).unwrap();
+            }
+        }
+        self.cache.clone()
+    }
+    ///
+    /// Reads file contains json map:
+    /// ```json
+    /// {
+    ///     "/path/Point.name1": 0,
+    ///     "/path/Point.name2": 1,
+    ///     ...
+    /// }
+    /// ```
+    fn read<P: AsRef<Path> + AsRef<OsStr> + std::fmt::Display>(&self, path: P) -> IndexMap<String, usize, BuildHasherDefault<FxHasher>> {
+        // Self::create_path_if_not_exitst(&self.id, &path).unwrap();
+        let mut retained = IndexMap::with_hasher(BuildHasherDefault::<FxHasher>::default());
+        match fs::read_to_string(&path) {
+            Ok(json_string) => {
+                match serde_json::from_str(&json_string) {
+                    Ok(config) => {
+                        let config: serde_json::Map<String, serde_json::Value> = config;
+                        for (key, value) in config {
+                            match value.as_u64() {
+                                Some(value) => {
+                                    retained.insert(key, value as usize);
+                                },
+                                None => {
+                                    error!("{}.read | Error parsing usize value in pair: {}: {:?}", self.id, key, value);
+                                },
+                            }
+                        };
+                    },
+                    Err(err) => {
+                        error!("{}.read | Error in config: {:?}\n\terror: {:?}", self.id, json_string, err);
+                    },
+                }
             },
-            Services::MULTI_QUEUE => {
-                Arc::new(Mutex::new(MultiQueue::new(parent, MultiQueueConfig::new(node_conf), services)))
+            Err(err) => {
+                error!("{}.read | File {} reading error: {:?}", self.id, path, err);
             },
-            Services::PROFINET_CLIENT => {
-                Arc::new(Mutex::new(ProfinetClient::new(parent, ProfinetClientConfig::new(node_conf), services)))
+        };
+        retained
+    }
+    ///
+    /// Writes file json map to the file:
+    /// ```json
+    /// {
+    ///     "/path/Point.name1": 0,
+    ///     "/path/Point.name2": 1,
+    ///     ...
+    /// }
+    /// ```
+    fn write<P: AsRef<Path> + AsRef<OsStr> + std::fmt::Display, S: Serialize>(&self, path: P, points: S) -> Result<(), String> {
+        // let points: HashMap<String, usize> = points.into_iter().map(|point| {
+        //     (point.name.clone(), point.id)
+        // }).collect();
+        match fs::OpenOptions::new().create(true).write(true).open(&path) {
+            Ok(f) => {
+                match serde_json::to_writer_pretty(f, &points) {
+                    Ok(_) => Ok(()),
+                    Err(err) => Err(format!("{}.read | Error writing to file: '{}'\n\terror: {:?}", self.id, path, err)),
+                }
             },
-            Services::TASK => {
-                Arc::new(Mutex::new(Task::new(parent, TaskConfig::new(node_conf), services.clone())))
-            },
-            Services::TCP_CLIENT => {
-                Arc::new(Mutex::new(TcpClient::new(parent, TcpClientConfig::new(node_conf), services.clone())))
-            },
-            Services::TCP_SERVER => {
-                Arc::new(Mutex::new(TcpServer::new(parent, TcpServerConfig::new(node_conf), services.clone())))
-            },
-            _ => {
-                panic!("{}.run | Unknown service: {}({})", self_id, node_name, node_sufix);
+            Err(err) => {
+                Err(format!("{}.read | Error open file: '{}'\n\terror: {:?}", self.id, path, err))
             },
         }
     }
     ///
-    /// Inserts new pair service_id & service_join_handle
-    fn insert_handles(&mut self, id:&str, handles: ServiceHandles) {
-        if self.handles.contains_key(id) {
-            panic!("{}.insert | Duplicated service name '{:?}'", self.id, id);
+    /// 
+    fn create_path_if_not_exitst<P: AsRef<Path> + AsRef<OsStr> + std::fmt::Display>(self_id: &str, path: P) -> Result<(), String> {
+        let dir = Path::new(&path).parent().unwrap();
+        if !dir.exists() {
+            match fs::create_dir_all(&path) {
+                Ok(_) => {
+                },
+                Err(err) => {
+                    return Err(format!("{}.read | Error creating directory: '{}'\n\terror: {:?}", self_id, path, err))
+                },
+            };
         }
-        self.handles.insert(id.to_string(), handles);
+        match fs::File::create(&path) {
+            Ok(mut f) => {
+                match f.write(b"{}") {
+                    Ok(_) => {},
+                    Err(err) => {
+                        return Err(format!("{}.read | Error writing to file: '{}'\n\terror: {:?}", self_id, path, err))
+                    },
+                }
+            },
+            Err(err) => {
+                return Err(format!("{}.read | Error creating file: '{}'\n\terror: {:?}", self_id, path, err))
+            },
+        };
+        Ok(())
     }
 }

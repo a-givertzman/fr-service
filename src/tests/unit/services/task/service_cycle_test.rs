@@ -53,6 +53,7 @@ fn test_ServiceCycle() {
     for targetCycleInterval in TARGET_CYCLE_INTERVALS {  // ms
         let mut max: usize = 10;
         println!();
+        let self_id = "service_cycle_test";
         info!("target cycle interval: {} ms", targetCycleInterval);
         let length = targetCycleInterval.checked_ilog10().unwrap_or(0) + 1;
         let digits = 4 - length as usize;
@@ -70,7 +71,7 @@ fn test_ServiceCycle() {
         load(max);
         info!("load range 1...{:?}", max);
         info!("elapsed for max load: {:?}", t.elapsed());
-        let mut cycle = ServiceCycle::new(Duration::from_millis(targetCycleInterval));
+        let mut cycle = ServiceCycle::new(self_id, Duration::from_millis(targetCycleInterval));
         for _ in 0..testCycles {
             let num = rand::thread_rng().gen_range(1..max);
             debug!("load: {}", num);

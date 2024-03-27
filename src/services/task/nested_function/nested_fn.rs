@@ -1,22 +1,13 @@
 use std::{rc::Rc, cell::RefCell, str::FromStr, sync::{mpsc::Sender, Arc, Mutex}};
 use log::{debug, LevelFilter};
 use crate::{
-    core_::{
+    conf::{fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind}, point_config::point_config::PointConfig}, core_::{
         point::point_type::{PointType, ToPoint},
         types::fn_in_out_ref::FnInOutRef, 
-    }, 
-    conf::fn_::{fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType}, 
-    services::{task::{nested_function::{fn_var::FnVar, sql_metric::SqlMetric}, task_nodes::TaskNodes}, services::Services},
+    }, services::{services::Services, task::{nested_function::{fn_var::FnVar, sql_metric::SqlMetric}, task_nodes::TaskNodes}}
 };
 use super::{
-    functions::Functions, 
-    fn_input::FnInput, 
-    fn_add::FnAdd, 
-    fn_timer::FnTimer, 
-    fn_count::FnCount, 
-    fn_const::FnConst, 
-    fn_ge::FnGe,
-    export::fn_to_api_queue::FnToApiQueue, 
+    export::fn_to_api_queue::FnToApiQueue, fn_add::FnAdd, fn_const::FnConst, fn_count::FnCount, fn_ge::FnGe, fn_input::FnInput, fn_point_id::FnPointId, fn_timer::FnTimer, functions::Functions 
 };
 
 ///
@@ -83,7 +74,7 @@ impl NestedFn {
                         Self::fn_ge(parent, input1, input2)
                     },
                     Functions::SqlMetric => {
-                        debug!("MetricBuilder.new | fnConf: {:?}: {:?}", conf.name, conf);
+                        debug!("NestedFn.function | fnConf: {:?}: {:?}", conf.name, conf);
                         Rc::new(RefCell::new(                    
                             Box::new(
                                 SqlMetric::new(
@@ -94,6 +85,14 @@ impl NestedFn {
                                 )
                             )
                         ))        
+                    }
+                    Functions::PointId => {
+                        debug!("NestedFn.function | fnConf: {:?}: {:?}", conf.name, conf);
+                        let name = "input";
+                        let input_conf = conf.input_conf(name);
+                        let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        Self::fn_point_id(parent, input, services.lock().unwrap().points())
+
                     }
                     _ => panic!("NestedFn.function | Unknown function name: {:?}", conf.name)
                 }
@@ -133,8 +132,10 @@ impl NestedFn {
                 let value = match conf.type_.clone() {
                     FnConfPointType::Bool => value.parse::<bool>().unwrap().to_point(tx_id, &name),
                     FnConfPointType::Int => value.parse::<i64>().unwrap().to_point(tx_id, &name),
-                    FnConfPointType::Float => value.parse::<f64>().unwrap().to_point(tx_id, &name),
+                    FnConfPointType::Real => value.parse::<f32>().unwrap().to_point(tx_id, &name),
+                    FnConfPointType::Double => value.parse::<f64>().unwrap().to_point(tx_id, &name),
                     FnConfPointType::String => value.to_point(tx_id, &name),
+                    FnConfPointType::Any => panic!("NestedFn.function | Const of type 'any' - not supported"),
                     FnConfPointType::Unknown => panic!("NestedFn.function | Point type required"),
                 };
                 let fn_const = Self::fn_const(&name, value);
@@ -143,16 +144,19 @@ impl NestedFn {
                 fn_const
             },
             FnConfKind::Point(conf) => {                
-                println!("NestedFn.function | Input (Point): {:?} ({:?})...", input_name, conf.name);
+                println!("NestedFn.function | Input (Point<{:?}>): {:?} ({:?})...", conf.type_, input_name, conf.name);
                 let initial = match conf.type_.clone() {
                     FnConfPointType::Bool => false.to_point(tx_id, &conf.name),
                     FnConfPointType::Int => 0.to_point(tx_id, &conf.name),
-                    FnConfPointType::Float => 0.0.to_point(tx_id, &conf.name),
+                    FnConfPointType::Real => 0.0f32.to_point(tx_id, &conf.name),
+                    FnConfPointType::Double => 0.0f64.to_point(tx_id, &conf.name),
                     FnConfPointType::String => "".to_point(tx_id, &conf.name),
+                    FnConfPointType::Any => false.to_point(tx_id, &conf.name),
                     FnConfPointType::Unknown => panic!("NestedFn.function | Point type required"),
                 };
+                println!("NestedFn.function | Input initial: {:?}", initial);
                 let point_name = conf.name.clone();
-                task_nodes.addInput(&point_name, Self::fn_input(&point_name, initial));
+                task_nodes.addInput(&point_name, Self::fn_input(&point_name, initial, conf.type_.clone()));
                 let input = task_nodes.getInput(&point_name).unwrap();
                 if log::max_level() == LevelFilter::Trace {
                     println!("NestedFn.function | input (Point): {:?}", input);
@@ -203,30 +207,21 @@ impl NestedFn {
     }
     // ///
     // /// 
-    fn fn_input(parent: &str, initial: PointType) -> FnInOutRef {
+    fn fn_input(parent: &str, initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
-            FnInput::new(parent, initial)
+            FnInput::new(parent, initial, type_)
         )))
     }
     // ///
     // /// 
-    fn fn_add(
-        parent: &str, 
-        input1: FnInOutRef, 
-        input2: FnInOutRef
-    ) -> FnInOutRef {
+    fn fn_add(parent: &str, input1: FnInOutRef, input2: FnInOutRef) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(        
             FnAdd::new(parent, input1, input2)
         )))
     }    
     // ///
     // /// 
-    fn fn_timer(
-        parent: &str, 
-        initial: impl Into<f64> + Clone,
-        input: FnInOutRef, 
-        repeat: bool,
-    ) -> FnInOutRef {
+    fn fn_timer(parent: &str, initial: impl Into<f64> + Clone,input: FnInOutRef, repeat: bool) -> FnInOutRef {
         Rc::new(RefCell::new(
             Box::new(        
                 FnTimer::new(
@@ -240,13 +235,16 @@ impl NestedFn {
     }    
     // ///
     // /// 
-    fn fn_ge(
-        parent: &str, 
-        input1: FnInOutRef, 
-        input2: FnInOutRef
-    ) -> FnInOutRef {
+    fn fn_ge(parent: &str, input1: FnInOutRef, input2: FnInOutRef) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(        
             FnGe::new(parent, input1, input2)
         )))
-    }    
+    }
+    // ///
+    // /// 
+    fn fn_point_id(parent: &str, input: FnInOutRef, points: Vec<PointConfig>) -> FnInOutRef {
+        Rc::new(RefCell::new(Box::new(
+            FnPointId::new(parent, input, points)
+        )))
+    }
 }

@@ -69,10 +69,26 @@ impl Point<i64> {
 }
 ///
 /// 
+impl Point<f32> {
+    ///
+    /// creates Point<f32> with given name & value, taking current timestamp, Status::Ok, Direction::Read
+    pub fn new_real(tx_id: usize, name: &str, value: f32) -> Point<f32> {
+        Point {
+            tx_id,
+            name: name.into(),
+            value,
+            status: Status::Ok,
+            cot: Cot::default(),
+            timestamp: chrono::offset::Utc::now(),
+        }
+    }
+}
+///
+/// 
 impl Point<f64> {
     ///
     /// creates Point<f64> with given name & value, taking current timestamp, Status::Ok, Direction::Read
-    pub fn new_float(tx_id: usize, name: &str, value: f64) -> Point<f64> {
+    pub fn new_double(tx_id: usize, name: &str, value: f64) -> Point<f64> {
         Point {
             tx_id,
             name: name.into(),

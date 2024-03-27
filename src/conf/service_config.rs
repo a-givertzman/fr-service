@@ -1,6 +1,6 @@
 use std::{time::Duration, str::FromStr};
 use log::{debug, trace};
-use super::{conf_tree::ConfTree, conf_duration::ConfDuration, conf_keywd::{ConfKind, ConfKeywd}};
+use super::{conf_duration::ConfDuration, conf_keywd::{ConfKeywd, ConfKind}, conf_subscribe::ConfSubscribe, conf_tree::ConfTree};
 ///
 /// 
 #[derive(Debug, PartialEq, Clone)]
@@ -131,6 +131,16 @@ impl ServiceConfig {
         };
         Err(format!("{}.getParamByKeyword | keyword '{} {:?}' - not found", self.id, keyword_prefix, keyword_kind))
     }
+    ///
+    /// 
+    pub fn subscribe(&mut self) -> Result<ConfSubscribe, String> {
+        match self.get_param_value("subscribe") {
+            Ok(conf) => {
+                Ok(ConfSubscribe::new(conf))
+            },
+            Err(err) => Err(err),
+        }
+    }    
     ///
     /// 
     pub fn get_in_queue(&mut self) -> Result<(String, i64), String> {

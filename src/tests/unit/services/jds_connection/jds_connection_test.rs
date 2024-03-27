@@ -50,25 +50,25 @@ mod jds_routes {
         vec![
             PointConfig::from_yaml(parent, &serde_yaml::from_str(&format!(
                 r#"{}:
-                    type: String      # Bool / Int / Float / String / Json
+                    type: String      # Bool / Int / Real / Double / String / Json
                     comment: Auth request, contains token / pass string"#, 
                 format!("Jds/{}", RequestKind::AUTH_SECRET),
             )).unwrap()),
             PointConfig::from_yaml(parent, &serde_yaml::from_str(&format!(
                 r#"{}:
-                    type: String      # Bool / Int / Float / String / Json
+                    type: String      # Bool / Int / Real / Double / String / Json
                     comment: Auth request, contains SSH key"#, 
                 format!("Jds/{}", RequestKind::AUTH_SSH),
             )).unwrap()),
             PointConfig::from_yaml(parent, &serde_yaml::from_str(&format!(
                 r#"{}:
-                    type: String      # Bool / Int / Float / String / Json
+                    type: String      # Bool / Int / Real / Double / String / Json
                     comment: Request all Ponts configurations"#, 
                 format!("Jds/{}", RequestKind::POINTS),
             )).unwrap()),
             PointConfig::from_yaml(parent, &serde_yaml::from_str(&format!(
                 r#"{}:
-                    type: String      # Bool / Int / Float / String / Json
+                    type: String      # Bool / Int / Real / Double / String / Json
                     comment: Request to begin transmossion of all configured Points"#, 
                 format!("Jds/{}", RequestKind::SUBSCRIBE),
             )).unwrap()),
@@ -82,13 +82,15 @@ mod jds_routes {
         init_once();
         init_each();
         println!();
-        let self_id = "test";
+        let self_id = "jds_connection_test";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
         test_duration.run().unwrap();
         //
-        // Configuring MultiQueue service 
+        // Configuring Services 
         let services = Arc::new(Mutex::new(Services::new(self_id)));
+        //
+        // Configuring MultiQueue service 
         let conf = serde_yaml::from_str(r#"
             service MultiQueue:
                 in queue in-queue:
@@ -116,7 +118,7 @@ mod jds_routes {
         "#, tcp_server_addr);
         let conf = serde_yaml::from_str(&conf).unwrap();
         let conf = TcpServerConfig::from_yaml(&conf);
-        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, conf, services.clone())));
+        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, self_id, conf, services.clone())));
         services.lock().unwrap().insert("TcpServer", tcp_server.clone());
         println!("{} | TcpServer - ready", self_id);
         //
@@ -224,7 +226,7 @@ mod jds_routes {
         init_once();
         init_each();
         println!();
-        let self_id = "test";
+        let self_id = "jds_connection_test";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
         test_duration.run().unwrap();
@@ -259,7 +261,7 @@ mod jds_routes {
         "#, tcp_server_addr, secret);
         let conf = serde_yaml::from_str(&conf).unwrap();
         let conf = TcpServerConfig::from_yaml(&conf);
-        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, conf, services.clone())));
+        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, self_id, conf, services.clone())));
         services.lock().unwrap().insert("TcpServer", tcp_server.clone());
         println!("{} | TcpServer - ready", self_id);
         //
@@ -367,7 +369,7 @@ mod jds_routes {
         init_once();
         init_each();
         println!();
-        let self_id = "test";
+        let self_id = "jds_connection_test";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
         test_duration.run().unwrap();
@@ -402,7 +404,7 @@ mod jds_routes {
         "#, tcp_server_addr, secret);
         let conf = serde_yaml::from_str(&conf).unwrap();
         let conf = TcpServerConfig::from_yaml(&conf);
-        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, conf, services.clone())));
+        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, self_id, conf, services.clone())));
         services.lock().unwrap().insert("TcpServer", tcp_server.clone());
         println!("{} | TcpServer - ready", self_id);
         //
@@ -499,7 +501,7 @@ mod jds_routes {
         // assert!(result.value() == target.value(), "\nresult: {:?}\ntarget: {:?}", result.value(), target.value());
         let points: HashMap<String, serde_json::Value> = serde_json::from_str(&result.value().as_string()).unwrap();
         let points: HashMap<_, PointConfig> = points.iter().map(|(name, value)| {
-            (name, PointConfig::from_json(value.clone()).unwrap())
+            (name, PointConfig::from_json(name, value).unwrap())
         }).collect();
         println!("{} | Points request reply: {:#?}", self_id, points);
         for target in point_configs(self_id) {
@@ -535,13 +537,14 @@ mod jds_routes {
     }    
     ///
     /// 
-    // #[test]
+    #[test]
+    #[ignore = "To be implementes..."]
     fn auth_ssh() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
         println!();
-        let self_id = "test JdsService";
+        let self_id = "jds_connection_test";
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
@@ -574,7 +577,7 @@ mod jds_routes {
         "#, tcp_addr);
         let conf = serde_yaml::from_str(&conf).unwrap();
         let conf = TcpServerConfig::from_yaml(&conf);
-        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, conf, services.clone())));
+        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, self_id, conf, services.clone())));
         services.lock().unwrap().insert("TcpServer", tcp_server.clone());
         println!("{} | TcpServer - ready", self_id);
         //

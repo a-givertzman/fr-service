@@ -1,7 +1,7 @@
 use std::{collections::HashMap, sync::{Arc, Mutex, RwLock}};
 use log::{debug, warn};
 use serde_json::json;
-use crate::{conf::point_config::point_name::PointName, core_::{auth::ssh::auth_ssh::AuthSsh, cot::cot::Cot, net::protocols::jds::{jds_routes::RouterReply, request_kind::RequestKind}, point::{point::Point, point_type::PointType}, status::status::Status}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, services::Services, server::tcp_server_cnnection::JdsState}};
+use crate::{conf::point_config::{point_config::PointConfig, point_name::PointName}, core_::{auth::ssh::auth_ssh::AuthSsh, cot::cot::Cot, net::protocols::jds::{jds_routes::RouterReply, request_kind::RequestKind}, point::{point::Point, point_type::PointType}, status::status::Status}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, server::tcp_server_cnnection::JdsState, services::Services}};
 use super::tcp_server_cnnection::Shared;
 
 pub struct JdsConnection {}
@@ -9,7 +9,7 @@ impl JdsConnection {
     ///
     /// Detecting kind of the request stored as json string in the incoming point.
     /// Performs the action depending on the Request kind.
-    pub fn handle_request(parent: &str, tx_id: usize, request: PointType, services: Arc<Mutex<Services>>, shared: Arc<RwLock<Shared>>) -> RouterReply {
+    pub fn handle_request(parent: &str, path: &str, tx_id: usize, request: PointType, services: Arc<Mutex<Services>>, shared: Arc<RwLock<Shared>>) -> RouterReply {
         let mut shared = shared.write().unwrap();
         match RequestKind::from(request.name()) {
             RequestKind::AuthSecret => {
@@ -35,7 +35,7 @@ impl JdsConnection {
                     None,
                     Some(PointType::String(Point::new(
                         tx_id, 
-                        &PointName::new(parent, "/Auth.Secret").full(),
+                        &PointName::new(path, "/Auth.Secret").full(),
                         message.to_owned(), 
                         Status::Ok, 
                         cot, 
@@ -69,7 +69,7 @@ impl JdsConnection {
                     None,
                     Some(PointType::String(Point::new(
                         tx_id, 
-                        &PointName::new(parent, "/Auth.Ssh").full(),
+                        &PointName::new(path, "/Auth.Ssh").full(),
                         message.to_owned(), 
                         Status::Ok, 
                         cot, 
@@ -79,21 +79,24 @@ impl JdsConnection {
             },
             RequestKind::Points => {
                 debug!("{}/JdsConnection.handle_request | Request '{}': \n\t{:?}", parent, RequestKind::POINTS, request);
-                let points: HashMap<String, serde_json::Value> = services.lock().unwrap().points().iter().map(|conf| {
-                    (conf.name.clone(), conf.to_json())
+                let points = services.lock().unwrap().points();
+                let points: HashMap<String, &PointConfig> = points.iter().map(|conf| {
+                    (conf.name.clone(), conf)
                 }).collect();
                 let points = json!(points).to_string();
-                RouterReply::new(
+                let reply = RouterReply::new(
                     None,
                     Some(PointType::String(Point::new(
                         tx_id, 
-                        &PointName::new(parent, "/Points").full(),
+                        &PointName::new(path, "/Points").full(),
                         points, 
                         Status::Ok, 
                         Cot::ReqCon, 
                         chrono::offset::Utc::now(),
                     ))),
-                )
+                );
+                debug!("{}/JdsConnection.handle_request | Reply: \n\t{:?}", parent, reply);
+                reply
             },
             RequestKind::Subscribe => {
                 debug!("{}/JdsConnection.handle_request | Request '{}': \n\t{:?}", parent, RequestKind::SUBSCRIBE, request);
@@ -133,10 +136,25 @@ impl JdsConnection {
                         })
                     },
                 };
-                if let Err(err) = services.lock().unwrap().extend_subscription(&shared.tx_queue_name, parent, &points) {
-                    warn!("{}.handle_request | extend_subscription failed with error: {:?}", parent, err);
+                let (cot, message) = match services.lock().unwrap().extend_subscription(&shared.tx_queue_name, parent, &points) {
+                    Ok(_) => (Cot::ReqCon, "".to_owned()),
+                    Err(err) => {
+                        let message = format!("{}.handle_request | extend_subscription failed with error: {:?}", parent, err);
+                        warn!("{}", message);
+                        (Cot::ReqErr, message)
+                    },
                 };
-                RouterReply::new(None, None)
+                RouterReply::new(
+                    None,
+                    Some(PointType::String(Point::new(
+                        tx_id, 
+                        &PointName::new(path, "/Subscribe").full(),
+                        message, 
+                        Status::Ok, 
+                        cot, 
+                        chrono::offset::Utc::now(),
+                    ))),
+                )                
             },
             RequestKind::Unknown => {
                 debug!("{}/JdsConnection.handle_request | Unknown request: \n\t{:?}", parent, request);

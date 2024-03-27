@@ -61,6 +61,7 @@ pub struct Shared {
 /// Single Jds over TCP connection
 pub struct TcpServerConnection {
     id: String,
+    path: String,
     action_recv: Vec<Receiver<Action>>, 
     services: Arc<Mutex<Services>>, 
     conf: TcpServerConfig, 
@@ -70,12 +71,13 @@ pub struct TcpServerConnection {
 /// 
 impl TcpServerConnection {
     ///
-    /// - filter - all trafic from server to client will be filtered by some criterias, until Subscribe request confirmed:
-    ///    - cot - [Cot] - bit mask wich will be passed
-    ///    - name - exact name wich passed
-    pub fn new(parent: impl Into<String>, action_recv: Receiver<Action>, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>) -> Self {
+    /// Creates new instance of the [TcpServerConnection]
+    /// - parent - id of the parent
+    /// - path - path of the parent
+    pub fn new(parent: impl Into<String>, path: impl Into<String>, action_recv: Receiver<Action>, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>) -> Self {
         Self {
             id: format!("{}/TcpServerConnection", parent.into()),
+            path: format!("{}/Jds", path.into()),
             action_recv: vec![action_recv],
             services,
             conf,
@@ -87,6 +89,7 @@ impl TcpServerConnection {
     pub fn run(&mut self) -> Result<ServiceHandles, String> {
         info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
+        let self_path = self.path.clone();
         let conf = self.conf.clone();
         let shared_options: Arc<RwLock<Shared>> = Arc::new(RwLock::new(Shared {
                 tx_queue_name: String::new(), 
@@ -128,6 +131,7 @@ impl TcpServerConnection {
                 &self_id,
                 Arc::new(Mutex::new(JdsRoutes::new(
                     &self_id,
+                    &self_path,
                     services.clone(),
                     JdsDeserialize::new(
                         self_id.clone(),
@@ -136,12 +140,13 @@ impl TcpServerConnection {
                         ),
                     ),
                     req_reply_send,
-                    |parent, point, services, shared| {
+                    |parent, path, point, services, shared| {
                         let parent: String = parent;
+                        let path: String = path;
                         let point: PointType = point;
-                        println!("{}.run | point from socket: \n\t{:?}", parent, point);
+                        println!("{}.run | point from socket: \n\t{:?}", path, point);
                         match point.cot() {
-                            Cot::Req => JdsConnection::handle_request(&parent, 0, point, services, shared),
+                            Cot::Req => JdsConnection::handle_request(&parent, &path, 0, point, services, shared),
                             _        => {
                                 match shared.read().unwrap().jds_state {
                                     JdsState::Unknown => {
@@ -149,7 +154,7 @@ impl TcpServerConnection {
                                         RouterReply::new(None, None)
                                     },
                                     JdsState::Authenticated => {
-                                        debug!("{}.run | Passed point from socket: \n\t{:?}", parent, json!(&point).to_string());
+                                        debug!("{}.run | Passed point from socket: \n\t{:?}", path, json!(&point).to_string());
                                         RouterReply::new(Some(point), None)
                                     },
                                 }

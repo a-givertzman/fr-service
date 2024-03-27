@@ -10,10 +10,24 @@ use super::point_config_history::PointConfigHistory;
 
 ///
 /// The configuration of the Point
+///  - id - unique identificator for database;
+///  - name - unique /path/name for exchanging with clients and between services;
+///  - _type - the type of the holding value, suporting: Bool, Int, Real, Double, String;
+///  - history - flag, meaning if the point has to be stored into the historian database, 
+///     - r - read direction, points hawing Cot::Inf, Cot::ActCon, Cot::ActErr, Cot::ReqCon, Cot::ReqErr
+///     - w - write direction, points hawing Cot::Req, Cot::Act
+///     - rw - both directions
+///  - alarm - flag, meaning if point have alarm class 0..15
+///     - 0 - or ommited, alarm class is none, normal information point
+///     - >0 - point contains alarm information of the corresponding alarm class
+///  - address - protocol specific addres
+///  - filters - threshold filters
+///  - comment - description text
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PointConfig {
     #[serde(skip)]
-    // #[serde(default)]
+    pub id: usize,
+    #[serde(skip)]
     pub name: String,
     #[serde(rename = "type")]
     #[serde(alias = "type", alias = "Type")]
@@ -28,7 +42,6 @@ pub struct PointConfig {
     pub filters: Option<PointConfigFilter>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
-    
 }
 ///
 /// 
@@ -42,16 +55,18 @@ impl PointConfig {
     /// creates PointConfig from serde_yaml::Value of following format:
     /// ```yaml
     /// PointName:
-    ///     type: bool      # bool / int / float / string / json
-    ///     history: 0      # 0 / 1
-    ///     alarm: 0        # 0..15
-    ///     address:
-    ///         offset: 0..65535
-    ///         bit: 0..255
-    ///     filter:
-    ///         threshold: 0.5      // absolute threshold delta
-    ///         factor: 1.5         // multiplier for absolute threshold delta - in this case the delta will be accumulated
+    ///     id: usize               # unique identificator for database
+    ///     type: bool              # bool / int / real / string / json
+    ///     alarm: 0                # 0..15
+    ///     history: r              # ommit - None / r - Read / w - Write / rw - ReadWrite (Optional)
+    ///     address:                # Protocol-specific address in the source device (Optional)
+    ///         offset: 0..65535    #   0..65535
+    ///         bit: 0..255         #   0..255 (Optional)
+    ///     filter:                 # Filter conf, using such filter, point can be filtered immediately after input's parser
+    ///         threshold: 0.5      #   absolute threshold delta
+    ///         factor: 1.5         #   multiplier for absolute threshold delta - in this case the delta will be accumulated
     ///     comment: Test Point 
+    /// ```
     pub fn new(parent: &str, conf_tree: &ConfTree) -> Self {
         // println!();
         trace!("PointConfig.new | confTree: {:?}", conf_tree);
@@ -87,19 +102,13 @@ impl PointConfig {
     }
     ///
     /// Converts json into PointConfig
-    pub fn from_json(value: serde_json::Value) -> Result<Self, String> {
+    pub fn from_json(name: &str, value: &serde_json::Value) -> Result<Self, String> {
+        println!("PointConfig.from_json | value {:#?}", value);
         match serde_json::from_value(value.clone()) {
             Ok(map) => {
-                let  map: HashMap<String, PointConfig> = map;
-                match map.into_iter().next() {
-                    Some((name, mut conf)) => {
-                        conf.name = name;
-                        Ok(conf)
-                    },
-                    None => {
-                        Err(format!("PointConfig.from_json | Error parsing: {:?} - doesn't contains proper PointConfig", value))
-                    },
-                }
+                let  mut map: Self = map;
+                map.name = name.to_owned();
+                Ok(map)
             },
             Err(err) => Err(format!("PointConfig.from_json | Error: {:?}", err)),
         }

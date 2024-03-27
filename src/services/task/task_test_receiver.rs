@@ -1,10 +1,8 @@
 use std::{collections::HashMap, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread};
-
 use log::{info, warn, trace, debug};
-
 use crate::{core_::{object::object::Object, point::point_type::PointType}, services::service::{service::Service, service_handles::ServiceHandles}};
-
-
+///
+/// 
 pub struct TaskTestReceiver {
     id: String,
     iterations: usize, 
@@ -13,7 +11,8 @@ pub struct TaskTestReceiver {
     received: Arc<Mutex<Vec<PointType>>>,
     exit: Arc<AtomicBool>,
 }
-
+///
+/// 
 impl TaskTestReceiver {
     ///
     /// 
@@ -65,19 +64,19 @@ impl Service for TaskTestReceiver {
         let iterations = self.iterations;
         let handle = thread::Builder::new().name(self_id.clone()).spawn(move || {
             // info!("Task({}).run | prepared", name);
-            'inner: loop {
+            'main: loop {
                 if exit.load(Ordering::Relaxed) {
-                    break 'inner;
+                    break 'main;
                 }
                 match in_recv.recv() {
                     Ok(point) => {
-                        debug!("{}.run | received: {}, (value: {:?})", self_id, count, point.value());
+                        debug!("{}.run | received: {}/{}, (value: {:?})", self_id, count, iterations, point.value());
                         trace!("{}.run | received SQL: {:?}", self_id, point.as_string().value);
                         // debug!("{}.run | value: {}\treceived SQL: {:?}", value, sql);
                         count += 1;
                         received.lock().unwrap().push(point.clone());
                         if count >= iterations {
-                            break 'inner;
+                            break 'main;
                         }
                     },
                     Err(err) => {
@@ -90,7 +89,7 @@ impl Service for TaskTestReceiver {
                     },
                 };
                 if exit.load(Ordering::Relaxed) {
-                    break 'inner;
+                    break 'main;
                 }
             };
             info!("{}.run | received {} SQL's", self_id, count);

@@ -16,19 +16,19 @@ service Task task1:
     in queue recv-queue:
         max-length: 10000
     let var0: 
-        input: const float 2.224
+        input: const real 2.224
     # let Var1:
     #     input fn add:
-    #         input1: point float '/path/Point.Name1'
+    #         input1: point real '/path/Point.Name1'
     #         input2 fn add: 
-    #             input1: point float '/path/Point.Name1'
-    #             input2: const float 0.04
+    #             input1: point real '/path/Point.Name1'
+    #             input2: const real 0.04
     # let Var2:
     #     input fn add:
-    #         input1: point float '/path/Point.Name2'
+    #         input1: point real '/path/Point.Name2'
     #         input2 fn add: 
-    #             input1: point float '/path/Point.Name2'
-    #             input2: const float 0.07
+    #             input1: point real '/path/Point.Name2'
+    #             input2: const real 0.07
 
     fn ToApiQueue:
         queue: TaskTestReceiver.in-queue
@@ -40,14 +40,14 @@ service Task task1:
             input let Var3:
                     input fn add:
                         input1 fn add:
-                            input1: const float 0.2
-                            input2: point float '/path/Point.Name'
+                            input1: const real 0.2
+                            input2: point real '/path/Point.Name'
                         input2:
-                            const float 0.05
+                            const real 0.05
             input3 fn add:
                 input1:
                     var0
-                input2: point float '/path/Point.Name'
+                input2: point real '/path/Point.Name'
 
 # service ApiClient:
 

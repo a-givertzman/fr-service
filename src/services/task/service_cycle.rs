@@ -1,6 +1,5 @@
 use std::{time::{Duration, Instant}, thread};
-
-use log::trace;
+use log::{error, trace};
 ///
 /// ServiceCycle - provides exact time interval in ms / us (future posible implementation)
 ///  - creates with Duration of interval
@@ -9,6 +8,7 @@ use log::trace;
 /// 
 /// [How to sleep for a few microseconds](https://stackoverflow.com/questions/4986818/how-to-sleep-for-a-few-microseconds)
 pub struct ServiceCycle {
+    id: String,
     instant: Instant,
     interval: Duration,
 }
@@ -17,8 +17,9 @@ pub struct ServiceCycle {
 impl ServiceCycle {
     ///
     /// creates ServiceCycle with Duration of interval
-    pub fn new(interval: Duration) ->Self {
+    pub fn new(parent: &str, interval: Duration) ->Self {
         Self {
+            id: format!("{}/ServiceCycle", parent),
             instant: Instant::now(),
             interval,
         }
@@ -34,8 +35,11 @@ impl ServiceCycle {
         let elapsed = self.instant.elapsed();
         if elapsed < self.interval {
             let remainder = self.interval - elapsed;
-            trace!("ServiceCycle.wait | waiting: {:?}", remainder);
+            trace!("{}.wait | waiting: {:?}", self.id, remainder);
             thread::sleep(remainder);
+        }
+        if elapsed > self.interval {
+            error!("{}.wait | exceeded: {:?}", self.id, elapsed - self.interval);
         }
     }
     ///

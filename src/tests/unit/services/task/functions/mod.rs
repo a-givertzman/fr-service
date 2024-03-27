@@ -10,3 +10,5 @@ pub mod fn_timer_test;
 pub mod fn_var_test;
 
 pub mod fn_add_test;
+
+pub mod fn_point_id_test;

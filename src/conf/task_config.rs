@@ -10,6 +10,8 @@ use crate::conf::{
     point_config::point_config::PointConfig,
 };
 
+use super::conf_subscribe::ConfSubscribe;
+
 ///
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
@@ -33,6 +35,7 @@ pub struct TaskConfig {
     pub(crate) cycle: Option<Duration>,
     pub(crate) rx: String,
     pub(crate) rx_max_length: i64,
+    pub(crate) subscribe: ConfSubscribe,
     pub(crate) nodes: IndexMap<String, FnConfKind>,
     pub(crate) vars: Vec<String>,
 }
@@ -71,6 +74,8 @@ impl TaskConfig {
         debug!("{}.new | cycle: {:?}", self_id, cycle);
         let (rx, rx_max_length) = self_conf.get_in_queue().unwrap();
         debug!("{}.new | RX: {},\tmax-length: {:?}", self_id, rx, rx_max_length);
+        let subscribe = ConfSubscribe::new(self_conf.get_param_value("subscribe").unwrap_or(serde_yaml::Value::Null));
+        debug!("{}.new | sudscribe: {:?}", self_id, subscribe);
         let mut node_index = 0;
         let mut nodes = IndexMap::new();
         for key in &self_conf.keys {
@@ -88,6 +93,7 @@ impl TaskConfig {
             cycle,
             rx,
             rx_max_length,
+            subscribe,
             nodes,
             vars,
         }
@@ -97,7 +103,7 @@ impl TaskConfig {
     pub(crate) fn from_yaml(value: &serde_yaml::Value) -> TaskConfig {
         match value.as_mapping().unwrap().into_iter().next() {
             Some((key, value)) => {
-                Self::new(&mut ConfTree::new(key.as_str().unwrap().to_owned(), value.clone()))
+                Self::new(&mut ConfTree::new(key.as_str().unwrap(), value.clone()))
             },
             None => {
                 panic!("TaskConfig.from_yaml | Format error or empty conf: {:#?}", value)

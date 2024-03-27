@@ -6,8 +6,7 @@ mod task_config_new {
     use std::{sync::Once, time::Duration};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::conf::{
-        task_config::TaskConfig,
-        fn_::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType},
+        conf_subscribe::ConfSubscribe, fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig}, task_config::TaskConfig
     };
     ///
     ///     
@@ -46,6 +45,60 @@ mod task_config_new {
             //     ]) }
             // ),
             (
+                r#"service Task Task0:
+                    cycle: 100 ms
+                    in queue recv-queue:
+                        max-length: 10000
+                    fn SqlMetric:
+                        initial: 123.123      # начальное значение
+                        table: table_name
+                        sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
+                        input1: point any every
+                        input2 fn PointId:
+                            input: point any every
+                        input3 fn PointId:
+                            input: point int every
+                        input4 fn PointId:
+                            input: point real every
+                "#, 
+                TaskConfig {
+                    name: format!("Task0"),
+                    cycle: Some(Duration::from_millis(100)),
+                    rx: format!("recv-queue"),
+                    rx_max_length: 10000,
+                    subscribe: ConfSubscribe::new(serde_yaml::Value::Null),
+                    vars: vec![],
+                    nodes: IndexMap::from([                    
+                        (format!("SqlMetric-1"), FnConfKind::Fn( FnConfig {
+                                type_: FnConfPointType::Unknown,
+                                name: format!("SqlMetric"), 
+                                inputs: IndexMap::from([
+                                    (format!("initial"), FnConfKind::Param( format!("123.123") )),
+                                    (format!("table"), FnConfKind::Param( format!("table_name") )),
+                                    (format!("sql"), FnConfKind::Param( String::from("UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';") )),
+                                    (format!("input1"), FnConfKind::Point( FnConfig { name: format!("every"), type_: FnConfPointType::Any, inputs: IndexMap::new() } )), 
+                                    (format!("input2"), FnConfKind::Fn( FnConfig { 
+                                        name: format!("PointId"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                            (format!("input"), FnConfKind::Point( FnConfig { name: format!("every"), type_: FnConfPointType::Any, inputs: IndexMap::new() } )), 
+                                        ]),
+                                    } )), 
+                                    (format!("input3"), FnConfKind::Fn( FnConfig { 
+                                        name: format!("PointId"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                            (format!("input"), FnConfKind::Point( FnConfig { name: format!("every"), type_: FnConfPointType::Int, inputs: IndexMap::new() } )), 
+                                        ]),
+                                    } )), 
+                                    (format!("input4"), FnConfKind::Fn( FnConfig { 
+                                        name: format!("PointId"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                            (format!("input"), FnConfKind::Point( FnConfig { name: format!("every"), type_: FnConfPointType::Real, inputs: IndexMap::new() } )), 
+                                        ]),
+                                    } )), 
+                                ]), 
+                            } ),
+                        ),
+                    ]),
+                },
+            ),
+            (
                 r#"service Task Task1:
                     cycle: 100 ms
                     in queue recv-queue:
@@ -59,7 +112,7 @@ mod task_config_new {
                                 initial: VarName2
                                 input fn functionName:
                                     input1: const someValue
-                                    input2: point float '/path/Point.Name'
+                                    input2: point real '/path/Point.Name'
                                     input fn functionName:
                                         input: point bool '/path/Point.Name'
                         input2:
@@ -70,6 +123,7 @@ mod task_config_new {
                     cycle: Some(Duration::from_millis(100)),
                     rx: format!("recv-queue"),
                     rx_max_length: 10000,
+                    subscribe: ConfSubscribe::new(serde_yaml::Value::Null),
                     vars: vec![format!("VarName2")],
                     nodes: IndexMap::from([                    
                         (format!("SqlMetric-1"), FnConfKind::Fn( FnConfig {
@@ -88,7 +142,7 @@ mod task_config_new {
                                                     (format!("input"), FnConfKind::Fn( FnConfig { 
                                                         name: format!("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                                                             (format!("input1"), FnConfKind::Const( FnConfig { name: format!("someValue"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
-                                                            (format!("input2"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name"), type_: FnConfPointType::Float, inputs: IndexMap::new() } )), 
+                                                            (format!("input2"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name"), type_: FnConfPointType::Real, inputs: IndexMap::new() } )), 
                                                             (format!("input"), FnConfKind::Fn( FnConfig { 
                                                                 name: format!("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                                                                     (format!("input"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name"), type_: FnConfPointType::Bool, inputs: IndexMap::new() } )),
@@ -117,7 +171,7 @@ mod task_config_new {
                             initial: VarName2
                             input fn functionName:
                                 input1: const someValue
-                                input2: point float '/path/Point.Name'
+                                input2: point real '/path/Point.Name'
                                 input fn functionName:
                                     input: point bool '/path/Point.Name'
                 "#, 
@@ -126,6 +180,7 @@ mod task_config_new {
                     cycle: Some(Duration::from_millis(100)),
                     rx: format!("recv-queue"),
                     rx_max_length: 10000,
+                    subscribe: ConfSubscribe::new(serde_yaml::Value::Null),
                     vars: vec![format!("VarName2")],
                     nodes: IndexMap::from([                    
                         (format!("VarName2-1"), FnConfKind::Var( FnConfig { 
@@ -136,7 +191,7 @@ mod task_config_new {
                                         (format!("input"), FnConfKind::Fn( FnConfig { 
                                             name: format!("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                                                 (format!("input1"), FnConfKind::Const( FnConfig { name: format!("someValue"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
-                                                (format!("input2"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name"), type_: FnConfPointType::Float, inputs: IndexMap::new() } )), 
+                                                (format!("input2"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name"), type_: FnConfPointType::Real, inputs: IndexMap::new() } )), 
                                                 (format!("input"), FnConfKind::Fn( FnConfig { 
                                                     name: format!("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                                                         (format!("input"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name"), type_: FnConfPointType::Bool, inputs: IndexMap::new() } )),

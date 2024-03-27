@@ -120,7 +120,7 @@ impl ProfinetClientConfig {
     pub(crate) fn from_yaml(value: &serde_yaml::Value) -> ProfinetClientConfig {
         match value.as_mapping().unwrap().into_iter().next() {
             Some((key, value)) => {
-                Self::new(&mut ConfTree::new(key.as_str().unwrap().to_owned(), value.clone()))
+                Self::new(&mut ConfTree::new(key.as_str().unwrap(), value.clone()))
             },
             None => {
                 panic!("ProfinetClientConfig.from_yaml | Format error or empty conf: {:#?}", value)

@@ -67,7 +67,7 @@ impl TcpServerConnections {
     }
     ///
     /// Inserts a new connection, if connection_id olready exists, connection will be updated
-    pub fn insert(&mut self, connection_id: &String, handle: JoinHandle<()>, send: Sender<Action>) {
+    pub fn insert(&mut self, connection_id: &str, handle: JoinHandle<()>, send: Sender<Action>) {
         info!("{}.insert | connection: '{}'", self.id, connection_id);
         self.connections.insert(
             connection_id.to_string(),
@@ -79,7 +79,7 @@ impl TcpServerConnections {
     }
     ///
     /// Returns a TcpServerConnection if exists
-    pub fn repair(&self, connection_id: &String, stream: TcpStream) -> Result<(), String> {
+    pub fn repair(&self, connection_id: &str, stream: TcpStream) -> Result<(), String> {
         match self.connections.get(connection_id) {
             Some(conn) => {
                 if conn.is_active() {

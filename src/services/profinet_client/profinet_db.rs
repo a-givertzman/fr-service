@@ -41,10 +41,12 @@ pub struct ProfinetDb {
 impl ProfinetDb {
     ///
     /// Creates new instance of the [ProfinetDb]
-    pub fn new(parent: impl Into<String>, conf: &ProfinetDbConfig) -> Self {
+    /// - app - string represents application name, for point path
+    /// - parent - parent id, used for debugging
+    /// - conf - configuration of the [ProfinetDB]
+    pub fn new(app: impl Into<String>, parent: impl Into<String>, conf: &ProfinetDbConfig) -> Self {
         let self_id = format!("{}/ProfinetDb({})", parent.into(), conf.name);
         Self {
-            points: Self::configure_parse_points(&self_id, conf),
             id: self_id.clone(),
             name: conf.name.clone(),
             description: conf.description.clone(),
@@ -52,6 +54,7 @@ impl ProfinetDb {
             offset: conf.offset as u32,
             size: conf.size as u32,
             cycle: conf.cycle,
+            points: Self::configure_parse_points(&app.into(), &self_id, conf),
         }
     }
     ///
@@ -73,6 +76,7 @@ impl ProfinetDb {
                             let mut message = String::new();
                             for (_key, parse_point) in &mut self.points {
                                 if let Some(point) = parse_point.next(&bytes, timestamp) {
+                                    // debug!("{}.read | point: {:?}", self.id, point);
                                     match tx_send.send(point) {
                                         Ok(_) => {},
                                         Err(err) => {
@@ -149,10 +153,13 @@ impl ProfinetDb {
                         Err(message)
                     },
                     PointType::Int(point) => {
-                        client.write(self.number, address.offset.unwrap(), 2, &mut point.value.to_be_bytes())
+                        client.write(self.number, address.offset.unwrap(), 2, &mut (point.value as i16).to_be_bytes())
                     },
-                    PointType::Float(point) => {
-                        client.write(self.number, address.offset.unwrap(), 4, &mut point.value.to_be_bytes())
+                    PointType::Real(point) => {
+                        client.write(self.number, address.offset.unwrap(), 4, &mut (point.value as f32).to_be_bytes())
+                    },
+                    PointType::Double(point) => {
+                        client.write(self.number, address.offset.unwrap(), 4, &mut (point.value as f32).to_be_bytes())
                     },
                     PointType::String(point) => {
                         message = format!("{}.write | Write 'String' to the S7 Device - not implemented, point: {:?}", self.id, point.name);
@@ -167,27 +174,23 @@ impl ProfinetDb {
     }
     ///
     /// Configuring ParsePoint objects depending on point configurations coming from [conf]
-    fn configure_parse_points(self_id: &str, conf: &ProfinetDbConfig) -> IndexMap<String, Box<dyn ParsePoint>> {
+    fn configure_parse_points(app: &str, self_id: &str, conf: &ProfinetDbConfig) -> IndexMap<String, Box<dyn ParsePoint>> {
         conf.points.iter().map(|point_conf| {
-            // (pointConf.name.clone(), pointConf.clone())
             let path = String::new();
             match point_conf._type {
                 PointConfigType::Bool => {
-                    (point_conf.name.clone(), Self::box_bool(path, point_conf.name.clone(), point_conf))
+                    (point_conf.name.clone(), Self::box_bool(app.to_owned(), point_conf.name.clone(), point_conf))
                 },
                 PointConfigType::Int => {
-                    (point_conf.name.clone(), Self::box_int(path, point_conf.name.clone(), point_conf))
+                    (point_conf.name.clone(), Self::box_int(app.to_owned(), point_conf.name.clone(), point_conf))
                 },
-                PointConfigType::Float => {
-                    (point_conf.name.clone(), Self::box_float(path, point_conf.name.clone(), point_conf))
+                PointConfigType::Real => {
+                    (point_conf.name.clone(), Self::box_real(app.to_owned(), point_conf.name.clone(), point_conf))
+                },
+                PointConfigType::Double => {
+                    (point_conf.name.clone(), Self::box_real(app.to_owned(), point_conf.name.clone(), point_conf))
                 },
                 _ => panic!("{}.configureParsePoints | Unknown type '{:?}' for S7 Device", self_id, point_conf._type)
-                // PointConfigType::String => {
-                    
-                // },
-                // PointConfigType::Json => {
-                    
-                // },
             }
         }).collect()
     }
@@ -208,12 +211,12 @@ impl ProfinetDb {
     }
     ///
     /// 
-    fn box_float(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
+    fn box_real(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
         Box::new(S7ParseReal::new(
             path, 
             name, 
             config,
-            Self::float_filter(config.filters.clone()),
+            Self::real_filter(config.filters.clone()),
         ))
     }
     ///
@@ -230,14 +233,26 @@ impl ProfinetDb {
     }
     ///
     /// 
-    fn float_filter(conf: Option<PointConfigFilter>) -> Box<dyn Filter<Item = f64>> {
+    fn real_filter(conf: Option<PointConfigFilter>) -> Box<dyn Filter<Item = f32>> {
         match conf {
             Some(conf) => {
                 Box::new(
-                    FilterThreshold::new(0.0, conf.threshold, conf.factor.unwrap_or(0.0))
+                    FilterThreshold::new(0.0f32, conf.threshold, conf.factor.unwrap_or(0.0))
                 )
             },
-            None => Box::new(FilterEmpty::<f64>::new(0.0)),
+            None => Box::new(FilterEmpty::<f32>::new(0.0)),
         }
     }
+    // ///
+    // /// 
+    // fn double_filter(conf: Option<PointConfigFilter>) -> Box<dyn Filter<Item = f64>> {
+    //     match conf {
+    //         Some(conf) => {
+    //             Box::new(
+    //                 FilterThreshold::new(0.0f64, conf.threshold, conf.factor.unwrap_or(0.0))
+    //             )
+    //         },
+    //         None => Box::new(FilterEmpty::<f64>::new(0.0)),
+    //     }
+    // }
 }

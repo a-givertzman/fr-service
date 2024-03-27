@@ -1,13 +1,7 @@
-#![allow(non_snake_case)]
-
 use std::sync::atomic::{Ordering, AtomicUsize};
-
 use log::trace;
-
 use crate::core_::point::point_type::PointType;
-
 use super::{fn_::{FnIn, FnOut, FnInOut}, fn_kind::FnKind};
-
 ///
 /// Function | Constant value
 #[derive(Debug, Clone)]
@@ -62,5 +56,5 @@ impl FnOut for FnConst {
 /// 
 impl FnInOut for FnConst {}
 ///
-/// 
+/// Global static counter of FnOut instances
 static COUNT: AtomicUsize = AtomicUsize::new(0);

@@ -51,12 +51,18 @@ mod tcp_client {
                 Value::Int(-7),
                 Value::Int(0),
                 Value::Int(12),
-                Value::Float(f64::MAX),
-                Value::Float(f64::MIN),
-                Value::Float(f64::MIN_POSITIVE),
-                Value::Float(-f64::MIN_POSITIVE),
-                Value::Float(0.0),
-                Value::Float(1.33),
+                Value::Real(f32::MAX),
+                Value::Real(f32::MIN),
+                Value::Real(f32::MIN_POSITIVE),
+                Value::Real(-f32::MIN_POSITIVE),
+                Value::Real(0.0),
+                Value::Real(1.33),
+                Value::Double(f64::MAX),
+                Value::Double(f64::MIN),
+                Value::Double(f64::MIN_POSITIVE),
+                Value::Double(-f64::MIN_POSITIVE),
+                Value::Double(0.0),
+                Value::Double(1.33),
                 Value::Bool(true),
                 Value::Bool(false),
                 Value::Bool(false),
@@ -97,7 +103,7 @@ mod tcp_client {
         thread::sleep(Duration::from_micros(100));
         let timer = Instant::now();
         debug!("Test - setup - ok");
-        handle.wait();
+        handle.wait().unwrap();
         // let waitDuration = Duration::from_millis(100);
         // let mut waitAttempts = test_duration.as_micros() / waitDuration.as_micros();
         // while multiQueue.lock().unwrap().received().lock().unwrap().len() < totalCount {

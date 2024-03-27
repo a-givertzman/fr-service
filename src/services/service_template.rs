@@ -6,15 +6,16 @@
 //!     parameter: value    # meaning
 //!     parameter: value    # meaning
 //! ```
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread::{self, JoinHandle}};
+use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::Sender}, thread};
 use log::info;
 use crate::{
+    core_::{object::object::Object, point::point_type::PointType}, 
+    conf::tcp_server_config::ServiceNameConfig,
     services::{
         services::Services,
         service::service::Service,
         service::service_handles::ServiceHandles, 
     }, 
-    conf::tcp_server_config::ServiceNameConfig, core_::point::point_type::PointType,
 };
 
 ///
@@ -43,7 +44,7 @@ impl ServiceName {
 }
 ///
 /// 
-impl Object for TcpServer {
+impl Object for ServiceName {
     fn id(&self) -> &str {
         &self.id
     }
@@ -74,7 +75,6 @@ impl Service for ServiceName {
                 }
             }
         });
-        info!("{}.run | started", self.id);
         match handle {
             Ok(handle) => {
                 info!("{}.run | Starting - ok", self.id);

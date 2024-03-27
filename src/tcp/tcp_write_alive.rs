@@ -36,7 +36,7 @@ impl TcpWriteAlive {
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         let exit_pair = self.exit_pair.clone();
-        let mut cycle = ServiceCycle::new(self.cycle);
+        let mut cycle = ServiceCycle::new(&self_id, self.cycle);
         let stream_write = self.stream_write.clone();
         info!("{}.run | Preparing thread...", self.id);
         let handle = thread::Builder::new().name(format!("{} - Write", self_id.clone())).spawn(move || {

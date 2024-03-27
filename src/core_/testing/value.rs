@@ -8,7 +8,8 @@ impl ToPoint for Value {
         match self {
             Value::Bool(value) => value.to_point(txId, name),
             Value::Int(value) => value.to_point(txId, name),
-            Value::Float(value) => value.to_point(txId, name),
+            Value::Real(value) => value.to_point(txId, name),
+            Value::Double(value) => value.to_point(txId, name),
             Value::String(value) => value.to_point(txId, name),
         }
     }

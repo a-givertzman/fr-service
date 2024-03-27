@@ -50,7 +50,7 @@ impl TcpReadAlive {
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         let exit_pair = self.exit_pair.clone();
-        let mut cycle = ServiceCycle::new(self.cycle);
+        let mut cycle = ServiceCycle::new(&self_id, self.cycle);
         let send = self.send.clone();
         let jds_stream = self.stream_read.clone();
         info!("{}.run | Preparing thread...", self.id);

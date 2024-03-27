@@ -21,8 +21,8 @@ impl ConfTree {
     }
     ///
     /// creates ConfTree instance holding the key and serde_yaml::Value
-    pub fn new(key: String, conf: serde_yaml::Value) -> Self {
-        Self {key, conf}
+    pub fn new(key: &str, conf: serde_yaml::Value) -> Self {
+        Self {key: key.into(), conf}
     }
     ///
     /// returns true if holding mapping 
@@ -51,7 +51,7 @@ impl ConfTree {
         if self.conf.is_mapping() {
             let iter = self.conf.as_mapping().unwrap().into_iter().map( |(key, value)| {
                 ConfTree::new(
-                    key.as_str().unwrap().to_string(),
+                    key.as_str().unwrap(),
                     value.clone(),
                 )
             });
@@ -109,14 +109,31 @@ impl ConfTree {
         }
     }
     ///
-    /// returns tree node value as bool by it's key if exists
+    /// returns tree node value as f32 by it's key if exists
+    pub fn asF32(&self, key: &str) -> Result<f32, String> {
+        if self.conf.is_mapping() {
+            match self.conf.as_mapping().unwrap().get(key) {
+                Some(value) => {
+                    match value.as_f64() {
+                        Some(value) => {Ok(value as f32)},
+                        None => Err(format!("error getting REAL by key '{:?}' from node '{:?}'", &key, value)),
+                    }
+                },
+                None => Err(format!("Key '{:?}' not found in the node '{:?}'", &key, &self.conf)),
+            }
+        } else {
+            Err(format!("Key '{:?}' not found in the node '{:?}'", &key, &self.conf))
+        }
+    }
+    ///
+    /// returns tree node value as f64 by it's key if exists
     pub fn asF64(&self, key: &str) -> Result<f64, String> {
         if self.conf.is_mapping() {
             match self.conf.as_mapping().unwrap().get(key) {
                 Some(value) => {
                     match value.as_f64() {
                         Some(value) => {Ok(value)},
-                        None => Err(format!("error getting FLOAT by key '{:?}' from node '{:?}'", &key, value)),
+                        None => Err(format!("error getting DOUBLE by key '{:?}' from node '{:?}'", &key, value)),
                     }
                 },
                 None => Err(format!("Key '{:?}' not found in the node '{:?}'", &key, &self.conf)),

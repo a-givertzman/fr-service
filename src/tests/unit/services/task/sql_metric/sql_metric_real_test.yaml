@@ -13,7 +13,7 @@ service Task task1:
         input1 let VarName2:
             input fn add:
                 input1 fn add:
-                    input1: const float 1.1
-                    input2: point float '/path/Point.Name'
-                input2: const float 1.1
-        input2: const float 3.33
+                    input1: const real 1.1
+                    input2: point real '/path/Point.Name'
+                input2: const real 1.1
+        input2: const real 3.33

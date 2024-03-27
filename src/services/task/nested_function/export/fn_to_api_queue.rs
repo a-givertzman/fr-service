@@ -1,11 +1,6 @@
-#![allow(non_snake_case)]
-
 use std::sync::{mpsc::Sender, atomic::{AtomicUsize, Ordering}};
-
-use log::{error, trace};
-
+use log::{debug, error, trace};
 use crate::{services::task::nested_function::{fn_::{FnInOut, FnIn, FnOut}, fn_kind::FnKind}, core_::{point::point_type::PointType, types::fn_in_out_ref::FnInOutRef}};
-
 ///
 /// Exports data from the input into the associated queue
 #[derive(Debug)]
@@ -66,7 +61,7 @@ impl FnOut for FnToApiQueue {
             self.state = sql.clone();
             match self.txSend.send(point.clone()) {
                 Ok(_) => {
-                    trace!("{}.out | Sent sql: {}", self.id, sql);
+                    debug!("{}.out | Sent sql: {}", self.id, sql);
                 },
                 Err(err) => {
                     error!("{}.out | Send error: {:?}\n\tsql: {:?}", self.id, err, sql);

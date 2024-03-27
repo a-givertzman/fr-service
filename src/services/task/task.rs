@@ -19,7 +19,7 @@ use crate::{
 pub struct Task {
     id: String,
     in_send: HashMap<String, Sender<PointType>>,
-    in_recv: Vec<Receiver<PointType>>,
+    rx_recv: Vec<Receiver<PointType>>,
     services: Arc<Mutex<Services>>,
     conf: TaskConfig,
     exit: Arc<AtomicBool>,
@@ -35,10 +35,37 @@ impl Task {
         Task {
             id: format!("{}/Task({})", parent.into(), conf.name),
             in_send: HashMap::from([(conf.rx.clone(), send)]),
-            in_recv: vec![recv],
+            rx_recv: vec![recv],
             services,
             conf,
             exit: Arc::new(AtomicBool::new(false)),
+        }
+    }
+    ///
+    /// 
+    fn subscribe(&mut self, conf: &TaskConfig, services: &Arc<Mutex<Services>>) -> Receiver<PointType> {
+        if conf.subscribe.is_empty() {
+            self.rx_recv.pop().unwrap()
+        } else {
+            let points = services.lock().unwrap().points();
+            let subscriptions = conf.subscribe.with(&points);
+            if subscriptions.len() > 1 {
+                panic!("{}.run | Error. Task does not supports multiple subscriptions for now: {:#?}.\n\tTry to use single subscription.", self.id, subscriptions);
+            } else {
+                let subscriptions_first = subscriptions.clone().into_iter().next();
+                match subscriptions_first {
+                    Some((service_id, points)) => {
+                        match points {
+                            Some(points) => {
+                                let (_, rx_recv) = services.lock().unwrap().subscribe(&service_id, &self.id, &points);
+                                rx_recv
+                            },
+                            None => panic!("{}.run | Error. Task subscription configuration error in:: {:#?}", self.id, subscriptions),
+                        }
+                    },
+                    None => panic!("{}.run | Error. Task subscription configuration error in:: {:#?}", self.id, subscriptions),
+                }
+            }
         }
     }
 }
@@ -72,16 +99,16 @@ impl Service for Task {
             Some(interval) => (interval > Duration::ZERO, interval),
             None => (false, Duration::ZERO),
         };
-        let in_recv = self.in_recv.pop().unwrap();
+        let rx_recv = self.subscribe(&conf, &services);
         let handle = thread::Builder::new().name(format!("{} - main", self_id)).spawn(move || {
-            let mut cycle = ServiceCycle::new(cycle_interval);
+            let mut cycle = ServiceCycle::new(&self_id, cycle_interval);
             let mut task_nodes = TaskNodes::new(&self_id);
             task_nodes.buildNodes(&self_id, conf, services);
-            debug!("{}.run | taskNodes: {:?}", self_id, task_nodes);
+            debug!("{}.run | taskNodes: {:#?}", self_id, task_nodes);
             'main: loop {
                 cycle.start();
                 trace!("{}.run | calculation step...", self_id);
-                match in_recv.recv_timeout(RECV_TIMEOUT) {
+                match rx_recv.recv_timeout(RECV_TIMEOUT) {
                     Ok(point) => {
                         debug!("{}.run | point: {:?}", self_id, &point);
                         task_nodes.eval(point);

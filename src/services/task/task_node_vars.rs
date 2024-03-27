@@ -1,12 +1,7 @@
 #![allow(non_snake_case)]
-
-use std::collections::HashMap;
-
 use log::trace;
-
-use crate::core_::types::fn_in_out_ref::FnInOutRef;
-
-
+// use std::collections::HashMap;
+// use crate::core_::types::fn_in_out_ref::FnInOutRef;
 ///
 /// A container for storing variable names 
 /// during configuring single TaskEvalNode only
@@ -31,11 +26,11 @@ impl TaskNodeVars {
         trace!("TaskNodeStuff.addVar | adding variable {:?}", name.clone().into());
         self.vars.push(name.into());
     }
-    ///
-    /// 
-    fn names(collection: &HashMap<String, FnInOutRef>) -> Vec<String> {
-        collection.keys().cloned().collect()
-    }
+    // ///
+    // /// 
+    // fn names(collection: &HashMap<String, FnInOutRef>) -> Vec<String> {
+    //     collection.keys().cloned().collect()
+    // }
     ///
     /// Returns all collected var names
     pub fn getVars(&self) -> Vec<String> {
