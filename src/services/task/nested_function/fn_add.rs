@@ -20,7 +20,7 @@ pub struct FnAdd {
 /// 
 impl FnAdd {
     ///
-    /// Creates new instance of the FnCount
+    /// Creates new instance of the FnAdd
     #[allow(dead_code)]
     pub fn new(parent: impl Into<String>, input1: FnInOutRef, input2: FnInOutRef) -> Self {
         COUNT.fetch_add(1, Ordering::SeqCst);

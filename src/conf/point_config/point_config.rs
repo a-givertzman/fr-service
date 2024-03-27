@@ -109,16 +109,6 @@ impl PointConfig {
                 let  mut map: Self = map;
                 map.name = name.to_owned();
                 Ok(map)
-                // println!("PointConfig.from_json | map {:#?}", map);
-                // match map.into_iter().next() {
-                //     Some((name, mut conf)) => {
-                //         conf.name = name;
-                //         Ok(conf)
-                //     },
-                //     None => {
-                //         Err(format!("PointConfig.from_json | Error parsing: {:?} - doesn't contains proper PointConfig", value))
-                //     },
-                // }
             },
             Err(err) => Err(format!("PointConfig.from_json | Error: {:?}", err)),
         }
