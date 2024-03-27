@@ -181,11 +181,11 @@ impl RetainPointId {
     /// }
     /// ```
     fn read<P: AsRef<Path> + std::fmt::Display>(&self, path: P) -> Result<HashMap<String, usize, BuildHasherDefault<FxHasher>>, String> {
-        match fs::read_to_string(path) {
+        match fs::read_to_string(&path) {
             Ok(json_string) => {
                 match serde_json::from_str(&json_string) {
                     Ok(config) => {
-                        let cinfig: serde_json::Map<String, serde_json::Value> = config;
+                        let config: serde_json::Map<String, serde_json::Value> = config;
                         let result = config.into_iter().filter_map(|(key, value)| {
                             match value.as_u64() {
                                 Some(value) => {
