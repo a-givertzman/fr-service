@@ -35,6 +35,7 @@ mod tests {
         let self_id = "test FnConfig | point";
         println!("\n{}", self_id);
         let test_point1 = PointConfig {
+            id: 0,
             name: format!("/{}/CraneMovement.BoomUp", self_id),
             _type: PointConfigType::Int,
             history: PointConfigHistory::None,
@@ -44,6 +45,7 @@ mod tests {
             comment: Some("Some indication".to_string()),
         };
         let test_point2 = PointConfig {
+            id: 0,
             name: format!("/{}/CraneMovement.BoomDown", self_id),
             _type: PointConfigType::Real,
             history: PointConfigHistory::Read,

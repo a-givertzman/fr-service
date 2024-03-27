@@ -51,7 +51,8 @@ mod point_config {
                         filters:
                             threshold: 5.0    # 5 threshold
                         comment: Test Point Bool"#, 
-                PointConfig { 
+                PointConfig {
+                    id: 0,
                     name: format!("Point.Name.0"),
                     _type: PointConfigType::Bool, 
                     history: PointConfigHistory::None, alarm: Some(0), 
@@ -72,6 +73,7 @@ mod point_config {
                             factor: 0.1
                         comment: Test Point Bool"#, 
                 PointConfig { 
+                    id: 0,
                     name: format!("Point.Name.0"),
                     _type: PointConfigType::Bool, 
                     history: PointConfigHistory::None, alarm: Some(0), 
@@ -88,6 +90,7 @@ mod point_config {
                             offset: 0   # 0..65535
                         comment: Test Point"#, 
                 PointConfig { 
+                    id: 0,
                     name: format!("PointName1"),
                     _type: PointConfigType::Int, 
                     history: PointConfigHistory::Read, alarm: None, 
@@ -104,6 +107,7 @@ mod point_config {
                             offset: 0   # 0..65535
                         comment: Test Point"#, 
                 PointConfig { 
+                    id: 0,
                     name: format!("PointName2"),
                     _type: PointConfigType::Int, 
                     history: PointConfigHistory::None, alarm: Some(4), 
@@ -120,6 +124,7 @@ mod point_config {
                             offset: 12   # 0..65535
                         comment: Test Point"#, 
                 PointConfig { 
+                    id: 0,
                     name: format!("PointName3"),
                     _type: PointConfigType::Int, 
                     history: PointConfigHistory::Write, alarm: None, 
@@ -136,6 +141,7 @@ mod point_config {
                             offset: 12   # 0..65535
                         comment: Test Point"#, 
                 PointConfig { 
+                    id: 0,
                     name: format!("PointName4"),
                     _type: PointConfigType::Int, 
                     history: PointConfigHistory::ReadWrite, alarm: None, 
@@ -179,6 +185,7 @@ mod point_config {
                             threshold: 5    # 5% threshold
                         comment: Test Point Bool"#, 
                 PointConfig { 
+                    id: 0,
                     name: format!("/{}/PointName0", self_id),
                     _type: PointConfigType::Bool, 
                     history: PointConfigHistory::ReadWrite, alarm: Some(0), 
@@ -195,6 +202,7 @@ mod point_config {
                             offset: 0   # 0..65535
                         comment: Test Point"#, 
                 PointConfig { 
+                    id: 0,
                     name: format!("/{}/PointName1", self_id),
                     _type: PointConfigType::Int, 
                     history: PointConfigHistory::Write, alarm: None, 
@@ -211,6 +219,7 @@ mod point_config {
                             offset: 0   # 0..65535
                         comment: Test Point"#, 
                 PointConfig { 
+                    id: 0,
                     name: format!("/{}/PointName2", self_id),
                     _type: PointConfigType::Int, 
                     history: PointConfigHistory::None, alarm: Some(4), 
@@ -226,6 +235,7 @@ mod point_config {
                             offset: 12   # 0..65535
                         comment: Test Point"#, 
                 PointConfig { 
+                    id: 0,
                     name: format!("/{}/PointName3", self_id),
                     _type: PointConfigType::Int, 
                     history: PointConfigHistory::None, alarm: None, 
@@ -269,6 +279,7 @@ mod point_config {
                 }},
                 "comment": "Test Point Bool"}}"#, self_id),
                 PointConfig { 
+                    id: 0,
                     name: format!("/{}/PointName0", self_id),
                     _type: PointConfigType::Bool, 
                     history: PointConfigHistory::ReadWrite, alarm: Some(0), 

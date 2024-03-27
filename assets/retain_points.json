@@ -1,0 +1,9 @@
+{
+  "/task1/CraneMovement.BoomDown": 3,
+  "/task1/CraneMovement.BoomUp": 0,
+  "/task1/CraneMovement.WinchUp": 2,
+  "/jds_connection_test/Jds/Auth.Secret": 4,
+  "/jds_connection_test/Jds/Auth.Ssh": 5,
+  "/jds_connection_test/Jds/Points": 6,
+  "/jds_connection_test/Jds/Subscribe": 7
+}

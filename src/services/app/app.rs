@@ -18,14 +18,7 @@ use crate::{
         tcp_server_config::TcpServerConfig,
     }, 
     services::{
-        service::{service::Service, service_handles::ServiceHandles}, 
-        services::Services, 
-        api_cient::api_client::ApiClient, 
-        multi_queue::multi_queue::MultiQueue, 
-        profinet_client::profinet_client::ProfinetClient, 
-        server::tcp_server::TcpServer, 
-        task::task::Task, 
-        tcp_client::tcp_client::TcpClient,
+        api_cient::api_client::ApiClient, multi_queue::multi_queue::MultiQueue, profinet_client::profinet_client::ProfinetClient, server::tcp_server::TcpServer, service::{service::Service, service_handles::ServiceHandles}, services::{Services, ServicesBasic}, task::task::Task, tcp_client::tcp_client::TcpClient
     },
 };
 
@@ -168,22 +161,22 @@ impl App {
     /// 
     fn match_service(self_id: &str, path: &str, node_name: &str, node_sufix: &str, node_conf: &mut ConfTree, services: Arc<Mutex<Services>>) -> Arc<Mutex<dyn Service + Send>> {
         match node_name {
-            Services::API_CLIENT => {
+            ServicesBasic::API_CLIENT => {
                 Arc::new(Mutex::new(ApiClient::new(path, ApiClientConfig::new(node_conf))))
             },
-            Services::MULTI_QUEUE => {
+            ServicesBasic::MULTI_QUEUE => {
                 Arc::new(Mutex::new(MultiQueue::new(path, MultiQueueConfig::new(node_conf), services)))
             },
-            Services::PROFINET_CLIENT => {
+            ServicesBasic::PROFINET_CLIENT => {
                 Arc::new(Mutex::new(ProfinetClient::new(path, path, ProfinetClientConfig::new(node_conf), services)))
             },
-            Services::TASK => {
+            ServicesBasic::TASK => {
                 Arc::new(Mutex::new(Task::new(path, TaskConfig::new(node_conf), services.clone())))
             },
-            Services::TCP_CLIENT => {
+            ServicesBasic::TCP_CLIENT => {
                 Arc::new(Mutex::new(TcpClient::new(path, TcpClientConfig::new(node_conf), services.clone())))
             },
-            Services::TCP_SERVER => {
+            ServicesBasic::TCP_SERVER => {
                 Arc::new(Mutex::new(TcpServer::new(path, path, TcpServerConfig::new(node_conf), services.clone())))
             },
             _ => {

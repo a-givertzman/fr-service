@@ -38,17 +38,17 @@ mod tests {
         let config = ProfinetClientConfig::read(path);
         let target_points = [
             // 222
-            PointConfig { name: format!("/{}/db222/Drive.Speed", self_name), _type: PointConfigType::Real, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: format!("/{}/db222/Drive.OutputVoltage", self_name), _type: PointConfigType::Real, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: format!("/{}/db222/Drive.DCVoltage", self_name), _type: PointConfigType::Real, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: format!("/{}/db222/Drive.Current", self_name), _type: PointConfigType::Real, history: PointConfigHistory::Read, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: format!("/{}/db222/Drive.Torque", self_name), _type: PointConfigType::Real, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { id: 0, name: format!("/{}/db222/Drive.Speed", self_name), _type: PointConfigType::Real, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { id: 0, name: format!("/{}/db222/Drive.OutputVoltage", self_name), _type: PointConfigType::Real, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { id: 0, name: format!("/{}/db222/Drive.DCVoltage", self_name), _type: PointConfigType::Real, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { id: 0, name: format!("/{}/db222/Drive.Current", self_name), _type: PointConfigType::Real, history: PointConfigHistory::Read, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { id: 0, name: format!("/{}/db222/Drive.Torque", self_name), _type: PointConfigType::Real, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
             // 999
-            PointConfig { name: format!("/{}/db999/Drive.positionFromMru", self_name), _type: PointConfigType::Real, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: format!("/{}/db999/Drive.positionFromHoist", self_name), _type: PointConfigType::Real, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: format!("/{}/db999/Capacitor.Capacity", self_name), _type: PointConfigType::Int, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: format!("/{}/db999/ChargeIn.On", self_name), _type: PointConfigType::Bool, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
-            PointConfig { name: format!("/{}/db999/ChargeOut.On", self_name), _type: PointConfigType::Bool, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { id: 0, name: format!("/{}/db999/Drive.positionFromMru", self_name), _type: PointConfigType::Real, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { id: 0, name: format!("/{}/db999/Drive.positionFromHoist", self_name), _type: PointConfigType::Real, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { id: 0, name: format!("/{}/db999/Capacitor.Capacity", self_name), _type: PointConfigType::Int, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { id: 0, name: format!("/{}/db999/ChargeIn.On", self_name), _type: PointConfigType::Bool, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
+            PointConfig { id: 0, name: format!("/{}/db999/ChargeOut.On", self_name), _type: PointConfigType::Bool, history: PointConfigHistory::None, alarm: None, address: None, filters: None, comment: None },
         ];
         debug!("result config: {:?}", &config);
         debug!("result points:");
