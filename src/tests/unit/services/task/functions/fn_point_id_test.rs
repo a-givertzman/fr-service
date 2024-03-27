@@ -2,10 +2,11 @@
 
 mod fn_point_id {
     use log::{debug, info};
+    use testing::entities::test_value::Value;
     use std::{sync::Once, rc::Rc, cell::RefCell};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::{fn_::fn_conf_keywd::FnConfPointType, point_config::point_config::PointConfig}, core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, services::task::nested_function::{fn_input::FnInput, fn_point_id::FnPointId}
+        conf::{fn_::fn_conf_keywd::FnConfPointType, point_config::{point_config::PointConfig, point_name::PointName}}, core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, services::task::nested_function::{fn_::{FnIn, FnOut}, fn_input::FnInput, fn_point_id::FnPointId}
     };
     ///
     /// 
@@ -28,185 +29,75 @@ mod fn_point_id {
             )
         ))
     }
+    const POINTS: &[(usize, &str)] = &[
+                    (0, r#"PointName0:
+                        type: bool      # Bool / Int / Real / String / Json
+                        comment: Test Point Bool"#), 
+                    (1, r#"PointName1:
+                        type: bool      # Bool / Int / Real / String / Json
+                        comment: Test Point Bool"#), 
+                    (2, r#"PointName2:
+                        type: bool      # Bool / Int / Real / String / Json
+                        comment: Test Point Bool"#), 
+                    (3, r#"PointName3:
+                        type: bool      # Bool / Int / Real / String / Json
+                        comment: Test Point Bool"#), 
+                    (4, r#"PointName4:
+                        type: bool      # Bool / Int / Real / String / Json
+                        comment: Test Point Bool"#), 
+    ];
     ///
     ///
     #[test]
-    fn int() {
+    fn basic() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         let self_id = "fn_point_id_test";
         println!("{}", self_id);
-        let input = init_each(0.to_point(0, "int"), FnConfPointType::Int);
-        let points = vec![
-            PointConfig::new(self_id, conf_tree),
-        ]
-        let fn_point_id = FnPointId::new(self_id, input, points)
+        let input = init_each(0.to_point(0, "any type"), FnConfPointType::Any);
+        let points = POINTS.into_iter().map(|(id, conf)| {
+            let mut point = PointConfig::from_yaml(self_id, &serde_yaml::from_str(conf).unwrap());
+            point.id = *id;
+            point
+        }).collect();
+        println!("{} | Configured points: {:#?}", self_id, points);
+        let mut fn_point_id = FnPointId::new(self_id, input.clone(), points);
         let test_data = vec![
-            0,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            5,
-            4,
-            3,
-            2,
-            1,
-            0,
-            0,
+            (Value::Bool(false),    PointName::new(self_id, "PointName0").full(), 0),
+            (Value::Bool(true),     PointName::new(self_id, "PointName0").full(), 0),
+            (Value::Int(0),         PointName::new(self_id, "PointName1").full(), 1),
+            (Value::Int(1),         PointName::new(self_id, "PointName2").full(), 2),
+            (Value::Int(2),         PointName::new(self_id, "PointName2").full(), 2),
+            (Value::Int(3),         PointName::new(self_id, "PointName3").full(), 3),
+            (Value::Int(3),         PointName::new(self_id, "PointName3").full(), 3),
+            (Value::Int(-1),        PointName::new(self_id, "PointName2").full(), 2),
+            (Value::Int(-2),        PointName::new(self_id, "PointName2").full(), 2),
+            (Value::Int(-3),        PointName::new(self_id, "PointName3").full(), 3),
+            (Value::Int(-4),        PointName::new(self_id, "PointName4").full(), 4),
+            (Value::Real(5.0),      PointName::new(self_id, "PointName0").full(), 0),
+            (Value::Real(6.0),      PointName::new(self_id, "PointName1").full(), 1),
+            (Value::Real(5.0),      PointName::new(self_id, "PointName2").full(), 2),
+            (Value::Real(4.0),      PointName::new(self_id, "PointName3").full(), 3),
+            (Value::Real(-3.0),     PointName::new(self_id, "PointName4").full(), 4),
+            (Value::Double(2.1),    PointName::new(self_id, "PointName0").full(), 0),
+            (Value::Double(1.1),    PointName::new(self_id, "PointName1").full(), 1),
+            (Value::Double(0.1),    PointName::new(self_id, "PointName2").full(), 2),
+            (Value::Double(-0.1),   PointName::new(self_id, "PointName3").full(), 3),
+            (Value::Double(-0.1),   PointName::new(self_id, "PointName4").full(), 4),
+            (Value::String("2.1".to_owned()),    PointName::new(self_id, "PointName0").full(), 0),
+            (Value::String("1.1".to_owned()),    PointName::new(self_id, "PointName1").full(), 1),
+            (Value::String("0.1".to_owned()),    PointName::new(self_id, "PointName2").full(), 2),
+            (Value::String("-0.1".to_owned()),   PointName::new(self_id, "PointName3").full(), 3),
+            (Value::String("-0.1".to_owned()),   PointName::new(self_id, "PointName4").full(), 4),
         ];
-        for value in test_data {
-            let point = value.to_point(0, "test");
+        for (value, name, target_id) in test_data {
+            let point = value.to_point(0, &name);
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let state = input.borrow_mut().out();
+            let state = fn_point_id.out();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
-            assert_eq!(state.as_int().value, value);
-        }        
-    }
-    ///
-    /// 
-    #[test]
-    fn bool() {
-        DebugSession::init(LogLevel::Info, Backtrace::Short);
-        init_once();
-        info!("test_bool");
-        let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
-        let test_data = vec![
-            false,
-            false,
-            false,
-            true,
-            false,
-            true,
-            true,
-            false,
-            false,
-            false,
-            true,
-            true,
-            false,
-            false,
-            false,
-            false,
-        ];
-        for value in test_data {
-            let point = value.to_point(0, "test");
-            input.borrow_mut().add(point);
-            // debug!("input: {:?}", &input);
-            let state = input.borrow_mut().out();
-            // debug!("input: {:?}", &mut input);
-            debug!("value: {:?}   |   state: {:?}", value, state);
-            assert_eq!(state.as_bool().value.0, value);
-        }        
-    }
-    ///
-    /// 
-    #[test]
-    fn real() {
-        DebugSession::init(LogLevel::Info, Backtrace::Short);
-        init_once();
-        info!("test_real");
-        let input = init_each(0.0f32.to_point(0, "real"), FnConfPointType::Real);
-        let test_data = vec![
-            0.0f32,
-            1.0f32,
-            2.0f32,
-            4.0f32,
-            3.0f32,
-            5.0f32,
-            6.0f32,
-            3.0f32,
-            2.0f32,
-            3.0f32,
-            4.0f32,
-            4.0f32,
-            3.0f32,
-            2.0f32,
-            1.0f32,
-            0.0f32,
-        ];
-        for value in test_data {
-            let point = value.to_point(0, "test");
-            input.borrow_mut().add(point);
-            // debug!("input: {:?}", &input);
-            let state = input.borrow_mut().out();
-            // debug!("input: {:?}", &mut input);
-            debug!("value: {:?}   |   state: {:?}", value, state);
-            assert_eq!(state.as_real().value, value);
-        }        
-    }
-    ///
-    /// 
-    #[test]
-    fn double() {
-        DebugSession::init(LogLevel::Info, Backtrace::Short);
-        init_once();
-        info!("test_real");
-        let input = init_each(0.0f64.to_point(0, "real"), FnConfPointType::Double);
-        let test_data = vec![
-            0.0f64,
-            1.0f64,
-            2.0f64,
-            4.0f64,
-            3.0f64,
-            5.0f64,
-            6.0f64,
-            3.0f64,
-            2.0f64,
-            3.0f64,
-            4.0f64,
-            4.0f64,
-            3.0f64,
-            2.0f64,
-            1.0f64,
-            0.0f64,
-        ];
-        for value in test_data {
-            let point = value.to_point(0, "test");
-            input.borrow_mut().add(point);
-            // debug!("input: {:?}", &input);
-            let state = input.borrow_mut().out();
-            // debug!("input: {:?}", &mut input);
-            debug!("value: {:?}   |   state: {:?}", value, state);
-            assert_eq!(state.as_double().value, value);
-        }        
-    }
-    ///
-    ///
-    #[test]
-    fn test_string() {
-        DebugSession::init(LogLevel::Info, Backtrace::Short);
-        init_once();
-        info!("test_string");
-        let input = init_each("0".to_point(0, "string"), FnConfPointType::String);
-        let test_data = vec![
-            "0",
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "5",
-            "4",
-            "3",
-            "2",
-            "1",
-            "0",
-            "0",
-        ];
-        for value in test_data {
-            let point = value.to_point(0, "test");
-            input.borrow_mut().add(point);
-            // debug!("input: {:?}", &input);
-            let state = input.borrow_mut().out();
-            // debug!("input: {:?}", &mut input);
-            debug!("value: {:?}   |   state: {:?}", value, state);
-            assert_eq!(state.as_string().value, value);
+            assert_eq!(state.as_int().value, target_id);
         }        
     }
 }
