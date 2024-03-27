@@ -1,5 +1,6 @@
-use std::{collections::HashMap, sync::{mpsc::{Receiver, Sender}, Arc, Mutex}};
-use log::{debug, trace};
+use std::{collections::HashMap, fs, hash::BuildHasherDefault, path::Path, sync::{mpsc::{Receiver, Sender}, Arc, Mutex}};
+use hashers::fx_hash::FxHasher;
+use log::{debug, error, trace};
 use crate::{
     core_::point::point_type::PointType, 
     conf::point_config::point_config::PointConfig, 
@@ -115,5 +116,97 @@ impl Services {
         };
         trace!("{}.points | points: '{:#?}'", self.id, points);
         points
+    }
+}
+
+///
+/// Stores unique Point ID in the json file
+struct RetainPointId {
+    id: String,
+    services: Arc<Mutex<Services>>,
+    path: String,
+    cache: HashMap<usize, PointConfig, BuildHasherDefault<FxHasher>>,
+}
+///
+/// 
+impl RetainPointId {
+    ///
+    /// Creates new instance of the RetainPointId
+    ///  - parent - the name of the parent object
+    ///  - services - Services thread safe mutable reference
+    ///  - path - path to the file, where point id's will be stored
+    pub fn new(parent: &str, services: Arc<Mutex<Services>>, path: &str) -> Self {
+        Self {
+            id: format!("{}/RetainPointId", parent),
+            services,
+            path: path.to_owned(),
+            cache: HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default()),
+        }
+    }
+    ///
+    /// 
+    pub fn points(&self) -> Vec<PointConfig> {
+        let json_value = self.read(self.path.clone());
+        match json_value {
+            Ok(retained) => {
+                self.points().into_iter().map(|point| {
+                    let id = match retained.get(&point.name) {
+                        Some(id) => *id,
+                        None => {
+                            retained.values().max().unwrap_or(&0).to_owned()
+                        },
+                    };
+                    PointConfig {
+                        id,
+                        name: point.name,
+                        _type: point._type,
+                        history: point.history,
+                        alarm: point.alarm,
+                        address: point.address,
+                        filters: point.filters,
+                        comment: point.comment,
+                    }
+                }).collect()
+            },
+            Err(err) => panic!("{}.points | Error reading retain file {}: \n\t{:#?}", self.id, self.path, err),
+        }
+    }
+    ///
+    /// Reads file contains json map:
+    /// ```json
+    /// {
+    ///     "/path/Point.name1": 0,
+    ///     "/path/Point.name2": 1,
+    ///     ...
+    /// }
+    /// ```
+    fn read<P: AsRef<Path> + std::fmt::Display>(&self, path: P) -> Result<HashMap<String, usize, BuildHasherDefault<FxHasher>>, String> {
+        match fs::read_to_string(path) {
+            Ok(json_string) => {
+                match serde_json::from_str(&json_string) {
+                    Ok(config) => {
+                        let cinfig: serde_json::Map<String, serde_json::Value> = config;
+                        let result = config.into_iter().filter_map(|(key, value)| {
+                            match value.as_u64() {
+                                Some(value) => {
+                                    Some((key, value as usize))
+                                },
+                                None => {
+                                    error!("{}.read | Error parsing usize value in pair: {}: {:?}", self.id, key, value);
+                                    None
+                                },
+                            }
+                        }).collect();
+                        Ok(result)
+                    },
+                    Err(err) => {
+                        Err(format!("{}.read | Error in config: {:?}\n\terror: {:?}", self.id, json_string, err))
+                    },
+                }
+            },
+            Err(err) => {
+                Err(format!("{}.read | File {} reading error: {:?}", self.id, path, err))
+            },
+        }
     }
 }
