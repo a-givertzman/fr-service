@@ -158,10 +158,10 @@ impl ProfinetClient {
                 info!("{}.write | configuring DB: {:?} - ok", self_id, db_name);
                 points.extend(db_conf.points());
             }
-            debug!("{}.write | Point configs ({}) :", self_id, points.len());
-            for cfg in &points {
-                println!("\t{:?}", cfg);
-            }
+            // debug!("{}.write | Point configs ({}) :", self_id, points.len());
+            // for cfg in &points {
+            //     println!("\t{:?}", cfg);
+            // }
             let points = points.iter().map(|point_conf| {
                 SubscriptionCriteria::new(&point_conf.name, Cot::Act)
             }).collect::<Vec<SubscriptionCriteria>>();
