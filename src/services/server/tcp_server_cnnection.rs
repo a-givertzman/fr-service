@@ -130,9 +130,9 @@ impl TcpServerConnection {
                     &self_path,
                     services.clone(),
                     JdsDeserialize::new(
-                        self_id.clone(),
+                        format!("{}/TcpReadAlive/JdsRoutes", self_id),
                         JdsDecodeMessage::new(
-                            &self_id,
+                            format!("{}/TcpReadAlive/JdsRoutes/JdsDeserialize", self_id),
                         ),
                     ),
                     req_reply_send,
@@ -169,13 +169,13 @@ impl TcpServerConnection {
                 &self_id,
                 Duration::from_millis(10),
                 Arc::new(Mutex::new(TcpStreamWrite::new(
-                    &self_id,
+                    format!("{}/TcpWriteAlive", self_id),
                     buffered,
                     Some(rx_max_length as usize),
                     Box::new(JdsEncodeMessage::new(
-                        &self_id,
+                        format!("{}/TcpWriteAlive/TcpStreamWrite", self_id),
                         JdsSerialize::new(
-                            &self_id,
+                            format!("{}/TcpWriteAlive/TcpStreamWrite/JdsEncodeMessage", self_id),
                             recv,
                         ),
                     )),

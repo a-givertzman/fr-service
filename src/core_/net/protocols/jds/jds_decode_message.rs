@@ -72,8 +72,8 @@ impl JdsDecodeMessage {
                     };
                 },
                 Err(err) => {
-                    warn!("{}.read_all | error reading from socket: {:?}", self_id, err);
-                    warn!("{}.read_all | error kind: {:?}", self_id, err.kind());
+                    // warn!("{}.read_all | error reading from socket: {:?}", self_id, err);
+                    // warn!("{}.read_all | error kind: {:?}", self_id, err.kind());
                     match Self::match_error_kind(err.kind()) {
                         Status::Active => {
                             return ConnectionStatus::Active(Err(format!("{}.read_all | tcp stream is empty", self_id)));
