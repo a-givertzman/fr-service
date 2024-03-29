@@ -176,7 +176,6 @@ impl ProfinetDb {
     /// Configuring ParsePoint objects depending on point configurations coming from [conf]
     fn configure_parse_points(app: &str, self_id: &str, conf: &ProfinetDbConfig) -> IndexMap<String, Box<dyn ParsePoint>> {
         conf.points.iter().map(|point_conf| {
-            let path = String::new();
             match point_conf._type {
                 PointConfigType::Bool => {
                     (point_conf.name.clone(), Self::box_bool(app.to_owned(), point_conf.name.clone(), point_conf))

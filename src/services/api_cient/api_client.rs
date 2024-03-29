@@ -1,6 +1,6 @@
 use concat_string::concat_string;
 use log::{info, debug, trace, warn};
-use std::{collections::HashMap, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc}, thread, time::Duration};
+use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc}, thread, time::Duration};
 use api_tools::{api::reply::api_reply::ApiReply, client::{api_query::{ApiQuery, ApiQueryKind, ApiQuerySql}, api_request::ApiRequest}};
 use crate::{
     conf::api_client_config::ApiClientConfig, 
@@ -28,7 +28,7 @@ impl ApiClient {
     /// - [parent] - the ID if the parent entity
     pub fn new(parent: impl Into<String>, conf: ApiClientConfig) -> Self {
         let (send, recv) = mpsc::channel();
-        let self_id = format!("{}/ApiClient({})", parent.into(), conf.name);
+        let self_id = format!("{}/{}", parent.into(), conf.name);
         Self {
             id: self_id,
             recv: vec![recv],
@@ -88,6 +88,16 @@ impl ApiClient {
 impl Object for ApiClient {
     fn id(&self) -> &str {
         &self.id
+    }
+}
+///
+/// 
+impl Debug for ApiClient {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("ApiClient")
+            .field("id", &self.id)
+            .finish()
     }
 }
 ///

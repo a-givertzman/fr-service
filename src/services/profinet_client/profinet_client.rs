@@ -1,23 +1,19 @@
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}}, thread::{self, JoinHandle}, time::Duration};
+use std::{fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Sender}, Arc, Mutex}, thread::{self, JoinHandle}, time::Duration};
 use indexmap::IndexMap;
-use log::{debug, error, info, trace};
+use log::{debug, error, info, trace, warn};
 use crate::{
     conf::{point_config::point_config::PointConfig, profinet_client_config::profinet_client_config::ProfinetClientConfig}, 
     core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, failure::errors_limit::ErrorsLimit, object::object::Object, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, 
     services::{
-        multi_queue::subscription_criteria::SubscriptionCriteria, profinet_client::{profinet_db::ProfinetDb, s7::s7_client::S7Client}, 
-        service::{service::Service, service_handles::ServiceHandles}, services::Services, task::service_cycle::ServiceCycle
+        multi_queue::subscription_criteria::SubscriptionCriteria, profinet_client::{profinet_db::ProfinetDb, s7::s7_client::S7Client}, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::service_cycle::ServiceCycle
     },
 };
-
-
 ///
 /// Cyclically reads adressess from the PROFINET device and yields changed to the MultiQueue
 /// Writes Point to the protocol (PROFINET device) specific address
 pub struct ProfinetClient {
     id: String,
     app: String,
-    rx_recv: Vec<Receiver<PointType>>,
     conf: ProfinetClientConfig,
     services: Arc<Mutex<Services>>,
     exit: Arc<AtomicBool>,
@@ -29,9 +25,8 @@ impl ProfinetClient {
     /// 
     pub fn new(app:&str, parent: impl Into<String>, conf: ProfinetClientConfig, services: Arc<Mutex<Services>>) -> Self {
         Self {
-            id: format!("{}/ProfinetClient({})", parent.into(), conf.name),
+            id: format!("{}/{}", parent.into(), conf.name),
             app: app.to_owned(),
-            rx_recv: vec![],
             conf: conf.clone(),
             services,
             exit: Arc::new(AtomicBool::new(false)),
@@ -64,14 +59,19 @@ impl ProfinetClient {
         match conf.cycle {
             Some(cycle_interval) => {
                 if cycle_interval > Duration::ZERO {
-                    info!("{}read| Preparing thread...", self_id);
+                    info!("{}.read | Preparing thread...", self_id);
                     let handle = thread::Builder::new().name(format!("{}.read", self_id)).spawn(move || {
+                        let mut is_connected = ConnectionNotify::new(
+                            None, 
+                            Box::new(|message| info!("{}", message)), 
+                            Box::new(|message| warn!("{}", message)),
+                        );
                         let mut dbs: IndexMap<String, ProfinetDb> = IndexMap::new();
                         for (db_name, db_conf) in conf.dbs {
-                            info!("{}read| configuring DB: {:?}...", self_id, db_name);
+                            info!("{}.read | configuring DB: {:?}...", self_id, db_name);
                             let db = ProfinetDb::new(app.clone(), &self_id, &db_conf);
                             dbs.insert(db_name.clone(), db);
-                            info!("{}read| configuring DB: {:?} - ok", self_id, db_name);
+                            info!("{}.read | configuring DB: {:?} - ok", self_id, db_name);
                         }
                         let mut cycle = ServiceCycle::new(&self_id, cycle_interval);
                         let mut client = S7Client::new(self_id.clone(), conf.ip.clone());
@@ -80,22 +80,23 @@ impl ProfinetClient {
                             let mut status = Status::Ok;
                             match client.connect() {
                                 Ok(_) => {
+                                    is_connected.add(true, &format!("{}.read | Connection established", self_id));
                                     'read: while !exit.load(Ordering::SeqCst) {
                                         cycle.start();
                                         for (db_name, db) in &mut dbs {
-                                            trace!("{}read| DB '{}' - reading...", self_id, db_name);
+                                            trace!("{}.read | DB '{}' - reading...", self_id, db_name);
                                             match db.read(&client, &tx_send) {
                                                 Ok(_) => {
                                                     error_limit.reset();
-                                                    trace!("{}read| DB '{}' - reading - ok", self_id, db_name);
+                                                    trace!("{}.read | DB '{}' - reading - ok", self_id, db_name);
                                                 },
                                                 Err(err) => {
-                                                    error!("{}read| DB '{}' - reading - error: {:?}", self_id, db_name, err);
+                                                    error!("{}.read | DB '{}' - reading - error: {:?}", self_id, db_name, err);
                                                     if error_limit.add().is_err() {
-                                                        error!("{}read| DB '{}' - exceeded reading errors limit, trying to reconnect...", self_id, db_name);
+                                                        error!("{}.read | DB '{}' - exceeded reading errors limit, trying to reconnect...", self_id, db_name);
                                                         status = Status::Invalid;
                                                         if let Err(err) = client.close() {
-                                                            error!("{}read| {:?}", self_id, err);
+                                                            error!("{}.read | {:?}", self_id, err);
                                                         };
                                                         break 'read;
                                                     }
@@ -112,21 +113,22 @@ impl ProfinetClient {
                                     }
                                 },
                                 Err(err) => {
-                                    debug!("{}read| Connection error: {:?}", self_id, err);
+                                    is_connected.add(false, &format!("{}.read | Connection lost: {:?}", self_id, err));
+                                    trace!("{}.read | Connection error: {:?}", self_id, err);
                                 },
                             }
-                            thread::sleep(Duration::from_millis(1000))
+                            thread::sleep(conf.reconnect_cycle);
                         }
                     });
-                    info!("{}read| Started", self.id);
+                    info!("{}.read | Started", self.id);
                     handle
                 } else {
-                    info!("{}read| Disabled", self.id);
+                    info!("{}.read | Disabled", self.id);
                     thread::Builder::new().name(format!("{}.read", self_id)).spawn(move || {})
                 }
             },
             None => {
-                info!("{}read| Disabled", self.id);
+                info!("{}.read | Disabled", self.id);
                 thread::Builder::new().name(format!("{}.read", self_id)).spawn(move || {})
             },
         }
@@ -142,6 +144,11 @@ impl ProfinetClient {
         let services = self.services.clone();
         info!("{}.write | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.write", self_id.clone())).spawn(move || {
+            let mut is_connected = ConnectionNotify::new(
+                None, 
+                Box::new(|message| info!("{}", message)), 
+                Box::new(|message| warn!("{}", message)),
+            );
             let mut dbs: IndexMap<String, ProfinetDb> = IndexMap::new();
             let mut points: Vec<PointConfig> = vec![];
             for (db_name, db_conf) in conf.dbs {
@@ -162,14 +169,15 @@ impl ProfinetClient {
             for name in &points {
                 println!("\t{:?}", name);
             }
-            let (_, rx_recv) = services.lock().unwrap().subscribe(&conf.subscribe, &self_id, &points);
+            let (_, rx_recv) = services.slock().subscribe(&conf.subscribe, &self_id, &points);
             // let mut cycle = ServiceCycle::new(cycle_interval);
             let mut client = S7Client::new(self_id.clone(), conf.ip.clone());
             'main: while !exit.load(Ordering::SeqCst) {
                 let mut errors_limit = ErrorsLimit::new(3);
-                thread::sleep(Duration::from_millis(50));
+                thread::sleep(conf.reconnect_cycle);
                 match client.connect() {
                     Ok(_) => {
+                        is_connected.add(true, &format!("{}.write | Connection established", self_id));
                         'write: while !exit.load(Ordering::SeqCst) {
                             // cycle.start();
                             match rx_recv.recv_timeout(RECV_TIMEOUT) {
@@ -230,7 +238,8 @@ impl ProfinetClient {
                         }
                     },
                     Err(err) => {
-                        debug!("{}.write | Connection error: {:?}", self_id, err);
+                        is_connected.add(false, &format!("{}.write | Connection lost: {:?}", self_id, err));
+                        trace!("{}.write | Connection error: {:?}", self_id, err);
                     },
                 }
             }
@@ -248,11 +257,23 @@ impl Object for ProfinetClient {
 }
 ///
 /// 
+impl Debug for ProfinetClient {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("ProfinetClient")
+            .field("id", &self.id)
+            .finish()
+    }
+}
+///
+/// 
 impl Service for ProfinetClient {
     //
     //
     fn run(&mut self) -> Result<ServiceHandles, String> {
-        let tx_send = self.services.lock().unwrap().get_link(&self.conf.tx);
+        let tx_send = self.services.slock().get_link(&self.conf.tx).unwrap_or_else(|err| {
+            panic!("{}.run | services.get_link error: {:#?}", self.id, err);
+        });
         let handle_read = self.read(tx_send.clone());
         let handle_write = self.write(tx_send);
         info!("{}.run | started", self.id);
@@ -278,4 +299,45 @@ impl Service for ProfinetClient {
     fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
     }    
+}
+
+///
+/// Logging connection status on changes only
+struct ConnectionNotify {
+    is_connected: Option<bool>,
+    on_connected: Box<dyn Fn(&str)>,
+    on_disconnected: Box<dyn Fn(&str)>,
+}
+///
+/// 
+impl ConnectionNotify {
+    ///
+    /// 
+    pub fn new(initial: Option<bool>, on_connected: Box<dyn Fn(&str)>, on_disconnected: Box<dyn Fn(&str)>) -> Self {
+        Self {
+            is_connected: initial,
+            on_connected,
+            on_disconnected,
+        }
+    }
+    ///
+    /// Add new state
+    pub fn add(&mut self, connected: bool, message: &str) {
+        match self.is_connected {
+            Some(is_connected) => {
+                if Some(connected) != self.is_connected {
+                    self.is_connected = Some(connected);
+                    if let Some(_) = self.is_connected {
+                        (self.on_connected)(message)
+                    } else {
+                        (self.on_disconnected)(message)
+                    }
+                }
+            },
+            None => {
+                (self.on_disconnected)(message);
+                self.is_connected = Some(false);
+            },
+        };
+    }
 }

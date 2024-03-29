@@ -1,4 +1,4 @@
-use std::{io::BufReader, net::TcpStream, sync::{mpsc::Sender, Arc, Mutex, RwLock}};
+use std::{fmt::Debug, io::BufReader, net::TcpStream, sync::{mpsc::Sender, Arc, Mutex, RwLock}};
 use log::{error, warn, LevelFilter};
 use crate::{
     core_::{
@@ -67,6 +67,20 @@ impl<F> JdsRoutes<F> {
             rautes,
             shared,
         }
+    }
+}
+impl<F> Debug for JdsRoutes<F> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("JdsRoutes")
+            // .field("parent", &self.parent)
+            .field("id", &self.id)
+            // .field("path", &self.path)
+            // .field("services", &self.services)
+            // .field("jds_deserialize", &self.jds_deserialize)
+            // .field("req_reply_send", &self.req_reply_send)
+            // .field("rautes", &self.rautes)
+            // .field("shared", &self.shared)
+            .finish()
     }
 }
 ///

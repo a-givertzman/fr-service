@@ -1,4 +1,4 @@
-use std::{sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex, RwLock}, thread, time::Duration};
+use std::{fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex, RwLock}, thread, time::Duration};
 use log::{info, trace, warn};
 use crate::{core_::{object::object::Object, point::point_type::PointType}, services::{service::{service::Service, service_handles::ServiceHandles}, services::Services}};
 #[cfg(test)]
@@ -13,9 +13,8 @@ mod multi_queue {
     };
     use crate::{
         conf::multi_queue_config::MultiQueueConfig, 
-        core_::object::object::Object, 
         services::{multi_queue::multi_queue::MultiQueue, service::service::Service, services::Services}, 
-        tests::unit::services::multi_queue::{mock_send_service::MockSendService, multi_queue_subscription_test::MockReceiver},
+        tests::unit::services::multi_queue::{mock_send_service::MockSendService, multi_queue_subscribe_test::MockReceiver},
     }; 
     ///
     /// 
@@ -61,18 +60,19 @@ mod multi_queue {
         let conf = serde_yaml::from_str(&conf).unwrap();
         let mq_conf = MultiQueueConfig::from_yaml(&conf);
         debug!("mqConf: {:?}", mq_conf);
-        let services = Arc::new(Mutex::new(Services::new("test")));
-        let mq_service = Arc::new(Mutex::new(MultiQueue::new("test", mq_conf, services.clone())));
-        services.lock().unwrap().insert("MultiQueue", mq_service.clone());
+        let services = Arc::new(Mutex::new(Services::new(self_id)));
+        let mq_service = Arc::new(Mutex::new(MultiQueue::new(self_id, mq_conf, services.clone())));
+        services.lock().unwrap().insert(mq_service.clone());
         let mut receiver_handles = vec![];
         let mut receivers = vec![];
         for i in 0..receiver_count {
             let receiver = Arc::new(Mutex::new(MockReceiver::new(
-                format!("tread{}", i),
+                format!("{}/tread{}", self_id, i),
+                &format!("{}/MultiQueue", self_id),
                 services.clone(),
                 Some(total_test_events),
             )));
-            services.lock().unwrap().insert(receiver.lock().unwrap().id(), receiver.clone());
+            services.lock().unwrap().insert(receiver.clone());
             receivers.push(receiver);
         }
         let mq_handle = mq_service.lock().unwrap().run().unwrap();
@@ -101,13 +101,13 @@ mod multi_queue {
             );
             let dynamic_test_data: Vec<Value> = dynamic_test_data.collect();
             let sender = Arc::new(Mutex::new(MockSendService::new(
-                format!("tread{}", i),
-                "MultiQueue.in-queue",
+                format!("{}/tread{}", self_id, i),
+                &format!("{}/MultiQueue.in-queue", self_id),
                 services.clone(),
                 dynamic_test_data.clone(),
                 None,
             )));
-            services.lock().unwrap().insert(&sender.lock().unwrap().id(), sender.clone());
+            services.lock().unwrap().insert(sender.clone());
             senders.push(sender.clone());
             let sender_handle = sender.lock().unwrap().run().unwrap();
             sender_handles.push(sender_handle);
@@ -148,6 +148,7 @@ mod multi_queue {
 /// Receiver with subscribtion to Multiqueue
 struct MockReceiver {
     id: String,
+    subscribe: String,
     services: Arc<Mutex<Services>>,
     received: Arc<RwLock<Vec<PointType>>>,
     recv_limit: Option<usize>,
@@ -156,10 +157,11 @@ struct MockReceiver {
 ///
 /// 
 impl MockReceiver {
-    pub fn new(parent: impl Into<String>, services: Arc<Mutex<Services>>, recv_limit: Option<usize>) -> Self {
+    pub fn new(parent: impl Into<String>, subscribe: &str, services: Arc<Mutex<Services>>, recv_limit: Option<usize>) -> Self {
         let self_id = format!("{}/MockReceiver", parent.into());
         Self {
             id: self_id,
+            subscribe: subscribe.to_owned(),
             services,
             received: Arc::new(RwLock::new(vec![])),
             recv_limit,
@@ -176,6 +178,16 @@ impl Object for MockReceiver {
 }
 ///
 /// 
+impl Debug for MockReceiver {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("MockReceiver")
+            .field("id", &self.id)
+            .finish()
+    }
+}
+///
+/// 
 impl Service for MockReceiver {
     //
     //
@@ -183,12 +195,13 @@ impl Service for MockReceiver {
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         let recv_limit = self.recv_limit;
+        let subscribe = self.subscribe.clone();
         let received = self.received.clone();
         let services = self.services.clone();
         let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
             let self_id = self_id.as_str();
             let points = vec![];
-            let (_, recv) = services.lock().unwrap().subscribe("MultiQueue", self_id, &points);
+            let (_, recv) = services.lock().unwrap().subscribe(&subscribe, self_id, &points);
             match recv_limit {
                 Some(recv_limit) => {
                     let mut received_len = 0;

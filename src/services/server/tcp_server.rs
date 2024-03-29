@@ -1,12 +1,12 @@
 use log::{debug, info, warn};
 use std::{
-    net::{Shutdown, TcpListener, TcpStream}, sync::{atomic::{AtomicBool, Ordering}, mpsc, Arc, Mutex}, thread, time::Duration
+    fmt::Debug, net::{Shutdown, TcpListener, TcpStream}, sync::{atomic::{AtomicBool, Ordering}, mpsc, Arc, Mutex}, thread, time::Duration
 };
 use crate::{
     conf::tcp_server_config::TcpServerConfig, 
     core_::{constants::constants::RECV_TIMEOUT, object::object::Object}, 
     services::{
-        server::{
+        safe_lock::SafeLock, server::{
             connections::{Action, TcpServerConnections}, tcp_server_cnnection::TcpServerConnection
         }, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::service_cycle::ServiceCycle
     }, 
@@ -47,8 +47,8 @@ impl TcpServer {
     /// 
     fn setup_connection(self_id: &str, path: &str, connection_id: &str, stream: TcpStream, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>, connections: Arc<Mutex<TcpServerConnections>>) {
         info!("{}.setup_connection | Trying to repair Connection '{}'...", self_id, connection_id);
-        // let connectionsLock = connections.lock().unwrap();
-        let repair_result = connections.lock().unwrap().repair(connection_id, stream.try_clone().unwrap());
+        // let connectionsLock = connections.slock();
+        let repair_result = connections.slock().repair(connection_id, stream.try_clone().unwrap());
         match repair_result {
             Ok(_) => {
                 info!("{}.setup_connection | Connection '{}' - reparied", self_id, connection_id);
@@ -59,7 +59,7 @@ impl TcpServer {
                 info!("{}.setup_connection | New connection: '{}'", self_id, connection_id);
                 let (send, recv) = mpsc::channel();
                 let mut connection = TcpServerConnection::new(
-                    connection_id.clone(),
+                    connection_id,
                     path,
                     recv, services.clone(),
                     conf.clone(),
@@ -78,7 +78,7 @@ impl TcpServer {
                             },
                         }
                         info!("{}.setup_connection | connections.lock...", self_id);
-                        connections.lock().unwrap().insert(
+                        connections.slock().insert(
                             connection_id,
                             handle,
                             send,
@@ -121,6 +121,16 @@ impl TcpServer {
 impl Object for TcpServer {
     fn id(&self) -> &str {
         &self.id
+    }
+}
+///
+/// 
+impl Debug for TcpServer {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("TcpServer")
+            .field("id", &self.id)
+            .finish()
     }
 }
 ///
@@ -180,7 +190,7 @@ impl Service for TcpServer {
             }
             info!("{}.run | Exit...", self_id);
             // Self::waitConnections(&self_id, connections);
-            connections.lock().unwrap().wait();
+            connections.slock().wait();
             info!("{}.run | Exit", self_id);
         });
         match handle {

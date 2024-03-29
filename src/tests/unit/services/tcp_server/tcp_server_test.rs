@@ -59,12 +59,12 @@ mod tcp_server {
                     pass: /home/scada/.ssh/ #/ auth-ssh: path: ...
                 in queue link:
                     max-length: 10000
-                out queue: MultiQueue.in-queue
-        "#, tcp_addr);
+                out queue: {}/MultiQueue.in-queue
+        "#, tcp_addr, self_id);
         let conf = serde_yaml::from_str(&conf).unwrap();
         let conf = TcpServerConfig::from_yaml(&conf);
         let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, self_id, conf, services.clone())));
-        services.lock().unwrap().insert("TcpServer", tcp_server.clone());
+        services.lock().unwrap().insert(tcp_server.clone());        // "TcpServer", 
 
         let mq_conf = r#"
             service MultiQueue:
@@ -75,16 +75,16 @@ mod tcp_server {
         let mq_conf = serde_yaml::from_str(mq_conf).unwrap();
         let mq_conf = MultiQueueConfig::from_yaml(&mq_conf);
         let mq_service = Arc::new(Mutex::new(MultiQueue::new(self_id, mq_conf, services.clone())));
-        services.lock().unwrap().insert("MultiQueue", mq_service.clone());
+        services.lock().unwrap().insert(mq_service.clone());        // "MultiQueue", 
 
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             self_id,
-            "MultiQueue.in-queue",
+            &format!("{}/MultiQueue.in-queue", self_id),
             Duration::ZERO,
             services.clone(),
             test_data.clone(),
         )));
-        services.lock().unwrap().insert("TaskTestProducer", producer.clone());
+        services.lock().unwrap().insert(producer.clone());      // "TaskTestProducer", 
         let emulated_tcp_client = Arc::new(Mutex::new(EmulatedTcpClientRecv::new(
             self_id,
             &tcp_addr,
@@ -153,31 +153,31 @@ mod tcp_server {
                 auth: none      # auth: none / auth-secret: pass: ... / auth-ssh: path: ...
                 in queue link:
                     max-length: 10000
-                out queue: MultiQueue.in-queue
-        "#, tcp_addr);
+                out queue: {}/MultiQueue.in-queue
+        "#, tcp_addr, self_id);
         let conf = serde_yaml::from_str(&conf).unwrap();
         let conf = TcpServerConfig::from_yaml(&conf);
         let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, self_id, conf, services.clone())));
-        services.lock().unwrap().insert("TcpServer", tcp_server.clone());
+        services.lock().unwrap().insert(tcp_server.clone());        // "TcpServer", 
 
-        let mq_conf = r#"
+        let mq_conf = format!(r#"
             service MultiQueue:
                 in queue in-queue:
                     max-length: 10000
                 out queue:
-                    - TaskTestReceiver.queue
-        "#;
-        let mq_conf = serde_yaml::from_str(mq_conf).unwrap();
+                    - {}/TaskTestReceiver.queue
+        "#, self_id);
+        let mq_conf = serde_yaml::from_str(&mq_conf).unwrap();
         let mq_conf = MultiQueueConfig::from_yaml(&mq_conf);
         let mq_service = Arc::new(Mutex::new(MultiQueue::new(self_id, mq_conf, services.clone())));
-        services.lock().unwrap().insert("MultiQueue", mq_service.clone());
+        services.lock().unwrap().insert(mq_service.clone());        // "MultiQueue", 
 
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
             self_id,
             "queue",
             iterations,
         )));
-        services.lock().unwrap().insert("TaskTestReceiver", receiver.clone());
+        services.lock().unwrap().insert(receiver.clone());      // "TaskTestReceiver", 
         let emulated_tcp_client = Arc::new(Mutex::new(EmulatedTcpClientSend::new(
             self_id,
             "/test/Jds/",

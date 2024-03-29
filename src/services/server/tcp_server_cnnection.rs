@@ -11,29 +11,22 @@ use serde_json::json;
 use crate::{
     conf::tcp_server_config::TcpServerConfig, 
     core_::{
-        cot::cot::Cot, 
-        constants::constants::RECV_TIMEOUT, 
-        point::point_type::PointType,
-        net::protocols::jds::{
+        constants::constants::RECV_TIMEOUT, cot::cot::Cot, net::protocols::jds::{
             jds_decode_message::JdsDecodeMessage, 
             jds_deserialize::JdsDeserialize, 
             jds_encode_message::JdsEncodeMessage, 
             jds_routes::{JdsRoutes, RouterReply}, jds_serialize::JdsSerialize,
-        }, 
+        }, point::point_type::PointType 
     }, 
     services::{
-        multi_queue::subscription_criteria::SubscriptionCriteria, 
-        queue_name::QueueName, 
-        server::jds_connection::JdsConnection, 
-        service::service_handles::ServiceHandles, 
-        services::Services,
-        server::{connections::Action, tcp_server_auth::TcpServerAuth}
+        multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, safe_lock::SafeLock, server::{connections::Action, jds_connection::JdsConnection, tcp_server_auth::TcpServerAuth}, service::service_handles::ServiceHandles, services::Services
     }, 
     tcp::{tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive},
 };
 
 ///
 /// 
+#[derive(Debug)]
 pub enum JdsState {
     Unknown,
     Authenticated,
@@ -51,6 +44,7 @@ impl From<usize> for JdsState {
 }
 ///
 /// 
+#[derive(Debug)]
 pub struct Shared {
     pub tx_queue_name: String,
     pub jds_state: JdsState,
@@ -112,9 +106,9 @@ impl TcpServerConnection {
             let receivers = Arc::new(RwLock::new(
                 HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default()),
             ));
-            receivers.write().unwrap().insert(Cot::Req, services.lock().unwrap().get_link(&self_conf_tx));
-            // let recv = services.lock().unwrap().get_link(&self_conf_tx);
-            let points = services.lock().unwrap().points().iter().fold(vec![], |mut points, point_conf| {
+            receivers.write().unwrap().insert(Cot::Req, services.slock().get_link(&self_conf_tx));
+            // let recv = services.slock().get_link(&self_conf_tx);
+            let points = services.slock().points(&self_id).iter().fold(vec![], |mut points, point_conf| {
                 // points.push(SubscriptionCriteria::new(&point_conf.name, Cot::Inf));
                 // points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ActCon));
                 // points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ActErr));
@@ -122,9 +116,11 @@ impl TcpServerConnection {
                 points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ReqErr));
                 points
             });
-            let send = services.lock().unwrap().get_link(&self_conf_tx);
+            let send = services.slock().get_link(&self_conf_tx).unwrap_or_else(|err| {
+                panic!("{}.run | services.get_link error: {:#?}", self_id, err);
+            });
             println!("{}.run | tx_queue_name: {:?}", self_id, tx_queue_name);
-            let (req_reply_send, recv) = services.lock().unwrap().subscribe(tx_queue_name.service(), &self_id, &points);
+            let (req_reply_send, recv) = services.slock().subscribe(tx_queue_name.service(), &self_id, &points);
             shared_options.write().unwrap().tx_queue_name = tx_queue_name.service().to_owned();
             let buffered = rx_max_length > 0;
             let mut tcp_read_alive = TcpReadAlive::new(

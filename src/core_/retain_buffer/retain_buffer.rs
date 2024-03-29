@@ -10,6 +10,7 @@ use std::collections::VecDeque;
 /// - pop(value: T) - returns and removes value<T> from the end of array
 /// - remove(index) - returns and removes value<T> from the [index] position
 /// - len() - Returns the number of elements in the buffer
+#[derive(Debug)]
 pub struct RetainBuffer<T> {
     id: String,
     vec: VecDeque<T>,

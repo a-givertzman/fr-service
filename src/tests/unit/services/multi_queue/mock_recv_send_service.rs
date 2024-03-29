@@ -1,14 +1,13 @@
 #![allow(non_snake_case)]
-
 use log::{info, warn, debug, trace};
-use std::{collections::HashMap, sync::{mpsc::{Sender, self, Receiver}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread};
+use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread};
 use testing::entities::test_value::Value;
 use crate::{
     core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, 
-    services::{service::{service::Service, service_handles::ServiceHandles}, services::Services},
+    services::{safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services},
 };
-
-
+///
+/// 
 pub struct MockRecvSendService {
     id: String,
     rxSend: HashMap<String, Sender<PointType>>,
@@ -61,6 +60,16 @@ impl MockRecvSendService {
 impl Object for MockRecvSendService {
     fn id(&self) -> &str {
         &self.id
+    }
+}
+///
+/// 
+impl Debug for MockRecvSendService {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("MockRecvSendService")
+            .field("id", &self.id)
+            .finish()
     }
 }
 ///
@@ -123,9 +132,9 @@ impl Service for MockRecvSendService {
         });
         let self_id = self.id.clone();
         let exit = self.exit.clone();
-        debug!("{}.run | Lock services...", self_id);
-        let txSend = self.services.lock().unwrap().get_link(&self.txQueue);
-        debug!("{}.run | Lock services - ok", self_id);
+        let txSend = self.services.slock().get_link(&self.txQueue).unwrap_or_else(|err| {
+            panic!("{}.run | services.get_link error: {:#?}", self.id, err);
+        });
         let test_data = self.test_data.clone();
         let sent = self.sent.clone();
         let handle_send = thread::Builder::new().name(format!("{}.run | Send", self_id)).spawn(move || {

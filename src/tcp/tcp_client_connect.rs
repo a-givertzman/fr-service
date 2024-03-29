@@ -4,7 +4,7 @@ use std::{net::{TcpStream, SocketAddr, ToSocketAddrs}, time::Duration, sync::{Ar
 
 use log::{warn, LevelFilter, debug, info};
 
-use crate::services::task::service_cycle::ServiceCycle;
+use crate::services::{safe_lock::SafeLock, task::service_cycle::ServiceCycle};
 
 
 // #[derive(Debug, PartialEq)]
@@ -81,14 +81,14 @@ impl TcpClientConnect {
         let selfStream = self.stream.clone();
         let exit = self.exitRecv.clone();
         let handle = thread::spawn(move || {
-            let exit = exit.lock().unwrap();
+            let exit = exit.slock();
             let mut cycle = ServiceCycle::new(&self_id, cycle);
             loop {
                 cycle.start();
                 match TcpStream::connect(addr) {
                     Ok(stream) => {
-                        selfStream.lock().unwrap().push(stream);
-                        info!("{}.connect | connected to: \n\t{:?}", id, selfStream.lock().unwrap().first().unwrap());
+                        selfStream.slock().push(stream);
+                        info!("{}.connect | connected to: \n\t{:?}", id, selfStream.slock().first().unwrap());
                         break;
                     },
                     Err(err) => {
@@ -108,7 +108,7 @@ impl TcpClientConnect {
             debug!("{}.connect | exit", id);
         });
         handle.join().unwrap();
-        let mut tcpStream = self.stream.lock().unwrap();
+        let mut tcpStream = self.stream.slock();
         tcpStream.pop()
     }
     ///

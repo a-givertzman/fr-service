@@ -55,6 +55,16 @@ impl Object for History {
 }
 ///
 /// 
+impl Debug for History {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("History")
+            .field("id", &self.id)
+            .finish()
+    }
+}
+///
+/// 
 impl Service for History {
     //
     //

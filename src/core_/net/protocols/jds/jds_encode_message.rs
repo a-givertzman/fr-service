@@ -5,6 +5,7 @@ use super::{jds_serialize::JdsSerialize, jds_define::JDS_END_OF_TRANSMISSION};
 /// Converts json string into the bytes
 /// adds Jds.endOfTransmission = 4 at the end of message
 /// returns Result<Vec, Err>
+#[derive(Debug)]
 pub struct JdsEncodeMessage {
     id: String,
     stream: JdsSerialize,

@@ -1,5 +1,5 @@
 use log::{info, trace, warn, debug};
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread, time::Duration, net::{TcpStream, SocketAddr}, io::Write};
+use std::{fmt::Debug, io::Write, net::{SocketAddr, TcpStream}, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread, time::Duration};
 use testing::entities::test_value::Value;
 use crate::{
     core_::{
@@ -136,6 +136,16 @@ impl EmulatedTcpClientRecv {
 impl Object for EmulatedTcpClientRecv {
     fn id(&self) -> &str {
         &self.id
+    }
+}
+///
+/// 
+impl Debug for EmulatedTcpClientRecv {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("EmulatedTcpClientRecv")
+            .field("id", &self.id)
+            .finish()
     }
 }
 ///

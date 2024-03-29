@@ -1,7 +1,7 @@
-use std::{sync::{Arc, atomic::{AtomicBool, Ordering}, Mutex}, thread, time::Duration};
+use std::{fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread, time::Duration};
 use log::{debug, warn, info, trace};
 use testing::entities::test_value::Value;
-use crate::{core_::{object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, services::{service::{service::Service, service_handles::ServiceHandles}, services::Services}};
+use crate::{core_::{object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, services::{safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services}};
 
 ///
 /// 
@@ -45,6 +45,16 @@ impl Object for TaskTestProducer {
 }
 ///
 /// 
+impl Debug for TaskTestProducer {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("TaskTestProducer")
+            .field("id", &self.id)
+            .finish()
+    }
+}
+///
+/// 
 impl Service for TaskTestProducer {
     //
     // 
@@ -53,7 +63,9 @@ impl Service for TaskTestProducer {
         let tx_id = PointTxId::fromStr(&self_id);
         let cycle = self.cycle;
         let delayed = !cycle.is_zero();
-        let tx_send = self.services.lock().unwrap().get_link(&self.link);
+        let tx_send = self.services.slock().get_link(&self.link).unwrap_or_else(|err| {
+            panic!("{}.run | services.get_link error: {:#?}", self.id, err);
+        });
         let sent = self.sent.clone();
         let test_data = self.test_data.clone();
         match thread::Builder::new().name(self_id.clone()).spawn(move || {

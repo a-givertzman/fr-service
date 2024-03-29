@@ -45,13 +45,13 @@ mod profinet_client {
         let conf = serde_yaml::from_str(&conf).unwrap();
         let mq_conf = MultiQueueConfig::from_yaml(&conf);
         let mq_service = Arc::new(Mutex::new(MultiQueue::new(self_id, mq_conf, services.clone())));
-        services.lock().unwrap().insert("MultiQueue", mq_service.clone());
+        services.lock().unwrap().insert(mq_service.clone());
         let path = "./src/tests/unit/services/profinet_client/profinet_client.yaml";
         let conf = ProfinetClientConfig::read(path);
         debug!("config: {:?}", &conf);
         debug!("config points:");
         let client = Arc::new(Mutex::new(ProfinetClient::new(self_id, self_id, conf, services.clone())));
-        services.lock().unwrap().insert("ProfinetClient", client.clone());
+        services.lock().unwrap().insert(client.clone());
         let mq_service_handle = mq_service.lock().unwrap().run().unwrap();
         let client_handle = client.lock().unwrap().run().unwrap();
         thread::sleep(Duration::from_millis(2000));

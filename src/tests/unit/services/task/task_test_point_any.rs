@@ -1,8 +1,8 @@
 #[cfg(test)]
 
 mod task {
-    use log::{trace, info, debug};
-    use std::{env, sync::{Arc, Mutex, Once}, thread, time::{Duration, Instant}};
+    use log::{trace, info};
+    use std::{sync::{Arc, Mutex, Once}, thread, time::{Duration, Instant}};
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
@@ -39,19 +39,19 @@ mod task {
         //
         // can be changed
         let iterations = 10;
-        let conf = serde_yaml::from_str(r#"
+        let conf = serde_yaml::from_str(&format!(r#"
             service Task TaskAny:
                 cycle: 1 ms
                 in queue recv-queue:
                     max-length: 10000
                 fn ToApiQueue:
-                    queue: TaskTestReceiver.in-queue
+                    queue: {}/TaskTestReceiver.in-queue
                     input fn SqlMetric:
                         initial: 0.123      # начальное значение
                         table: table_name
-                        sql: "insert into {table} (id, value, timestamp) values ({id}, {input1.value}, {input1.value});"
+                        sql: "insert into {{table}} (id, value, timestamp) values ({{id}}, {{input1.value}}, {{input1.value}});"
                         input1: point any every
-        "#).unwrap();
+        "#, self_id)).unwrap();
         let config = TaskConfig::from_yaml(&conf);
         trace!("config: {:?}", &config);
         let services = Arc::new(Mutex::new(Services::new(self_id)));
@@ -60,7 +60,7 @@ mod task {
             "in-queue",
             iterations,
         )));
-        services.lock().unwrap().insert("TaskTestReceiver", receiver.clone());
+        services.lock().unwrap().insert(receiver.clone());      // "TaskTestReceiver", 
         let test_data = RandomTestValues::new(
             self_id, 
             vec![
@@ -84,13 +84,13 @@ mod task {
         assert!(total_count == iterations, "\nresult: {:?}\ntarget: {:?}", total_count, iterations);
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             self_id, 
-            "Task.recv-queue",
+            &format!("{}/TaskAny.recv-queue", self_id),
             Duration::ZERO,
             services.clone(),
             test_data,
         )));
         let task = Arc::new(Mutex::new(Task::new(self_id, config, services.clone())));
-        services.lock().unwrap().insert("Task", task.clone());
+        services.lock().unwrap().insert(task.clone());      // "Task", 
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         info!("receiver runing - ok");
         let task_handle = task.lock().unwrap().run().unwrap();

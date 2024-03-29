@@ -38,6 +38,7 @@ use crate::conf::{
 pub struct ProfinetClientConfig {
     pub(crate) name: String,
     pub(crate) cycle: Option<Duration>,
+    pub(crate) reconnect_cycle: Duration,
     // pub(crate) rx: String,
     // pub(crate) rx_max_len: i64,
     pub(crate) subscribe: String,
@@ -67,6 +68,8 @@ impl ProfinetClientConfig {
         debug!("{}.new | name: {:?}", self_id, self_name);
         let cycle = self_conf.get_duration("cycle");
         debug!("{}.new | cycle: {:?}", self_id, cycle);
+        let reconnect_cycle = self_conf.get_duration("reconnect").map_or(Duration::from_secs(3), |reconnect| reconnect);
+        debug!("{}.new | reconnectCycle: {:?}", self_id, reconnect_cycle);
         let subscribe = self_conf.get_param_value("subscribe").unwrap().as_str().unwrap().to_string();
         debug!("{}.new | sudscribe: {:?}", self_id, subscribe);
         // let (rx, rx_max_len) = self_conf.get_in_queue().unwrap();
@@ -103,6 +106,7 @@ impl ProfinetClientConfig {
         ProfinetClientConfig {
             name: self_name,
             cycle,
+            reconnect_cycle,
             // rx,
             // rx_max_len,
             subscribe,

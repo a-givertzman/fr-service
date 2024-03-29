@@ -51,6 +51,16 @@ impl Object for ServiceName {
 }
 ///
 /// 
+impl Debug for ServiceName {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("ServiceName")
+            .field("id", &self.id)
+            .finish()
+    }
+}
+///
+/// 
 impl Service for ServiceName {
     //
     // 

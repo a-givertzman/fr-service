@@ -43,7 +43,7 @@ mod task {
         println!(" config points: {:?}", config.points());
         let services = Arc::new(Mutex::new(Services::new(self_id)));        
         let task = Arc::new(Mutex::new(Task::new(self_id, config, services.clone())));
-        services.lock().unwrap().insert("Task", task.clone());
+        services.lock().unwrap().insert(task.clone());
         let target  = 3;
         let points = task.lock().unwrap().points();
         let points_count = points.len();

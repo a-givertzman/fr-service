@@ -186,6 +186,7 @@ mod tests {
     }
 }
 
+#[derive(Debug)]
 struct MockStreamRead<T> {
     id: String,
     buffer: Vec<T>
@@ -200,7 +201,7 @@ impl<T> Object for MockStreamRead<T> {
         &self.id
     }
 }
-impl<T: Sync> StreamRead<T, RecvError> for MockStreamRead<T> {
+impl<T: Sync + std::fmt::Debug> StreamRead<T, RecvError> for MockStreamRead<T> {
     fn read(&mut self) -> Result<T, RecvError> {
         match self.buffer.first() {
             Some(_) => Ok(self.buffer.remove(0)),

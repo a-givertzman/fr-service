@@ -1,15 +1,12 @@
 use std::{any::Any, collections::HashMap, net::TcpStream, sync::mpsc::{SendError, Sender}, thread::JoinHandle};
 use log::info;
 use testing::stuff::wait::WaitTread;
-
 ///
 /// 
 pub enum Action {
     Continue(TcpStream),
     Exit,
 }
-
-
 ///
 /// Keep TCP Server's connection's:
 /// - thread JoinHandle
@@ -104,10 +101,7 @@ impl TcpServerConnections {
     ///
     /// Waits for all connections handles being finished
     pub fn wait(&mut self) {
-        info!("{}.run | connections.lock...", self.id);
         while !self.connections.is_empty() {
-            info!("{}.run | connections.lock - ok", self.id);
-            // let mut connectionsLock = connections.lock().unwrap();
             let keys: Vec<String> = self.connections.keys().map(|k| {k.to_string()}).collect();
             info!("{}.run | Wait for connections:", self.id);
             for key in &keys {

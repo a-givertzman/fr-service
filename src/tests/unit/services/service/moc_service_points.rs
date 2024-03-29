@@ -1,6 +1,8 @@
 //!
 //! MockServicePoints implements points() method only.
 //! Which returns exactly the vector from which it was created
+use std::fmt::Debug;
+
 use log::debug;
 use crate::{conf::point_config::point_config::PointConfig, core_::object::object::Object, services::service::{service::Service, service_handles::ServiceHandles}};
 ///
@@ -27,6 +29,16 @@ impl MockServicePoints {
 impl Object for MockServicePoints {
     fn id(&self) -> &str {
         &self.id
+    }
+}
+///
+/// 
+impl Debug for MockServicePoints {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("MockServicePoints")
+            .field("id", &self.id)
+            .finish()
     }
 }
 ///

@@ -1,10 +1,11 @@
-use std::{collections::HashMap, sync::{mpsc::{Sender, Receiver, self}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread};
-
+use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread};
 use log::{info, trace, warn};
-
-use crate::{core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::point_type::PointType}, services::service::{service::Service, service_handles::ServiceHandles}};
-
-
+use crate::{
+    core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::point_type::PointType}, 
+    services::service::{service::Service, service_handles::ServiceHandles},
+};
+///
+/// 
 pub struct MockRecvService {
     id: String,
     rx_send: HashMap<String, Sender<PointType>>,
@@ -44,6 +45,16 @@ impl MockRecvService {
 impl Object for MockRecvService {
     fn id(&self) -> &str {
         &self.id
+    }
+}
+///
+/// 
+impl Debug for MockRecvService {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("MockRecvService")
+            .field("id", &self.id)
+            .finish()
     }
 }
 ///

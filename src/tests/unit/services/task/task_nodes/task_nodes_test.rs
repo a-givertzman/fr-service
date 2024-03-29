@@ -2,15 +2,13 @@
 
 mod task_nodes {
     use log::{info, debug, trace, warn};
-    use std::{sync::{Once, mpsc::{Sender, self, Receiver}, Arc, Mutex, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread};
+    use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex, Once}, thread};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         conf::task_config::TaskConfig, 
         core_::{object::object::Object, point::point_type::{PointType, ToPoint}}, 
         services::{
-            services::Services, 
-            service::{service::Service, service_handles::ServiceHandles}, 
-            task::{nested_function::{fn_count, fn_ge, fn_kind::FnKind, sql_metric}, task_nodes::TaskNodes},
+            safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::{nested_function::{fn_count, fn_ge, fn_kind::FnKind, sql_metric}, task_nodes::TaskNodes}
         },
     }; 
     ///
@@ -42,17 +40,14 @@ mod task_nodes {
         println!();
         println!("test");
         let path = "./src/tests/unit/services/task/task_nodes/task_nodes.yaml";
-        let mut task_nodes = TaskNodes::new("test");
+        let self_id = "test";
+        let mut task_nodes = TaskNodes::new(self_id);
         let conf = TaskConfig::read(path);
         debug!("conf: {:?}", conf);
-        let self_id = "test";
-        // let outName = format!("{}/SqlMetric1", self_id);
-        // let outName = outName.as_str();
-        // debug!("outName: {:?}", outName);
         let services = Arc::new(Mutex::new(Services::new(self_id)));
         let mock_service = Arc::new(Mutex::new(MockService::new(self_id, "queue")));
-        services.lock().unwrap().insert("ApiClient", mock_service.clone());
-        task_nodes.buildNodes("test", conf, services);
+        services.slock().insert(mock_service.clone());
+        task_nodes.buildNodes(self_id, conf, services);
         let test_data = vec![
             (
                 "/path/Point.Name1", 101, 
@@ -173,6 +168,16 @@ mod task_nodes {
     }
     ///
     /// 
+    impl Debug for MockService {
+        fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            formatter
+                .debug_struct("MockService")
+                .field("id", &self.id)
+                .finish()
+        }
+    }
+    ///
+    /// 
     impl Service for MockService {
         //
         //
@@ -189,7 +194,7 @@ mod task_nodes {
             let self_id = self.id.clone();
             let exit = self.exit.clone();
             let rx_recv = self.rx_recv.pop().unwrap();
-            let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
+            let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
                 loop {
                     match rx_recv.recv() {
                         Ok(point) => {

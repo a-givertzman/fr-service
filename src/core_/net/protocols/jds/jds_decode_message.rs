@@ -11,6 +11,7 @@ enum Status {
 /// Reads bytes from TcpStream
 /// splits bytes sequence with Jds.endOfTransmission = 4 separator
 /// returns Result<Vec, Err>
+#[derive(Debug)]
 pub struct JdsDecodeMessage {
     id: String,
     // tcpStream: BufReader<TcpStream>,

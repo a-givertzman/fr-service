@@ -1,27 +1,25 @@
-use std::{collections::HashMap, ffi::OsStr, fmt::Debug, fs, hash::BuildHasherDefault, path::Path, sync::{mpsc::{Receiver, Sender}, Arc, Mutex}};
+use std::{collections::HashMap, ffi::OsStr, fs, hash::BuildHasherDefault, io::Write, path::Path, sync::{mpsc::{Receiver, Sender}, Arc, Mutex}};
 use hashers::fx_hash::FxHasher;
 use indexmap::IndexMap;
-use log::{debug, error};
+use log::{debug, error, trace};
 use serde::Serialize;
 use crate::{
-    conf::point_config::point_config::PointConfig, core_::point::point_type::PointType,
+    core_::point::point_type::PointType, 
+    conf::point_config::point_config::PointConfig, 
     services::{
-        multi_queue::subscription_criteria::SubscriptionCriteria, 
-        queue_name::QueueName, 
-        safe_lock::SafeLock, 
-        service::service::Service,
+        multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, service::service::Service
     }
 };
+
 ///
 /// Holds a map of the all services in app by there names
-pub struct Services {
+pub struct ServicesBasic {
     id: String,
     map: HashMap<String, Arc<Mutex<dyn Service + Send>>>,
-    retain: RetainPointId,
 }
 ///
 /// 
-impl Services {
+impl ServicesBasic {
     pub const API_CLIENT: &'static str = "ApiClient";
     pub const MULTI_QUEUE: &'static str = "MultiQueue";
     pub const PROFINET_CLIENT: &'static str = "ProfinetClient";
@@ -29,28 +27,26 @@ impl Services {
     pub const TCP_CLIENT: &'static str = "TcpClient";
     pub const TCP_SERVER: &'static str = "TcpServer";
     ///
-    /// Creates new instance of the Services
+    /// Creates new instance of the ServicesBasic
     pub fn new(parent: impl Into<String>) -> Self {
-        let self_id = format!("{}/Services", parent.into());
+        let self_id = format!("{}/ServicesBasic", parent.into());
         Self {
             id: self_id.clone(),
             map: HashMap::new(),
-            retain: RetainPointId::new(&self_id, "assets/retain_points.json"),
         }
     }
     ///
-    /// Returns all holding services in the map<service id, service reference>
+    /// 
     pub fn all(&self) -> HashMap<String, Arc<Mutex<dyn Service + Send>>> {
         self.map.clone()
     }
     ///
     /// 
-    pub fn insert(&mut self, service: Arc<Mutex<dyn Service + Send>>) {
-        let id = service.slock().id().to_owned();
-        if self.map.contains_key(&id) {
+    pub fn insert(&mut self, id:&str, service: Arc<Mutex<dyn Service + Send>>) {
+        if self.map.contains_key(id) {
             panic!("{}.insert | Duplicated service name '{:?}'", self.id, id);
         }
-        self.map.insert(id, service);
+        self.map.insert(id.to_string(), service);
     }
     ///
     /// Returns Service
@@ -62,11 +58,11 @@ impl Services {
     }
     ///
     /// Returns copy of the Sender - service's incoming queue
-    pub fn get_link(&self, name: &str) -> Result<Sender<PointType>, String> {
+    pub fn get_link(&self, name: &str) -> Sender<PointType> {
         let name = QueueName::new(name);
         match self.map.get(name.service()) {
-            Some(srvc) => Ok(srvc.slock().get_link(name.queue())),
-            None => Err(format!("{}.get | service '{:?}' - not found", self.id, name)),
+            Some(srvc) => srvc.lock().unwrap().get_link(name.queue()),
+            None => panic!("{}.get | service '{:?}' - not found", self.id, name),
         }
     }
     ///
@@ -76,7 +72,7 @@ impl Services {
         match self.map.get(service) {
             Some(srvc) => {
                 debug!("{}.subscribe | Lock service '{:?}'...", self.id, service);
-                let r = srvc.slock().subscribe(receiver_id, points);
+                let r = srvc.lock().unwrap().subscribe(receiver_id, points);
                 debug!("{}.subscribe | Lock service '{:?}' - ok", self.id, service);
                 r
             },
@@ -91,7 +87,7 @@ impl Services {
         match self.map.get(service) {
             Some(srvc) => {
                 debug!("{}.extend_subscription | Lock service '{:?}'...", self.id, service);
-                let r = srvc.slock().extend_subscription(receiver_id, points);
+                let r = srvc.lock().unwrap().extend_subscription(receiver_id, points);
                 debug!("{}.extend_subscription | Lock service '{:?}' - ok", self.id, service);
                 r
             },
@@ -105,7 +101,7 @@ impl Services {
         match self.map.get(service) {
             Some(srvc) => {
                 debug!("{}.unsubscribe | Lock service '{:?}'...", self.id, service);
-                let r = srvc.slock().unsubscribe(receiver_id, points);
+                let r = srvc.lock().unwrap().unsubscribe(receiver_id, points);
                 debug!("{}.unsubscribe | Lock service '{:?}' - ok", self.id, service);
                 r
             },
@@ -114,38 +110,124 @@ impl Services {
     }
     ///
     /// Returns list of point configurations over the all services
-    pub fn points(&mut self, requester_id: &str) -> Vec<PointConfig> {
-        debug!("{}.points | requester_id: '{}'", self.id, requester_id);
+    pub fn points(&self) -> Vec<PointConfig> {
         let mut points = vec![];
-        for (service_id, service) in &self.map {
-            if service_id != requester_id {
-                // debug!("{}.points | Lock service: '{}'...", self.id, service_id);
-                let mut service_points = service.slock().points();
-                // debug!("{}.points | Lock service: '{}' - ok", self.id, service_id);
-                points.append(&mut service_points);
-            }
+        for service in self.map.values() {
+        debug!("{}.points | service: '{:?}'", self.id, service.lock().unwrap().id());
+        let mut service_points = service.lock().unwrap().points();
+            points.append(&mut service_points);
         };
-        // let points = self.retain.points(points);
-        debug!("{}.points | points: '{:#?}'", self.id, points);
+        trace!("{}.points | points: '{:#?}'", self.id, points);
         points
     }
 }
+
+
 ///
-/// 
-impl Debug for Services {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        formatter
-            .debug_struct("Services")
-            .field("id", &self.id)
-            .finish()
-    }
+/// Holds a map of the all services in app by there names
+pub struct Services {
+    id: String,
+    services_basic: Arc<Mutex<ServicesBasic>>,
+    retain_points: Arc<Mutex<RetainPointId>>,
 }
 ///
+/// 
+impl Services {
+    ///
+    /// Creates new instance of the Services
+    pub fn new(parent: impl Into<String>) -> Self {
+        let self_id = format!("{}/Services", parent.into());
+        let services_basic = Arc::new(Mutex::new(ServicesBasic::new(&self_id)));
+        let retain_points = Arc::new(Mutex::new(RetainPointId::new(&self_id, "assets/retain_points.json", services_basic.clone())));
+        Self {
+            id: self_id.clone(),
+            services_basic,
+            retain_points,
+        }
+    }
+    ///
+    /// 
+    pub fn all(&self) -> HashMap<String, Arc<Mutex<dyn Service + Send>>> {
+        debug!("{}.all | Lock services_basic...", self.id);
+        let all = self.services_basic.lock().unwrap().all();
+        debug!("{}.all | Lock services_basic - ok", self.id);
+        all
+    }
+    ///
+    /// 
+    pub fn insert(&mut self, id:&str, service: Arc<Mutex<dyn Service + Send>>) {
+        debug!("{}.insert | Lock services_basic...", self.id);
+        let insert = self.services_basic.lock().unwrap().insert(id, service);
+        debug!("{}.insert | Lock services_basic - ok", self.id);
+        insert
+    }
+    ///
+    /// Returns Service
+    pub fn get(&self, name: &str) -> Arc<Mutex<dyn Service>> {
+        debug!("{}.get | Lock services_basic...", self.id);
+        let get = self.services_basic.lock().unwrap().get(name);
+        debug!("{}.get | Lock services_basic - ok", self.id);
+        get
+    }
+    ///
+    /// Returns copy of the Sender - service's incoming queue
+    pub fn get_link(&self, name: &str) -> Sender<PointType> {
+        debug!("{}.get_link | Lock services_basic...", self.id);
+        let get_link = self.services_basic.lock().unwrap().get_link(name);
+        debug!("{}.get_link | Lock services_basic - ok", self.id);
+        get_link
+    }
+    ///
+    /// Returns Receiver
+    /// - service - the name of the service to subscribe on
+    pub fn subscribe(&mut self, service: &str, receiver_id: &str, points: &[SubscriptionCriteria]) -> (Sender<PointType>, Receiver<PointType>) {
+        debug!("{}.subscribe | Lock services_basic...", self.id);
+        let subscribe = self.services_basic.lock().unwrap().subscribe(service, receiver_id, points);
+        debug!("{}.subscribe | Lock services_basic - ok", self.id);
+        subscribe
+    }
+    ///
+    /// Returns ok if subscription extended sucessfully
+    /// - service - the name of the service to extend subscribtion on
+    pub fn extend_subscription(&mut self, service: &str, receiver_id: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
+        debug!("{}.extend_subscription | Lock services_basic...", self.id);
+        let extend_subscription = self.services_basic.lock().unwrap().extend_subscription(service, receiver_id, points);
+        debug!("{}.extend_subscription | Lock services_basic - ok", self.id);
+        extend_subscription
+    }
+    ///
+    /// Returns ok if subscription removed sucessfully
+    /// - service - the name of the service to unsubscribe on
+    fn unsubscribe(&mut self, service: &str, receiver_id: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
+        debug!("{}.unsubscribe | Lock services_basic...", self.id);
+        let unsubscribe = self.services_basic.lock().unwrap().unsubscribe(service, receiver_id, points);
+        debug!("{}.unsubscribe | Lock services_basic - ok", self.id);
+        unsubscribe
+    }
+    ///
+    /// Returns list of point configurations over the all services
+    pub fn points(&mut self) -> Vec<PointConfig> {
+        debug!("{}.all | Lock services_basic...", self.id);
+        let points = self.services_basic.lock().unwrap().points();
+        let points = self.retain_points.lock().unwrap().points(points);
+        debug!("{}.all | Lock services_basic - ok", self.id);
+        // let mut points = vec![];
+        // for service in self.map.values() {
+        // debug!("{}.points | service: '{:?}'", self.id, service.lock().unwrap().id());
+        // let mut service_points = service.lock().unwrap().points();
+        //     points.append(&mut service_points);
+        // };
+        // trace!("{}.points | points: '{:#?}'", self.id, points);
+        points
+    }
+}
+
+///
 /// Stores unique Point ID in the json file
-#[derive(Debug)]
 struct RetainPointId {
     id: String,
     path: String,
+    services: Arc<Mutex<ServicesBasic>>,
     cache: Vec<PointConfig>,
 }
 ///
@@ -156,10 +238,11 @@ impl RetainPointId {
     ///  - parent - the name of the parent object
     ///  - services - Services thread safe mutable reference
     ///  - path - path to the file, where point id's will be stored
-    pub fn new(parent: &str, path: &str) -> Self {
+    pub fn new(parent: &str, path: &str, services: Arc<Mutex<ServicesBasic>>) -> Self {
         Self {
             id: format!("{}/RetainPointId", parent),
             path: path.to_owned(),
+            services,
             cache: vec![],
         }
     }
@@ -172,7 +255,7 @@ impl RetainPointId {
             let mut retained = self.read(self.path.clone());
             debug!("{}.points | retained: {:#?}", self.id, retained);
             // debug!("{}.points | Lock services_basic ...", self.id);
-            // let points = self.services.slock().points();
+            // let points = self.services.lock().unwrap().points();
             // debug!("{}.points | Lock services_basic - ok", self.id);
             for point in points {
                 debug!("{}.points | point: {}...", self.id, point.name);

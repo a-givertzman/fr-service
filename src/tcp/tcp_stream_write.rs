@@ -10,6 +10,7 @@ use crate::{
 /// Sends sequences of bites from the beginning of the buffer
 /// Sent sequences of bites immediately removed from the buffer
 /// Buffering - is optional
+#[derive(Debug)]
 pub struct TcpStreamWrite {
     id: String,
     // buffered: bool,

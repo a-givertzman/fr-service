@@ -30,3 +30,5 @@ pub mod queue_name;
 pub mod server;
 
 pub mod app;
+
+pub mod safe_lock;

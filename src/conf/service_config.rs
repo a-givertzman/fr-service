@@ -156,7 +156,7 @@ impl ServiceConfig {
                 }.unwrap().as_i64().unwrap();
                 Ok((keyword.name(), max_length))
             },
-            Err(err) => Err(format!("{}.getQueue | {} queue - not found in: {:?}\n\terror: {:?}", self.id, prefix, self.conf, err)),
+            Err(err) => Err(format!("{}.getQueue | {} queue - not found in: {:#?}\n\terror: {:?}", self.id, prefix, self.conf, err)),
         }        
     }    
     ///
@@ -169,7 +169,7 @@ impl ServiceConfig {
                 debug!("{}.getQueue | self out-queue params {}: {:?}", self.id, name, tx_name);
                 Ok(tx_name.conf.as_str().unwrap().to_string())
             },
-            Err(err) => Err(format!("{}.getQueue | {} queue - not found in: {:?}\n\terror: {:?}", self.id, prefix, self.conf, err)),
+            Err(err) => Err(format!("{}.getQueue | {} queue - not found in: {:#?}\n\terror: {:?}", self.id, prefix, self.conf, err)),
         }        
     }    
 }

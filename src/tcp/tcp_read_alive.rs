@@ -6,11 +6,12 @@ use std::{
 };
 use crate::{core_::{
     net::connection_status::ConnectionStatus, point::point_type::PointType
-}, services::task::service_cycle::ServiceCycle};
+}, services::{safe_lock::SafeLock, task::service_cycle::ServiceCycle}};
 use super::steam_read::TcpStreamRead;
 
 ///
 /// Transfering points from JdsStream (socket) to the Channel Sender<PointType>
+#[derive(Debug)]
 pub struct TcpReadAlive {
     id: String,
     stream_read: Arc<Mutex<dyn TcpStreamRead>>,
@@ -57,7 +58,7 @@ impl TcpReadAlive {
         let handle = thread::Builder::new().name(format!("{} - Read", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
             let mut tcp_stream = BufReader::new(tcp_stream);
-            let mut jds_stream = jds_stream.lock().unwrap();
+            let mut jds_stream = jds_stream.slock();
             info!("{}.run | Main loop started", self_id);
             loop {
                 cycle.start();

@@ -53,7 +53,7 @@ mod multi_queue {
                 Some(total_count)
             )));
             let receiver_id = format!("Receiver{}", i + 1);
-            services.lock().unwrap().insert(&receiver_id, receiver.clone());
+            services.lock().unwrap().insert(receiver.clone());
             receivers.insert(receiver_id.clone(), receiver);
             println!(" Receiver {} created", receiver_id);
         }
@@ -69,7 +69,7 @@ mod multi_queue {
         )));
         println!(" Creating Mock Multiqueue - ok");
         println!(" Inserting Mock Multiqueue into Services...");
-        services.lock().unwrap().insert("MultiQueue", mq_service.clone());
+        services.lock().unwrap().insert(mq_service.clone());
         println!(" Inserting Mock Multiqueue into Services - ok");
         let test_data = RandomTestValues::new(
             self_id, 
@@ -159,7 +159,7 @@ mod multi_queue {
                 Some(total_count)
             )));
             let receiver_id = format!("Receiver{}", i + 1);
-            services.lock().unwrap().insert(&receiver_id, receiver.clone());
+            services.lock().unwrap().insert(receiver.clone());
             receivers.insert(receiver_id.clone(), receiver);
             println!(" Receiver {} created", receiver_id);
         }
@@ -175,7 +175,7 @@ mod multi_queue {
         )));
         println!(" Creating Mock Multiqueue - ok");
         println!(" Inserting Mock Multiqueue into Services...");
-        services.lock().unwrap().insert("MultiQueue", mq_service.clone());
+        services.lock().unwrap().insert(mq_service.clone());
         println!(" Inserting Mock Multiqueue into Services - ok");
         let test_data = RandomTestValues::new(
             self_id, 

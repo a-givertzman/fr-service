@@ -1,12 +1,10 @@
 #![allow(non_snake_case)]
-
-use std::{sync::{mpsc::{Sender, Receiver}, Arc, atomic::{AtomicBool, Ordering}, Mutex}, thread::{self, JoinHandle}};
-
+use std::{fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{Receiver, Sender}, Arc, Mutex}, thread::{self, JoinHandle}};
 use log::{warn, info};
-
 use crate::{core_::{object::object::Object, point::point_type::PointType}, services::service::{service::Service, service_handles::ServiceHandles}};
-
-pub struct MockMultiqueue {
+///
+/// 
+pub struct MockMultiQueue {
     id: String,
     send: Sender<PointType>,
     recv: Vec<Receiver<PointType>>,
@@ -14,11 +12,11 @@ pub struct MockMultiqueue {
     recvLimit: Option<usize>,
     exit: Arc<AtomicBool>,
 }
-impl MockMultiqueue {
+impl MockMultiQueue {
     pub fn new(recvLimit: Option<usize>) -> Self {
         let (send, recv) = std::sync::mpsc::channel();
         Self {
-            id: "MockMultiqueue".to_owned(),
+            id: "MockMultiQueue".to_owned(),
             send,
             recv: vec![recv],
             received: Arc::new(Mutex::new(vec![])),
@@ -32,14 +30,24 @@ impl MockMultiqueue {
 }
 ///
 /// 
-impl Object for MockMultiqueue {
+impl Object for MockMultiQueue {
     fn id(&self) -> &str {
         &self.id
     }
 }
 ///
 /// 
-impl Service for MockMultiqueue {
+impl Debug for MockMultiQueue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("MockMultiQueue")
+            .field("id", &self.id)
+            .finish()
+    }
+}
+///
+/// 
+impl Service for MockMultiQueue {
     //
     //
     fn get_link(&mut self, name: &str) -> Sender<PointType> {

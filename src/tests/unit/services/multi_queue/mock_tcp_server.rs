@@ -1,14 +1,13 @@
 #![allow(non_snake_case)]
-
 use log::{info, warn, debug, trace};
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread};
+use std::{fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread};
 use testing::entities::test_value::Value;
 use crate::{
     core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, 
-    services::{queue_name::QueueName, service::{service::Service, service_handles::ServiceHandles}, services::Services},
+    services::{queue_name::QueueName, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services},
 };
-
-
+///
+///
 pub struct MockTcpServer {
     id: String,
     // rxSend: HashMap<String, Sender<PointType>>,
@@ -63,16 +62,17 @@ impl Object for MockTcpServer {
 }
 ///
 /// 
-impl Service for MockTcpServer {
-    //
-    //
-    fn get_link(&mut self, _name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
-        panic!("{}.get_link | Does not support static producer", self.id())
-        // match self.rxSend.get(name) {
-        //     Some(send) => send.clone(),
-        //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
-        // }
+impl Debug for MockTcpServer {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("MockTcpServer")
+            .field("id", &self.id)
+            .finish()
     }
+}
+///
+/// 
+impl Service for MockTcpServer {
     //
     //
     fn run(&mut self) -> Result<ServiceHandles, String> {
@@ -82,8 +82,10 @@ impl Service for MockTcpServer {
         let mqServiceName = QueueName::new(&self.multiQueue);
         let mqServiceName = mqServiceName.service();
         debug!("{}.run | Lock services...", self_id);
-        let (_, rxRecv) = self.services.lock().unwrap().subscribe(mqServiceName, &self_id, &vec![]);
-        let txSend = self.services.lock().unwrap().get_link(&self.multiQueue);
+        let (_, rxRecv) = self.services.slock().subscribe(mqServiceName, &self_id, &vec![]);
+        let txSend = self.services.slock().get_link(&self.multiQueue).unwrap_or_else(|err| {
+            panic!("{}.run | services.get_link error: {:#?}", self_id, err);
+        });
         debug!("{}.run | Lock services - ok", self_id);
         let received = self.received.clone();
         let recvLimit = self.recvLimit.clone();

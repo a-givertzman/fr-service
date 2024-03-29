@@ -1,12 +1,11 @@
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{JoinHandle, self}, net::TcpStream, time::Duration};
 use log::{warn, info};
 use crate::{
-    core_::net::connection_status::ConnectionStatus,
-    tcp::tcp_stream_write::TcpStreamWrite, services::task::service_cycle::ServiceCycle, 
+    core_::net::connection_status::ConnectionStatus, services::{safe_lock::SafeLock, task::service_cycle::ServiceCycle}, tcp::tcp_stream_write::TcpStreamWrite 
 };
-
 ///
 /// Transfering points from Channel Sender<PointType> to the JdsStream (socket)
+#[derive(Debug)]
 pub struct TcpWriteAlive {
     id: String,
     cycle: Duration,
@@ -14,6 +13,8 @@ pub struct TcpWriteAlive {
     exit: Arc<AtomicBool>,
     exit_pair: Arc<AtomicBool>,
 }
+///
+/// 
 impl TcpWriteAlive {
     ///
     /// Creates new instance of [TcpWriteAlive]
@@ -41,7 +42,7 @@ impl TcpWriteAlive {
         info!("{}.run | Preparing thread...", self.id);
         let handle = thread::Builder::new().name(format!("{} - Write", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
-            let mut stream_write = stream_write.lock().unwrap();
+            let mut stream_write = stream_write.slock();
             info!("{}.run | Main loop started", self_id);
             'main: loop {
                 cycle.start();

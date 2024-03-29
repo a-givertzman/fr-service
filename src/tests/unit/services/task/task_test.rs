@@ -1,7 +1,7 @@
 #[cfg(test)]
 
 mod task {
-    use log::{trace, info, debug};
+    use log::{trace, info};
     use std::{env, sync::{Arc, Mutex, Once}, thread, time::{Duration, Instant}};
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
@@ -43,14 +43,13 @@ mod task {
         let path = "./src/tests/unit/services/task/task_test_struct.yaml";
         let config = TaskConfig::read(path);
         trace!("config: {:?}", &config);
-        
         let services = Arc::new(Mutex::new(Services::new(self_id)));
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
             self_id,
             "in-queue",
             iterations,
         )));
-        services.lock().unwrap().insert("TaskTestReceiver", receiver.clone());
+        services.lock().unwrap().insert(receiver.clone());      // "TaskTestReceiver", 
         let test_data = RandomTestValues::new(
             self_id, 
             vec![
@@ -74,13 +73,13 @@ mod task {
         assert!(total_count == iterations, "\nresult: {:?}\ntarget: {:?}", total_count, iterations);
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             self_id, 
-            "Task.recv-queue",
+            &format!("{}/Task1.in-queue", self_id),
             Duration::ZERO,
             services.clone(),
             test_data,
         )));
         let task = Arc::new(Mutex::new(Task::new(self_id, config, services.clone())));
-        services.lock().unwrap().insert("Task", task.clone());
+        services.lock().unwrap().insert(task.clone());
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         info!("receiver runing - ok");
         let task_handle = task.lock().unwrap().run().unwrap();
@@ -105,8 +104,8 @@ mod task {
     }
     ///
     /// 
-    #[ignore = "TODO - transfered values assertion not implemented yet"]
     #[test]
+    #[ignore = "TODO - transfered values assertion not implemented yet"]
     fn transfer() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
@@ -127,7 +126,7 @@ mod task {
             "in-queue",
             iterations,
         )));
-        services.lock().unwrap().insert("TaskTestReceiver", receiver.clone());
+        services.lock().unwrap().insert(receiver.clone());      // "TaskTestReceiver", 
         let test_data = RandomTestValues::new(
             self_id, 
             vec![
@@ -150,13 +149,13 @@ mod task {
         // let totalCount = test_data.len();
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             self_id,
-            "Task.recv-queue",
+            "Task.in-queue",
             Duration::ZERO,
             services.clone(),
             test_data,
         )));
         let task = Arc::new(Mutex::new(Task::new(self_id, config, services.clone())));
-        services.lock().unwrap().insert("Task", task.clone());
+        services.lock().unwrap().insert(task.clone());      // "Task", 
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         let producer_handle = producer.lock().unwrap().run().unwrap();
         trace!("task runing...");

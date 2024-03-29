@@ -58,6 +58,11 @@ mod conf_subscribe {
                 type: 'Real'
                 address:
                     offset: 16"#,
+            r#"point Drive.Torque1: 
+                type: 'Real'
+                address:
+                    offset: 16
+                alarm: 1"#,                    
         ];
         let points = points.map(|conf| {
             let conf = serde_yaml::from_str(conf).unwrap();
@@ -84,15 +89,36 @@ mod conf_subscribe {
             (
                 r#"
                     subscribe: 
-                        MultiQueue:
+                        App/MultiQueue:
                             Inf: []
                 "#,
-                HashMap::from([("MultiQueue".to_owned(), Some(vec![
+                HashMap::from([("App/MultiQueue".to_owned(), Some(vec![
                     SubscriptionCriteria::new(PointName::new(self_id, "Drive.Speed").full(), Cot::Inf),
                     SubscriptionCriteria::new(PointName::new(self_id, "Drive.OutputVoltage").full(), Cot::Inf),
                     SubscriptionCriteria::new(PointName::new(self_id, "Drive.DCVoltage").full(), Cot::Inf),
                     SubscriptionCriteria::new(PointName::new(self_id, "Drive.Current").full(), Cot::Inf),
                     SubscriptionCriteria::new(PointName::new(self_id, "Drive.Torque").full(), Cot::Inf),
+                    SubscriptionCriteria::new(PointName::new(self_id, "Drive.Torque1").full(), Cot::Inf),
+                ]))])
+            ),
+            (
+                r#"
+                    subscribe: 
+                        App/MultiQueue:
+                            {history: rw}: []
+                "#,
+                HashMap::from([("App/MultiQueue".to_owned(), Some(vec![
+                    SubscriptionCriteria::new(PointName::new(self_id, "Drive.Current").full(), Cot::All),
+                ]))])
+            ),
+            (
+                r#"
+                    subscribe: 
+                        App/MultiQueue:
+                            {alarm: 1}: []
+                "#,
+                HashMap::from([("App/MultiQueue".to_owned(), Some(vec![
+                    SubscriptionCriteria::new(PointName::new(self_id, "Drive.Torque1").full(), Cot::All),
                 ]))])
             ),
             (

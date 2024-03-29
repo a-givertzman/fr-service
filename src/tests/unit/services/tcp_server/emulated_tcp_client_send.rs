@@ -1,13 +1,15 @@
 use log::{info, warn, debug};
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc}, thread, time::Duration, net::{TcpStream, SocketAddr}, io::Write};
+use std::{fmt::Debug, io::Write, net::{SocketAddr, TcpStream}, sync::{atomic::{AtomicBool, Ordering}, mpsc, Arc, Mutex}, thread, time::Duration};
 use testing::entities::test_value::Value;
 use crate::{
     conf::point_config::point_name::PointName, core_::{
-        net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}, state::{switch_state::{Switch, SwitchCondition, SwitchState}, switch_state_changed::SwitchStateChanged}
-    }, services::service::{service::Service, service_handles::ServiceHandles}, tcp::steam_read::StreamRead 
+        net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, 
+        object::object::Object, 
+        point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}, 
+        state::{switch_state::{Switch, SwitchCondition, SwitchState}, switch_state_changed::SwitchStateChanged},
+    }, 
+    services::service::{service::Service, service_handles::ServiceHandles}, tcp::steam_read::StreamRead,
 };
-
-
 ///
 /// Jast connects to the tcp socket on [address]
 /// - all point from [test_data] will be sent via socket
@@ -103,6 +105,16 @@ impl EmulatedTcpClientSend {
 impl Object for EmulatedTcpClientSend {
     fn id(&self) -> &str {
         &self.id
+    }
+}
+///
+/// 
+impl Debug for EmulatedTcpClientSend {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("EmulatedTcpClientSend")
+            .field("id", &self.id)
+            .finish()
     }
 }
 ///

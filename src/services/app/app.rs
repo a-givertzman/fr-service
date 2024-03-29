@@ -18,7 +18,7 @@ use crate::{
         tcp_server_config::TcpServerConfig,
     }, 
     services::{
-        api_cient::api_client::ApiClient, multi_queue::multi_queue::MultiQueue, profinet_client::profinet_client::ProfinetClient, server::tcp_server::TcpServer, service::{service::Service, service_handles::ServiceHandles}, services::{Services, ServicesBasic}, task::task::Task, tcp_client::tcp_client::TcpClient
+        api_cient::api_client::ApiClient, multi_queue::multi_queue::MultiQueue, profinet_client::profinet_client::ProfinetClient, safe_lock::SafeLock, server::tcp_server::TcpServer, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::task::Task, tcp_client::tcp_client::TcpClient
     },
 };
 
@@ -63,17 +63,17 @@ impl App {
             info!("{}.run |         Configuring service: {}({})...", self_id, node_name, node_sufix);
             debug!("{}.run |         Config: {:#?}", self_id, node_conf);
             let service = Self::match_service(&self_id, &self_path, &node_name, &node_sufix, &mut node_conf, services.clone());
-            let id = if node_sufix.is_empty() {&node_name} else {&node_sufix};
-            services.lock().unwrap().insert(id, service);
+            // let id = if node_sufix.is_empty() {&node_name} else {&node_sufix};
+            services.slock().insert(service);
             info!("{}.run |         Configuring service: {}({}) - ok\n", self_id, node_name, node_sufix);
         }
         info!("{}.run |     All services configured\n", self_id);
         thread::sleep(Duration::from_millis(1000));
         info!("{}.run |     Starting services...", self_id);
-        let services_iter = services.lock().unwrap().all();
+        let services_iter = services.slock().all();
         for (name, service) in services_iter {
             info!("{}.run |         Starting service: {}...", self_id, name);
-            let handles = service.lock().unwrap().run();
+            let handles = service.slock().run();
             match handles {
                 Ok(handles) => {
                     app.write().unwrap().insert_handles(&name, handles);
@@ -113,10 +113,10 @@ impl App {
                                 SIGINT | SIGQUIT | SIGTERM => {
                                     println!("{}.run Received signal {:?}", self_id, signal);
                                     println!("{}.run Application exit...", self_id);
-                                    let services_iter = services_clone.lock().unwrap().all();
+                                    let services_iter = services_clone.slock().all();
                                     for (_id, service) in services_iter {
                                         println!("{}.run Stopping service '{}'...", self_id, _id);
-                                        service.lock().unwrap().exit();
+                                        service.slock().exit();
                                         println!("{}.run Stopping service '{}' - Ok", self_id, _id);
                                     }
                                     break;
@@ -161,22 +161,22 @@ impl App {
     /// 
     fn match_service(self_id: &str, path: &str, node_name: &str, node_sufix: &str, node_conf: &mut ConfTree, services: Arc<Mutex<Services>>) -> Arc<Mutex<dyn Service + Send>> {
         match node_name {
-            ServicesBasic::API_CLIENT => {
+            Services::API_CLIENT => {
                 Arc::new(Mutex::new(ApiClient::new(path, ApiClientConfig::new(node_conf))))
             },
-            ServicesBasic::MULTI_QUEUE => {
+            Services::MULTI_QUEUE => {
                 Arc::new(Mutex::new(MultiQueue::new(path, MultiQueueConfig::new(node_conf), services)))
             },
-            ServicesBasic::PROFINET_CLIENT => {
+            Services::PROFINET_CLIENT => {
                 Arc::new(Mutex::new(ProfinetClient::new(path, path, ProfinetClientConfig::new(node_conf), services)))
             },
-            ServicesBasic::TASK => {
+            Services::TASK => {
                 Arc::new(Mutex::new(Task::new(path, TaskConfig::new(node_conf), services.clone())))
             },
-            ServicesBasic::TCP_CLIENT => {
+            Services::TCP_CLIENT => {
                 Arc::new(Mutex::new(TcpClient::new(path, TcpClientConfig::new(node_conf), services.clone())))
             },
-            ServicesBasic::TCP_SERVER => {
+            Services::TCP_SERVER => {
                 Arc::new(Mutex::new(TcpServer::new(path, path, TcpServerConfig::new(node_conf), services.clone())))
             },
             _ => {

@@ -89,7 +89,7 @@ impl FnOut for FnAdd {
 /// 
 impl FnInOut for FnAdd {}
 ///
-/// Global static counter of FnOut instances
+/// Global static counter of FnAdd instances
 static COUNT: AtomicUsize = AtomicUsize::new(0);
 
 

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread};
+use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread};
 use log::{info, warn, trace, debug};
 use crate::{core_::{object::object::Object, point::point_type::PointType}, services::service::{service::Service, service_handles::ServiceHandles}};
 ///
@@ -38,6 +38,16 @@ impl TaskTestReceiver {
 impl Object for TaskTestReceiver {
     fn id(&self) -> &str {
         &self.id
+    }
+}
+///
+/// 
+impl Debug for TaskTestReceiver {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("TaskTestReceiver")
+            .field("id", &self.id)
+            .finish()
     }
 }
 ///

@@ -1,7 +1,7 @@
 use std::{collections::HashMap, sync::{Arc, Mutex, RwLock}};
 use log::{debug, warn};
 use serde_json::json;
-use crate::{conf::point_config::{point_config::PointConfig, point_name::PointName}, core_::{auth::ssh::auth_ssh::AuthSsh, cot::cot::Cot, net::protocols::jds::{jds_routes::RouterReply, request_kind::RequestKind}, point::{point::Point, point_type::PointType}, status::status::Status}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, server::tcp_server_cnnection::JdsState, services::Services}};
+use crate::{conf::point_config::{point_config::PointConfig, point_name::PointName}, core_::{auth::ssh::auth_ssh::AuthSsh, cot::cot::Cot, net::protocols::jds::{jds_routes::RouterReply, request_kind::RequestKind}, point::{point::Point, point_type::PointType}, status::status::Status}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, safe_lock::SafeLock, server::tcp_server_cnnection::JdsState, services::Services}};
 use super::tcp_server_cnnection::Shared;
 
 pub struct JdsConnection {}
@@ -79,7 +79,7 @@ impl JdsConnection {
             },
             RequestKind::Points => {
                 debug!("{}/JdsConnection.handle_request | Request '{}': \n\t{:?}", parent, RequestKind::POINTS, request);
-                let points = services.lock().unwrap().points();
+                let points = services.slock().points(parent);
                 let points: HashMap<String, &PointConfig> = points.iter().map(|conf| {
                     (conf.name.clone(), conf)
                 }).collect();
@@ -117,7 +117,7 @@ impl JdsConnection {
                             },
                             None => {
                                 debug!("{}.handle_request | 'Subscribe' request (broadcast): {:?}", parent, request);
-                                services.lock().unwrap().points().iter().fold(vec![], |mut points, point_conf| {
+                                services.slock().points(parent).iter().fold(vec![], |mut points, point_conf| {
                                     points.extend(
                                         Self::map_points_to_creteria(&point_conf.name, vec![Cot::Inf, Cot::ActCon, Cot::ActErr])
                                     );
@@ -128,7 +128,7 @@ impl JdsConnection {
                     },
                     Err(err) => {
                         warn!("{}.handle_request | 'Subscribe' request parsing error: {:?}\n\t request: {:?}", parent, err, request);
-                        services.lock().unwrap().points().iter().fold(vec![], |mut points, point_conf| {
+                        services.slock().points(parent).iter().fold(vec![], |mut points, point_conf| {
                             points.extend(
                                 Self::map_points_to_creteria(&point_conf.name, vec![Cot::Inf, Cot::ActCon, Cot::ActErr])
                             );
@@ -136,7 +136,7 @@ impl JdsConnection {
                         })
                     },
                 };
-                let (cot, message) = match services.lock().unwrap().extend_subscription(&shared.tx_queue_name, parent, &points) {
+                let (cot, message) = match services.slock().extend_subscription(&shared.tx_queue_name, parent, &points) {
                     Ok(_) => (Cot::ReqCon, "".to_owned()),
                     Err(err) => {
                         let message = format!("{}.handle_request | extend_subscription failed with error: {:?}", parent, err);

@@ -10,6 +10,7 @@ use super::jds_decode_message::JdsDecodeMessage;
 ///
 /// Converts squence of bytes into the PointType
 /// useng bytes -> JSON -> Point<type> PointType conversion
+#[derive(Debug)]
 pub struct JdsDeserialize {
     id: String,
     tx_id: usize,

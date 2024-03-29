@@ -8,6 +8,7 @@ use crate::{
 ///
 /// Converts PointType into the squence of bytes
 /// useng PointType -> Point<type> -> JSON -> bytes conversion
+#[derive(Debug)]
 pub struct JdsSerialize {
     id: String,
     stream: Receiver<PointType>,

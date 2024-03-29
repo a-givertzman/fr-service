@@ -135,7 +135,7 @@ impl TaskNodes {
                     };
                 };
                 let inputs = out.borrow().inputs();
-                debug!("{}.finishNewNode | out {:?} \n\tdipending on inputs:: {:?}\n", self.id, &out, inputs);
+                trace!("{}.finishNewNode | out {:#?} \n\tdipending on inputs:: {:#?}\n", self.id, &out, inputs);
                 for inputName in inputs {
                     match self.inputs.get_mut(&inputName) {
                         Some(evalNode) => {

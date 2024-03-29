@@ -327,8 +327,29 @@ impl FnConfig {
     /// Returns list of configurations of the defined points
     pub fn points(&self) -> Vec<PointConfig> {
         let mut points = vec![];
-        for (_, input_kind) in &self.inputs {
-            let mut input_points = input_kind.points();
+        debug!("FnConfig.points | requesting points...");
+        for (input_name, input_kind) in &self.inputs {
+            debug!("FnConfig({}).points | requesting points from {}: {:#?}...", self.name, input_name, input_kind);
+            let mut input_points = match input_kind {
+                FnConfKind::Fn(config) => {
+                    config.points()
+                },
+                FnConfKind::Var(config) => {
+                    config.points()
+                },
+                FnConfKind::Const(config) => {
+                    config.points()
+                },
+                FnConfKind::Point(config) => {
+                    config.points()
+                },
+                FnConfKind::PointConf(config) => {
+                    config.points()
+                },
+                FnConfKind::Param(_) => {
+                    vec![]
+                },
+            };
             points.append(&mut input_points);
         }
         points

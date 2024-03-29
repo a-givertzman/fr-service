@@ -1,4 +1,4 @@
-service Task task1:
+service Task Task1:
     cycle: 1 us
     
     in queue api-link:
@@ -12,8 +12,7 @@ service Task task1:
     let Var3:
         input: point int '/path/Point.Name3'
 
-    fn ToApiQueue:
-        queue: ApiClient.queue
+    fn debug:
         input fn SqlMetric:
             initial: 0.123      # начальное значение
             table: table_name

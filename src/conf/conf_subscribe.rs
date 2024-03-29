@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use log::trace;
+use log::{debug, trace};
 use crate::{core_::cot::cot::Cot, services::multi_queue::subscription_criteria::SubscriptionCriteria};
 use super::point_config::{point_config::PointConfig, point_config_history::PointConfigHistory};
 ///
@@ -14,9 +14,14 @@ use super::point_config::{point_config::PointConfig, point_config_history::Point
 /// subscibe: 
 ///     MultiQueue:         # - multicast subscription to the MultiQueue
 ///         Inf: []         #   - on all points having Cot::Inf
+/// ------------------------------------------------------------------------------------------
 /// subscribe: 
 ///     MultiQueue:                     # - multicast subscription to the MultiQueue
 ///         {cot: Inf, history: r}: []  #   - on all points having Cot::Inf and history::read
+/// ------------------------------------------------------------------------------------------
+/// subscribe: 
+///     MultiQueue:                     # - multicast subscription to the MultiQueue
+///         {history: rw}: []            #   - on all points having history::read or history::write and Cot::All
 /// ------------------------------------------------------------------------------------------
 /// subscibe:
 ///     MultiQueue:                         # - multicast subscription to the MultiQueue
@@ -122,7 +127,7 @@ impl Criterias {
                 } else {
                     for (options, names) in conf {
                         let criterias = Self::build_criterias(&self.id, options, names, &self.points);
-                        trace!("{}.new | criterias: {:?}", self.id, criterias);
+                        trace!("{}.build | criterias: {:#?}", self.id, criterias);
                         if let Some(mut criterias) = criterias {
                             points = points
                                 .as_mut()
@@ -131,7 +136,7 @@ impl Criterias {
                                     Some(v.to_vec())
                                 });
                         }
-                        trace!("{}.new | points: {:?}", self.id, points);
+                        trace!("{}.build | points: {:?}", self.id, points);
                     }
                 }
                 points
@@ -165,7 +170,7 @@ impl Criterias {
             let creterias = point_configs
                 .into_iter()
                 .filter_map(|point_conf| {
-                    Self::accept(&point_conf, &history, &alarm).then_some(SubscriptionCriteria::new(point_conf.name, cot))
+                    Self::accept(self_id, &point_conf, &history, &alarm).then_some(SubscriptionCriteria::new(point_conf.name, cot))
                 });
             if (creterias).clone().peekable().peek().is_some() {
                 Some(creterias.collect())
@@ -193,14 +198,39 @@ impl Criterias {
     /// Returns true if point_config is accepted by the options:
     ///     - alarm
     ///     - history
-    fn accept(point_conf: &PointConfig, history: &Option<PointConfigHistory>, alarm: &Option<u64>) -> bool {
+    fn accept(self_id: &str, point_conf: &PointConfig, history: &Option<PointConfigHistory>, alarm: &Option<u64>) -> bool {
+        trace!("{}.accept | history: {:?}\t point.history: {:?}", self_id, history, point_conf.history);
         let mut accepted = true;
-        if let Some(history) = &history {
-            accepted &= point_conf.history == *history
+        if let Some(history) = history {
+            trace!("{}.accept | check history", self_id);
+            match history {
+                PointConfigHistory::None => {},
+                PointConfigHistory::Read => {
+                    accepted &= point_conf.history == PointConfigHistory::Read
+                },
+                PointConfigHistory::Write => {
+                    accepted &= point_conf.history == PointConfigHistory::Write
+                },
+                PointConfigHistory::ReadWrite => {
+                    trace!("{}.accept | point_conf.history != PointConfigHistory::None: {}", self_id, point_conf.history != PointConfigHistory::None);
+                    accepted &= point_conf.history != PointConfigHistory::None;
+                },
+            };
         }
+        trace!("{}.accept | accepted: {}", self_id, accepted);
         if let Some(alarm) = alarm {
-            accepted &= point_conf.alarm.map(|v| v != (*alarm as u8)).unwrap_or(true);
+            trace!("{}.accept | check alarm", self_id);
+            if *alarm == 0 {
+                accepted &= point_conf.alarm.map(|point_alarm| {
+                    point_alarm == 0
+                }).unwrap_or(true);
+            } else {
+                accepted &= point_conf.alarm.map(|point_alarm| {
+                    point_alarm >= (*alarm as u8)
+                }).unwrap_or(false);
+            }
         }
+        trace!("{}.accept | accepted: {}", self_id, accepted);
         accepted
     }    
 }

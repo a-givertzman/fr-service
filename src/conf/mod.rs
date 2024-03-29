@@ -30,7 +30,7 @@ pub mod jds_service_config;
 
 // pub mod services;
 
-pub mod history_config;
+// pub mod history_config;
 
 pub mod conf_subscribe;
 
