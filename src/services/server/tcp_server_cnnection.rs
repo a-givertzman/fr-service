@@ -1,12 +1,10 @@
 use std::{
     thread, 
     time::{Duration, Instant},
-    collections::HashMap, hash::BuildHasherDefault, 
     sync::{atomic::{AtomicBool, Ordering}, 
     mpsc::{Receiver, RecvTimeoutError}, Arc, Mutex, RwLock}, 
 };
-use hashers::fx_hash::FxHasher;
-use log::{debug, info, warn};
+use log::{debug, info, trace, warn};
 use serde_json::json;
 use crate::{
     conf::tcp_server_config::TcpServerConfig, 
@@ -103,10 +101,11 @@ impl TcpServerConnection {
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
-            let receivers = Arc::new(RwLock::new(
-                HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default()),
-            ));
-            receivers.write().unwrap().insert(Cot::Req, services.slock().get_link(&self_conf_tx));
+            // let receivers = Arc::new(RwLock::new(
+            //     HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default()),
+            // ));
+            // let receiver = services.slock().get_link(&self_conf_tx).unwrap();
+            // receivers.write().unwrap().insert(Cot::Req, receiver);
             // let recv = services.slock().get_link(&self_conf_tx);
             let points = services.slock().points(&self_id).iter().fold(vec![], |mut points, point_conf| {
                 // points.push(SubscriptionCriteria::new(&point_conf.name, Cot::Inf));
@@ -140,7 +139,7 @@ impl TcpServerConnection {
                         let parent: String = parent;
                         let path: String = path;
                         let point: PointType = point;
-                        println!("{}.run | point from socket: \n\t{:?}", path, point);
+                        trace!("{}.run | point from socket: \n\t{:?}", path, point);
                         match point.cot() {
                             Cot::Req => JdsConnection::handle_request(&parent, &path, 0, point, services, shared),
                             _        => {

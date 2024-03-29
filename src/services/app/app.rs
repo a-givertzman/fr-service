@@ -1,4 +1,4 @@
-use log::{debug, error, info};
+use log::{debug, error, info, trace};
 use std::{collections::HashMap, process::exit, sync::{Arc, Mutex, RwLock}, thread, time::Duration};
 use libc::{
     SIGABRT, SIGHUP, SIGINT, SIGKILL, SIGQUIT, SIGTERM, SIGUSR1, SIGUSR2,
@@ -61,7 +61,7 @@ impl App {
             let node_name = node_keywd.name();
             let node_sufix = node_keywd.sufix();
             info!("{}.run |         Configuring service: {}({})...", self_id, node_name, node_sufix);
-            debug!("{}.run |         Config: {:#?}", self_id, node_conf);
+            trace!("{}.run |         Config: {:#?}", self_id, node_conf);
             let service = Self::match_service(&self_id, &self_path, &node_name, &node_sufix, &mut node_conf, services.clone());
             // let id = if node_sufix.is_empty() {&node_name} else {&node_sufix};
             services.slock().insert(service);
@@ -83,6 +83,7 @@ impl App {
                     error!("{}.run |         Error starting service '{}': {:#?}", self_id, name, err);
                 },
             };
+            thread::sleep(Duration::from_millis(100));
         }
         info!("{}.run |     All services started\n", self_id);
         info!("{}.run | Application started\n", self_id);

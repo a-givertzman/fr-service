@@ -15,7 +15,7 @@ service Task HistoryTask:
         max-length: 10000
     subscribe: 
         App/MultiQueue:                     # - multicast subscription to the MultiQueue
-            {history: rw}: []               #   - on all points having Cot::Inf and history::read
+            {history: rw}: []               #   - on all points having Cot::All and history::ReadWrite
 
     fn ToApiQueue:
         queue: App/ApiClient.in-queue

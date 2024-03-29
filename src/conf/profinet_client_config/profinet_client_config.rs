@@ -57,7 +57,7 @@ impl ProfinetClientConfig {
     /// Creates new instance of the [ProfinetClientConfig]:
     pub fn new(conf_tree: &mut ConfTree) -> Self {
         println!();
-        debug!("ProfinetClientConfig.new | conf_tree: {:#?}", conf_tree);
+        trace!("ProfinetClientConfig.new | conf_tree: {:#?}", conf_tree);
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item
         let self_id = format!("ProfinetClientConfig({})", conf_tree.key);

@@ -47,7 +47,8 @@ impl Task {
         } else {
             debug!("{}.subscribe | requesting points...", self.id);
             let points = services.slock().points(&self.id);
-            debug!("{}.subscribe | rceived points: {:#?}", self.id, points);
+            debug!("{}.subscribe | rceived points: {:#?}", self.id, points.len());
+            trace!("{}.subscribe | rceived points: {:#?}", self.id, points);
             debug!("{}.subscribe | subscriptions conf: {:#?}", self.id, conf.subscribe);
             let subscriptions = conf.subscribe.with(&points);
             debug!("{}.subscribe | subscriptions: {:#?}", self.id, subscriptions);

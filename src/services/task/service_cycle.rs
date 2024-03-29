@@ -39,7 +39,7 @@ impl ServiceCycle {
             thread::sleep(remainder);
         }
         if elapsed > self.interval {
-            error!("{}.wait | exceeded: {:?}", self.id, elapsed - self.interval);
+            trace!("{}.wait | exceeded: {:?}", self.id, elapsed - self.interval);
         }
     }
     ///
