@@ -1,4 +1,4 @@
-use log::{debug, error, info, trace};
+use log::{error, info, trace};
 use std::{collections::HashMap, process::exit, sync::{Arc, Mutex, RwLock}, thread, time::Duration};
 use libc::{
     SIGABRT, SIGHUP, SIGINT, SIGKILL, SIGQUIT, SIGTERM, SIGUSR1, SIGUSR2,
