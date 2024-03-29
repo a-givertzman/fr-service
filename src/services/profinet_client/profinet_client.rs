@@ -323,21 +323,12 @@ impl ConnectionNotify {
     ///
     /// Add new state
     pub fn add(&mut self, connected: bool, message: &str) {
-        match self.is_connected {
-            Some(is_connected) => {
-                if Some(connected) != self.is_connected {
-                    self.is_connected = Some(connected);
-                    if let Some(_) = self.is_connected {
-                        (self.on_connected)(message)
-                    } else {
-                        (self.on_disconnected)(message)
-                    }
-                }
-            },
-            None => {
-                (self.on_disconnected)(message);
-                self.is_connected = Some(false);
-            },
-        };
+        if Some(connected) != self.is_connected {
+            self.is_connected = Some(connected);
+            match connected {
+                true => (self.on_connected)(message),
+                false => (self.on_disconnected)(message),
+            }
+        }
     }
 }
