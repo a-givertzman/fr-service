@@ -1,6 +1,6 @@
 pub mod lock_timer;
 use std::{net::TcpStream, sync::{mpsc::Receiver, Arc, Mutex, MutexGuard}, thread, time::Duration};
-use log::info;
+use log::{info, trace};
 use crate::{services::safe_lock::lock_timer::LockTimer, tcp::{steam_read::TcpStreamRead, tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive}};
 use super::{multi_queue::subscriptions::Subscriptions, server::connections::TcpServerConnections, service::service::Service, services::Services};
 ///
@@ -49,9 +49,9 @@ impl SafeLock<Subscriptions> for Arc<Mutex<Subscriptions>> {
         let thread_name = thread::current().name().unwrap().to_owned();
         let lock_timer = LockTimer::new(&self_id, Duration::from_millis(DEDLOCK_TIMEOUT));
         lock_timer.run().unwrap();
-        info!("SafeLock.slock | Tread '{}' -> Lock {:?}...", thread_name, self_id);
+        trace!("SafeLock.slock | Tread '{}' -> Lock {:?}...", thread_name, self_id);
         let mutax_guard = self.lock().unwrap();
-        info!("SafeLock.slock | Tread '{}' -> Lock {:?} - ok", thread_name, self_id);
+        trace!("SafeLock.slock | Tread '{}' -> Lock {:?} - ok", thread_name, self_id);
         lock_timer.exit();
         mutax_guard
     }

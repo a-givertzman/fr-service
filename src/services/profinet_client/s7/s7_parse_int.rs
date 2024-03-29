@@ -11,7 +11,6 @@ use crate::{
 #[derive(Debug)]
 pub struct S7ParseInt {
     pub tx_id: usize,
-    pub path: String,
     pub name: String,
     pub value: Box<dyn Filter<Item = i64>>,
     pub status: Status,
@@ -28,14 +27,12 @@ impl S7ParseInt {
     ///
     /// 
     pub fn new(
-        path: String,
         name: String,
         config: &PointConfig,
         filter: Box<dyn Filter<Item = i64>>,
     ) -> S7ParseInt {
         S7ParseInt {
             tx_id: 0,
-            path,
             name,
             value: filter,
             status: Status::Invalid,

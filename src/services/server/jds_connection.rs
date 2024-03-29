@@ -1,5 +1,5 @@
 use std::{collections::HashMap, sync::{Arc, Mutex, RwLock}};
-use log::{debug, warn};
+use log::{debug, trace, warn};
 use serde_json::json;
 use crate::{conf::point_config::{point_config::PointConfig, point_name::PointName}, core_::{auth::ssh::auth_ssh::AuthSsh, cot::cot::Cot, net::protocols::jds::{jds_routes::RouterReply, request_kind::RequestKind}, point::{point::Point, point_type::PointType}, status::status::Status}, services::{multi_queue::subscription_criteria::SubscriptionCriteria, safe_lock::SafeLock, server::tcp_server_cnnection::JdsState, services::Services}};
 use super::tcp_server_cnnection::Shared;
@@ -95,17 +95,18 @@ impl JdsConnection {
                         chrono::offset::Utc::now(),
                     ))),
                 );
-                debug!("{}/JdsConnection.handle_request | Reply: \n\t{:?}", parent, reply);
+                trace!("{}/JdsConnection.handle_request | Reply: \n\t{:?}", parent, reply);
                 reply
             },
             RequestKind::Subscribe => {
-                debug!("{}/JdsConnection.handle_request | Request '{}': \n\t{:?}", parent, RequestKind::SUBSCRIBE, request);
+                trace!("{}/JdsConnection.handle_request | Request '{}': \n\t{:?}", parent, RequestKind::SUBSCRIBE, request);
                 let points = match serde_json::from_str(&request.value().as_string()) {
                     Ok(points) => {
                         let points: serde_json::Value = points;
                         match points.as_array() {
                             Some(points) => {
-                                debug!("{}.handle_request | 'Subscribe' request (multicast): {:?}", parent, request);
+                                debug!("{}.handle_request | 'Subscribe' request (multicast)", parent);
+                                trace!("{}.handle_request | 'Subscribe' request (multicast): {:?}", parent, request);
                                 points.iter().fold(vec![], |mut points, point| {
                                     if let Some(point_name) = point.as_str() {
                                         points.extend(
@@ -116,7 +117,8 @@ impl JdsConnection {
                                 })
                             },
                             None => {
-                                debug!("{}.handle_request | 'Subscribe' request (broadcast): {:?}", parent, request);
+                                debug!("{}.handle_request | 'Subscribe' request (broadcast)", parent);
+                                trace!("{}.handle_request | 'Subscribe' request (broadcast): {:?}", parent, request);
                                 services.slock().points(parent).iter().fold(vec![], |mut points, point_conf| {
                                     points.extend(
                                         Self::map_points_to_creteria(&point_conf.name, vec![Cot::Inf, Cot::ActCon, Cot::ActErr])

@@ -2,11 +2,7 @@ use indexmap::IndexMap;
 use log::{debug, trace};
 use std::{fs, str::FromStr, time::Duration};
 use crate::conf::{
-    conf_tree::ConfTree, 
-    point_config::point_config::PointConfig, 
-    service_config::ServiceConfig,
-    profinet_client_config::keywd::{Keywd, Kind}, 
-    profinet_client_config::profinet_db_config::ProfinetDbConfig,
+    conf_tree::ConfTree, point_config::{point_config::PointConfig, point_name::PointName}, profinet_client_config::{keywd::{Keywd, Kind}, profinet_db_config::ProfinetDbConfig}, service_config::ServiceConfig
 };
 ///
 /// creates config from serde_yaml::Value of following format:
@@ -56,6 +52,7 @@ impl ProfinetClientConfig {
     ///
     /// Creates new instance of the [ProfinetClientConfig]:
     pub fn new(conf_tree: &mut ConfTree) -> Self {
+        let app = "App";
         println!();
         trace!("ProfinetClientConfig.new | conf_tree: {:#?}", conf_tree);
         // self conf from first sub node
@@ -94,7 +91,7 @@ impl ProfinetClientConfig {
                 let mut device_conf = self_conf.get(key).unwrap();
                 debug!("{}.new | DB '{}'", self_id, db_name);
                 trace!("{}.new | DB '{}'   |   conf: {:?}", self_id, db_name, device_conf);
-                let node_conf = ProfinetDbConfig::new(&device_name, &db_name, &mut device_conf);
+                let node_conf = ProfinetDbConfig::new(&PointName::new(app, &device_name).full(), &db_name, &mut device_conf);
                 dbs.insert(
                     db_name,
                     node_conf,
