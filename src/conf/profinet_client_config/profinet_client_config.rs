@@ -63,8 +63,8 @@ impl ProfinetClientConfig {
         let self_id = format!("ProfinetClientConfig({})", conf_tree.key);
         let mut self_conf = ServiceConfig::new(&self_id, conf_tree.clone());
         trace!("{}.new | self_conf: {:?}", self_id, self_conf);
-        let self_name = self_conf.name();
-        let device_name = self_conf.sufix();
+        let self_name = self_conf.sufix();      //self_conf.name();
+        let device_name = self_name.clone();    //self_conf.sufix();
         debug!("{}.new | name: {:?}", self_id, self_name);
         let cycle = self_conf.get_duration("cycle");
         debug!("{}.new | cycle: {:?}", self_id, cycle);

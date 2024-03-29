@@ -2,7 +2,7 @@ use std::{sync::mpsc::Sender, time::Duration};
 
 use chrono::Utc;
 use indexmap::IndexMap;
-use log::{debug, warn};
+use log::{trace, warn};
 
 use crate::{
     conf::{
@@ -66,7 +66,7 @@ impl ProfinetDb {
         match client.is_connected() {
             Ok(is_connected) => {
                 if is_connected {
-                    debug!(
+                    trace!(
                         "{}.read | reading DB: {:?}, offset: {:?}, size: {:?}",
                         self.id, self.number, self.offset, self.size
                     );
