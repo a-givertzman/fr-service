@@ -9,17 +9,27 @@ use hashers::fx_hash::FxHasher;
 use log::{debug, info, warn};
 use serde_json::json;
 use crate::{
-    conf::tcp_server_config::TcpServerConfig, 
+    conf::{point_config::name::Name, tcp_server_config::TcpServerConfig}, 
     core_::{
         constants::constants::RECV_TIMEOUT, cot::cot::Cot, net::protocols::jds::{
             jds_decode_message::JdsDecodeMessage, 
             jds_deserialize::JdsDeserialize, 
             jds_encode_message::JdsEncodeMessage, 
-            jds_routes::{JdsRoutes, RouterReply}, jds_serialize::JdsSerialize,
+            jds_serialize::JdsSerialize,
         }, point::point_type::PointType 
     }, 
     services::{
-        multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, safe_lock::SafeLock, server::{connections::Action, jds_connection::JdsConnection, tcp_server_auth::TcpServerAuth}, service::service_handles::ServiceHandles, services::Services
+        multi_queue::subscription_criteria::SubscriptionCriteria, 
+        queue_name::QueueName, 
+        safe_lock::SafeLock, 
+        server::{
+            connections::Action, 
+            jds_request::JdsRequest, 
+            jds_routes::{JdsRoutes, RouterReply}, 
+            jds_auth::TcpServerAuth,
+        }, 
+        service::service_handles::ServiceHandles, 
+        services::Services,
     }, 
     tcp::{tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive},
 };
@@ -46,16 +56,18 @@ impl From<usize> for JdsState {
 /// 
 #[derive(Debug)]
 pub struct Shared {
-    pub tx_queue_name: String,
+    pub subscribe: String,
     pub jds_state: JdsState,
     pub auth: TcpServerAuth,
+    pub connection_id: String,
 }
 
 ///
 /// Single Jds over TCP connection
-pub struct TcpServerConnection {
+pub struct JdsConnection {
     id: String,
-    path: String,
+    name: Name,
+    connection_id: String,
     action_recv: Vec<Receiver<Action>>, 
     services: Arc<Mutex<Services>>, 
     conf: TcpServerConfig, 
@@ -63,15 +75,16 @@ pub struct TcpServerConnection {
 }
 ///
 /// 
-impl TcpServerConnection {
+impl JdsConnection {
     ///
-    /// Creates new instance of the [TcpServerConnection]
+    /// Creates new instance of the [JdsConnection]
     /// - parent - id of the parent
     /// - path - path of the parent
-    pub fn new(parent: impl Into<String>, path: impl Into<String>, action_recv: Receiver<Action>, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>) -> Self {
+    pub fn new(parent_id: &str, parent: &Name, connection_id: &str, action_recv: Receiver<Action>, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>) -> Self {
         Self {
-            id: format!("{}/TcpServerConnection", parent.into()),
-            path: format!("{}/Jds", path.into()),
+            id: format!("{}/JdsConnection/{}", parent_id, connection_id),
+            name: Name::new(parent, "Jds"),
+            connection_id: connection_id.into(),
             action_recv: vec![action_recv],
             services,
             conf,
@@ -83,30 +96,31 @@ impl TcpServerConnection {
     pub fn run(&mut self) -> Result<ServiceHandles, String> {
         info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
-        let self_path = self.path.clone();
+        let self_name = self.name.clone();
         let conf = self.conf.clone();
+        let self_conf_send_to = conf.tx.clone();
+        let subscribe = QueueName::new(&self_conf_send_to).service().to_owned();
         let shared_options: Arc<RwLock<Shared>> = Arc::new(RwLock::new(Shared {
-                tx_queue_name: String::new(), 
+                subscribe: subscribe.clone(), 
                 jds_state: match conf.auth {
                     TcpServerAuth::None => JdsState::Authenticated,
                     _                   => JdsState::Unknown,
                 }, 
-                auth: conf.auth.clone(), 
+                auth: conf.auth.clone(),
+                connection_id: self.connection_id.clone(),
         }));
-        let self_conf_tx = conf.tx.clone();
         let rx_max_length = conf.rx_max_len;
         let exit = self.exit.clone();
         let exit_pair = Arc::new(AtomicBool::new(false));
         let action_recv = self.action_recv.pop().unwrap();
         let services = self.services.clone();
-        let tx_queue_name = QueueName::new(&self_conf_tx);
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
             let receivers = Arc::new(RwLock::new(
                 HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default()),
             ));
-            receivers.write().unwrap().insert(Cot::Req, services.slock().get_link(&self_conf_tx));
+            receivers.write().unwrap().insert(Cot::Req, services.slock().get_link(&self_conf_send_to));
             // let recv = services.slock().get_link(&self_conf_tx);
             let points = services.slock().points(&self_id).iter().fold(vec![], |mut points, point_conf| {
                 // points.push(SubscriptionCriteria::new(&point_conf.name, Cot::Inf));
@@ -116,18 +130,17 @@ impl TcpServerConnection {
                 points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ReqErr));
                 points
             });
-            let send = services.slock().get_link(&self_conf_tx).unwrap_or_else(|err| {
+            let send = services.slock().get_link(&self_conf_send_to).unwrap_or_else(|err| {
                 panic!("{}.run | services.get_link error: {:#?}", self_id, err);
             });
-            println!("{}.run | tx_queue_name: {:?}", self_id, tx_queue_name);
-            let (req_reply_send, recv) = services.slock().subscribe(tx_queue_name.service(), &self_id, &points);
-            shared_options.write().unwrap().tx_queue_name = tx_queue_name.service().to_owned();
+            println!("{}.run | subscribe: {:?}", self_id, subscribe);
+            let (req_reply_send, recv) = services.slock().subscribe(&subscribe, &self_id, &points);
             let buffered = rx_max_length > 0;
             let mut tcp_read_alive = TcpReadAlive::new(
                 &self_id,
                 Arc::new(Mutex::new(JdsRoutes::new(
                     &self_id,
-                    &self_path,
+                    &self_name,
                     services.clone(),
                     JdsDeserialize::new(
                         format!("{}/TcpReadAlive/JdsRoutes", self_id),
@@ -136,38 +149,37 @@ impl TcpServerConnection {
                         ),
                     ),
                     req_reply_send,
-                    |parent, path, point, services, shared| {
-                        let parent: String = parent;
-                        let path: String = path;
+                    |parent_id, parent_name, point, services, shared| {
+                        let parent_id: String = parent_id;
+                        let parent: Name = parent_name;
                         let point: PointType = point;
-                        println!("{}.run | point from socket: \n\t{:?}", path, point);
+                        println!("{}.run | point from socket: \n\t{:?}", parent, point);
                         match point.cot() {
-                            Cot::Req => JdsConnection::handle_request(&parent, &path, 0, point, services, shared),
+                            Cot::Req => JdsRequest::handle(&parent_id, &parent, 0, point, services, shared),
                             _        => {
                                 match shared.read().unwrap().jds_state {
                                     JdsState::Unknown => {
-                                        warn!("{}.run | Rejected point from socket: \n\t{:?}", parent, json!(&point).to_string());
+                                        warn!("{}.run | Rejected point from socket: \n\t{:?}", parent_id, json!(&point).to_string());
                                         RouterReply::new(None, None)
                                     },
                                     JdsState::Authenticated => {
-                                        debug!("{}.run | Passed point from socket: \n\t{:?}", path, json!(&point).to_string());
+                                        debug!("{}.run | Passed point from socket: \n\t{:?}", parent, json!(&point).to_string());
                                         RouterReply::new(Some(point), None)
                                     },
                                 }
-                                // RouterReply::new(Some(point), None)
                             },
                         }
                     },
                     shared_options,
                 ))),
                 send,
-                Duration::from_millis(10),
+                conf.cycle.unwrap_or(Duration::from_millis(50)),
                 Some(exit.clone()),
                 Some(exit_pair.clone()),
             );
             let tcp_write_alive = TcpWriteAlive::new(
                 &self_id,
-                Duration::from_millis(10),
+                conf.cycle.unwrap_or(Duration::from_millis(50)),
                 Arc::new(Mutex::new(TcpStreamWrite::new(
                     format!("{}/TcpWriteAlive", self_id),
                     buffered,

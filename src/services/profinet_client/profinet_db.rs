@@ -6,7 +6,7 @@ use log::{trace, warn};
 
 use crate::{
     conf::{
-        point_config::{point_config::PointConfig, point_config_filters::PointConfigFilter, point_config_type::PointConfigType}, 
+        point_config::{name::Name, point_config::PointConfig, point_config_filters::PointConfigFilter, point_config_type::PointConfigType}, 
         profinet_client_config::profinet_db_config::ProfinetDbConfig
     }, 
     core_::{
@@ -28,7 +28,7 @@ use crate::{
 /// Represents PROFINET DB - a collection of the PROFINET addresses
 pub struct ProfinetDb {
     id: String,
-    pub name: String,
+    pub name: Name,
     pub description: String,
     pub number: u32,
     pub offset: u32,
@@ -44,17 +44,17 @@ impl ProfinetDb {
     /// - app - string represents application name, for point path
     /// - parent - parent id, used for debugging
     /// - conf - configuration of the [ProfinetDB]
-    pub fn new(app: impl Into<String>, parent: impl Into<String>, conf: &ProfinetDbConfig) -> Self {
-        let self_id = format!("{}/ProfinetDb({})", parent.into(), conf.name);
+    pub fn new(parent_id: impl Into<String>, parent_name: &Name, conf: &ProfinetDbConfig) -> Self {
+        let self_id = format!("{}/ProfinetDb({})", parent_id.into(), conf.name);
         Self {
             id: self_id.clone(),
-            name: conf.name.clone(),
+            name: Name::new(parent_name, &conf.name),
             description: conf.description.clone(),
             number: conf.number as u32,
             offset: conf.offset as u32,
             size: conf.size as u32,
             cycle: conf.cycle,
-            points: Self::configure_parse_points(&app.into(), &self_id, conf),
+            points: Self::configure_parse_points(&self_id, &parent_name, conf),
         }
     }
     ///
@@ -174,20 +174,20 @@ impl ProfinetDb {
     }
     ///
     /// Configuring ParsePoint objects depending on point configurations coming from [conf]
-    fn configure_parse_points(app: &str, self_id: &str, conf: &ProfinetDbConfig) -> IndexMap<String, Box<dyn ParsePoint>> {
+    fn configure_parse_points(self_id: &str, parent_name: &Name, conf: &ProfinetDbConfig) -> IndexMap<String, Box<dyn ParsePoint>> {
         conf.points.iter().map(|point_conf| {
             match point_conf._type {
                 PointConfigType::Bool => {
-                    (point_conf.name.clone(), Self::box_bool(app.to_owned(), point_conf.name.clone(), point_conf))
+                    (point_conf.name.clone(), Self::box_bool(Name::new(parent_name, &point_conf.name).into(), point_conf))
                 },
                 PointConfigType::Int => {
-                    (point_conf.name.clone(), Self::box_int(app.to_owned(), point_conf.name.clone(), point_conf))
+                    (point_conf.name.clone(), Self::box_int(Name::new(parent_name, &point_conf.name).into(), point_conf))
                 },
                 PointConfigType::Real => {
-                    (point_conf.name.clone(), Self::box_real(app.to_owned(), point_conf.name.clone(), point_conf))
+                    (point_conf.name.clone(), Self::box_real(Name::new(parent_name, &point_conf.name).into(), point_conf))
                 },
                 PointConfigType::Double => {
-                    (point_conf.name.clone(), Self::box_real(app.to_owned(), point_conf.name.clone(), point_conf))
+                    (point_conf.name.clone(), Self::box_real(Name::new(parent_name, &point_conf.name).into(), point_conf))
                 },
                 _ => panic!("{}.configureParsePoints | Unknown type '{:?}' for S7 Device", self_id, point_conf._type)
             }
@@ -195,14 +195,13 @@ impl ProfinetDb {
     }
     ///
     /// 
-    fn box_bool(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
-        Box::new(S7ParseBool::new(path, name, config))
+    fn box_bool(name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
+        Box::new(S7ParseBool::new(name, config))
     }
     ///
     /// 
-    fn box_int(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
+    fn box_int(name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
         Box::new(S7ParseInt::new(
-            path, 
             name, 
             config,
             Self::int_filter(config.filters.clone()),
@@ -210,9 +209,8 @@ impl ProfinetDb {
     }
     ///
     /// 
-    fn box_real(path: String, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
+    fn box_real(name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
         Box::new(S7ParseReal::new(
-            path, 
             name, 
             config,
             Self::real_filter(config.filters.clone()),

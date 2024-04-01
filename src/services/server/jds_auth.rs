@@ -1,9 +1,7 @@
 use log::debug;
-
 use crate::{core_::auth::{secret::auth_secret::AuthSecret, ssh::auth_ssh_path::AuthSshPath}, conf::conf_tree::ConfTree};
-
 ///
-/// Kinde of auturization on the TcpServer
+/// Jds-protocol specific kind of auturization on the TcpServer
 #[derive(Debug, Clone, PartialEq)]
 pub enum TcpServerAuth {
     None,

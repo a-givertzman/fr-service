@@ -3,11 +3,11 @@ use std::{
     fmt::Debug, net::{Shutdown, TcpListener, TcpStream}, sync::{atomic::{AtomicBool, Ordering}, mpsc, Arc, Mutex}, thread, time::Duration
 };
 use crate::{
-    conf::tcp_server_config::TcpServerConfig, 
+    conf::{point_config::name::Name, tcp_server_config::TcpServerConfig}, 
     core_::{constants::constants::RECV_TIMEOUT, object::object::Object}, 
     services::{
         safe_lock::SafeLock, server::{
-            connections::{Action, TcpServerConnections}, tcp_server_cnnection::TcpServerConnection
+            connections::{Action, TcpServerConnections}, jds_cnnection::JdsConnection
         }, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::service_cycle::ServiceCycle
     }, 
 };
@@ -17,7 +17,7 @@ use crate::{
 /// Verified incoming connections handles in the separate thread
 pub struct TcpServer {
     id: String,
-    path: String,
+    name: Name,
     conf: TcpServerConfig,
     connections: Arc<Mutex<TcpServerConnections>>,
     services: Arc<Mutex<Services>>,
@@ -32,20 +32,19 @@ impl TcpServer {
     /// - filter - all trafic from server to client will be filtered by some criterias, until Subscribe request confirmed:
     ///    - cot - [Cot] - bit mask wich will be passed
     ///    - name - exact name wich passed
-    pub fn new(parent: impl Into<String>, path: impl Into<String>, conf: TcpServerConfig, services: Arc<Mutex<Services>>, ) -> Self {
-        let self_id = format!("{}/TcpServer({})", parent.into(), conf.name);
+    pub fn new(conf: TcpServerConfig, services: Arc<Mutex<Services>>, ) -> Self {
         Self {
-            id: self_id.clone(),
-            path: path.into(),
+            id: conf.name.join(),
+            name: conf.name.clone(),
             conf: conf.clone(),
-            connections: Arc::new(Mutex::new(TcpServerConnections::new(self_id))),
+            connections: Arc::new(Mutex::new(TcpServerConnections::new(conf.name))),
             services,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
     ///
     /// 
-    fn setup_connection(self_id: &str, path: &str, connection_id: &str, stream: TcpStream, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>, connections: Arc<Mutex<TcpServerConnections>>) {
+    fn setup_connection(self_id: &str, self_name: &Name, connection_id: &str, stream: TcpStream, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>, connections: Arc<Mutex<TcpServerConnections>>) {
         info!("{}.setup_connection | Trying to repair Connection '{}'...", self_id, connection_id);
         // let connectionsLock = connections.slock();
         let repair_result = connections.slock().repair(connection_id, stream.try_clone().unwrap());
@@ -58,9 +57,10 @@ impl TcpServer {
 
                 info!("{}.setup_connection | New connection: '{}'", self_id, connection_id);
                 let (send, recv) = mpsc::channel();
-                let mut connection = TcpServerConnection::new(
+                let mut connection = JdsConnection::new(
+                    self_id,
+                    &Name::from(self_name.parent()),
                     connection_id,
-                    path,
                     recv, services.clone(),
                     conf.clone(),
                     exit.clone()
@@ -122,6 +122,9 @@ impl Object for TcpServer {
     fn id(&self) -> &str {
         &self.id
     }
+    fn name(&self) -> Name {
+        self.name.clone()
+    }
 }
 ///
 /// 
@@ -141,7 +144,7 @@ impl Service for TcpServer {
     fn run(&mut self) -> Result<ServiceHandles, String> {
         info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
-        let self_path = self.path.clone();
+        let self_name = self.name.clone();
         let conf = self.conf.clone();
         let exit = self.exit.clone();
         let connections = self.connections.clone();
@@ -164,11 +167,10 @@ impl Service for TcpServer {
                             }
                             match stream {
                                 Ok(stream) => {
-                                    let rem_ip = stream.peer_addr().map_or("Unknown remote IP".to_string(), |a| {a.ip().to_string()});
-                                    let connection_id = format!("{}-{}", self_id, rem_ip);
+                                    let connection_id = stream.peer_addr().map_or("Unknown remote IP".to_string(), |a| {a.ip().to_string()});
                                     Self::set_stream_timout(&self_id, &stream, RECV_TIMEOUT, None);
                                     info!("{}.run | Setting up Connection '{}'...", self_id, connection_id);
-                                    Self::setup_connection(&self_id, &self_path, &connection_id, stream, services.clone(), conf.clone(), exit.clone(), connections.clone());
+                                    Self::setup_connection(&self_id, &self_name, &connection_id, stream, services.clone(), conf.clone(), exit.clone(), connections.clone());
                                 },
                                 Err(err) => {
                                     warn!("{}.run | error: {:?}", self_id, err);

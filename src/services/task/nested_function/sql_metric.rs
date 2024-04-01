@@ -2,13 +2,9 @@ use std::{collections::HashMap, sync::{Arc, Mutex, atomic::{AtomicUsize, Orderin
 use indexmap::IndexMap;
 use log::{debug, trace};
 use crate::{
-    core_::{
-        types::fn_in_out_ref::FnInOutRef,
-        point::{point_type::{PointType, ToPoint}, point::Point, point_tx_id::PointTxId}, 
-        format::format::Format, 
-    }, 
-    conf::fn_::fn_config::FnConfig, 
-    services::{task::task_nodes::TaskNodes, services::Services},
+    conf::{fn_::fn_config::FnConfig, point_config::name::Name}, core_::{
+        format::format::Format, point::{point::Point, point_tx_id::PointTxId, point_type::{PointType, ToPoint}}, types::fn_in_out_ref::FnInOutRef 
+    }, services::{services::Services, task::task_nodes::TaskNodes}
 };
 use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn, fn_kind::FnKind};
 ///
@@ -33,6 +29,7 @@ use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn, fn_kind::FnKind};
 #[derive(Debug)]
 pub struct SqlMetric {
     id: String,
+    name: Name,
     tx_id: usize,
     kind: FnKind,
     inputs: IndexMap<String, FnInOutRef>,
@@ -46,10 +43,10 @@ pub struct SqlMetric {
 impl SqlMetric {
     //
     //
-    pub fn new(parent: &str, conf: &mut FnConfig, task_nodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> SqlMetric {
-        COUNT.fetch_add(1, Ordering::SeqCst);
-        let self_id = format!("{}/SqlMetric{}", parent, COUNT.load(Ordering::Relaxed));
-        let tx_id = PointTxId::fromStr(&self_id);
+    pub fn new(parent: impl Into<String>, conf: &mut FnConfig, task_nodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> SqlMetric {
+        let self_name = Name::new(parent, format!("SqlMetric{}", COUNT.fetch_add(1, Ordering::Relaxed)));
+        let self_id = self_name.join();
+        let tx_id = PointTxId::fromStr(&self_name.join());
         let mut inputs = IndexMap::new();
         let input_confs = conf.inputs.clone();
         let input_conf_names = input_confs.keys().filter(|v| {
@@ -67,7 +64,7 @@ impl SqlMetric {
             let input_conf = conf.input_conf(name);
             inputs.insert(
                 name.to_string(), 
-                NestedFn::new(&self_id, tx_id, input_conf, task_nodes, services.clone()),
+                NestedFn::new(&self_name, tx_id, input_conf, task_nodes, services.clone()),
             );
         }
         let id = conf.name.clone();
@@ -84,11 +81,10 @@ impl SqlMetric {
         sql_names.remove("id");
         SqlMetric {
             id: self_id,
+            name: self_name,
             tx_id,
             kind: FnKind::Fn,
             inputs,
-            // initial: initial,
-            // table: table,
             sql,
             sql_names,
         }
@@ -139,7 +135,7 @@ impl FnOut for SqlMetric {
         debug!("{}.out | sql: {:?}", self_id, self.sql.out());
         PointType::String(Point::new_string(
             self.tx_id,
-            &self_id, 
+            &self.name.join(), 
             self.sql.out(),
         ))
     }
@@ -153,4 +149,4 @@ impl FnOut for SqlMetric {
 impl FnInOut for SqlMetric {}
 ///
 /// Global static counter of SqlMetric instances
-pub static COUNT: AtomicUsize = AtomicUsize::new(0);
+pub static COUNT: AtomicUsize = AtomicUsize::new(1);

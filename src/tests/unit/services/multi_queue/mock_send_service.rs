@@ -1,12 +1,13 @@
 #![allow(non_snake_case)]
-use std::{fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread, time::Duration};
+use std::{fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, Arc, Mutex}, thread, time::Duration};
 use log::{info, warn, trace};
 use testing::entities::test_value::Value;
-use crate::{core_::{object::object::Object, point::point_type::{PointType, ToPoint}}, services::{safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services}};
+use crate::{conf::point_config::name::Name, core_::{object::object::Object, point::point_type::{PointType, ToPoint}}, services::{safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services}};
 ///
 ///
 pub struct MockSendService {
     id: String,
+    name: Name,
     sendQueue: String,
     services: Arc<Mutex<Services>>,
     test_data: Vec<Value>,
@@ -18,10 +19,10 @@ pub struct MockSendService {
 /// 
 impl MockSendService {
     pub fn new(parent: impl Into<String>, sendQueue: &str, services: Arc<Mutex<Services>>, test_data: Vec<Value>, delay: Option<Duration>) -> Self {
-        let self_id = format!("{}/MockSendService", parent.into());
-        // let (send, recv) = mpsc::channel::<PointType>();
+        let name = Name::new(parent, format!("MockSendService{}", COUNT.fetch_add(1, Ordering::Relaxed)));
         Self {
-            id: self_id.clone(),
+            id: name.join(),
+            name,
             sendQueue: sendQueue.to_string(),
             services,
             test_data,
@@ -46,6 +47,9 @@ impl MockSendService {
 impl Object for MockSendService {
     fn id(&self) -> &str {
         &self.id
+    }
+    fn name(&self) -> Name {
+        self.name.clone()
     }
 }
 ///
@@ -124,3 +128,6 @@ impl Service for MockSendService {
         self.exit.store(true, Ordering::SeqCst);
     }
 }
+///
+/// Global static counter of FnOut instances
+static COUNT: AtomicUsize = AtomicUsize::new(0);

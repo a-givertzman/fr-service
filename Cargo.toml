@@ -29,6 +29,7 @@ rand = "^0.8"
 
 chrono = "^0.4"
 
+linked-hash-map = "^0.5"
 indexmap = "^2.2"
 hashers = "^1.0"
 

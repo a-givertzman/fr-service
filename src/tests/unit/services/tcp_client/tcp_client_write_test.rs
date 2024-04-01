@@ -8,7 +8,7 @@ mod tcp_client {
     use crate::{
         conf::tcp_client_config::TcpClientConfig, core_::{
             net::{connection_status::ConnectionStatus, protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}}, object::object::Object, point::point_type::{PointType, ToPoint} 
-        }, services::{safe_lock::SafeLock, services::Services, tcp_client::tcp_client::TcpClient}, tests::unit::services::tcp_client::mock_multiqueue::MockMultiQueue
+        }, services::{safe_lock::SafeLock, services::Services, tcp_client::tcp_client::TcpClient}, tcp::tcp_stream_write::OpResult, tests::unit::services::tcp_client::mock_multiqueue::MockMultiQueue
     }; 
     ///
     /// 
@@ -37,16 +37,16 @@ mod tcp_client {
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
-        let conf = serde_yaml::from_str(r#"
+        let conf = serde_yaml::from_str(&format!(r#"
             service TcpClient:
                 cycle: 1 ms
                 reconnect: 1 s  # default 3 s
                 address: 127.0.0.1:8080
                 in queue link:
                     max-length: 10000
-                out queue: MockMultiQueue.queue
-        "#).unwrap();
-        let mut conf = TcpClientConfig::from_yaml(&conf);
+                out queue: /{}/MockMultiQueue.queue
+        "#, self_id)).unwrap();
+        let mut conf = TcpClientConfig::from_yaml(self_id, &conf);
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         conf.address = addr.parse().unwrap();
         let iterations = 100;
@@ -84,8 +84,8 @@ mod tcp_client {
         let test_data: Vec<Value> = test_data.collect();
 
         let services = Arc::new(Mutex::new(Services::new(self_id)));
-        let multiQueue = Arc::new(Mutex::new(MockMultiQueue::new(None)));
-        let tcpClient = Arc::new(Mutex::new(TcpClient::new(self_id, conf, services.clone())));
+        let multiQueue = Arc::new(Mutex::new(MockMultiQueue::new(self_id, "", None)));
+        let tcpClient = Arc::new(Mutex::new(TcpClient::new(conf, services.clone())));
         let tcpClientServiceId = tcpClient.lock().unwrap().id().to_owned();
         services.lock().unwrap().insert(tcpClient.clone());     // tcpClientServiceId, 
         services.lock().unwrap().insert(multiQueue.clone());            // multiQueueServiceId, 
@@ -153,7 +153,7 @@ mod tcp_client {
                                     match jds.read(&mut tcpStream) {
                                         ConnectionStatus::Active(point) => {
                                             match point {
-                                                Ok(point) => {
+                                                OpResult::Ok(point) => {
                                                     received.lock().unwrap().push(point);
                                                     receivedCount += 1;
                                                     if receivedCount >= count {
@@ -161,9 +161,10 @@ mod tcp_client {
                                                         break;
                                                     }
                                                 },
-                                                Err(err) => {
+                                                OpResult::Err(err) => {
                                                     warn!("{:?}", err);
                                                 },
+                                                OpResult::Timeout() => {},
                                             }
                                         },
                                         ConnectionStatus::Closed(_err) => {

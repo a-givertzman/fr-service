@@ -1,6 +1,8 @@
 use log::{trace, debug};
 use std::{fs, time::Duration, net::SocketAddr};
 use crate::conf::{conf_tree::ConfTree, service_config::ServiceConfig};
+
+use super::point_config::name::Name;
 ///
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
@@ -15,7 +17,7 @@ use crate::conf::{conf_tree::ConfTree, service_config::ServiceConfig};
 ///                         ...
 #[derive(Debug, PartialEq, Clone)]
 pub struct ApiClientConfig {
-    pub(crate) name: String,
+    pub(crate) name: Name,
     pub(crate) address: SocketAddr,
     pub(crate) database: String,
     pub(crate) auth_token: String,
@@ -40,16 +42,13 @@ impl ApiClientConfig {
     ///     out queue: MultiQueue.queue
     ///     debug: false                # API debug mode, optional, default false
     ///                     ...
-    pub fn new(conf_tree: &mut ConfTree) -> Self {
+    pub fn new(parent: impl Into<String>, conf_tree: &mut ConfTree) -> Self {
         println!();
-        trace!("ApiClientConfig.new | confTree: {:?}", conf_tree);
-        // self conf from first sub node
-        //  - if additional sub nodes presents hit warning, FnConf must have single item
         let self_id = format!("ApiClientConfig({})", conf_tree.key);
-        trace!("{}.new | MAPPING VALUE", self_id);
+        trace!("ApiClientConfig.new | confTree: {:?}", conf_tree);
         let mut self_conf = ServiceConfig::new(&self_id, conf_tree.clone());
         trace!("{}.new | selfConf: {:?}", self_id, self_conf);
-        let self_name = self_conf.name();
+        let self_name = Name::new(parent, self_conf.name());
         debug!("{}.new | name: {:?}", self_id, self_name);
         let address: SocketAddr = self_conf.get_param_value("address").unwrap().as_str().unwrap().parse().unwrap();
         debug!("{}.new | address: {:?}", self_id, address);
@@ -79,10 +78,10 @@ impl ApiClientConfig {
     }
     ///
     /// creates config from serde_yaml::Value of following format:
-    pub(crate) fn from_yaml(value: &serde_yaml::Value) -> Self {
+    pub(crate) fn from_yaml(parent: impl Into<String>, value: &serde_yaml::Value) -> Self {
         match value.as_mapping().unwrap().into_iter().next() {
             Some((key, value)) => {
-                Self::new(&mut ConfTree::new(key.as_str().unwrap(), value.clone()))
+                Self::new(parent, &mut ConfTree::new(key.as_str().unwrap(), value.clone()))
             },
             None => {
                 panic!("ApiClientConfig.from_yaml | Format error or empty conf: {:#?}", value)
@@ -91,12 +90,12 @@ impl ApiClientConfig {
     }
     ///
     /// reads config from path
-    pub fn read(path: &str) -> ApiClientConfig {
+    pub fn read(parent: impl Into<String>, path: &str) -> ApiClientConfig {
         match fs::read_to_string(path) {
             Ok(yaml_string) => {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
-                        Self::from_yaml(&config)
+                        Self::from_yaml(parent, &config)
                     },
                     Err(err) => {
                         panic!("ApiClientConfig.read | Error in config: {:?}\n\terror: {:?}", yaml_string, err)

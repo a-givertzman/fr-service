@@ -12,7 +12,6 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct S7ParseBool {
     pub tx_id: usize,
-    pub path: String,
     pub name: String,
     pub value: bool,
     pub status: Status,
@@ -28,14 +27,12 @@ impl S7ParseBool {
     ///
     /// 
     pub fn new(
-        path: String,
         name: String,
         config: &PointConfig,
         // filter: Filter<T>,
     ) -> S7ParseBool {
         S7ParseBool {
             tx_id: 0,
-            path,
             name,
             value: false,
             status: Status::Invalid,

@@ -7,6 +7,7 @@ mod sql_metric {
     use std::sync::{Once, Arc, Mutex};
     
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+    use crate::conf::point_config::name::Name;
     use crate::{
         conf::task_config::TaskConfig, 
         core_::point::point_type::{ToPoint, PointType}, 
@@ -39,13 +40,14 @@ mod sql_metric {
         init_once();
         println!();
         let self_id = "test_int";
+        let self_name = Name::new("", self_id);
         println!("\n{}", self_id);
         let path = "./src/tests/unit/services/task/sql_metric/sql_metric_int_test.yaml";
-        let conf = TaskConfig::read(path);
+        let conf = TaskConfig::read(&self_name, path);
         debug!("conf: {:?}", conf);
         let mut nodes = TaskNodes::new(self_id);
         let services = Arc::new(Mutex::new(Services::new(self_id)));
-        nodes.buildNodes("test", conf, services);
+        nodes.buildNodes(&self_name, conf, services);
         debug!("taskNodes: {:?}", nodes);
         let test_data = vec![
             (1, "/path/Point.Name", 3),
@@ -107,13 +109,14 @@ mod sql_metric {
         init_once();
         println!();
         let self_id = "test_real";
+        let self_name = Name::new("", self_id);
         println!("\n{}", self_id);
         let path = "./src/tests/unit/services/task/sql_metric/sql_metric_real_test.yaml";
-        let conf = TaskConfig::read(path);
+        let conf = TaskConfig::read(&self_name, path);
         debug!("conf: {:?}", conf);
         let mut nodes = TaskNodes::new(self_id);
         let services = Arc::new(Mutex::new(Services::new(self_id)));
-        nodes.buildNodes("test", conf, services);
+        nodes.buildNodes(&self_name, conf, services);
         debug!("taskNodes: {:?}", nodes);
         let test_data = vec![
             (1.1f32, "/path/Point.Name", 3.3f32),
@@ -185,13 +188,14 @@ mod sql_metric {
         init_once();
         println!();
         let self_id = "test_real";
+        let self_name = Name::new("", self_id);
         println!("\n{}", self_id);
         let path = "./src/tests/unit/services/task/sql_metric/sql_metric_double_test.yaml";
-        let conf = TaskConfig::read(path);
+        let conf = TaskConfig::read(&self_name, path);
         debug!("conf: {:?}", conf);
         let mut nodes = TaskNodes::new(self_id);
         let services = Arc::new(Mutex::new(Services::new(self_id)));
-        nodes.buildNodes("test", conf, services);
+        nodes.buildNodes(&self_name, conf, services);
         debug!("taskNodes: {:?}", nodes);
         let test_data = vec![
             (1.1f64, "/path/Point.Name", 3.3),

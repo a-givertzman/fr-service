@@ -6,13 +6,10 @@ mod tests {
     use std::sync::Once;
     use indexmap::IndexMap;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::conf::fn_::{fn_config::FnConfig, fn_conf_kind::FnConfKind, metric_config::MetricConfig, fn_conf_keywd::FnConfPointType};
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    use crate::conf::{fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig, metric_config::MetricConfig}, point_config::name::Name};
+    ///
+    /// 
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -21,15 +18,12 @@ mod tests {
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
+    fn init_each() -> () {}
+    ///
+    /// 
     #[test]
     fn test_metric_config_new_valid() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -37,6 +31,7 @@ mod tests {
         init_each();
         println!();
         let self_id = "test MetricConfig | new valid";
+        let self_name = Name::new("", self_id);
         println!("\n{}", self_id);
         // let (initial, switches) = init_each();
         let test_data = [
@@ -109,7 +104,7 @@ mod tests {
             // let fnKeyword = FnConfigKeyword::from_str(conf.as_str().unwrap()).unwrap();
             // debug!("\tfnKeyword: {:?}", fnKeyword);
             let mut vars = vec![];
-            let fnConfig = MetricConfig::from_yaml(self_id, &conf, &mut vars);
+            let fnConfig = MetricConfig::from_yaml(self_id, &self_name, &conf, &mut vars);
             debug!("\tfnConfig: {:?}", fnConfig);
             assert_eq!(fnConfig, target);
         }

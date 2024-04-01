@@ -5,7 +5,7 @@ mod tests {
     use std::sync::Once;
     use indexmap::IndexMap;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::conf::fn_::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType};
+    use crate::conf::{fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig}, point_config::name::Name};
     ///
     /// 
     static INIT: Once = Once::new();
@@ -30,6 +30,7 @@ mod tests {
         init_each();
         println!();
         let self_id = "test FnConfig | new valid";
+        let self_name = Name::new("", self_id);
         println!("\n{}", self_id);
         let test_data = [
             (
@@ -133,7 +134,7 @@ mod tests {
             let conf: serde_yaml::Value = serde_yaml::from_str(value).unwrap();
             debug!("value: {:?}   |   conf: {:?}   |   target: {:?}", "_", conf, target);
             let mut vars = vec![];
-            let fn_config = FnConfig::from_yaml(self_id, &conf, &mut vars);
+            let fn_config = FnConfig::from_yaml(self_id, &self_name, &conf, &mut vars);
             debug!("\tfnConfig: {:?}", fn_config);
             assert_eq!(fn_config, target);
         }

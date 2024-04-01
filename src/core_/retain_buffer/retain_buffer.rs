@@ -1,8 +1,4 @@
-#![allow(non_snake_case)]
-
 use std::collections::VecDeque;
-
-
 ///
 /// Holds array of T
 /// - push(value: T) - appends an element to the end of a buffer
@@ -46,7 +42,7 @@ impl<T> RetainBuffer<T> {
     }
     ///
     /// Returns and removes first value<T> in the buffer
-    pub fn popFirst(&mut self) -> Option<T> {
+    pub fn pop_first(&mut self) -> Option<T> {
         self.vec.pop_front()
     }
     // ///

@@ -2,17 +2,24 @@ use std::io::{BufReader, Read};
 use chrono::{DateTime, Utc};
 use concat_string::concat_string;
 use log::{warn, trace, LevelFilter};
-use crate::{core_::{
-    cot::cot::Cot, net::connection_status::ConnectionStatus, object::object::Object, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status, types::bool::Bool 
-}, tcp::steam_read::TcpStreamRead};
+use crate::{
+    conf::point_config::name::Name, core_::{
+        cot::cot::Cot, 
+        net::connection_status::ConnectionStatus, 
+        object::object::Object, 
+        point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, 
+        status::status::Status,
+        types::bool::Bool,
+    }, tcp::{steam_read::TcpStreamRead, tcp_stream_write::OpResult}
+};
 use super::jds_decode_message::JdsDecodeMessage;
-
 ///
 /// Converts squence of bytes into the PointType
 /// useng bytes -> JSON -> Point<type> PointType conversion
 #[derive(Debug)]
 pub struct JdsDeserialize {
     id: String,
+    name: Name,
     tx_id: usize,
     stream: JdsDecodeMessage,
 }
@@ -22,33 +29,35 @@ impl JdsDeserialize {
     ///
     /// Creates new instance of the JdsDeserialize
     pub fn new(parent: impl Into<String>, stream: JdsDecodeMessage) -> Self {
-        let self_id = format!("{}/JdsDeserialize", parent.into());
+        let me = Name::new(parent, "JdsDeserialize");
         Self {
-            tx_id: PointTxId::fromStr(&self_id),
-            id: self_id,
+            tx_id: PointTxId::fromStr(&me.join()),
+            id: me.join(),
+            name: me,
             stream,
         }
     }
     ///
     /// Reads single point from TcpStream
-    pub fn read(&mut self, tcp_stream: impl Read) -> ConnectionStatus<Result<PointType, String>, String> {
+    pub fn read(&mut self, tcp_stream: impl Read) -> ConnectionStatus<OpResult<PointType, String>, String> {
         match self.stream.read(tcp_stream) {
             ConnectionStatus::Active(result) => {
                 match result {
-                    Ok(bytes) => {
+                    OpResult::Ok(bytes) => {
                         match Self::deserialize(&self.id, self.tx_id, bytes) {
                             Ok(point) => {
-                                ConnectionStatus::Active(Ok(point))
+                                ConnectionStatus::Active(OpResult::Ok(point))
                             },
                             Err(err) => {
                                 if log::max_level() == LevelFilter::Debug {
                                     warn!("{}", err);
                                 }
-                                ConnectionStatus::Active(Err(err))
+                                ConnectionStatus::Active(OpResult::Err(err))
                             },
                         }
                     },
-                    Err(err) => ConnectionStatus::Active(Err(err)),
+                    OpResult::Err(err) => ConnectionStatus::Active(OpResult::Err(err)),
+                    OpResult::Timeout() => ConnectionStatus::Active(OpResult::Timeout())
                 }
             },
             ConnectionStatus::Closed(err) => {
@@ -200,11 +209,14 @@ impl Object for JdsDeserialize {
     fn id(&self) -> &str {
         &self.id
     }
+    fn name(&self) -> crate::conf::point_config::name::Name {
+        self.name.clone()
+    }
 }
 ///
 /// 
 impl TcpStreamRead for JdsDeserialize {
-    fn read(&mut self, tcp_stream: &mut BufReader<std::net::TcpStream>) -> ConnectionStatus<Result<PointType, String>, String> {
+    fn read(&mut self, tcp_stream: &mut BufReader<std::net::TcpStream>) -> ConnectionStatus<OpResult<PointType, String>, String> {
         self.read(tcp_stream)
     }
 }

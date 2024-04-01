@@ -3,7 +3,10 @@ use log::{trace, debug};
 use serde::{Serialize, Deserialize};
 use crate::conf::{
     conf_tree::ConfTree, fn_::fn_conf_keywd::FnConfKeywd, point_config::{
-        point_config_address::PointConfigAddress, point_config_filters::PointConfigFilter, point_config_type::PointConfigType, point_name::PointName
+        point_config_address::PointConfigAddress, 
+        point_config_filters::PointConfigFilter, 
+        point_config_type::PointConfigType, 
+        name::Name,
     }
 };
 use super::point_config_history::PointConfigHistory;
@@ -67,7 +70,7 @@ impl PointConfig {
     ///         factor: 1.5         #   multiplier for absolute threshold delta - in this case the delta will be accumulated
     ///     comment: Test Point 
     /// ```
-    pub fn new(parent: &str, conf_tree: &ConfTree) -> Self {
+    pub fn new(parent_id: &str, parent_name: &Name, conf_tree: &ConfTree) -> Self {
         // println!();
         trace!("PointConfig.new | confTree: {:?}", conf_tree);
         let mut pc: PointConfig = serde_yaml::from_value(conf_tree.conf.clone()).unwrap();
@@ -76,7 +79,7 @@ impl PointConfig {
             Ok(keyword) => keyword.data(),
             Err(_) => conf_tree.key.clone(),
         };
-        pc.name = PointName::new(parent, &name).full();
+        pc.name = Name::new(parent_name, &name).join();
         if let Some(mut filter) = pc.filters.clone() {
             if let Some(factor) = filter.factor {
                 if factor == 0.0 {
@@ -88,9 +91,9 @@ impl PointConfig {
     }    
     ///
     /// Creates config from serde_yaml::Value of following format:
-    pub(crate) fn from_yaml(parent: &str, value: &serde_yaml::Value) -> Self {
+    pub(crate) fn from_yaml(parent_id: &str, parent_name: &Name, value: &serde_yaml::Value) -> Self {
         debug!("PointConfig.from_yaml | value: {:?}", value);
-        Self::new(parent, &ConfTree::newRoot(value.clone()).next().unwrap())
+        Self::new(parent_id, parent_name, &ConfTree::newRoot(value.clone()).next().unwrap())
     }
     ///
     /// Returns yaml representation

@@ -2,11 +2,7 @@ use indexmap::IndexMap;
 use log::{debug, trace};
 use std::{fs, str::FromStr, time::Duration};
 use crate::conf::{
-    conf_tree::ConfTree, 
-    point_config::point_config::PointConfig, 
-    service_config::ServiceConfig,
-    profinet_client_config::keywd::{Keywd, Kind}, 
-    profinet_client_config::profinet_db_config::ProfinetDbConfig,
+    conf_tree::ConfTree, point_config::{name::Name, point_config::PointConfig}, profinet_client_config::{keywd::{Keywd, Kind}, profinet_db_config::ProfinetDbConfig}, service_config::ServiceConfig
 };
 ///
 /// creates config from serde_yaml::Value of following format:
@@ -36,11 +32,9 @@ use crate::conf::{
 /// 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ProfinetClientConfig {
-    pub(crate) name: String,
+    pub(crate) name: Name,
     pub(crate) cycle: Option<Duration>,
     pub(crate) reconnect_cycle: Duration,
-    // pub(crate) rx: String,
-    // pub(crate) rx_max_len: i64,
     pub(crate) subscribe: String,
     pub(crate) tx: String,
     pub(crate) protocol: String,
@@ -55,16 +49,14 @@ pub struct ProfinetClientConfig {
 impl ProfinetClientConfig {
     ///
     /// Creates new instance of the [ProfinetClientConfig]:
-    pub fn new(conf_tree: &mut ConfTree) -> Self {
+    pub fn new(parent: impl Into<String>, conf_tree: &mut ConfTree) -> Self {
         println!();
         debug!("ProfinetClientConfig.new | conf_tree: {:#?}", conf_tree);
-        // self conf from first sub node
-        //  - if additional sub nodes presents hit warning, FnConf must have single item
         let self_id = format!("ProfinetClientConfig({})", conf_tree.key);
         let mut self_conf = ServiceConfig::new(&self_id, conf_tree.clone());
         trace!("{}.new | self_conf: {:?}", self_id, self_conf);
-        let self_name = self_conf.sufix();      //self_conf.name();
-        let device_name = self_name.clone();    //self_conf.sufix();
+        let self_name = Name::new(parent, self_conf.sufix());
+        let device_name = self_name.clone();
         debug!("{}.new | name: {:?}", self_id, self_name);
         let cycle = self_conf.get_duration("cycle");
         debug!("{}.new | cycle: {:?}", self_id, cycle);
@@ -72,8 +64,6 @@ impl ProfinetClientConfig {
         debug!("{}.new | reconnectCycle: {:?}", self_id, reconnect_cycle);
         let subscribe = self_conf.get_param_value("subscribe").unwrap().as_str().unwrap().to_string();
         debug!("{}.new | sudscribe: {:?}", self_id, subscribe);
-        // let (rx, rx_max_len) = self_conf.get_in_queue().unwrap();
-        // debug!("{}.new | RX: {},\tmax-length: {}", self_id, rx, rx_max_len);
         let tx = self_conf.get_out_queue().unwrap();
         debug!("{}.new | TX: {}", self_id, tx);
         let protocol = self_conf.get_param_value("protocol").unwrap().as_str().unwrap().to_string();
@@ -121,10 +111,10 @@ impl ProfinetClientConfig {
     }
     ///
     /// creates config from serde_yaml::Value of following format:
-    pub(crate) fn from_yaml(value: &serde_yaml::Value) -> ProfinetClientConfig {
+    pub(crate) fn from_yaml(parent: impl Into<String>, value: &serde_yaml::Value) -> ProfinetClientConfig {
         match value.as_mapping().unwrap().into_iter().next() {
             Some((key, value)) => {
-                Self::new(&mut ConfTree::new(key.as_str().unwrap(), value.clone()))
+                Self::new(parent, &mut ConfTree::new(key.as_str().unwrap(), value.clone()))
             },
             None => {
                 panic!("ProfinetClientConfig.from_yaml | Format error or empty conf: {:#?}", value)
@@ -134,12 +124,12 @@ impl ProfinetClientConfig {
     ///
     /// reads config from path
     #[allow(dead_code)]
-    pub fn read(path: &str) -> ProfinetClientConfig {
+    pub fn read(parent: impl Into<String>, path: &str) -> ProfinetClientConfig {
         match fs::read_to_string(path) {
             Ok(yaml_string) => {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
-                        ProfinetClientConfig::from_yaml(&config)
+                        ProfinetClientConfig::from_yaml(parent, &config)
                     },
                     Err(err) => {
                         panic!("ProfinetClientConfig.read | Error in config: {:?}\n\terror: {:#?}", yaml_string, err)

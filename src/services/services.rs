@@ -46,11 +46,11 @@ impl Services {
     ///
     /// 
     pub fn insert(&mut self, service: Arc<Mutex<dyn Service + Send>>) {
-        let id = service.slock().id().to_owned();
-        if self.map.contains_key(&id) {
-            panic!("{}.insert | Duplicated service name '{:?}'", self.id, id);
+        let name = service.slock().name().join();
+        if self.map.contains_key(&name) {
+            panic!("{}.insert | Duplicated service name '{:?}'", self.id, name);
         }
-        self.map.insert(id, service);
+        self.map.insert(name, service);
     }
     ///
     /// Returns Service
@@ -72,11 +72,11 @@ impl Services {
     ///
     /// Returns Receiver
     /// - service - the name of the service to subscribe on
-    pub fn subscribe(&mut self, service: &str, receiver_id: &str, points: &[SubscriptionCriteria]) -> (Sender<PointType>, Receiver<PointType>) {
+    pub fn subscribe(&mut self, service: &str, receiver_name: &str, points: &[SubscriptionCriteria]) -> (Sender<PointType>, Receiver<PointType>) {
         match self.map.get(service) {
             Some(srvc) => {
                 debug!("{}.subscribe | Lock service '{:?}'...", self.id, service);
-                let r = srvc.slock().subscribe(receiver_id, points);
+                let r = srvc.slock().subscribe(receiver_name, points);
                 debug!("{}.subscribe | Lock service '{:?}' - ok", self.id, service);
                 r
             },
@@ -86,12 +86,12 @@ impl Services {
     ///
     /// Returns ok if subscription extended sucessfully
     /// - service - the name of the service to extend subscribtion on
-    pub fn extend_subscription(&mut self, service: &str, receiver_id: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
+    pub fn extend_subscription(&mut self, service: &str, receiver_name: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
         // panic!("{}.extend_subscription | Not implemented yet", self.id);
         match self.map.get(service) {
             Some(srvc) => {
                 debug!("{}.extend_subscription | Lock service '{:?}'...", self.id, service);
-                let r = srvc.slock().extend_subscription(receiver_id, points);
+                let r = srvc.slock().extend_subscription(receiver_name, points);
                 debug!("{}.extend_subscription | Lock service '{:?}' - ok", self.id, service);
                 r
             },
@@ -101,11 +101,11 @@ impl Services {
     ///
     /// Returns ok if subscription removed sucessfully
     /// - service - the name of the service to unsubscribe on
-    fn unsubscribe(&mut self, service: &str, receiver_id: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
+    fn unsubscribe(&mut self, service: &str, receiver_name: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
         match self.map.get(service) {
             Some(srvc) => {
                 debug!("{}.unsubscribe | Lock service '{:?}'...", self.id, service);
-                let r = srvc.slock().unsubscribe(receiver_id, points);
+                let r = srvc.slock().unsubscribe(receiver_name, points);
                 debug!("{}.unsubscribe | Lock service '{:?}' - ok", self.id, service);
                 r
             },
@@ -114,11 +114,11 @@ impl Services {
     }
     ///
     /// Returns list of point configurations over the all services
-    pub fn points(&mut self, requester_id: &str) -> Vec<PointConfig> {
-        debug!("{}.points | requester_id: '{}'", self.id, requester_id);
+    pub fn points(&mut self, requester_name: &str) -> Vec<PointConfig> {
+        debug!("{}.points | requester_id: '{}'", self.id, requester_name);
         let mut points = vec![];
         for (service_id, service) in &self.map {
-            if service_id != requester_id {
+            if service_id != requester_name {
                 // debug!("{}.points | Lock service: '{}'...", self.id, service_id);
                 let mut service_points = service.slock().points();
                 // debug!("{}.points | Lock service: '{}' - ok", self.id, service_id);

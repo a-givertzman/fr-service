@@ -23,9 +23,8 @@ impl FnAdd {
     /// Creates new instance of the FnAdd
     #[allow(dead_code)]
     pub fn new(parent: impl Into<String>, input1: FnInOutRef, input2: FnInOutRef) -> Self {
-        COUNT.fetch_add(1, Ordering::SeqCst);
         Self { 
-            id: format!("{}/FnAdd{}", parent.into(), COUNT.load(Ordering::Relaxed)),
+            id: format!("{}/FnAdd{}", parent.into(), COUNT.fetch_add(1, Ordering::SeqCst)),
             kind: FnKind::Fn,
             input1,
             input2,
@@ -90,7 +89,7 @@ impl FnOut for FnAdd {
 impl FnInOut for FnAdd {}
 ///
 /// Global static counter of FnAdd instances
-static COUNT: AtomicUsize = AtomicUsize::new(0);
+static COUNT: AtomicUsize = AtomicUsize::new(1);
 
 
 

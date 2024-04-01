@@ -37,11 +37,11 @@ mod api_client {
         let path = "./src/tests/unit/services/api_client/api_client.yaml";
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
         test_duration.run().unwrap();
-        let mut conf = ApiClientConfig::read(path);
+        let mut conf = ApiClientConfig::read(self_id, path);
         // let addr = conf.address.clone();
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         conf.address = addr.parse().unwrap();
-        let mut api_client = ApiClient::new("test ApiClient", conf);
+        let mut api_client = ApiClient::new(conf);
         // let test_duration = Duration::from_secs(10);
         let count = 10;
         let mut state = 0;

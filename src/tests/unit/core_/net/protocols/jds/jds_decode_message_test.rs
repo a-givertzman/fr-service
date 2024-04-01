@@ -7,9 +7,9 @@ mod jds_decode_message {
     use std::{sync::{Once, atomic::{AtomicUsize, Ordering}, Arc}, time::{Duration, Instant}, net::{TcpStream, TcpListener}, thread, io::{Write, BufReader}};
     use testing::session::test_session::TestSession;
     use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
-    use crate::core_::{
+    use crate::{core_::{
         cot::cot::Cot, failure::errors_limit::ErrorsLimit, net::{connection_status::ConnectionStatus, protocols::jds::jds_decode_message::JdsDecodeMessage}, point::{point::Point, point_type::PointType}, status::status::Status, types::bool::Bool
-    }; 
+    }, tcp::tcp_stream_write::OpResult}; 
     ///
     /// 
     static INIT: Once = Once::new();
@@ -133,7 +133,7 @@ mod jds_decode_message {
                             match jds_stream.read(&mut tcp_stream) {
                                 ConnectionStatus::Active(result) => {
                                     match result {
-                                        Ok(bytes) => {
+                                        OpResult::Ok(bytes) => {
                                             received.fetch_add(1, Ordering::SeqCst);
                                             let msg = String::from_utf8(bytes).unwrap();
                                             let recv_index = (received.load(Ordering::SeqCst) - 1) % test_data_len;
@@ -141,9 +141,10 @@ mod jds_decode_message {
                                             assert!(msg == test_data[recv_index].0);
                                             // debug!("socket read - received: {:?}", received.load(Ordering::SeqCst));
                                         },
-                                        Err(err) => {
+                                        OpResult::Err(err) => {
                                             warn!("socket read - received error: {:?}", err);
                                         },
+                                        OpResult::Timeout() => {},
                                     }
                                     if received.load(Ordering::SeqCst) >= total {
                                         break 'read;

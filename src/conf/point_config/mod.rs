@@ -8,4 +8,4 @@ pub mod point_config_filters;
 
 pub mod point_config_history;
 
-pub mod point_name;
+pub mod name;

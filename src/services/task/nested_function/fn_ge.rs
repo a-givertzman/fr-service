@@ -17,9 +17,8 @@ pub struct FnGe {
 impl FnGe {
     #[allow(dead_code)]
     pub fn new(parent: impl Into<String>, input1: FnInOutRef, input2: FnInOutRef) -> Self {
-        COUNT.fetch_add(1, Ordering::SeqCst);
         Self { 
-            id: format!("{}/FnGe{}", parent.into(), COUNT.load(Ordering::Relaxed)),
+            id: format!("{}/FnGe{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
             kind: FnKind::Fn,
             input1,
             input2,
@@ -105,4 +104,4 @@ impl FnOut for FnGe {
 impl FnInOut for FnGe {}
 ///
 /// Global static counter of FnOut instances
-pub static COUNT: AtomicUsize = AtomicUsize::new(0);
+pub static COUNT: AtomicUsize = AtomicUsize::new(1);

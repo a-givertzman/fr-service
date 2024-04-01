@@ -6,8 +6,8 @@ mod task {
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::task_config::TaskConfig, 
-        services::{task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}, service::service::Service, services::Services},
+        conf::{point_config::name::Name, task_config::TaskConfig}, 
+        services::{service::service::Service, services::Services, task::{task::Task, task_test_producer::TaskTestProducer, task_test_receiver::TaskTestReceiver}},
     };
     ///
     /// 
@@ -33,6 +33,7 @@ mod task {
         init_each();
         println!();
         let self_id = "task_test";
+        let self_name = Name::new("", self_id);
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(3));
         test_duration.run().unwrap();
@@ -41,11 +42,12 @@ mod task {
         let iterations = 10;
         trace!("dir: {:?}", env::current_dir());
         let path = "./src/tests/unit/services/task/task_test_struct.yaml";
-        let config = TaskConfig::read(path);
+        let config = TaskConfig::read(&self_name, path);
         trace!("config: {:?}", &config);
         let services = Arc::new(Mutex::new(Services::new(self_id)));
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
             self_id,
+            "",
             "in-queue",
             iterations,
         )));
@@ -73,12 +75,12 @@ mod task {
         assert!(total_count == iterations, "\nresult: {:?}\ntarget: {:?}", total_count, iterations);
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             self_id, 
-            &format!("{}/Task1.in-queue", self_id),
+            &format!("/{}/Task1.in-queue", self_id),
             Duration::ZERO,
             services.clone(),
             test_data,
         )));
-        let task = Arc::new(Mutex::new(Task::new(self_id, config, services.clone())));
+        let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
         services.lock().unwrap().insert(task.clone());
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         info!("receiver runing - ok");
@@ -112,17 +114,19 @@ mod task {
         init_each();
         info!("test");
         let self_id = "test";
+        let self_name = Name::new("", self_id);
         //
         // Can be changed
         let iterations = 10;
         trace!("dir: {:?}", env::current_dir());
         let path = "./src/tests/unit/services/task/task_test_struct.yaml";
         // let path = "./src/tests/unit/task/task_test.yaml";
-        let config = TaskConfig::read(path);
+        let config = TaskConfig::read(&self_name, path);
         trace!("config: {:?}", &config);
         let services = Arc::new(Mutex::new(Services::new(self_id)));
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
             self_id,
+            "",
             "in-queue",
             iterations,
         )));
@@ -154,8 +158,8 @@ mod task {
             services.clone(),
             test_data,
         )));
-        let task = Arc::new(Mutex::new(Task::new(self_id, config, services.clone())));
-        services.lock().unwrap().insert(task.clone());      // "Task", 
+        let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
+        services.lock().unwrap().insert(task.clone());
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         let producer_handle = producer.lock().unwrap().run().unwrap();
         trace!("task runing...");

@@ -1,5 +1,6 @@
+use linked_hash_map::LinkedHashMap;
 use log::{debug, error, info};
-use std::{collections::HashMap, process::exit, sync::{Arc, Mutex, RwLock}, thread, time::Duration};
+use std::{process::exit, sync::{Arc, Mutex, RwLock}, thread, time::Duration};
 use libc::{
     SIGABRT, SIGHUP, SIGINT, SIGKILL, SIGQUIT, SIGTERM, SIGUSR1, SIGUSR2,
     // SIGFPE, SIGILL, SIGSEGV, 
@@ -8,14 +9,7 @@ use signal_hook::iterator::Signals;
 use testing::stuff::wait::WaitTread;
 use crate::{
     conf::{
-        api_client_config::ApiClientConfig, 
-        app::app_config::AppConfig, 
-        conf_tree::ConfTree, 
-        multi_queue_config::MultiQueueConfig, 
-        profinet_client_config::profinet_client_config::ProfinetClientConfig, 
-        task_config::TaskConfig, 
-        tcp_client_config::TcpClientConfig, 
-        tcp_server_config::TcpServerConfig,
+        api_client_config::ApiClientConfig, app::app_config::AppConfig, conf_tree::ConfTree, multi_queue_config::MultiQueueConfig, point_config::name::Name, profinet_client_config::profinet_client_config::ProfinetClientConfig, task_config::TaskConfig, tcp_client_config::TcpClientConfig, tcp_server_config::TcpServerConfig
     }, 
     services::{
         api_cient::api_client::ApiClient, multi_queue::multi_queue::MultiQueue, profinet_client::profinet_client::ProfinetClient, safe_lock::SafeLock, server::tcp_server::TcpServer, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::task::Task, tcp_client::tcp_client::TcpClient
@@ -24,7 +18,8 @@ use crate::{
 
 pub struct App {
     id: String,
-    handles: HashMap<String, ServiceHandles>,
+    name: Name,
+    handles: LinkedHashMap<String, ServiceHandles>,
     conf: AppConfig,
 }
 ///
@@ -36,24 +31,25 @@ impl App {
     pub fn new(path: impl Into<String>) -> Self {
         let path: String = path.into();
         let self_id = format!("App");
+        let self_name = Name::from("App");
         info!("{}.run | Configuration path: '{}'", self_id, path);
         info!("{}.run | Reading configuration...", self_id);
         let conf: AppConfig = AppConfig::read(&path);
         info!("{}.run | Reading configuration - ok", self_id);
         Self {
             id: self_id,
-            handles: HashMap::new(),
+            name: self_name,
+            handles: LinkedHashMap::new(),
             conf: conf,
         }
     }
-
     ///
     /// Executes all services
     pub fn run(self) -> Result<(), String>  {
         let self_id = self.id.clone();
         info!("{}.run | Starting application...", self_id);
         let conf = self.conf.clone();
-        let self_path = conf.name.clone();
+        let self_name = Name::new("", conf.name);
         let app = Arc::new(RwLock::new(self));
         let services = Arc::new(Mutex::new(Services::new(&self_id)));
         info!("{}.run |     Configuring services...", self_id);
@@ -62,9 +58,9 @@ impl App {
             let node_sufix = node_keywd.sufix();
             info!("{}.run |         Configuring service: {}({})...", self_id, node_name, node_sufix);
             debug!("{}.run |         Config: {:#?}", self_id, node_conf);
-            let service = Self::match_service(&self_id, &self_path, &node_name, &node_sufix, &mut node_conf, services.clone());
-            // let id = if node_sufix.is_empty() {&node_name} else {&node_sufix};
-            services.slock().insert(service);
+            services.slock().insert(
+                Self::match_service(&self_id, &self_name, &node_name, &node_sufix, &mut node_conf, services.clone()),
+            );
             info!("{}.run |         Configuring service: {}({}) - ok\n", self_id, node_name, node_sufix);
         }
         info!("{}.run |     All services configured\n", self_id);
@@ -86,8 +82,62 @@ impl App {
         }
         info!("{}.run |     All services started\n", self_id);
         info!("{}.run | Application started\n", self_id);
-        let self_id_clone = self_id.clone();
-        let services_clone = services.clone();
+        Self::listen_sys_signals(self_id.clone(), services.clone());
+        loop {
+            let servece_ids: Vec<String> = app.read().unwrap().handles.keys().cloned().collect();
+            match servece_ids.first() {
+                Some(service_name) => {
+                    info!("{}.run | Waiting for service '{}' being finished...", self_id, service_name);
+                    let handles = app.write().unwrap().handles.remove(service_name).unwrap();
+                    handles.wait().unwrap();
+                    info!("{}.run | Waiting for service '{}' being finished - Ok", self_id, service_name);
+                },
+                None => {
+                    break;
+                },
+            }
+        }
+        info!("{}.run | Application exit - Ok\n", self_id);
+        Ok(())
+    }    
+    ///
+    /// 
+    fn match_service(self_id: &str, parent: &Name, node_name: &str, node_sufix: &str, node_conf: &mut ConfTree, services: Arc<Mutex<Services>>) -> Arc<Mutex<dyn Service + Send>> {
+        match node_name {
+            Services::API_CLIENT => Arc::new(Mutex::new(
+                ApiClient::new(ApiClientConfig::new(parent, node_conf))
+            )),
+            Services::MULTI_QUEUE => Arc::new(Mutex::new(
+                MultiQueue::new(MultiQueueConfig::new(parent, node_conf), services)
+            )),
+            Services::PROFINET_CLIENT => Arc::new(Mutex::new(
+                ProfinetClient::new(ProfinetClientConfig::new(parent, node_conf), services)
+            )),
+            Services::TASK => Arc::new(Mutex::new(
+                Task::new(TaskConfig::new(parent, node_conf), services.clone())
+            )),
+            Services::TCP_CLIENT => Arc::new(Mutex::new(
+                TcpClient::new(TcpClientConfig::new(parent, node_conf), services.clone())
+            )),
+            Services::TCP_SERVER => Arc::new(Mutex::new(
+                TcpServer::new(TcpServerConfig::new(parent, node_conf), services.clone())
+            )),
+            _ => {
+                panic!("{}.run | Unknown service: {}({})", self_id, node_name, node_sufix);
+            },
+        }
+    }
+    ///
+    /// Inserts new pair service_id & service_join_handle
+    fn insert_handles(&mut self, id:&str, handles: ServiceHandles) {
+        if self.handles.contains_key(id) {
+            panic!("{}.insert | Duplicated service name '{:?}'", self.id, id);
+        }
+        self.handles.insert(id.to_string(), handles);
+    }
+    ///
+    /// Listening for signals from the operating system
+    fn listen_sys_signals(self_id: String, services: Arc<Mutex<Services>>) {
         let signals = Signals::new([
             SIGHUP,     // code: 1	This signal is sent to a process when its controlling terminal is closed or disconnected
             SIGINT,     // code: 2	This signal is sent to a process when the user presses Control+C to interrupt its execution
@@ -103,7 +153,6 @@ impl App {
         ]);
         match signals {
             Ok(mut signals) => {
-                let self_id = self_id_clone;
                 thread::spawn(move || {
                     let signals_handle = signals.handle();
                     let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
@@ -113,7 +162,7 @@ impl App {
                                 SIGINT | SIGQUIT | SIGTERM => {
                                     println!("{}.run Received signal {:?}", self_id, signal);
                                     println!("{}.run Application exit...", self_id);
-                                    let services_iter = services_clone.slock().all();
+                                    let services_iter = services.slock().all();
                                     for (_id, service) in services_iter {
                                         println!("{}.run Stopping service '{}'...", self_id, _id);
                                         service.slock().exit();
@@ -140,56 +189,5 @@ impl App {
                 panic!("{}.run | Application hook system signals error; {:#?}", self_id, err);
             },
         }
-        loop {
-            let servece_ids: Vec<String> = app.read().unwrap().handles.keys().cloned().collect();
-            match servece_ids.first() {
-                Some(service_id) => {
-                    info!("{}.run | Waiting for service '{}' being finished...", self_id, service_id);
-                    let (_, handles) = app.write().unwrap().handles.remove_entry(service_id).unwrap();
-                    handles.wait().unwrap();
-                    info!("{}.run | Waiting for service '{}' being finished - Ok", self_id, service_id);
-                },
-                None => {
-                    break;
-                },
-            }
-        }
-        info!("{}.run | Application exit - Ok\n", self_id);
-        Ok(())
-    }    
-    ///
-    /// 
-    fn match_service(self_id: &str, path: &str, node_name: &str, node_sufix: &str, node_conf: &mut ConfTree, services: Arc<Mutex<Services>>) -> Arc<Mutex<dyn Service + Send>> {
-        match node_name {
-            Services::API_CLIENT => {
-                Arc::new(Mutex::new(ApiClient::new(path, ApiClientConfig::new(node_conf))))
-            },
-            Services::MULTI_QUEUE => {
-                Arc::new(Mutex::new(MultiQueue::new(path, MultiQueueConfig::new(node_conf), services)))
-            },
-            Services::PROFINET_CLIENT => {
-                Arc::new(Mutex::new(ProfinetClient::new(path, path, ProfinetClientConfig::new(node_conf), services)))
-            },
-            Services::TASK => {
-                Arc::new(Mutex::new(Task::new(path, TaskConfig::new(node_conf), services.clone())))
-            },
-            Services::TCP_CLIENT => {
-                Arc::new(Mutex::new(TcpClient::new(path, TcpClientConfig::new(node_conf), services.clone())))
-            },
-            Services::TCP_SERVER => {
-                Arc::new(Mutex::new(TcpServer::new(path, path, TcpServerConfig::new(node_conf), services.clone())))
-            },
-            _ => {
-                panic!("{}.run | Unknown service: {}({})", self_id, node_name, node_sufix);
-            },
-        }
-    }
-    ///
-    /// Inserts new pair service_id & service_join_handle
-    fn insert_handles(&mut self, id:&str, handles: ServiceHandles) {
-        if self.handles.contains_key(id) {
-            panic!("{}.insert | Duplicated service name '{:?}'", self.id, id);
-        }
-        self.handles.insert(id.to_string(), handles);
     }
 }

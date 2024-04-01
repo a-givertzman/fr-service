@@ -7,12 +7,9 @@ use crate::{
     conf::fn_::fn_conf_keywd::FnConfPointType, core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, services::task::nested_function::{fn_::FnOut, 
     fn_count::{self, FnCount}, fn_input::FnInput, reset_counter::AtomicReset}
 };
-
-// Note this useful idiom: importing names from outer (for mod tests) scope.
-// use super::*;
-
+///
+/// 
 static INIT: Once = Once::new();
-
 ///
 /// once called initialisation
 fn init_once() {
@@ -21,19 +18,17 @@ fn init_once() {
         }
     )
 }
-
-
 ///
 /// returns:
 ///  - ...
 fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
-    fn_count::COUNT.reset();
+    fn_count::COUNT.reset(0);
     Rc::new(RefCell::new(Box::new(
         FnInput::new("test", initial, type_)
     )))
 }
-
-
+///
+///
 #[test]
 fn test_single() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);

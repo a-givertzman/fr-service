@@ -79,26 +79,26 @@ mod multi_queue {
                 out queue:
         "#.to_string();
         for i in 0..count {
-            conf = format!("{}\n                    - {}/{}/MockRecvSendService.in-queue", conf, self_id, i)
+            conf = format!("{}\n                    - /{}/MockRecvSendService{}.in-queue", conf, self_id, i)
         }
         let conf = serde_yaml::from_str(&conf).unwrap();
-        let mq_conf = MultiQueueConfig::from_yaml(&conf);
+        let mq_conf = MultiQueueConfig::from_yaml(self_id, &conf);
         debug!("mqConf: {:?}", mq_conf);
         let services = Arc::new(Mutex::new(Services::new(self_id)));
-        let mq_service = Arc::new(Mutex::new(MultiQueue::new(self_id, mq_conf, services.clone())));
+        let mq_service = Arc::new(Mutex::new(MultiQueue::new(mq_conf, services.clone())));
         services.lock().unwrap().insert(mq_service.clone());
         let timer = Instant::now();
         let mut rs_services = vec![];
         for i in 0..count {
             let rs_service = Arc::new(Mutex::new(MockRecvSendService::new(
-                format!("{}/{}", self_id, i),
-                "in-queue",//MultiQueue.
-                &format!("{}/MultiQueue.in-queue", self_id),
+                self_id,
+                "in-queue",
+                &format!("/{}/MultiQueue.in-queue", self_id),
                 services.clone(),
                 test_data.clone(),
                 Some(total_count),
             )));
-            services.lock().unwrap().insert(rs_service.clone());    // &format!("MockRecvSendService{}", i), 
+            services.lock().unwrap().insert(rs_service.clone());
             rs_services.push(rs_service);
         }
         mq_service.lock().unwrap().run().unwrap();

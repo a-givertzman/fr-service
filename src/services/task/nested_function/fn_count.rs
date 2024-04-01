@@ -21,9 +21,8 @@ impl FnCount {
     /// Creates new instance of the FnCount
     #[allow(dead_code)]
     pub fn new(parent: impl Into<String>, initial: f64, input: FnInOutRef) -> Self {
-        COUNT.fetch_add(1, Ordering::SeqCst);
         Self { 
-            id: format!("{}/FnCount{}", parent.into(), COUNT.load(Ordering::Relaxed)),
+            id: format!("{}/FnCount{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
             kind:FnKind::Fn,
             input,
             count: initial,
@@ -83,4 +82,4 @@ impl FnOut for FnCount {
 impl FnInOut for FnCount {}
 ///
 /// Global static counter of FnOut instances
-pub static COUNT: AtomicUsize = AtomicUsize::new(0);
+pub static COUNT: AtomicUsize = AtomicUsize::new(1);

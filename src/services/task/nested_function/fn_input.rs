@@ -16,9 +16,8 @@ pub struct FnInput {
 /// 
 impl FnInput {
     pub fn new(parent: &str, initial: PointType, type_: FnConfPointType) -> Self {
-        COUNT.fetch_add(1, Ordering::SeqCst);
         Self {
-            id: format!("{}/FnInput{}", parent, COUNT.load(Ordering::Relaxed)),
+            id: format!("{}/FnInput{}", parent, COUNT.fetch_add(1, Ordering::Relaxed)),
             kind: FnKind::Input,
             type_,
             point: initial.clone(), 
@@ -178,4 +177,4 @@ impl FnOut for FnInput {
 impl FnInOut for FnInput {}
 ///
 /// Global static counter of FnOut instances
-static COUNT: AtomicUsize = AtomicUsize::new(0);
+static COUNT: AtomicUsize = AtomicUsize::new(1);

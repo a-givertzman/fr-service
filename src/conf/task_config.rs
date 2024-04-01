@@ -10,7 +10,7 @@ use crate::conf::{
     point_config::point_config::PointConfig,
 };
 
-use super::conf_subscribe::ConfSubscribe;
+use super::{conf_subscribe::ConfSubscribe, point_config::name::Name};
 
 ///
 /// creates config from serde_yaml::Value of following format:
@@ -31,7 +31,7 @@ use super::conf_subscribe::ConfSubscribe;
 ///                         ...
 #[derive(Debug, PartialEq, Clone)]
 pub struct TaskConfig {
-    pub(crate) name: String,
+    pub(crate) name: Name,
     pub(crate) cycle: Option<Duration>,
     pub(crate) rx: String,
     pub(crate) rx_max_length: i64,
@@ -58,31 +58,28 @@ impl TaskConfig {
     ///             input2:
     ///                 fn SqlMetric:
     ///                     ...
-    pub fn new(conf_tree: &mut ConfTree) -> TaskConfig {
+    pub fn new(parent: impl Into<String>, conf_tree: &mut ConfTree) -> TaskConfig {
         println!();
         trace!("TaskConfig.new | confTree: {:?}", conf_tree);
-        // self conf from first sub node
-        //  - if additional sub nodes presents hit warning, FnConf must have single item
         let mut vars = vec![];
         let self_id = format!("TaskConfig({})", conf_tree.key);
-        trace!("{}.new | MAPPING VALUE", self_id);
         let mut self_conf = ServiceConfig::new(&self_id, conf_tree.clone());
         trace!("{}.new | selfConf: {:?}", self_id, self_conf);
-        let self_name = self_conf.sufix();
+        let self_name = Name::new(parent, self_conf.sufix());
         debug!("{}.new | name: {:?}", self_id, self_name);
         let cycle = self_conf.get_duration("cycle");
         debug!("{}.new | cycle: {:?}", self_id, cycle);
         let (rx, rx_max_length) = self_conf.get_in_queue().unwrap();
         debug!("{}.new | RX: {},\tmax-length: {:?}", self_id, rx, rx_max_length);
         let subscribe = ConfSubscribe::new(self_conf.get_param_value("subscribe").unwrap_or(serde_yaml::Value::Null));
-        debug!("{}.new | sudscribe: {:?}", self_id, subscribe);
+        debug!("{}.new | sudscribe: {:#?}", self_id, subscribe);
         let mut node_index = 0;
         let mut nodes = IndexMap::new();
         for key in &self_conf.keys {
             let node_conf = self_conf.get(key).unwrap();
             trace!("{}.new | nodeConf: {:?}", self_id, node_conf);
             node_index += 1;
-            let node_conf = FnConfig::new(&self_name, &node_conf, &mut vars);
+            let node_conf = FnConfig::new(&self_name.join(), &self_name, &node_conf, &mut vars);
             nodes.insert(
                 format!("{}-{}", node_conf.name(), node_index),
                 node_conf,
@@ -100,10 +97,10 @@ impl TaskConfig {
     }
     ///
     /// creates config from serde_yaml::Value of following format:
-    pub(crate) fn from_yaml(value: &serde_yaml::Value) -> TaskConfig {
+    pub(crate) fn from_yaml(parent: impl Into<String>, value: &serde_yaml::Value) -> TaskConfig {
         match value.as_mapping().unwrap().into_iter().next() {
             Some((key, value)) => {
-                Self::new(&mut ConfTree::new(key.as_str().unwrap(), value.clone()))
+                Self::new(parent, &mut ConfTree::new(key.as_str().unwrap(), value.clone()))
             },
             None => {
                 panic!("TaskConfig.from_yaml | Format error or empty conf: {:#?}", value)
@@ -113,12 +110,12 @@ impl TaskConfig {
     ///
     /// reads config from path
     #[allow(dead_code)]
-    pub fn read(path: &str) -> TaskConfig {
+    pub fn read(parent: impl Into<String>, path: &str) -> TaskConfig {
         match fs::read_to_string(path) {
             Ok(yaml_string) => {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
-                        TaskConfig::from_yaml(&config)
+                        TaskConfig::from_yaml(parent, &config)
                     },
                     Err(err) => {
                         panic!("TaskConfig.read | Error in config: {:?}\n\terror: {:?}", yaml_string, err)

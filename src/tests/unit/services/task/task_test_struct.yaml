@@ -31,7 +31,7 @@ service Task Task1:
     #             input2: const real 0.07
 
     fn ToApiQueue:
-        queue: task_test/TaskTestReceiver.in-queue
+        queue: /task_test/TaskTestReceiver.in-queue
         input fn SqlMetric:
             initial: 0.123      # начальное значение
             table: table_name

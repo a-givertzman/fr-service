@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread};
 use log::{debug, error, info, trace, warn};
 use crate::{
-    conf::multi_queue_config::MultiQueueConfig, 
+    conf::{multi_queue_config::MultiQueueConfig, point_config::name::Name}, 
     core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}}, 
     services::{
         multi_queue::subscription_criteria::SubscriptionCriteria, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services
@@ -15,6 +15,7 @@ use super::subscriptions::Subscriptions;
 /// - Keeps all consumers subscriptions in the single map:
 pub struct MultiQueue {
     id: String,
+    name: Name,
     subscriptions: Arc<Mutex<Subscriptions>>,
     subscriptions_changed: Arc<AtomicBool>,
     rx_send: HashMap<String, Sender<PointType>>,
@@ -30,12 +31,13 @@ impl MultiQueue {
     ///
     /// Creates new instance of [ApiClient]
     /// - [parent] - the ID if the parent entity
-    pub fn new(parent: impl Into<String>, conf: MultiQueueConfig, services: Arc<Mutex<Services>>) -> Self {
-        let self_id = format!("{}/MultiQueue", parent.into());
+    pub fn new(conf: MultiQueueConfig, services: Arc<Mutex<Services>>) -> Self {
+        let self_id = format!("{}", conf.name);
         let (send, recv) = mpsc::channel();
         let send_queues = conf.tx;
         Self {
             id: self_id.clone(),
+            name: conf.name.clone(),
             subscriptions: Arc::new(Mutex::new(Subscriptions::new(self_id))),
             subscriptions_changed: Arc::new(AtomicBool::new(false)),
             rx_send: HashMap::from([(conf.rx, send)]),
@@ -52,6 +54,9 @@ impl MultiQueue {
 impl Object for MultiQueue {
     fn id(&self) -> &str {
         &self.id
+    }
+    fn name(&self) -> Name {
+        self.name.clone()
     }
 }
 ///
@@ -77,44 +82,43 @@ impl Service for MultiQueue {
     }
     //
     //
-    fn subscribe(&mut self, receiver_id: &str, points: &[SubscriptionCriteria]) -> (Sender<PointType>, Receiver<PointType>) {
+    fn subscribe(&mut self, receiver_name: &str, points: &[SubscriptionCriteria]) -> (Sender<PointType>, Receiver<PointType>) {
         let (send, recv) = mpsc::channel();
-        let inner_receiver_id = PointTxId::fromStr(receiver_id);
-        self.receiver_dictionary.insert(inner_receiver_id, receiver_id.to_string());
+        let receiver_hash = PointTxId::fromStr(receiver_name);
+        self.receiver_dictionary.insert(receiver_hash, receiver_name.to_string());
         if points.is_empty() {
-            self.subscriptions.slock().add_broadcast(inner_receiver_id, send.clone());
-            debug!("{}.subscribe | Broadcast subscription registered, receiver: \n\t{} ({})", self.id, receiver_id, inner_receiver_id);
+            self.subscriptions.slock().add_broadcast(receiver_hash, send.clone());
+            debug!("{}.subscribe | Broadcast subscription registered, receiver: \n\t{} ({})", self.id, receiver_name, receiver_hash);
         } else {
             for subscription_criteria in points {
-                self.subscriptions.slock().add_multicast(inner_receiver_id, &subscription_criteria.destination(), send.clone());
+                self.subscriptions.slock().add_multicast(receiver_hash, &subscription_criteria.destination(), send.clone());
             }
-            debug!("{}.subscribe | Multicast subscription registered, receiver: \n\t{} ({}) \n\tpoints: {:#?}", self.id, receiver_id, inner_receiver_id, points);
+            debug!("{}.subscribe | Multicast subscription registered, receiver: \n\t{} ({}) \n\tpoints: {:#?}", self.id, receiver_name, receiver_hash, points);
         }
         self.subscriptions_changed.store(true, Ordering::SeqCst);
         (send, recv)
     }
     //
     //
-    fn extend_subscription(&mut self, receiver_id: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
-        let inner_receiver_id = PointTxId::fromStr(receiver_id);
-        // self.receiver_dictionary.insert(inner_receiver_id, receiver_id.to_string());
+    fn extend_subscription(&mut self, receiver_name: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
+        let receiver_hash = PointTxId::fromStr(receiver_name);
         if points.is_empty() {
-            let message = format!("{}.extend_subscription | Broadcast subscription can't be extended, receiver: {} ({})", self.id, receiver_id, inner_receiver_id);
+            let message = format!("{}.extend_subscription | Broadcast subscription can't be extended, receiver: {} ({})", self.id, receiver_name, receiver_hash);
             warn!("{}", message);
             Err(message)
         } else {
             let mut message = String::new();
             for subscription_criteria in points {
-                if let Err(err) = self.subscriptions.slock().extend_multicast(inner_receiver_id, &subscription_criteria.destination()) {
+                if let Err(err) = self.subscriptions.slock().extend_multicast(receiver_hash, &subscription_criteria.destination()) {
                     message = concat_string!(message, err, "\n");
                 };
             }
             if message.is_empty() {
-                debug!("{}.extend_subscription | Multicast subscription extended, receiver: {} ({})", self.id, receiver_id, inner_receiver_id);
+                debug!("{}.extend_subscription | Multicast subscription extended, receiver: {} ({})", self.id, receiver_name, receiver_hash);
                 self.subscriptions_changed.store(true, Ordering::SeqCst);
                 Ok(())
             } else {
-                debug!("{}.extend_subscription | Multicast subscription extended, receiver: {} ({}) \n\t with errors: {:?}", self.id, receiver_id, inner_receiver_id, message);
+                debug!("{}.extend_subscription | Multicast subscription extended, receiver: {} ({}) \n\t with errors: {:?}", self.id, receiver_name, receiver_hash, message);
                 self.subscriptions_changed.store(true, Ordering::SeqCst);
                 Err(message)
             }
@@ -122,15 +126,15 @@ impl Service for MultiQueue {
     }
     //
     //
-    fn unsubscribe(&mut self, receiver_id: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
+    fn unsubscribe(&mut self, receiver_name: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
         let mut changed = false;
-        let inner_receiver_id = PointTxId::fromStr(receiver_id);
+        let receiver_hash = PointTxId::fromStr(receiver_name);
         if points.is_empty() {
-            match self.subscriptions.slock().remove_all(&inner_receiver_id) {
+            match self.subscriptions.slock().remove_all(&receiver_hash) {
                 Ok(_) => {
-                    self.receiver_dictionary.remove(&inner_receiver_id);
+                    self.receiver_dictionary.remove(&receiver_hash);
                     changed |= true;
-                    debug!("{}.unsubscribe | Broadcast subscription removed, receiver: {} ({})", self.id, receiver_id, inner_receiver_id);
+                    debug!("{}.unsubscribe | Broadcast subscription removed, receiver: {} ({})", self.id, receiver_name, receiver_hash);
                 },
                 Err(err) => {
                     return Err(err)
@@ -138,11 +142,11 @@ impl Service for MultiQueue {
             }
         } else {
             for subscription_criteria in points {
-                match self.subscriptions.slock().remove(&inner_receiver_id, &subscription_criteria.destination()) {
+                match self.subscriptions.slock().remove(&receiver_hash, &subscription_criteria.destination()) {
                     Ok(_) => {
-                        self.receiver_dictionary.remove(&inner_receiver_id);
+                        self.receiver_dictionary.remove(&receiver_hash);
                         changed |= true;
-                        debug!("{}.unsubscribe | Multicat subscription '{}' removed, receiver: {} ({})", self.id, subscription_criteria.destination(), receiver_id, inner_receiver_id);
+                        debug!("{}.unsubscribe | Multicat subscription '{}' removed, receiver: {} ({})", self.id, subscription_criteria.destination(), receiver_name, receiver_hash);
                     },
                     Err(err) => {
                         return Err(err)
@@ -164,39 +168,34 @@ impl Service for MultiQueue {
         let recv = self.rx_recv.pop().unwrap();
         let subscriptions_ref = self.subscriptions.clone();
         let subscriptions_changed = self.subscriptions_changed.clone();
-        for receiver_id in &self.send_queues {
-            let send = self.services.slock().get_link(receiver_id).unwrap_or_else(|err| {
+        for receiver_name in &self.send_queues {
+            let send = self.services.slock().get_link(receiver_name).unwrap_or_else(|err| {
                 panic!("{}.run | services.get_link error: {:#?}", self_id, err);
             });
-            let inner_receiver_id = PointTxId::fromStr(receiver_id);
-            self.subscriptions.slock().add_broadcast(inner_receiver_id, send.clone());
-            debug!("{}.subscribe | Broadcast subscription registered, receiver: \n\t{} ({})", self.id, receiver_id, inner_receiver_id);
+            let receiver_hash = PointTxId::fromStr(receiver_name);
+            self.subscriptions.slock().add_broadcast(receiver_hash, send.clone());
+            debug!("{}.subscribe | Broadcast subscription registered, receiver: \n\t{} ({})", self.id, receiver_name, receiver_hash);
         }
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
-            // debug!("{}.run | Lock subscriptions...", self_id);
             let mut subscriptions = subscriptions_ref.slock().clone();
-            // debug!("{}.run | Lock subscriptions - ok", self_id);
             loop {
                 if subscriptions_changed.load(Ordering::Relaxed) {
                     subscriptions_changed.store(false, Ordering::SeqCst);
                     debug!("{}.run | Subscriptions changes detected", self_id);
-                    // debug!("{}.run | Lock subscriptions...", self_id);
                     subscriptions = subscriptions_ref.slock().clone();
-                    // debug!("{}.run | Lock subscriptions - ok", self_id);
                 }
                 match recv.recv_timeout(RECV_TIMEOUT) {
                     Ok(point) => {
                         let point_id = SubscriptionCriteria::new(&point.name(), point.cot()).destination();
                         trace!("{}.run | received: \n\t{:?}", self_id, point);
-                        for (receiver_id, sender) in subscriptions.iter(&point_id) {
-                            // for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {
-                            match receiver_id != point.tx_id() {
+                        for (receiver_hash, sender) in subscriptions.iter(&point_id) {
+                            match receiver_hash != point.tx_id() {
                                 true => {
                                     match sender.send(point.clone()) {
                                         Ok(_) => {},
                                         Err(err) => {
-                                            error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", self_id, point_id, receiver_id, err);
+                                            error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", self_id, point_id, receiver_hash, err);
                                         },
                                     };
                                 },

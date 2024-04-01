@@ -6,8 +6,8 @@ mod services_points {
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::task_config::TaskConfig, 
-        services::{task::task::Task, services::Services},
+        conf::{point_config::name::Name, task_config::TaskConfig}, 
+        services::{services::Services, task::task::Task},
     };
     ///
     ///     
@@ -33,16 +33,17 @@ mod services_points {
         init_each();
         println!();
         let self_id = "test Services.points";
+        let self_name = Name::new("", self_id);
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
         trace!("dir: {:?}", env::current_dir());
         let path = "./src/tests/unit/services/services/services_points_test.yaml";
-        let config = TaskConfig::read(path);
+        let config = TaskConfig::read(&self_name, path);
         trace!("config: {:?}", &config);
         println!(" points: {:?}", config.points());
         let services = Arc::new(Mutex::new(Services::new(self_id)));        
-        let task = Arc::new(Mutex::new(Task::new(self_id, config, services.clone())));
+        let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
         services.lock().unwrap().insert(task.clone());
         let target  = 3;
         let points = services.lock().unwrap().points(self_id);

@@ -22,9 +22,8 @@ impl FnDebug {
     /// Creates new instance of the FnDebug
     #[allow(dead_code)]
     pub fn new(parent: impl Into<String>, input: FnInOutRef) -> Self {
-        COUNT.fetch_add(1, Ordering::SeqCst);
         Self { 
-            id: format!("{}/FnDebug{}", parent.into(), COUNT.load(Ordering::Relaxed)),
+            id: format!("{}/FnDebug{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
             kind: FnKind::Fn,
             input,
         }
@@ -66,4 +65,4 @@ impl FnOut for FnDebug {
 impl FnInOut for FnDebug {}
 ///
 /// Global static counter of FnDebug instances
-static COUNT: AtomicUsize = AtomicUsize::new(0);
+static COUNT: AtomicUsize = AtomicUsize::new(1);

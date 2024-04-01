@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use indexmap::IndexMap;
 use log::{debug, trace, warn};
 use crate::{
-    conf::{fn_::fn_conf_kind::FnConfKind, task_config::TaskConfig}, 
+    conf::{fn_::fn_conf_kind::FnConfKind, point_config::name::Name, task_config::TaskConfig}, 
     core_::{point::{point_tx_id::PointTxId, point_type::PointType}, types::fn_in_out_ref::FnInOutRef}, 
     services::{services::Services, task::nested_function::{fn_kind::FnKind, nested_fn::NestedFn}},
 };
@@ -76,7 +76,7 @@ impl TaskNodes {
                     trace!("{}.addInput | adding input {:?}: {:?}", self.id, &name, &input);
                     self.inputs.insert(
                         name.clone().into(), 
-                        TaskEvalNode::new(self.id.clone(), name.clone(), input),
+                        TaskEvalNode::new(self.id.clone(), name, input),
                     );
                 }
             },
@@ -159,9 +159,9 @@ impl TaskNodes {
     ///
     /// Creates all task nodes depending on it config
     ///  - if Task config contains 'point [type] every' then single evaluation node allowed only
-    pub fn buildNodes(&mut self, parent: &str, conf: TaskConfig, services: Arc<Mutex<Services>>) {
+    pub fn buildNodes(&mut self, parent: &Name, conf: TaskConfig, services: Arc<Mutex<Services>>) {
         let mut idx = 0;
-        let txId = PointTxId::fromStr(parent);
+        let txId = PointTxId::fromStr(&parent.join());
         for (_nodeName, mut nodeConf) in conf.nodes {
             let nodeName = nodeConf.name();
             debug!("{}.buildNodes | node[{}]: {:?}", self.id, idx, nodeName);

@@ -408,6 +408,7 @@ dependencies = [
  "indexmap",
  "libc",
  "libloading",
+ "linked-hash-map",
  "log",
  "once_cell",
  "rand",
@@ -647,6 +648,12 @@ dependencies = [
  "cfg-if",
  "windows-targets 0.52.4",
 ]
+
+[[package]]
+name = "linked-hash-map"
+version = "0.5.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0717cef1bc8b636c6e1c1bbdefc09e6322da8a9321966e8928ef80d20f7f770f"
 
 [[package]]
 name = "linux-raw-sys"

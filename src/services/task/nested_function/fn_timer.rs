@@ -38,7 +38,7 @@ pub struct FnTimer {
 /// 
 impl FnTimer {
     #[allow(dead_code)]
-    pub fn new(parent: &str, initial: impl Into<f64> + Clone, input: FnInOutRef, repeat: bool) -> Self {
+    pub fn new(parent: impl Into<String>, initial: impl Into<f64> + Clone, input: FnInOutRef, repeat: bool) -> Self {
         let switches = vec![
             Switch{
                 state: FnTimerState::Off,
@@ -89,9 +89,8 @@ impl FnTimer {
                 conditions: vec![],
             },
         ];
-        COUNT.fetch_add(1, Ordering::SeqCst);
         Self { 
-            id: format!("{}/FnTimer{}", parent, COUNT.load(Ordering::Relaxed)),
+            id: format!("{}/FnTimer{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
             kind: FnKind::Fn,
             input,
             state: SwitchState::new(FnTimerState::Off, switches),
@@ -180,4 +179,4 @@ impl FnOut for FnTimer {
 impl FnInOut for FnTimer {}
 ///
 /// Global static counter of FnOut instances
-static COUNT: AtomicUsize = AtomicUsize::new(0);
+static COUNT: AtomicUsize = AtomicUsize::new(1);

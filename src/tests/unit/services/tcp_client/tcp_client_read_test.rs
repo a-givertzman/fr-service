@@ -37,16 +37,16 @@ mod tcp_client {
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
-        let conf = serde_yaml::from_str(r#"
+        let conf = serde_yaml::from_str(&format!(r#"
             service TcpClient:
                 cycle: 1 ms
                 reconnect: 1 s  # default 3 s
                 address: 127.0.0.1:8080
                 in queue link:
                     max-length: 10000
-                out queue: MockMultiQueue.queue
-        "#).unwrap();
-        let mut conf = TcpClientConfig::from_yaml(&conf);
+                out queue: /{}/MockMultiQueue.queue
+        "#, self_id)).unwrap();
+        let mut conf = TcpClientConfig::from_yaml(self_id, &conf);
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         conf.address = addr.parse().unwrap();
         let iterations = 100;
@@ -84,8 +84,8 @@ mod tcp_client {
         let test_data: Vec<Value> = test_data.collect();
         let total_count = test_data.len();
         let services = Arc::new(Mutex::new(Services::new(self_id)));
-        let multi_queue = Arc::new(Mutex::new(MockMultiQueue::new(Some(total_count))));
-        let tcp_client = Arc::new(Mutex::new(TcpClient::new(self_id, conf, services.clone())));
+        let multi_queue = Arc::new(Mutex::new(MockMultiQueue::new(self_id, "", Some(total_count))));
+        let tcp_client = Arc::new(Mutex::new(TcpClient::new(conf, services.clone())));
         let multi_queue_service_id = multi_queue.lock().unwrap().id().to_owned();
         let tcp_client_service_id = tcp_client.lock().unwrap().id().to_owned();
         services.lock().unwrap().insert(tcp_client.clone());

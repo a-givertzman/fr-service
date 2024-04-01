@@ -7,7 +7,7 @@ mod conf_subscribe {
     use crate::{
         core_::cot::cot::Cot, 
         services::multi_queue::subscription_criteria::SubscriptionCriteria,
-        conf::{conf_subscribe::ConfSubscribe, point_config::{point_config::PointConfig, point_name::PointName}}, 
+        conf::{conf_subscribe::ConfSubscribe, point_config::{point_config::PointConfig, name::Name}}, 
     };
     ///
     /// 
@@ -33,6 +33,7 @@ mod conf_subscribe {
         init_each();
         println!();
         let self_id = "conf_subscribe_test";
+        let self_name = Name::new("", self_id);
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
@@ -66,7 +67,7 @@ mod conf_subscribe {
         ];
         let points = points.map(|conf| {
             let conf = serde_yaml::from_str(conf).unwrap();
-            PointConfig::from_yaml(self_id, &conf)
+            PointConfig::from_yaml(self_id, &self_name, &conf)
         });
         let test_data = [
             (
@@ -93,12 +94,12 @@ mod conf_subscribe {
                             Inf: []
                 "#,
                 HashMap::from([("App/MultiQueue".to_owned(), Some(vec![
-                    SubscriptionCriteria::new(PointName::new(self_id, "Drive.Speed").full(), Cot::Inf),
-                    SubscriptionCriteria::new(PointName::new(self_id, "Drive.OutputVoltage").full(), Cot::Inf),
-                    SubscriptionCriteria::new(PointName::new(self_id, "Drive.DCVoltage").full(), Cot::Inf),
-                    SubscriptionCriteria::new(PointName::new(self_id, "Drive.Current").full(), Cot::Inf),
-                    SubscriptionCriteria::new(PointName::new(self_id, "Drive.Torque").full(), Cot::Inf),
-                    SubscriptionCriteria::new(PointName::new(self_id, "Drive.Torque1").full(), Cot::Inf),
+                    SubscriptionCriteria::new(Name::new(self_id, "Drive.Speed").join(), Cot::Inf),
+                    SubscriptionCriteria::new(Name::new(self_id, "Drive.OutputVoltage").join(), Cot::Inf),
+                    SubscriptionCriteria::new(Name::new(self_id, "Drive.DCVoltage").join(), Cot::Inf),
+                    SubscriptionCriteria::new(Name::new(self_id, "Drive.Current").join(), Cot::Inf),
+                    SubscriptionCriteria::new(Name::new(self_id, "Drive.Torque").join(), Cot::Inf),
+                    SubscriptionCriteria::new(Name::new(self_id, "Drive.Torque1").join(), Cot::Inf),
                 ]))])
             ),
             (
@@ -108,7 +109,7 @@ mod conf_subscribe {
                             {history: rw}: []
                 "#,
                 HashMap::from([("App/MultiQueue".to_owned(), Some(vec![
-                    SubscriptionCriteria::new(PointName::new(self_id, "Drive.Current").full(), Cot::All),
+                    SubscriptionCriteria::new(Name::new(self_id, "Drive.Current").join(), Cot::All),
                 ]))])
             ),
             (
@@ -118,7 +119,7 @@ mod conf_subscribe {
                             {alarm: 1}: []
                 "#,
                 HashMap::from([("App/MultiQueue".to_owned(), Some(vec![
-                    SubscriptionCriteria::new(PointName::new(self_id, "Drive.Torque1").full(), Cot::All),
+                    SubscriptionCriteria::new(Name::new(self_id, "Drive.Torque1").join(), Cot::All),
                 ]))])
             ),
             (
@@ -128,7 +129,7 @@ mod conf_subscribe {
                             {cot: Inf, history: r}: []
                 "#,
                 HashMap::from([("MultiQueue".to_owned(), Some(vec![
-                    SubscriptionCriteria::new(PointName::new(self_id, "Drive.Current").full(), Cot::Inf),
+                    SubscriptionCriteria::new(Name::new(self_id, "Drive.Current").join(), Cot::Inf),
                 ]))])
             ),
             (

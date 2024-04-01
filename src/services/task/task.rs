@@ -2,7 +2,7 @@ use std::{
     collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, RecvTimeoutError, Sender}, Arc, Mutex}, thread, time::Duration
 };
 use log::{debug, error, info, trace, warn};
-use crate::{conf::task_config::TaskConfig, core_::object::object::Object, services::{safe_lock::SafeLock, service::service_handles::ServiceHandles}};
+use crate::{conf::{point_config::name::Name, task_config::TaskConfig}, core_::object::object::Object, services::{safe_lock::SafeLock, service::service_handles::ServiceHandles}};
 use crate::services::task::service_cycle::ServiceCycle;
 use crate::{
     services::{task::task_nodes::TaskNodes, service::service::Service, services::Services}, 
@@ -16,6 +16,7 @@ use crate::{
 ///  - has some number of functions / variables / metrics or additional entities
 pub struct Task {
     id: String,
+    name: Name,
     in_send: HashMap<String, Sender<PointType>>,
     rx_recv: Vec<Receiver<PointType>>,
     services: Arc<Mutex<Services>>,
@@ -28,10 +29,11 @@ impl Task {
     ///
     /// Creates new instance of [Task]
     /// - [parent] - the ID if the parent entity
-    pub fn new(parent: impl Into<String>, conf: TaskConfig, services: Arc<Mutex<Services>>) -> Task {
+    pub fn new(conf: TaskConfig, services: Arc<Mutex<Services>>) -> Task {
         let (send, recv) = mpsc::channel();
         Task {
-            id: format!("{}/{}", parent.into(), conf.name),
+            id: conf.name.join(),
+            name: conf.name.clone(),
             in_send: HashMap::from([(conf.rx.clone(), send)]),
             rx_recv: vec![recv],
             services,
@@ -56,10 +58,14 @@ impl Task {
             } else {
                 let subscriptions_first = subscriptions.clone().into_iter().next();
                 match subscriptions_first {
-                    Some((service_id, points)) => {
+                    Some((service_name, points)) => {
                         match points {
                             Some(points) => {
-                                let (_, rx_recv) = services.slock().subscribe(&service_id, &self.id, &points);
+                                let (_, rx_recv) = services.slock().subscribe(
+                                        &service_name,
+                                        &self.name.join(), 
+                                        &points,
+                                    );
                                 rx_recv
                             },
                             None => panic!("{}.run | Error. Task subscription configuration error in:: {:#?}", self.id, subscriptions),
@@ -76,6 +82,9 @@ impl Task {
 impl Object for Task {
     fn id(&self) -> &str {
         &self.id
+    }
+    fn name(&self) -> Name {
+        self.name.clone()
     }
 }
 ///
@@ -104,6 +113,7 @@ impl Service for Task {
     fn run(&mut self) -> Result<ServiceHandles, String> {
         info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
+        let self_name = self.name.clone();
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         let services = self.services.clone();
@@ -115,7 +125,7 @@ impl Service for Task {
         let handle = thread::Builder::new().name(format!("{} - main", self_id)).spawn(move || {
             let mut cycle = ServiceCycle::new(&self_id, cycle_interval);
             let mut task_nodes = TaskNodes::new(&self_id);
-            task_nodes.buildNodes(&self_id, conf, services);
+            task_nodes.buildNodes(&self_name, conf, services);
             debug!("{}.run | taskNodes: {:#?}", self_id, task_nodes);
             'main: loop {
                 cycle.start();

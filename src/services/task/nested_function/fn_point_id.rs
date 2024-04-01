@@ -27,10 +27,8 @@ impl FnPointId {
     /// Creates new instance of the FnPointId
     // #[allow(dead_code)]
     pub fn new(parent: impl Into<String>, input: FnInOutRef, points: Vec<PointConfig>) -> Self {
-        COUNT.fetch_add(1, Ordering::SeqCst);
-        // let points = IndexMap::with_hasher(BuildHasherDefault::<FxHasher>::default());
         Self { 
-            id: format!("{}/FnPointId{}", parent.into(), COUNT.load(Ordering::Relaxed)),
+            id: format!("{}/FnPointId{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
             kind: FnKind::Fn,
             input,
             points: points.into_iter().map(|p| {(p.name, p.id)}).collect(),
@@ -87,4 +85,4 @@ impl FnOut for FnPointId {
 impl FnInOut for FnPointId {}
 ///
 /// Global static counter of FnOut instances
-static COUNT: AtomicUsize = AtomicUsize::new(0);
+static COUNT: AtomicUsize = AtomicUsize::new(1);

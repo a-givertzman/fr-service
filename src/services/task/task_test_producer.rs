@@ -1,12 +1,13 @@
-use std::{fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread, time::Duration};
+use std::{fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, Arc, Mutex}, thread, time::Duration};
 use log::{debug, warn, info, trace};
 use testing::entities::test_value::Value;
-use crate::{core_::{object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, services::{safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services}};
+use crate::{conf::point_config::name::Name, core_::{object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, services::{safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services}};
 
 ///
 /// 
 pub struct TaskTestProducer {
     id: String,
+    name: Name,
     link: String, 
     cycle: Duration,
     // rxSend: HashMap<String, Sender<PointType>>,
@@ -19,8 +20,10 @@ pub struct TaskTestProducer {
 /// 
 impl TaskTestProducer {
     pub fn new(parent: &str, link: &str, cycle: Duration, services: Arc<Mutex<Services>>, test_data: Vec<Value>) -> Self {
+        let name = Name::new(parent, format!("TaskTestProducer{}", COUNT.fetch_add(1, Ordering::Relaxed)));
         Self {
-            id: format!("{}/TaskTestProducer", parent),
+            id: name.join(),
+            name,
             link: link.to_string(),
             cycle,
             // rxSend: HashMap::new(),
@@ -41,6 +44,9 @@ impl TaskTestProducer {
 impl Object for TaskTestProducer {
     fn id(&self) -> &str {
         &self.id
+    }
+    fn name(&self) -> crate::conf::point_config::name::Name {
+        self.name.clone()
     }
 }
 ///
@@ -106,3 +112,6 @@ impl Service for TaskTestProducer {
         self.exit.store(true, Ordering::Relaxed);
     }
 }
+///
+/// Global static counter of FnOut instances
+static COUNT: AtomicUsize = AtomicUsize::new(0);

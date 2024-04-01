@@ -21,9 +21,8 @@ pub struct FnVar {
 /// 
 impl FnVar {
     pub fn new(parent: impl Into<String>, input: FnInOutRef) -> Self {
-        COUNT.fetch_add(1, Ordering::SeqCst);
         Self {
-            id: format!("{}/FnVar{}", parent.into(), COUNT.load(Ordering::Relaxed)),
+            id: format!("{}/FnVar{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
             kind: FnKind::Var,
             input,
             result: None, 
@@ -81,4 +80,4 @@ impl FnOut for FnVar {
 impl FnInOut for FnVar {}
 ///
 /// Global static counter of FnVar instances
-static COUNT: AtomicUsize = AtomicUsize::new(0);
+static COUNT: AtomicUsize = AtomicUsize::new(1);

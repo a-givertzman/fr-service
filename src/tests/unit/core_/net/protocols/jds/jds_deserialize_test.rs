@@ -7,9 +7,9 @@ mod jds_deserialize {
     use std::{sync::{Once, atomic::{AtomicUsize, Ordering}, Arc}, time::{Duration, Instant}, net::{TcpStream, TcpListener}, thread, io::{Write, BufReader}};
     use testing::session::test_session::TestSession;
     use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
-    use crate::core_::{
+    use crate::{core_::{
         cot::cot::Cot, net::{connection_status::ConnectionStatus, protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}}, point::{point::Point, point_type::PointType}, status::status::Status, types::bool::Bool 
-    }; 
+    }, tcp::tcp_stream_write::OpResult}; 
     ///
     /// 
     static INIT: Once = Once::new();
@@ -142,7 +142,7 @@ mod jds_deserialize {
                             match stream.read(&mut tcp_stream) {
                                 ConnectionStatus::Active(point) => {
                                     match point {
-                                        Ok(point) => {
+                                        OpResult::Ok(point) => {
                                             received.fetch_add(1, Ordering::SeqCst);
                                             let recv_index = (received.load(Ordering::SeqCst) - 1) % test_data_len;
                                             trace!("socket read - received[{}]: {:?}", recv_index, point);
@@ -162,9 +162,10 @@ mod jds_deserialize {
                                                 break 'read;
                                             }
                                         },
-                                        Err(err) => {
+                                        OpResult::Err(err) => {
                                             panic!("socket read - parsing error: {:?}", err);
                                         },
+                                        OpResult::Timeout() => {},
                                     }
                                 },
                                 ConnectionStatus::Closed(_err) => {

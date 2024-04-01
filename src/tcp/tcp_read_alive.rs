@@ -6,7 +6,7 @@ use std::{
 };
 use crate::{core_::{
     net::connection_status::ConnectionStatus, point::point_type::PointType
-}, services::{safe_lock::SafeLock, task::service_cycle::ServiceCycle}};
+}, services::{safe_lock::SafeLock, task::service_cycle::ServiceCycle}, tcp::tcp_stream_write::OpResult};
 use super::steam_read::TcpStreamRead;
 
 ///
@@ -65,7 +65,7 @@ impl TcpReadAlive {
                 match jds_stream.read(&mut tcp_stream) {
                     ConnectionStatus::Active(point) => {
                         match point {
-                            Ok(point) => {
+                            OpResult::Ok(point) => {
                                 // debug!("{}.run | read point: {:?}", self_id, point);
                                 match send.send(point) {
                                     Ok(_) => {},
@@ -73,12 +73,15 @@ impl TcpReadAlive {
                                         warn!("{}.run | write to queue error: {:?}", self_id, err);
                                     },
                                 };
+                                cycle.wait();
                             },
-                            Err(err) => {
+                            OpResult::Err(err) => {
                                 if log::max_level() == LevelFilter::Trace {
                                     warn!("{}.run | error: {:?}", self_id, err);
                                 }
+                                cycle.wait();
                             },
+                            OpResult::Timeout() => {}
                         }
                     },
                     ConnectionStatus::Closed(err) => {
@@ -90,7 +93,6 @@ impl TcpReadAlive {
                 if exit.load(Ordering::SeqCst) | exit_pair.load(Ordering::SeqCst) {
                     break;
                 }
-                cycle.wait();
             }
             info!("{}.run | Exit", self_id);
         }).unwrap();

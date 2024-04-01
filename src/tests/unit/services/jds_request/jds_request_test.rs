@@ -5,12 +5,12 @@ mod jds_routes {
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use std::{collections::HashMap, io::{Read, Write}, net::TcpStream, sync::{Arc, Mutex, Once}, thread, time::Duration};
     use crate::{
-        conf::{multi_queue_config::MultiQueueConfig, point_config::{point_config::PointConfig, point_name::PointName}, tcp_server_config::TcpServerConfig}, 
+        conf::{multi_queue_config::MultiQueueConfig, point_config::{name::Name, point_config::PointConfig}, tcp_server_config::TcpServerConfig}, 
         core_::{
             cot::cot::Cot, net::protocols::jds::{jds_define::JDS_END_OF_TRANSMISSION, jds_deserialize::JdsDeserialize, request_kind::RequestKind}, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status 
         }, 
-        services::{multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, server::tcp_server::TcpServer, service::service::Service, services::Services}, 
-        tests::unit::services::{multi_queue::mock_recv_service::MockRecvService, service::moc_service_points::MockServicePoints},
+        services::{multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, server::tcp_server::TcpServer, service::service::Service, services::Services, task::nested_function::reset_counter::AtomicReset}, 
+        tests::unit::services::{multi_queue::mock_recv_service::{self, MockRecvService}, service::moc_service_points::MockServicePoints},
     }; 
     ///    
     static INIT: Once = Once::new();
@@ -43,27 +43,27 @@ mod jds_routes {
     }
     /// 
     /// Generets configurations of points
-    fn point_configs(parent: &str) -> Vec<PointConfig> {
+    fn point_configs(parent_id: &str, parent_name: &Name) -> Vec<PointConfig> {
         vec![
-            PointConfig::from_yaml(parent, &serde_yaml::from_str(&format!(
+            PointConfig::from_yaml(parent_id, parent_name, &serde_yaml::from_str(&format!(
                 r#"{}:
                     type: String      # Bool / Int / Real / Double / String / Json
                     comment: Auth request, contains token / pass string"#, 
                 format!("Jds/{}", RequestKind::AUTH_SECRET),
             )).unwrap()),
-            PointConfig::from_yaml(parent, &serde_yaml::from_str(&format!(
+            PointConfig::from_yaml(parent_id, parent_name, &serde_yaml::from_str(&format!(
                 r#"{}:
                     type: String      # Bool / Int / Real / Double / String / Json
                     comment: Auth request, contains SSH key"#, 
                 format!("Jds/{}", RequestKind::AUTH_SSH),
             )).unwrap()),
-            PointConfig::from_yaml(parent, &serde_yaml::from_str(&format!(
+            PointConfig::from_yaml(parent_id, parent_name, &serde_yaml::from_str(&format!(
                 r#"{}:
                     type: String      # Bool / Int / Real / Double / String / Json
                     comment: Request all Ponts configurations"#, 
                 format!("Jds/{}", RequestKind::POINTS),
             )).unwrap()),
-            PointConfig::from_yaml(parent, &serde_yaml::from_str(&format!(
+            PointConfig::from_yaml(parent_id, parent_name, &serde_yaml::from_str(&format!(
                 r#"{}:
                     type: String      # Bool / Int / Real / Double / String / Json
                     comment: Request to begin transmossion of all configured Points"#, 
@@ -79,7 +79,8 @@ mod jds_routes {
         init_once();
         init_each();
         println!();
-        let self_id = "jds_connection_test";
+        let self_id = "jds_request_test";
+        let self_name = Name::new(self_id, "");
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
         test_duration.run().unwrap();
@@ -93,10 +94,10 @@ mod jds_routes {
                 in queue in-queue:
                     max-length: 10000
                 out queue: 
-                    - {}/MockRecvService.in-queue
-        "#, self_id)).unwrap();
-        let mq_conf = MultiQueueConfig::from_yaml(&conf);
-        let mq_service = Arc::new(Mutex::new(MultiQueue::new(self_id, mq_conf, services.clone())));
+                    - {}/MockRecvService0.in-queue
+        "#, self_name)).unwrap();
+        let mq_conf = MultiQueueConfig::from_yaml(&self_name, &conf);
+        let mq_service = Arc::new(Mutex::new(MultiQueue::new(mq_conf, services.clone())));
         services.slock().insert(mq_service.clone());
         //
         // Configuring TcpServer service 
@@ -112,19 +113,19 @@ mod jds_routes {
                 in queue link:
                     max-length: 10000
                 out queue: {}/MultiQueue.in-queue
-        "#, tcp_server_addr, self_id);
+        "#, tcp_server_addr, self_name);
         let conf = serde_yaml::from_str(&conf).unwrap();
-        let conf = TcpServerConfig::from_yaml(&conf);
-        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, self_id, conf, services.clone())));
+        let conf = TcpServerConfig::from_yaml(self_name, &conf);
+        let tcp_server = Arc::new(Mutex::new(TcpServer::new(conf, services.clone())));
         services.slock().insert(tcp_server.clone());
         println!("{} | TcpServer - ready", self_id);
         //
         // Preparing test data
-        let parent = self_id;
+        let self_name = Name::new(self_id, "Jds");
         let test_data = [
             PointType::String(Point::new(
                 0, 
-                &PointName::new(&parent, "Jds/Auth.Secret").full(),
+                &Name::new(&self_name, "Auth.Secret").join(),
                 r#"{\"reply\": \"Auth.Ssh Reply\"}"#.to_string(), 
                 Status::Ok, 
                 Cot::Inf, 
@@ -132,7 +133,7 @@ mod jds_routes {
             )),
             PointType::String(Point::new(
                 0, 
-                &PointName::new(&parent, "Jds/Auth.Secret").full(),
+                &Name::new(&self_name, "Auth.Secret").join(),
                 r#"{\"reply\": \"Auth.Ssh Reply\"}"#.to_string(), 
                 Status::Ok, 
                 Cot::Act, 
@@ -140,7 +141,7 @@ mod jds_routes {
             )),
             PointType::String(Point::new(
                 0, 
-                &PointName::new(&parent, "Jds/Auth.Secret").full(),
+                &Name::new(&self_name, "Auth.Secret").join(),
                 r#"{\"reply\": \"Auth.Ssh Reply\"}"#.to_string(), 
                 Status::Ok, 
                 Cot::ActCon, 
@@ -148,7 +149,7 @@ mod jds_routes {
             )),
             PointType::String(Point::new(
                 0, 
-                &PointName::new(&parent, "Jds/Auth.Secret").full(),
+                &Name::new(&self_name, "Auth.Secret").join(),
                 r#"{\"reply\": \"Auth.Ssh Reply\"}"#.to_string(), 
                 Status::Ok, 
                 Cot::ActErr, 
@@ -156,7 +157,7 @@ mod jds_routes {
             )),
             PointType::String(Point::new(
                 0, 
-                &PointName::new(&parent, "Jds/Auth.Secret").full(),
+                &Name::new(&self_name, "Auth.Secret").join(),
                 r#"{\"reply\": \"Auth.Ssh Reply\"}"#.to_string(), 
                 Status::Ok, 
                 Cot::ReqCon, 
@@ -164,7 +165,7 @@ mod jds_routes {
             )),
             PointType::String(Point::new(
                 0, 
-                &PointName::new(&parent, "Jds/Auth.Secret").full(),
+                &Name::new(&self_name, "Auth.Secret").join(),
                 r#"{\"reply\": \"Auth.Ssh Reply\"}"#.to_string(), 
                 Status::Ok, 
                 Cot::ReqErr, 
@@ -174,10 +175,11 @@ mod jds_routes {
         let test_items_count = test_data.len();
         //
         // preparing MockServicePoints with the Vec<PontConfig>
-        let service_points = Arc::new(Mutex::new(MockServicePoints::new(self_id, point_configs(self_id))));
+        let service_points = Arc::new(Mutex::new(MockServicePoints::new(self_id, point_configs(self_id, &self_name))));
         services.slock().insert(service_points);
         //
         // Configuring Receiver
+        mock_recv_service::COUNT.reset(0);
         let receiver = Arc::new(Mutex::new(MockRecvService::new(self_id, "in-queue", Some(test_items_count))));
         services.slock().insert(receiver.clone());
         println!("{} | MockRecvService - ready", self_id);
@@ -223,7 +225,8 @@ mod jds_routes {
         init_once();
         init_each();
         println!();
-        let self_id = "jds_connection_test";
+        let self_id = "jds_request_test";
+        let self_name = Name::new(self_id, "");
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
         test_duration.run().unwrap();
@@ -235,10 +238,10 @@ mod jds_routes {
                 in queue in-queue:
                     max-length: 10000
                 out queue: 
-                    - {}/MockRecvService.in-queue
-        "#, self_id)).unwrap();
-        let mq_conf = MultiQueueConfig::from_yaml(&conf);
-        let mq_service = Arc::new(Mutex::new(MultiQueue::new(self_id, mq_conf, services.clone())));
+                    - {}/MockRecvService0.in-queue
+        "#, self_name)).unwrap();
+        let mq_conf = MultiQueueConfig::from_yaml(&self_name, &conf);
+        let mq_service = Arc::new(Mutex::new(MultiQueue::new(mq_conf, services.clone())));
         services.lock().unwrap().insert(mq_service.clone());
         //
         // Configuring TcpServer service 
@@ -255,20 +258,20 @@ mod jds_routes {
                 in queue link:
                     max-length: 10000
                 out queue: {}/MultiQueue.in-queue
-        "#, tcp_server_addr, secret, self_id);
+        "#, tcp_server_addr, secret, self_name);
         let conf = serde_yaml::from_str(&conf).unwrap();
-        let conf = TcpServerConfig::from_yaml(&conf);
-        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, self_id, conf, services.clone())));
+        let conf = TcpServerConfig::from_yaml(self_name, &conf);
+        let tcp_server = Arc::new(Mutex::new(TcpServer::new(conf, services.clone())));
         services.lock().unwrap().insert(tcp_server.clone());
         println!("{} | TcpServer - ready", self_id);
         //
         // Preparing test data
         let tx_id = PointTxId::fromStr(self_id);
-        let parent = self_id;
+        let self_name = Name::new(self_id, "Jds");
         let test_data = [
             PointType::String(Point::new(
                 tx_id, 
-                &PointName::new(parent, "JdsService/Auth.Secret").full(),
+                &Name::new(&self_name, "Auth.Secret").join(),
                 r#"{
                     \"secret\": \"Auth.Secret\"
                 }"#.to_string(), 
@@ -278,7 +281,7 @@ mod jds_routes {
             )),
             PointType::String(Point::new(
                 tx_id, 
-                &PointName::new(parent, "JdsService/Auth.Ssh").full(),
+                &Name::new(&self_name, "Auth.Ssh").join(),
                 r#"{
                     \"ssh\": \"Auth.Ssh\"
                 }"#.to_string(), 
@@ -288,7 +291,7 @@ mod jds_routes {
             )),
             PointType::String(Point::new(
                 tx_id, 
-                &PointName::new(parent, "JdsService/Points").full(),
+                &Name::new(&self_name, "Points").join(),
                 r#"{
                     \"points\": []
                 }"#.to_string(), 
@@ -298,7 +301,7 @@ mod jds_routes {
             )),
             PointType::String(Point::new(
                 tx_id, 
-                &PointName::new(parent, "JdsService/Subscribe").full(),
+                &Name::new(&self_name, "Subscribe").join(),
                 r#"{
                     \"points\": []
                 }"#.to_string(), 
@@ -310,10 +313,11 @@ mod jds_routes {
         let test_items_count = test_data.len();
         //
         // preparing MockServicePoints with the Vec<PontConfig>
-        let service_points = Arc::new(Mutex::new(MockServicePoints::new(self_id, point_configs(self_id))));
+        let service_points = Arc::new(Mutex::new(MockServicePoints::new(self_id, point_configs(self_id, &self_name))));
         services.lock().unwrap().insert(service_points);
         //
         // Configuring Receiver
+        mock_recv_service::COUNT.reset(0);
         let receiver = Arc::new(Mutex::new(MockRecvService::new(self_id, "in-queue", Some(test_items_count * 2))));
         services.lock().unwrap().insert(receiver.clone());
         println!("{} | MockRecvService - ready", self_id);
@@ -331,14 +335,14 @@ mod jds_routes {
         let mut tcp_stream = TcpStream::connect(tcp_server_addr).unwrap();
         let auth_req = PointType::String(Point::new(
             0, 
-            &PointName::new(&parent, "Jds/Auth.Secret").full(),
+            &Name::new(&self_name, "Auth.Secret").join(),
             secret.into(), 
             Status::Ok, 
             Cot::Req, 
             chrono::offset::Utc::now(),
         ));
         let result = request(self_id, &mut tcp_stream, auth_req);
-        let target = PointType::String(Point::new(0, &PointName::new(&parent, "Jds/Auth.Secret").full(), "".to_owned(), Status::Ok, Cot::ReqCon, chrono::offset::Utc::now()));
+        let target = PointType::String(Point::new(0, &Name::new(&self_name, "Auth.Secret").join(), "".to_owned(), Status::Ok, Cot::ReqCon, chrono::offset::Utc::now()));
         // assert!(result.name() == target.name(), "\nresult: {:?}\ntarget: {:?}", result.name(), target.name());
         // assert!(result.value() == target.value(), "\nresult: {:?}\ntarget: {:?}", result.value(), target.value());
         assert!(result.status() == target.status(), "\nresult: {:?}\ntarget: {:?}", result.status(), target.status());
@@ -366,7 +370,8 @@ mod jds_routes {
         init_once();
         init_each();
         println!();
-        let self_id = "jds_connection_test";
+        let self_id = "jds_request_test";
+        let self_name = Name::new(self_id, "");
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
         test_duration.run().unwrap();
@@ -378,10 +383,10 @@ mod jds_routes {
                 in queue in-queue:
                     max-length: 10000
                 out queue: 
-                    - {}/MockRecvService.in-queue
-        "#, self_id)).unwrap();
-        let mq_conf = MultiQueueConfig::from_yaml(&conf);
-        let mq_service = Arc::new(Mutex::new(MultiQueue::new(self_id, mq_conf, services.clone())));
+                    - {}/MockRecvService0.in-queue
+        "#, self_name)).unwrap();
+        let mq_conf = MultiQueueConfig::from_yaml(&self_name, &conf);
+        let mq_service = Arc::new(Mutex::new(MultiQueue::new(mq_conf, services.clone())));
         services.lock().unwrap().insert(mq_service.clone());
         //
         // Configuring TcpServer service 
@@ -398,20 +403,20 @@ mod jds_routes {
                 in queue link:
                     max-length: 10000
                 out queue: {}/MultiQueue.in-queue
-        "#, tcp_server_addr, secret, self_id);
+        "#, tcp_server_addr, secret, self_name);
         let conf = serde_yaml::from_str(&conf).unwrap();
-        let conf = TcpServerConfig::from_yaml(&conf);
-        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, self_id, conf, services.clone())));
+        let conf = TcpServerConfig::from_yaml(self_name, &conf);
+        let tcp_server = Arc::new(Mutex::new(TcpServer::new(conf, services.clone())));
         services.lock().unwrap().insert(tcp_server.clone());
         println!("{} | TcpServer - ready", self_id);
         //
         // Preparing test data
         let tx_id = PointTxId::fromStr(self_id);
-        let parent = self_id;
+        let self_name = Name::new(self_id, "Jds");
         let test_data = [
             PointType::String(Point::new(
                 tx_id, 
-                &PointName::new(parent, "JdsService/Auth.Secret").full(),
+                &Name::new(&self_name, "Auth.Secret").join(),
                 r#"{
                     \"secret\": \"Auth.Secret\"
                 }"#.to_string(), 
@@ -421,7 +426,7 @@ mod jds_routes {
             )),
             PointType::String(Point::new(
                 tx_id, 
-                &PointName::new(parent, "JdsService/Auth.Ssh").full(),
+                &Name::new(&self_name, "Auth.Ssh").join(),
                 r#"{
                     \"ssh\": \"Auth.Ssh\"
                 }"#.to_string(), 
@@ -431,7 +436,7 @@ mod jds_routes {
             )),
             PointType::String(Point::new(
                 tx_id, 
-                &PointName::new(parent, "JdsService/Points").full(),
+                &Name::new(&self_name, "Points").join(),
                 r#"{
                     \"points\": []
                 }"#.to_string(), 
@@ -441,7 +446,7 @@ mod jds_routes {
             )),
             PointType::String(Point::new(
                 tx_id, 
-                &PointName::new(parent, "JdsService/Subscribe").full(),
+                &Name::new(&self_name, "Subscribe").join(),
                 r#"{
                     \"points\": []
                 }"#.to_string(), 
@@ -453,10 +458,11 @@ mod jds_routes {
         let test_items_count = test_data.len();
         //
         // preparing MockServicePoints with the Vec<PontConfig>
-        let service_points = Arc::new(Mutex::new(MockServicePoints::new(self_id, point_configs(self_id))));
+        let service_points = Arc::new(Mutex::new(MockServicePoints::new(self_id, point_configs(self_id, &self_name))));
         services.lock().unwrap().insert(service_points);
         //
         // Configuring Receiver
+        mock_recv_service::COUNT.reset(0);
         let receiver = Arc::new(Mutex::new(MockRecvService::new(self_id, "in-queue", Some(test_items_count * 2))));
         services.lock().unwrap().insert(receiver.clone());
         println!("{} | MockRecvService - ready", self_id);
@@ -474,7 +480,7 @@ mod jds_routes {
         let mut tcp_stream = TcpStream::connect(tcp_server_addr).unwrap();
         let auth_req = PointType::String(Point::new(
             0, 
-            &PointName::new(&parent, "Jds/Auth.Secret").full(),
+            &Name::new(&self_name, "Auth.Secret").join(),
             secret.into(), 
             Status::Ok, 
             Cot::Req, 
@@ -486,14 +492,14 @@ mod jds_routes {
         // Sending Points request 
         let subscribe_req = PointType::String(Point::new(
             0, 
-            &PointName::new(&parent, "Jds/Points").full(),
+            &Name::new(&self_name, "Points").join(),
             "".to_string(), 
             Status::Ok, 
             Cot::Req, 
             chrono::offset::Utc::now(),
         ));
         let result = request(self_id, &mut tcp_stream, subscribe_req);
-        let target = PointType::String(Point::new(0, &PointName::new(&parent, "Jds/Points").full(), "".to_owned(), Status::Ok, Cot::ReqCon, chrono::offset::Utc::now()));
+        let target = PointType::String(Point::new(0, &Name::new(&self_name, "Points").join(), "".to_owned(), Status::Ok, Cot::ReqCon, chrono::offset::Utc::now()));
         // assert!(result.name() == target.name(), "\nresult: {:?}\ntarget: {:?}", result.name(), target.name());
         // assert!(result.value() == target.value(), "\nresult: {:?}\ntarget: {:?}", result.value(), target.value());
         let points: HashMap<String, serde_json::Value> = serde_json::from_str(&result.value().as_string()).unwrap();
@@ -501,7 +507,7 @@ mod jds_routes {
             (name, PointConfig::from_json(name, value).unwrap())
         }).collect();
         println!("{} | Points request reply: {:#?}", self_id, points);
-        for target in point_configs(self_id) {
+        for target in point_configs(self_id, &self_name) {
             match points.get(&target.name) {
                 Some(result) => {
                     assert!(result.name == target.name, "\nresult: {:?}\ntarget: {:?}", result.name, target.name);
@@ -541,7 +547,8 @@ mod jds_routes {
         init_once();
         init_each();
         println!();
-        let self_id = "jds_connection_test";
+        let self_id = "jds_request_test";
+        let self_name = Name::new(self_id, "");
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
@@ -553,10 +560,10 @@ mod jds_routes {
                 in queue in-queue:
                     max-length: 10000
                 out queue: 
-                    - {}/MockRecvService.in-queue
+                    - {}/MockRecvService0.in-queue
         "#, self_id)).unwrap();
-        let mq_conf = MultiQueueConfig::from_yaml(&conf);
-        let mq_service = Arc::new(Mutex::new(MultiQueue::new(self_id, mq_conf, services.clone())));
+        let mq_conf = MultiQueueConfig::from_yaml(&self_name, &conf);
+        let mq_service = Arc::new(Mutex::new(MultiQueue::new(mq_conf, services.clone())));
         services.lock().unwrap().insert(mq_service.clone());
         //
         // Configuring TcpServer service 
@@ -573,8 +580,8 @@ mod jds_routes {
                 out queue: {}/MultiQueue.in-queue
         "#, tcp_addr, self_id);
         let conf = serde_yaml::from_str(&conf).unwrap();
-        let conf = TcpServerConfig::from_yaml(&conf);
-        let tcp_server = Arc::new(Mutex::new(TcpServer::new(self_id, self_id, conf, services.clone())));
+        let conf = TcpServerConfig::from_yaml(self_name, &conf);
+        let tcp_server = Arc::new(Mutex::new(TcpServer::new(conf, services.clone())));
         services.lock().unwrap().insert(tcp_server.clone());
         println!("{} | TcpServer - ready", self_id);
         //
@@ -584,7 +591,7 @@ mod jds_routes {
         let test_data = [
             PointType::String(Point::new(
                 tx_id, 
-                &PointName::new(parent, "JdsService/Auth.Secret").full(),
+                &Name::new(parent, "JdsService/Auth.Secret").join(),
                 r#"{
                     \"secret\": \"Auth.Secret\"
                 }"#.to_string(), 
@@ -594,7 +601,7 @@ mod jds_routes {
             )),
             PointType::String(Point::new(
                 tx_id, 
-                &PointName::new(parent, "JdsService/Auth.Ssh").full(),
+                &Name::new(parent, "JdsService/Auth.Ssh").join(),
                 r#"{
                     \"ssh\": \"Auth.Ssh\"
                 }"#.to_string(), 
@@ -604,7 +611,7 @@ mod jds_routes {
             )),
             PointType::String(Point::new(
                 tx_id, 
-                &PointName::new(parent, "JdsService/Points").full(),
+                &Name::new(parent, "JdsService/Points").join(),
                 r#"{
                     \"points\": []
                 }"#.to_string(), 
@@ -614,7 +621,7 @@ mod jds_routes {
             )),
             PointType::String(Point::new(
                 tx_id, 
-                &PointName::new(parent, "JdsService/Subcribe").full(),
+                &Name::new(parent, "JdsService/Subcribe").join(),
                 r#"{
                     \"points\": []
                 }"#.to_string(), 

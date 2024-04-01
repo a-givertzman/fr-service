@@ -6,8 +6,7 @@ mod tests {
     use indexmap::IndexMap;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::conf::{
-        point_config::{point_config::PointConfig, point_config_history::PointConfigHistory, point_config_type::PointConfigType},
-        fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig, fn_point_config::FnPointConfig},
+        fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig, fn_point_config::FnPointConfig}, point_config::{name::Name, point_config::PointConfig, point_config_history::PointConfigHistory, point_config_type::PointConfigType}
     };
     ///
     /// 
@@ -33,6 +32,7 @@ mod tests {
         init_each();
         println!();
         let self_id = "test FnConfig | point";
+        let self_name = Name::new("", self_id);
         println!("\n{}", self_id);
         let test_point1 = PointConfig {
             id: 0,
@@ -99,7 +99,7 @@ mod tests {
             let conf: serde_yaml::Value = serde_yaml::from_str(value).unwrap();
             debug!("value: {:?}   |   conf: {:?}   |   target: {:?}", "_", conf, target);
             let mut vars = vec![];
-            let fn_config = FnConfig::from_yaml(self_id, &conf, &mut vars);
+            let fn_config = FnConfig::from_yaml(self_id, &self_name, &conf, &mut vars);
             let points = fn_config.points();
             debug!("\tfnConfig: {:?}", fn_config);
             debug!("\tpoints: {:?}", points);

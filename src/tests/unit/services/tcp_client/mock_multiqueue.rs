@@ -1,11 +1,12 @@
 #![allow(non_snake_case)]
-use std::{fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{Receiver, Sender}, Arc, Mutex}, thread::{self, JoinHandle}};
+use std::{fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, mpsc::{Receiver, Sender}, Arc, Mutex}, thread};
 use log::{warn, info};
-use crate::{core_::{object::object::Object, point::point_type::PointType}, services::service::{service::Service, service_handles::ServiceHandles}};
+use crate::{conf::point_config::name::Name, core_::{object::object::Object, point::point_type::PointType}, services::service::{service::Service, service_handles::ServiceHandles}};
 ///
 /// 
 pub struct MockMultiQueue {
     id: String,
+    name: Name,
     send: Sender<PointType>,
     recv: Vec<Receiver<PointType>>,
     received: Arc<Mutex<Vec<PointType>>>,
@@ -13,10 +14,12 @@ pub struct MockMultiQueue {
     exit: Arc<AtomicBool>,
 }
 impl MockMultiQueue {
-    pub fn new(recvLimit: Option<usize>) -> Self {
+    pub fn new(parent: &str, index: impl Into<String>, recvLimit: Option<usize>) -> Self {
+        let name = Name::new(parent, format!("MockMultiQueue{}", index.into()));
         let (send, recv) = std::sync::mpsc::channel();
         Self {
-            id: "MockMultiQueue".to_owned(),
+            id: name.join(),
+            name,
             send,
             recv: vec![recv],
             received: Arc::new(Mutex::new(vec![])),
@@ -33,6 +36,9 @@ impl MockMultiQueue {
 impl Object for MockMultiQueue {
     fn id(&self) -> &str {
         &self.id
+    }
+    fn name(&self) -> Name {
+        self.name.clone()
     }
 }
 ///

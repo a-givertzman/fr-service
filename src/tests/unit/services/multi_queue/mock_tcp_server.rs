@@ -1,16 +1,15 @@
 #![allow(non_snake_case)]
 use log::{info, warn, debug, trace};
-use std::{fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread};
+use std::{fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, Arc, Mutex}, thread};
 use testing::entities::test_value::Value;
 use crate::{
-    core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, 
-    services::{queue_name::QueueName, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services},
+    conf::point_config::name::Name, core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, services::{queue_name::QueueName, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services}
 };
 ///
 ///
 pub struct MockTcpServer {
     id: String,
-    // rxSend: HashMap<String, Sender<PointType>>,
+    name: Name,
     multiQueue: String,
     services: Arc<Mutex<Services>>,
     test_data: Vec<Value>,
@@ -23,11 +22,10 @@ pub struct MockTcpServer {
 /// 
 impl MockTcpServer {
     pub fn new(parent: impl Into<String>, multiQueue: &str, services: Arc<Mutex<Services>>, test_data: Vec<Value>, recvLimit: Option<usize>) -> Self {
-        let self_id = format!("{}/MockTcpServer", parent.into());
-        // let (send, recv) = mpsc::channel::<PointType>();
+        let name = Name::new(parent, format!("MockTcpServer{}", COUNT.fetch_add(1, Ordering::Relaxed)));
         Self {
-            id: self_id.clone(),
-            // rxSend: HashMap::new(),
+            id: name.join(),
+            name,
             multiQueue: multiQueue.to_string(),
             services,
             test_data,
@@ -58,6 +56,9 @@ impl MockTcpServer {
 impl Object for MockTcpServer {
     fn id(&self) -> &str {
         &self.id
+    }
+    fn name(&self) -> Name {
+        self.name.clone()
     }
 }
 ///
@@ -171,3 +172,6 @@ impl Service for MockTcpServer {
         self.exit.store(true, Ordering::SeqCst);
     }
 }
+///
+/// Global static counter of FnOut instances
+static COUNT: AtomicUsize = AtomicUsize::new(0);

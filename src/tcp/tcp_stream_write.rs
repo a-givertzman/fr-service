@@ -13,7 +13,6 @@ use crate::{
 #[derive(Debug)]
 pub struct TcpStreamWrite {
     id: String,
-    // buffered: bool,
     stream: Box<dyn StreamRead<Vec<u8>, RecvError> + Send>,
     buffer: RetainBuffer<Vec<u8>>,
 }
@@ -30,25 +29,24 @@ impl TcpStreamWrite {
         };
         Self {
             id: self_id,
-            // buffered,
             stream,
             buffer,
         }
     }
     ///
     /// 
-    pub fn write(&mut self, mut tcp_stream: impl Write) -> ConnectionStatus<Result<usize, String>, String> {
+    pub fn write(&mut self, mut tcp_stream: impl Write) -> ConnectionStatus<OpResult<usize, String>, String> {
         match self.stream.read() {
             Ok(bytes) => {
                 while let Some(bytes) = self.buffer.first() {
                     trace!("{}.write | bytes: {:?}", self.id, bytes);
                     match tcp_stream.write(bytes) {
                         Ok(_) => {
-                            self.buffer.popFirst();
+                            self.buffer.pop_first();
                         },
                         Err(err) => {
                             let message = format!("{}.write | error: {:?}", self.id, err);
-                            if log::max_level() == LevelFilter::Trace {
+                            if log::max_level() == LevelFilter::Debug {
                                 warn!("{}", message);
                             }
                             return ConnectionStatus::Closed(message);
@@ -57,11 +55,11 @@ impl TcpStreamWrite {
                 }
                 trace!("{}.write | bytes: {:?}", self.id, bytes);
                 match tcp_stream.write(&bytes) {
-                    Ok(sent) => {ConnectionStatus::Active(Ok(sent))},
+                    Ok(sent) => {ConnectionStatus::Active(OpResult::Ok(sent))},
                     Err(err) => {
                         self.buffer.push(bytes);
                         let message = format!("{}.write | error: {:?}", self.id, err);
-                        if log::max_level() == LevelFilter::Trace {
+                        if log::max_level() == LevelFilter::Debug {
                             warn!("{}", message);
                         }
                         ConnectionStatus::Closed(message)
@@ -75,14 +73,14 @@ impl TcpStreamWrite {
                         if log::max_level() == LevelFilter::Trace {
                             warn!("{}", message);
                         }
-                        ConnectionStatus::Active(Err(message))
+                        ConnectionStatus::Active(OpResult::Err(message))
                     },
-                    RecvError::Timeout => ConnectionStatus::Active(Ok(0)),
                     RecvError::Disconnected => {
                         let message = format!("{}.write | channel disconnected, error: {:?}", self.id, err);
                         warn!("{}", message);
-                        ConnectionStatus::Active(Err(message))
+                        ConnectionStatus::Active(OpResult::Err(message))
                     },
+                    RecvError::Timeout => ConnectionStatus::Active(OpResult::Timeout()),
                 }
             },
         }
@@ -91,3 +89,10 @@ impl TcpStreamWrite {
 ///
 /// 
 unsafe impl Sync for TcpStreamWrite {}
+
+#[derive(Debug)]
+pub enum OpResult<T, E> {
+    Ok(T),
+    Err(E),
+    Timeout(),
+}

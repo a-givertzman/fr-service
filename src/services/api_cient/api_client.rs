@@ -3,7 +3,7 @@ use log::{info, debug, trace, warn};
 use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc}, thread, time::Duration};
 use api_tools::{api::reply::api_reply::ApiReply, client::{api_query::{ApiQuery, ApiQueryKind, ApiQuerySql}, api_request::ApiRequest}};
 use crate::{
-    conf::api_client_config::ApiClientConfig, 
+    conf::{api_client_config::ApiClientConfig, point_config::name::Name}, 
     core_::{object::object::Object, point::point_type::PointType, retain_buffer::retain_buffer::RetainBuffer}, 
     services::{service::{service::Service, service_handles::ServiceHandles}, task::service_cycle::ServiceCycle},
 };
@@ -15,6 +15,7 @@ use crate::{
 /// - Sent messages immediately removed from the buffer
 pub struct ApiClient {
     id: String,
+    name: Name,
     recv: Vec<Receiver<PointType>>,
     send: HashMap<String, Sender<PointType>>,
     conf: ApiClientConfig,
@@ -26,11 +27,11 @@ impl ApiClient {
     ///
     /// Creates new instance of [ApiClient]
     /// - [parent] - the ID if the parent entity
-    pub fn new(parent: impl Into<String>, conf: ApiClientConfig) -> Self {
+    pub fn new(conf: ApiClientConfig) -> Self {
         let (send, recv) = mpsc::channel();
-        let self_id = format!("{}/{}", parent.into(), conf.name);
         Self {
-            id: self_id,
+            id: format!("{}", conf.name),
+            name: conf.name.clone(),
             recv: vec![recv],
             send: HashMap::from([(conf.rx.clone(), send)]),
             conf: conf.clone(),
@@ -88,6 +89,9 @@ impl ApiClient {
 impl Object for ApiClient {
     fn id(&self) -> &str {
         &self.id
+    }
+    fn name(&self) -> Name {
+        self.name.clone()
     }
 }
 ///
@@ -156,7 +160,7 @@ impl Service for ApiClient {
                                     if reply.has_error() {
                                         warn!("{}.run | API reply has error: {:?}", self_id, reply.error);
                                     } else {
-                                        buffer.popFirst();
+                                        buffer.pop_first();
                                     }
                                 },
                                 Err(err) => {

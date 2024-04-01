@@ -24,9 +24,8 @@ impl FnPulseCount {
     /// Creates new instance of the FnPulseCount
     #[allow(dead_code)]
     pub fn new(parent: impl Into<String>, initial: i64, input: FnInOutRef) -> Self {
-        COUNT.fetch_add(1, Ordering::SeqCst);
         Self { 
-            id: format!("{}/FnPulseCount{}", parent, COUNT.load(Ordering::Relaxed)),
+            id: format!("{}/FnPulseCount{}", parent, COUNT.fetch_add(1, Ordering::Relaxed)),
             kind:FnKind::Fn,
             input,
             state: SwitchState::new(
@@ -108,5 +107,5 @@ impl FnOut for FnPulseCount {
 impl FnInOut for FnPulseCount {}
 ///
 /// Global static counter of FnOut instances
-static COUNT: AtomicUsize = AtomicUsize::new(0);
+static COUNT: AtomicUsize = AtomicUsize::new(1);
 

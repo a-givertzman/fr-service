@@ -1,11 +1,13 @@
 use std::io::{Read, ErrorKind};
-use log::{warn, trace};
-use crate::core_::net::{connection_status::ConnectionStatus, protocols::jds::jds_define::JDS_END_OF_TRANSMISSION};
+use log::trace;
+use crate::{core_::net::{connection_status::ConnectionStatus, protocols::jds::jds_define::JDS_END_OF_TRANSMISSION}, tcp::tcp_stream_write::OpResult};
 ///
 /// 
 enum Status {
     Active,
     Closed,
+    /// Connection is Active, but configured timeout exceeded
+    Timeout,
 }
 ///
 /// Reads bytes from TcpStream
@@ -31,16 +33,17 @@ impl JdsDecodeMessage {
     }
     ///
     /// Reads sequence of bytes from TcpStream
-    pub fn read(&mut self, tcp_stream: impl Read) -> ConnectionStatus<Result<Vec<u8>, String>, String> {
+    pub fn read(&mut self, tcp_stream: impl Read) -> ConnectionStatus<OpResult<Vec<u8>, String>, String> {
         let mut bytes = self.remainder.clone();
         match Self::read_all(&self.id, &mut bytes, tcp_stream) {
             ConnectionStatus::Active(result) => {
                 match result {
-                    Ok(_) => {
+                    OpResult::Ok(_) => {
                         self.remainder.clear();
-                        ConnectionStatus::Active(Ok(bytes))
+                        ConnectionStatus::Active(OpResult::Ok(bytes))
                     },
-                    Err(err) => ConnectionStatus::Active(Err(err)),
+                    OpResult::Err(err) => ConnectionStatus::Active(OpResult::Err(err)),
+                    OpResult::Timeout() => ConnectionStatus::Active(OpResult::Timeout()),
                 }
             },
             ConnectionStatus::Closed(err) => {
@@ -57,14 +60,14 @@ impl JdsDecodeMessage {
     /// - returns Closed:
     ///    - if read 0 bytes
     ///    - if on error
-    fn read_all(self_id: &str, bytes: &mut Vec<u8>, stream: impl Read) -> ConnectionStatus<Result<(), String>, String> {
+    fn read_all(self_id: &str, bytes: &mut Vec<u8>, stream: impl Read) -> ConnectionStatus<OpResult<(), String>, String> {
         for byte in stream.bytes() {
             match byte {
                 Ok(byte) => {
                     // debug!("{}.read_all |     read len: {:?}", self_id, len);
                     match byte {
                         JDS_END_OF_TRANSMISSION => {
-                            return ConnectionStatus::Active(Ok(()));
+                            return ConnectionStatus::Active(OpResult::Ok(()));
                         },
                         _ => {
                             bytes.push(byte);
@@ -76,11 +79,14 @@ impl JdsDecodeMessage {
                     // warn!("{}.read_all | error kind: {:?}", self_id, err.kind());
                     match Self::match_error_kind(err.kind()) {
                         Status::Active => {
-                            return ConnectionStatus::Active(Err(format!("{}.read_all | tcp stream is empty", self_id)));
+                            return ConnectionStatus::Active(OpResult::Err(format!("{}.read_all | tcp stream is empty", self_id)));
                         },
                         Status::Closed => {
                             return ConnectionStatus::Closed(format!("{}.read_all | tcp stream is closed, error: {:?}", self_id, err));
                         },
+                        Status::Timeout => {
+                            return ConnectionStatus::Active(OpResult::Timeout())
+                        }
                     }
                 },
             };
@@ -105,7 +111,7 @@ impl JdsDecodeMessage {
             // std::io::ErrorKind::NetworkDown => Status::Closed,
             std::io::ErrorKind::BrokenPipe => Status::Closed,
             std::io::ErrorKind::AlreadyExists => todo!(),
-            std::io::ErrorKind::WouldBlock => Status::Active,
+            std::io::ErrorKind::WouldBlock => Status::Timeout,
             // std::io::ErrorKind::NotADirectory => todo!(),
             // std::io::ErrorKind::IsADirectory => todo!(),
             // std::io::ErrorKind::DirectoryNotEmpty => todo!(),

@@ -28,13 +28,13 @@ pub trait Service: Object + std::fmt::Debug {
     ///
     /// Extends the sucessfully with additiuonal points
     #[allow(unused_variables)]
-    fn extend_subscription(&mut self, receiver_id: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
+    fn extend_subscription(&mut self, receiver_name: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
         panic!("{}.extend_subscription | Does not supported", self.id())
     }
     ///
     /// Canceling the subsciption
     #[allow(unused_variables)]
-    fn unsubscribe(&mut self, receiver_id: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
+    fn unsubscribe(&mut self, receiver_name: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
         panic!("{}.unsubscribe | Does not supported", self.id())
     }
     ///

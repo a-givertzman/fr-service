@@ -6,7 +6,7 @@ mod task_config_new {
     use std::{sync::Once, time::Duration};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::conf::{
-        conf_subscribe::ConfSubscribe, fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig}, task_config::TaskConfig
+        conf_subscribe::ConfSubscribe, fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig}, point_config::name::Name, task_config::TaskConfig
     };
     ///
     ///     
@@ -30,7 +30,9 @@ mod task_config_new {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
-        info!("test");
+        let self_id = "task_config_new_test";
+        let self_name = Name::new("", self_id);
+        info!("{}", self_id);
         // let (initial, switches) = init_each();
         let test_data = [
             // (
@@ -62,7 +64,7 @@ mod task_config_new {
                             input: point real every
                 "#, 
                 TaskConfig {
-                    name: format!("Task0"),
+                    name: Name::new(&self_name, "Task0"),
                     cycle: Some(Duration::from_millis(100)),
                     rx: format!("recv-queue"),
                     rx_max_length: 10000,
@@ -119,7 +121,7 @@ mod task_config_new {
                             const int 1
                 "#, 
                 TaskConfig {
-                    name: format!("Task1"),
+                    name: Name::new(&self_name, "Task1"),
                     cycle: Some(Duration::from_millis(100)),
                     rx: format!("recv-queue"),
                     rx_max_length: 10000,
@@ -176,7 +178,7 @@ mod task_config_new {
                                     input: point bool '/path/Point.Name'
                 "#, 
                 TaskConfig {
-                    name: format!("Task2"),
+                    name: Name::new(&self_name, "Task2"),
                     cycle: Some(Duration::from_millis(100)),
                     rx: format!("recv-queue"),
                     rx_max_length: 10000,
@@ -214,7 +216,7 @@ mod task_config_new {
             // let fnKeyword = FnConfigKeyword::from_str(conf.as_str().unwrap()).unwrap();
             // debug!("\tfnKeyword: {:?}", fnKeyword);
             // let mut vars = vec![];
-            let fn_config = TaskConfig::from_yaml(&conf);
+            let fn_config = TaskConfig::from_yaml(&self_name, &conf);
             debug!("\tfnConfig: {:?}", fn_config);
             assert_eq!(fn_config, target, "\n result: {:#?}\n target: {:#?}", fn_config, target);
         }

@@ -6,7 +6,10 @@ mod task_config_read {
     use std::{sync::Once, env, time::Duration};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::conf::{
-        conf_subscribe::ConfSubscribe, fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig}, task_config::TaskConfig
+        conf_subscribe::ConfSubscribe, 
+        fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig}, 
+        point_config::name::Name, 
+        task_config::TaskConfig,
     };
     ///
     ///     
@@ -30,9 +33,11 @@ mod task_config_read {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
-        info!("test");
+        let self_id = "task_config_new_test";
+        let self_name = Name::new("", self_id);
+        info!("{}", self_id);
         let target = TaskConfig {
-            name: format!("Task1"),
+            name: Name::new(&self_name, "Task1"),
             cycle: Some(Duration::from_millis(100)),
             rx: format!("recv-queue"),
             rx_max_length: 10000,
@@ -94,7 +99,7 @@ mod task_config_read {
         };
         trace!("dir: {:?}", env::current_dir());
         let path = "./src/tests/unit/conf/task_config/task_config_test.yaml";
-        let metric_config = TaskConfig::read(path);
+        let metric_config = TaskConfig::read(&self_name, path);
         trace!("fnConfig: {:?}", metric_config);
         assert_eq!(metric_config, target);
     }

@@ -7,11 +7,7 @@ mod point_config {
     use serde_json::json;
     use testing::stuff::max_test_duration::TestDuration; 
     use crate::conf::point_config::{
-        point_config::PointConfig, 
-        point_config_address::PointConfigAddress, 
-        point_config_filters::PointConfigFilter, 
-        point_config_history::PointConfigHistory, 
-        point_config_type::PointConfigType,
+        name::Name, point_config::PointConfig, point_config_address::PointConfigAddress, point_config_filters::PointConfigFilter, point_config_history::PointConfigHistory, point_config_type::PointConfigType
     }; 
     ///
     ///
@@ -169,6 +165,7 @@ mod point_config {
         init_each();
         println!();
         let self_id = "deserialize_yaml";
+        let self_name = Name::new("", self_id);
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
@@ -247,7 +244,7 @@ mod point_config {
         ];
         for (conf, target) in test_data {
             let conf = serde_yaml::from_str(conf).unwrap();
-            let result = PointConfig::from_yaml(self_id, &conf);
+            let result = PointConfig::from_yaml(self_id, &self_name, &conf);
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
         test_duration.exit();

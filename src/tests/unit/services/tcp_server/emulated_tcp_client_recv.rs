@@ -1,14 +1,13 @@
 use log::{info, trace, warn, debug};
-use std::{fmt::Debug, io::Write, net::{SocketAddr, TcpStream}, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread, time::Duration};
+use std::{fmt::Debug, io::Write, net::{SocketAddr, TcpStream}, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, Arc, Mutex}, thread, time::Duration};
 use testing::entities::test_value::Value;
 use crate::{
-    core_::{
+    conf::point_config::name::Name, core_::{
         net::{
             connection_status::ConnectionStatus,
             protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}, 
         }, object::object::Object, point::point_type::PointType, state::{switch_state::{Switch, SwitchCondition, SwitchState}, switch_state_changed::SwitchStateChanged}
-    },
-    services::service::{service::Service, service_handles::ServiceHandles}, 
+    }, services::service::{service::Service, service_handles::ServiceHandles}, tcp::tcp_stream_write::OpResult 
 };
 
 
@@ -20,6 +19,7 @@ use crate::{
 /// - [disconnect] - contains percentage (0..100) of test_data / iterations, where socket will be disconnected and connected again
 pub struct EmulatedTcpClientRecv {
     id: String,
+    name: Name,
     addr: SocketAddr,
     received: Arc<Mutex<Vec<PointType>>>,
     recv_limit: Option<usize>,
@@ -32,9 +32,10 @@ pub struct EmulatedTcpClientRecv {
 /// 
 impl EmulatedTcpClientRecv {
     pub fn new(parent: impl Into<String>, addr: &str, recv_limit: Option<usize>, must_received: Option<Value>, disconnect: Vec<i8>) -> Self {
-        let self_id = format!("{}/EmulatedTcpClientRecv", parent.into());
+        let name = Name::new(parent, format!("EmulatedTcpClientRecv{}", COUNT.fetch_add(1, Ordering::Relaxed)));
         Self {
-            id: self_id.clone(),
+            id: name.join(),
+            name,
             addr: addr.parse().unwrap(),
             received: Arc::new(Mutex::new(vec![])),
             recv_limit,
@@ -137,6 +138,9 @@ impl Object for EmulatedTcpClientRecv {
     fn id(&self) -> &str {
         &self.id
     }
+    fn name(&self) -> Name {
+        self.name.clone()
+    }
 }
 ///
 /// 
@@ -196,7 +200,7 @@ impl Service for EmulatedTcpClientRecv {
                                             ConnectionStatus::Active(result) => {
                                                 trace!("{}.run | received: {:?}", self_id, result);
                                                 match result {
-                                                    Ok(point) => {
+                                                    OpResult::Ok(point) => {
                                                         debug!("{}.run | received: {:?}", self_id, point);
                                                         received.lock().unwrap().push(point.clone());
                                                         received_count += 1;
@@ -217,9 +221,10 @@ impl Service for EmulatedTcpClientRecv {
                                                             }
                                                         }
                                                     },
-                                                    Err(err) => {
+                                                    OpResult::Err(err) => {
                                                         warn!("{}.run | read socket error: {:?}", self_id, err);
                                                     },
+                                                    OpResult::Timeout() => {},
                                                 }
                                             },
                                             ConnectionStatus::Closed(err) => {
@@ -256,12 +261,13 @@ impl Service for EmulatedTcpClientRecv {
                                         ConnectionStatus::Active(result) => {
                                             trace!("{}.run | received: {:?}", self_id, result);
                                             match result {
-                                                Ok(point) => {
+                                                OpResult::Ok(point) => {
                                                     received.lock().unwrap().push(point);
                                                 },
-                                                Err(err) => {
+                                                OpResult::Err(err) => {
                                                     warn!("{}.run | read socket error: {:?}", self_id, err);
                                                 },
+                                                OpResult::Timeout() => {},
                                             }
                                         },
                                         ConnectionStatus::Closed(err) => {
@@ -305,3 +311,6 @@ impl Service for EmulatedTcpClientRecv {
         self.exit.store(true, Ordering::SeqCst);
     }
 }
+///
+/// Global static counter of FnOut instances
+static COUNT: AtomicUsize = AtomicUsize::new(0);

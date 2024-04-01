@@ -12,7 +12,6 @@ use crate::{
 #[derive(Debug)]
 pub struct S7ParseReal {
     pub tx_id: usize,
-    pub path: String,
     pub name: String,
     pub value: Box<dyn Filter<Item = f32>>,
     pub status: Status,
@@ -29,7 +28,6 @@ impl S7ParseReal {
     ///
     /// 
     pub fn new(
-        path: String,
         name: String,
         config: &PointConfig,
         filter: Box<dyn Filter<Item = f32>>,
@@ -39,7 +37,6 @@ impl S7ParseReal {
             value: filter,
             status: Status::Invalid,
             is_changed: false,
-            path,
             name,
             offset: config.clone().address.unwrap_or(PointConfigAddress::empty()).offset,
             history: config.history.clone(),

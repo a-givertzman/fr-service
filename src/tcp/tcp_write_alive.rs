@@ -1,7 +1,7 @@
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{JoinHandle, self}, net::TcpStream, time::Duration};
 use log::{warn, info};
 use crate::{
-    core_::net::connection_status::ConnectionStatus, services::{safe_lock::SafeLock, task::service_cycle::ServiceCycle}, tcp::tcp_stream_write::TcpStreamWrite 
+    core_::net::connection_status::ConnectionStatus, services::{safe_lock::SafeLock, task::service_cycle::ServiceCycle}, tcp::tcp_stream_write::{OpResult, TcpStreamWrite} 
 };
 ///
 /// Transfering points from Channel Sender<PointType> to the JdsStream (socket)
@@ -49,10 +49,14 @@ impl TcpWriteAlive {
                 match stream_write.write(&mut tcp_stream) {
                     ConnectionStatus::Active(result) => {
                         match result {
-                            Ok(_) => {},
-                            Err(err) => {
-                                warn!("{}.run | error: {:?}", self_id, err);
+                            OpResult::Ok(_) => {
+                                cycle.wait();
                             },
+                            OpResult::Err(err) => {
+                                warn!("{}.run | error: {:?}", self_id, err);
+                                cycle.wait();
+                            },
+                            OpResult::Timeout() => {}
                         }
                     },
                     ConnectionStatus::Closed(err) => {
@@ -64,7 +68,7 @@ impl TcpWriteAlive {
                 if exit.load(Ordering::SeqCst) | exit_pair.load(Ordering::SeqCst) {
                     break 'main;
                 }
-                cycle.wait();
+                // cycle.wait();
             }
             info!("{}.run | Exit", self_id);
         }).unwrap();
