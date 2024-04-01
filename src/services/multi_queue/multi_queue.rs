@@ -93,8 +93,8 @@ impl Service for MultiQueue {
             for subscription_criteria in points {
                 self.subscriptions.slock().add_multicast(receiver_hash, &subscription_criteria.destination(), send.clone());
             }
-            debug!("{}.subscribe | Multicast subscription registered, receiver: \n\t{} ({}) \n\tpoints: {:#?}", self.id, receiver_id, inner_receiver_id, points.len());
-            trace!("{}.subscribe | Multicast subscription registered, receiver: \n\t{} ({}) \n\tpoints: {:#?}", self.id, receiver_id, inner_receiver_id, points);
+            debug!("{}.subscribe | Multicast subscription registered, receiver: \n\t{} ({}) \n\tpoints: {:#?}", self.id, receiver_name, receiver_hash, points.len());
+            trace!("{}.subscribe | Multicast subscription registered, receiver: \n\t{} ({}) \n\tpoints: {:#?}", self.id, receiver_name, receiver_hash, points);
         }
         self.subscriptions_changed.store(true, Ordering::SeqCst);
         (send, recv)
