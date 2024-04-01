@@ -130,4 +130,4 @@ impl Service for MockSendService {
 }
 ///
 /// Global static counter of FnOut instances
-static COUNT: AtomicUsize = AtomicUsize::new(0);
+pub static COUNT: AtomicUsize = AtomicUsize::new(0);

@@ -6,8 +6,8 @@ mod multi_queue {
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::multi_queue_config::MultiQueueConfig, services::{multi_queue::multi_queue::MultiQueue, services::Services, service::service::Service}, 
-        tests::unit::services::multi_queue::{mock_recv_service::MockRecvService, mock_send_service::MockSendService},
+        conf::multi_queue_config::MultiQueueConfig, services::{multi_queue::multi_queue::MultiQueue, service::service::Service, services::Services, task::nested_function::reset_counter::AtomicReset}, 
+        tests::unit::services::multi_queue::{mock_recv_service::MockRecvService, mock_send_service::{self, MockSendService}},
     }; 
     ///
     /// 
@@ -92,6 +92,7 @@ mod multi_queue {
         let mut recv_handles = vec![];
         let mut recv_services = vec![];
         let timer = Instant::now();
+        mock_send_service::COUNT.reset(0);
         let send_service = Arc::new(Mutex::new(MockSendService::new(
             self_id,
             &format!("/{}/MultiQueue.in-queue", self_id),
