@@ -1,7 +1,7 @@
 use std::{collections::HashMap, ffi::OsStr, fmt::Debug, fs, hash::BuildHasherDefault, path::Path, sync::{mpsc::{Receiver, Sender}, Arc, Mutex}};
 use hashers::fx_hash::FxHasher;
 use indexmap::IndexMap;
-use log::{debug, error};
+use log::{debug, error, trace};
 use serde::Serialize;
 use crate::{
     conf::point_config::point_config::PointConfig, core_::point::point_type::PointType,
@@ -126,7 +126,8 @@ impl Services {
             }
         };
         // let points = self.retain.points(points);
-        debug!("{}.points | points: '{:#?}'", self.id, points);
+        debug!("{}.points | points: '{:#?}'", self.id, points.len());
+        trace!("{}.points | points: '{:#?}'", self.id, points);
         points
     }
 }
@@ -165,7 +166,7 @@ impl RetainPointId {
     }
     ///
     /// 
-    pub fn points<'a>(&mut self, points: Vec<PointConfig>) -> Vec<PointConfig> {
+    pub fn points(&mut self, points: Vec<PointConfig>) -> Vec<PointConfig> {
         if self.cache.is_empty() {
             let mut update_retained = false;
             // let json_value = self.read(self.path.clone());

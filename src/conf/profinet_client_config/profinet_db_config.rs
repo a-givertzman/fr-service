@@ -24,9 +24,9 @@ impl ProfinetDbConfig {
     ///
     /// Creates new instance of the ProfinetDbConfig
     pub fn new(parent: impl Into<String>, name: &str, conf_tree: &mut ConfTree) -> Self {
-        trace!("ProfinetDeviceConfig.new | confTree: {:?}", conf_tree);
+        trace!("ProfinetDbConfig.new | confTree: {:?}", conf_tree);
         let self_conf = conf_tree.clone();
-        let self_id = format!("ProfinetDeviceConfig({})", self_conf.key);
+        let self_id = format!("ProfinetDbConfig({})", self_conf.key);
         let mut self_conf = ServiceConfig::new(&self_id, self_conf);
         trace!("{}.new | selfConf: {:?}", self_id, self_conf);
         let self_name = Name::new(parent, name);
@@ -47,7 +47,7 @@ impl ProfinetDbConfig {
             if keyword.kind() == FnConfKindName::Point {
                 let point_name = format!("{}/{}", self_name, keyword.data());
                 let point_conf = self_conf.get(key).unwrap();
-                debug!("{}.new | Point '{}'", self_id, point_name);
+                trace!("{}.new | Point '{}'", self_id, point_name);
                 trace!("{}.new | Point '{}'   |   conf: {:?}", self_id, point_name, point_conf);
                 let node_conf = PointConfig::new(&self_id, &self_name, &point_conf);
                 points.push(

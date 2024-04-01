@@ -49,7 +49,8 @@ impl Task {
         } else {
             debug!("{}.subscribe | requesting points...", self.id);
             let points = services.slock().points(&self.id);
-            debug!("{}.subscribe | rceived points: {:#?}", self.id, points);
+            debug!("{}.subscribe | rceived points: {:#?}", self.id, points.len());
+            trace!("{}.subscribe | rceived points: {:#?}", self.id, points);
             debug!("{}.subscribe | subscriptions conf: {:#?}", self.id, conf.subscribe);
             let subscriptions = conf.subscribe.with(&points);
             debug!("{}.subscribe | subscriptions: {:#?}", self.id, subscriptions);
@@ -126,7 +127,7 @@ impl Service for Task {
             let mut cycle = ServiceCycle::new(&self_id, cycle_interval);
             let mut task_nodes = TaskNodes::new(&self_id);
             task_nodes.buildNodes(&self_name, conf, services);
-            debug!("{}.run | taskNodes: {:#?}", self_id, task_nodes);
+            trace!("{}.run | taskNodes: {:#?}", self_id, task_nodes);
             'main: loop {
                 cycle.start();
                 trace!("{}.run | calculation step...", self_id);

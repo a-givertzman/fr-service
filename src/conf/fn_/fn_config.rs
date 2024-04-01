@@ -55,8 +55,7 @@ impl FnConfig {
         //     error!("FnConfig.new | FnConf must have single item, additional items was ignored: {:?}", confTree)
         // };
         let cfg = if conf_tree.isMapping() {
-            debug!("FnConfig.new | MAPPING VALUE");
-            trace!("FnConfig.new | confTree: {:?}", conf_tree);
+            trace!("FnConfig.new | MAPPING VALUE: \t{:#?}", conf_tree);
             match FnConfKeywd::from_str(conf_tree.key.as_str()) {
                 Ok(self_keyword) => {
                     trace!("FnConfig.new | selfKeyword parsed: {:?}", self_keyword);
@@ -131,7 +130,7 @@ impl FnConfig {
                 },
             }
         } else {
-            debug!("FnConfig.new | SINGLE VALUE\t{:?}", &conf_tree.conf);
+            trace!("FnConfig.new | SINGLE VALUE: \t{:#?}", &conf_tree.conf);
             if conf_tree.conf.is_string() {
                 match FnConfKeywd::from_str(conf_tree.conf.as_str().unwrap()) {
                     // keyword parsed successefully
@@ -325,7 +324,8 @@ impl FnConfig {
         let mut points = vec![];
         debug!("FnConfig.points | requesting points...");
         for (input_name, input_kind) in &self.inputs {
-            debug!("FnConfig({}).points | requesting points from {}: {:#?}...", self.name, input_name, input_kind);
+            debug!("FnConfig({}).points | requesting points from {}: {:#?}...", self.name, input_name, input_kind.name());
+            trace!("FnConfig({}).points | requesting points from {}: {:#?}...", self.name, input_name, input_kind);
             let mut input_points = match input_kind {
                 FnConfKind::Fn(config) => {
                     config.points()

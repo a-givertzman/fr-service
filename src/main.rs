@@ -11,7 +11,7 @@ mod services;
 mod tcp;
 
 fn main() {
-    DebugSession::init(LogLevel::Debug, Backtrace::Short);
+    DebugSession::init(LogLevel::Info, Backtrace::Short);
     // let path = env::current_dir().unwrap();
     println!("main | working path: \n\t{:?}", env::current_dir().unwrap());
     let path = "config.yaml";

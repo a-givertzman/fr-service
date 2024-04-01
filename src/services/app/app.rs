@@ -1,5 +1,5 @@
 use linked_hash_map::LinkedHashMap;
-use log::{debug, error, info};
+use log::{error, info, trace};
 use std::{process::exit, sync::{Arc, Mutex, RwLock}, thread, time::Duration};
 use libc::{
     SIGABRT, SIGHUP, SIGINT, SIGKILL, SIGQUIT, SIGTERM, SIGUSR1, SIGUSR2,
@@ -18,7 +18,6 @@ use crate::{
 
 pub struct App {
     id: String,
-    name: Name,
     handles: LinkedHashMap<String, ServiceHandles>,
     conf: AppConfig,
 }
@@ -31,14 +30,12 @@ impl App {
     pub fn new(path: impl Into<String>) -> Self {
         let path: String = path.into();
         let self_id = format!("App");
-        let self_name = Name::from("App");
         info!("{}.run | Configuration path: '{}'", self_id, path);
         info!("{}.run | Reading configuration...", self_id);
         let conf: AppConfig = AppConfig::read(&path);
         info!("{}.run | Reading configuration - ok", self_id);
         Self {
             id: self_id,
-            name: self_name,
             handles: LinkedHashMap::new(),
             conf: conf,
         }
@@ -57,7 +54,7 @@ impl App {
             let node_name = node_keywd.name();
             let node_sufix = node_keywd.sufix();
             info!("{}.run |         Configuring service: {}({})...", self_id, node_name, node_sufix);
-            debug!("{}.run |         Config: {:#?}", self_id, node_conf);
+            trace!("{}.run |         Config: {:#?}", self_id, node_conf);
             services.slock().insert(
                 Self::match_service(&self_id, &self_name, &node_name, &node_sufix, &mut node_conf, services.clone()),
             );
@@ -79,6 +76,7 @@ impl App {
                     error!("{}.run |         Error starting service '{}': {:#?}", self_id, name, err);
                 },
             };
+            thread::sleep(Duration::from_millis(50));
         }
         info!("{}.run |     All services started\n", self_id);
         info!("{}.run | Application started\n", self_id);

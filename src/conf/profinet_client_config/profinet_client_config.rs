@@ -51,7 +51,7 @@ impl ProfinetClientConfig {
     /// Creates new instance of the [ProfinetClientConfig]:
     pub fn new(parent: impl Into<String>, conf_tree: &mut ConfTree) -> Self {
         println!();
-        debug!("ProfinetClientConfig.new | conf_tree: {:#?}", conf_tree);
+        trace!("ProfinetClientConfig.new | conf_tree: {:#?}", conf_tree);
         let self_id = format!("ProfinetClientConfig({})", conf_tree.key);
         let mut self_conf = ServiceConfig::new(&self_id, conf_tree.clone());
         trace!("{}.new | self_conf: {:?}", self_id, self_conf);

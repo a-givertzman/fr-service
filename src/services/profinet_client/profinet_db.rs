@@ -44,17 +44,17 @@ impl ProfinetDb {
     /// - app - string represents application name, for point path
     /// - parent - parent id, used for debugging
     /// - conf - configuration of the [ProfinetDB]
-    pub fn new(parent_id: impl Into<String>, parent_name: &Name, conf: &ProfinetDbConfig) -> Self {
+    pub fn new(parent_id: impl Into<String>, parent: &Name, conf: &ProfinetDbConfig) -> Self {
         let self_id = format!("{}/ProfinetDb({})", parent_id.into(), conf.name);
         Self {
             id: self_id.clone(),
-            name: Name::new(parent_name, &conf.name),
+            name: Name::new(parent, &conf.name),
             description: conf.description.clone(),
             number: conf.number as u32,
             offset: conf.offset as u32,
             size: conf.size as u32,
             cycle: conf.cycle,
-            points: Self::configure_parse_points(&self_id, &parent_name, conf),
+            points: Self::configure_parse_points(&self_id, &parent, conf),
         }
     }
     ///
@@ -123,7 +123,7 @@ impl ProfinetDb {
                 match tx_send.send(point) {
                     Ok(_) => {},
                     Err(err) => {
-                        message = format!("{}.sendStatus | send error: {}", self.id, err);
+                        message = format!("{}.yield_status | send error: {}", self.id, err);
                         warn!("{}", message);
                     },
                 }

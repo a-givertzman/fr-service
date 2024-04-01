@@ -14,11 +14,11 @@ service Task HistoryTask:
     in queue recv-queue:
         max-length: 10000
     subscribe: 
-        App/MultiQueue:                     # - multicast subscription to the MultiQueue
+        /App/MultiQueue:                     # - multicast subscription to the MultiQueue
             {history: rw}: []               #   - on all points having Cot::Inf and history::read
 
     fn ToApiQueue:
-        queue: App/ApiClient.in-queue
+        queue: /App/ApiClient.in-queue
         input fn SqlMetric:
             initial: 0.123      # начальное значение
             table: 'public."event"'
@@ -48,12 +48,12 @@ service TcpServer:
         pass: '12345'
     in queue link:
         max-length: 10000
-    out queue: App/MultiQueue.in-queue
+    out queue: /App/MultiQueue.in-queue
 
 service ProfinetClient ied12:
     cycle: 500 ms
-    subscribe: App/MultiQueue
-    out queue: App/MultiQueue.in-queue
+    subscribe: /App/MultiQueue
+    out queue: /App/MultiQueue.in-queue
     protocol: 'profinet'
     description: 'S7-IED-01.02'
     ip: '192.168.130.243'
@@ -495,8 +495,8 @@ service ProfinetClient ied12:
 
 service ProfinetClient ied13:
     cycle: 1000 ms
-    subscribe: App/MultiQueue
-    out queue: App/MultiQueue.in-queue
+    subscribe: /App/MultiQueue
+    out queue: /App/MultiQueue.in-queue
     protocol: 'profinet'
     description: 'S7-IED-01.03'
     ip: '192.168.130.243'
@@ -829,8 +829,8 @@ service ProfinetClient ied13:
 
 service ProfinetClient ied14:
     cycle: 50 ms
-    subscribe: App/MultiQueue
-    out queue: App/MultiQueue.in-queue
+    subscribe: /App/MultiQueue
+    out queue: /App/MultiQueue.in-queue
     protocol: 'profinet'
     description: 'S7-IED-01.04'
     ip: '192.168.130.243'
