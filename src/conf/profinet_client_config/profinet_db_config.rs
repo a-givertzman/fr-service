@@ -47,7 +47,7 @@ impl ProfinetDbConfig {
             if keyword.kind() == FnConfKindName::Point {
                 let point_name = format!("{}/{}", self_name, keyword.data());
                 let point_conf = self_conf.get(key).unwrap();
-                debug!("{}.new | Point '{}'", self_id, point_name);
+                trace!("{}.new | Point '{}'", self_id, point_name);
                 trace!("{}.new | Point '{}'   |   conf: {:?}", self_id, point_name, point_conf);
                 let node_conf = PointConfig::new(&self_id, &self_name, &point_conf);
                 points.push(

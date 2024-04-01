@@ -26,6 +26,7 @@ use crate::{
 
 ///
 /// Represents PROFINET DB - a collection of the PROFINET addresses
+#[derive(Debug)]
 pub struct ProfinetDb {
     id: String,
     pub name: Name,
@@ -176,6 +177,7 @@ impl ProfinetDb {
     /// Configuring ParsePoint objects depending on point configurations coming from [conf]
     fn configure_parse_points(self_id: &str, parent_name: &Name, conf: &ProfinetDbConfig) -> IndexMap<String, Box<dyn ParsePoint>> {
         conf.points.iter().map(|point_conf| {
+            let point_name = point_conf.name.clone(); //PointName::new(app, &point_conf.name).full();
             match point_conf._type {
                 PointConfigType::Bool => {
                     (point_conf.name.clone(), Self::box_bool(Name::new(parent_name, &point_conf.name).into(), point_conf))

@@ -10,15 +10,16 @@ service MultiQueue:
 #
 #
 service Task HistoryTask:
-    cycle: 3 s
+    cycle: 500 ms
     in queue recv-queue:
         max-length: 10000
     subscribe: 
         App/MultiQueue:                     # - multicast subscription to the MultiQueue
-            {history: rw}: []               #   - on all points having Cot::Inf and history::read
+            {history: rw}: []               #   - on all points having Cot::All and history::ReadWrite
 
-    fn ToApiQueue:
-        queue: App/ApiClient.in-queue
+    # fn ToApiQueue:
+    #     queue: App/ApiClient.in-queue
+    fn debug:
         input fn SqlMetric:
             initial: 0.123      # начальное значение
             table: 'public."event"'

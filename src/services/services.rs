@@ -1,7 +1,7 @@
 use std::{collections::HashMap, ffi::OsStr, fmt::Debug, fs, hash::BuildHasherDefault, path::Path, sync::{mpsc::{Receiver, Sender}, Arc, Mutex}};
 use hashers::fx_hash::FxHasher;
 use indexmap::IndexMap;
-use log::{debug, error};
+use log::{debug, error, trace};
 use serde::Serialize;
 use crate::{
     conf::point_config::point_config::PointConfig, core_::point::point_type::PointType,
@@ -121,12 +121,13 @@ impl Services {
             if service_id != requester_name {
                 // debug!("{}.points | Lock service: '{}'...", self.id, service_id);
                 let mut service_points = service.slock().points();
-                // debug!("{}.points | Lock service: '{}' - ok", self.id, service_id);
                 points.append(&mut service_points);
             }
         };
-        // let points = self.retain.points(points);
-        debug!("{}.points | points: '{:#?}'", self.id, points);
+        // TODO activate retain points
+        let points = self.retain.points(points);
+        debug!("{}.points | points: '{:#?}'", self.id, points.len());
+        trace!("{}.points | points: '{:#?}'", self.id, points);
         points
     }
 }
