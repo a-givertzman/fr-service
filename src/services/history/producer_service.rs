@@ -3,6 +3,7 @@ use chrono::{DateTime, Utc};
 use log::{debug, warn, info};
 use once_cell::sync::Lazy;
 use rand::Rng;
+use serde_json::json;
 use testing::{entities::test_value::Value, stuff::random_test_values::RandomTestValues};
 use crate::{
     conf::point_config::{name::Name, point_config::PointConfig, point_config_history::PointConfigHistory, point_config_type::PointConfigType}, 
@@ -139,11 +140,11 @@ impl Service for ProducerService {
         });
         let gen_points = Self::build_gen_points(&self.id, tx_id, self.conf.points());
         match thread::Builder::new().name(self_id.clone()).spawn(move || {
-            let mut test_data = Self::build_test_data(&self_id);
+            // let mut test_data = Self::build_test_data(&self_id);
             debug!("{}.run | calculating step...", self_id);
             for mut gen_point in gen_points {
                 cycle.start();
-                match gen_point.next(&test_data.next().unwrap(), Utc::now()) {
+                match gen_point.next(&Value::Bool(false), Utc::now()) {
                     Some(point) => {
                         match send.send(point.clone()) {
                             Ok(_) => {
@@ -230,8 +231,8 @@ impl PointGen {
     /// 
     fn to_point(&self) -> Option<PointType> {
         if self.is_changed {
-            match self.value.clone() {
-                Value::Bool(value) => {
+            match &self._type {
+                PointConfigType::Bool => {
                     Some(PointType::Bool(Point::new(
                         self.tx_id, 
                         &self.name, 
@@ -241,7 +242,7 @@ impl PointGen {
                         self.timestamp,
                     )))
                 },
-                Value::Int(value) => {
+                PointConfigType::Int => {
                     Some(PointType::Int(Point::new(
                         self.tx_id, 
                         &self.name, 
@@ -250,9 +251,8 @@ impl PointGen {
                         Cot::Inf,
                         self.timestamp,
                     )))
-                    
                 },
-                Value::Real(value) => {
+                PointConfigType::Real => {
                     Some(PointType::Real(Point::new(
                         self.tx_id, 
                         &self.name, 
@@ -261,9 +261,8 @@ impl PointGen {
                         Cot::Inf,
                         self.timestamp,
                     )))
-                    
                 },
-                Value::Double(value) => {
+                PointConfigType::Double => {
                     Some(PointType::Double(Point::new(
                         self.tx_id, 
                         &self.name, 
@@ -272,18 +271,26 @@ impl PointGen {
                         Cot::Inf,
                         self.timestamp,
                     )))
-                    
                 },
-                Value::String(value) => {
+                PointConfigType::String => {
                     Some(PointType::String(Point::new(
                         self.tx_id, 
                         &self.name, 
-                        value, 
+                        test_data_double().as_double().to_string(), 
                         self.status, 
                         Cot::Inf,
                         self.timestamp,
                     )))
-                    
+                },
+                PointConfigType::Json => {
+                    Some(PointType::String(Point::new(
+                        self.tx_id, 
+                        &self.name, 
+                        json!(test_data_double().as_double()).to_string(), 
+                        self.status, 
+                        Cot::Inf,
+                        self.timestamp,
+                    )))
                 },
             }
         } else {
