@@ -27,7 +27,7 @@ pub struct ProducerService {
 impl ProducerService {
     pub fn new(conf: ProducerServiceConfig, services: Arc<Mutex<Services>>) -> Self {
         Self {
-            id: format!("{}", conf.name),
+            id: format!("{}(ProducerService)", conf.name),
             name: conf.name.clone(),
             conf,
             services,
@@ -56,50 +56,6 @@ impl ProducerService {
             }
         }
         gen_points
-    }
-    ///
-    ///
-    fn build_test_data(parent_id: &str) -> RandomTestValues {
-        RandomTestValues::new(
-            parent_id, 
-            vec![
-                Value::Int(0),
-                Value::Int(1),
-                Value::Int(2),
-                Value::Int(3),
-                Value::Int(4),
-                Value::Int(5),
-                Value::Int(6),
-                Value::Int(7),
-                Value::Int(8),
-                Value::Int(9),
-                Value::Real(0.0),
-                Value::Real(1.0),
-                Value::Real(2.0),
-                Value::Real(3.0),
-                Value::Real(4.0),
-                Value::Real(5.0),
-                Value::Double(0.0),
-                Value::Double(1.0),
-                Value::Double(2.0),
-                Value::Double(3.0),
-                Value::Double(4.0),
-                Value::Double(5.0),
-                Value::Bool(true),
-                Value::Bool(false),
-                Value::Bool(false),
-                Value::Bool(true),
-                Value::Bool(true),
-                Value::Bool(false),
-                Value::Bool(true),
-                Value::Bool(false),
-                Value::Bool(true),
-                Value::Bool(false),
-                Value::Bool(true),
-                Value::Bool(false),
-            ], 
-            1_000_000, 
-        )
     }
 }
 ///
@@ -138,30 +94,32 @@ impl Service for ProducerService {
         let send = self.services.slock().get_link(&self.conf.send_to).unwrap_or_else(|err| {
             panic!("{}.run | services.get_link error: {:#?}", self.id, err);
         });
-        let gen_points = Self::build_gen_points(&self.id, tx_id, self.conf.points());
+        let mut gen_points = Self::build_gen_points(&self.id, tx_id, self.conf.points());
         match thread::Builder::new().name(self_id.clone()).spawn(move || {
             // let mut test_data = Self::build_test_data(&self_id);
             debug!("{}.run | calculating step...", self_id);
-            for mut gen_point in gen_points {
-                cycle.start();
-                match gen_point.next(&Value::Bool(false), Utc::now()) {
-                    Some(point) => {
-                        match send.send(point.clone()) {
-                            Ok(_) => {
-                                debug!("{}.run | sent point: {:?}", self_id, point);
-                            },
-                            Err(err) => {
-                                warn!("{}.run | Send error: {:?}", self_id, err);
-                            },
-                        }
-                    },
-                    None => {},
-                };
-                if delayed {
-                    cycle.wait();
-                }
-                if exit.load(Ordering::SeqCst) {
-                    break;
+            'main: loop {
+                for gen_point in &mut gen_points {
+                    cycle.start();
+                    match gen_point.next(&Value::Bool(false), Utc::now()) {
+                        Some(point) => {
+                            match send.send(point.clone()) {
+                                Ok(_) => {
+                                    debug!("{}.run | sent point: {:?}", self_id, point);
+                                },
+                                Err(err) => {
+                                    warn!("{}.run | Send error: {:?}", self_id, err);
+                                },
+                            }
+                        },
+                        None => {},
+                    };
+                    if delayed {
+                        cycle.wait();
+                    }
+                    if exit.load(Ordering::SeqCst) {
+                        break 'main;
+                    }
                 }
             }
             info!("{}.run | Stopped", self_id);
