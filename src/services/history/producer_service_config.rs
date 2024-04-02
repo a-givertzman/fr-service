@@ -65,7 +65,7 @@ impl ProducerServiceConfig {
         debug!("{}.new | cycle: {:?}", self_id, cycle);
         let send_to = self_conf.get_send_to().unwrap();
         debug!("{}.new | send_to: '{}'", self_id, send_to);
-        let debug = self_conf.get_param_value("debug").unwrap().as_bool().unwrap();
+        let debug = self_conf.get_param_value("debug").unwrap_or(serde_yaml::Value::Bool(false)).as_bool().unwrap();
         debug!("{}.new | debug: '{}'", self_id, debug);
         let mut nodes = IndexMap::new();
         for node_name in self_conf.keys.clone() {
