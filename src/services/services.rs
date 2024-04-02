@@ -1,7 +1,9 @@
 use std::{collections::HashMap, ffi::OsStr, fmt::Debug, fs, hash::BuildHasherDefault, path::Path, sync::{mpsc::{Receiver, Sender}, Arc, Mutex}};
+use api_tools::{api::reply::api_reply::ApiReply, client::{api_query::{ApiQuery, ApiQueryKind, ApiQuerySql}, api_request::ApiRequest}};
 use hashers::fx_hash::FxHasher;
 use indexmap::IndexMap;
-use log::{debug, error, trace};
+use concat_string::concat_string;
+use log::{debug, error, trace, warn};
 use serde::{Deserialize, Serialize};
 use crate::{
     conf::point_config::{point_config::PointConfig, point_config_type::PointConfigType}, core_::point::point_type::PointType,
@@ -149,6 +151,9 @@ struct RetainPointId {
     id: String,
     path: String,
     cache: Vec<PointConfig>,
+    api_address: String, 
+    api_auth_token: String, 
+    api_database: String, 
 }
 ///
 /// 
@@ -163,6 +168,9 @@ impl RetainPointId {
             id: format!("{}/RetainPointId", parent),
             path: path.to_owned(),
             cache: vec![],
+            api_address: "0.0.0.0:8080".to_owned(),
+            api_auth_token: "123!@#".to_owned(),
+            api_database: "crane_data_server".to_owned(),
         }
     }
     ///
@@ -208,7 +216,8 @@ impl RetainPointId {
                 );
             }
             if update_retained {
-                self.write(&self.path, retained).unwrap();
+                self.write(&self.path, &retained).unwrap();
+                self.sql_write(&retained)
             }
         }
         self.cache.clone()
@@ -250,9 +259,6 @@ impl RetainPointId {
     /// }
     /// ```
     fn write<P: AsRef<Path> + AsRef<OsStr> + std::fmt::Display, S: Serialize>(&self, path: P, points: S) -> Result<(), String> {
-        // let points: HashMap<String, usize> = points.into_iter().map(|point| {
-        //     (point.name.clone(), point.id)
-        // }).collect();
         match fs::OpenOptions::new().create(true).write(true).open(&path) {
             Ok(f) => {
                 match serde_json::to_writer_pretty(f, &points) {
@@ -267,8 +273,58 @@ impl RetainPointId {
     }
     ///
     /// 
-    fn sql_insert() {
-
+    fn sql_write(&self, retained: &HashMap<String, RetainedPointConfig, BuildHasherDefault<FxHasher>>) {
+        let api_keep_alive = true;
+        let sql_keep_alive = true;
+        let mut request = ApiRequest::new(
+            &self.id, 
+            &self.api_address, 
+            &self.api_auth_token, 
+            ApiQuery::new(
+                ApiQueryKind::Sql(ApiQuerySql::new(&self.api_database, "select 1;")), 
+                sql_keep_alive,
+            ),
+            api_keep_alive, 
+            false,
+        );
+        _ = self.sql_request(&mut request, "truncate public.tags;", api_keep_alive);
+        for (_, point) in retained {
+            let sql = format!("insert into public.tags (id, type, name) values ({},'{:?}','{}');", point.id, point._type, point.name);
+            _ = self.sql_request(&mut request, &sql, api_keep_alive);
+        }
+    }
+    ///
+    /// 
+    fn sql_request(&self, request: &mut ApiRequest, sql: &str, keep_alive: bool) -> Result<ApiReply, String> {
+        let query = ApiQuery::new(
+            ApiQueryKind::Sql(ApiQuerySql::new(&self.api_database, sql)),
+            true,
+        );
+        match request.fetch(&query, keep_alive) {
+            Ok(reply) => {
+                if log::max_level() > log::LevelFilter::Debug {
+                    let reply_str = std::str::from_utf8(&reply).unwrap();
+                    debug!("{}.send | reply str: {:?}", &self.id, reply_str);
+                }
+                match serde_json::from_slice(&reply) {
+                    Ok(reply) => Ok(reply),
+                    Err(err) => {
+                        let reply = match std::str::from_utf8(&reply) {
+                            Ok(reply) => reply.to_string(),
+                            Err(err) => concat_string!(self.id, ".send | Error parsing reply to utf8 string: ", err.to_string()),
+                        };
+                        let message = concat_string!(self.id, ".send | Error parsing API reply: {:?} \n\t reply was: {:?}", err.to_string(), reply);
+                        warn!("{}", message);
+                        Err(message)
+                    },
+                }
+            },
+            Err(err) => {
+                let message = concat_string!(self.id, ".send | Error sending API request: {:?}", err);
+                warn!("{}", message);
+                Err(message)
+            },
+        }
     }
 }
 

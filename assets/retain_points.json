@@ -4,11 +4,6 @@
     "name": "/App/Ied12/db905_visual_data_fast/Jib.WeightSensor",
     "type": "Real"
   },
-  "/test Services.points/task1/CraneMovement.WinchUp": {
-    "id": 66,
-    "name": "/test Services.points/task1/CraneMovement.WinchUp",
-    "type": "Real"
-  },
   "/App/Ied12/db905_visual_data_fast/Load.swl": {
     "id": 58,
     "name": "/App/Ied12/db905_visual_data_fast/Load.swl",
@@ -29,11 +24,6 @@
     "name": "/App/Ied12/db905_visual_data_fast/Load.boomFirst",
     "type": "Int"
   },
-  "/test Services.points/task1/CraneMovement.BoomDown": {
-    "id": 65,
-    "name": "/test Services.points/task1/CraneMovement.BoomDown",
-    "type": "Real"
-  },
   "/App/Ied12/db905_visual_data_fast/HPU.LowOilTemp": {
     "id": 37,
     "name": "/App/Ied12/db905_visual_data_fast/HPU.LowOilTemp",
@@ -53,11 +43,6 @@
     "id": 17,
     "name": "/App/Ied12/db905_visual_data_fast/Jib.SensorAngle",
     "type": "Real"
-  },
-  "/jds_request_test/Jds/Jds/Auth.Secret": {
-    "id": 67,
-    "name": "/jds_request_test/Jds/Jds/Auth.Secret",
-    "type": "String"
   },
   "/App/Ied12/db905_visual_data_fast/HPA.AlarmNitroPressure": {
     "id": 50,
@@ -123,16 +108,6 @@
     "id": 59,
     "name": "/App/Ied12/db905_visual_data_fast/Load.nom",
     "type": "Real"
-  },
-  "/jds_request_test/Jds/Jds/Points": {
-    "id": 69,
-    "name": "/jds_request_test/Jds/Jds/Points",
-    "type": "String"
-  },
-  "/test Services.points/task1/CraneMovement.BoomUp": {
-    "id": 64,
-    "name": "/test Services.points/task1/CraneMovement.BoomUp",
-    "type": "Int"
   },
   "/App/Ied12/db905_visual_data_fast/Winch.ValveEV1": {
     "id": 0,
@@ -269,11 +244,6 @@
     "name": "/App/Ied12/db905_visual_data_fast/HPU.PressureOutPump2",
     "type": "Real"
   },
-  "/jds_request_test/Jds/Jds/Auth.Ssh": {
-    "id": 68,
-    "name": "/jds_request_test/Jds/Jds/Auth.Ssh",
-    "type": "String"
-  },
   "/App/Ied12/db905_visual_data_fast/Winch.LVDT1": {
     "id": 7,
     "name": "/App/Ied12/db905_visual_data_fast/Winch.LVDT1",
@@ -338,11 +308,6 @@
     "id": 13,
     "name": "/App/Ied12/db905_visual_data_fast/Winch.TempLine1",
     "type": "Real"
-  },
-  "/jds_request_test/Jds/Jds/Subscribe": {
-    "id": 70,
-    "name": "/jds_request_test/Jds/Jds/Subscribe",
-    "type": "String"
   },
   "/App/Ied12/db905_visual_data_fast/Platform.PressureOilLow": {
     "id": 27,
