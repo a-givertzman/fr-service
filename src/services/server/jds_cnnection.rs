@@ -84,7 +84,7 @@ impl JdsConnection {
     pub fn new(parent_id: &str, parent: &Name, connection_id: &str, action_recv: Receiver<Action>, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>) -> Self {
         let id = format!("{}/JdsConnection/{}", parent_id, connection_id);
         let name = Name::new(parent, "Jds");
-        error!("{}.new | NAME: {:#?}",id, name);
+        debug!("{}.new | name: {:#?}",id, name);
         Self {
             id, //: format!("{}/JdsConnection/{}", parent_id, connection_id),
             name,   //: Name::new(parent, "Jds"),

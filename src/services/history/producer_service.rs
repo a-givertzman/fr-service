@@ -1,10 +1,9 @@
-use std::{fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, Arc, Mutex}, thread, time::Duration};
+use std::{fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread, time::Duration};
 use chrono::{DateTime, Utc};
 use log::{debug, warn, info};
-use once_cell::sync::Lazy;
 use rand::Rng;
 use serde_json::json;
-use testing::{entities::test_value::Value, stuff::random_test_values::RandomTestValues};
+use testing::entities::test_value::Value;
 use crate::{
     conf::point_config::{name::Name, point_config::PointConfig, point_config_history::PointConfigHistory, point_config_type::PointConfigType}, 
     core_::{cot::cot::Cot, object::object::Object, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status, types::bool::Bool}, 
@@ -97,8 +96,8 @@ impl Service for ProducerService {
         let mut gen_points = Self::build_gen_points(&self.id, tx_id, self.conf.points());
         match thread::Builder::new().name(self_id.clone()).spawn(move || {
             // let mut test_data = Self::build_test_data(&self_id);
-            debug!("{}.run | calculating step...", self_id);
             'main: loop {
+                debug!("{}.run | Step...", self_id);
                 for gen_point in &mut gen_points {
                     cycle.start();
                     match gen_point.next(&Value::Bool(false), Utc::now()) {
@@ -258,12 +257,12 @@ impl PointGen {
     //
     //
     fn add_value(&mut self, input: &Value, timestamp: DateTime<Utc>) {
-        if input != &self.value {
-            self.value = input.clone();
-            self.status = Status::Ok;
-            self.timestamp = timestamp;
-            self.is_changed = true;
-        }
+        // if input != &self.value {
+        // }
+        self.value = input.clone();
+        self.status = Status::Ok;
+        self.timestamp = timestamp;
+        self.is_changed = true;
     }    
 }
 ///
