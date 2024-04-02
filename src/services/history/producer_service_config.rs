@@ -2,9 +2,8 @@ use indexmap::IndexMap;
 use log::{trace, debug};
 use std::{fs, str::FromStr, time::Duration};
 use crate::conf::{
-    conf_subscribe::ConfSubscribe, 
     conf_tree::ConfTree, 
-    fn_::{fn_conf_keywd::{FnConfKeywd, FnConfKindName}, fn_config::FnConfig},
+    fn_::fn_conf_keywd::{FnConfKeywd, FnConfKindName},
     point_config::{name::Name, point_config::PointConfig}, 
     service_config::ServiceConfig,
 };
@@ -12,8 +11,9 @@ use crate::conf::{
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
 /// service ProducerService:
-///     cycle: 1000 ms                         # operating cycle time of the module
+///     cycle: 1000 ms                          # operating cycle time of the module
 ///     out queue: /App/MultiQueue.in-queue
+///     debug: true                             # each point will be debugged
 ///     points:
 ///         point Winch.ValveEV1: 
 ///             type: Bool
@@ -29,6 +29,7 @@ pub struct ProducerServiceConfig {
     pub(crate) name: Name,
     pub(crate) cycle: Option<Duration>,
     pub(crate) send_to: String,
+    pub(crate) debug: bool,
     // pub(crate) subscribe: ConfSubscribe,
     pub(crate) nodes: IndexMap<String, PointConfig>,
 }
@@ -39,8 +40,9 @@ impl ProducerServiceConfig {
     /// creates config from serde_yaml::Value of following format:
     /// ```yaml
     /// service ProducerService:
-    ///     cycle: 1000 ms                         # operating cycle time of the module
+    ///     cycle: 1000 ms                          # operating cycle time of the module
     ///     out queue: /App/MultiQueue.in-queue
+    ///     debug: true                             # each point will be debugged
     ///     points:
     ///         point Winch.ValveEV1: 
     ///             type: Bool
@@ -63,6 +65,8 @@ impl ProducerServiceConfig {
         debug!("{}.new | cycle: {:?}", self_id, cycle);
         let send_to = self_conf.get_send_to().unwrap();
         debug!("{}.new | send_to: '{}'", self_id, send_to);
+        let debug = self_conf.get_param_value("debug").unwrap().as_bool().unwrap();
+        debug!("{}.new | debug: '{}'", self_id, debug);
         let mut nodes = IndexMap::new();
         for node_name in self_conf.keys.clone() {
             let node_conf = self_conf.get(&node_name).unwrap();
@@ -88,6 +92,7 @@ impl ProducerServiceConfig {
             name: self_name,
             cycle,
             send_to,
+            debug,
             nodes,
         }
     }

@@ -1,7 +1,7 @@
 use std::{fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread, time::Duration};
 use chrono::{DateTime, Utc};
 use indexmap::IndexMap;
-use log::{debug, warn, info};
+use log::{debug, info, trace, warn};
 use rand::Rng;
 use serde_json::json;
 use testing::entities::test_value::Value;
@@ -93,6 +93,7 @@ impl Service for ProducerService {
         let self_id = self.id.clone();
         let tx_id = PointTxId::fromStr(&self_id);
         let exit = self.exit.clone();
+        let debug = self.conf.debug;
         let interval = self.conf.cycle.clone().unwrap_or(Duration::ZERO);
         let delayed = !interval.is_zero();
         let mut cycle = ServiceCycle::new(&self.id, interval);
@@ -103,14 +104,14 @@ impl Service for ProducerService {
         match thread::Builder::new().name(self_id.clone()).spawn(move || {
             // let mut test_data = Self::build_test_data(&self_id);
             'main: loop {
-                debug!("{}.run | Step...", self_id);
+                trace!("{}.run | Step...", self_id);
                 for (_, gen_point) in &mut gen_points {
                     cycle.start();
                     match gen_point.next(&Value::Bool(false), Utc::now()) {
                         Some(point) => {
                             match send.send(point.clone()) {
                                 Ok(_) => {
-                                    debug!("{}.run | sent point: {:?}", self_id, point);
+                                    if debug {debug!("{}.run | sent point: {:?}", self_id, point);}
                                 },
                                 Err(err) => {
                                     warn!("{}.run | Send error: {:?}", self_id, err);
