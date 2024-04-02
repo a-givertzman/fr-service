@@ -28,6 +28,7 @@ impl Services {
     pub const TASK: &'static str = "Task";
     pub const TCP_CLIENT: &'static str = "TcpClient";
     pub const TCP_SERVER: &'static str = "TcpServer";
+    pub const PRODUCER_SERVICE: &'static str = "ProducerService";
     ///
     /// Creates new instance of the Services
     pub fn new(parent: impl Into<String>) -> Self {
@@ -127,7 +128,7 @@ impl Services {
         };
         // let points = self.retain.points(points);
         debug!("{}.points | points: '{:#?}'", self.id, points.len());
-        trace!("{}.points | points: '{:#?}'", self.id, points);
+        debug!("{}.points | points: '{:#?}'", self.id, points);
         points
     }
 }

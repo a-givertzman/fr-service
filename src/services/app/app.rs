@@ -12,7 +12,7 @@ use crate::{
         api_client_config::ApiClientConfig, app::app_config::AppConfig, conf_tree::ConfTree, multi_queue_config::MultiQueueConfig, point_config::name::Name, profinet_client_config::profinet_client_config::ProfinetClientConfig, task_config::TaskConfig, tcp_client_config::TcpClientConfig, tcp_server_config::TcpServerConfig
     }, 
     services::{
-        api_cient::api_client::ApiClient, multi_queue::multi_queue::MultiQueue, profinet_client::profinet_client::ProfinetClient, safe_lock::SafeLock, server::tcp_server::TcpServer, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::task::Task, tcp_client::tcp_client::TcpClient
+        api_cient::api_client::ApiClient, history::{producer_service::ProducerService, producer_service_config::ProducerServiceConfig}, multi_queue::multi_queue::MultiQueue, profinet_client::profinet_client::ProfinetClient, safe_lock::SafeLock, server::tcp_server::TcpServer, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::task::Task, tcp_client::tcp_client::TcpClient
     },
 };
 
@@ -119,6 +119,9 @@ impl App {
             )),
             Services::TCP_SERVER => Arc::new(Mutex::new(
                 TcpServer::new(TcpServerConfig::new(parent, node_conf), services.clone())
+            )),
+            Services::PRODUCER_SERVICE => Arc::new(Mutex::new(
+                ProducerService::new(ProducerServiceConfig::new(parent, node_conf), services.clone())
             )),
             _ => {
                 panic!("{}.run | Unknown service: {}({})", self_id, node_name, node_sufix);

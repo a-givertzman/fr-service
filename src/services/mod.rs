@@ -32,3 +32,5 @@ pub mod server;
 pub mod app;
 
 pub mod safe_lock;
+
+pub mod history;

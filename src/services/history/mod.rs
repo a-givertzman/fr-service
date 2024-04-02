@@ -1,1 +1,3 @@
-pub mod history_service;
+pub mod producer_service;
+
+pub mod producer_service_config;

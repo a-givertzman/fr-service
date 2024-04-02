@@ -40,6 +40,7 @@ pub struct PointConfig {
     pub history: PointConfigHistory,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub alarm: Option<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub address: Option<PointConfigAddress>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filters: Option<PointConfigFilter>,

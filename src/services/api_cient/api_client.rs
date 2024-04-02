@@ -43,7 +43,7 @@ impl ApiClient {
     fn read_queue(self_id: &str, recv: &Receiver<PointType>, buffer: &mut RetainBuffer<PointType>) {
         let max_read_at_once = 1000;
         for (index, point) in recv.try_iter().enumerate() {   
-            debug!("{}.readQueue | point: {:?}", self_id, &point);
+            debug!("{}.read_queue | point: {:?}", self_id, &point);
             buffer.push(point);
             if index > max_read_at_once {
                 break;
@@ -154,20 +154,27 @@ impl Service for ApiClient {
                 while count > 0 {
                     match buffer.first() {
                         Some(point) => {
-                            let sql = point.as_string().value;
-                            match Self::send(&self_id, &mut request, &conf.database, sql, api_keep_alive) {
-                                Ok(reply) => {
-                                    if reply.has_error() {
-                                        warn!("{}.run | API reply has error: {:?}", self_id, reply.error);
-                                    } else {
-                                        buffer.pop_first();
+                            match point {
+                                PointType::Bool(_) => warn!("{}.run | Invalid point type 'Bool' in: {:?}", self_id, point),
+                                PointType::Int(_) => warn!("{}.run | Invalid point type 'Int' in: {:?}", self_id, point),
+                                PointType::Real(_) => warn!("{}.run | Invalid point type 'Real' in: {:?}", self_id, point),
+                                PointType::Double(_) => warn!("{}.run | Invalid point type 'Double' in: {:?}", self_id, point),
+                                PointType::String(point) => {
+                                    let sql = point.value.clone();
+                                    match Self::send(&self_id, &mut request, &conf.database, sql, api_keep_alive) {
+                                        Ok(reply) => {
+                                            if reply.has_error() {
+                                                warn!("{}.run | API reply has error: {:?}", self_id, reply.error);
+                                            } else {
+                                                buffer.pop_first();
+                                            }
+                                        },
+                                        Err(err) => {
+                                            warn!("{}.run | Error: {:?}", self_id, err);
+                                        },
                                     }
                                 },
-                                Err(err) => {
-                                    warn!("{}.run | Error: {:?}", self_id, err);
-                                },
                             }
-
                         },
                         None => {break;},
                     };
