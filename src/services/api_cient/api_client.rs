@@ -148,9 +148,9 @@ impl Service for ApiClient {
             );
             'send: loop {
                 cycle.start();
-                debug!("{}.run | Step...", self_id);
+                trace!("{}.run | Step...", self_id);
                 Self::read_queue(&self_id, &recv, &mut buffer);
-                debug!("{}.run | Beffer.len: {}", self_id, buffer.len());
+                trace!("{}.run | Beffer.len: {}", self_id, buffer.len());
                 let mut count = buffer.len();
                 while count > 0 {
                     match buffer.first() {
