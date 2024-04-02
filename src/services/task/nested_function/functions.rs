@@ -19,6 +19,7 @@ pub enum Functions {
     SqlMetric,
     PointId,
     Debug,
+    ToInt,
 }
 ///
 /// 
@@ -35,6 +36,7 @@ impl Functions {
     const SQL_METRIC: &'static str = "SqlMetric";
     const POINT_ID: &'static str = "PointId";
     const DEBUG: &'static str = "debug";
+    const TO_INT: &'static str = "ToInt";
     ///
     ///     
     pub fn name(&self) -> &str {
@@ -51,6 +53,7 @@ impl Functions {
             Functions::SqlMetric        => Self::SQL_METRIC,
             Functions::PointId          => Self::POINT_ID,
             Functions::Debug            => Self::DEBUG,
+            Functions::ToInt            => Self::TO_INT,
         }
     }
 }
@@ -61,18 +64,19 @@ impl FromStr for Functions {
     fn from_str(input: &str) -> Result<Functions, String> {
         trace!("Functions.from_str | input: {}", input);
         match input {
-            Self::ADD             => Ok( Functions::Add ),
-            Self::CONST           => Ok( Functions::Const ),
-            Self::COUNT           => Ok( Functions::Count ),
-            Self::GE              => Ok( Functions::Ge ),
-            Self::INPUT           => Ok( Functions::Input ),
-            Self::TIMER           => Ok( Functions::Timer ),
-            Self::VAR             => Ok( Functions::Var ),
-            Self::TO_API_QUEUE    => Ok( Functions::ToApiQueue ),
-            Self::TO_MULTI_QUEUE  => Ok( Functions::ToMultiQueue ),
-            Self::SQL_METRIC      => Ok( Functions::SqlMetric ),
-            Self::POINT_ID        => Ok( Functions::PointId ),
-            Self::DEBUG           => Ok( Functions::Debug ),
+            Self::ADD               => Ok( Functions::Add ),
+            Self::CONST             => Ok( Functions::Const ),
+            Self::COUNT             => Ok( Functions::Count ),
+            Self::GE                => Ok( Functions::Ge ),
+            Self::INPUT             => Ok( Functions::Input ),
+            Self::TIMER             => Ok( Functions::Timer ),
+            Self::VAR               => Ok( Functions::Var ),
+            Self::TO_API_QUEUE      => Ok( Functions::ToApiQueue ),
+            Self::TO_MULTI_QUEUE    => Ok( Functions::ToMultiQueue ),
+            Self::SQL_METRIC        => Ok( Functions::SqlMetric ),
+            Self::POINT_ID          => Ok( Functions::PointId ),
+            Self::DEBUG             => Ok( Functions::Debug ),
+            Self::TO_INT            => Ok( Functions::ToInt ),
             _ => Err(format!("Functions.from_str | Unknown function name '{}'", &input)),
         }
     }

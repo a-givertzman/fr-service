@@ -7,7 +7,7 @@ use crate::{
     }, services::{safe_lock::SafeLock, services::Services, task::{nested_function::{fn_var::FnVar, sql_metric::SqlMetric}, task_nodes::TaskNodes}}
 };
 use super::{
-    export::fn_to_api_queue::FnToApiQueue, fn_add::FnAdd, fn_const::FnConst, fn_count::FnCount, fn_debug::FnDebug, fn_ge::FnGe, fn_input::FnInput, fn_point_id::FnPointId, fn_timer::FnTimer, functions::Functions 
+    export::fn_to_api_queue::FnToApiQueue, fn_add::FnAdd, fn_const::FnConst, fn_count::FnCount, fn_debug::FnDebug, fn_ge::FnGe, fn_input::FnInput, fn_point_id::FnPointId, fn_timer::FnTimer, fn_to_int::FnToInt, functions::Functions 
 };
 
 ///
@@ -99,6 +99,13 @@ impl NestedFn {
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
                         Self::fn_debug(parent, input)
                     },
+                    Functions::ToInt => {
+                        debug!("{}.function | fn_conf: {:?}: {:?}", self_id, conf.name, conf);
+                        let name = "input";
+                        let input_conf = conf.input_conf(name);
+                        let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        Self::fn_to_int(parent, input)
+                    }
                     _ => panic!("{}.function | Unknown function name: {:?}", self_id, conf.name)
                 }
             },
@@ -257,6 +264,13 @@ impl NestedFn {
     fn fn_debug(parent: impl Into<String>, input: FnInOutRef) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
             FnDebug::new(parent, input)
+        )))
+    }
+    // ///
+    // /// 
+    fn fn_to_int(parent: impl Into<String>, input: FnInOutRef) -> FnInOutRef {
+        Rc::new(RefCell::new(Box::new(
+            FnToInt::new(parent, input)
         )))
     }
 }

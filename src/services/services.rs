@@ -2,9 +2,9 @@ use std::{collections::HashMap, ffi::OsStr, fmt::Debug, fs, hash::BuildHasherDef
 use hashers::fx_hash::FxHasher;
 use indexmap::IndexMap;
 use log::{debug, error, trace};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use crate::{
-    conf::point_config::point_config::PointConfig, core_::point::point_type::PointType,
+    conf::point_config::{point_config::PointConfig, point_config_type::PointConfigType}, core_::point::point_type::PointType,
     services::{
         multi_queue::subscription_criteria::SubscriptionCriteria, 
         queue_name::QueueName, 
@@ -126,7 +126,7 @@ impl Services {
                 points.append(&mut service_points);
             }
         };
-        // let points = self.retain.points(points);
+        let points = self.retain.points(points);
         debug!("{}.points | points: '{:#?}'", self.id, points.len());
         debug!("{}.points | points: '{:#?}'", self.id, points);
         points
@@ -170,28 +170,26 @@ impl RetainPointId {
     pub fn points(&mut self, points: Vec<PointConfig>) -> Vec<PointConfig> {
         if self.cache.is_empty() {
             let mut update_retained = false;
-            // let json_value = self.read(self.path.clone());
-            let mut retained = self.read(self.path.clone());
+            let mut retained: HashMap<String, RetainedPointConfig, BuildHasherDefault<FxHasher>> = self.read(self.path.clone());
             debug!("{}.points | retained: {:#?}", self.id, retained);
-            // debug!("{}.points | Lock services_basic ...", self.id);
-            // let points = self.services.slock().points();
-            // debug!("{}.points | Lock services_basic - ok", self.id);
-            for point in points {
+            for mut point in points {
                 debug!("{}.points | point: {}...", self.id, point.name);
                 let cached = retained.get(&point.name);
                 let id = match cached {
-                    Some(id) => {
-                        debug!("{}.points |     found: {}", self.id, id);
-                        *id
+                    Some(conf) => {
+                        debug!("{}.points |     found: {}", self.id, conf.id);
+                        conf.id
                     },
                     None => {
                         debug!("{}.points |     not found, calculating max...",self.id);
                         update_retained = true;
                         let id = retained
                             .values()
+                            .map(|conf| conf.id)
                             .max()
                             .map_or(0, |id| id + 1);
-                        retained.insert(point.name.clone(), id);
+                        point.id = id;
+                        retained.insert(point.name.clone(), RetainedPointConfig { id: point.id, name: point.name.clone(), _type: point._type.clone() });
                         debug!("{}.points |     calculated: {}", self.id, id);
                         id
                     },
@@ -224,24 +222,12 @@ impl RetainPointId {
     ///     ...
     /// }
     /// ```
-    fn read<P: AsRef<Path> + AsRef<OsStr> + std::fmt::Display>(&self, path: P) -> IndexMap<String, usize, BuildHasherDefault<FxHasher>> {
-        // Self::create_path_if_not_exitst(&self.id, &path).unwrap();
-        let mut retained = IndexMap::with_hasher(BuildHasherDefault::<FxHasher>::default());
+    fn read<P: AsRef<Path> + AsRef<OsStr> + std::fmt::Display>(&self, path: P) -> HashMap<String, RetainedPointConfig, BuildHasherDefault<FxHasher>> {
         match fs::read_to_string(&path) {
             Ok(json_string) => {
                 match serde_json::from_str(&json_string) {
                     Ok(config) => {
-                        let config: serde_json::Map<String, serde_json::Value> = config;
-                        for (key, value) in config {
-                            match value.as_u64() {
-                                Some(value) => {
-                                    retained.insert(key, value as usize);
-                                },
-                                None => {
-                                    error!("{}.read | Error parsing usize value in pair: {}: {:?}", self.id, key, value);
-                                },
-                            }
-                        };
+                        return config
                     },
                     Err(err) => {
                         error!("{}.read | Error in config: {:?}\n\terror: {:?}", self.id, json_string, err);
@@ -252,7 +238,7 @@ impl RetainPointId {
                 error!("{}.read | File {} reading error: {:?}", self.id, path, err);
             },
         };
-        retained
+        HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default())
     }
     ///
     /// Writes file json map to the file:
@@ -279,4 +265,19 @@ impl RetainPointId {
             },
         }
     }
+    ///
+    /// 
+    fn sql_insert() {
+
+    }
+}
+
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct RetainedPointConfig {
+    pub id: usize,
+    pub name: String,
+    #[serde(rename = "type")]
+    #[serde(alias = "type", alias = "Type")]
+    pub _type: PointConfigType,
 }

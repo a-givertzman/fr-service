@@ -57,7 +57,7 @@ impl FnOut for FnPointId {
     //
     fn out(&mut self) -> PointType {
         let point = self.input.borrow_mut().out();
-        debug!("{}.out | point: {:?}", self.id, point);
+        debug!("{}.out | input: {:?}", self.id, point);
         match self.points.get(&point.name()) {
             Some(id) => {
                 PointType::Int(
