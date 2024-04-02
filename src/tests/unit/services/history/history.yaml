@@ -13,6 +13,7 @@ service ProducerService Ied12:
     cycle: 400 ms                         # operating cycle time of the module
     # send-to: /App/ApiClient.in-queue
     send-to: /App/MultiQueue.in-queue
+    debug: false
     db905_visual_data_fast:
         # point Winch.ValveEV1: 
         #     type: Bool
