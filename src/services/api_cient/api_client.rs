@@ -129,7 +129,7 @@ impl Service for ApiClient {
         };
         // let reconnect = if conf.reconnectCycle.is_some() {conf.reconnectCycle.unwrap()} else {Duration::from_secs(3)};
         let _queue_max_length = conf.rx_max_len;
-        let handle = thread::Builder::new().name(format!("{} - main", self_id)).spawn(move || {
+        let handle = thread::Builder::new().name(format!("{}", self_id)).spawn(move || {
             let mut buffer = RetainBuffer::new(&self_id, "", Some(conf.rx_max_len as usize));
             let mut cycle = ServiceCycle::new(&self_id, cycle_interval);
             // let mut connect = TcpClientConnect::new(self_id.clone() + "/TcpSocketClientConnect", conf.address, reconnect);
@@ -148,8 +148,9 @@ impl Service for ApiClient {
             );
             'send: loop {
                 cycle.start();
-                trace!("{}.run | Step...", self_id);
+                debug!("{}.run | Step...", self_id);
                 Self::read_queue(&self_id, &recv, &mut buffer);
+                debug!("{}.run | Beffer.len: {}", self_id, buffer.len());
                 let mut count = buffer.len();
                 while count > 0 {
                     match buffer.first() {

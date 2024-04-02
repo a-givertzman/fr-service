@@ -225,8 +225,9 @@ impl TaskNodes {
                 if let Some(evalNode) = self.getEvalNode("every") {
                     debug!("{}.eval | evalNode '{}' - evaluating...", self_id, &evalNode.name());
                     evalNode.eval(point)
-                };
-                warn!("{}.eval | evalNode '{}' - not fount, input point ignored", self.id, &pointName);
+                } else {
+                    warn!("{}.eval | evalNode '{}' - not fount, input point ignored", self.id, &pointName);
+                }
             },
         };
     }
