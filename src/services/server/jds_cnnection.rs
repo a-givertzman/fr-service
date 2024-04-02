@@ -6,7 +6,7 @@ use std::{
     mpsc::{Receiver, RecvTimeoutError}, Arc, Mutex, RwLock}, 
 };
 use hashers::fx_hash::FxHasher;
-use log::{debug, info, warn};
+use log::{debug, error, info, trace, warn};
 use serde_json::json;
 use crate::{
     conf::{point_config::name::Name, tcp_server_config::TcpServerConfig}, 
@@ -57,6 +57,7 @@ impl From<usize> for JdsState {
 #[derive(Debug)]
 pub struct Shared {
     pub subscribe: String,
+    pub subscribe_receiver: String,
     pub jds_state: JdsState,
     pub auth: TcpServerAuth,
     pub connection_id: String,
@@ -81,9 +82,12 @@ impl JdsConnection {
     /// - parent - id of the parent
     /// - path - path of the parent
     pub fn new(parent_id: &str, parent: &Name, connection_id: &str, action_recv: Receiver<Action>, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>) -> Self {
+        let id = format!("{}/JdsConnection/{}", parent_id, connection_id);
+        let name = Name::new(parent, "Jds");
+        error!("{}.new | NAME: {:#?}",id, name);
         Self {
-            id: format!("{}/JdsConnection/{}", parent_id, connection_id),
-            name: Name::new(parent, "Jds"),
+            id, //: format!("{}/JdsConnection/{}", parent_id, connection_id),
+            name,   //: Name::new(parent, "Jds"),
             connection_id: connection_id.into(),
             action_recv: vec![action_recv],
             services,
@@ -99,9 +103,11 @@ impl JdsConnection {
         let self_name = self.name.clone();
         let conf = self.conf.clone();
         let self_conf_send_to = conf.tx.clone();
+        let receiver_name = Name::new(&self_name, &self.connection_id).join();
         let subscribe = QueueName::new(&self_conf_send_to).service().to_owned();
         let shared_options: Arc<RwLock<Shared>> = Arc::new(RwLock::new(Shared {
                 subscribe: subscribe.clone(), 
+                subscribe_receiver: receiver_name.clone(), 
                 jds_state: match conf.auth {
                     TcpServerAuth::None => JdsState::Authenticated,
                     _                   => JdsState::Unknown,
@@ -134,7 +140,7 @@ impl JdsConnection {
                 panic!("{}.run | services.get_link error: {:#?}", self_id, err);
             });
             println!("{}.run | subscribe: {:?}", self_id, subscribe);
-            let (req_reply_send, recv) = services.slock().subscribe(&subscribe, &self_id, &points);
+            let (req_reply_send, recv) = services.slock().subscribe(&subscribe, &receiver_name, &points);
             let buffered = rx_max_length > 0;
             let mut tcp_read_alive = TcpReadAlive::new(
                 &self_id,
@@ -153,7 +159,8 @@ impl JdsConnection {
                         let parent_id: String = parent_id;
                         let parent: Name = parent_name;
                         let point: PointType = point;
-                        println!("{}.run | point from socket: \n\t{:?}", parent, point);
+                        debug!("{}.run | point from socket: Point( name: {:?}, status: {:?}, cot: {:?}, timestamp: {:?})", parent, point.name(), point.status(), point.cot(), point.timestamp());
+                        trace!("{}.run | point from socket: \n\t{:?}", parent, point);
                         match point.cot() {
                             Cot::Req => JdsRequest::handle(&parent_id, &parent, 0, point, services, shared),
                             _        => {

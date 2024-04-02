@@ -110,6 +110,7 @@ impl Service for MultiQueue {
         } else {
             let mut message = String::new();
             for subscription_criteria in points {
+                trace!("{}.extend_subscription | Multicast subscription extending for receiver: {} ({})...", self.id, receiver_name, receiver_hash);
                 if let Err(err) = self.subscriptions.slock().extend_multicast(receiver_hash, &subscription_criteria.destination()) {
                     message = concat_string!(message, err, "\n");
                 };

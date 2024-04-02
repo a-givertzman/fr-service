@@ -59,7 +59,7 @@ impl<F> JdsRoutes<F> {
         Self {
             parent_id: parent_id.to_owned(),
             id: format!("{}/JdsRoutes", parent_id), 
-            name: Name::new(parent, "Jds"),
+            name: parent.clone(),
             services,
             jds_deserialize,
             req_reply_send,
