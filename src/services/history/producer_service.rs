@@ -1,5 +1,6 @@
 use std::{fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread, time::Duration};
 use chrono::{DateTime, Utc};
+use indexmap::IndexMap;
 use log::{debug, warn, info};
 use rand::Rng;
 use serde_json::json;
@@ -35,22 +36,27 @@ impl ProducerService {
     }
     ///
     /// 
-    fn build_gen_points(parent_id: &str, tx_id: usize, points: Vec<PointConfig>) -> Vec<Box<impl ParsePoint<Value>>> {
-        let mut gen_points = vec![];
+    fn build_gen_points(parent_id: &str, tx_id: usize, points: Vec<PointConfig>) -> IndexMap<String, Box<impl ParsePoint<Value>>> {
+        let mut gen_points = IndexMap::new();
         for point_conf in points {
             match point_conf._type {
                 crate::conf::point_config::point_config_type::PointConfigType::Bool => {
-                    gen_points.push(Box::new(PointGen::new(parent_id, tx_id, point_conf.name.clone(), &point_conf)));
+                    gen_points.insert(point_conf.name.clone(), Box::new(PointGen::new(parent_id, tx_id, point_conf.name.clone(), &point_conf)));
                 },
                 crate::conf::point_config::point_config_type::PointConfigType::Int => {
+                    gen_points.insert(point_conf.name.clone(), Box::new(PointGen::new(parent_id, tx_id, point_conf.name.clone(), &point_conf)));
                 },
                 crate::conf::point_config::point_config_type::PointConfigType::Real => {
+                    gen_points.insert(point_conf.name.clone(), Box::new(PointGen::new(parent_id, tx_id, point_conf.name.clone(), &point_conf)));
                 },
                 crate::conf::point_config::point_config_type::PointConfigType::Double => {
+                    gen_points.insert(point_conf.name.clone(), Box::new(PointGen::new(parent_id, tx_id, point_conf.name.clone(), &point_conf)));
                 },
                 crate::conf::point_config::point_config_type::PointConfigType::String => {
+                    gen_points.insert(point_conf.name.clone(), Box::new(PointGen::new(parent_id, tx_id, point_conf.name.clone(), &point_conf)));
                 },
                 crate::conf::point_config::point_config_type::PointConfigType::Json => {
+                    gen_points.insert(point_conf.name.clone(), Box::new(PointGen::new(parent_id, tx_id, point_conf.name.clone(), &point_conf)));
                 },
             }
         }
@@ -98,7 +104,7 @@ impl Service for ProducerService {
             // let mut test_data = Self::build_test_data(&self_id);
             'main: loop {
                 debug!("{}.run | Step...", self_id);
-                for gen_point in &mut gen_points {
+                for (_, gen_point) in &mut gen_points {
                     cycle.start();
                     match gen_point.next(&Value::Bool(false), Utc::now()) {
                         Some(point) => {
