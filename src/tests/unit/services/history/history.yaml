@@ -14,158 +14,158 @@ service ProducerService Ied12:
     # send-to: /App/ApiClient.in-queue
     send-to: /App/MultiQueue.in-queue
     db905_visual_data_fast:
-        point Winch.ValveEV1: 
-            type: Bool
-            history: rw
-        point Winch.ValveEV2: 
-            type: Bool
-            history: rw
-        point Winch.LimitSwitchDown: 
-            type: Bool
-            history: rw
+        # point Winch.ValveEV1: 
+        #     type: Bool
+        #     history: rw
+        # point Winch.ValveEV2: 
+        #     type: Bool
+        #     history: rw
+        # point Winch.LimitSwitchDown: 
+        #     type: Bool
+        #     history: rw
         point Winch.Hydromotor1Active: 
             type: Bool
             history: rw
-        point Winch.Hydromotor2Active: 
-            type: Bool
-            history: rw
-        point Winch.EncoderBR1: 
-            type: Int
-        point Winch.EncoderBR2: 
-            type: Int
-        point Winch.LVDT1: 
-            type: Real
-        point Winch.LVDT2: 
-            type: Real
-        point Winch.PressureLineA_1: 
-            type: Real
-        point Winch.PressureLineA_2: 
-            type: Real
-        point Winch.PressureBrakeA: 
-            type: Real
-        point Winch.PressureBrakeB: 
-            type: Real
-        point Winch.TempLine1: 
-            type: Real
-        point Winch.TempLine2: 
-            type: Real
-        point Winch.LoadR0: 
-            type: Real
-        point Jib.LimitSwitchUp: 
-            type: Bool
-        point Jib.SensorAngle: 
-            type: Real
-        point Jib.WeightSensor: 
-            type: Real
-        point Boom.SensorAngle: 
-            type: Real
-        point Rotate.PressureLowM1: 
-            type: Bool
-            alarm: 1
-        point Rotate.PressureLowM2: 
-            type: Bool
-            alarm: 1
-        point Rotate.PressureLowSystem: 
-            type: Bool
-            alarm: 1
-        point Rotate.Pump1Active: 
-            type: Bool
-        point Rotate.Pump2Active: 
-            type: Bool
-        point Rotate.Encoder: 
-            type: Int
-        point Rotate.PressureSafetyValve: 
-            type: Real
-        point Platform.PressureOilLow: 
-            type: Bool
-            alarm: 1
-        point Platform.PressureOilHigh: 
-            type: Bool
-            alarm: 4
-        point Platform.PressureNitrogenLow: 
-            type: Bool
-            alarm: 4
-        point Platform.PressureNitrogenHigh: 
-            type: Bool
-            alarm: 4
-        point Platform.SensorMRU: 
-            type: Real
-        point point HPU.HighOilLevel: 
-            type: Bool
-            alarm: 4
-        point point HPU.LowOilLevel: 
-            type: Bool
-            alarm: 4
-        point point HPU.AlarmLowOilLevel: 
-            type: Bool
-            alarm: 1
-        point point HPU.HighOilTemp: 
-            type: Bool
-            alarm: 4
-        point point HPU.AlarmHighOilTemp: 
-            type: Bool
-            alarm: 1
-        point point HPU.LowOilTemp: 
-            type: Bool
-            alarm: 4
-        point point HPU.OilLevel: 
-            type: Real
-        point point HPU.PressureOutPump1: 
-            type: Real
-        point point HPU.PressureOutPump2: 
-            type: Real
-        point point HPU.PressureInPump1: 
-            type: Real
-        point point HPU.PressureInPump2: 
-            type: Real
-        point point HPU.CoolerTemperatureIn: 
-            type: Real
-        point point HPU.CoolerTemperatureOut: 
-            type: Real
-        point point HPU.CoolerPressureIn: 
-            type: Real
-        point point HPU.CoolerPressureOut: 
-            type: Real
-        point HPA.PistonMaxLimit: 
-            type: Bool
-            alarm: 4
-        point HPA.PistonMinLimit: 
-            type: Bool
-            alarm: 4
-        point HPA.NitroPressure: 
-            type: Int
-        point HPA.AlarmNitroPressure: 
-            type: Bool
-            alarm: 1
-        point LPA.PistonMaxLimit: 
-            type: Bool
-            alarm: 4
-        point LPA.PistonMinLimit: 
-            type: Bool
-            alarm: 4
-        point LPA.NitroPressure: 
-            type: Int
-        point LPA.AlarmNitroPressure: 
-            type: Bool
-            alarm: 1
-        point Load.boomAngle: 
-            type: Real
-        point Load.jibAngle: 
-            type: Real
-        point Load.swl0: 
-            type: Real
-        point Load.swl: 
-            type: Real
-        point Load.nom: 
-            type: Real
-        point Load.boomFirst: 
-            type: Int
-        point Load.boomLast: 
-            type: Int
-        point Load.jibFirst: 
-            type: Int
-        point Load.jibLast: 
-            type: Int
+        # point Winch.Hydromotor2Active: 
+        #     type: Bool
+        #     history: rw
+        # point Winch.EncoderBR1: 
+        #     type: Int
+        # point Winch.EncoderBR2: 
+        #     type: Int
+        # point Winch.LVDT1: 
+        #     type: Real
+        # point Winch.LVDT2: 
+        #     type: Real
+        # point Winch.PressureLineA_1: 
+        #     type: Real
+        # point Winch.PressureLineA_2: 
+        #     type: Real
+        # point Winch.PressureBrakeA: 
+        #     type: Real
+        # point Winch.PressureBrakeB: 
+        #     type: Real
+        # point Winch.TempLine1: 
+        #     type: Real
+        # point Winch.TempLine2: 
+        #     type: Real
+        # point Winch.LoadR0: 
+        #     type: Real
+        # point Jib.LimitSwitchUp: 
+        #     type: Bool
+        # point Jib.SensorAngle: 
+        #     type: Real
+        # point Jib.WeightSensor: 
+        #     type: Real
+        # point Boom.SensorAngle: 
+        #     type: Real
+        # point Rotate.PressureLowM1: 
+        #     type: Bool
+        #     alarm: 1
+        # point Rotate.PressureLowM2: 
+        #     type: Bool
+        #     alarm: 1
+        # point Rotate.PressureLowSystem: 
+        #     type: Bool
+        #     alarm: 1
+        # point Rotate.Pump1Active: 
+        #     type: Bool
+        # point Rotate.Pump2Active: 
+        #     type: Bool
+        # point Rotate.Encoder: 
+        #     type: Int
+        # point Rotate.PressureSafetyValve: 
+        #     type: Real
+        # point Platform.PressureOilLow: 
+        #     type: Bool
+        #     alarm: 1
+        # point Platform.PressureOilHigh: 
+        #     type: Bool
+        #     alarm: 4
+        # point Platform.PressureNitrogenLow: 
+        #     type: Bool
+        #     alarm: 4
+        # point Platform.PressureNitrogenHigh: 
+        #     type: Bool
+        #     alarm: 4
+        # point Platform.SensorMRU: 
+        #     type: Real
+        # point point HPU.HighOilLevel: 
+        #     type: Bool
+        #     alarm: 4
+        # point point HPU.LowOilLevel: 
+        #     type: Bool
+        #     alarm: 4
+        # point point HPU.AlarmLowOilLevel: 
+        #     type: Bool
+        #     alarm: 1
+        # point point HPU.HighOilTemp: 
+        #     type: Bool
+        #     alarm: 4
+        # point point HPU.AlarmHighOilTemp: 
+        #     type: Bool
+        #     alarm: 1
+        # point point HPU.LowOilTemp: 
+        #     type: Bool
+        #     alarm: 4
+        # point point HPU.OilLevel: 
+        #     type: Real
+        # point point HPU.PressureOutPump1: 
+        #     type: Real
+        # point point HPU.PressureOutPump2: 
+        #     type: Real
+        # point point HPU.PressureInPump1: 
+        #     type: Real
+        # point point HPU.PressureInPump2: 
+        #     type: Real
+        # point point HPU.CoolerTemperatureIn: 
+        #     type: Real
+        # point point HPU.CoolerTemperatureOut: 
+        #     type: Real
+        # point point HPU.CoolerPressureIn: 
+        #     type: Real
+        # point point HPU.CoolerPressureOut: 
+        #     type: Real
+        # point HPA.PistonMaxLimit: 
+        #     type: Bool
+        #     alarm: 4
+        # point HPA.PistonMinLimit: 
+        #     type: Bool
+        #     alarm: 4
+        # point HPA.NitroPressure: 
+        #     type: Int
+        # point HPA.AlarmNitroPressure: 
+        #     type: Bool
+        #     alarm: 1
+        # point LPA.PistonMaxLimit: 
+        #     type: Bool
+        #     alarm: 4
+        # point LPA.PistonMinLimit: 
+        #     type: Bool
+        #     alarm: 4
+        # point LPA.NitroPressure: 
+        #     type: Int
+        # point LPA.AlarmNitroPressure: 
+        #     type: Bool
+        #     alarm: 1
+        # point Load.boomAngle: 
+        #     type: Real
+        # point Load.jibAngle: 
+        #     type: Real
+        # point Load.swl0: 
+        #     type: Real
+        # point Load.swl: 
+        #     type: Real
+        # point Load.nom: 
+        #     type: Real
+        # point Load.boomFirst: 
+        #     type: Int
+        # point Load.boomLast: 
+        #     type: Int
+        # point Load.jibFirst: 
+        #     type: Int
+        # point Load.jibLast: 
+        #     type: Int
 #
 #
 service Task HistoryTask:
@@ -174,8 +174,7 @@ service Task HistoryTask:
         max-length: 10000
     subscribe: 
         /App/MultiQueue:                     # - multicast subscription to the MultiQueue
-            {cot: Inf, history: rw}: []               #   - on all points having Cot::Inf and history::read
-
+            {cot: Inf, history: rw}: []               #   - on all points having Cot::Inf and history::ReadWrite
     fn ToApiQueue:
         queue: /App/ApiClient.in-queue
         input fn SqlMetric:
@@ -186,40 +185,20 @@ service Task HistoryTask:
                 input: point any every      # point: every point of any type
             input2 fn PointId:
                 input: point any every
-
-#     # fn ToMultiQueue:
-#     #     in1 point CraneMovement.BoomUp: 
-#     #         type: 'Int'
-#     #         comment: 'Some indication'
-#     #         input fn add:
-#     #             input1 fn add:
-#     #                 input1: const real 0.2
-#     #                 input2: point real '/path/Point.Name'
-#     #     in2 point CraneMovement.BoomDown: 
-#     #         type: 'real'
-#     #         history: r
-#     #         comment: 'Some indication'
-#     #         input: const real 0.07
-
-#     #     in3 point CraneMovement.WinchUp: 
-#     #         type: 'real'
-#     #         history: r
-#     #         comment: 'Some indication'
-#     #         input: var0
 #
 #
 service ApiClient:
     cycle: 100 ms
     reconnect: 1 s  # default 3 s
-    address: 0.0.0.0:8080
+    address: 127.0.0.1:8080
     database: crane_data_server
     in queue in-queue:
         max-length: 10000
     # out queue: MultiQueue.in-queue
     auth_token: 123!@#
     # debug: true
-# #
-# #
+#
+#
 service TcpServer:
     cycle: 1 ms
     reconnect: 1 s  # default 3 s
