@@ -179,17 +179,17 @@ impl RetainPointId {
         if self.cache.is_empty() {
             let mut update_retained = false;
             let mut retained: HashMap<String, RetainedPointConfig, BuildHasherDefault<FxHasher>> = self.read(self.path.clone());
-            debug!("{}.points | retained: {:#?}", self.id, retained);
+            trace!("{}.points | retained: {:#?}", self.id, retained);
             for mut point in points {
-                debug!("{}.points | point: {}...", self.id, point.name);
+                trace!("{}.points | point: {}...", self.id, point.name);
                 let cached = retained.get(&point.name);
                 let id = match cached {
                     Some(conf) => {
-                        debug!("{}.points |     found: {}", self.id, conf.id);
+                        trace!("{}.points |     found: {}", self.id, conf.id);
                         conf.id
                     },
                     None => {
-                        debug!("{}.points |     not found, calculating max...",self.id);
+                        trace!("{}.points |     not found, calculating max...",self.id);
                         update_retained = true;
                         let id = retained
                             .values()
@@ -198,7 +198,7 @@ impl RetainPointId {
                             .map_or(0, |id| id + 1);
                         point.id = id;
                         retained.insert(point.name.clone(), RetainedPointConfig { id: point.id, name: point.name.clone(), _type: point._type.clone() });
-                        debug!("{}.points |     calculated: {}", self.id, id);
+                        trace!("{}.points |     calculated: {}", self.id, id);
                         id
                     },
                 };

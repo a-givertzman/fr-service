@@ -199,7 +199,7 @@ impl Serialize for PointType {
         match self {
             PointType::Bool(point) => {
                 state.serialize_field("type", "Bool")?;
-                state.serialize_field("value", &point.value.0)?;
+                state.serialize_field("value", if point.value.0 {&1} else {&0})?;
                 state.serialize_field("name", &point.name)?;
                 state.serialize_field("status", &(Into::<u32>::into( point.status)))?;
                 state.serialize_field("cot", &point.cot)?;

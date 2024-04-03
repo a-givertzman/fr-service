@@ -95,7 +95,7 @@ impl JdsRequest {
                 )
             },
             RequestKind::Points => {
-                debug!("{}.handle | Request '{}': \n\t{:?}", self_id, RequestKind::POINTS, request);
+                debug!("{}.handle.Points | Request '{}': \n\t{:?}", self_id, RequestKind::POINTS, request);
                 let points = services.slock().points(requester_name);
                 let points: HashMap<String, &PointConfig> = points.iter().map(|conf| {
                     (conf.name.clone(), conf)
@@ -113,20 +113,20 @@ impl JdsRequest {
                         chrono::offset::Utc::now(),
                     ))),
                 );
-                debug!("{}.handle | Reply: {:?} points", self_id, points_len);
-                trace!("{}.handle | Reply: \n\t{:#?}", self_id, reply);
+                debug!("{}.handle.Points | Reply: {:?} points", self_id, points_len);
+                trace!("{}.handle.Points | Reply: \n\t{:#?}", self_id, reply);
                 reply
             },
             RequestKind::Subscribe => {
-                debug!("{}.handle | Request '{}': Point( name: {:?}, status: {:?}, cot: {:?}, timestamp: {:?})", self_id, RequestKind::SUBSCRIBE, request.name(), request.status(), request.cot(), request.timestamp());
-                trace!("{}.handle | Request '{}': \n\t{:?}", self_id, RequestKind::SUBSCRIBE, request);
+                debug!("{}.handle.Subscribe | Request '{}': Point( name: {:?}, status: {:?}, cot: {:?}, timestamp: {:?})", self_id, RequestKind::SUBSCRIBE, request.name(), request.status(), request.cot(), request.timestamp());
+                trace!("{}.handle.Subscribe | Request '{}': \n\t{:?}", self_id, RequestKind::SUBSCRIBE, request);
                 let points = match serde_json::from_str(&request.value().as_string()) {
                     Ok(points) => {
                         let points: serde_json::Value = points;
                         match points.as_array() {
                             Some(points) => {
-                                debug!("{}.handle_request | 'Subscribe' request (multicast)", self_id);
-                                trace!("{}.handle_request | 'Subscribe' request (multicast): {:?}", self_id, request);
+                                debug!("{}.handle.Subscribe | 'Subscribe' request (multicast)", self_id);
+                                trace!("{}.handle.Subscribe | 'Subscribe' request (multicast): {:?}", self_id, request);
                                 points.iter().fold(vec![], |mut points, point| {
                                     if let Some(point_name) = point.as_str() {
                                         points.extend(
@@ -137,8 +137,8 @@ impl JdsRequest {
                                 })
                             },
                             None => {
-                                debug!("{}.handle_request | 'Subscribe' request (broadcast)", self_id);
-                                trace!("{}.handle_request | 'Subscribe' request (broadcast): {:?}", self_id, request);
+                                debug!("{}.handle.Subscribe | 'Subscribe' request (broadcast)", self_id);
+                                trace!("{}.handle.Subscribe | 'Subscribe' request (broadcast): {:?}", self_id, request);
                                 services.slock().points(requester_name).iter().fold(vec![], |mut points, point_conf| {
                                     points.extend(
                                         Self::map_points_to_creteria(&point_conf.name, vec![Cot::Inf, Cot::ActCon, Cot::ActErr])
@@ -149,7 +149,7 @@ impl JdsRequest {
                         }
                     },
                     Err(err) => {
-                        warn!("{}.handle_request | 'Subscribe' request parsing error: {:?}\n\t request: {:?}", self_id, err, request);
+                        warn!("{}.handle.Subscribe | 'Subscribe' request parsing error: {:?}\n\t request: {:?}", self_id, err, request);
                         services.slock().points(requester_name).iter().fold(vec![], |mut points, point_conf| {
                             points.extend(
                                 Self::map_points_to_creteria(&point_conf.name, vec![Cot::Inf, Cot::ActCon, Cot::ActErr])
@@ -159,10 +159,12 @@ impl JdsRequest {
                     },
                 };
                 let receiver_name = Name::new(parent, &shared.connection_id).join();
+                debug!("{}.handle.Subscribe | extending subscription for receiver: '{}'", self_id, receiver_name);
+                debug!("{}.handle.Subscribe |                              points: {:#?}", self_id, points);
                 let (cot, message) = match services.slock().extend_subscription(&shared.subscribe, &receiver_name, &points) {
                     Ok(_) => (Cot::ReqCon, "".to_owned()),
                     Err(err) => {
-                        let message = format!("{}.handle_request | extend_subscription failed with error: {:?}", self_id, err);
+                        let message = format!("{}.handle.Subscribe | extend_subscription failed with error: {:?}", self_id, err);
                         warn!("{}", message);
                         (Cot::ReqErr, message)
                     },
