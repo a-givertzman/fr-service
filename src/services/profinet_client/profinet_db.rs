@@ -2,7 +2,7 @@ use std::{sync::mpsc::Sender, time::Duration};
 
 use chrono::Utc;
 use indexmap::IndexMap;
-use log::{trace, warn};
+use log::{debug, trace, warn};
 
 use crate::{
     conf::{
@@ -66,12 +66,10 @@ impl ProfinetDb {
         match client.is_connected() {
             Ok(is_connected) => {
                 if is_connected {
-                    trace!(
-                        "{}.read | reading DB: {:?}, offset: {:?}, size: {:?}",
-                        self.id, self.number, self.offset, self.size
-                    );
+                    trace!("{}.read | reading DB: {:?}, offset: {:?}, size: {:?}", self.id, self.number, self.offset, self.size);
                     match client.read(self.number, self.offset, self.size) {
                         Ok(bytes) => {
+                            debug!("{}.read | bytes: {:?}", self.id, bytes);
                             let timestamp = Utc::now();
                             let mut message = String::new();
                             for (_key, parse_point) in &mut self.points {
