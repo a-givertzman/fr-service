@@ -130,7 +130,7 @@ impl Services {
         };
         let points = self.retain.points(points);
         debug!("{}.points | points: '{:#?}'", self.id, points.len());
-        debug!("{}.points | points: '{:#?}'", self.id, points);
+        trace!("{}.points | points: '{:#?}'", self.id, points);
         points
     }
 }

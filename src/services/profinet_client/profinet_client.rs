@@ -184,7 +184,7 @@ impl ProfinetClient {
                                 Ok(point) => {
                                     let point_name = point.name();
                                     let point_value = point.value();
-                                    let db_name = point_name.split('/').nth(2).unwrap();
+                                    let db_name = point_name.split('/').nth(3).unwrap();
                                     debug!("{}.write | DB '{}' - writing point '{}'\t({:?})...", self_id, db_name, point_name, point_value);
                                     // let dbName = point_name.split("/").skip(1).collect::<String>();
                                     match dbs.get_mut(db_name) {
