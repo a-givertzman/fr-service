@@ -11,9 +11,11 @@
 //!     suscribe:
 //!         /App/MultiQueue: []
 //! ```
-use std::{collections::HashMap, fmt::Debug, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, RecvTimeoutError, Sender}, Arc, Mutex, RwLock}, thread};
+use std::{collections::HashMap, fmt::Debug, fs, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, RecvTimeoutError, Sender}, Arc, Mutex, RwLock}, thread};
+use concat_string::concat_string;
 use hashers::fx_hash::FxHasher;
 use log::{debug, error, info, trace, warn};
+use serde::Serialize;
 use crate::{
     conf::{cache_service_config::CacheServiceConfig, conf_subscribe::ConfSubscribe, point_config::name::Name}, 
     core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::point_type::PointType}, 
@@ -134,6 +136,31 @@ impl CacheService {
         });
         recv
     }
+    ///
+    /// Storing cache on the disk
+    ///
+    /// Writes file json map to the file:
+    /// ```json
+    /// {
+    ///     "/path/Point.name1": 0,
+    ///     "/path/Point.name2": 1,
+    ///     ...
+    /// }
+    /// ```
+    fn write<S: Serialize>(self_id: &str, name: &Name, points: S) {
+        let path = concat_string!("./assets/cache", name.parent(), "/cache.json");
+        match fs::OpenOptions::new().create(true).append(true).open(&path) {
+            Ok(f) => {
+                match serde_json::to_writer_pretty(f, &points) {
+                    Ok(_) => {},
+                    Err(err) => error!("{}.read | Error writing to file: '{}'\n\terror: {:?}", self_id, path, err),
+                }
+            },
+            Err(err) => {
+                error!("{}.read | Error open file: '{}'\n\terror: {:?}", self_id, path, err)
+            },
+        }
+    }
 }
 ///
 /// 
@@ -164,7 +191,7 @@ impl Service for CacheService {
     fn run(&mut self) -> Result<ServiceHandles, String> {
         info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
-        // let self_name = self.name.clone();
+        let self_name = self.name.clone();
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         let services = self.services.clone();
@@ -177,7 +204,9 @@ impl Service for CacheService {
                     Ok(point) => {
                         match cache.write() {
                             Ok(mut cache) => {
-                                cache.insert(point.dest(), point);
+                                if let None = cache.insert(point.dest(), point) {
+
+                                };
                             },
                             Err(err) => {
                                 error!("{}.run | Error writing to cache: {:?}", self_id, err);
@@ -197,7 +226,11 @@ impl Service for CacheService {
                     },
 
                 }
-                if exit.load(Ordering::SeqCst) {break}
+                if exit.load(Ordering::SeqCst) {
+                    let points = cache.read().unwrap().clone();
+                    Self::write(&self_id, &self_name, points);
+                    break;
+                }
             }
             info!("{}.run | Exit", self_id);
         });
