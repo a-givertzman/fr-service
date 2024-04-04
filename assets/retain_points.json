@@ -574,6 +574,11 @@
     "name": "/App/Ied12/db906_visual_data/HPU.Pump2.State",
     "type": "Int"
   },
+  "/jds_request_test/Jds/Jds/Points": {
+    "id": 371,
+    "name": "/jds_request_test/Jds/Jds/Points",
+    "type": "String"
+  },
   "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDown1PumpFactor": {
     "id": 114,
     "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDown1PumpFactor",
@@ -688,6 +693,11 @@
     "id": 235,
     "name": "/App/ied13/db905_visual_data_fast/Winch.EncoderBR1",
     "type": "Int"
+  },
+  "/App/Ied12/db906_visual_data/HPU.OilTemp": {
+    "id": 365,
+    "name": "/App/Ied12/db906_visual_data/HPU.OilTemp",
+    "type": "Real"
   },
   "/App/ied13/db905_visual_data_fast/Platform.PressureOilHigh": {
     "id": 258,
@@ -914,9 +924,9 @@
     "name": "/App/ied13/db905_visual_data_fast/Winch.ValveEV2",
     "type": "Bool"
   },
-  "/App/Ied12/db906_visual_data/HPU.OilTemp": {
-    "id": 365,
-    "name": "/App/Ied12/db906_visual_data/HPU.OilTemp",
+  "/test Services.points/task1/CraneMovement.WinchUp": {
+    "id": 368,
+    "name": "/test Services.points/task1/CraneMovement.WinchUp",
     "type": "Real"
   },
   "/App/ied12/db902_panel_controls/Settings.CraneMode.SetRelativeDepth": {
@@ -937,6 +947,11 @@
   "/App/Ied12/db906_visual_data/Winch1.SWL0": {
     "id": 353,
     "name": "/App/Ied12/db906_visual_data/Winch1.SWL0",
+    "type": "Real"
+  },
+  "/test Services.points/task1/CraneMovement.BoomDown": {
+    "id": 367,
+    "name": "/test Services.points/task1/CraneMovement.BoomDown",
     "type": "Real"
   },
   "/App/Ied12/db906_visual_data/Crane.DeckDepth": {
@@ -994,25 +1009,25 @@
     "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDown2AxisFactor",
     "type": "Int"
   },
-  "/App/ied13/db905_visual_data_fast/HPU.AlarmLowOilLevel": {
-    "id": 264,
-    "name": "/App/ied13/db905_visual_data_fast/HPU.AlarmLowOilLevel",
-    "type": "Bool"
-  },
   "/App/Ied12/db906_visual_data/CraneMode.WaveHeightLevel": {
     "id": 321,
     "name": "/App/Ied12/db906_visual_data/CraneMode.WaveHeightLevel",
-    "type": "Int"
-  },
-  "/App/Ied12/db906_visual_data/CraneMode.LoadIndex": {
-    "id": 328,
-    "name": "/App/Ied12/db906_visual_data/CraneMode.LoadIndex",
     "type": "Int"
   },
   "/App/Ied12/db906_visual_data/Winch2.Load": {
     "id": 358,
     "name": "/App/Ied12/db906_visual_data/Winch2.Load",
     "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.AlarmLowOilLevel": {
+    "id": 264,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.AlarmLowOilLevel",
+    "type": "Bool"
+  },
+  "/App/Ied12/db906_visual_data/CraneMode.LoadIndex": {
+    "id": 328,
+    "name": "/App/Ied12/db906_visual_data/CraneMode.LoadIndex",
+    "type": "Int"
   },
   "/App/ied14/db906_visual_data/HPU.Pump1.State": {
     "id": 217,
@@ -1069,6 +1084,11 @@
     "name": "/App/Ied12/db905_visual_data_fast/Winch.ValveEV1",
     "type": "Bool"
   },
+  "/test Services.points/task1/CraneMovement.BoomUp": {
+    "id": 366,
+    "name": "/test Services.points/task1/CraneMovement.BoomUp",
+    "type": "Int"
+  },
   "/App/ied12/db902_panel_controls/Settings.CraneMode.MainMode": {
     "id": 64,
     "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.MainMode",
@@ -1084,15 +1104,15 @@
     "name": "/App/ied12/db902_panel_controls/Settings.HPU.Reserv1",
     "type": "Int"
   },
-  "/App/ied12/db902_panel_controls/Settings.AOPS.Reserv1": {
-    "id": 98,
-    "name": "/App/ied12/db902_panel_controls/Settings.AOPS.Reserv1",
-    "type": "Real"
-  },
   "/App/ied12/db902_panel_controls/Settings.MainBoom.PositionOffshore": {
     "id": 120,
     "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.PositionOffshore",
     "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.AOPS.Reserv1": {
+    "id": 98,
+    "name": "/App/ied12/db902_panel_controls/Settings.AOPS.Reserv1",
+    "type": "Real"
   },
   "/App/ied14/db906_visual_data/Hook.Reserve1": {
     "id": 190,
@@ -1249,6 +1269,11 @@
     "name": "/App/ied12/db902_panel_controls/Settings.Art.TorqueLimit",
     "type": "Real"
   },
+  "/jds_request_test/Jds/Jds/Auth.Ssh": {
+    "id": 370,
+    "name": "/jds_request_test/Jds/Jds/Auth.Ssh",
+    "type": "String"
+  },
   "/App/ied14/db906_visual_data/CraneMovement.RotateRight": {
     "id": 158,
     "name": "/App/ied14/db906_visual_data/CraneMovement.RotateRight",
@@ -1388,6 +1413,11 @@
     "id": 327,
     "name": "/App/Ied12/db906_visual_data/CraneMode.WinchBrake",
     "type": "Int"
+  },
+  "/jds_request_test/Jds/Jds/Auth.Secret": {
+    "id": 369,
+    "name": "/jds_request_test/Jds/Jds/Auth.Secret",
+    "type": "String"
   },
   "/App/ied13/db905_visual_data_fast/Platform.SensorMRU": {
     "id": 261,
@@ -1813,6 +1843,11 @@
     "id": 309,
     "name": "/App/Ied12/db906_visual_data/CraneMovement.RotateRight",
     "type": "Int"
+  },
+  "/jds_request_test/Jds/Jds/Subscribe": {
+    "id": 372,
+    "name": "/jds_request_test/Jds/Jds/Subscribe",
+    "type": "String"
   },
   "/App/ied14/db906_visual_data/HPU.Pump2.Reserve1": {
     "id": 222,

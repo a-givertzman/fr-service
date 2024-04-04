@@ -48,15 +48,15 @@ mod JdsEncodeMessage {
         // debug!("timestamp: {:?}", ts);j
         let test_data = [
             (
-                format!(r#"{{"type": "Bool",  "name": "{}", "value": false,   "status": 0, "cot": "Inf", "timestamp":"{}"}}"#, 
+                format!(r#"{{"type": "Bool",  "name": "{}", "value": 0,   "status": 0, "cot": "Inf", "timestamp":"{}"}}"#, 
                 &format!("{}00", name), tsStr(ts)), PointType::Bool(Point::new(txId, &format!("{}00", name), Bool(false), Status::Ok, Cot::default(), ts))
             ),
             (
-                format!(r#"{{"type": "Bool",  "name": "{}", "value": false,   "status": 0, "cot": "Inf", "timestamp":"{}"}}"#, 
+                format!(r#"{{"type": "Bool",  "name": "{}", "value": 0,   "status": 0, "cot": "Inf", "timestamp":"{}"}}"#, 
                 &format!("{}01", name), tsStr(ts)), PointType::Bool(Point::new(txId, &format!("{}01", name), Bool(false), Status::Ok, Cot::Inf, ts))
             ),
             (
-                format!(r#"{{"type": "Bool",  "name": "{}", "value": true,    "status": 0, "cot": "Act", "timestamp":"{}"}}"#, 
+                format!(r#"{{"type": "Bool",  "name": "{}", "value": 1,    "status": 0, "cot": "Act", "timestamp":"{}"}}"#, 
                 &format!("{}02", name), tsStr(ts)), PointType::Bool(Point::new(txId, &format!("{}02", name), Bool(true), Status::Ok, Cot::Act, ts))
             ),
             (

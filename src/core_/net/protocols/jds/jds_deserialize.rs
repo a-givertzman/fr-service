@@ -96,7 +96,7 @@ impl JdsDeserialize {
                                 match type_.as_str() {
                                     Some("bool") | Some("Bool") => {
                                         let name = obj.get("name").unwrap().as_str().unwrap();
-                                        let value = obj.get("value").unwrap().as_bool().unwrap();
+                                        let value = obj.get("value").unwrap().as_u64().unwrap();
                                         let status = obj.get("status").unwrap().as_i64().unwrap();
                                         let direction = Self::parse_cot(self_id, name, obj);
                                         let timestamp = obj.get("timestamp").unwrap().as_str().unwrap();
@@ -104,7 +104,7 @@ impl JdsDeserialize {
                                         Ok(PointType::Bool(Point::new(
                                             tx_id,
                                             name,
-                                            Bool(value),
+                                            Bool(value > 0),
                                             Status::from(status),
                                             direction,
                                             timestamp,

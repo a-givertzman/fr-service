@@ -614,35 +614,35 @@ service ProducerService ied14:
 
 #
 #
-# service Task HistoryTask:
-#     cycle: 3 s
-#     in queue recv-queue:
-#         max-length: 10000
-#     subscribe: 
-#         /App/MultiQueue:                     # - multicast subscription to the MultiQueue
-#             {cot: Inf, history: rw}: []               #   - on all points having Cot::Inf and history::ReadWrite
-#     fn ToApiQueue:
-#         queue: /App/ApiClient.in-queue
-#         input fn SqlMetric:
-#             initial: 0.123      # начальное значение
-#             table: public.event
-#             sql: "insert into {table} (pid,value,status,timestamp) values ({input2.value},{input1.value},{input1.status},'{input1.timestamp}');"
-#             input1 fn ToInt:
-#                 input: point any every      # point: every point of any type
-#             input2 fn PointId:
-#                 input: point any every
+service Task HistoryTask:
+    cycle: 3 s
+    in queue recv-queue:
+        max-length: 10000
+    subscribe: 
+        /App/MultiQueue:                     # - multicast subscription to the MultiQueue
+            {cot: Inf, history: rw}: []               #   - on all points having Cot::Inf and history::ReadWrite
+    fn ToApiQueue:
+        queue: /App/ApiClient.in-queue
+        input fn SqlMetric:
+            initial: 0.123      # начальное значение
+            table: public.event
+            sql: "insert into {table} (pid,value,status,timestamp) values ({input2.value},{input1.value},{input1.status},'{input1.timestamp}');"
+            input1 fn ToInt:
+                input: point any every      # point: every point of any type
+            input2 fn PointId:
+                input: point any every
 #
 #
-# service ApiClient:
-#     cycle: 100 ms
-#     reconnect: 1 s  # default 3 s
-#     address: 127.0.0.1:8080
-#     database: crane_data_server
-#     in queue in-queue:
-#         max-length: 10000
-#     # out queue: MultiQueue.in-queue
-#     auth_token: 123!@#
-#     # debug: true
+service ApiClient:
+    cycle: 100 ms
+    reconnect: 1 s  # default 3 s
+    address: 127.0.0.1:8080
+    database: crane_data_server
+    in queue in-queue:
+        max-length: 10000
+    # out queue: MultiQueue.in-queue
+    auth_token: 123!@#
+    # debug: true
 #
 #
 service TcpServer:

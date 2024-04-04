@@ -49,11 +49,11 @@ mod jds_deserialize {
         // debug!("timestamp: {:?}", ts);j
         let test_data = [
             (
-                format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": false,   "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)), 
+                format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": 0,   "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)), 
                 PointType::Bool(Point::new(tx_id, name, Bool(false), Status::Ok, Cot::default(), ts))
             ),
             (
-                format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": true,    "status": 0, "cot": "Inf", "timestamp":"{}"}}"#, name, ts_str(ts)), 
+                format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": 1,    "status": 0, "cot": "Inf", "timestamp":"{}"}}"#, name, ts_str(ts)), 
                 PointType::Bool(Point::new(tx_id, name, Bool(true), Status::Ok, Cot::default(), ts))
             ),
             (

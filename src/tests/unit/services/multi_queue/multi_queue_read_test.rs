@@ -7,7 +7,7 @@ mod multi_queue {
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         conf::multi_queue_config::MultiQueueConfig, services::{multi_queue::multi_queue::MultiQueue, service::service::Service, services::Services, task::nested_function::reset_counter::AtomicReset}, 
-        tests::unit::services::multi_queue::{mock_recv_service::MockRecvService, mock_send_service::{self, MockSendService}},
+        tests::unit::services::multi_queue::{mock_recv_service::{self, MockRecvService}, mock_send_service::{self, MockSendService}},
     }; 
     ///
     /// 
@@ -101,6 +101,7 @@ mod multi_queue {
             None,
         )));
         services.lock().unwrap().insert(send_service.clone());
+        mock_recv_service::COUNT.reset(0);
         for _ in 0..count {
             let recv_service = Arc::new(Mutex::new(MockRecvService::new(
                 self_id,

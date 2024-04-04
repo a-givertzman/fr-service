@@ -33,12 +33,11 @@ impl ServiceCycle {
     /// 
     pub fn wait(&self) {
         let elapsed = self.instant.elapsed();
-        if elapsed < self.interval {
+        if elapsed <= self.interval {
             let remainder = self.interval - elapsed;
             trace!("{}.wait | waiting: {:?}", self.id, remainder);
             thread::sleep(remainder);
-        }
-        if elapsed > self.interval {
+        } else {
             error!("{}.wait | exceeded: {:?}", self.id, elapsed - self.interval);
         }
     }
