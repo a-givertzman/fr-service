@@ -35,7 +35,6 @@ use super::point_config::{point_config::PointConfig, point_config_history::Point
 pub struct ConfSubscribe {
     id: String,
     conf: serde_yaml::Value,
-    // subscriptions: HashMap<String, Vec<SubscriptionCriteria>>,
 }
 ///
 /// Creates new instance from yaml
