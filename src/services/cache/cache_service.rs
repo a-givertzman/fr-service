@@ -11,11 +11,12 @@
 //!     suscribe:
 //!         /App/MultiQueue: []
 //! ```
-use std::{fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::Sender, Arc, Mutex}, thread};
-use log::{info, warn};
+use std::{collections::HashMap, fmt::Debug, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{Receiver, Sender}, Arc, Mutex}, thread};
+use hashers::fx_hash::FxHasher;
+use log::{debug, info, trace, warn};
 use crate::{
     conf::{cache_service_config::CacheServiceConfig, point_config::name::Name}, core_::{object::object::Object, point::point_type::PointType}, services::{
-        service::{service::Service, service_handles::ServiceHandles}, services::Services 
+        safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services 
     } 
 };
 
@@ -28,6 +29,7 @@ pub struct CacheService {
     name: Name,
     conf: CacheServiceConfig,
     services: Arc<Mutex<Services>>,
+    cache: HashMap<String, PointType, BuildHasherDefault<FxHasher>>,
     exit: Arc<AtomicBool>,
 }
 ///
@@ -41,9 +43,43 @@ impl CacheService {
             name: conf.name.clone(),
             conf: conf.clone(),
             services,
+            cache: HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default()),
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
+    ///
+    /// 
+    fn subscribe(&mut self, conf: &CacheServiceConfig, services: &Arc<Mutex<Services>>) -> Receiver<PointType> {
+        if conf.subscribe.is_empty() {
+            panic!("{}.subscribe | Error. Subscription configuration can`t be empty: {:#?}", self.id, conf);
+        } else {
+            debug!("{}.subscribe | requesting points...", self.id);
+            let points = services.slock().points(&self.id);
+            debug!("{}.subscribe | rceived points: {:#?}", self.id, points.len());
+            trace!("{}.subscribe | rceived points: {:#?}", self.id, points);
+            debug!("{}.subscribe | conf.subscribe: {:#?}", self.id, conf.subscribe);
+            let subscriptions = conf.subscribe.with(&points);
+            trace!("{}.subscribe | subscriptions: {:#?}", self.id, subscriptions);
+            if subscriptions.len() > 1 {
+                panic!("{}.run | Error. Task does not supports multiple subscriptions for now: {:#?}.\n\tTry to use single subscription.", self.id, subscriptions);
+            } else {
+                let subscriptions_first = subscriptions.clone().into_iter().next();
+                match subscriptions_first {
+                    Some((service_name, Some(points))) => {
+                        let (_, rx_recv) = services.slock().subscribe(
+                                &service_name,
+                                &self.name.join(), 
+                                &points,
+                            );
+                        rx_recv
+                    },
+                    Some((_, None)) => panic!("{}.run | Error. Subscription configuration error in: {:#?}", self.id, subscriptions),
+                    None => panic!("{}.run | Error. Subscription configuration error in: {:#?}", self.id, subscriptions),
+                }
+            }
+        }
+    }
+
 }
 ///
 /// 

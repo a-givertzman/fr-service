@@ -51,7 +51,7 @@ impl Task {
             let points = services.slock().points(&self.id);
             debug!("{}.subscribe | rceived points: {:#?}", self.id, points.len());
             trace!("{}.subscribe | rceived points: {:#?}", self.id, points);
-            debug!("{}.subscribe | subscriptions conf: {:#?}", self.id, conf.subscribe);
+            debug!("{}.subscribe | conf.subscribe: {:#?}", self.id, conf.subscribe);
             let subscriptions = conf.subscribe.with(&points);
             trace!("{}.subscribe | subscriptions: {:#?}", self.id, subscriptions);
             if subscriptions.len() > 1 {
@@ -67,8 +67,8 @@ impl Task {
                             );
                         rx_recv
                     },
-                    Some((_, None)) => panic!("{}.run | Error. Task subscription configuration error in:: {:#?}", self.id, subscriptions),
-                    None => panic!("{}.run | Error. Task subscription configuration error in:: {:#?}", self.id, subscriptions),
+                    Some((_, None)) => panic!("{}.run | Error. Task subscription configuration error in: {:#?}", self.id, subscriptions),
+                    None => panic!("{}.run | Error. Task subscription configuration error in: {:#?}", self.id, subscriptions),
                 }
             }
         }
