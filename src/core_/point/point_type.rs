@@ -86,11 +86,11 @@ impl PointType {
     /// Returns destination of the containing Point
     pub fn dest(&self) -> String {
         match self {
-            PointType::Bool(point) =>SubscriptionCriteria::new(&point.name, point.cot).destination(),   //concat_string!(point.cot, point.name),
-            PointType::Int(point) => SubscriptionCriteria::new(&point.name, point.cot).destination(),   //concat_string!(point.cot, point.name),
-            PointType::Real(point) =>SubscriptionCriteria::new(&point.name, point.cot).destination(),   //concat_string!(point.cot, point.name),
-            PointType::Double(point) =>  SubscriptionCriteria::new(&point.name, point.cot).destination(),   //concat_string!(point.cot, point.name),
-            PointType::String(point) =>  SubscriptionCriteria::new(&point.name, point.cot).destination(),   //concat_string!(point.cot, point.name),
+            PointType::Bool(point) => SubscriptionCriteria::dest(&point.cot, &point.name),    //concat_string!(point.cot, point.name),
+            PointType::Int(point) => SubscriptionCriteria::dest(&point.cot, &point.name),    //concat_string!(point.cot, point.name),
+            PointType::Real(point) => SubscriptionCriteria::dest(&point.cot, &point.name),    //concat_string!(point.cot, point.name),
+            PointType::Double(point) => SubscriptionCriteria::dest(&point.cot, &point.name),    //concat_string!(point.cot, point.name),
+            PointType::String(point) => SubscriptionCriteria::dest(&point.cot, &point.name),    //concat_string!(point.cot, point.name),
         }
     }
     ///

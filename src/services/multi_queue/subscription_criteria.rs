@@ -28,17 +28,26 @@ impl SubscriptionCriteria {
             dest: RefCell::new(None),
         }
     }
-    /// deref
+    ///
     /// 
     pub fn destination(&self) -> String {
         if let Some(dest) = &*self.dest.borrow() {
             return dest.to_owned();
         }
-        let dest = match self.cot {
-            Cot::All => self.name.clone(),
-            _        => concat_string!(self.cot.as_str(), ":", self.name),
-        };
+        // let dest = match self.cot {
+        //     Cot::All => self.name.clone(),
+        //     _        => concat_string!(self.cot.as_str(), ":", self.name),
+        // };
+        let dest = Self::dest(&self.cot, &self.name);
         *self.dest.borrow_mut() = Some(dest.clone());
         dest
+    }
+    ///
+    /// 
+    pub fn dest(cot: &Cot, name: &str) -> String {
+        match cot {
+            Cot::All => name.to_owned(),
+            _        => concat_string!(cot.as_str(), ":", name),
+        }
     }
 }
