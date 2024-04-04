@@ -28,12 +28,13 @@ impl S7ParseReal {
     ///
     /// 
     pub fn new(
+        tx_id: usize,
         name: String,
         config: &PointConfig,
         filter: Box<dyn Filter<Item = f32>>,
     ) -> S7ParseReal {
         S7ParseReal {
-            tx_id: 0,
+            tx_id,
             value: filter,
             status: Status::Invalid,
             is_changed: false,

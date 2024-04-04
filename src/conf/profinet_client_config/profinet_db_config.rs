@@ -28,7 +28,7 @@ impl ProfinetDbConfig {
         let self_conf = conf_tree.clone();
         let self_id = format!("ProfinetDbConfig({})", self_conf.key);
         let mut self_conf = ServiceConfig::new(&self_id, self_conf);
-        trace!("{}.new | selfConf: {:?}", self_id, self_conf);
+        trace!("{}.new | self_conf: {:?}", self_id, self_conf);
         let self_name = Name::new(parent, name);
         debug!("{}.new | name: {:?}", self_id, self_name);
         let cycle = self_conf.get_duration("cycle");

@@ -1,5 +1,6 @@
-use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread};
+use std::{collections::HashMap, ffi::OsStr, fmt::Debug, fs, io::Write, path::Path, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread};
 use log::{debug, error, info, trace, warn};
+use serde::Serialize;
 use crate::{
     conf::{multi_queue_config::MultiQueueConfig, point_config::name::Name}, 
     core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}}, 
@@ -48,6 +49,24 @@ impl MultiQueue {
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
+    ///
+    /// 
+    fn log(&self, name: &str, receiver_name: &str, rceiver_hash: usize, points: &[SubscriptionCriteria]) {
+        let path = concat_string!("./logs", self.name.join(), name);
+        let destinations: Vec<String> = points.iter().map(|cr| {cr.destination()}).collect();
+        match fs::OpenOptions::new().create(true).write(true).append(true).open(&path) {
+            Ok(mut f) => {
+                f.write_fmt(format_args!("\n\n\t{} ({})", receiver_name, rceiver_hash)).unwrap();
+                match serde_json::to_writer_pretty(f, &destinations) {
+                    Ok(_) => {},
+                    Err(err) => warn!("{}.log | Error writing to file: '{}'\n\terror: {:?}", self.id, path, err),
+                }
+            },
+            Err(err) => {
+                warn!("{}.log | Error open file: '{}'\n\terror: {:?}", self.id, path, err)
+            },
+        }
+    }
 }
 ///
 /// 
@@ -88,11 +107,13 @@ impl Service for MultiQueue {
         self.receiver_dictionary.insert(receiver_hash, receiver_name.to_string());
         if points.is_empty() {
             self.subscriptions.slock().add_broadcast(receiver_hash, send.clone());
+            self.log("/broadcast.log", receiver_name, receiver_hash, points);
             debug!("{}.subscribe | Broadcast subscription registered, receiver: \n\t{} ({})", self.id, receiver_name, receiver_hash);
         } else {
             for subscription_criteria in points {
                 self.subscriptions.slock().add_multicast(receiver_hash, &subscription_criteria.destination(), send.clone());
             }
+            self.log("/multicast.log", receiver_name, receiver_hash, points);
             debug!("{}.subscribe | Multicast subscription registered, receiver: \n\t{} ({}) \n\tpoints: {:#?}", self.id, receiver_name, receiver_hash, points.len());
             trace!("{}.subscribe | Multicast subscription registered, receiver: \n\t{} ({}) \n\tpoints: {:#?}", self.id, receiver_name, receiver_hash, points);
         }
@@ -115,6 +136,7 @@ impl Service for MultiQueue {
                     message = concat_string!(message, err, "\n");
                 };
             }
+            self.log("/multicast.log", receiver_name, receiver_hash, points);
             if message.is_empty() {
                 debug!("{}.extend_subscription | Multicast subscription extended, receiver: {} ({})", self.id, receiver_name, receiver_hash);
                 self.subscriptions_changed.store(true, Ordering::SeqCst);

@@ -27,12 +27,13 @@ impl S7ParseInt {
     ///
     /// 
     pub fn new(
+        tx_id: usize,
         name: String,
         config: &PointConfig,
         filter: Box<dyn Filter<Item = i64>>,
     ) -> S7ParseInt {
         S7ParseInt {
-            tx_id: 0,
+            tx_id,
             name,
             value: filter,
             status: Status::Invalid,

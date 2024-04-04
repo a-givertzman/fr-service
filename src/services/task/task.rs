@@ -53,7 +53,7 @@ impl Task {
             trace!("{}.subscribe | rceived points: {:#?}", self.id, points);
             debug!("{}.subscribe | subscriptions conf: {:#?}", self.id, conf.subscribe);
             let subscriptions = conf.subscribe.with(&points);
-            debug!("{}.subscribe | subscriptions: {:#?}", self.id, subscriptions);
+            trace!("{}.subscribe | subscriptions: {:#?}", self.id, subscriptions);
             if subscriptions.len() > 1 {
                 panic!("{}.run | Error. Task does not supports multiple subscriptions for now: {:#?}.\n\tTry to use single subscription.", self.id, subscriptions);
             } else {

@@ -160,7 +160,7 @@ impl JdsRequest {
                 };
                 let receiver_name = Name::new(parent, &shared.connection_id).join();
                 debug!("{}.handle.Subscribe | extending subscription for receiver: '{}'", self_id, receiver_name);
-                debug!("{}.handle.Subscribe |                              points: {:#?}", self_id, points);
+                trace!("{}.handle.Subscribe |                              points: {:#?}", self_id, points);
                 let (cot, message) = match services.slock().extend_subscription(&shared.subscribe, &receiver_name, &points) {
                     Ok(_) => (Cot::ReqCon, "".to_owned()),
                     Err(err) => {

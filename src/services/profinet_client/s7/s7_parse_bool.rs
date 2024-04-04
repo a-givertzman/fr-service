@@ -27,12 +27,13 @@ impl S7ParseBool {
     ///
     /// 
     pub fn new(
+        tx_id: usize,
         name: String,
         config: &PointConfig,
         // filter: Filter<T>,
     ) -> S7ParseBool {
         S7ParseBool {
-            tx_id: 0,
+            tx_id,
             name,
             value: false,
             status: Status::Invalid,

@@ -36,6 +36,7 @@ impl S7Client {
     ///
     /// Connects the client to the PLC
     pub fn connect(&mut self) -> Result<(), S7Error> {
+        return Ok(());
         let mut req: c_int = 0;
         let mut neg: c_int = 0;
         let err_code = unsafe {
