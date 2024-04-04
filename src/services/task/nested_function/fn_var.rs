@@ -1,13 +1,7 @@
-#![allow(non_snake_case)]
-
 use std::sync::atomic::{Ordering, AtomicUsize};
-
-use log::trace;
-
+use log::{debug, trace};
 use crate::core_::{point::point_type::PointType, types::fn_in_out_ref::FnInOutRef};
-
 use super::{fn_::{FnIn, FnOut, FnInOut}, fn_kind::FnKind};
-
 ///
 /// Specific kinde of function
 /// - has additional method .eval(), 
@@ -27,9 +21,8 @@ pub struct FnVar {
 /// 
 impl FnVar {
     pub fn new(parent: impl Into<String>, input: FnInOutRef) -> Self {
-        COUNT.fetch_add(1, Ordering::SeqCst);
         Self {
-            id: format!("{}/FnTimer{}", parent.into(), COUNT.load(Ordering::Relaxed)),
+            id: format!("{}/FnVar{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
             kind: FnKind::Var,
             input,
             result: None, 
@@ -59,7 +52,7 @@ impl FnOut for FnVar {
     /// - Result stores into inner
     /// - calculated result returns in .out() method
     fn eval(&mut self) {
-        trace!("FnVar({}).eval | evaluating...", self.id);
+        debug!("{}.eval | evaluating...", self.id);
         self.result = Some(self.input.borrow_mut().out());
     }
     ///
@@ -68,11 +61,11 @@ impl FnOut for FnVar {
     fn out(&mut self) -> PointType {
         match &self.result {
             Some(result) => {
-                trace!("FnVar({}).out | value: {:?}", self.id, &self.result);
+                trace!("{}.out | value: {:?}", self.id, &self.result);
                 result.clone()
             },
             None => {
-                panic!("FnVar({}).out | not initialised", self.id);
+                panic!("{}.out | not initialised", self.id);
             },
         }
     }
@@ -86,5 +79,5 @@ impl FnOut for FnVar {
 /// 
 impl FnInOut for FnVar {}
 ///
-/// 
-static COUNT: AtomicUsize = AtomicUsize::new(0);
+/// Global static counter of FnVar instances
+static COUNT: AtomicUsize = AtomicUsize::new(1);

@@ -4,16 +4,12 @@ use log::{debug, info};
 use std::{sync::Once, rc::Rc, cell::RefCell};
 use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
 use crate::{
-    core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
-    services::task::nested_function::{fn_::FnOut, 
-    fn_count::{FnCount, self}, fn_input::FnInput, reset_counter::AtomicReset},
+    conf::fn_::fn_conf_keywd::FnConfPointType, core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, services::task::nested_function::{fn_::FnOut, 
+    fn_count::{self, FnCount}, fn_input::FnInput, reset_counter::AtomicReset}
 };
-
-// Note this useful idiom: importing names from outer (for mod tests) scope.
-// use super::*;
-
+///
+/// 
 static INIT: Once = Once::new();
-
 ///
 /// once called initialisation
 fn init_once() {
@@ -22,25 +18,23 @@ fn init_once() {
         }
     )
 }
-
-
 ///
 /// returns:
 ///  - ...
-fn init_each(initial: PointType) -> FnInOutRef {
-    fn_count::COUNT.reset();
+fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
+    fn_count::COUNT.reset(0);
     Rc::new(RefCell::new(Box::new(
-        FnInput::new("test", initial)
+        FnInput::new("test", initial, type_)
     )))
 }
-
-
+///
+///
 #[test]
 fn test_single() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     init_once();
     info!("test_single");
-    let input = init_each(false.to_point(0, "bool"));
+    let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
     let mut fnCount = FnCount::new(
         "test",
         0.0, 
@@ -69,7 +63,7 @@ fn test_single() {
         let state = fnCount.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.as_float().value, targetState as f64);
+        assert_eq!(state.as_double().value, targetState as f64);
     }        
 }
 // 
@@ -79,7 +73,7 @@ fn test_multiple() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     init_once();
     info!("test_multiple");
-    let input = init_each(false.to_point(0, "bool"));
+    let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
     let mut fnCount = FnCount::new(
         "test",
         0.0, 
@@ -108,7 +102,7 @@ fn test_multiple() {
         let state = fnCount.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.as_float().value, targetState as f64);
+        assert_eq!(state.as_double().value, targetState as f64);
     }        
 }
 
@@ -117,7 +111,7 @@ fn test_multiple_reset() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     init_once();
     info!("test_multiple_reset");
-    let input = init_each(false.to_point(0, "bool"));
+    let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
     let mut fnCount = FnCount::new(
         "test",
         0.0, 
@@ -149,6 +143,6 @@ fn test_multiple_reset() {
         let state = fnCount.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.as_float().value, targetState as f64);
+        assert_eq!(state.as_double().value, targetState as f64);
     }        
 }

@@ -6,11 +6,12 @@ use std::{
 };
 use crate::{core_::{
     net::connection_status::ConnectionStatus, point::point_type::PointType
-}, services::task::service_cycle::ServiceCycle};
+}, services::{safe_lock::SafeLock, task::service_cycle::ServiceCycle}, tcp::tcp_stream_write::OpResult};
 use super::steam_read::TcpStreamRead;
 
 ///
 /// Transfering points from JdsStream (socket) to the Channel Sender<PointType>
+#[derive(Debug)]
 pub struct TcpReadAlive {
     id: String,
     stream_read: Arc<Mutex<dyn TcpStreamRead>>,
@@ -50,21 +51,21 @@ impl TcpReadAlive {
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         let exit_pair = self.exit_pair.clone();
-        let mut cycle = ServiceCycle::new(self.cycle);
+        let mut cycle = ServiceCycle::new(&self_id, self.cycle);
         let send = self.send.clone();
         let jds_stream = self.stream_read.clone();
         info!("{}.run | Preparing thread...", self.id);
         let handle = thread::Builder::new().name(format!("{} - Read", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
             let mut tcp_stream = BufReader::new(tcp_stream);
-            let mut jds_stream = jds_stream.lock().unwrap();
+            let mut jds_stream = jds_stream.slock();
             info!("{}.run | Main loop started", self_id);
             loop {
                 cycle.start();
                 match jds_stream.read(&mut tcp_stream) {
                     ConnectionStatus::Active(point) => {
                         match point {
-                            Ok(point) => {
+                            OpResult::Ok(point) => {
                                 // debug!("{}.run | read point: {:?}", self_id, point);
                                 match send.send(point) {
                                     Ok(_) => {},
@@ -72,12 +73,15 @@ impl TcpReadAlive {
                                         warn!("{}.run | write to queue error: {:?}", self_id, err);
                                     },
                                 };
+                                cycle.wait();
                             },
-                            Err(err) => {
+                            OpResult::Err(err) => {
                                 if log::max_level() == LevelFilter::Trace {
                                     warn!("{}.run | error: {:?}", self_id, err);
                                 }
+                                cycle.wait();
                             },
+                            OpResult::Timeout() => {}
                         }
                     },
                     ConnectionStatus::Closed(err) => {
@@ -89,7 +93,6 @@ impl TcpReadAlive {
                 if exit.load(Ordering::SeqCst) | exit_pair.load(Ordering::SeqCst) {
                     break;
                 }
-                cycle.wait();
             }
             info!("{}.run | Exit", self_id);
         }).unwrap();

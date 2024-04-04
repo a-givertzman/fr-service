@@ -1,16 +1,15 @@
 #![allow(non_snake_case)]
-
-use log::{info, warn, debug, trace};
-use std::{collections::HashMap, sync::{mpsc::{Sender, self, Receiver}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread};
+use log::{info, warn, trace};
+use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread};
 use testing::entities::test_value::Value;
 use crate::{
-    core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, 
-    services::{service::{service::Service, service_handles::ServiceHandles}, services::Services},
+    conf::point_config::name::Name, core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, services::{safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services}
 };
-
-
+///
+/// 
 pub struct MockRecvSendService {
     id: String,
+    name: Name,
     rxSend: HashMap<String, Sender<PointType>>,
     rxRecv: Vec<Receiver<PointType>>,
     txQueue: String,
@@ -25,10 +24,11 @@ pub struct MockRecvSendService {
 /// 
 impl MockRecvSendService {
     pub fn new(parent: impl Into<String>, rxQueue: &str, txQueue: &str, services: Arc<Mutex<Services>>, test_data: Vec<Value>, recvLimit: Option<usize>) -> Self {
-        let self_id = format!("{}/MockRecvSendService", parent.into());
+        let name = Name::new(parent, format!("MockRecvSendService{}", COUNT.fetch_add(1, Ordering::Relaxed)));
         let (send, recv) = mpsc::channel::<PointType>();
         Self {
-            id: self_id.clone(),
+            id: name.join(),
+            name,
             rxSend: HashMap::from([(rxQueue.to_string(), send)]),
             rxRecv: vec![recv],
             txQueue: txQueue.to_string(),
@@ -61,6 +61,19 @@ impl MockRecvSendService {
 impl Object for MockRecvSendService {
     fn id(&self) -> &str {
         &self.id
+    }
+    fn name(&self) -> Name {
+        self.name.clone()
+    }
+}
+///
+/// 
+impl Debug for MockRecvSendService {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("MockRecvSendService")
+            .field("id", &self.id)
+            .finish()
     }
 }
 ///
@@ -123,9 +136,9 @@ impl Service for MockRecvSendService {
         });
         let self_id = self.id.clone();
         let exit = self.exit.clone();
-        debug!("{}.run | Lock services...", self_id);
-        let txSend = self.services.lock().unwrap().get_link(&self.txQueue);
-        debug!("{}.run | Lock services - ok", self_id);
+        let txSend = self.services.slock().get_link(&self.txQueue).unwrap_or_else(|err| {
+            panic!("{}.run | services.get_link error: {:#?}", self.id, err);
+        });
         let test_data = self.test_data.clone();
         let sent = self.sent.clone();
         let handle_send = thread::Builder::new().name(format!("{}.run | Send", self_id)).spawn(move || {
@@ -165,3 +178,6 @@ impl Service for MockRecvSendService {
         self.exit.store(true, Ordering::SeqCst);
     }
 }
+///
+/// Global static counter of FnOut instances
+static COUNT: AtomicUsize = AtomicUsize::new(0);

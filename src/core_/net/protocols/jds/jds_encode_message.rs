@@ -1,12 +1,13 @@
-use crate::{core_::{failure::recv_error::RecvError, object::object::Object}, tcp::steam_read::StreamRead};
+use crate::{conf::point_config::name::Name, core_::{failure::recv_error::RecvError, object::object::Object}, tcp::steam_read::StreamRead};
 use super::{jds_serialize::JdsSerialize, jds_define::JDS_END_OF_TRANSMISSION};
-
 ///
 /// Converts json string into the bytes
 /// adds Jds.endOfTransmission = 4 at the end of message
 /// returns Result<Vec, Err>
+#[derive(Debug)]
 pub struct JdsEncodeMessage {
     id: String,
+    name: Name,
     stream: JdsSerialize,
 }
 ///
@@ -15,8 +16,10 @@ impl JdsEncodeMessage {
     ///
     /// Creates new instance of the JdsEncodeMessage
     pub fn new(parent: impl Into<String>, stream: JdsSerialize) -> Self {
+        let me = Name::new(parent, "JdsEncodeMessage");
         Self {
-            id: format!("{}/JdsMessage", parent.into()),
+            id: me.join(),
+            name: me,
             stream,
         }
     }
@@ -26,6 +29,9 @@ impl JdsEncodeMessage {
 impl Object for JdsEncodeMessage {
     fn id(&self) -> &str {
         &self.id
+    }
+    fn name(&self) -> Name {
+        self.name.clone()
     }
 }
 ///

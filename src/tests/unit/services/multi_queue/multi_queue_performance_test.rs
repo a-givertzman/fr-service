@@ -27,8 +27,8 @@ mod multi_queue {
     /// Can be changed
     const ITERATIONS: usize = 1_000_000;
     ///
-    /// 
-    #[ignore = "Performance test | use to estimate performance of multiqueue without matching producer's id"]
+    /// Use to estimate performance of multiqueue without matching producer's id
+    #[ignore = "Performance test"]
     #[test]
     fn performance() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -53,7 +53,7 @@ mod multi_queue {
                 Some(total_count)
             )));
             let receiver_id = format!("Receiver{}", i + 1);
-            services.lock().unwrap().insert(&receiver_id, receiver.clone());
+            services.lock().unwrap().insert(receiver.clone());
             receivers.insert(receiver_id.clone(), receiver);
             println!(" Receiver {} created", receiver_id);
         }
@@ -69,7 +69,7 @@ mod multi_queue {
         )));
         println!(" Creating Mock Multiqueue - ok");
         println!(" Inserting Mock Multiqueue into Services...");
-        services.lock().unwrap().insert("MultiQueue", mq_service.clone());
+        services.lock().unwrap().insert(mq_service.clone());
         println!(" Inserting Mock Multiqueue into Services - ok");
         let test_data = RandomTestValues::new(
             self_id, 
@@ -79,12 +79,18 @@ mod multi_queue {
                 Value::Int(-7),
                 Value::Int(0),
                 Value::Int(12),
-                Value::Float(f64::MAX),
-                Value::Float(f64::MIN),
-                Value::Float(f64::MIN_POSITIVE),
-                Value::Float(-f64::MIN_POSITIVE),
-                Value::Float(0.0),
-                Value::Float(1.33),
+                Value::Real(f32::MAX),
+                Value::Real(f32::MIN),
+                Value::Real(f32::MIN_POSITIVE),
+                Value::Real(-f32::MIN_POSITIVE),
+                Value::Real(0.0),
+                Value::Real(1.33),
+                Value::Double(f64::MAX),
+                Value::Double(f64::MIN),
+                Value::Double(f64::MIN_POSITIVE),
+                Value::Double(-f64::MIN_POSITIVE),
+                Value::Double(0.0),
+                Value::Double(1.33),
                 Value::Bool(true),
                 Value::Bool(false),
                 Value::Bool(false),
@@ -100,7 +106,7 @@ mod multi_queue {
         println!(" Trying to start Multiqueue...:");
         mq_service.lock().unwrap().run().unwrap();
         let mut recv_handles  = vec![];
-        for (_recvId, recv) in &receivers {
+        for (_recv_id, recv) in &receivers {
             let h = recv.lock().unwrap().run().unwrap();
             recv_handles.push(h)
         }
@@ -111,24 +117,24 @@ mod multi_queue {
         }
 
         let timer = Instant::now();
-        for mut h in recv_handles {
+        for h in recv_handles {
             h.wait().unwrap();
         }
         println!("\n Elapsed: {:?}", timer.elapsed());
         println!(" Total test events: {:?}", total_count);
-        let (totalSent, allSent) = get_sent(&producers);
-        println!(" Sent events: {}\t{:?}", totalSent, allSent);
-        let (totalReceived, allReceived) = get_received(&receivers);
-        println!(" Recv events: {}\t{:?}\n", totalReceived, allReceived);
+        let (total_sent, all_sent) = get_sent(&producers);
+        println!(" Sent events: {}\t{:?}", total_sent, all_sent);
+        let (total_received, all_received) = get_received(&receivers);
+        println!(" Recv events: {}\t{:?}\n", total_received, all_received);
 
-        assert!(totalSent == total_count, "\nresult: {:?}\ntarget: {:?}", totalSent, total_count);
-        assert!(totalReceived == total_count * receiver_count, "\nresult: {:?}\ntarget: {:?}", totalReceived, total_count * receiver_count);
+        assert!(total_sent == total_count, "\nresult: {:?}\ntarget: {:?}", total_sent, total_count);
+        assert!(total_received == total_count * receiver_count, "\nresult: {:?}\ntarget: {:?}", total_received, total_count * receiver_count);
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         test_duration.exit();
     }
     ///
-    /// 
-    #[ignore = "Performance test | use to estimate performance of multiqueue with matching producer's id"]
+    /// Use to estimate performance of multiqueue with matching producer's id
+    #[ignore = "Performance test"]
     #[test]
     fn match_performance() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -153,7 +159,7 @@ mod multi_queue {
                 Some(total_count)
             )));
             let receiver_id = format!("Receiver{}", i + 1);
-            services.lock().unwrap().insert(&receiver_id, receiver.clone());
+            services.lock().unwrap().insert(receiver.clone());
             receivers.insert(receiver_id.clone(), receiver);
             println!(" Receiver {} created", receiver_id);
         }
@@ -169,13 +175,14 @@ mod multi_queue {
         )));
         println!(" Creating Mock Multiqueue - ok");
         println!(" Inserting Mock Multiqueue into Services...");
-        services.lock().unwrap().insert("MultiQueue", mq_service.clone());
+        services.lock().unwrap().insert(mq_service.clone());
         println!(" Inserting Mock Multiqueue into Services - ok");
         let test_data = RandomTestValues::new(
             self_id, 
             vec![
                 Value::Int(7),
-                Value::Float(1.3),
+                Value::Real(1.3),
+                Value::Double(1.3),
                 Value::Bool(true),
                 Value::Bool(false),
                 Value::String("test1".to_string()),
@@ -187,7 +194,7 @@ mod multi_queue {
         println!(" Trying to start Multiqueue...:");
         mq_service.lock().unwrap().run().unwrap();
         let mut recv_handles  = vec![];
-        for (_recvId, recv) in &receivers {
+        for (_recv_id, recv) in &receivers {
             let h = recv.lock().unwrap().run().unwrap();
             recv_handles.push(h)
         }
@@ -197,17 +204,17 @@ mod multi_queue {
             producers.insert(format!("MockSendService{}", i), prod);
         }
         let timer = Instant::now();
-        for mut h in recv_handles {
+        for h in recv_handles {
             h.wait().unwrap();
         }
         println!("\n Elapsed: {:?}", timer.elapsed());
         println!(" Total test events: {:?}", total_count);
-        let (totalSent, allSent) = get_sent(&producers);
-        println!(" Sent events: {}\t{:?}", totalSent, allSent);
-        let (totalReceived, allReceived) = get_received(&receivers);
-        println!(" Recv events: {}\t{:?}\n", totalReceived, allReceived);
-        assert!(totalSent == total_count, "\nresult: {:?}\ntarget: {:?}", totalSent, total_count);
-        assert!(totalReceived == total_count * receiver_count, "\nresult: {:?}\ntarget: {:?}", totalReceived, total_count * receiver_count);
+        let (total_sent, all_sent) = get_sent(&producers);
+        println!(" Sent events: {}\t{:?}", total_sent, all_sent);
+        let (total_received, all_received) = get_received(&receivers);
+        println!(" Recv events: {}\t{:?}\n", total_received, all_received);
+        assert!(total_sent == total_count, "\nresult: {:?}\ntarget: {:?}", total_sent, total_count);
+        assert!(total_received == total_count * receiver_count, "\nresult: {:?}\ntarget: {:?}", total_received, total_count * receiver_count);
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         test_duration.exit();
     }    
@@ -216,10 +223,10 @@ mod multi_queue {
     fn get_sent<'a>(producers: &'a HashMap<String, MockSendService>) -> (usize, HashMap<&'a str, usize>) {
         let mut total_sent = 0;
         let mut all_sent: HashMap<&'a str, usize> = HashMap::new();
-        for (prodId, prod) in producers {
+        for (prod_id, prod) in producers {
             let sent = prod.sent().lock().unwrap().len();
             total_sent += sent;
-            all_sent.insert(prodId, sent);
+            all_sent.insert(prod_id, sent);
         }
         (total_sent, all_sent)
     }   
@@ -228,10 +235,10 @@ mod multi_queue {
     fn get_received<'a>(receivers: &'a HashMap<String, Arc<Mutex<MockRecvService>>>) -> (usize, HashMap<&'a str, usize>) {
         let mut total_received = 0;
         let mut all_received: HashMap<&'a str, usize> = HashMap::new();
-        for (recvId, recv) in receivers {
+        for (recv_id, recv) in receivers {
             let recved = recv.lock().unwrap().received().lock().unwrap().len();
             total_received += recved;
-            all_received.insert(recvId, recved);
+            all_received.insert(recv_id, recved);
         }
         (total_received, all_received)
     }

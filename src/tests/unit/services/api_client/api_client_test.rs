@@ -4,7 +4,7 @@ mod api_client {
     use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::{Read, Write}};
     use testing::{entities::test_value::Value, session::test_session::TestSession, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use api_tools::{error::api_error::ApiError, api::reply::api_reply::ApiReply};
+    use api_tools::api::reply::api_reply::ApiReply;
     use crate::{
         core_::point::point_type::ToPoint,
         conf::api_client_config::ApiClientConfig,  
@@ -23,9 +23,7 @@ mod api_client {
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
+    fn init_each() -> () {}
     ///
     ///    
     #[test]
@@ -39,11 +37,11 @@ mod api_client {
         let path = "./src/tests/unit/services/api_client/api_client.yaml";
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
         test_duration.run().unwrap();
-        let mut conf = ApiClientConfig::read(path);
+        let mut conf = ApiClientConfig::read(self_id, path);
         // let addr = conf.address.clone();
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         conf.address = addr.parse().unwrap();
-        let mut api_client = ApiClient::new("test ApiClient", conf);
+        let mut api_client = ApiClient::new(conf);
         // let test_duration = Duration::from_secs(10);
         let count = 10;
         let mut state = 0;
@@ -55,12 +53,18 @@ mod api_client {
                 Value::Int(-7),
                 Value::Int(0),
                 Value::Int(12),
-                Value::Float(f64::MAX),
-                Value::Float(f64::MIN),
-                Value::Float(f64::MIN_POSITIVE),
-                Value::Float(-f64::MIN_POSITIVE),
-                Value::Float(0.0),
-                Value::Float(1.33),
+                Value::Real(f32::MAX),
+                Value::Real(f32::MIN),
+                Value::Real(f32::MIN_POSITIVE),
+                Value::Real(-f32::MIN_POSITIVE),
+                Value::Real(0.0),
+                Value::Real(1.33),
+                Value::Double(f64::MAX),
+                Value::Double(f64::MIN),
+                Value::Double(f64::MIN_POSITIVE),
+                Value::Double(-f64::MIN_POSITIVE),
+                Value::Double(0.0),
+                Value::Double(1.33),
                 Value::Bool(true),
                 Value::Bool(false),
                 Value::Bool(false),
@@ -73,7 +77,6 @@ mod api_client {
             count, 
         );
         let test_data: Vec<Value> = test_data.collect();
-
         let mut sent = vec![];
         let received = Arc::new(Mutex::new(vec![]));
         let received_ref = received.clone();

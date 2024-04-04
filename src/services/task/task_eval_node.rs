@@ -8,7 +8,7 @@ use crate::core_::{types::fn_in_out_ref::FnInOutRef, point::point_type::PointTyp
 /// Holds Task input and all dipendent variables & outputs
 #[derive(Debug)]
 pub struct TaskEvalNode {
-    parentName: String,
+    id: String,
     name: String,
     input: FnInOutRef,
     vars: Vec<FnInOutRef>,
@@ -20,9 +20,10 @@ impl TaskEvalNode {
     ///
     /// Creates new instance from input name, input it self and dependent vars & outs
     pub fn new(parentName: impl Into<String>, name: impl Into<String>, input: FnInOutRef) -> Self {
+        let self_name = name.into();
         TaskEvalNode { 
-            parentName: parentName.into(), 
-            name: name.into(), 
+            id: format!("{}/{}", parentName.into(), &self_name), 
+            name: self_name, 
             input, 
             vars:  vec![],
             outs: vec![],
@@ -88,18 +89,25 @@ impl TaskEvalNode {
         &self.outs
     }
     ///
-    /// 
-    pub fn eval(&mut self, point: PointType) {
+    /// Adds new point to the hilding input reference
+    pub fn add(&mut self, point: PointType) {
         self.input.borrow_mut().add(point);
+    }
+    ///
+    /// Evaluates node:
+    ///  - eval all conaining vars
+    ///  - eval all conaining outs
+    pub fn eval(&mut self) {
+        // self.input.borrow_mut().add(point);
         for evalNodeVar in &self.vars {
-            trace!("TaskEvalNode.eval | evalNode '{}/{}' - var '{}' evaluating...", self.parentName, self.name, evalNodeVar.borrow_mut().id());
+            trace!("TaskEvalNode.eval | evalNode '{}' - var '{}' evaluating...", self.id, evalNodeVar.borrow_mut().id());
             evalNodeVar.borrow_mut().eval();
-            trace!("TaskEvalNode.eval | evalNode '{}/{}' - var '{}' evaluated", self.parentName, self.name, evalNodeVar.borrow_mut().id());
+            trace!("TaskEvalNode.eval | evalNode '{}' - var '{}' evaluated", self.id, evalNodeVar.borrow_mut().id());
         };
         for evalNodeOut in &self.outs {
-            trace!("TaskEvalNode.eval | evalNode '{}/{}' out...", self.parentName, self.name);
+            trace!("TaskEvalNode.eval | evalNode '{}' out...", self.id);
             let out = evalNodeOut.borrow_mut().out();
-            trace!("TaskEvalNode.eval | evalNode '{}/{}' out: {:?}", self.parentName, self.name, out);
+            trace!("TaskEvalNode.eval | evalNode '{}' out: {:?}", self.id, out);
         };
     }
 }

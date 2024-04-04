@@ -6,7 +6,8 @@ mod tests {
     use std::sync::Once;
     use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
     use crate::core_::state::switch_state::{Switch, SwitchCondition, SwitchState};
-    
+    ///
+    /// 
     #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
     enum ProcessState {
         Off,
@@ -14,12 +15,9 @@ mod tests {
         Progress,
         Stop,
     }
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    ///
+    /// 
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -28,7 +26,6 @@ mod tests {
             }
         )
     }
-    
     ///
     /// returns tuple(
     ///     - initialState: ProcessState
@@ -87,14 +84,14 @@ mod tests {
             ]
         )
     }
-    
+    ///
+    /// 
     #[test]
     fn test_single() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
         info!("test_single");
-    
         let (initial, switches) = init_each();
         let mut switchState: SwitchState<ProcessState, i8> = SwitchState::new(
             initial,
@@ -137,14 +134,14 @@ mod tests {
             }
         }
     }
-    
+    ///
+    /// 
     #[test]
     fn test_start_step_back() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
         info!("test_start_step_back");
-    
         let (initial, switches) = init_each();
         let mut switchState: SwitchState<ProcessState, i8> = SwitchState::new(
             initial,
@@ -182,14 +179,14 @@ mod tests {
             assert_eq!(state, targetState);
         }        
     }
-    
+    ///
+    /// 
     #[test]
     fn test_stot_step_back() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
         info!("test_stot_step_back");
-    
         let (initial, switches) = init_each();
         let mut switchState: SwitchState<ProcessState, i8> = SwitchState::new(
             initial,

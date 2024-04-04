@@ -1,13 +1,7 @@
-#![allow(non_snake_case)]
-
 use std::sync::atomic::{Ordering, AtomicUsize};
-
 use log::trace;
-
 use crate::core_::point::point_type::PointType;
-
 use super::{fn_::{FnIn, FnOut, FnInOut}, fn_kind::FnKind};
-
 ///
 /// Function | Constant value
 #[derive(Debug, Clone)]
@@ -24,9 +18,8 @@ impl FnConst {
     ///     - [parent] - name of the parent object
     ///     - [value] - PointType, contains point with constant value
     pub fn new(parent: &str, value: PointType) -> Self {
-        COUNT.fetch_add(1, Ordering::SeqCst);
         Self {
-            id: format!("{}/FnConst{}", parent, COUNT.load(Ordering::Relaxed)),
+            id: format!("{}/FnConst{}", parent, COUNT.fetch_add(1, Ordering::Relaxed)),
             kind: FnKind::Input,
             point: value
         }
@@ -62,5 +55,5 @@ impl FnOut for FnConst {
 /// 
 impl FnInOut for FnConst {}
 ///
-/// 
-static COUNT: AtomicUsize = AtomicUsize::new(0);
+/// Global static counter of FnOut instances
+static COUNT: AtomicUsize = AtomicUsize::new(1);

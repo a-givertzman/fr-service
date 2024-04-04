@@ -1,12 +1,12 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-pub trait AtomicReset {
-    fn reset(&self) {}
+pub trait AtomicReset<T> {
+    fn reset(&self, val: T);
 }
 
-impl AtomicReset for AtomicUsize {
-    fn reset(&self) {
-        self.store(0, Ordering::SeqCst)
+impl AtomicReset<usize> for AtomicUsize {
+    fn reset(&self, val: usize) {
+        self.store(val, Ordering::SeqCst)
     }
 }
 

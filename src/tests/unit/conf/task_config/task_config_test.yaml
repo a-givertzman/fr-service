@@ -15,8 +15,15 @@ service Task Task1:
                 initial: VarName2
                 input fn functionName:
                     input1: const someValue
-                    input2: point float '/path/Point.Name'
+                    input2: point real '/path/Point.Name'
                     input fn functionName:
                         input: point bool '/path/Point.Name'
         input2:
             const 1
+        input3: point any every
+        input4 fn PointId:
+            input: point any every
+        input5 fn PointId:
+            input: point int every
+        input6 fn PointId:
+            input: point real every

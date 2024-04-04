@@ -1,18 +1,11 @@
-#![allow(non_snake_case)]
-
-use std::sync::atomic::{AtomicUsize, Ordering};
-
 use log::trace;
-
+use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::core_::{
     types::{type_of::DebugTypeOf, fn_in_out_ref::FnInOutRef},
     state::switch_state::{SwitchState, Switch, SwitchCondition}, 
     point::{point_type::PointType, point::Point}, 
 };
-
 use super::{fn_::{FnInOut, FnOut, FnIn}, fn_kind::FnKind};
-
-
 ///
 /// Counts number of raised fronts of boolean input
 #[derive(Debug)]
@@ -31,9 +24,8 @@ impl FnPulseCount {
     /// Creates new instance of the FnPulseCount
     #[allow(dead_code)]
     pub fn new(parent: impl Into<String>, initial: i64, input: FnInOutRef) -> Self {
-        COUNT.fetch_add(1, Ordering::SeqCst);
         Self { 
-            id: format!("{}/FnPulseCount{}", parent, COUNT.load(Ordering::Relaxed)),
+            id: format!("{}/FnPulseCount{}", parent, COUNT.fetch_add(1, Ordering::Relaxed)),
             kind:FnKind::Fn,
             input,
             state: SwitchState::new(
@@ -85,7 +77,8 @@ impl FnOut for FnPulseCount {
         let value = match &point {
             PointType::Bool(point) => point.value.0,
             PointType::Int(point) => point.value > 0,
-            PointType::Float(point) => point.value > 0.0,
+            PointType::Real(point) => point.value > 0.0,
+            PointType::Double(point) => point.value > 0.0,
             _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, point.typeOf(), point),
         };
         self.state.add(value);
@@ -113,6 +106,6 @@ impl FnOut for FnPulseCount {
 /// 
 impl FnInOut for FnPulseCount {}
 ///
-/// 
-static COUNT: AtomicUsize = AtomicUsize::new(0);
+/// Global static counter of FnOut instances
+static COUNT: AtomicUsize = AtomicUsize::new(1);
 

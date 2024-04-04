@@ -1,17 +1,14 @@
-#![allow(non_snake_case)]
 #[cfg(test)]
-mod tests {
+
+mod tcp_client_connect {
     use log::{warn, info, debug};
     use std::{sync::{Once, atomic::{AtomicBool, Ordering}, Arc}, time::Duration, thread, net::TcpListener};
     use testing::session::test_session::TestSession;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::tcp::tcp_client_connect::TcpClientConnect; 
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    ///
+    /// 
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -20,29 +17,24 @@ mod tests {
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
+    fn init_each() -> () {}
+    ///
+    /// 
     #[test]
-    fn test_success_connection() {
+    fn success_connection() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
         println!();
         println!("test success connection");
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
-        let timeout = Duration::from_millis(3500); // ms
+        let timeout = Duration::from_millis(4500); // ms
         let mut connect = TcpClientConnect::new("test", &addr, Duration::from_millis(500));
-
         let ok = Arc::new(AtomicBool::new(false));
-        let okRef = ok.clone();
-
+        let ok_ref = ok.clone();
         // let connectExit = connect.exit();
         thread::spawn(move || {
             info!("Preparing test TCP server...");
@@ -61,27 +53,27 @@ mod tests {
                 },
                 Err(err) => {
                     // connectExit.send(true);
-                    okRef.store(false, Ordering::SeqCst);
+                    ok_ref.store(false, Ordering::SeqCst);
                     panic!("Preparing test TCP server - error: {:?}", err);
                 },
             };
         });
-        let connectExit = connect.exit();
-        let okRef = ok.clone();
+        let connect_exit = connect.exit();
+        let ok_ref = ok.clone();
         thread::spawn(move || {
             info!("Waiting for connection...");
             thread::sleep(timeout);
-            okRef.store(false, Ordering::SeqCst);
+            ok_ref.store(false, Ordering::SeqCst);
             warn!("Tcp socket was not connected in {:?}", timeout);
             debug!("stopping...");
-            connectExit.send(true).unwrap();
+            connect_exit.send(true).unwrap();
         });
         info!("Connecting...");
         for _ in 0..10 {
             match connect.connect() {
-                Some(tcpStream) => {
+                Some(tcp_stream) => {
                     ok.store(true, Ordering::SeqCst);
-                    info!("connected: {:?}", tcpStream);
+                    info!("connected: {:?}", tcp_stream);
                     connect.exit().send(true).unwrap();
                     break;
                 },
@@ -93,9 +85,10 @@ mod tests {
         }
         assert!(ok.load(Ordering::SeqCst) == true, "\nresult: connected - {:?}\ntarget: connected - {:?}", ok, true);
     }
-
+    ///
+    /// 
     #[test]
-    fn test_failure_connection() {
+    fn failure_connection() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
@@ -104,23 +97,23 @@ mod tests {
         let timeout = Duration::from_millis(1500); // ms
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         let mut connect = TcpClientConnect::new("test", &addr, Duration::from_millis(500));
-        let connectExit = connect.exit();
+        let connect_exit = connect.exit();
         let ok = Arc::new(AtomicBool::new(false));
-        let okRef = ok.clone();
+        let ok_ref = ok.clone();
         thread::spawn(move || {
             info!("Waiting for connection...");
             thread::sleep(timeout);
-            okRef.store(false, Ordering::SeqCst);
+            ok_ref.store(false, Ordering::SeqCst);
             warn!("Tcp socket was not connected in {:?}", timeout);
             debug!("Thread | stopping...");
-            connectExit.send(true).unwrap();
+            connect_exit.send(true).unwrap();
             debug!("Thread | stopping - ok");
         });
         info!("Connecting...");
         match connect.connect() {
-            Some(tcpStream) => {
+            Some(tcp_stream) => {
                 ok.store(true, Ordering::SeqCst);
-                info!("connected: {:?}", tcpStream);
+                info!("connected: {:?}", tcp_stream);
             },
             None => {
                 warn!("not connected");

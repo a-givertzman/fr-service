@@ -8,6 +8,9 @@ pub mod fn_ge;
 pub mod fn_timer;
 pub mod fn_var;
 pub mod fn_const;
+pub mod fn_point_id;
+pub mod fn_debug;
+pub mod fn_to_int;
 
 pub mod nested_fn;
 

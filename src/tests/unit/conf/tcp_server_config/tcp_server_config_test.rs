@@ -6,12 +6,9 @@ mod tests {
     use std::sync::Once;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::conf::tcp_server_config::TcpServerConfig; 
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    ///
+    /// 
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -20,15 +17,12 @@ mod tests {
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
+    fn init_each() -> () {}
+    ///
+    /// 
     #[test]
     fn test_TcpServer_config() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -73,7 +67,7 @@ mod tests {
         ];
         for conf in test_data {
             let conf = serde_yaml::from_str(&conf).unwrap();
-            let conf = TcpServerConfig::from_yaml(&conf);
+            let conf = TcpServerConfig::from_yaml(self_id, &conf);
             info!("conf: \n{:?}", conf);
             // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }

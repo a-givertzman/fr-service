@@ -1,24 +1,25 @@
 #![allow(non_snake_case)]
-
-use std::{sync::{mpsc::{Sender, Receiver}, Arc, atomic::{AtomicBool, Ordering}, Mutex}, thread::{self, JoinHandle}};
-
+use std::{fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, mpsc::{Receiver, Sender}, Arc, Mutex}, thread};
 use log::{warn, info};
-
-use crate::{core_::{object::object::Object, point::point_type::PointType}, services::service::{service::Service, service_handles::ServiceHandles}};
-
-pub struct MockMultiqueue {
+use crate::{conf::point_config::name::Name, core_::{object::object::Object, point::point_type::PointType}, services::service::{service::Service, service_handles::ServiceHandles}};
+///
+/// 
+pub struct MockMultiQueue {
     id: String,
+    name: Name,
     send: Sender<PointType>,
     recv: Vec<Receiver<PointType>>,
     received: Arc<Mutex<Vec<PointType>>>,
     recvLimit: Option<usize>,
     exit: Arc<AtomicBool>,
 }
-impl MockMultiqueue {
-    pub fn new(recvLimit: Option<usize>) -> Self {
+impl MockMultiQueue {
+    pub fn new(parent: &str, index: impl Into<String>, recvLimit: Option<usize>) -> Self {
+        let name = Name::new(parent, format!("MockMultiQueue{}", index.into()));
         let (send, recv) = std::sync::mpsc::channel();
         Self {
-            id: "MockMultiqueue".to_owned(),
+            id: name.join(),
+            name,
             send,
             recv: vec![recv],
             received: Arc::new(Mutex::new(vec![])),
@@ -32,14 +33,27 @@ impl MockMultiqueue {
 }
 ///
 /// 
-impl Object for MockMultiqueue {
+impl Object for MockMultiQueue {
     fn id(&self) -> &str {
         &self.id
+    }
+    fn name(&self) -> Name {
+        self.name.clone()
     }
 }
 ///
 /// 
-impl Service for MockMultiqueue {
+impl Debug for MockMultiQueue {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("MockMultiQueue")
+            .field("id", &self.id)
+            .finish()
+    }
+}
+///
+/// 
+impl Service for MockMultiQueue {
     //
     //
     fn get_link(&mut self, name: &str) -> Sender<PointType> {

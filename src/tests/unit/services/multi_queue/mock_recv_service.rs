@@ -1,12 +1,13 @@
-use std::{collections::HashMap, sync::{mpsc::{Sender, Receiver, self}, Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread};
-
+use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread};
 use log::{info, trace, warn};
-
-use crate::{core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::point_type::PointType}, services::service::{service::Service, service_handles::ServiceHandles}};
-
-
+use crate::{
+    conf::point_config::name::Name, core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::point_type::PointType}, services::service::{service::Service, service_handles::ServiceHandles}
+};
+///
+/// 
 pub struct MockRecvService {
     id: String,
+    name: Name,
     rx_send: HashMap<String, Sender<PointType>>,
     rx_recv: Vec<Receiver<PointType>>,
     received: Arc<Mutex<Vec<PointType>>>,
@@ -17,10 +18,11 @@ pub struct MockRecvService {
 /// 
 impl MockRecvService {
     pub fn new(parent: impl Into<String>, rx_queue: &str, recv_limit: Option<usize>) -> Self {
-        let self_id = format!("{}/MockRecvService", parent.into());
+        let name = Name::new(parent, format!("MockRecvService{}", COUNT.fetch_add(1, Ordering::Relaxed)));
         let (send, recv) = mpsc::channel::<PointType>();
         Self {
-            id: self_id.clone(),
+            id: name.join(),
+            name,
             rx_send: HashMap::from([(rx_queue.to_string(), send)]),
             rx_recv: vec![recv],
             received: Arc::new(Mutex::new(vec![])),
@@ -44,6 +46,19 @@ impl MockRecvService {
 impl Object for MockRecvService {
     fn id(&self) -> &str {
         &self.id
+    }
+    fn name(&self) -> Name {
+        self.name.clone()
+    }
+}
+///
+/// 
+impl Debug for MockRecvService {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("MockRecvService")
+            .field("id", &self.id)
+            .finish()
     }
 }
 ///
@@ -69,7 +84,7 @@ impl Service for MockRecvService {
         let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
             match recv_limit {
-                Some(recvLimit) => {
+                Some(recv_limit) => {
                     let mut received_count = 0;
                     loop {
                         match in_recv.recv_timeout(RECV_TIMEOUT) {
@@ -80,7 +95,7 @@ impl Service for MockRecvService {
                             },
                             Err(_) => {},
                         };
-                        if received_count >= recvLimit {
+                        if received_count >= recv_limit {
                             break;
                         }
                         if exit.load(Ordering::SeqCst) {
@@ -122,3 +137,6 @@ impl Service for MockRecvService {
         self.exit.store(true, Ordering::SeqCst);
     }
 }
+///
+/// Global static counter of FnOut instances
+pub static COUNT: AtomicUsize = AtomicUsize::new(0);

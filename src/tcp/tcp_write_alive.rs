@@ -1,12 +1,11 @@
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{JoinHandle, self}, net::TcpStream, time::Duration};
-use log::{warn, info};
+use log::{info, warn};
 use crate::{
-    core_::net::connection_status::ConnectionStatus,
-    tcp::tcp_stream_write::TcpStreamWrite, services::task::service_cycle::ServiceCycle, 
+    core_::net::connection_status::ConnectionStatus, services::{safe_lock::SafeLock, task::service_cycle::ServiceCycle}, tcp::tcp_stream_write::{OpResult, TcpStreamWrite} 
 };
-
 ///
 /// Transfering points from Channel Sender<PointType> to the JdsStream (socket)
+#[derive(Debug)]
 pub struct TcpWriteAlive {
     id: String,
     cycle: Duration,
@@ -14,6 +13,8 @@ pub struct TcpWriteAlive {
     exit: Arc<AtomicBool>,
     exit_pair: Arc<AtomicBool>,
 }
+///
+/// 
 impl TcpWriteAlive {
     ///
     /// Creates new instance of [TcpWriteAlive]
@@ -36,22 +37,26 @@ impl TcpWriteAlive {
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         let exit_pair = self.exit_pair.clone();
-        let mut cycle = ServiceCycle::new(self.cycle);
+        let mut cycle = ServiceCycle::new(&self_id, self.cycle);
         let stream_write = self.stream_write.clone();
         info!("{}.run | Preparing thread...", self.id);
         let handle = thread::Builder::new().name(format!("{} - Write", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
-            let mut stream_write = stream_write.lock().unwrap();
+            let mut stream_write = stream_write.slock();
             info!("{}.run | Main loop started", self_id);
             'main: loop {
                 cycle.start();
                 match stream_write.write(&mut tcp_stream) {
                     ConnectionStatus::Active(result) => {
                         match result {
-                            Ok(_) => {},
-                            Err(err) => {
-                                warn!("{}.run | error: {:?}", self_id, err);
+                            OpResult::Ok(_) => {
+                                cycle.wait();
                             },
+                            OpResult::Err(err) => {
+                                warn!("{}.run | error: {:?}", self_id, err);
+                                cycle.wait();
+                            },
+                            OpResult::Timeout() => {}
                         }
                     },
                     ConnectionStatus::Closed(err) => {
@@ -63,7 +68,6 @@ impl TcpWriteAlive {
                 if exit.load(Ordering::SeqCst) | exit_pair.load(Ordering::SeqCst) {
                     break 'main;
                 }
-                cycle.wait();
             }
             info!("{}.run | Exit", self_id);
         }).unwrap();

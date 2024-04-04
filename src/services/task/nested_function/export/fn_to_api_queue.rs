@@ -1,11 +1,6 @@
-#![allow(non_snake_case)]
-
 use std::sync::{mpsc::Sender, atomic::{AtomicUsize, Ordering}};
-
-use log::{error, trace};
-
+use log::{debug, error};
 use crate::{services::task::nested_function::{fn_::{FnInOut, FnIn, FnOut}, fn_kind::FnKind}, core_::{point::point_type::PointType, types::fn_in_out_ref::FnInOutRef}};
-
 ///
 /// Exports data from the input into the associated queue
 #[derive(Debug)]
@@ -13,10 +8,12 @@ pub struct FnToApiQueue {
     id: String,
     kind: FnKind,
     input: FnInOutRef,
-    txSend: Sender<PointType>,
+    tx_send: Sender<PointType>,
     state: String,
 }
-static COUNT: AtomicUsize = AtomicUsize::new(0);
+///
+/// 
+static COUNT: AtomicUsize = AtomicUsize::new(1);
 ///
 /// 
 impl FnToApiQueue {
@@ -25,12 +22,11 @@ impl FnToApiQueue {
     /// - id - just for proper debugging
     /// - input - incoming points
     pub fn new(parent: impl Into<String>, input: FnInOutRef, send: Sender<PointType>) -> Self {
-        COUNT.fetch_add(1, Ordering::SeqCst);
         Self {  
-            id: format!("{}/FnToApiQueue{}", parent.into(), COUNT.load(Ordering::Relaxed)),
+            id: format!("{}/FnToApiQueue{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
             kind: FnKind::Fn,
             input,
-            txSend: send,
+            tx_send: send,
             state: String::new(),
         }
     }
@@ -64,9 +60,9 @@ impl FnOut for FnToApiQueue {
         let sql = point.as_string().value;
         if sql != self.state {
             self.state = sql.clone();
-            match self.txSend.send(point.clone()) {
+            match self.tx_send.send(point.clone()) {
                 Ok(_) => {
-                    trace!("{}.out | Sent sql: {}", self.id, sql);
+                    debug!("{}.out | Sent sql: {}", self.id, sql);
                 },
                 Err(err) => {
                     error!("{}.out | Send error: {:?}\n\tsql: {:?}", self.id, err, sql);

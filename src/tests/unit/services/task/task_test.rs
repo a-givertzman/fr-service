@@ -1,13 +1,13 @@
 #[cfg(test)]
 
 mod task {
-    use log::{trace, info, debug};
-    use std::{sync::{Once, Arc, Mutex}, env, time::{Instant, Duration}};
+    use log::{trace, info};
+    use std::{env, sync::{Arc, Mutex, Once}, thread, time::{Duration, Instant}};
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::task_config::TaskConfig, 
-        services::{task::{task::Task, task_test_receiver::TaskTestReceiver, task_test_producer::TaskTestProducer}, service::service::Service, services::Services},
+        conf::{point_config::name::Name, task_config::TaskConfig}, 
+        services::{service::service::Service, services::Services, task::{task::Task, task_test_producer::TaskTestProducer, task_test_receiver::TaskTestReceiver}},
     };
     ///
     /// 
@@ -32,29 +32,42 @@ mod task {
         init_once();
         init_each();
         println!();
-        let self_id = "test";
+        let self_id = "task_test";
+        let self_name = Name::new("", self_id);
         println!("\n{}", self_id);
-        let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
+        let test_duration = TestDuration::new(self_id, Duration::from_secs(3));
         test_duration.run().unwrap();
         //
         // can be changed
         let iterations = 10;
         trace!("dir: {:?}", env::current_dir());
         let path = "./src/tests/unit/services/task/task_test_struct.yaml";
-        let config = TaskConfig::read(path);
+        let config = TaskConfig::read(&self_name, path);
         trace!("config: {:?}", &config);
-        
         let services = Arc::new(Mutex::new(Services::new(self_id)));
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
             self_id,
+            "",
             "in-queue",
             iterations,
         )));
-        services.lock().unwrap().insert("TaskTestReceiver", receiver.clone());
-        
+        services.lock().unwrap().insert(receiver.clone());      // "TaskTestReceiver", 
         let test_data = RandomTestValues::new(
             self_id, 
-            vec![], 
+            vec![
+                Value::Real(-7.035),
+                Value::Real(-2.5),
+                Value::Real(-5.5),
+                Value::Real(-1.5),
+                Value::Real(-1.0),
+                Value::Real(-0.1),
+                Value::Real(0.1),
+                Value::Real(1.0),
+                Value::Real(1.5),
+                Value::Real(5.5),
+                Value::Real(2.5),
+                Value::Real(7.035),
+            ], 
             iterations, 
         );
         let test_data: Vec<Value> = test_data.collect();
@@ -62,25 +75,26 @@ mod task {
         assert!(total_count == iterations, "\nresult: {:?}\ntarget: {:?}", total_count, iterations);
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             self_id, 
-            "Task.recv-queue",
+            &format!("/{}/Task1.in-queue", self_id),
             Duration::ZERO,
             services.clone(),
             test_data,
         )));
-        let task = Arc::new(Mutex::new(Task::new(self_id, config, services.clone())));
-        services.lock().unwrap().insert("Task", task.clone());
+        let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
+        services.lock().unwrap().insert(task.clone());
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
-        let producer_handle = producer.lock().unwrap().run().unwrap();
-        trace!("task runing...");
-        let time = Instant::now();
+        info!("receiver runing - ok");
         let task_handle = task.lock().unwrap().run().unwrap();
-        trace!("task runing - ok");
-        producer_handle.wait().unwrap();
+        info!("task runing - ok");
+        thread::sleep(Duration::from_millis(100));
+        let producer_handle = producer.lock().unwrap().run().unwrap();
+        info!("producer runing - ok");
+        let time = Instant::now();
         receiver_handle.wait().unwrap();
-        debug!("task.lock.exit...");
+        producer.lock().unwrap().exit();
         task.lock().unwrap().exit();
-        debug!("task.lock.exit - ok");
         task_handle.wait().unwrap();
+        producer_handle.wait().unwrap();
         let sent = producer.lock().unwrap().sent().lock().unwrap().len();
         let result = receiver.lock().unwrap().received().lock().unwrap().len();
         println!(" elapsed: {:?}", time.elapsed());
@@ -92,38 +106,46 @@ mod task {
     }
     ///
     /// 
-    #[ignore = "TODO - transfered values assertion not implemented yet"]
     #[test]
+    #[ignore = "TODO - transfered values assertion not implemented yet"]
     fn transfer() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
         info!("test");
         let self_id = "test";
+        let self_name = Name::new("", self_id);
         //
         // Can be changed
         let iterations = 10;
         trace!("dir: {:?}", env::current_dir());
         let path = "./src/tests/unit/services/task/task_test_struct.yaml";
         // let path = "./src/tests/unit/task/task_test.yaml";
-        let config = TaskConfig::read(path);
+        let config = TaskConfig::read(&self_name, path);
         trace!("config: {:?}", &config);
         let services = Arc::new(Mutex::new(Services::new(self_id)));
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
             self_id,
+            "",
             "in-queue",
             iterations,
         )));
-        services.lock().unwrap().insert("TaskTestReceiver", receiver.clone());
+        services.lock().unwrap().insert(receiver.clone());      // "TaskTestReceiver", 
         let test_data = RandomTestValues::new(
             self_id, 
             vec![
-                Value::Float(f64::MAX),
-                Value::Float(f64::MIN),
-                Value::Float(f64::MIN_POSITIVE),
-                Value::Float(-f64::MIN_POSITIVE),
-                Value::Float(0.11),
-                Value::Float(1.33),
+                Value::Real(f32::MAX),
+                Value::Real(f32::MIN),
+                Value::Real(f32::MIN_POSITIVE),
+                Value::Real(-f32::MIN_POSITIVE),
+                Value::Real(0.11),
+                Value::Real(1.33),
+                Value::Double(f64::MAX),
+                Value::Double(f64::MIN),
+                Value::Double(f64::MIN_POSITIVE),
+                Value::Double(-f64::MIN_POSITIVE),
+                Value::Double(0.11),
+                Value::Double(1.33),
             ], 
             iterations, 
         );
@@ -131,13 +153,13 @@ mod task {
         // let totalCount = test_data.len();
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             self_id,
-            "Task.recv-queue",
+            "Task.in-queue",
             Duration::ZERO,
             services.clone(),
             test_data,
         )));
-        let task = Arc::new(Mutex::new(Task::new(self_id, config, services.clone())));
-        services.lock().unwrap().insert("Task", task.clone());
+        let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
+        services.lock().unwrap().insert(task.clone());
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         let producer_handle = producer.lock().unwrap().run().unwrap();
         trace!("task runing...");
@@ -155,9 +177,9 @@ mod task {
         println!("received: {:?}", received.len());
         assert!(sent.len() == iterations, "\nresult: {:?}\ntarget: {:?}", sent.len(), iterations);
         assert!(received.len() == iterations, "\nresult: {:?}\ntarget: {:?}", received.len(), iterations);
-        for sentPoint in sent.iter() {
+        for sent_point in sent.iter() {
             let recv_point = received.pop().unwrap();
-            assert!(&recv_point == sentPoint, "\nresult: {:?}\ntarget: {:?}", recv_point, sentPoint);
+            assert!(&recv_point == sent_point, "\nresult: {:?}\ntarget: {:?}", recv_point, sent_point);
         }
     }
 }

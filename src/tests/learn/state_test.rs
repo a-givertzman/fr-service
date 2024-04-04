@@ -6,12 +6,9 @@ mod tests {
     use std::sync::Once;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::core_::state::{switch_state::{SwitchState, Switch, SwitchCondition}, switch_state_changed::SwitchStateChanged}; 
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    ///
+    /// 
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -20,8 +17,6 @@ mod tests {
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
@@ -54,7 +49,8 @@ mod tests {
         );
         switchState
     }
-    
+    ///
+    /// 
     #[ignore = "Learn - all must be ignored"]
     #[test]
     fn test_state() {
@@ -62,12 +58,10 @@ mod tests {
         init_once();
         println!();
         println!("test SwitchState");
-
         let steps: Vec<f64> = vec![0.25, 0.50, 0.75];
         let mut switchState = SwitchStateChanged::new(
             init_each(1, steps),
         );
-
         for value in 0..=100 {
             let value = 0.01 * (value as f64);
             switchState.add(value);

@@ -1,8 +1,4 @@
-#![allow(non_snake_case)]
-
 use std::collections::VecDeque;
-
-
 ///
 /// Holds array of T
 /// - push(value: T) - appends an element to the end of a buffer
@@ -10,6 +6,7 @@ use std::collections::VecDeque;
 /// - pop(value: T) - returns and removes value<T> from the end of array
 /// - remove(index) - returns and removes value<T> from the [index] position
 /// - len() - Returns the number of elements in the buffer
+#[derive(Debug)]
 pub struct RetainBuffer<T> {
     id: String,
     vec: VecDeque<T>,
@@ -45,7 +42,7 @@ impl<T> RetainBuffer<T> {
     }
     ///
     /// Returns and removes first value<T> in the buffer
-    pub fn popFirst(&mut self) -> Option<T> {
+    pub fn pop_first(&mut self) -> Option<T> {
         self.vec.pop_front()
     }
     // ///

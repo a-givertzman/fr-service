@@ -6,7 +6,9 @@ mod task_config_read {
     use std::{sync::Once, env, time::Duration};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::conf::{
-        fn_::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType}, 
+        conf_subscribe::ConfSubscribe, 
+        fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig}, 
+        point_config::name::Name, 
         task_config::TaskConfig,
     };
     ///
@@ -31,12 +33,15 @@ mod task_config_read {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
-        info!("test");
+        let self_id = "task_config_new_test";
+        let self_name = Name::new("", self_id);
+        info!("{}", self_id);
         let target = TaskConfig {
-            name: format!("Task1"),
+            name: Name::new(&self_name, "Task1"),
             cycle: Some(Duration::from_millis(100)),
             rx: format!("recv-queue"),
             rx_max_length: 10000,
+            subscribe: ConfSubscribe::new(serde_yaml::Value::Null),
             vars: vec![format!("VarName2")],
             nodes: IndexMap::from([                    
                 (format!("SqlMetric-1"), FnConfKind::Fn( FnConfig { 
@@ -58,7 +63,7 @@ mod task_config_read {
                                             (format!("input"), FnConfKind::Fn( FnConfig { 
                                                 name: format!("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                                                     (format!("input1"), FnConfKind::Const( FnConfig { name: format!("someValue"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
-                                                    (format!("input2"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name"), type_: FnConfPointType::Float, inputs: IndexMap::new() } )), 
+                                                    (format!("input2"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name"), type_: FnConfPointType::Real, inputs: IndexMap::new() } )), 
                                                     (format!("input"), FnConfKind::Fn( FnConfig { 
                                                         name: format!("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                                                             (format!("input"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name"), type_: FnConfPointType::Bool, inputs: IndexMap::new() } )),
@@ -70,7 +75,23 @@ mod task_config_read {
                                     } ))
                                 ]) 
                             } )), 
-                            (format!("input2"), FnConfKind::Const( FnConfig { name: format!("1"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } ))
+                            (format!("input2"), FnConfKind::Const( FnConfig { name: format!("1"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
+                            (format!("input3"), FnConfKind::Point( FnConfig { name: format!("every"), type_: FnConfPointType::Any, inputs: IndexMap::new() } )), 
+                            (format!("input4"), FnConfKind::Fn( FnConfig { 
+                                name: format!("PointId"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                    (format!("input"), FnConfKind::Point( FnConfig { name: format!("every"), type_: FnConfPointType::Any, inputs: IndexMap::new() } )), 
+                                ]),
+                            } )), 
+                            (format!("input5"), FnConfKind::Fn( FnConfig { 
+                                name: format!("PointId"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                    (format!("input"), FnConfKind::Point( FnConfig { name: format!("every"), type_: FnConfPointType::Int, inputs: IndexMap::new() } )), 
+                                ]),
+                            } )), 
+                            (format!("input6"), FnConfKind::Fn( FnConfig { 
+                                name: format!("PointId"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                                    (format!("input"), FnConfKind::Point( FnConfig { name: format!("every"), type_: FnConfPointType::Real, inputs: IndexMap::new() } )), 
+                                ]),
+                            } )), 
                         ]), 
                     } )
                 ),
@@ -78,8 +99,9 @@ mod task_config_read {
         };
         trace!("dir: {:?}", env::current_dir());
         let path = "./src/tests/unit/conf/task_config/task_config_test.yaml";
-        let metric_config = TaskConfig::read(path);
+        let metric_config = TaskConfig::read(&self_name, path);
         trace!("fnConfig: {:?}", metric_config);
         assert_eq!(metric_config, target);
     }
 }    
+

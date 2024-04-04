@@ -120,7 +120,7 @@ mod tests {
         println!();
         let self_id = "test RequestKind";
         println!("\n{}", self_id);
-        let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
+        let test_duration = TestDuration::new("RequestKind test", Duration::from_secs(10));
         test_duration.run().unwrap();
         let test_data = [
             (format!("{}/JdsService/Auth.Secret", self_id), RequestKind::AuthSecret),

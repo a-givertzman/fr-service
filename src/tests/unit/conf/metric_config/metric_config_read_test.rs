@@ -6,13 +6,10 @@ mod tests{
     use std::{sync::Once, env};
     use indexmap::IndexMap;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::conf::fn_::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType, metric_config::MetricConfig};
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    use crate::conf::{fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig, metric_config::MetricConfig}, point_config::name::Name};
+    ///
+    /// 
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -21,15 +18,12 @@ mod tests{
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
+    fn init_each() -> () {}
+    ///
+    /// 
     #[test]
     fn test_fn_config_read_valid() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -37,6 +31,7 @@ mod tests{
         init_each();
         println!();
         let self_id = "test MetricConfig | read valid";
+        let self_name = Name::new("", self_id);
         println!("\n{}", self_id);
         let target = MetricConfig { 
             name: format!("SqlMetric"), 
@@ -53,7 +48,7 @@ mod tests{
                                 (format!("input"), FnConfKind::Fn( FnConfig { 
                                     name: format!("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                                         (format!("input1"), FnConfKind::Const( FnConfig { name: format!("someValue"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
-                                        (format!("input2"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name/"), type_: FnConfPointType::Float, inputs: IndexMap::new() } )), 
+                                        (format!("input2"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name/"), type_: FnConfPointType::Real, inputs: IndexMap::new() } )), 
                                         (format!("input"), FnConfKind::Fn( FnConfig { 
                                             name: format!("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                                                 (format!("input"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name/"), type_: FnConfPointType::Bool, inputs: IndexMap::new() } )),
@@ -72,7 +67,7 @@ mod tests{
         // let (initial, switches) = init_each();
         trace!("dir: {:?}", env::current_dir());
         let path = "./src/tests/unit/conf/metric_config/metric_config_test.yaml";
-        let metricConfig = MetricConfig::read(self_id, path);
+        let metricConfig = MetricConfig::read(self_id, &self_name, path);
         trace!("fnConfig: {:?}", metricConfig);
         assert_eq!(metricConfig, target);
     }

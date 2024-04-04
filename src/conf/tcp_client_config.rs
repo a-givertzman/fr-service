@@ -1,6 +1,8 @@
 use log::{trace, debug};
 use std::{fs, time::Duration, net::SocketAddr};
 use crate::conf::{conf_tree::ConfTree, service_config::ServiceConfig};
+
+use super::point_config::name::Name;
 ///
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
@@ -14,7 +16,7 @@ use crate::conf::{conf_tree::ConfTree, service_config::ServiceConfig};
 ///                         ...
 #[derive(Debug, PartialEq, Clone)]
 pub struct TcpClientConfig {
-    pub(crate) name: String,
+    pub(crate) name: Name,
     pub(crate) address: SocketAddr,
     pub(crate) cycle: Option<Duration>,
     pub(crate) reconnect_cycle: Option<Duration>,
@@ -38,16 +40,13 @@ impl TcpClientConfig {
     ///         max-length: 10000
     ///     out queue: MultiQueue.queue
     ///                     ...
-    pub fn new(conf_tree: &mut ConfTree) -> TcpClientConfig {
+    pub fn new(parent: impl Into<String>, conf_tree: &mut ConfTree) -> TcpClientConfig {
         println!();
         trace!("TcpClientConfig.new | confTree: {:?}", conf_tree);
-        // self conf from first sub node
-        //  - if additional sub nodes presents hit warning, FnConf must have single item
         let self_id = format!("TcpClientConfig({})", conf_tree.key);
-        trace!("{}.new | MAPPING VALUE", self_id);
         let mut self_conf = ServiceConfig::new(&self_id, conf_tree.clone());
         trace!("{}.new | selfConf: {:?}", self_id, self_conf);
-        let self_name = self_conf.name();
+        let self_name = Name::new(parent, self_conf.name());
         debug!("{}.new | name: {:?}", self_id, self_name);
         let self_address: SocketAddr = self_conf.get_param_value("address").unwrap().as_str().unwrap().parse().unwrap();
         debug!("{}.new | address: {:?}", self_id, self_address);
@@ -73,10 +72,10 @@ impl TcpClientConfig {
     }
     ///
     /// creates config from serde_yaml::Value of following format:
-    pub(crate) fn from_yaml(value: &serde_yaml::Value) -> TcpClientConfig {
+    pub(crate) fn from_yaml(parent: impl Into<String>, value: &serde_yaml::Value) -> TcpClientConfig {
         match value.as_mapping().unwrap().into_iter().next() {
             Some((key, value)) => {
-                Self::new(&mut ConfTree::new(key.as_str().unwrap().to_owned(), value.clone()))
+                Self::new(parent, &mut ConfTree::new(key.as_str().unwrap(), value.clone()))
             },
             None => {
                 panic!("TcpClientConfig.from_yaml | Format error or empty conf: {:#?}", value)
@@ -86,12 +85,12 @@ impl TcpClientConfig {
     ///
     /// reads config from path
     #[allow(dead_code)]
-    pub fn read(path: &str) -> TcpClientConfig {
+    pub fn read(parent: impl Into<String>, path: &str) -> TcpClientConfig {
         match fs::read_to_string(path) {
             Ok(yaml_string) => {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
-                        TcpClientConfig::from_yaml(&config)
+                        TcpClientConfig::from_yaml(parent, &config)
                     },
                     Err(err) => {
                         panic!("TcpClientConfig.read | Error in config: {:?}\n\terror: {:#?}", yaml_string, err)

@@ -1,8 +1,7 @@
 use log::{warn, trace};
-use std::{collections::HashMap, hash::BuildHasherDefault, sync::mpsc::Sender};
+use std::{collections::HashMap, fmt::Debug, hash::BuildHasherDefault, sync::mpsc::Sender};
 use hashers::fx_hash::FxHasher;
 use crate::core_::point::point_type::PointType;
-
 ///
 /// Unique id of the service receiving the Point's by the subscription
 /// This id used to identify the service produced the Points. 
@@ -12,11 +11,10 @@ type ReceiverId = usize;
 /// Destination of the point,
 /// Currently it's just a concat of the Point.cot & Point.id 
 type PointDest = String; 
-
 ///
 /// Contains map of Sender's
 /// - Where Sender - is pair of String ID & Sender<PointType>
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Subscriptions {
     id: String,
     multicast: HashMap<PointDest, HashMap<ReceiverId, Sender<PointType>, BuildHasherDefault<FxHasher>>, BuildHasherDefault<FxHasher>>,
@@ -130,5 +128,15 @@ impl Subscriptions {
         } else {
             Err(messages.join("\n"))
         }
+    }
+}
+///
+/// 
+impl Debug for Subscriptions {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("Subscriptions")
+            .field("id", &self.id)
+            .finish()
     }
 }

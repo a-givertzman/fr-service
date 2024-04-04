@@ -1,16 +1,9 @@
-#![allow(non_snake_case)]
-
 use std::sync::atomic::{AtomicUsize, Ordering};
-
 use log::trace;
-
 use crate::core_::{
     cot::cot::Cot, point::{point::Point, point_type::PointType}, types::{fn_in_out_ref::FnInOutRef, type_of::DebugTypeOf}
 };
-
 use super::{fn_::{FnInOut, FnOut, FnIn}, fn_kind::FnKind};
-
-
 ///
 /// Counts number of raised fronts of boolean input
 #[derive(Debug)]
@@ -28,9 +21,8 @@ impl FnCount {
     /// Creates new instance of the FnCount
     #[allow(dead_code)]
     pub fn new(parent: impl Into<String>, initial: f64, input: FnInOutRef) -> Self {
-        COUNT.fetch_add(1, Ordering::SeqCst);
         Self { 
-            id: format!("{}/FnCount{}", parent.into(), COUNT.load(Ordering::Relaxed)),
+            id: format!("{}/FnCount{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
             kind:FnKind::Fn,
             input,
             count: initial,
@@ -63,12 +55,13 @@ impl FnOut for FnCount {
         let value = match &point {
             PointType::Bool(point) => if point.value.0 {1.0} else {0.0},
             PointType::Int(point) => point.value as f64,
-            PointType::Float(point) => point.value,
+            PointType::Real(point) => point.value as f64,
+            PointType::Double(point) => point.value,
             _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id,  point.print_type_of(), point),
         };
         self.count += value;
         trace!("{}.out | input.out: {:?}   | state: {:?}", self.id, &value, self.count);
-        PointType::Float(
+        PointType::Double(
             Point {
                 tx_id: *point.tx_id(),
                 name: format!("{}.out", self.id),
@@ -88,5 +81,5 @@ impl FnOut for FnCount {
 /// 
 impl FnInOut for FnCount {}
 ///
-///
-pub static COUNT: AtomicUsize = AtomicUsize::new(0);
+/// Global static counter of FnOut instances
+pub static COUNT: AtomicUsize = AtomicUsize::new(1);

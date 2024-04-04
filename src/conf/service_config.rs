@@ -1,6 +1,6 @@
 use std::{time::Duration, str::FromStr};
 use log::{debug, trace};
-use super::{conf_tree::ConfTree, conf_duration::ConfDuration, conf_keywd::{ConfKind, ConfKeywd}};
+use super::{conf_duration::ConfDuration, conf_keywd::{ConfKeywd, ConfKind}, conf_subscribe::ConfSubscribe, conf_tree::ConfTree};
 ///
 /// 
 #[derive(Debug, PartialEq, Clone)]
@@ -42,7 +42,7 @@ impl ServiceConfig {
                 self.keys.remove(index);
                 Ok(())
             },
-            None => Err(format!("{}.removeKey | '{}' - not found in: {:?}", self.id, name, self.conf)),
+            None => Err(format!("{}.remove_key | '{}' - not found in: {:?}", self.id, name, self.conf)),
         }
     }
     ///
@@ -64,7 +64,7 @@ impl ServiceConfig {
                 trace!("{}.sufix | selfKeyword: {:?}", self.id, self_keyword);
                 self_keyword.sufix()
             },
-            Err(err) => panic!("{}.name | Keyword error in {:?}\n\tdetales: {:?}", self.id, self.conf.key, err),
+            Err(err) => panic!("{}.sufix | Keyword error in {:?}\n\tdetales: {:?}", self.id, self.conf.key, err),
         }
     }
     ///
@@ -74,7 +74,7 @@ impl ServiceConfig {
             Ok(_) => {
                 match self.conf.get(name) {
                     Some(conf_tree) => Ok(conf_tree.conf),
-                    None => Err(format!("{}.getParam | '{}' - not found in: {:?}", self.id, name, self.conf)),
+                    None => Err(format!("{}.get_param_value | '{}' - not found in: {:?}", self.id, name, self.conf)),
                 }
             },
             Err(err) => Err(err),
@@ -87,7 +87,7 @@ impl ServiceConfig {
             Ok(_) => {
                 match self.conf.get(name) {
                     Some(conf_tree) => Ok(conf_tree),
-                    None => Err(format!("{}.getParam | '{}' - not found in: {:?}", self.id, name, self.conf)),
+                    None => Err(format!("{}.get_param_conf | '{}' - not found in: {:?}", self.id, name, self.conf)),
                 }
             },
             Err(err) => Err(err),
@@ -103,13 +103,13 @@ impl ServiceConfig {
                 } else if value.is_string() {
                     value.as_str().unwrap().to_string()
                 } else {
-                    panic!("{}.getDuration | Invalid {} duration format: {:?} \n\tin: {:?}", self.id, &name, &value, self.conf)
+                    panic!("{}.get_duration | Invalid {} duration format: {:?} \n\tin: {:?}", self.id, &name, &value, self.conf)
                 };
                 match ConfDuration::from_str(&value) {
                     Ok(conf_duration) => {
                         Some(conf_duration.toDuration())
                     },
-                    Err(err) => panic!("{}.getDuration | Parse {} duration '{}' error: {:?}", self.id, &name, &value, err),
+                    Err(err) => panic!("{}.get_duration | Parse {} duration '{}' error: {:?}", self.id, &name, &value, err),
                 }
             },
             Err(_) => None,
@@ -129,8 +129,18 @@ impl ServiceConfig {
                 }
             };
         };
-        Err(format!("{}.getParamByKeyword | keyword '{} {:?}' - not found", self.id, keyword_prefix, keyword_kind))
+        Err(format!("{}.get_param_by_keyword | keyword '{} {:?}' - not found", self.id, keyword_prefix, keyword_kind))
     }
+    ///
+    /// 
+    pub fn subscribe(&mut self) -> Result<ConfSubscribe, String> {
+        match self.get_param_value("subscribe") {
+            Ok(conf) => {
+                Ok(ConfSubscribe::new(conf))
+            },
+            Err(err) => Err(err),
+        }
+    }    
     ///
     /// 
     pub fn get_in_queue(&mut self) -> Result<(String, i64), String> {
@@ -139,14 +149,14 @@ impl ServiceConfig {
         match self.get_param_by_keyword(prefix, ConfKind::Queue) {
             Ok((keyword, self_recv_queue)) => {
                 let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
-                debug!("{}.getQueue | self in-queue params {}: {:?}", self.id, name, self_recv_queue);
+                debug!("{}.get_in_queue | self in-queue params {}: {:?}", self.id, name, self_recv_queue);
                 let max_length = match self_recv_queue.get(sub_param) {
                     Some(conf_tree) => Ok(conf_tree.conf),
-                    None => Err(format!("{}.getQueue | '{}' - not found in: {:?}", self.id, name, self.conf)),
+                    None => Err(format!("{}.get_in_queue | '{}' - not found in: {:?}", self.id, name, self.conf)),
                 }.unwrap().as_i64().unwrap();
                 Ok((keyword.name(), max_length))
             },
-            Err(err) => Err(format!("{}.getQueue | {} queue - not found in: {:?}\n\terror: {:?}", self.id, prefix, self.conf, err)),
+            Err(err) => Err(format!("{}.get_in_queue | {} queue - not found in: {:#?}\n\terror: {:?}", self.id, prefix, self.conf, err)),
         }        
     }    
     ///
@@ -156,10 +166,20 @@ impl ServiceConfig {
         match self.get_param_by_keyword(prefix, ConfKind::Queue) {
             Ok((keyword, tx_name)) => {
                 let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
-                debug!("{}.getQueue | self out-queue params {}: {:?}", self.id, name, tx_name);
+                debug!("{}.get_out_queue | self out-queue params {}: {:?}", self.id, name, tx_name);
                 Ok(tx_name.conf.as_str().unwrap().to_string())
             },
-            Err(err) => Err(format!("{}.getQueue | {} queue - not found in: {:?}\n\terror: {:?}", self.id, prefix, self.conf, err)),
+            Err(err) => Err(format!("{}.get_out_queue | {} queue - not found in: {:#?}\n\terror: {:?}", self.id, prefix, self.conf, err)),
+        }        
+    }    
+    ///
+    /// 
+    pub fn get_send_to(&mut self) -> Result<String, String> {
+        match self.get_param_value("send-to") {
+            Ok(conf) => {
+                Ok(conf.as_str().unwrap().to_string())
+            },
+            Err(err) => Err(format!("{}.get_send_to | 'send-to' - not found in: {:#?}\n\terror: {:#?}", self.id, self.conf, err)),
         }        
     }    
 }

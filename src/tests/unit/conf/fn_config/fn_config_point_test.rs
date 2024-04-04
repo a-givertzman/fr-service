@@ -1,4 +1,3 @@
-#![allow(non_snake_case)]
 #[cfg(test)]
 
 mod tests {
@@ -7,15 +6,11 @@ mod tests {
     use indexmap::IndexMap;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::conf::{
-        point_config::{point_config::PointConfig, point_config_history::PointConfigHistory, point_config_type::PointConfigType},
-        fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig, fn_point_config::FnPointConfig},
+        fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig, fn_point_config::FnPointConfig}, point_config::{name::Name, point_config::PointConfig, point_config_history::PointConfigHistory, point_config_type::PointConfigType}
     };
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    ///
+    /// 
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -24,15 +19,12 @@ mod tests {
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
+    fn init_each() -> () {}
+    ///
+    /// 
     #[test]
     fn test_fn_config_point() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -40,8 +32,10 @@ mod tests {
         init_each();
         println!();
         let self_id = "test FnConfig | point";
+        let self_name = Name::new("", self_id);
         println!("\n{}", self_id);
-        let testPoint1 = PointConfig {
+        let test_point1 = PointConfig {
+            id: 0,
             name: format!("/{}/CraneMovement.BoomUp", self_id),
             _type: PointConfigType::Int,
             history: PointConfigHistory::None,
@@ -50,9 +44,10 @@ mod tests {
             filters: None,
             comment: Some("Some indication".to_string()),
         };
-        let testPoint2 = PointConfig {
+        let test_point2 = PointConfig {
+            id: 0,
             name: format!("/{}/CraneMovement.BoomDown", self_id),
-            _type: PointConfigType::Float,
+            _type: PointConfigType::Real,
             history: PointConfigHistory::Read,
             alarm: None,
             address: None,
@@ -72,44 +67,44 @@ mod tests {
                 ),
             ),
             (
-                vec![testPoint1.clone(), testPoint2.clone()],
+                vec![test_point1.clone(), test_point2.clone()],
                 r#"
                     fn ToMultiQueue:
                         in1 point CraneMovement.BoomUp: 
                             type: 'Int'
                             comment: 'Some indication'
                             input:
-                                const float 0.05
+                                const real 0.05
                         in2 point CraneMovement.BoomDown: 
-                            type: 'Float'
+                            type: 'Real'
                             history: r
                             comment: 'Some indication'
                             input:
-                                const float 0.07
+                                const real 0.07
                 "#,
                 FnConfKind::Fn( FnConfig { name: "ToMultiQueue".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                     ("in1".to_string(), FnConfKind::PointConf( FnPointConfig { 
-                        conf: testPoint1,
-                        input: Box::new(FnConfKind::Const( FnConfig { name: "0.05".to_string(), type_: FnConfPointType::Float, inputs: IndexMap::new()} )),
+                        conf: test_point1,
+                        input: Box::new(FnConfKind::Const( FnConfig { name: "0.05".to_string(), type_: FnConfPointType::Real, inputs: IndexMap::new()} )),
                     })),
                     ("in2".to_string(), FnConfKind::PointConf( FnPointConfig { 
-                            conf: testPoint2,
-                            input: Box::new(FnConfKind::Const( FnConfig { name: "0.07".to_string(), type_: FnConfPointType::Float, inputs: IndexMap::new()} )),
+                            conf: test_point2,
+                            input: Box::new(FnConfKind::Const( FnConfig { name: "0.07".to_string(), type_: FnConfPointType::Real, inputs: IndexMap::new()} )),
                         })),
                 ]) } ),
             ),
         ];
-        for (pointsTarget, value, target) in test_data {
+        for (points_target, value, target) in test_data {
             debug!("test value: {:?}", value);
             let conf: serde_yaml::Value = serde_yaml::from_str(value).unwrap();
             debug!("value: {:?}   |   conf: {:?}   |   target: {:?}", "_", conf, target);
             let mut vars = vec![];
-            let fnConfig = FnConfig::from_yaml(self_id, &conf, &mut vars);
-            let points = fnConfig.points();
-            debug!("\tfnConfig: {:?}", fnConfig);
+            let fn_config = FnConfig::from_yaml(self_id, &self_name, &conf, &mut vars);
+            let points = fn_config.points();
+            debug!("\tfnConfig: {:?}", fn_config);
             debug!("\tpoints: {:?}", points);
-            assert_eq!(fnConfig, target);
-            assert_eq!(points, pointsTarget);
+            assert_eq!(fn_config, target);
+            assert_eq!(points, points_target);
         }
     }
 }

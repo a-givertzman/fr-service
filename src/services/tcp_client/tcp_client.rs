@@ -1,10 +1,8 @@
-use std::{sync::{mpsc::{Sender, Receiver, self}, Arc, atomic::{AtomicBool, Ordering}, Mutex}, time::Duration, collections::HashMap, thread};
-
+use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread, time::Duration};
 use log::{debug, info, warn};
 use testing::stuff::wait::WaitTread;
-
 use crate::{
-    conf::tcp_client_config::TcpClientConfig, core_::{net::protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::point_type::PointType}, services::{service::{service::Service, service_handles::ServiceHandles}, services::Services}, tcp::{
+    conf::{point_config::name::Name, tcp_client_config::TcpClientConfig}, core_::{net::protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::point_type::PointType}, services::{safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services}, tcp::{
         tcp_client_connect::TcpClientConnect, tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive
     } 
 };
@@ -15,6 +13,7 @@ use crate::{
 /// - Sent messages immediately removed from the buffer
 pub struct TcpClient {
     id: String,
+    name: Name,
     in_send: HashMap<String, Sender<PointType>>,
     in_recv: Vec<Receiver<PointType>>,
     conf: TcpClientConfig,
@@ -29,10 +28,11 @@ impl TcpClient {
     ///
     /// Creates new instance of [ApiClient]
     /// - [parent] - the ID if the parent entity
-    pub fn new(parent: impl Into<String>, conf: TcpClientConfig, services: Arc<Mutex<Services>>) -> Self {
+    pub fn new(conf: TcpClientConfig, services: Arc<Mutex<Services>>) -> Self {
         let (send, recv) = mpsc::channel();
         Self {
-            id: format!("{}/TcpClient({})", parent.into(), conf.name),
+            id: conf.name.join(),
+            name: conf.name.clone(),
             in_recv: vec![recv],
             in_send: HashMap::from([(conf.rx.clone(), send)]),
             conf: conf.clone(),
@@ -46,6 +46,19 @@ impl TcpClient {
 impl Object for TcpClient {
     fn id(&self) -> &str {
         &self.id
+    }
+    fn name(&self) -> Name {
+        self.name.clone()
+    }
+}
+///
+/// 
+impl Debug for TcpClient {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("TcpClient")
+            .field("id", &self.id)
+            .finish()
     }
 }
 ///
@@ -70,7 +83,9 @@ impl Service for TcpClient {
         info!("{}.run | rx queue name: {:?}", self.id, conf.rx);
         info!("{}.run | tx queue name: {:?}", self.id, conf.tx);
         debug!("{}.run | Lock services...", self_id);
-        let tx_send = self.services.lock().unwrap().get_link(&conf.tx);
+        let tx_send = self.services.slock().get_link(&conf.tx).unwrap_or_else(|err| {
+            panic!("{}.run | services.get_link error: {:#?}", self.id, err);
+        });
         debug!("{}.run | Lock services - ok", self_id);
         let buffered = conf.rx_buffered; // TODO Read this from config
         let in_recv = self.in_recv.pop().unwrap();
@@ -151,13 +166,13 @@ impl Service for TcpClient {
         self.exit.store(true, Ordering::SeqCst);
         match &self.tcp_recv_alive {
             Some(tcp_recv_alive) => {
-                tcp_recv_alive.lock().unwrap().exit()
+                tcp_recv_alive.slock().exit()
             },
             None => {},
         }
         match &self.tcp_send_alive {
             Some(tcp_send_alive) => {
-                tcp_send_alive.lock().unwrap().exit()
+                tcp_send_alive.slock().exit()
             },
             None => {},
         }

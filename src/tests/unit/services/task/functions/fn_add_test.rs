@@ -6,9 +6,7 @@ mod tests {
     use std::{sync::Once, rc::Rc, cell::RefCell};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
-        services::task::nested_function::{fn_::FnOut, 
-        fn_input::FnInput, fn_add::FnAdd},
+        conf::fn_::fn_conf_keywd::FnConfPointType, core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, services::task::nested_function::{fn_::FnOut, fn_add::FnAdd, fn_input::FnInput}
     };
     
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -29,10 +27,10 @@ mod tests {
     ///
     /// returns:
     ///  - ...
-    fn init_each(initial: PointType) -> FnInOutRef {
+    fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(
             Box::new(
-                FnInput::new("test", initial)
+                FnInput::new("test", initial, type_)
             )
         ))
     }
@@ -46,8 +44,8 @@ mod tests {
         let mut value1Stored = false.to_point(0, "bool");
         let mut value2Stored = false.to_point(0, "bool");
         let mut target: PointType;
-        let input1 = init_each(value1Stored.clone());
-        let input2 = init_each(value2Stored.clone());
+        let input1 = init_each(value1Stored.clone(), FnConfPointType::Bool);
+        let input2 = init_each(value2Stored.clone(), FnConfPointType::Bool);
         let mut fnAdd = FnAdd::new(
             "test",
             input1.clone(),
@@ -90,8 +88,8 @@ mod tests {
         let mut value1Stored = 0.to_point(0, "int");
         let mut value2Stored = 0.to_point(0, "int");
         let mut target: PointType;
-        let input1 = init_each(value1Stored.clone());
-        let input2 = init_each(value2Stored.clone());
+        let input1 = init_each(value1Stored.clone(), FnConfPointType::Int);
+        let input2 = init_each(value2Stored.clone(), FnConfPointType::Int);
         let mut fnAdd = FnAdd::new(
             "test",
             input1.clone(),

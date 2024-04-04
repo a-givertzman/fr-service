@@ -41,7 +41,7 @@ impl FnConfKind {
             FnConfKind::Const(conf) => conf.points(),
             FnConfKind::Point(conf) => conf.points(),
             FnConfKind::PointConf(conf) => conf.points(),
-            FnConfKind::Param(conf) => panic!("FnConfKind.points | Param {} - does not have points", conf),
+            FnConfKind::Param(conf) => panic!("FnConfKind.points | Param {} - does not have points() method", conf),
         }
     }
 }

@@ -1,23 +1,18 @@
 #![allow(non_snake_case)]
-
-use std::{sync::{Arc, Mutex, mpsc::{Sender, Receiver, self}, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread};
-
-use log::{info, warn, error, debug, trace};
-
+use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread};
+use log::{error, info, trace, warn};
 use crate::{
-    core_::{object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}}, 
-    services::{
-        multi_queue::{subscription_criteria::SubscriptionCriteria, subscriptions::Subscriptions}, service::{service::Service, service_handles::ServiceHandles}, services::Services 
-    },
+    conf::point_config::name::Name, core_::{object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}}, services::{
+        multi_queue::{subscription_criteria::SubscriptionCriteria, subscriptions::Subscriptions}, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services 
+    }
 };
-
-
 ///
 /// - Receives points into the MPSC queue in the blocking mode
 /// - If new point received, immediately sends it to the all subscribed consumers
 /// - Keeps all consumers subscriptions in the single map:
 pub struct MockMultiQueueMatch {
     id: String,
+    name: Name,
     subscriptions: Arc<Mutex<Subscriptions>>,
     rxSend: HashMap<String, Sender<PointType>>,
     rxRecv: Vec<Receiver<PointType>>,
@@ -32,11 +27,12 @@ impl MockMultiQueueMatch {
     /// Creates new instance of [ApiClient]
     /// - [parent] - the ID if the parent entity
     pub fn new(parent: impl Into<String>, txQueues: Vec<String>, rxQueue: impl Into<String>, services: Arc<Mutex<Services>>) -> Self {
-        let self_id = format!("{}/MockMultiQueueMatch", parent.into());
+        let name = Name::new(parent, format!("MockMultiQueueMatch{}", COUNT.fetch_add(1, Ordering::Relaxed)));
         let (send, recv) = mpsc::channel();
         Self {
-            id: self_id.clone(),
-            subscriptions: Arc::new(Mutex::new(Subscriptions::new(self_id))),
+            id: name.join(),
+            name: name.clone(),
+            subscriptions: Arc::new(Mutex::new(Subscriptions::new(name))),
             rxSend: HashMap::from([(rxQueue.into(), send)]),
             rxRecv: vec![recv],
             sendQueues: txQueues,
@@ -50,6 +46,19 @@ impl MockMultiQueueMatch {
 impl Object for MockMultiQueueMatch {
     fn id(&self) -> &str {
         &self.id
+    }
+    fn name(&self) -> Name {
+        self.name.clone()
+    }
+}
+///
+/// 
+impl Debug for MockMultiQueueMatch {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("MockMultiQueueMatch")
+            .field("id", &self.id)
+            .finish()
     }
 }
 ///
@@ -101,9 +110,9 @@ impl Service for MockMultiQueueMatch {
         let subscriptions = self.subscriptions.clone();
         let mut staticSubscriptions: HashMap<usize, Sender<PointType>> = HashMap::new();
         for sendQueue in &self.sendQueues {
-            debug!("{}.run | Lock services...", self_id);
-            let txSend = self.services.lock().unwrap().get_link(sendQueue);
-            debug!("{}.run | Lock services - ok", self_id);
+            let txSend = self.services.slock().get_link(sendQueue).unwrap_or_else(|err| {
+                panic!("{}.run | services.get_link error: {:#?}", self.id, err);
+            });
             staticSubscriptions.insert(PointTxId::fromStr(sendQueue), txSend);
         }
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
@@ -155,65 +164,6 @@ impl Service for MockMultiQueueMatch {
         self.exit.store(true, Ordering::SeqCst);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // //
-    // //
-    // fn serveRx(&mut self, recv: Receiver<PointType>) -> Result<ServiceHandle, String> {
-    //     info!("{}.run | Starting...", self.id);
-    //     let self_id = self.id.clone();
-    //     let exit = self.exit.clone();
-    //     let subscriptions = self.subscriptions.clone();
-    //     let mut staticSubscriptions: HashMap<String, Sender<PointType>> = HashMap::new();
-    //     for sendQueue in &self.sendQueues {
-    //         debug!("{}.run | Lock services...", self_id);
-    //         let txSend = self.services.lock().unwrap().get_link(sendQueue);
-    //         debug!("{}.run | Lock services - ok", self_id);
-    //         staticSubscriptions.insert(sendQueue.to_string(), txSend);
-    //     }
-    //     let _handle = thread::Builder::new().name(format!("{} - MockMultiQueueMatch.run", self_id.clone())).spawn(move || {
-    //         info!("{}.run | Preparing thread - ok", self_id);
-    //         loop {
-    //             let subscriptions = subscriptions.lock().unwrap();
-    //             match recv.recv() {
-    //                 Ok(point) => {
-    //                     let pointId = point.name();
-    //                     trace!("{}.run | received: {:?}", self_id, point);
-    //                     for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {
-    //                         match sender.send(point.clone()) {
-    //                             Ok(_) => {},
-    //                             Err(err) => {
-    //                                 error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", self_id, pointId, receiverId, err);
-    //                             },
-    //                         };
-    //                     }
-    //                 },
-    //                 Err(err) => {
-    //                     warn!("{}.run | recv error: {:?}", self_id, err);
-    //                 },
-    //             }
-    //             if exit.load(Ordering::SeqCst) {
-    //                 break;
-    //             }                
-    //         }
-    //     });
-    //     info!("{}.run | started", self.id);
-    //     _handle
-    // }
+///
+/// Global static counter of FnOut instances
+static COUNT: AtomicUsize = AtomicUsize::new(0);

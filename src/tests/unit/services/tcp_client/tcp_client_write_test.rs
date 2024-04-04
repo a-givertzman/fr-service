@@ -1,21 +1,18 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
-mod tests {
+mod tcp_client {
     use log::{info, debug, warn};
     use std::{sync::{Once, Arc, Mutex}, thread::{self, JoinHandle}, time::{Duration, Instant}, net::TcpListener, io::BufReader};
     use testing::{session::test_session::TestSession, entities::test_value::Value, stuff::{random_test_values::RandomTestValues, max_test_duration::TestDuration}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         conf::tcp_client_config::TcpClientConfig, core_::{
-            net::{connection_status::ConnectionStatus, protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}}, point::point_type::{PointType, ToPoint} 
-        }, services::{services::Services, tcp_client::tcp_client::TcpClient}, tests::unit::services::tcp_client::mock_multiqueue::MockMultiqueue
+            net::{connection_status::ConnectionStatus, protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}}, object::object::Object, point::point_type::{PointType, ToPoint} 
+        }, services::{safe_lock::SafeLock, services::Services, tcp_client::tcp_client::TcpClient}, tcp::tcp_stream_write::OpResult, tests::unit::services::tcp_client::mock_multiqueue::MockMultiQueue
     }; 
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    ///
+    /// 
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -24,30 +21,34 @@ mod tests {
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
+    fn init_each() -> () {}
+    ///
+    /// 
     #[test]
-    fn test_TcpClient_write() {
+    fn write() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
         println!();
-        let self_id = "test TcpClient WRITE";
+        let self_id = "TcpClient-WRITE";
         println!("\n{}", self_id);
-        let path = "./src/tests/unit/services/tcp_client/tcp_client.yaml";
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
-        let mut conf = TcpClientConfig::read(path);
+        let conf = serde_yaml::from_str(&format!(r#"
+            service TcpClient:
+                cycle: 1 ms
+                reconnect: 1 s  # default 3 s
+                address: 127.0.0.1:8080
+                in queue link:
+                    max-length: 10000
+                out queue: /{}/MockMultiQueue.queue
+        "#, self_id)).unwrap();
+        let mut conf = TcpClientConfig::from_yaml(self_id, &conf);
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         conf.address = addr.parse().unwrap();
-
         let iterations = 100;
         let test_data = RandomTestValues::new(
             self_id, 
@@ -57,12 +58,18 @@ mod tests {
                 Value::Int(-7),
                 Value::Int(0),
                 Value::Int(12),
-                Value::Float(f64::MAX),
-                Value::Float(f64::MIN),
-                Value::Float(f64::MIN_POSITIVE),
-                Value::Float(-f64::MIN_POSITIVE),
-                Value::Float(0.0),
-                Value::Float(1.33),
+                Value::Real(f32::MAX),
+                Value::Real(f32::MIN),
+                Value::Real(f32::MIN_POSITIVE),
+                Value::Real(-f32::MIN_POSITIVE),
+                Value::Real(0.0),
+                Value::Real(1.33),
+                Value::Double(f64::MAX),
+                Value::Double(f64::MIN),
+                Value::Double(f64::MIN_POSITIVE),
+                Value::Double(-f64::MIN_POSITIVE),
+                Value::Double(0.0),
+                Value::Double(1.33),
                 Value::Bool(true),
                 Value::Bool(false),
                 Value::Bool(false),
@@ -77,27 +84,20 @@ mod tests {
         let test_data: Vec<Value> = test_data.collect();
 
         let services = Arc::new(Mutex::new(Services::new(self_id)));
-        let multiQueue = Arc::new(Mutex::new(MockMultiqueue::new(None)));
-        let tcpClient = Arc::new(Mutex::new(TcpClient::new(self_id, conf, services.clone())));
-        let multiQueueServiceId = "MultiQueue";
-        let tcpClientServiceId = "TcpClient";
-        services.lock().unwrap().insert(tcpClientServiceId, tcpClient.clone());
-        services.lock().unwrap().insert(multiQueueServiceId, multiQueue.clone());
-
+        let multiQueue = Arc::new(Mutex::new(MockMultiQueue::new(self_id, "", None)));
+        let tcpClient = Arc::new(Mutex::new(TcpClient::new(conf, services.clone())));
+        let tcpClientServiceId = tcpClient.lock().unwrap().id().to_owned();
+        services.lock().unwrap().insert(tcpClient.clone());     // tcpClientServiceId, 
+        services.lock().unwrap().insert(multiQueue.clone());            // multiQueueServiceId, 
         let mut sent = vec![];
         let received = Arc::new(Mutex::new(vec![]));
-
-
         let handle = mockTcpServer(addr.to_string(), iterations, received.clone());
         thread::sleep(Duration::from_micros(100));
-
-        debug!("Lock services...");
-        let services = services.lock().unwrap();
-        debug!("Lock services - ok");
-        debug!("Lock service {}...", tcpClientServiceId);
-        let tcpClient = services.get(tcpClientServiceId);
-        debug!("Lock service {} - ok", tcpClientServiceId);
-        drop(services);
+        let tcpClient = {
+            let services = services.slock();
+            services.get(&tcpClientServiceId)
+            // drop(services);
+        };
         debug!("Running service {}...", tcpClientServiceId);
         tcpClient.lock().unwrap().run().unwrap();
         debug!("Running service {} - ok", tcpClientServiceId);
@@ -153,7 +153,7 @@ mod tests {
                                     match jds.read(&mut tcpStream) {
                                         ConnectionStatus::Active(point) => {
                                             match point {
-                                                Ok(point) => {
+                                                OpResult::Ok(point) => {
                                                     received.lock().unwrap().push(point);
                                                     receivedCount += 1;
                                                     if receivedCount >= count {
@@ -161,9 +161,10 @@ mod tests {
                                                         break;
                                                     }
                                                 },
-                                                Err(err) => {
+                                                OpResult::Err(err) => {
                                                     warn!("{:?}", err);
                                                 },
+                                                OpResult::Timeout() => {},
                                             }
                                         },
                                         ConnectionStatus::Closed(_err) => {

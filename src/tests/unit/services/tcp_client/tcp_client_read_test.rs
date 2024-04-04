@@ -7,8 +7,8 @@ mod tcp_client {
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         conf::tcp_client_config::TcpClientConfig, core_::{
-            net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, point::point_type::{PointType, ToPoint} 
-        }, services::{service::service::Service, services::Services, tcp_client::tcp_client::TcpClient}, tcp::steam_read::StreamRead, tests::unit::services::tcp_client::mock_multiqueue::MockMultiqueue 
+            net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::point_type::{PointType, ToPoint} 
+        }, services::{safe_lock::SafeLock, service::service::Service, services::Services, tcp_client::tcp_client::TcpClient}, tcp::steam_read::StreamRead, tests::unit::services::tcp_client::mock_multiqueue::MockMultiQueue 
     }; 
     ///
     ///     
@@ -33,15 +33,22 @@ mod tcp_client {
         init_once();
         init_each();
         println!();
-        let self_id = "test TcpClient READ";
+        let self_id = "TcpClient-READ";
         println!("\n{}", self_id);
-        let path = "./src/tests/unit/services/tcp_client/tcp_client.yaml";
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
-        let mut conf = TcpClientConfig::read(path);
+        let conf = serde_yaml::from_str(&format!(r#"
+            service TcpClient:
+                cycle: 1 ms
+                reconnect: 1 s  # default 3 s
+                address: 127.0.0.1:8080
+                in queue link:
+                    max-length: 10000
+                out queue: /{}/MockMultiQueue.queue
+        "#, self_id)).unwrap();
+        let mut conf = TcpClientConfig::from_yaml(self_id, &conf);
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         conf.address = addr.parse().unwrap();
-
         let iterations = 100;
         let test_data = RandomTestValues::new(
             self_id, 
@@ -51,12 +58,18 @@ mod tcp_client {
                 Value::Int(-7),
                 Value::Int(0),
                 Value::Int(12),
-                Value::Float(f64::MAX),
-                Value::Float(f64::MIN),
-                Value::Float(f64::MIN_POSITIVE),
-                Value::Float(-f64::MIN_POSITIVE),
-                Value::Float(0.0),
-                Value::Float(1.33),
+                Value::Real(f32::MAX),
+                Value::Real(f32::MIN),
+                Value::Real(f32::MIN_POSITIVE),
+                Value::Real(-f32::MIN_POSITIVE),
+                Value::Real(0.0),
+                Value::Real(1.33),
+                Value::Double(f64::MAX),
+                Value::Double(f64::MIN),
+                Value::Double(f64::MIN_POSITIVE),
+                Value::Double(-f64::MIN_POSITIVE),
+                Value::Double(0.0),
+                Value::Double(1.33),
                 Value::Bool(true),
                 Value::Bool(false),
                 Value::Bool(false),
@@ -70,23 +83,19 @@ mod tcp_client {
         );
         let test_data: Vec<Value> = test_data.collect();
         let total_count = test_data.len();
-
         let services = Arc::new(Mutex::new(Services::new(self_id)));
-        let multi_queue = Arc::new(Mutex::new(MockMultiqueue::new(Some(total_count))));
-        let tcp_client = Arc::new(Mutex::new(TcpClient::new(self_id, conf, services.clone())));
-        let multi_queue_service_id = "MultiQueue";
-        let tcp_client_service_id = "TcpClient";
-        services.lock().unwrap().insert(tcp_client_service_id, tcp_client.clone());
-        services.lock().unwrap().insert(multi_queue_service_id, multi_queue.clone());
-
+        let multi_queue = Arc::new(Mutex::new(MockMultiQueue::new(self_id, "", Some(total_count))));
+        let tcp_client = Arc::new(Mutex::new(TcpClient::new(conf, services.clone())));
+        let multi_queue_service_id = multi_queue.lock().unwrap().id().to_owned();
+        let tcp_client_service_id = tcp_client.lock().unwrap().id().to_owned();
+        services.lock().unwrap().insert(tcp_client.clone());
+        services.lock().unwrap().insert(multi_queue.clone());
         let sent = Arc::new(Mutex::new(vec![]));
-        debug!("Lock services...");
-        let services = services.lock().unwrap();
-        debug!("Lock services - ok");
-        debug!("Lock service {}...", tcp_client_service_id);
-        let tcp_client = services.get(tcp_client_service_id);
-        debug!("Lock service {} - ok", tcp_client_service_id);
-        drop(services);
+        let tcp_client = {
+            let services = services.slock();
+            services.get(&tcp_client_service_id)
+            // drop(services);
+        };
         debug!("Running service {}...", multi_queue_service_id);
         let handle = multi_queue.lock().unwrap().run().unwrap();
         debug!("Running service {} - ok", multi_queue_service_id);
@@ -97,7 +106,7 @@ mod tcp_client {
         thread::sleep(Duration::from_micros(100));
         let timer = Instant::now();
         debug!("Test - setup - ok");
-        handle.wait();
+        handle.wait().unwrap();
         // let waitDuration = Duration::from_millis(100);
         // let mut waitAttempts = test_duration.as_micros() / waitDuration.as_micros();
         // while multiQueue.lock().unwrap().received().lock().unwrap().len() < totalCount {
@@ -129,7 +138,7 @@ mod tcp_client {
     }
     ///
     /// TcpServer setup
-    fn mock_tcp_server(addr: String, count: usize, test_data: Vec<Value>, sent: Arc<Mutex<Vec<PointType>>>, multiqueue: Arc<Mutex<MockMultiqueue>>) {
+    fn mock_tcp_server(addr: String, count: usize, test_data: Vec<Value>, sent: Arc<Mutex<Vec<PointType>>>, multiqueue: Arc<Mutex<MockMultiQueue>>) {
         thread::spawn(move || {
             info!("TCP server | Preparing test server...");
             let (send, recv) = std::sync::mpsc::channel();

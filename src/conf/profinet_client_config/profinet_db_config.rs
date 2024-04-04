@@ -1,12 +1,16 @@
 use log::{debug, trace};
 use std::{str::FromStr, time::Duration};
-use crate::conf::{conf_tree::ConfTree, fn_::fn_conf_keywd::{FnConfKeywd, FnConfKindName}, point_config::{point_config::PointConfig, point_name::PointName}, service_config::ServiceConfig};
-
+use crate::conf::{
+    conf_tree::ConfTree, 
+    fn_::fn_conf_keywd::{FnConfKeywd, FnConfKindName}, 
+    point_config::{point_config::PointConfig, name::Name}, 
+    service_config::ServiceConfig,
+};
 ///
 /// 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ProfinetDbConfig {
-    pub(crate) name: String,
+    pub(crate) name: Name,
     pub(crate) description: String,
     pub(crate) number: u64,
     pub(crate) offset: u64,
@@ -19,15 +23,13 @@ pub struct ProfinetDbConfig {
 impl ProfinetDbConfig {
     ///
     /// Creates new instance of the ProfinetDbConfig
-    pub fn new(parent: &str, name: &str, conf_tree: &mut ConfTree) -> Self {
-        // println!();
-        trace!("ProfinetDeviceConfig.new | confTree: {:?}", conf_tree);
+    pub fn new(parent: impl Into<String>, name: &str, conf_tree: &mut ConfTree) -> Self {
+        trace!("ProfinetDbConfig.new | confTree: {:?}", conf_tree);
         let self_conf = conf_tree.clone();
-        let self_id = format!("ProfinetDeviceConfig({})", self_conf.key);
-        trace!("{}.new | MAPPING VALUE", self_id);
+        let self_id = format!("ProfinetDbConfig({})", self_conf.key);
         let mut self_conf = ServiceConfig::new(&self_id, self_conf);
-        trace!("{}.new | selfConf: {:?}", self_id, self_conf);
-        let self_name = PointName::new(parent, name).full();
+        trace!("{}.new | self_conf: {:?}", self_id, self_conf);
+        let self_name = Name::new(parent, name);
         debug!("{}.new | name: {:?}", self_id, self_name);
         let cycle = self_conf.get_duration("cycle");
         debug!("{}.new | cycle: {:?}", self_id, cycle);
@@ -45,7 +47,7 @@ impl ProfinetDbConfig {
             if keyword.kind() == FnConfKindName::Point {
                 let point_name = format!("{}/{}", self_name, keyword.data());
                 let point_conf = self_conf.get(key).unwrap();
-                debug!("{}.new | Point '{}'", self_id, point_name);
+                trace!("{}.new | Point '{}'", self_id, point_name);
                 trace!("{}.new | Point '{}'   |   conf: {:?}", self_id, point_name, point_conf);
                 let node_conf = PointConfig::new(&self_name, &point_conf);
                 points.push(

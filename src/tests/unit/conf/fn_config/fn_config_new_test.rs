@@ -1,4 +1,3 @@
-#![allow(non_snake_case)]
 #[cfg(test)]
 
 mod tests {
@@ -6,13 +5,10 @@ mod tests {
     use std::sync::Once;
     use indexmap::IndexMap;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::conf::fn_::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType};
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    use crate::conf::{fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig}, point_config::name::Name};
+    ///
+    /// 
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -21,15 +17,12 @@ mod tests {
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
+    fn init_each() -> () {}
+    ///
+    ///     
     #[test]
     fn test_fn_config_new_valid() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -37,6 +30,7 @@ mod tests {
         init_each();
         println!();
         let self_id = "test FnConfig | new valid";
+        let self_name = Name::new("", self_id);
         println!("\n{}", self_id);
         let test_data = [
             (
@@ -66,7 +60,7 @@ mod tests {
                         inputConst1: const '11.3'
                         inputConst2: const '12.7'"
                     input2 fn count:
-                        inputConst1: const float '13.3'
+                        inputConst1: const real '13.3'
                         inputConst2: const int '147'
                 "#, 
                 FnConfKind::Var( FnConfig { name: "newVar".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
@@ -75,7 +69,7 @@ mod tests {
                         ("inputConst2".to_string(), FnConfKind::Const( FnConfig { name: "12.7".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
                     ]) } )),
                     ("input2".to_string(), FnConfKind::Fn( FnConfig { name: "count".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-                        ("inputConst1".to_string(), FnConfKind::Const( FnConfig { name: "13.3".to_string(), type_: FnConfPointType::Float, inputs: IndexMap::new() } )),
+                        ("inputConst1".to_string(), FnConfKind::Const( FnConfig { name: "13.3".to_string(), type_: FnConfPointType::Real, inputs: IndexMap::new() } )),
                         ("inputConst2".to_string(), FnConfKind::Const( FnConfig { name: "147".to_string(), type_: FnConfPointType::Int, inputs: IndexMap::new() } )),
                     ]) } )),
                 ]) } )
@@ -140,9 +134,9 @@ mod tests {
             let conf: serde_yaml::Value = serde_yaml::from_str(value).unwrap();
             debug!("value: {:?}   |   conf: {:?}   |   target: {:?}", "_", conf, target);
             let mut vars = vec![];
-            let fnConfig = FnConfig::from_yaml(self_id, &conf, &mut vars);
-            debug!("\tfnConfig: {:?}", fnConfig);
-            assert_eq!(fnConfig, target);
+            let fn_config = FnConfig::from_yaml(self_id, &self_name, &conf, &mut vars);
+            debug!("\tfnConfig: {:?}", fn_config);
+            assert_eq!(fn_config, target);
         }
     }
 }

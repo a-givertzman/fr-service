@@ -1,14 +1,13 @@
 #![allow(non_snake_case)]
-
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread, time::Duration};
-
-use log::{info, warn, debug, trace};
+use std::{fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, Arc, Mutex}, thread, time::Duration};
+use log::{info, warn, trace};
 use testing::entities::test_value::Value;
-use crate::{core_::{object::object::Object, point::point_type::{PointType, ToPoint}}, services::{service::{service::Service, service_handles::ServiceHandles}, services::Services}};
-
-
+use crate::{conf::point_config::name::Name, core_::{object::object::Object, point::point_type::{PointType, ToPoint}}, services::{safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services}};
+///
+///
 pub struct MockSendService {
     id: String,
+    name: Name,
     sendQueue: String,
     services: Arc<Mutex<Services>>,
     test_data: Vec<Value>,
@@ -20,10 +19,10 @@ pub struct MockSendService {
 /// 
 impl MockSendService {
     pub fn new(parent: impl Into<String>, sendQueue: &str, services: Arc<Mutex<Services>>, test_data: Vec<Value>, delay: Option<Duration>) -> Self {
-        let self_id = format!("{}/MockSendService", parent.into());
-        // let (send, recv) = mpsc::channel::<PointType>();
+        let name = Name::new(parent, format!("MockSendService{}", COUNT.fetch_add(1, Ordering::Relaxed)));
         Self {
-            id: self_id.clone(),
+            id: name.join(),
+            name,
             sendQueue: sendQueue.to_string(),
             services,
             test_data,
@@ -49,6 +48,19 @@ impl Object for MockSendService {
     fn id(&self) -> &str {
         &self.id
     }
+    fn name(&self) -> Name {
+        self.name.clone()
+    }
+}
+///
+/// 
+impl Debug for MockSendService {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("MockSendService")
+            .field("id", &self.id)
+            .finish()
+    }
 }
 ///
 /// 
@@ -68,10 +80,9 @@ impl Service for MockSendService {
         info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let exit = self.exit.clone();
-        debug!("{}.run | Lock services...", self_id);
-        let services = self.services.lock().unwrap();
-        debug!("{}.run | Lock services - ok", self_id);
-        let txSend = services.get_link(&self.sendQueue);
+        let txSend = self.services.slock().get_link(&self.sendQueue).unwrap_or_else(|err| {
+            panic!("{}.run | services.get_link error: {:#?}", self.id, err);
+        });
         let test_data = self.test_data.clone();
         let sent = self.sent.clone();
         let delay = self.delay.clone();
@@ -117,3 +128,6 @@ impl Service for MockSendService {
         self.exit.store(true, Ordering::SeqCst);
     }
 }
+///
+/// Global static counter of FnOut instances
+pub static COUNT: AtomicUsize = AtomicUsize::new(0);

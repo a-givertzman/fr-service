@@ -10,9 +10,10 @@ build = "build.rs"
 log = "^0.4"
 env_logger = "^0.11"
 
-testing = { git = "https://github.com/a-givertzman/rust-testing.git", tag = "0.0.2" }
+testing = { git = "https://github.com/a-givertzman/rust-testing.git" }
+# testing = { git = "https://github.com/a-givertzman/rust-testing.git", tag = "0.1.1" }
 debugging = { git = "https://github.com/a-givertzman/rust-debuging.git", tag = "0.0.1" }
-api-tools = { git = "https://github.com/a-givertzman/rust-api-tools.git", tag = "0.0.5" }
+api-tools = { git = "https://github.com/a-givertzman/rust-api-tools.git", tag = "0.0.6" }
 
 # num = "^0.4"
 # derive-new = "^0.5"
@@ -29,6 +30,7 @@ rand = "^0.8"
 
 chrono = "^0.4"
 
+linked-hash-map = "^0.5"
 indexmap = "^2.2"
 hashers = "^1.0"
 

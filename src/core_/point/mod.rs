@@ -33,7 +33,8 @@
 //! 
 //! - Bool - true / false
 //! - Int - i64 - The 64-bit signed integer type.
-//! - Float - f64 - A 64-bit floating point type (specifically, the "binary64" type defined in IEEE 754-2008).
+//! - Real - f32 - A 32-bit floating point type (specifically, the "binary32" type defined in IEEE 754-2008).
+//! - Double - f64 - A 64-bit floating point type (specifically, the "binary64" type defined in IEEE 754-2008).
 //! - String - string of the variable length
 //! 
 //! ##### Point.value

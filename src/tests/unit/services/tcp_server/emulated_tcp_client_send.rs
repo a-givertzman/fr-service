@@ -1,13 +1,16 @@
 use log::{info, warn, debug};
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}, mpsc}, thread, time::Duration, net::{TcpStream, SocketAddr}, io::Write};
+use std::{fmt::Debug, io::Write, net::{SocketAddr, TcpStream}, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, mpsc, Arc, Mutex}, thread, time::Duration};
 use testing::entities::test_value::Value;
 use crate::{
-    conf::point_config::point_name::PointName, core_::{
-        net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}, state::{switch_state::{Switch, SwitchCondition, SwitchState}, switch_state_changed::SwitchStateChanged}
-    }, services::service::{service::Service, service_handles::ServiceHandles}, tcp::steam_read::StreamRead 
+    conf::point_config::name::Name, 
+    core_::{
+        net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, 
+        object::object::Object, 
+        point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}, 
+        state::{switch_state::{Switch, SwitchCondition, SwitchState}, switch_state_changed::SwitchStateChanged},
+    }, 
+    services::service::{service::Service, service_handles::ServiceHandles}, tcp::steam_read::StreamRead,
 };
-
-
 ///
 /// Jast connects to the tcp socket on [address]
 /// - all point from [test_data] will be sent via socket
@@ -16,6 +19,7 @@ use crate::{
 /// - [disconnect] - contains percentage (0..100) of test_data / iterations, where socket will be disconnected and connected again
 pub struct EmulatedTcpClientSend {
     id: String,
+    name: Name,
     addr: SocketAddr,
     point_path: String,
     test_data: Vec<Value>,
@@ -28,9 +32,10 @@ pub struct EmulatedTcpClientSend {
 /// 
 impl EmulatedTcpClientSend {
     pub fn new(parent: impl Into<String>, point_path: impl Into<String>, addr: &str, test_data: Vec<Value>, disconnect: Vec<i8>, wait_on_finish: bool) -> Self {
-        let self_id = format!("{}/EmulatedTcpClientSend", parent.into());
+        let name = Name::new(parent, format!("EmulatedTcpClientSend{}", COUNT.fetch_add(1, Ordering::Relaxed)));
         Self {
-            id: self_id.clone(),
+            id: name.join(),
+            name,
             addr: addr.parse().unwrap(),
             point_path: point_path.into(),
             test_data,
@@ -104,6 +109,19 @@ impl Object for EmulatedTcpClientSend {
     fn id(&self) -> &str {
         &self.id
     }
+    fn name(&self) -> Name {
+        self.name.clone()
+    }
+}
+///
+/// 
+impl Debug for EmulatedTcpClientSend {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("EmulatedTcpClientSend")
+            .field("id", &self.id)
+            .finish()
+    }
 }
 ///
 /// 
@@ -150,7 +168,7 @@ impl Service for EmulatedTcpClientSend {
                             let mut progress_percent = 0.0;
                             while test_data.len() > 0 {
                                 let value = test_data.remove(0);
-                                let point = value.to_point(tx_id, &PointName::new(&point_path, "/test").full());
+                                let point = value.to_point(tx_id, &Name::new(&point_path, "/test").join());
                                 send.send(point.clone()).unwrap();
                                 match jds_message.read() {
                                     Ok(bytes) => {
@@ -237,11 +255,11 @@ impl Service for EmulatedTcpClientSend {
     //
     //
     // fn points(&self) -> Vec<crate::conf::point_config::point_config::PointConfig> {
-    //     let types = vec!["Bool", "Int", "Float", "String"];
+    //     let types = vec!["Bool", "Int", "Real", "Double", "String"];
     //     types.iter().map(|type_| {
     //         let conf = format!(
     //             r#"{}:
-    //                 type: {}      # Bool / Int / Float / String / Json
+    //                 type: {}      # Bool / Int / Real, Double / String / Json
     //                 comment: Auth request, contains token / pass string"#, 
     //             PointName::new(&self.point_path, "/test").full(),
     //             type_,
@@ -256,3 +274,6 @@ impl Service for EmulatedTcpClientSend {
         self.exit.store(true, Ordering::SeqCst);
     }
 }
+///
+/// Global static counter of FnOut instances
+static COUNT: AtomicUsize = AtomicUsize::new(0);

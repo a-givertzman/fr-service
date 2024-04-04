@@ -1,6 +1,4 @@
-#![allow(non_snake_case)]
-
-use log::trace;
+use log::{debug, trace};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::{
     core_::{point::point_type::PointType, types::{type_of::DebugTypeOf, fn_in_out_ref::FnInOutRef}},
@@ -9,8 +7,6 @@ use crate::{
         fn_kind::FnKind,
     },
 };
-
-
 ///
 /// Function do Add of input1 and input2
 #[derive(Debug)]
@@ -24,12 +20,11 @@ pub struct FnAdd {
 /// 
 impl FnAdd {
     ///
-    /// Creates new instance of the FnCount
+    /// Creates new instance of the FnAdd
     #[allow(dead_code)]
     pub fn new(parent: impl Into<String>, input1: FnInOutRef, input2: FnInOutRef) -> Self {
-        COUNT.fetch_add(1, Ordering::SeqCst);
         Self { 
-            id: format!("{}/FnAdd{}", parent.into(), COUNT.load(Ordering::Relaxed)),
+            id: format!("{}/FnAdd{}", parent.into(), COUNT.fetch_add(1, Ordering::SeqCst)),
             kind: FnKind::Fn,
             input1,
             input2,
@@ -61,9 +56,9 @@ impl FnOut for FnAdd {
     fn out(&mut self) -> PointType {
         // TODO Add overflow check
         let value1 = self.input1.borrow_mut().out();
-        trace!("{}.out | value1: {:?}", self.id, &value1);
+        debug!("{}.out | value1: {:?}", self.id, &value1);
         let value2 = self.input2.borrow_mut().out();
-        trace!("{}.out | value2: {:?}", self.id, &value2);
+        debug!("{}.out | value2: {:?}", self.id, &value2);
         let out = match value1 {
             PointType::Bool(value1) => {
                 PointType::Bool(value1 + value2.as_bool())
@@ -71,8 +66,11 @@ impl FnOut for FnAdd {
             PointType::Int(value1) => {
                 PointType::Int(value1 + value2.as_int())
             },
-            PointType::Float(value1) => {
-                PointType::Float(value1 + value2.as_float())
+            PointType::Real(value1) => {
+                PointType::Real(value1 + value2.as_real())
+            },
+            PointType::Double(value1) => {
+                PointType::Double(value1 + value2.as_double())
             },
             _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, value1.print_type_of(), value1),
         };
@@ -90,8 +88,8 @@ impl FnOut for FnAdd {
 /// 
 impl FnInOut for FnAdd {}
 ///
-/// 
-static COUNT: AtomicUsize = AtomicUsize::new(0);
+/// Global static counter of FnAdd instances
+static COUNT: AtomicUsize = AtomicUsize::new(1);
 
 
 

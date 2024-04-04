@@ -1,9 +1,9 @@
 use concat_string::concat_string;
 use log::{info, debug, trace, warn};
-use std::{collections::HashMap, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc}, thread, time::Duration};
+use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc}, thread, time::Duration};
 use api_tools::{api::reply::api_reply::ApiReply, client::{api_query::{ApiQuery, ApiQueryKind, ApiQuerySql}, api_request::ApiRequest}};
 use crate::{
-    conf::api_client_config::ApiClientConfig, 
+    conf::{api_client_config::ApiClientConfig, point_config::name::Name}, 
     core_::{object::object::Object, point::point_type::PointType, retain_buffer::retain_buffer::RetainBuffer}, 
     services::{service::{service::Service, service_handles::ServiceHandles}, task::service_cycle::ServiceCycle},
 };
@@ -15,6 +15,7 @@ use crate::{
 /// - Sent messages immediately removed from the buffer
 pub struct ApiClient {
     id: String,
+    name: Name,
     recv: Vec<Receiver<PointType>>,
     send: HashMap<String, Sender<PointType>>,
     conf: ApiClientConfig,
@@ -26,11 +27,11 @@ impl ApiClient {
     ///
     /// Creates new instance of [ApiClient]
     /// - [parent] - the ID if the parent entity
-    pub fn new(parent: impl Into<String>, conf: ApiClientConfig) -> Self {
+    pub fn new(conf: ApiClientConfig) -> Self {
         let (send, recv) = mpsc::channel();
-        let self_id = format!("{}/ApiClient({})", parent.into(), conf.name);
         Self {
-            id: self_id,
+            id: format!("{}", conf.name),
+            name: conf.name.clone(),
             recv: vec![recv],
             send: HashMap::from([(conf.rx.clone(), send)]),
             conf: conf.clone(),
@@ -42,7 +43,7 @@ impl ApiClient {
     fn read_queue(self_id: &str, recv: &Receiver<PointType>, buffer: &mut RetainBuffer<PointType>) {
         let max_read_at_once = 1000;
         for (index, point) in recv.try_iter().enumerate() {   
-            debug!("{}.readQueue | point: {:?}", self_id, &point);
+            debug!("{}.read_queue | point: {:?}", self_id, &point);
             buffer.push(point);
             if index > max_read_at_once {
                 break;
@@ -60,7 +61,7 @@ impl ApiClient {
             Ok(reply) => {
                 if log::max_level() > log::LevelFilter::Info {
                     let reply_str = std::str::from_utf8(&reply).unwrap();
-                    debug!("{}.send | reply str: {:?}", self_id, reply_str);
+                    trace!("{}.send | reply str: {:?}", self_id, reply_str);
                 }
                 match serde_json::from_slice(&reply) {
                     Ok(reply) => Ok(reply),
@@ -89,6 +90,19 @@ impl Object for ApiClient {
     fn id(&self) -> &str {
         &self.id
     }
+    fn name(&self) -> Name {
+        self.name.clone()
+    }
+}
+///
+/// 
+impl Debug for ApiClient {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("ApiClient")
+            .field("id", &self.id)
+            .finish()
+    }
 }
 ///
 /// 
@@ -115,9 +129,9 @@ impl Service for ApiClient {
         };
         // let reconnect = if conf.reconnectCycle.is_some() {conf.reconnectCycle.unwrap()} else {Duration::from_secs(3)};
         let _queue_max_length = conf.rx_max_len;
-        let handle = thread::Builder::new().name(format!("{} - main", self_id)).spawn(move || {
+        let handle = thread::Builder::new().name(self_id.clone()).spawn(move || {
             let mut buffer = RetainBuffer::new(&self_id, "", Some(conf.rx_max_len as usize));
-            let mut cycle = ServiceCycle::new(cycle_interval);
+            let mut cycle = ServiceCycle::new(&self_id, cycle_interval);
             // let mut connect = TcpClientConnect::new(self_id.clone() + "/TcpSocketClientConnect", conf.address, reconnect);
             let api_keep_alive = true;
             let sql_keep_alive = true;
@@ -136,24 +150,32 @@ impl Service for ApiClient {
                 cycle.start();
                 trace!("{}.run | Step...", self_id);
                 Self::read_queue(&self_id, &recv, &mut buffer);
+                trace!("{}.run | Beffer.len: {}", self_id, buffer.len());
                 let mut count = buffer.len();
                 while count > 0 {
                     match buffer.first() {
                         Some(point) => {
-                            let sql = point.as_string().value;
-                            match Self::send(&self_id, &mut request, &conf.database, sql, api_keep_alive) {
-                                Ok(reply) => {
-                                    if reply.has_error() {
-                                        warn!("{}.run | API reply has error: {:?}", self_id, reply.error);
-                                    } else {
-                                        buffer.popFirst();
+                            match point {
+                                PointType::Bool(_) => warn!("{}.run | Invalid point type 'Bool' in: {:?}", self_id, point),
+                                PointType::Int(_) => warn!("{}.run | Invalid point type 'Int' in: {:?}", self_id, point),
+                                PointType::Real(_) => warn!("{}.run | Invalid point type 'Real' in: {:?}", self_id, point),
+                                PointType::Double(_) => warn!("{}.run | Invalid point type 'Double' in: {:?}", self_id, point),
+                                PointType::String(point) => {
+                                    let sql = point.value.clone();
+                                    match Self::send(&self_id, &mut request, &conf.database, sql, api_keep_alive) {
+                                        Ok(reply) => {
+                                            if reply.has_error() {
+                                                warn!("{}.run | API reply has error: {:?}", self_id, reply.error);
+                                            } else {
+                                                buffer.pop_first();
+                                            }
+                                        },
+                                        Err(err) => {
+                                            warn!("{}.run | Error: {:?}", self_id, err);
+                                        },
                                     }
                                 },
-                                Err(err) => {
-                                    warn!("{}.run | Error: {:?}", self_id, err);
-                                },
                             }
-
                         },
                         None => {break;},
                     };
@@ -167,84 +189,7 @@ impl Service for ApiClient {
                     cycle.wait();
                 }
             };            
-            // 'main: loop {
-            //     match connect.connect() {
-            //         Some(mut stream) => {
-            //             match stream.set_read_timeout(Some(Duration::from_secs(10))) {
-            //                 Ok(_) => {},
-            //                 Err(err) => {
-            //                     debug!("{}.run | TcpStream.set_timeout error: {:?}", self_id, err);
-            //                 },
-            //             };
-            //             'send: loop {
-            //                 cycle.start();
-            //                 trace!("{}.run | step...", self_id);
-            //                 Self::read_queue(&self_id, &recv, &mut buffer);
-            //                 let mut count = buffer.len();
-            //                 while count > 0 {
-            //                     match buffer.first() {
-            //                         Some(point) => {
-            //                             let sql = point.as_string().value;
-            //                             match Self::send(&self_id, &mut request, sql, api_keep_alive, &mut stream) {
-            //                                 Ok(reply) => {
-            //                                     if reply.hasError() {
-            //                                         warn!("{}.run | API reply has error: {:?}", self_id, reply.error);
-            //                                     } else {
-            //                                         buffer.popFirst();
-            //                                     }
-            //                                 },
-            //                                 Err(err) => {
-            //                                     warn!("{}.run | Error: {:?}", self_id, err);
-            //                                 },
-            //                             }
-            //                             // match Self::send(&self_id, sql, &mut stream) {
-            //                             //     Ok(_) => {
-            //                             //         match Self::read_all(&self_id, &mut stream) {
-            //                             //             ConnectionStatus::Active(bytes) => {
-            //                             //                 let reply = String::from_utf8(bytes).unwrap();
-            //                             //                 debug!("{}.run | API reply: {:?}", self_id, reply);
-            //                             //                 let reply: SqlReply = serde_json::from_str(&reply).unwrap();
-            //                             //                 if reply.hasError() {
-            //                             //                     warn!("{}.run | API reply has error: {:?}", self_id, reply.error);
-            //                             //                 } else {
-            //                             //                     buffer.popFirst();
-            //                             //                 }
-            //                             //             },
-            //                             //             ConnectionStatus::Closed(err) => {
-            //                             //                 warn!("{}.run | API read error: {:?}", self_id, err);
-            //                             //                 break 'send;
-            //                             //             },
-            //                             //         };
-            //                             //     },
-            //                             //     Err(err) => {
-            //                             //         warn!("{}.run | API sending error: {:?}", self_id, err);
-            //                             //         break 'send;
-            //                             //     },
-            //                             // }
-            //                         },
-            //                         None => {break;},
-            //                     };
-            //                     count -=1;
-            //                 }
-            //                 if exit.load(Ordering::SeqCst) {
-            //                     break 'main;
-            //                 }
-            //                 trace!("{}.run | step - done ({:?})", self_id, cycle.elapsed());
-            //                 if cyclic {
-            //                     cycle.wait();
-            //                 }
-            //             };
-            //         },
-            //         None => {
-            //             debug!("{}.run | Not connection", self_id);
-            //         },
-            //     }
-            //     if exit.load(Ordering::SeqCst) {
-            //         break 'main;
-            //     }
-            //     thread::sleep(Duration::from_millis(100));
-            // };
-            info!("{}.run | stopped", self_id);
+            info!("{}.run | Stopped", self_id);
         });
         match handle {
             Ok(handle) => {

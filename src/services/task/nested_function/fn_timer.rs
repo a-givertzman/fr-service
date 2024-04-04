@@ -38,7 +38,7 @@ pub struct FnTimer {
 /// 
 impl FnTimer {
     #[allow(dead_code)]
-    pub fn new(parent: &str, initial: impl Into<f64> + Clone, input: FnInOutRef, repeat: bool) -> Self {
+    pub fn new(parent: impl Into<String>, initial: impl Into<f64> + Clone, input: FnInOutRef, repeat: bool) -> Self {
         let switches = vec![
             Switch{
                 state: FnTimerState::Off,
@@ -89,9 +89,8 @@ impl FnTimer {
                 conditions: vec![],
             },
         ];
-        COUNT.fetch_add(1, Ordering::SeqCst);
         Self { 
-            id: format!("{}/FnTimer{}", parent, COUNT.load(Ordering::Relaxed)),
+            id: format!("{}/FnTimer{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
             kind: FnKind::Fn,
             input,
             state: SwitchState::new(FnTimerState::Off, switches),
@@ -127,7 +126,7 @@ impl FnOut for FnTimer {
         let value = match &point {
             PointType::Bool(point) => point.value.0,
             PointType::Int(point) => point.value > 0,
-            PointType::Float(point) => point.value > 0.0,
+            PointType::Double(point) => point.value > 0.0,
             _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, point.print_type_of(), point),
         };
         self.state.add(value);
@@ -154,7 +153,7 @@ impl FnOut for FnTimer {
                 }
             },
         };
-        PointType::Float(
+        PointType::Double(
             Point {
                 tx_id: *point.tx_id(),
                 name: format!("{}.out", self.id),
@@ -179,5 +178,5 @@ impl FnOut for FnTimer {
 /// 
 impl FnInOut for FnTimer {}
 ///
-/// 
-static COUNT: AtomicUsize = AtomicUsize::new(0);
+/// Global static counter of FnOut instances
+static COUNT: AtomicUsize = AtomicUsize::new(1);

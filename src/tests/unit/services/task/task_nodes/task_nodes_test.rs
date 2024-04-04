@@ -2,15 +2,13 @@
 
 mod task_nodes {
     use log::{info, debug, trace, warn};
-    use std::{sync::{Once, mpsc::{Sender, self, Receiver}, Arc, Mutex, atomic::{Ordering, AtomicBool}}, collections::HashMap, thread};
+    use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex, Once}, thread};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::task_config::TaskConfig, 
+        conf::{point_config::name::Name, task_config::TaskConfig}, 
         core_::{object::object::Object, point::point_type::{PointType, ToPoint}}, 
         services::{
-            services::Services, 
-            service::{service::Service, service_handles::ServiceHandles}, 
-            task::{nested_function::{fn_count, fn_ge, fn_kind::FnKind, sql_metric}, task_nodes::TaskNodes},
+            safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::{nested_function::{fn_count, fn_ge, fn_kind::FnKind, sql_metric}, task_nodes::TaskNodes}
         },
     }; 
     ///
@@ -42,98 +40,94 @@ mod task_nodes {
         println!();
         println!("test");
         let path = "./src/tests/unit/services/task/task_nodes/task_nodes.yaml";
-        let mut task_nodes = TaskNodes::new("test");
-        let conf = TaskConfig::read(path);
-        debug!("conf: {:?}", conf);
         let self_id = "test";
-        // let outName = format!("{}/SqlMetric1", self_id);
-        // let outName = outName.as_str();
-        // debug!("outName: {:?}", outName);
+        let self_name = Name::new("", self_id);
+        let mut task_nodes = TaskNodes::new(self_id);
+        let conf = TaskConfig::read(&self_name, path);
+        debug!("conf: {:?}", conf);
         let services = Arc::new(Mutex::new(Services::new(self_id)));
         let mock_service = Arc::new(Mutex::new(MockService::new(self_id, "queue")));
-        services.lock().unwrap().insert("ApiClient", mock_service.clone());
-        task_nodes.buildNodes("test", conf, services);
+        services.slock().insert(mock_service.clone());
+        let sql_metric_count = sql_metric::COUNT.load(Ordering::SeqCst);
+        let fn_count_count = fn_count::COUNT.load(Ordering::SeqCst);
+        let fn_ge_count = fn_ge::COUNT.load(Ordering::SeqCst);
+        task_nodes.buildNodes(&Name::from(self_id), conf, services);
         let test_data = vec![
             (
                 "/path/Point.Name1", 101, 
                 HashMap::from([
-                    (format!("{}/SqlMetric{}", self_id, sql_metric::COUNT.load(Ordering::SeqCst)), "101, 1102, 0, 0"),
-                    (format!("{}/FnCount{}.out", self_id, fn_count::COUNT.load(Ordering::SeqCst)), "101"),
+                    (format!("/{}/SqlMetric{}", self_id, sql_metric_count), "101, 1102, 0, 0"),
+                    (format!("/{}/FnCount{}.out", self_id, fn_count_count), "101"),
                 ])
             ),
             (
                 "/path/Point.Name1", 201, 
                 HashMap::from([
-                    (format!("{}/SqlMetric{}", self_id, sql_metric::COUNT.load(Ordering::SeqCst)), "201, 1202, 0, 0"),
-                    (format!("{}/FnCount{}.out", self_id, fn_count::COUNT.load(Ordering::SeqCst)), "302"),
+                    (format!("/{}/SqlMetric{}", self_id, sql_metric_count), "201, 1202, 0, 0"),
+                    (format!("/{}/FnCount{}.out", self_id, fn_count_count), "302"),
                 ])
                 
             ),
             (
                 "/path/Point.Name1", 301, 
                 HashMap::from([
-                    (format!("{}/SqlMetric{}", self_id, sql_metric::COUNT.load(Ordering::SeqCst)), "301, 1302, 0, 0"),
-                    (format!("{}/FnCount{}.out", self_id, fn_count::COUNT.load(Ordering::SeqCst)), "603"),
+                    (format!("/{}/SqlMetric{}", self_id, sql_metric_count), "301, 1302, 0, 0"),
+                    (format!("/{}/FnCount{}.out", self_id, fn_count_count), "603"),
                 ])
                 
             ),
             (
                 "/path/Point.Name2", 202, 
                 HashMap::from([
-                    (format!("{}/SqlMetric{}", self_id, sql_metric::COUNT.load(Ordering::SeqCst)), "301, 1302, 202, 0"),
-                    (format!("{}/FnGe{}.out", self_id, fn_ge::COUNT.load(Ordering::SeqCst)), "true"),
+                    (format!("/{}/SqlMetric{}", self_id, sql_metric_count), "301, 1302, 202, 0"),
+                    (format!("/{}/FnGe{}.out", self_id, fn_ge_count), "true"),
                 ])
                 
             ),
             (
                 "/path/Point.Name3", 303, 
                 HashMap::from([
-                    (format!("{}/SqlMetric{}", self_id, sql_metric::COUNT.load(Ordering::SeqCst)), "301, 1302, 202, 303"),
-                    (format!("{}/FnGe{}.out", self_id, fn_ge::COUNT.load(Ordering::SeqCst)), "false"),
+                    (format!("/{}/SqlMetric{}", self_id, sql_metric_count), "301, 1302, 202, 303"),
+                    (format!("/{}/FnGe{}.out", self_id, fn_ge_count), "false"),
                 ])
                 
             ),
             (
                 "/path/Point.Name3", 304, 
                 HashMap::from([
-                    (format!("{}/SqlMetric{}", self_id, sql_metric::COUNT.load(Ordering::SeqCst)), "301, 1302, 202, 304"),
-                    (format!("{}/FnGe{}.out", self_id, fn_ge::COUNT.load(Ordering::SeqCst)), "false"),
+                    (format!("/{}/SqlMetric{}", self_id, sql_metric_count), "301, 1302, 202, 304"),
+                    (format!("/{}/FnGe{}.out", self_id, fn_ge_count), "false"),
                 ])
                 
             ),
         ];
         mock_service.lock().unwrap().run().unwrap();
-        for (name, value, targetValue) in test_data {
+        for (name, value, target_value) in test_data {
             let point = value.to_point(0, name);
             // let inputName = &point.name();
             debug!("input point name: {:?}  value: {:?}", name, value);
             match &task_nodes.getEvalNode(&name) {
-                Some(evalNode) => {
-                    let input = evalNode.getInput();
+                Some(eval_node) => {
+                    let input = eval_node.getInput();
                     input.borrow_mut().add(point.clone());
-                    debug!("evalNode: {:?}", evalNode.name());
+                    debug!("evalNode: {:?}", eval_node.name());
                     // debug!("evalNode outs: {:?}", evalNode.getOuts());
-                    for evalNodeVar in evalNode.getVars() {
-                        trace!("TaskEvalNode.eval | evalNode '{}' - var '{}' evaluating...", evalNode.name(), evalNodeVar.borrow().id());
-                        evalNodeVar.borrow_mut().eval();
-                        debug!("TaskEvalNode.eval | evalNode '{}' - var '{}' evaluated", evalNode.name(), evalNodeVar.borrow().id());
+                    for eval_node_var in eval_node.getVars() {
+                        trace!("TaskEvalNode.eval | evalNode '{}' - var '{}' evaluating...", eval_node.name(), eval_node_var.borrow().id());
+                        eval_node_var.borrow_mut().eval();
+                        debug!("TaskEvalNode.eval | evalNode '{}' - var '{}' evaluated", eval_node.name(), eval_node_var.borrow().id());
                     };
-                    for evalNodeOut in evalNode.getOuts() {
-                        trace!("TaskEvalNode.eval | evalNode '{}' out...", evalNode.name());
-                        let out = evalNodeOut.borrow_mut().out();
-                        let out_value = match &out {
-                            PointType::Bool(point) => point.value.to_string(),
-                            PointType::Int(point) => point.value.to_string(),
-                            PointType::Float(point) => point.value.to_string(),
-                            PointType::String(point) => point.value.clone(),
-                        };
-                        debug!("TaskEvalNode.eval | evalNode '{}' out - '{}': {:?}", evalNode.name(), evalNodeOut.borrow().id(), out);
-                        if evalNodeOut.borrow().kind() != &FnKind::Var {
+                    for eval_node_out in eval_node.getOuts() {
+                        trace!("TaskEvalNode.eval | evalNode '{}' out...", eval_node.name());
+                        let out = eval_node_out.borrow_mut().out();
+                        let out_value = out.value().to_string();
+                        debug!("TaskEvalNode.eval | evalNode '{}' out - '{}': {:?}", eval_node.name(), eval_node_out.borrow().id(), out);
+                        if eval_node_out.borrow().kind() != &FnKind::Var {
                             let out_name = out.name();
                             debug!("TaskEvalNode.eval | out.name: '{}'", out_name);
-                            let target = match targetValue.get(out_name.as_str()) {
+                            let target = match target_value.get(out_name.as_str()) {
                                 Some(target) => target.to_string(),
-                                None => panic!("TaskEvalNode.eval | out.name '{}' - not foind in {:?}", out_name, targetValue),
+                                None => panic!("TaskEvalNode.eval | out.name '{}' - not foind in {:?}", out_name, target_value),
                             };
                             assert!(out_value == target, "\n   outValue: {} \ntargetValue: {}", out_value, target);
                         }
@@ -150,6 +144,7 @@ mod task_nodes {
     /// 
     struct MockService {
         id: String,
+        name: Name,
         links: HashMap<String, Sender<PointType>>,
         rx_recv: Vec<Receiver<PointType>>,
         exit: Arc<AtomicBool>,
@@ -159,8 +154,10 @@ mod task_nodes {
     impl MockService {
         fn new(parent: &str, link_name: &str) -> Self {
             let (send, recv) = mpsc::channel();
+            let name = Name::new(parent, format!("MockService{}", COUNT.fetch_add(1, Ordering::Relaxed)));
             Self {
-                id: format!("{}/MockService", parent),
+                id: name.join(),
+                name,
                 links: HashMap::from([
                     (link_name.to_string(), send),
                 ]),
@@ -174,6 +171,19 @@ mod task_nodes {
     impl Object for MockService {
         fn id(&self) -> &str {
             &self.id
+        }
+        fn name(&self) -> Name {
+            self.name.clone()
+        }
+    }
+    ///
+    /// 
+    impl Debug for MockService {
+        fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            formatter
+                .debug_struct("MockService")
+                .field("id", &self.id)
+                .finish()
         }
     }
     ///
@@ -194,7 +204,7 @@ mod task_nodes {
             let self_id = self.id.clone();
             let exit = self.exit.clone();
             let rx_recv = self.rx_recv.pop().unwrap();
-            let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
+            let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
                 loop {
                     match rx_recv.recv() {
                         Ok(point) => {
@@ -227,6 +237,9 @@ mod task_nodes {
             self.exit.store(true, Ordering::SeqCst);
         }
     }
+    ///
+    /// Global static counter of FnOut instances
+    static COUNT: AtomicUsize = AtomicUsize::new(0);
 }
 
 

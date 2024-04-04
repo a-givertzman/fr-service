@@ -1,7 +1,7 @@
 use indexmap::IndexMap;
 use log::{trace, debug};
 use std::{fs, str::FromStr};
-use crate::conf::{fn_::{fn_config::FnConfig, fn_conf_keywd::FnConfKeywd, fn_conf_kind::FnConfKind}, conf_tree::ConfTree, point_config::point_config::PointConfig};
+use crate::conf::{conf_tree::ConfTree, fn_::{fn_conf_keywd::FnConfKeywd, fn_conf_kind::FnConfKind, fn_config::FnConfig}, point_config::{name::Name, point_config::PointConfig}};
 
 ///
 /// creates config from serde_yaml::Value of following format:
@@ -43,7 +43,7 @@ impl MetricConfig {
     ///         input2:
     ///             fn SqlMetric:
     ///                 ...
-    pub fn new(parent: &str, conf_tree: &ConfTree, vars: &mut Vec<String>) -> MetricConfig {
+    pub fn new(parent_id: &str, parent_name: &Name, conf_tree: &ConfTree, vars: &mut Vec<String>) -> MetricConfig {
         println!();
         trace!("MetricConfig.new | confTree: {:?}", conf_tree);
         // self conf from first sub node
@@ -67,12 +67,12 @@ impl MetricConfig {
                             if input_conf.isMapping() {
                                 inputs.insert(
                                     (input_conf).key.to_string(), 
-                                    FnConfig::new(parent, &input_conf.next().unwrap(), vars),
+                                    FnConfig::new(parent_id, parent_name, &input_conf.next().unwrap(), vars),
                                 );
                             } else {
                                 inputs.insert(
                                     (input_conf).key.to_string(), 
-                                    FnConfig::new(parent, &input_conf, vars),
+                                    FnConfig::new(parent_id, parent_name, &input_conf, vars),
                                 );
                             };
                         }
@@ -95,19 +95,19 @@ impl MetricConfig {
     }
     ///
     /// creates config from serde_yaml::Value of following format:
-    pub(crate) fn from_yaml(parent: &str, value: &serde_yaml::Value, vars: &mut Vec<String>) -> MetricConfig {
-        Self::new(parent, &ConfTree::newRoot(value.clone()).next().unwrap(), vars)
+    pub(crate) fn from_yaml(parent_id: &str, parent_name: &Name, value: &serde_yaml::Value, vars: &mut Vec<String>) -> MetricConfig {
+        Self::new(parent_id, parent_name, &ConfTree::newRoot(value.clone()).next().unwrap(), vars)
     }
     ///
     /// reads config from path
     #[allow(dead_code)]
-    pub fn read(parent: &str, path: &str) -> MetricConfig {
+    pub fn read(parent_id: &str, parent_name: &Name, path: &str) -> MetricConfig {
         let mut vars = vec![];
         match fs::read_to_string(path) {
             Ok(yaml_string) => {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
-                        MetricConfig::from_yaml(parent, &config, &mut vars)
+                        MetricConfig::from_yaml(parent_id, parent_name, &config, &mut vars)
                     },
                     Err(err) => {
                         panic!("MetricConfig.read | Error in config: {:?}\n\terror: {:?}", yaml_string, err)

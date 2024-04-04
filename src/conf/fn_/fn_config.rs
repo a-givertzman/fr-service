@@ -3,13 +3,9 @@ use log::{trace, debug};
 use std::{fs, str::FromStr};
 
 use crate::conf::{
-    conf_tree::ConfTree, 
-    point_config::point_config::PointConfig,
-    fn_::{
-        fn_conf_keywd::FnConfKeywd, fn_point_config::FnPointConfig,
-        fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType, 
-        fn_conf_keywd::FnConfKindName,
-    },
+    conf_tree::ConfTree, fn_::{
+        fn_conf_keywd::{FnConfKeywd, FnConfKindName, FnConfPointType}, fn_conf_kind::FnConfKind, fn_point_config::FnPointConfig
+    }, point_config::{name::Name, point_config::PointConfig}
 };
 
 
@@ -50,7 +46,7 @@ impl FnConfig {
     ///             input2: point '/path/Point.Name/'
     ///             input fn functionName:
     ///                 input: point '/path/Point.Name/'```
-    pub fn new(parent: &str, conf_tree: &ConfTree, vars: &mut Vec<String>) -> FnConfKind {
+    pub fn new(parent_id: &str, parent_name: &Name, conf_tree: &ConfTree, vars: &mut Vec<String>) -> FnConfKind {
         println!();
         trace!("FnConfig.new | confTree: {:?}", conf_tree);
         // self conf from first sub node
@@ -58,9 +54,8 @@ impl FnConfig {
         // if confTree.count() > 1 {
         //     error!("FnConfig.new | FnConf must have single item, additional items was ignored: {:?}", confTree)
         // };
-        if conf_tree.isMapping() {
-            debug!("FnConfig.new | MAPPING VALUE");
-            trace!("FnConfig.new | confTree: {:?}", conf_tree);
+        let cfg = if conf_tree.isMapping() {
+            trace!("FnConfig.new | MAPPING VALUE: \t{:#?}", conf_tree);
             match FnConfKeywd::from_str(conf_tree.key.as_str()) {
                 Ok(self_keyword) => {
                     trace!("FnConfig.new | selfKeyword parsed: {:?}", self_keyword);
@@ -87,7 +82,7 @@ impl FnConfig {
                             FnConfKind::Var(
                                 FnConfig {
                                     name: value.data,
-                                    inputs: Self::build_inputs(parent, conf_tree, vars),
+                                    inputs: Self::build_inputs(parent_id, parent_name, conf_tree, vars),
                                     type_: value.type_,
                                 }
                             )        
@@ -96,7 +91,7 @@ impl FnConfig {
                             FnConfKind::Fn(
                                 FnConfig {
                                     name: value.data,
-                                    inputs: Self::build_inputs(parent, conf_tree, vars),
+                                    inputs: Self::build_inputs(parent_id, parent_name, conf_tree, vars),
                                     type_: value.type_,
                                 }
                             )
@@ -118,8 +113,8 @@ impl FnConfig {
                             };
                             FnConfKind::PointConf(
                                 FnPointConfig {
-                                    conf: PointConfig::new(parent, conf_tree),
-                                    input: Box::new(FnConfig::new(parent, &input_conf, vars)),
+                                    conf: PointConfig::new(parent_name, conf_tree),
+                                    input: Box::new(FnConfig::new(parent_id, parent_name, &input_conf, vars)),
                                 }
                             )
                         },
@@ -135,7 +130,7 @@ impl FnConfig {
                 },
             }
         } else {
-            debug!("FnConfig.new | SINGLE VALUE\t{:?}", &conf_tree.conf);
+            trace!("FnConfig.new | SINGLE VALUE: \t{:#?}", &conf_tree.conf);
             if conf_tree.conf.is_string() {
                 match FnConfKeywd::from_str(conf_tree.conf.as_str().unwrap()) {
                     // keyword parsed successefully
@@ -202,11 +197,13 @@ impl FnConfig {
             } else {
                 panic!("FnConfig.new | Custom parameter of unknown type declared, but : {:?}", conf_tree.conf);
             }
-        }
+        };
+        trace!("FnConfig.new | Config created: {:#?}", cfg);
+        cfg
     }
     ///
     /// 
-    fn build_inputs(parent: &str, conf_tree: &ConfTree, vars: &mut Vec<String>) -> IndexMap<String, FnConfKind> {
+    fn build_inputs(parent_id: &str, parent_name: &Name, conf_tree: &ConfTree, vars: &mut Vec<String>) -> IndexMap<String, FnConfKind> {
         let mut inputs = IndexMap::new();
         match conf_tree.subNodes() {
             // has inputs in mapping
@@ -220,7 +217,7 @@ impl FnConfig {
                             if !keyword.input().is_empty() {
                                 inputs.insert(
                                     keyword.input(),
-                                    FnConfig::new(parent, &sub_node, vars),
+                                    FnConfig::new(parent_id, parent_name, &sub_node, vars),
                                 );
                             }
                         },
@@ -228,7 +225,7 @@ impl FnConfig {
                             trace!("FnConfig.buildInputs | sub node NO KEYWORD");
                             inputs.insert(
                                 (sub_node).key.clone(), 
-                                FnConfig::new(parent, &sub_node, vars),
+                                FnConfig::new(parent_id, parent_name, &sub_node, vars),
                             );
                         },
                     };
@@ -238,7 +235,7 @@ impl FnConfig {
                 trace!("FnConfig.buildInputs | sub node not found, possible Const or Var");
                 inputs.insert(
                     (conf_tree).key.clone(), 
-                    FnConfig::new(parent, conf_tree, vars),
+                    FnConfig::new(parent_id, parent_name, conf_tree, vars),
                 );
             },
         }
@@ -246,8 +243,8 @@ impl FnConfig {
     }
     ///
     /// creates config from serde_yaml::Value of following format:
-    pub fn from_yaml(parent: &str, value: &serde_yaml::Value, vars: &mut Vec<String>) -> FnConfKind {
-        Self::new(parent, &ConfTree::newRoot(value.clone()).next().unwrap(), vars)
+    pub fn from_yaml(parent_id: &str, parent_name: &Name, value: &serde_yaml::Value, vars: &mut Vec<String>) -> FnConfKind {
+        Self::new(parent_id, parent_name, &ConfTree::newRoot(value.clone()).next().unwrap(), vars)
     }
     ///
     /// reads yaml config from path
@@ -261,13 +258,13 @@ impl FnConfig {
     ///             input fn functionName:
     ///                 input: point '/path/Point.Name/'```
     #[allow(dead_code)]
-    pub fn read(parent: &str, path: &str) -> FnConfKind {
+    pub fn read(parent_id: &str, parent_name: &Name, path: &str) -> FnConfKind {
         let mut vars = vec![];
         match fs::read_to_string(path) {
             Ok(yaml_string) => {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
-                        FnConfig::from_yaml(parent, &config, &mut vars)
+                        FnConfig::from_yaml(parent_id, parent_name, &config, &mut vars)
                     },
                     Err(err) => {
                         panic!("FnConfig.read | Error in config: {:?}\n\terror: {:?}", yaml_string, err)
@@ -325,8 +322,30 @@ impl FnConfig {
     /// Returns list of configurations of the defined points
     pub fn points(&self) -> Vec<PointConfig> {
         let mut points = vec![];
-        for (_, input_kind) in &self.inputs {
-            let mut input_points = input_kind.points();
+        debug!("FnConfig.points | requesting points...");
+        for (input_name, input_kind) in &self.inputs {
+            debug!("FnConfig({}).points | requesting points from {}: {:#?}...", self.name, input_name, input_kind.name());
+            trace!("FnConfig({}).points | requesting points from {}: {:#?}...", self.name, input_name, input_kind);
+            let mut input_points = match input_kind {
+                FnConfKind::Fn(config) => {
+                    config.points()
+                },
+                FnConfKind::Var(config) => {
+                    config.points()
+                },
+                FnConfKind::Const(config) => {
+                    config.points()
+                },
+                FnConfKind::Point(config) => {
+                    config.points()
+                },
+                FnConfKind::PointConf(config) => {
+                    config.points()
+                },
+                FnConfKind::Param(_) => {
+                    vec![]
+                },
+            };
             points.append(&mut input_points);
         }
         points

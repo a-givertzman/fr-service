@@ -9,10 +9,12 @@
 
 pub mod tcp_server;
 
-pub mod tcp_server_auth;
+pub mod jds_auth;
 
-pub mod tcp_server_cnnection;
+pub mod jds_cnnection;
 
 pub mod connections;
 
-pub mod jds_connection;
+pub mod jds_request;
+
+pub mod jds_routes;

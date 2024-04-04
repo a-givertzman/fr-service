@@ -13,8 +13,10 @@ use serde::Deserialize;
 pub enum FnConfPointType {
     Bool,
     Int,
-    Float,
+    Real,
+    Double,
     String,
+    Any,
     Unknown,
 }
 ///
@@ -69,7 +71,7 @@ pub struct FnConfKeywdValue {
 /// |--------|--------|-------|---------------------|
 /// | opt    | requir | opt   |                     |
 /// |--------|--------|-------|---------------------|
-/// | input  |  point | float | '/path/Point.name'  |
+/// | input  |  point | real  | '/path/Point.name'  |
 /// | input  |  const | int   | 17                  |
 /// |        |  let   |       | varName             |
 /// |        |  fn    |       | fnName              |
@@ -120,8 +122,10 @@ impl FnConfKeywd {
         match typeName {
             "bool" => Ok(FnConfPointType::Bool),
             "int" => Ok(FnConfPointType::Int),
-            "float" => Ok(FnConfPointType::Float),
+            "real" => Ok(FnConfPointType::Real),
+            "double" => Ok(FnConfPointType::Double),
             "string" => Ok(FnConfPointType::String),
+            "any" => Ok(FnConfPointType::Any),
             _ => Err(format!("Unknown keyword '{}'", typeName))
         }
     }
@@ -131,8 +135,7 @@ impl FromStr for FnConfKeywd {
     type Err = String;
     fn from_str(input: &str) -> Result<FnConfKeywd, String> {
         trace!("FnConfKeywd.from_str | input: {}", input);
-        let re = r#"[ \t]*(?:(\w+)[ \t]+)*(?:(let|fn|const|point){1}(?:[ \t](bool|int|float|string))*(?:$|(?:[ \t]+['"]*([\w/.]+)['"]*)))"#;
-        // let re = r#"[ \t]*(?:(\w+)[ \t]+)*(?:(let|fn|const|point|metric){1}(?:[ \t](bool|int|float|string))*(?:$|(?:[ \t]+['"]*([\w/.]+)['"]*)))"#;
+        let re = r#"[ \t]*(?:(\w+)[ \t]+)*(?:(let|fn|const|point){1}(?:[ \t](bool|int|real|double|string|any))*(?:$|(?:[ \t]+['"]*([\w/.]+)['"]*)))"#;
         let re = RegexBuilder::new(re).multi_line(true).build().unwrap();
         let groupInput = 1;
         let groupKind = 2;

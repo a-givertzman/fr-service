@@ -1,17 +1,15 @@
 #![allow(non_snake_case)]
-
 use log::{info, warn, debug, trace};
-use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread};
+use std::{fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, Arc, Mutex}, thread};
 use testing::entities::test_value::Value;
 use crate::{
-    core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, 
-    services::{queue_name::QueueName, service::{service::Service, service_handles::ServiceHandles}, services::Services},
+    conf::point_config::name::Name, core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, services::{queue_name::QueueName, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services}
 };
-
-
+///
+///
 pub struct MockTcpServer {
     id: String,
-    // rxSend: HashMap<String, Sender<PointType>>,
+    name: Name,
     multiQueue: String,
     services: Arc<Mutex<Services>>,
     test_data: Vec<Value>,
@@ -24,11 +22,10 @@ pub struct MockTcpServer {
 /// 
 impl MockTcpServer {
     pub fn new(parent: impl Into<String>, multiQueue: &str, services: Arc<Mutex<Services>>, test_data: Vec<Value>, recvLimit: Option<usize>) -> Self {
-        let self_id = format!("{}/MockTcpServer", parent.into());
-        // let (send, recv) = mpsc::channel::<PointType>();
+        let name = Name::new(parent, format!("MockTcpServer{}", COUNT.fetch_add(1, Ordering::Relaxed)));
         Self {
-            id: self_id.clone(),
-            // rxSend: HashMap::new(),
+            id: name.join(),
+            name,
             multiQueue: multiQueue.to_string(),
             services,
             test_data,
@@ -60,19 +57,23 @@ impl Object for MockTcpServer {
     fn id(&self) -> &str {
         &self.id
     }
+    fn name(&self) -> Name {
+        self.name.clone()
+    }
+}
+///
+/// 
+impl Debug for MockTcpServer {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("MockTcpServer")
+            .field("id", &self.id)
+            .finish()
+    }
 }
 ///
 /// 
 impl Service for MockTcpServer {
-    //
-    //
-    fn get_link(&mut self, _name: &str) -> std::sync::mpsc::Sender<crate::core_::point::point_type::PointType> {
-        panic!("{}.get_link | Does not support static producer", self.id())
-        // match self.rxSend.get(name) {
-        //     Some(send) => send.clone(),
-        //     None => panic!("{}.run | link '{:?}' - not found", self.id, name),
-        // }
-    }
     //
     //
     fn run(&mut self) -> Result<ServiceHandles, String> {
@@ -82,8 +83,10 @@ impl Service for MockTcpServer {
         let mqServiceName = QueueName::new(&self.multiQueue);
         let mqServiceName = mqServiceName.service();
         debug!("{}.run | Lock services...", self_id);
-        let (_, rxRecv) = self.services.lock().unwrap().subscribe(mqServiceName, &self_id, &vec![]);
-        let txSend = self.services.lock().unwrap().get_link(&self.multiQueue);
+        let (_, rxRecv) = self.services.slock().subscribe(mqServiceName, &self_id, &vec![]);
+        let txSend = self.services.slock().get_link(&self.multiQueue).unwrap_or_else(|err| {
+            panic!("{}.run | services.get_link error: {:#?}", self_id, err);
+        });
         debug!("{}.run | Lock services - ok", self_id);
         let received = self.received.clone();
         let recvLimit = self.recvLimit.clone();
@@ -169,3 +172,6 @@ impl Service for MockTcpServer {
         self.exit.store(true, Ordering::SeqCst);
     }
 }
+///
+/// Global static counter of FnOut instances
+static COUNT: AtomicUsize = AtomicUsize::new(0);

@@ -6,13 +6,10 @@ mod tests {
     use std::{sync::Once, env};
     use indexmap::IndexMap;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::conf::fn_::{fn_config::FnConfig, fn_conf_kind::FnConfKind, fn_conf_keywd::FnConfPointType};
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    use crate::conf::{fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig}, point_config::name::Name};
+    ///
+    /// 
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
@@ -21,15 +18,12 @@ mod tests {
             }
         )
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
+    fn init_each() -> () {}
+    ///
+    /// 
     #[test]
     fn test_fn_config_read_valid() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -37,6 +31,7 @@ mod tests {
         init_each();
         println!();
         let self_id = "test FnConfig | read valid";
+        let self_name = Name::new("", self_id);
         println!("\n{}", self_id);
         let target = FnConfKind::Var( FnConfig { 
             name: "VarName2".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
@@ -55,7 +50,7 @@ mod tests {
                                     ]),
                                 } )),
                                 ("input2".to_string(), FnConfKind::Point( FnConfig { 
-                                    name: "/path/Point.Name/".to_string(), type_: FnConfPointType::Float, inputs: IndexMap::from([]) 
+                                    name: "/path/Point.Name/".to_string(), type_: FnConfPointType::Real, inputs: IndexMap::from([]) 
                                 } )),
                                 ("input1".to_string(), FnConfKind::Const( FnConfig { 
                                     name: "someValue".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([]) 
@@ -70,7 +65,7 @@ mod tests {
         // let (initial, switches) = init_each();
         trace!("dir: {:?}", env::current_dir());
         let path= "./src/tests/unit/conf/fn_config/fn_config_test.yaml";
-        let fnConfig = FnConfig::read(self_id, path);
+        let fnConfig = FnConfig::read(self_id, &self_name, path);
         trace!("fnConfig: {:?}", fnConfig);
         assert_eq!(fnConfig, target);
     }
