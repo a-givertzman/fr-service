@@ -11,14 +11,14 @@
 //!     suscribe:
 //!         /App/MultiQueue: []
 //! ```
-use std::{collections::HashMap, fmt::Debug, fs, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, RecvTimeoutError, Sender}, Arc, Mutex, RwLock}, thread};
+use std::{collections::HashMap, fmt::Debug, fs, hash::BuildHasherDefault, path::Path, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, RecvTimeoutError, Sender}, Arc, Mutex, RwLock}, thread};
 use concat_string::concat_string;
 use hashers::fx_hash::FxHasher;
 use log::{debug, error, info, trace, warn};
 use serde::Serialize;
 use crate::{
     conf::{cache_service_config::CacheServiceConfig, conf_subscribe::ConfSubscribe, point_config::name::Name}, 
-    core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::point_type::PointType}, 
+    core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::point_type::PointType, status::status::Status}, 
     services::{
         multi_queue::subscription_criteria::SubscriptionCriteria, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services
     } 
@@ -147,19 +147,76 @@ impl CacheService {
     ///     ...
     /// }
     /// ```
-    fn write<S: Serialize>(self_id: &str, name: &Name, points: S) {
+    fn write<S: Serialize>(self_id: &str, name: &Name, points: S) -> Result<(), String> {
+        let path = concat_string!("./assets/cache", name.parent());
+        let path_exists = match Path::new(&path).try_exists() {
+            Ok(_) => Ok(()),
+            Err(_) => {
+                match fs::create_dir_all(&path) {
+                    Ok(_) => Ok(()),
+                    Err(err) => {
+                        Err(format!("{}.read | Error create path: '{}'\n\terror: {:?}", self_id, path, err))
+                    },
+                }
+            },
+        };
         let path = concat_string!("./assets/cache", name.parent(), "/cache.json");
-        match fs::OpenOptions::new().create(true).append(true).open(&path) {
-            Ok(f) => {
-                match serde_json::to_writer_pretty(f, &points) {
-                    Ok(_) => {},
-                    Err(err) => error!("{}.read | Error writing to file: '{}'\n\terror: {:?}", self_id, path, err),
+        match path_exists {
+            Ok(_) => {
+                match fs::OpenOptions::new().create(true).write(true).open(&path) {
+                    Ok(f) => {
+                        match serde_json::to_writer_pretty(f, &points) {
+                            Ok(_) => Ok(()),
+                            Err(err) => {
+                                let message = format!("{}.read | Error writing to file: '{}'\n\terror: {:?}", self_id, path, err);
+                                error!("{}", message);
+                                Err(message)
+                            },
+                        }
+                    },
+                    Err(err) => {
+                        let message = format!("{}.read | Error open file: '{}'\n\terror: {:?}", self_id, path, err);
+                        error!("{}", message);
+                        Err(message)
+                    },
                 }
             },
             Err(err) => {
-                error!("{}.read | Error open file: '{}'\n\terror: {:?}", self_id, path, err)
+                error!("{:#?}", err);
+                Err(err)
             },
         }
+    }
+    ///
+    /// 
+    fn store<T>(self_id: &str, name: &Name, points: &HashMap<String, PointType, T>) -> Result<(), String> {
+        let points: HashMap<String, PointType> = points.into_iter().map(|(dest, point)| {
+            let point = match point.clone() {
+                PointType::Bool(mut point) => {
+                    point.status = Status::Obsolete;
+                    PointType::Bool(point)
+                },
+                PointType::Int(mut point) => {
+                    point.status = Status::Obsolete;
+                    PointType::Int(point)
+                },
+                PointType::Real(mut point) => {
+                    point.status = Status::Obsolete;
+                    PointType::Real(point)
+                },
+                PointType::Double(mut point) => {
+                    point.status = Status::Obsolete;
+                    PointType::Double(point)
+                },
+                PointType::String(mut point) => {
+                    point.status = Status::Obsolete;
+                    PointType::String(point)
+                },
+            };
+            (dest.to_owned(), point)
+        }).collect();
+        Self::write(self_id, name, points)
+
     }
 }
 ///
@@ -197,6 +254,7 @@ impl Service for CacheService {
         let services = self.services.clone();
         let cache = self.cache.clone();
         let rx_recv = self.subscribe(&conf, &services);
+        let mut dely_store = DelydStore::new(10);
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
             'main: loop {
@@ -204,9 +262,12 @@ impl Service for CacheService {
                     Ok(point) => {
                         match cache.write() {
                             Ok(mut cache) => {
-                                if let None = cache.insert(point.dest(), point) {
-
-                                };
+                                cache.insert(point.dest(), point);
+                                if let None = dely_store.next() {
+                                    if let Ok(_) = Self::store(&self_id, &self_name, &cache) {
+                                        dely_store.set_stored();
+                                    };
+                                }
                             },
                             Err(err) => {
                                 error!("{}.run | Error writing to cache: {:?}", self_id, err);
@@ -227,8 +288,9 @@ impl Service for CacheService {
 
                 }
                 if exit.load(Ordering::SeqCst) {
-                    let points = cache.read().unwrap().clone();
-                    Self::write(&self_id, &self_name, points);
+                    if !dely_store.stored {
+                        _ = Self::store(&self_id, &self_name, &cache.read().unwrap());
+                    }
                     break;
                 }
             }
@@ -251,4 +313,40 @@ impl Service for CacheService {
     fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
     }    
+}
+///
+/// 
+struct DelydStore {
+    count: isize,
+    val: isize,
+    stored: bool,
+}
+///
+/// 
+impl DelydStore {
+    pub fn new(count: isize) -> Self {
+        Self { count, val: count, stored: true }
+    }
+    ///
+    /// 
+    pub fn next(&mut self) -> Option<()> {
+        self.val -= 1;
+        self.stored = false;
+        if self.val <= 0 {
+            self.val = self.count;
+            None
+        } else {
+            Some(())
+        }
+    }
+    ///
+    /// 
+    pub fn stored(&self) -> bool {
+        self.stored
+    }
+    ///
+    /// 
+    pub fn set_stored(&mut self) {
+        self.stored = true;
+    }
 }
