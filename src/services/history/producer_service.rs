@@ -1,5 +1,6 @@
-use std::{fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread, time::Duration};
+use std::{fmt::Debug, fs, io::Write, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread, time::Duration};
 use chrono::{DateTime, Utc};
+use concat_string::concat_string;
 use indexmap::IndexMap;
 use log::{debug, info, trace, warn};
 use rand::Rng;
@@ -62,6 +63,19 @@ impl ProducerService {
         }
         gen_points
     }
+    ///
+    /// 
+    fn log(self_id: &str, parent: &Name, point: &PointType) {
+        let path = concat_string!("./logs", parent.join(), "/points.log");
+        match fs::OpenOptions::new().create(true).write(true).append(true).open(&path) {
+            Ok(mut f) => {
+                f.write_fmt(format_args!("{:?}\n", point)).unwrap();
+            },
+            Err(err) => {
+                warn!("{}.log | Error open file: '{}'\n\terror: {:?}", self_id, path, err)
+            },
+        }
+    }
 }
 ///
 /// 
@@ -91,6 +105,7 @@ impl Service for ProducerService {
     fn run(&mut self) -> Result<ServiceHandles, String> {
         info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
+        let self_name = self.name.clone();
         let tx_id = PointTxId::fromStr(&self_id);
         let exit = self.exit.clone();
         let debug = self.conf.debug;
@@ -111,7 +126,8 @@ impl Service for ProducerService {
                         Some(point) => {
                             match send.send(point.clone()) {
                                 Ok(_) => {
-                                    if debug {debug!("{}.run | sent point: {:?}", self_id, point);}
+                                    // if debug {debug!("{}.run | sent point: {:?}", self_id, point);}
+                                    if debug {Self::log(&self_id, &self_name, &point);}
                                 },
                                 Err(err) => {
                                     warn!("{}.run | Send error: {:?}", self_id, err);

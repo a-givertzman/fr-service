@@ -9,7 +9,7 @@ service MultiQueue:
         # - TaskTestReceiver.queue
 #
 #
-service ProducerService Ied12:
+service ProducerService ied12:
     cycle: 400 ms                         # operating cycle time of the module
     # send-to: /App/ApiClient.in-queue
     send-to: /App/MultiQueue.in-queue
@@ -327,6 +327,12 @@ service ProducerService Ied12:
 #             type: Int
         # point Control.Common.ResetAlarms: 
         #     type: Int
+
+service ProducerService ied13:
+    cycle: 400 ms                         # operating cycle time of the module
+    # send-to: /App/ApiClient.in-queue
+    send-to: /App/MultiQueue.in-queue
+    debug: true
     db905_visual_data_fast:
         point Winch.ValveEV1: 
             type: Bool
@@ -480,6 +486,12 @@ service ProducerService Ied12:
         #     type: Int
         # point Load.jibLast: 
         #     type: Int
+        
+service ProducerService ied14:
+    cycle: 400 ms                         # operating cycle time of the module
+    # send-to: /App/ApiClient.in-queue
+    send-to: /App/MultiQueue.in-queue
+    debug: true
     db906_visual_data:
         point CraneMovement.RotateLeft: 
             type: Int

@@ -31,25 +31,12 @@ impl SubscriptionCriteria {
     /// deref
     /// 
     pub fn destination(&self) -> String {
-        // match self.dest.borrow_mut() {
-        //     Some(dest) => {
-        //         dest.to_owned()
-        //     },
-        //     None => {
-        //         let dest = match self.cot {
-        //             Cot::All => self.name.clone(),
-        //             _        => concat_string!(self.cot.as_str(), "/", self.name),
-        //         };
-        //         self.dest = Some(dest.clone());
-        //         dest
-        //     },
-        // }
         if let Some(dest) = &*self.dest.borrow() {
             return dest.to_owned();
         }
         let dest = match self.cot {
             Cot::All => self.name.clone(),
-            _        => concat_string!(self.cot.as_str(), "/", self.name),
+            _        => concat_string!(self.cot.as_str(), ":", self.name),
         };
         *self.dest.borrow_mut() = Some(dest.clone());
         dest

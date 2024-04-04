@@ -1,11 +1,9 @@
-use std::{fs, io::Write, path::Path, sync::mpsc::Sender, time::Duration};
-
+use std::{fs, io::Write, sync::mpsc::Sender, time::Duration};
 use chrono::Utc;
 use concat_string::concat_string;
 use indexmap::IndexMap;
-use log::{debug, trace, warn};
+use log::{trace, warn};
 use rand::Rng;
-
 use crate::{
     conf::{
         point_config::{name::Name, point_config::PointConfig, point_config_filters::PointConfigFilter, point_config_type::PointConfigType}, 
@@ -46,7 +44,7 @@ impl ProfinetDb {
     /// - app - string represents application name, for point path
     /// - parent - parent id, used for debugging
     /// - conf - configuration of the [ProfinetDB]
-    pub fn new(parent_id: impl Into<String>, parent: &Name, tx_id: usize, conf: &ProfinetDbConfig) -> Self {
+    pub fn new(parent_id: impl Into<String>, tx_id: usize, conf: &ProfinetDbConfig) -> Self {
         let self_id = format!("{}/ProfinetDb({})", parent_id.into(), conf.name);
         Self {
             id: self_id.clone(),
@@ -56,7 +54,7 @@ impl ProfinetDb {
             offset: conf.offset as u32,
             size: conf.size as u32,
             cycle: conf.cycle,
-            points: Self::configure_parse_points(&self_id, &parent, tx_id, conf),
+            points: Self::configure_parse_points(&self_id, tx_id, conf),
         }
     }
     ///
@@ -73,96 +71,98 @@ impl ProfinetDb {
         }
     }
     ///
-    /// Returns updated points from the current DB
-    ///     - reads data slice from the S7 device,
+    /// Fake read method
+    /// Returns updated points from the virtual DB, stored in the array
     ///     - parses raw data into the configured points
     ///     - returns only points with updated value or status
-    pub fn read(&mut self, client: &S7Client, tx_send: &Sender<PointType>) -> Result<(), String> {
-        let mut rnd = rand::thread_rng();
-        let bytes = match self.name.me().as_str() {
-            "db902_panel_controls" => {
-                let index = rnd.gen_range(0..IED12_BYTES.len());
-                IED12_BYTES[index]
-            }
-            "db905_visual_data_fast" => {
-                let index = rnd.gen_range(0..IED13_BYTES.len());
-                IED13_BYTES[index]
-            }
-            "db906_visual_data" => {
-                let index = rnd.gen_range(0..IED14_BYTES.len());
-                IED14_BYTES[index]
-            }
-            _ => panic!("{}.read | Unknown db: '{}'", self.id, self.name.me()),
-        };
-        // debug!("{}.read | bytes: {:?}", self.id, bytes);
-        let timestamp = Utc::now();
-        let mut message = String::new();
-        for (_key, parse_point) in &mut self.points {
-            if let Some(point) = parse_point.next(&bytes, timestamp) {
-                // debug!("{}.read | point: {:?}", self.id, point);
-                match tx_send.send(point.clone()) {
-                    Ok(_) => {
-                        trace!("{}.read | sent point: {:?}", self.id, point);
-                        Self::log(&self.id, &self.name, &point);
-                    },
-                    Err(err) => {
-                        message = format!("{}.read | send error: {}", self.id, err);
-                        warn!("{}", message);
-                    },
-                }
-            }
-        }
-        match message.is_empty() {
-            true => Ok(()),
-            false => Err(message),
-        }
-    }
     // pub fn read(&mut self, client: &S7Client, tx_send: &Sender<PointType>) -> Result<(), String> {
-    //     match client.is_connected() {
-    //         Ok(is_connected) => {
-    //             if is_connected {
-    //                 trace!("{}.read | reading DB: {:?}, offset: {:?}, size: {:?}", self.id, self.number, self.offset, self.size);
-    //                 match client.read(self.number, self.offset, self.size) {
-    //                     Ok(bytes) => {
-    //                         debug!("{}.read | bytes: {:?}", self.id, bytes);
-    //                         let timestamp = Utc::now();
-    //                         let mut message = String::new();
-    //                         for (_key, parse_point) in &mut self.points {
-    //                             if let Some(point) = parse_point.next(&bytes, timestamp) {
-    //                                 // debug!("{}.read | point: {:?}", self.id, point);
-    //                                 match tx_send.send(point) {
-    //                                     Ok(_) => {},
-    //                                     Err(err) => {
-    //                                         message = format!("{}.read | send error: {}", self.id, err);
-    //                                         warn!("{}", message);
-    //                                     },
-    //                                 }
-    //                             }
-    //                         }
-                                // match message.is_empty() {
-                                //     true => Ok(()),
-                                //     false => Err(message),
-                                // }
-    //                     }
-    //                     Err(err) => {
-    //                         let message = format!("{}.read | read error: {}", self.id, err);
-    //                         warn!("{}", message);
-    //                         Err(message)
-    //                     }
-    //                 }
-    //             } else {
-    //                 let message = format!("{}.read | read error: Is not connected", self.id);
-    //                 warn!("{}", message);
-    //                 Err(message)
-    //             }        
-    //         },
-    //         Err(err) => {
-    //             let message = format!("{}.read | read error: {}", self.id, err);
-    //             warn!("{}", message);
-    //             Err(message)
-    //         },
+    //     let mut rnd = rand::thread_rng();
+    //     let bytes = match self.name.me().as_str() {
+    //         "db902_panel_controls" => {
+    //             let index = rnd.gen_range(0..IED12_BYTES.len());
+    //             IED12_BYTES[index]
+    //         }
+    //         "db905_visual_data_fast" => {
+    //             let index = rnd.gen_range(0..IED13_BYTES.len());
+    //             IED13_BYTES[index]
+    //         }
+    //         "db906_visual_data" => {
+    //             let index = rnd.gen_range(0..IED14_BYTES.len());
+    //             IED14_BYTES[index]
+    //         }
+    //         _ => panic!("{}.read | Unknown db: '{}'", self.id, self.name.me()),
+    //     };
+    //     // debug!("{}.read | bytes: {:?}", self.id, bytes);
+    //     let timestamp = Utc::now();
+    //     let mut message = String::new();
+    //     for (_key, parse_point) in &mut self.points {
+    //         if let Some(point) = parse_point.next(&bytes, timestamp) {
+    //             // debug!("{}.read | point: {:?}", self.id, point);
+    //             match tx_send.send(point.clone()) {
+    //                 Ok(_) => {
+    //                     trace!("{}.read | sent point: {:?}", self.id, point);
+    //                     Self::log(&self.id, &self.name, &point);
+    //                 },
+    //                 Err(err) => {
+    //                     message = format!("{}.read | send error: {}", self.id, err);
+    //                     warn!("{}", message);
+    //                 },
+    //             }
+    //         }
+    //     }
+    //     match message.is_empty() {
+    //         true => Ok(()),
+    //         false => Err(message),
     //     }
     // }
+    ///
+    /// 
+    pub fn read(&mut self, client: &S7Client, tx_send: &Sender<PointType>) -> Result<(), String> {
+        match client.is_connected() {
+            Ok(is_connected) => {
+                if is_connected {
+                    trace!("{}.read | reading DB: {:?}, offset: {:?}, size: {:?}", self.id, self.number, self.offset, self.size);
+                    match client.read(self.number, self.offset, self.size) {
+                        Ok(bytes) => {
+                            trace!("{}.read | bytes: {:?}", self.id, bytes);
+                            let timestamp = Utc::now();
+                            let mut message = String::new();
+                            for (_key, parse_point) in &mut self.points {
+                                if let Some(point) = parse_point.next(&bytes, timestamp) {
+                                    // debug!("{}.read | point: {:?}", self.id, point);
+                                    match tx_send.send(point) {
+                                        Ok(_) => {},
+                                        Err(err) => {
+                                            message = format!("{}.read | send error: {}", self.id, err);
+                                            warn!("{}", message);
+                                        },
+                                    }
+                                }
+                            }
+                                match message.is_empty() {
+                                    true => Ok(()),
+                                    false => Err(message),
+                                }
+                        }
+                        Err(err) => {
+                            let message = format!("{}.read | read error: {}", self.id, err);
+                            warn!("{}", message);
+                            Err(message)
+                        }
+                    }
+                } else {
+                    let message = format!("{}.read | read error: Is not connected", self.id);
+                    warn!("{}", message);
+                    Err(message)
+                }        
+            },
+            Err(err) => {
+                let message = format!("{}.read | read error: {}", self.id, err);
+                warn!("{}", message);
+                Err(message)
+            },
+        }
+    }
     ///
     /// Returns updated points from the current DB
     ///     - reads data slice from the S7 device,
@@ -226,20 +226,20 @@ impl ProfinetDb {
     }
     ///
     /// Configuring ParsePoint objects depending on point configurations coming from [conf]
-    fn configure_parse_points(self_id: &str, parent: &Name, tx_id: usize, conf: &ProfinetDbConfig) -> IndexMap<String, Box<dyn ParsePoint>> {
+    fn configure_parse_points(self_id: &str, tx_id: usize, conf: &ProfinetDbConfig) -> IndexMap<String, Box<dyn ParsePoint>> {
         conf.points.iter().map(|point_conf| {
             match point_conf._type {
                 PointConfigType::Bool => {
-                    (point_conf.name.clone(), Self::box_bool(tx_id, Name::new(parent, &point_conf.name).into(), point_conf))
+                    (point_conf.name.clone(), Self::box_bool(tx_id, point_conf.name.clone(), point_conf))
                 },
                 PointConfigType::Int => {
-                    (point_conf.name.clone(), Self::box_int(tx_id, Name::new(parent, &point_conf.name).into(), point_conf))
+                    (point_conf.name.clone(), Self::box_int(tx_id, point_conf.name.clone(), point_conf))
                 },
                 PointConfigType::Real => {
-                    (point_conf.name.clone(), Self::box_real(tx_id, Name::new(parent, &point_conf.name).into(), point_conf))
+                    (point_conf.name.clone(), Self::box_real(tx_id, point_conf.name.clone(), point_conf))
                 },
                 PointConfigType::Double => {
-                    (point_conf.name.clone(), Self::box_real(tx_id, Name::new(parent, &point_conf.name).into(), point_conf))
+                    (point_conf.name.clone(), Self::box_real(tx_id, point_conf.name.clone(), point_conf))
                 },
                 _ => panic!("{}.configureParsePoints | Unknown type '{:?}' for S7 Device", self_id, point_conf._type)
             }

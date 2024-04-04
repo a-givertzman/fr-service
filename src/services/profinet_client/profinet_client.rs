@@ -41,11 +41,11 @@ impl ProfinetClient {
     ///     - returns only points with updated value or status
     fn yield_status(self_id: &str, dbs: &mut IndexMap<String, ProfinetDb>, tx_send: &Sender<PointType>) {
         for (db_name, db) in dbs {
-            debug!("{}.run | DB '{}' - reading...", self_id, db_name);
+            debug!("{}.yield_status | DB '{}' - sending Invalid status...", self_id, db_name);
             match db.yield_status(Status::Invalid, tx_send) {
                 Ok(_) => {},
                 Err(err) => {
-                    error!("{}.lostConnection | send errors: \n\t{:?}", self_id, err);
+                    error!("{}.yield_status | send errors: \n\t{:?}", self_id, err);
                 },
             };
         }
@@ -55,7 +55,6 @@ impl ProfinetClient {
     fn read(&mut self, tx_send: Sender<PointType>) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.read | starting...", self.id);
         let self_id = self.id.clone();
-        let self_name = self.name.clone();
         let tx_id = self.tx_id;
         let exit = self.exit.clone();
         let conf = self.conf.clone();
@@ -72,7 +71,7 @@ impl ProfinetClient {
                         let mut dbs: IndexMap<String, ProfinetDb> = IndexMap::new();
                         for (db_name, db_conf) in conf.dbs {
                             info!("{}.read | configuring DB: {:?}...", self_id, db_name);
-                            let db = ProfinetDb::new(&self_id, &self_name, tx_id, &db_conf);
+                            let db = ProfinetDb::new(&self_id, tx_id, &db_conf);
                             dbs.insert(db_name.clone(), db);
                             info!("{}.read | configuring DB: {:?} - ok", self_id, db_name);
                         }
@@ -122,6 +121,7 @@ impl ProfinetClient {
                             }
                             thread::sleep(conf.reconnect_cycle);
                         }
+                        info!("{}.read | Exit", self_id);
                     });
                     info!("{}.read | Started", self.id);
                     handle
@@ -140,7 +140,6 @@ impl ProfinetClient {
     /// Writes Point to the protocol (PROFINET device) specific address
     fn write(&mut self, tx_send: Sender<PointType>) -> Result<JoinHandle<()>, std::io::Error> {
         let self_id = self.id.clone();
-        let self_name = self.name.clone();
         let tx_id = self.tx_id;
         let exit = self.exit.clone();
         let conf = self.conf.clone();
@@ -156,15 +155,11 @@ impl ProfinetClient {
             let mut points: Vec<PointConfig> = vec![];
             for (db_name, db_conf) in conf.dbs {
                 info!("{}.write | configuring DB: {:?}...", self_id, db_name);
-                let db = ProfinetDb::new(&self_id, &self_name, tx_id, &db_conf);
+                let db = ProfinetDb::new(&self_id, tx_id, &db_conf);
                 dbs.insert(db_name.clone(), db);
                 info!("{}.write | configuring DB: {:?} - ok", self_id, db_name);
                 points.extend(db_conf.points());
             }
-            // debug!("{}.write | Point configs ({}) :", self_id, points.len());
-            // for cfg in &points {
-            //     println!("\t{:?}", cfg);
-            // }
             let points = points.iter().map(|point_conf| {
                 SubscriptionCriteria::new(&point_conf.name, Cot::Act)
             }).collect::<Vec<SubscriptionCriteria>>();
@@ -257,8 +252,9 @@ impl ProfinetClient {
                     },
                 }
             }
+            info!("{}.write | Exit", self_id);
         });
-        info!("{}.write | started", self.id);
+        info!("{}.write | Started", self.id);
         handle
     }
 }

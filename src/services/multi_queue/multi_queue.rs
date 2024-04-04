@@ -67,6 +67,20 @@ impl MultiQueue {
             },
         }
     }
+    ///
+    /// 
+    fn log_point(self_id: &str, parent: &Name, point_id: &str, point: &PointType) {
+        let path = concat_string!("./logs", parent.join(), "/points.log");
+        match fs::OpenOptions::new().create(true).write(true).append(true).open(&path) {
+            Ok(mut f) => {
+                f.write_fmt(format_args!("'{}': {:?}\n",point_id, point)).unwrap();
+            },
+            Err(err) => {
+                warn!("{}.log | Error open file: '{}'\n\terror: {:?}", self_id, path, err)
+            },
+        }
+    }
+
 }
 ///
 /// 
@@ -188,6 +202,7 @@ impl Service for MultiQueue {
     fn run(&mut self) -> Result<ServiceHandles, String> {
         info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
+        let self_name = self.name.clone();
         let exit = self.exit.clone();
         let recv = self.rx_recv.pop().unwrap();
         let subscriptions_ref = self.subscriptions.clone();
@@ -213,6 +228,7 @@ impl Service for MultiQueue {
                     Ok(point) => {
                         let point_id = SubscriptionCriteria::new(&point.name(), point.cot()).destination();
                         trace!("{}.run | received: \n\t{:?}", self_id, point);
+                        Self::log_point(&self_id, &self_name, &point_id, &point);
                         for (receiver_hash, sender) in subscriptions.iter(&point_id) {
                             match receiver_hash != point.tx_id() {
                                 true => {
