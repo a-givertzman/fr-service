@@ -32,15 +32,12 @@ impl SubscriptionCriteria {
     /// 
     pub fn destination(&self) -> String {
         if let Some(dest) = &*self.dest.borrow() {
-            return dest.to_owned();
+            dest.to_owned()
+        } else {
+            let dest = Self::dest(&self.cot, &self.name);
+            *self.dest.borrow_mut() = Some(dest.clone());
+            dest
         }
-        // let dest = match self.cot {
-        //     Cot::All => self.name.clone(),
-        //     _        => concat_string!(self.cot.as_str(), ":", self.name),
-        // };
-        let dest = Self::dest(&self.cot, &self.name);
-        *self.dest.borrow_mut() = Some(dest.clone());
-        dest
     }
     ///
     /// 
