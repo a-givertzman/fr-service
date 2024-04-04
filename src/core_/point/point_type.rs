@@ -2,7 +2,7 @@ use chrono::DateTime;
 use concat_string::concat_string;
 use serde::{Serialize, ser::SerializeStruct};
 use testing::entities::test_value::Value;
-use crate::core_::{cot::cot::Cot, status::status::Status, types::bool::Bool};
+use crate::{core_::{cot::cot::Cot, status::status::Status, types::bool::Bool}, services::multi_queue::subscription_criteria::SubscriptionCriteria};
 
 use super::point::Point;
 
@@ -86,11 +86,11 @@ impl PointType {
     /// Returns destination of the containing Point
     pub fn dest(&self) -> String {
         match self {
-            PointType::Bool(point) => concat_string!(point.cot, point.name),
-            PointType::Int(point) => concat_string!(point.cot, point.name),
-            PointType::Real(point) => concat_string!(point.cot, point.name),
-            PointType::Double(point) => concat_string!(point.cot, point.name),
-            PointType::String(point) => concat_string!(point.cot, point.name),
+            PointType::Bool(point) =>SubscriptionCriteria::new(&point.name, point.cot).destination(),   //concat_string!(point.cot, point.name),
+            PointType::Int(point) => SubscriptionCriteria::new(&point.name, point.cot).destination(),   //concat_string!(point.cot, point.name),
+            PointType::Real(point) =>SubscriptionCriteria::new(&point.name, point.cot).destination(),   //concat_string!(point.cot, point.name),
+            PointType::Double(point) =>  SubscriptionCriteria::new(&point.name, point.cot).destination(),   //concat_string!(point.cot, point.name),
+            PointType::String(point) =>  SubscriptionCriteria::new(&point.name, point.cot).destination(),   //concat_string!(point.cot, point.name),
         }
     }
     ///

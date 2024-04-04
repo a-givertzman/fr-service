@@ -110,7 +110,7 @@ impl Service for CacheService {
     fn run(&mut self) -> Result<ServiceHandles, String> {
         info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
-        let self_name = self.name.clone();
+        // let self_name = self.name.clone();
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         let services = self.services.clone();
@@ -121,7 +121,14 @@ impl Service for CacheService {
             'main: loop {
                 match rx_recv.recv_timeout(RECV_TIMEOUT) {
                     Ok(point) => {
-                        cache.write().unwrap().insert(point.dest(), point);
+                        match cache.write() {
+                            Ok(mut cache) => {
+                                cache.insert(point.dest(), point);
+                            },
+                            Err(err) => {
+                                error!("{}.run | Error writing to cache: {:?}", self_id, err);
+                            },
+                        }
                     },
                     Err(err) => {
                         match err {
