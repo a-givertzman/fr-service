@@ -208,7 +208,7 @@ impl ProfinetDb {
                         client.write(self.number, address.offset.unwrap(), 2, &mut (point.value as i16).to_be_bytes())
                     },
                     PointType::Real(point) => {
-                        client.write(self.number, address.offset.unwrap(), 4, &mut (point.value as f32).to_be_bytes())
+                        client.write(self.number, address.offset.unwrap(), 4, &mut (point.value).to_be_bytes())
                     },
                     PointType::Double(point) => {
                         client.write(self.number, address.offset.unwrap(), 4, &mut (point.value as f32).to_be_bytes())

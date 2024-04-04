@@ -116,9 +116,9 @@ impl PartialEq for Name {
 }
 ///
 /// 
-impl Into<String> for &Name {
-    fn into(self) -> String {
-        self.join()
+impl From<&Name> for String {
+    fn from(value: &Name) -> Self {
+        value.join()
     }
 }
 ///

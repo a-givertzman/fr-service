@@ -29,7 +29,7 @@ impl App {
     ///     - path - path to the application configuration
     pub fn new(path: impl Into<String>) -> Self {
         let path: String = path.into();
-        let self_id = format!("App");
+        let self_id = "App".to_owned();
         info!("{}.run | Configuration path: '{}'", self_id, path);
         info!("{}.run | Reading configuration...", self_id);
         let conf: AppConfig = AppConfig::read(&path);

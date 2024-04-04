@@ -80,7 +80,7 @@ impl PointConfig {
             Ok(keyword) => keyword.data(),
             Err(_) => conf_tree.key.clone(),
         };
-        pc.name = Name::new(parent_name, &name).join();
+        pc.name = Name::new(parent_name, name).join();
         if let Some(mut filter) = pc.filters.clone() {
             if let Some(factor) = filter.factor {
                 if factor == 0.0 {

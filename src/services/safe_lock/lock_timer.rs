@@ -26,7 +26,7 @@ impl LockTimer {
     pub fn run(&self) -> Result<JoinHandle<()>, std::io::Error> {
         let self_id = self.id.clone();
         let exit = self.exit.clone();
-        let duration = self.duration.clone();
+        let duration = self.duration;
         thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
             let timer = Instant::now();
             loop {

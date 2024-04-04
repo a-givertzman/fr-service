@@ -59,19 +59,15 @@ impl Task {
             } else {
                 let subscriptions_first = subscriptions.clone().into_iter().next();
                 match subscriptions_first {
-                    Some((service_name, points)) => {
-                        match points {
-                            Some(points) => {
-                                let (_, rx_recv) = services.slock().subscribe(
-                                        &service_name,
-                                        &self.name.join(), 
-                                        &points,
-                                    );
-                                rx_recv
-                            },
-                            None => panic!("{}.run | Error. Task subscription configuration error in:: {:#?}", self.id, subscriptions),
-                        }
+                    Some((service_name, Some(points))) => {
+                        let (_, rx_recv) = services.slock().subscribe(
+                                &service_name,
+                                &self.name.join(), 
+                                &points,
+                            );
+                        rx_recv
                     },
+                    Some((_, None)) => panic!("{}.run | Error. Task subscription configuration error in:: {:#?}", self.id, subscriptions),
                     None => panic!("{}.run | Error. Task subscription configuration error in:: {:#?}", self.id, subscriptions),
                 }
             }

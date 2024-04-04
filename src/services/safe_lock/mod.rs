@@ -29,6 +29,7 @@ impl SafeLock<Services> for Arc<Mutex<Services>> {
     fn slock(&self) -> MutexGuard<'_, Services> {
         let self_id = format!("{:?}/SafeLock", self);
         let lock_timer = LockTimer::new(&self_id, Duration::from_millis(100));
+        lock_timer.run().unwrap();
         info!("SafeLock.slock | Lock {:?}...", self_id);
         let mutax_guard = self.lock().unwrap();
         info!("SafeLock.slock | Lock {:?} - ok", self_id);
@@ -42,6 +43,7 @@ impl SafeLock<Subscriptions> for Arc<Mutex<Subscriptions>> {
     fn slock(&self) -> MutexGuard<'_, Subscriptions> {
         let self_id = format!("{:?}/SafeLock", self);
         let lock_timer = LockTimer::new(&self_id, Duration::from_millis(100));
+        lock_timer.run().unwrap();
         trace!("SafeLock.slock | Lock {:?}...", self_id);
         let mutax_guard = self.lock().unwrap();
         trace!("SafeLock.slock | Lock {:?} - ok", self_id);
@@ -55,6 +57,7 @@ impl SafeLock<TcpServerConnections> for Arc<Mutex<TcpServerConnections>> {
     fn slock(&self) -> MutexGuard<'_, TcpServerConnections> {
         let self_id = format!("{:?}/SafeLock", self);
         let lock_timer = LockTimer::new(&self_id, Duration::from_millis(100));
+        lock_timer.run().unwrap();
         info!("SafeLock.slock | Lock {:?}...", self_id);
         let mutax_guard = self.lock().unwrap();
         info!("SafeLock.slock | Lock {:?} - ok", self_id);
@@ -69,6 +72,7 @@ impl SafeLock<TcpReadAlive> for Arc<Mutex<TcpReadAlive>> {
     fn slock(&self) -> MutexGuard<'_, TcpReadAlive> {
         let self_id = format!("{:?}/SafeLock", self);
         let lock_timer = LockTimer::new(&self_id, Duration::from_millis(100));
+        lock_timer.run().unwrap();
         info!("SafeLock.slock | Lock {:?}...", self_id);
         let mutax_guard = self.lock().unwrap();
         info!("SafeLock.slock | Lock {:?} - ok", self_id);
@@ -82,6 +86,7 @@ impl SafeLock<TcpWriteAlive> for Arc<Mutex<TcpWriteAlive>> {
     fn slock(&self) -> MutexGuard<'_, TcpWriteAlive> {
         let self_id = format!("{:?}/SafeLock", self);
         let lock_timer = LockTimer::new(&self_id, Duration::from_millis(100));
+        lock_timer.run().unwrap();
         info!("SafeLock.slock | Lock {:?}...", self_id);
         let mutax_guard = self.lock().unwrap();
         info!("SafeLock.slock | Lock {:?} - ok", self_id);
@@ -95,6 +100,7 @@ impl SafeLock<TcpStreamWrite> for Arc<Mutex<TcpStreamWrite>> {
     fn slock(&self) -> MutexGuard<'_, TcpStreamWrite> {
         let self_id = format!("{:?}/SafeLock", self);
         let lock_timer = LockTimer::new(&self_id, Duration::from_millis(100));
+        lock_timer.run().unwrap();
         info!("SafeLock.slock | Lock {:?}...", self_id);
         let mutax_guard = self.lock().unwrap();
         info!("SafeLock.slock | Lock {:?} - ok", self_id);
@@ -108,6 +114,7 @@ impl SafeLock<dyn TcpStreamRead> for Arc<Mutex<dyn TcpStreamRead>> {
     fn slock(&self) -> MutexGuard<'_, (dyn TcpStreamRead + 'static)> {
         let self_id = format!("{:?}/SafeLock", self);
         let lock_timer = LockTimer::new(&self_id, Duration::from_millis(100));
+        lock_timer.run().unwrap();
         info!("SafeLock.slock | Lock: '{:?}'...", self_id);
         let mutax_guard = self.lock().unwrap();
         info!("SafeLock.slock | Lock: '{:?}' - ok", self_id);
@@ -121,6 +128,7 @@ impl SafeLock<Receiver<bool>> for Arc<Mutex<Receiver<bool>>> {
     fn slock(&self) -> MutexGuard<'_, Receiver<bool>> {
         let self_id = format!("{:?}/SafeLock", self);
         let lock_timer = LockTimer::new(&self_id, Duration::from_millis(100));
+        lock_timer.run().unwrap();
         info!("SafeLock.slock | Lock: '{:?}'...", self_id);
         let mutax_guard = self.lock().unwrap();
         info!("SafeLock.slock | Lock: '{:?}' - ok", self_id);
@@ -134,6 +142,7 @@ impl SafeLock<Vec<TcpStream>> for Arc<Mutex<Vec<TcpStream>>> {
     fn slock(&self) -> MutexGuard<'_, Vec<TcpStream>> {
         let self_id = format!("{:?}/SafeLock", self);
         let lock_timer = LockTimer::new(&self_id, Duration::from_millis(100));
+        lock_timer.run().unwrap();
         info!("SafeLock.slock | Lock: '{:?}'...", self_id);
         let mutax_guard = self.lock().unwrap();
         info!("SafeLock.slock | Lock: '{:?}' - ok", self_id);

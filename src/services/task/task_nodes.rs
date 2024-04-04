@@ -160,9 +160,8 @@ impl TaskNodes {
     /// Creates all task nodes depending on it config
     ///  - if Task config contains 'point [type] every' then single evaluation node allowed only
     pub fn buildNodes(&mut self, parent: &Name, conf: TaskConfig, services: Arc<Mutex<Services>>) {
-        let mut idx = 0;
         let txId = PointTxId::fromStr(&parent.join());
-        for (_nodeName, mut nodeConf) in conf.nodes {
+        for (idx, (_nodeName, mut nodeConf)) in conf.nodes.into_iter().enumerate() {
             let nodeName = nodeConf.name();
             debug!("{}.buildNodes | node[{}]: {:?}", self.id, idx, nodeName);
             self.newNodeVars = Some(TaskNodeVars::new());
@@ -187,7 +186,6 @@ impl TaskNodes {
                 },
             };
             self.finishNewNode(out);
-            idx += 1;
         }
         if let Some(evalNode) = self.getEvalNode("every") {
             let eval_node_name = evalNode.name();

@@ -149,7 +149,7 @@ impl RetainPointId {
             false,
         );
         _ = self.sql_request(&mut request, "truncate public.tags;", api_keep_alive);
-        for (_, point) in retained {
+        for point in retained.values() {
             let sql = format!("insert into public.tags (id, type, name) values ({},'{:?}','{}');", point.id, point._type, point.name);
             _ = self.sql_request(&mut request, &sql, api_keep_alive);
         }

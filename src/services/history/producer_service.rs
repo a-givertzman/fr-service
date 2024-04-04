@@ -109,7 +109,7 @@ impl Service for ProducerService {
         let tx_id = PointTxId::fromStr(&self_id);
         let exit = self.exit.clone();
         let debug = self.conf.debug;
-        let interval = self.conf.cycle.clone().unwrap_or(Duration::ZERO);
+        let interval = self.conf.cycle.unwrap_or(Duration::ZERO);
         let delayed = !interval.is_zero();
         let mut cycle = ServiceCycle::new(&self.id, interval);
         let send = self.services.slock().get_link(&self.conf.send_to).unwrap_or_else(|err| {
@@ -122,19 +122,16 @@ impl Service for ProducerService {
                 trace!("{}.run | Step...", self_id);
                 for (_, gen_point) in &mut gen_points {
                     cycle.start();
-                    match gen_point.next(&Value::Bool(false), Utc::now()) {
-                        Some(point) => {
-                            match send.send(point.clone()) {
-                                Ok(_) => {
-                                    // if debug {debug!("{}.run | sent point: {:?}", self_id, point);}
-                                    if debug {Self::log(&self_id, &self_name, &point);}
-                                },
-                                Err(err) => {
-                                    warn!("{}.run | Send error: {:?}", self_id, err);
-                                },
-                            }
-                        },
-                        None => {},
+                    if let Some(point) = gen_point.next(&Value::Bool(false), Utc::now()) {
+                        match send.send(point.clone()) {
+                            Ok(_) => {
+                                // if debug {debug!("{}.run | sent point: {:?}", self_id, point);}
+                                if debug {Self::log(&self_id, &self_name, &point);}
+                            },
+                            Err(err) => {
+                                warn!("{}.run | Send error: {:?}", self_id, err);
+                            },
+                        }
                     };
                     if delayed {
                         cycle.wait();
@@ -211,6 +208,7 @@ impl PointGen {
     /// 
     fn to_point(&self) -> Option<PointType> {
         if self.is_changed {
+            trace!("{}.to_point | generating point type '{:?}'...", self.id, self._type);
             match &self._type {
                 PointConfigType::Bool => {
                     Some(PointType::Bool(Point::new(

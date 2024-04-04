@@ -133,6 +133,3 @@ impl Service for TaskTestReceiver {
     //     self.recv.pop().unwrap()
     // }
 }
-///
-/// Global static counter of FnOut instances
-static COUNT: AtomicUsize = AtomicUsize::new(0);
