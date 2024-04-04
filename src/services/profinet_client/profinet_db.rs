@@ -3,7 +3,6 @@ use chrono::Utc;
 use concat_string::concat_string;
 use indexmap::IndexMap;
 use log::{trace, warn};
-use rand::Rng;
 use crate::{
     conf::{
         point_config::{name::Name, point_config::PointConfig, point_config_filters::PointConfigFilter, point_config_type::PointConfigType}, 

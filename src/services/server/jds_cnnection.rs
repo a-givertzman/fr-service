@@ -6,7 +6,7 @@ use std::{
     mpsc::{Receiver, RecvTimeoutError}, Arc, Mutex, RwLock}, 
 };
 use hashers::fx_hash::FxHasher;
-use log::{debug, error, info, trace, warn};
+use log::{debug, info, trace, warn};
 use serde_json::json;
 use crate::{
     conf::{point_config::name::Name, tcp_server_config::TcpServerConfig}, 

@@ -2,7 +2,7 @@ use std::{fmt::Debug, fs, io::Write, sync::{atomic::{AtomicBool, Ordering}, Arc,
 use chrono::{DateTime, Utc};
 use concat_string::concat_string;
 use indexmap::IndexMap;
-use log::{debug, info, trace, warn};
+use log::{info, trace, warn};
 use rand::Rng;
 use serde_json::json;
 use testing::entities::test_value::Value;

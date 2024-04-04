@@ -1,5 +1,5 @@
 use std::sync::mpsc::{Receiver, RecvTimeoutError};
-use log::{debug, trace};
+use log::trace;
 use crate::{
     conf::point_config::name::Name, core_::{constants::constants::RECV_TIMEOUT, failure::recv_error::RecvError, object::object::Object, point::point_type::PointType}, tcp::steam_read::StreamRead
 };

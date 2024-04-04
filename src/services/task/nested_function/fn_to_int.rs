@@ -1,4 +1,4 @@
-use log::{debug, trace};
+use log::trace;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use concat_string::concat_string;
 use crate::{

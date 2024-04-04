@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use log::{debug, trace};
+use log::trace;
 use crate::{core_::cot::cot::Cot, services::multi_queue::subscription_criteria::SubscriptionCriteria};
 use super::point_config::{point_config::PointConfig, point_config_history::PointConfigHistory};
 ///
@@ -184,7 +184,7 @@ impl Criterias {
     ///
     /// Returns all configs if names is empty, 
     /// otherwise returns configs for given names
-    fn build_point_configs(names: &Vec<serde_yaml::Value>, configs: &[PointConfig]) -> Vec<PointConfig> {
+    fn build_point_configs(names: &[serde_yaml::Value], configs: &[PointConfig]) -> Vec<PointConfig> {
         if names.is_empty() {
             configs.to_vec()
         } else {

@@ -1,6 +1,7 @@
 use std::{fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Sender}, Arc, Mutex}, thread::{self, JoinHandle}, time::Duration};
 use indexmap::IndexMap;
 use log::{debug, error, info, trace, warn};
+use testing::stuff::wait::WaitTread;
 use crate::{
     conf::{point_config::{name::Name, point_config::PointConfig}, profinet_client_config::profinet_client_config::ProfinetClientConfig}, 
     core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, failure::errors_limit::ErrorsLimit, object::object::Object, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, 
@@ -295,11 +296,19 @@ impl Service for ProfinetClient {
                 (format!("{}/read", self.id), handle_read),
                 (format!("{}/write", self.id), handle_write),
                 ])),
-            // TODO Exit 'write if read returns error'
-            (Ok(handle_read), Err(err)) => Err(format!("{}.run | Error starting inner thread 'read': {:#?}", self.id, err)),
-            // TODO Exit 'read if write returns error'
-            (Err(err), Ok(handle_write)) => Err(format!("{}.run | Error starting inner thread 'write': {:#?}", self.id, err)),
-            (Err(read_err), Err(write_err)) => Err(format!("{}.run | Error starting inner thread: \n\t  read: {:#?}\n\t write: {:#?}", self.id, read_err, write_err)),
+            (Ok(handle_read), Err(err)) => {
+                self.exit();
+                handle_read.wait().unwrap();
+                Err(format!("{}.run | Error starting inner thread 'read': {:#?}", self.id, err))
+            },
+            (Err(err), Ok(handle_write)) => {
+                self.exit();
+                handle_write.wait().unwrap();
+                Err(format!("{}.run | Error starting inner thread 'write': {:#?}", self.id, err))
+            },
+            (Err(read_err), Err(write_err)) => {
+                Err(format!("{}.run | Error starting inner thread: \n\t  read: {:#?}\n\t write: {:#?}", self.id, read_err, write_err))
+            },
         }
     }
     //

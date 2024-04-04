@@ -37,7 +37,7 @@ impl App {
         Self {
             id: self_id,
             handles: LinkedHashMap::new(),
-            conf: conf,
+            conf,
         }
     }
     ///

@@ -217,12 +217,12 @@ impl TaskNodes {
                 trace!("{}.eval | evalNode '{}' - adding point...", self_id, &evalNode.name());
                 evalNode.add(point.clone());
                 trace!("{}.eval | evalNode '{}' - evaluating...", self_id, &evalNode.name());
-                evalNode.eval(point);
+                evalNode.eval();
             },
             None => {
                 if let Some(evalNode) = self.getEvalNode("every") {
                     trace!("{}.eval | evalNode '{}' - evaluating...", self_id, &evalNode.name());
-                    evalNode.eval(point)
+                    evalNode.eval()
                 } else {
                     warn!("{}.eval | evalNode '{}' - not fount, input point ignored", self.id, &pointName);
                 }
