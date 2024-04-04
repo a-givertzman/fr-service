@@ -55,7 +55,7 @@ impl FnOut for FnToInt {
     //
     fn out(&mut self) -> PointType {
         let point = self.input.borrow_mut().out();
-        debug!("{}.out | input: {:?}", self.id, point);
+        trace!("{}.out | input: {:?}", self.id, point);
         let out = match &point {
             PointType::Bool(value) => {
                 if value.value.0 {1} else {0}

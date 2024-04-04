@@ -207,23 +207,23 @@ impl TaskNodes {
         let self_id = self.id.clone();
         let pointName = point.name();
         if let Some(evalNode) = self.getEvalNode("every") {
-            debug!("{}.eval | evalNode '{}' - adding point...", self_id, &evalNode.name());
+            trace!("{}.eval | evalNode '{}' - adding point...", self_id, &evalNode.name());
             evalNode.add(point.clone());
         };
         if let Some(evalNode) = self.getEvalNode(&pointName) {
-            debug!("{}.eval | evalNode '{}' - adding point...", self_id, &evalNode.name());
+            trace!("{}.eval | evalNode '{}' - adding point...", self_id, &evalNode.name());
             evalNode.add(point.clone());
         };
         match self.getEvalNode(&pointName) {
             Some(evalNode) => {
-                debug!("{}.eval | evalNode '{}' - adding point...", self_id, &evalNode.name());
+                trace!("{}.eval | evalNode '{}' - adding point...", self_id, &evalNode.name());
                 evalNode.add(point.clone());
-                debug!("{}.eval | evalNode '{}' - evaluating...", self_id, &evalNode.name());
+                trace!("{}.eval | evalNode '{}' - evaluating...", self_id, &evalNode.name());
                 evalNode.eval(point);
             },
             None => {
                 if let Some(evalNode) = self.getEvalNode("every") {
-                    debug!("{}.eval | evalNode '{}' - evaluating...", self_id, &evalNode.name());
+                    trace!("{}.eval | evalNode '{}' - evaluating...", self_id, &evalNode.name());
                     evalNode.eval(point)
                 } else {
                     warn!("{}.eval | evalNode '{}' - not fount, input point ignored", self.id, &pointName);

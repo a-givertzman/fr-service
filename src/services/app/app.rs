@@ -76,7 +76,7 @@ impl App {
                     error!("{}.run |         Error starting service '{}': {:#?}", self_id, name, err);
                 },
             };
-            thread::sleep(Duration::from_millis(50));
+            thread::sleep(Duration::from_millis(100));
         }
         info!("{}.run |     All services started\n", self_id);
         info!("{}.run | Application started\n", self_id);

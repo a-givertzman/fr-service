@@ -132,7 +132,7 @@ impl FnOut for SqlMetric {
                 },
             };
         }
-        debug!("{}.out | sql: {:?}", self_id, self.sql.out());
+        trace!("{}.out | sql: {:?}", self_id, self.sql.out());
         PointType::String(Point::new_string(
             self.tx_id,
             &self.name.join(), 

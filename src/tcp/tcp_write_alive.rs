@@ -1,5 +1,5 @@
 use std::{sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, thread::{JoinHandle, self}, net::TcpStream, time::Duration};
-use log::{warn, info};
+use log::{debug, info, warn};
 use crate::{
     core_::net::connection_status::ConnectionStatus, services::{safe_lock::SafeLock, task::service_cycle::ServiceCycle}, tcp::tcp_stream_write::{OpResult, TcpStreamWrite} 
 };
@@ -68,7 +68,6 @@ impl TcpWriteAlive {
                 if exit.load(Ordering::SeqCst) | exit_pair.load(Ordering::SeqCst) {
                     break 'main;
                 }
-                // cycle.wait();
             }
             info!("{}.run | Exit", self_id);
         }).unwrap();

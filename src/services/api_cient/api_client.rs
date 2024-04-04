@@ -61,7 +61,7 @@ impl ApiClient {
             Ok(reply) => {
                 if log::max_level() > log::LevelFilter::Info {
                     let reply_str = std::str::from_utf8(&reply).unwrap();
-                    debug!("{}.send | reply str: {:?}", self_id, reply_str);
+                    trace!("{}.send | reply str: {:?}", self_id, reply_str);
                 }
                 match serde_json::from_slice(&reply) {
                     Ok(reply) => Ok(reply),

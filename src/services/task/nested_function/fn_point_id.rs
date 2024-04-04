@@ -1,6 +1,6 @@
 use hashers::fx_hash::FxHasher;
 use indexmap::IndexMap;
-use log::debug;
+use log::trace;
 use std::{hash::BuildHasherDefault, sync::atomic::{AtomicUsize, Ordering}};
 use concat_string::concat_string;
 use crate::{
@@ -57,7 +57,7 @@ impl FnOut for FnPointId {
     //
     fn out(&mut self) -> PointType {
         let point = self.input.borrow_mut().out();
-        debug!("{}.out | input: {:?}", self.id, point);
+        trace!("{}.out | input: {:?}", self.id, point);
         match self.points.get(&point.name()) {
             Some(id) => {
                 PointType::Int(
