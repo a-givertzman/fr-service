@@ -9,32 +9,25 @@ service MultiQueue:
         # - TaskTestReceiver.queue
 #
 #
-# service Task HistoryTask:
-#     cycle: 3 s
-#     in queue recv-queue:
-#         max-length: 10000
-#     subscribe: 
-#         /App/MultiQueue:                     # - multicast subscription to the MultiQueue
-#             {cot: Inf, history: rw}: []               #   - on all points having Cot::Inf and history::ReadWrite
-#     fn ToApiQueue:
-#         queue: /App/ApiClient.in-queue
-#         input fn SqlMetric:
-#             initial: 0.123      # начальное значение
-#             table: public.event
-#             sql: "insert into {table} (pid,value,status,timestamp) values ({input2.value},{input1.value},{input1.status},'{input1.timestamp}');"
-#             input1 fn ToInt:
-#                 input: point any every      # point: every point of any type
-#             input2 fn PointId:
-#                 input: point any every
 service Task HistoryTask:
-    cycle: 3 s
+    cycle: 1 s
     in queue recv-queue:
         max-length: 10000
     subscribe: 
         /App/MultiQueue:                     # - multicast subscription to the MultiQueue
-            {cot: Inf}: []               #   - on all points having Cot::Inf and history::ReadWrite
+            {cot: Inf, history: rw}: []               #   - on all points having Cot::Inf and history::ReadWrite
     fn debug:
         input: point any every
+    fn ToApiQueue:
+        queue: /App/ApiClient.in-queue
+        input fn SqlMetric:
+            initial: 0.123      # начальное значение
+            table: public.event
+            sql: "insert into {table} (pid,value,status,timestamp) values ({input2.value},{input1.value},{input1.status},'{input1.timestamp}');"
+            input1 fn ToInt:
+                input: point any every      # point: every point of any type
+            input2 fn PointId:
+                input: point any every
 
 service ApiClient:
     cycle: 100 ms
