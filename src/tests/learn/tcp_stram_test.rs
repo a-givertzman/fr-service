@@ -135,7 +135,7 @@ mod tcp_stream {
                 Ok(ServiceHandles::new(vec![(self_id.to_owned(), handle)]))
             },
             Err(err) => {
-                let message = format!("{}.run | Start faled: {:#?}", self_id, err);
+                let message = format!("{}.run | Start failed: {:#?}", self_id, err);
                 warn!("{}", message);
                 Err(message)
             },

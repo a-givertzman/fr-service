@@ -251,7 +251,7 @@ impl Service for MockReceiver {
                 Ok(ServiceHandles::new(vec![(self.id.to_owned(), handle)]))
             },
             Err(err) => {
-                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                let message = format!("{}.run | Start failed: {:#?}", self.id, err);
                 warn!("{}", message);
                 Err(message)
             },

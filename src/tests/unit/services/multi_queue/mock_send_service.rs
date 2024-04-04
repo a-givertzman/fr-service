@@ -116,7 +116,7 @@ impl Service for MockSendService {
                 Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
             },
             Err(err) => {
-                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                let message = format!("{}.run | Start failed: {:#?}", self.id, err);
                 warn!("{}", message);
                 Err(message)
             },
