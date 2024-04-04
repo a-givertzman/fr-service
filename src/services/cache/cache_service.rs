@@ -11,12 +11,12 @@
 //!     suscribe:
 //!         /App/MultiQueue: []
 //! ```
-use std::{collections::HashMap, fmt::Debug, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{Receiver, Sender}, Arc, Mutex}, thread};
+use std::{collections::HashMap, fmt::Debug, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{Receiver, RecvTimeoutError, Sender}, Arc, Mutex, RwLock}, thread};
 use hashers::fx_hash::FxHasher;
-use log::{debug, info, trace, warn};
+use log::{debug, error, info, trace, warn};
 use crate::{
-    conf::{cache_service_config::CacheServiceConfig, point_config::name::Name}, core_::{object::object::Object, point::point_type::PointType}, services::{
-        safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services 
+    conf::{cache_service_config::CacheServiceConfig, point_config::name::Name}, core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::point_type::PointType}, services::{
+        cache, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services 
     } 
 };
 
@@ -29,7 +29,7 @@ pub struct CacheService {
     name: Name,
     conf: CacheServiceConfig,
     services: Arc<Mutex<Services>>,
-    cache: HashMap<String, PointType, BuildHasherDefault<FxHasher>>,
+    cache: Arc<RwLock<HashMap<String, PointType, BuildHasherDefault<FxHasher>>>>,
     exit: Arc<AtomicBool>,
 }
 ///
@@ -43,7 +43,7 @@ impl CacheService {
             name: conf.name.clone(),
             conf: conf.clone(),
             services,
-            cache: HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default()),
+            cache: Arc::new(RwLock::new(HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default()))),
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -110,13 +110,33 @@ impl Service for CacheService {
     fn run(&mut self) -> Result<ServiceHandles, String> {
         info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
+        let self_name = self.name.clone();
         let exit = self.exit.clone();
+        let conf = self.conf.clone();
+        let services = self.services.clone();
+        let cache = self.cache.clone();
+        let rx_recv = self.subscribe(&conf, &services);
         info!("{}.run | Preparing thread...", self_id);
-        let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
-            loop {
-                if exit.load(Ordering::SeqCst) {
-                    break;
+        let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
+            'main: loop {
+                match rx_recv.recv_timeout(RECV_TIMEOUT) {
+                    Ok(point) => {
+                        cache.write().unwrap().insert(point.dest(), point);
+                    },
+                    Err(err) => {
+                        match err {
+                            RecvTimeoutError::Timeout => {
+                                trace!("{}.run | Receive error: {:?}", self_id, err);
+                            },
+                            RecvTimeoutError::Disconnected => {
+                                error!("{}.run | Error receiving from queue: {:?}", self_id, err);
+                                break 'main;
+                            },
+                        }
+                    },
+
                 }
+                if exit.load(Ordering::SeqCst) {break}
             }
             info!("{}.run | Exit", self_id);
         });
