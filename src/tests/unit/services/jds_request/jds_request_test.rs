@@ -43,27 +43,27 @@ mod jds_routes {
     }
     /// 
     /// Generets configurations of points
-    fn point_configs(parent_id: &str, parent_name: &Name) -> Vec<PointConfig> {
+    fn point_configs(parent_name: &Name) -> Vec<PointConfig> {
         vec![
-            PointConfig::from_yaml(parent_id, parent_name, &serde_yaml::from_str(&format!(
+            PointConfig::from_yaml(parent_name, &serde_yaml::from_str(&format!(
                 r#"{}:
                     type: String      # Bool / Int / Real / Double / String / Json
                     comment: Auth request, contains token / pass string"#, 
                 format!("Jds/{}", RequestKind::AUTH_SECRET),
             )).unwrap()),
-            PointConfig::from_yaml(parent_id, parent_name, &serde_yaml::from_str(&format!(
+            PointConfig::from_yaml(parent_name, &serde_yaml::from_str(&format!(
                 r#"{}:
                     type: String      # Bool / Int / Real / Double / String / Json
                     comment: Auth request, contains SSH key"#, 
                 format!("Jds/{}", RequestKind::AUTH_SSH),
             )).unwrap()),
-            PointConfig::from_yaml(parent_id, parent_name, &serde_yaml::from_str(&format!(
+            PointConfig::from_yaml(parent_name, &serde_yaml::from_str(&format!(
                 r#"{}:
                     type: String      # Bool / Int / Real / Double / String / Json
                     comment: Request all Ponts configurations"#, 
                 format!("Jds/{}", RequestKind::POINTS),
             )).unwrap()),
-            PointConfig::from_yaml(parent_id, parent_name, &serde_yaml::from_str(&format!(
+            PointConfig::from_yaml(parent_name, &serde_yaml::from_str(&format!(
                 r#"{}:
                     type: String      # Bool / Int / Real / Double / String / Json
                     comment: Request to begin transmossion of all configured Points"#, 
@@ -175,7 +175,7 @@ mod jds_routes {
         let test_items_count = test_data.len();
         //
         // preparing MockServicePoints with the Vec<PontConfig>
-        let service_points = Arc::new(Mutex::new(MockServicePoints::new(self_id, point_configs(self_id, &self_name))));
+        let service_points = Arc::new(Mutex::new(MockServicePoints::new(self_id, point_configs(&self_name))));
         services.slock().insert(service_points);
         //
         // Configuring Receiver
@@ -313,7 +313,7 @@ mod jds_routes {
         let test_items_count = test_data.len();
         //
         // preparing MockServicePoints with the Vec<PontConfig>
-        let service_points = Arc::new(Mutex::new(MockServicePoints::new(self_id, point_configs(self_id, &self_name))));
+        let service_points = Arc::new(Mutex::new(MockServicePoints::new(self_id, point_configs(&self_name))));
         services.lock().unwrap().insert(service_points);
         //
         // Configuring Receiver
@@ -458,7 +458,7 @@ mod jds_routes {
         let test_items_count = test_data.len();
         //
         // preparing MockServicePoints with the Vec<PontConfig>
-        let service_points = Arc::new(Mutex::new(MockServicePoints::new(self_id, point_configs(self_id, &self_name))));
+        let service_points = Arc::new(Mutex::new(MockServicePoints::new(self_id, point_configs(&self_name))));
         services.lock().unwrap().insert(service_points);
         //
         // Configuring Receiver
@@ -507,7 +507,7 @@ mod jds_routes {
             (name, PointConfig::from_json(name, value).unwrap())
         }).collect();
         println!("{} | Points request reply: {:#?}", self_id, points);
-        for target in point_configs(self_id, &self_name) {
+        for target in point_configs(&self_name) {
             match points.get(&target.name) {
                 Some(result) => {
                     assert!(result.name == target.name, "\nresult: {:?}\ntarget: {:?}", result.name, target.name);

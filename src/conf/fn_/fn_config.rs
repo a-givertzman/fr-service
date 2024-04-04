@@ -113,7 +113,7 @@ impl FnConfig {
                             };
                             FnConfKind::PointConf(
                                 FnPointConfig {
-                                    conf: PointConfig::new(parent_id, parent_name, conf_tree),
+                                    conf: PointConfig::new(parent_name, conf_tree),
                                     input: Box::new(FnConfig::new(parent_id, parent_name, &input_conf, vars)),
                                 }
                             )

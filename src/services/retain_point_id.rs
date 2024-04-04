@@ -120,7 +120,7 @@ impl RetainPointId {
     /// }
     /// ```
     fn write<P: AsRef<Path> + AsRef<OsStr> + std::fmt::Display, S: Serialize>(&self, path: P, points: S) -> Result<(), String> {
-        match fs::OpenOptions::new().create(true).write(true).open(&path) {
+        match fs::OpenOptions::new().create(true).append(true).open(&path) {
             Ok(f) => {
                 match serde_json::to_writer_pretty(f, &points) {
                     Ok(_) => Ok(()),

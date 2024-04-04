@@ -78,7 +78,7 @@ impl ProducerServiceConfig {
                     let point_conf = node_conf.get(key).unwrap();
                     trace!("{}.new | Point '{}'", self_id, point_name);
                     trace!("{}.new | Point '{}'   |   conf: {:?}", self_id, point_name, point_conf);
-                    let node_conf = PointConfig::new(&self_id, &Name::new(&self_name, &node_name), &point_conf);
+                    let node_conf = PointConfig::new(&Name::new(&self_name, &node_name), &point_conf);
                     nodes.insert(
                         node_conf.name.clone(),
                         node_conf,

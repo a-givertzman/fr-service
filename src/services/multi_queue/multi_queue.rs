@@ -54,7 +54,7 @@ impl MultiQueue {
     fn log(&self, name: &str, receiver_name: &str, rceiver_hash: usize, points: &[SubscriptionCriteria]) {
         let path = concat_string!("./logs", self.name.join(), name);
         let destinations: Vec<String> = points.iter().map(|cr| {cr.destination()}).collect();
-        match fs::OpenOptions::new().create(true).write(true).append(true).open(&path) {
+        match fs::OpenOptions::new().create(true).append(true).open(&path) {
             Ok(mut f) => {
                 f.write_fmt(format_args!("\n\n\t{} ({})", receiver_name, rceiver_hash)).unwrap();
                 match serde_json::to_writer_pretty(f, &destinations) {
@@ -71,7 +71,7 @@ impl MultiQueue {
     /// 
     fn log_point(self_id: &str, parent: &Name, point_id: &str, point: &PointType) {
         let path = concat_string!("./logs", parent.join(), "/points.log");
-        match fs::OpenOptions::new().create(true).write(true).append(true).open(&path) {
+        match fs::OpenOptions::new().create(true).append(true).open(&path) {
             Ok(mut f) => {
                 f.write_fmt(format_args!("'{}': {:?}\n",point_id, point)).unwrap();
             },

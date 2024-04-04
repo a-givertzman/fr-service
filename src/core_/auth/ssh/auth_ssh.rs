@@ -16,6 +16,7 @@ impl AuthSsh {
     }
     ///
     /// 
+    #[allow(unused)]
     pub fn validate(&self, secret: &str) -> Result<(), String> {
         Err("AuthSsh.validate | Not implemented yet".to_owned())
     }

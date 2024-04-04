@@ -58,7 +58,7 @@ mod fn_point_id {
         println!("{}", self_id);
         let input = init_each(0.to_point(0, "any type"), FnConfPointType::Any);
         let points = POINTS.into_iter().map(|(id, conf)| {
-            let mut point = PointConfig::from_yaml(self_id, &Name::new(self_id, ""), &serde_yaml::from_str(conf).unwrap());
+            let mut point = PointConfig::from_yaml(&Name::new(self_id, ""), &serde_yaml::from_str(conf).unwrap());
             point.id = *id;
             point
         }).collect();

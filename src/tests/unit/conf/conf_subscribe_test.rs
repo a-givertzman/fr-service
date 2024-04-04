@@ -67,7 +67,7 @@ mod conf_subscribe {
         ];
         let points = points.map(|conf| {
             let conf = serde_yaml::from_str(conf).unwrap();
-            PointConfig::from_yaml(self_id, &self_name, &conf)
+            PointConfig::from_yaml(&self_name, &conf)
         });
         let test_data = [
             (

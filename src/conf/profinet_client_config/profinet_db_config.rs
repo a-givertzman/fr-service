@@ -49,7 +49,7 @@ impl ProfinetDbConfig {
                 let point_conf = self_conf.get(key).unwrap();
                 trace!("{}.new | Point '{}'", self_id, point_name);
                 trace!("{}.new | Point '{}'   |   conf: {:?}", self_id, point_name, point_conf);
-                let node_conf = PointConfig::new(&self_id, &self_name, &point_conf);
+                let node_conf = PointConfig::new(&self_name, &point_conf);
                 points.push(
                     node_conf,
                 );

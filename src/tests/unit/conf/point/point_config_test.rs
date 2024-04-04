@@ -244,7 +244,7 @@ mod point_config {
         ];
         for (conf, target) in test_data {
             let conf = serde_yaml::from_str(conf).unwrap();
-            let result = PointConfig::from_yaml(self_id, &self_name, &conf);
+            let result = PointConfig::from_yaml(&self_name, &conf);
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
         test_duration.exit();

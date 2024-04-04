@@ -67,7 +67,7 @@ impl ProducerService {
     /// 
     fn log(self_id: &str, parent: &Name, point: &PointType) {
         let path = concat_string!("./logs", parent.join(), "/points.log");
-        match fs::OpenOptions::new().create(true).write(true).append(true).open(&path) {
+        match fs::OpenOptions::new().create(true).append(true).open(&path) {
             Ok(mut f) => {
                 f.write_fmt(format_args!("{:?}\n", point)).unwrap();
             },

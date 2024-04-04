@@ -71,8 +71,7 @@ impl PointConfig {
     ///         factor: 1.5         #   multiplier for absolute threshold delta - in this case the delta will be accumulated
     ///     comment: Test Point 
     /// ```
-    pub fn new(parent_id: &str, parent_name: &Name, conf_tree: &ConfTree) -> Self {
-        // println!();
+    pub fn new(parent_name: &Name, conf_tree: &ConfTree) -> Self {
         trace!("PointConfig.new | confTree: {:?}", conf_tree);
         let mut pc: PointConfig = serde_yaml::from_value(conf_tree.conf.clone()).unwrap();
         let keyword = FnConfKeywd::from_str(&conf_tree.key);
@@ -92,9 +91,9 @@ impl PointConfig {
     }    
     ///
     /// Creates config from serde_yaml::Value of following format:
-    pub(crate) fn from_yaml(parent_id: &str, parent_name: &Name, value: &serde_yaml::Value) -> Self {
+    pub(crate) fn from_yaml(parent_name: &Name, value: &serde_yaml::Value) -> Self {
         debug!("PointConfig.from_yaml | value: {:?}", value);
-        Self::new(parent_id, parent_name, &ConfTree::newRoot(value.clone()).next().unwrap())
+        Self::new(parent_name, &ConfTree::newRoot(value.clone()).next().unwrap())
     }
     ///
     /// Returns yaml representation
