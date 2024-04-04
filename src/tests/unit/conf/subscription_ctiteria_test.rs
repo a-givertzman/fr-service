@@ -25,7 +25,7 @@ mod subscription_criteria {
     fn init_each() -> () {}
     ///
     /// Testing SubscriptionCriteria::destination() functionality / behavior
-    // #[test]
+    #[test]
     fn destination() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
@@ -197,6 +197,7 @@ mod subscription_criteria {
     ///
     /// Testing SubscriptionCriteria::destination() functionality / behavior
     #[test]
+    #[ignore = "Performance test"]
     fn performance() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
@@ -354,9 +355,11 @@ mod subscription_criteria {
             (Cot::ReqCon, "/App/ied13/db905_visual_data_fast/Winch.LVDT2"),
             (Cot::ReqErr, "/App/ied13/db905_visual_data_fast/Winch.LVDT2"           ) 
         ];
-        let iterations = 10_000;
+        let iterations = 100_000;
         build_criteria(iterations, &test_data);
         build_concat_string(iterations, &test_data);
+        criteria_dest(iterations, &test_data);
+        concat_string_dest(iterations, &test_data);
         test_duration.exit();
     }
     fn build_criteria(iterations: usize, test_data: &[(Cot, &str)]) {
@@ -392,5 +395,29 @@ mod subscription_criteria {
             }
         }
         println!("Build concat_string  elapsed: {:?}", time.elapsed());
+    }
+    fn criteria_dest(iterations: usize, test_data: &[(Cot, &str)]) {
+        let time = Instant::now();
+        let (cot, name) = test_data[0];
+        let criteria = SubscriptionCriteria::new(name, cot);
+        let mut results = vec![];
+        for _ in 0..iterations {
+            let dest = criteria.destination();
+            results.push(dest);
+        }
+        println!("Criteria      dest       elapsed: {:?}", time.elapsed());
+    }
+    fn concat_string_dest(iterations: usize, test_data: &[(Cot, &str)]) {
+        let time = Instant::now();
+        let (cot, name) = test_data[0];
+        let mut results = vec![];
+        for _ in 0..iterations {
+            let dest = match cot {
+                Cot::All => name.to_string(),
+                _        => concat_string!(cot, ":", name),
+            };
+            results.push(dest);
+        }
+        println!("concat_string dest       elapsed: {:?}", time.elapsed());
     }
 }
