@@ -7,8 +7,13 @@ service MultiQueue:
         max-length: 10000
     out queue:
         # - TaskTestReceiver.queue
-#
-#
+
+
+service CacheService:
+    retain: true
+    subscribe: /App/MultiQueue
+
+
 service ProducerService ied12:
     cycle: 400 ms                         # operating cycle time of the module
     # send-to: /App/ApiClient.in-queue
