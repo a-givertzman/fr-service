@@ -63,12 +63,9 @@ mod tcp_stream_write {
             Box::new(MockStreamRead::new( self_id, test_data.clone())),
         );
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
-
         mock_tcp_server(addr.clone(), count, message_len, received.clone());
         thread::sleep(Duration::from_micros(100));
-
         let timer = Instant::now();
-
         while sent.load(Ordering::SeqCst) < count {
             // warn!("sent: {}/{}", sent, count);
             match TcpStream::connect(&addr) {
@@ -77,9 +74,9 @@ mod tcp_stream_write {
                         match tcp_stream_write.write(&mut stream) {
                             ConnectionStatus::Active(result) => {
                                 match result {
-                                    OpResult::Ok(sent_bytes) => {
+                                    OpResult::Ok(_) => {
                                         sent.fetch_add(1, Ordering::SeqCst);
-                                        warn!("sent: {}/{} \t bytes: {}", sent.load(Ordering::SeqCst), count, sent_bytes);
+                                        debug!("sent: {}/{}", sent.load(Ordering::SeqCst), count);
                                     },
                                     OpResult::Err(err) => {
                                         warn!("sent: {}/{}, socket write error: {}", sent.load(Ordering::SeqCst), count, err);

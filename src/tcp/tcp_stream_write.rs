@@ -35,12 +35,12 @@ impl TcpStreamWrite {
     }
     ///
     /// 
-    pub fn write(&mut self, mut tcp_stream: impl Write) -> ConnectionStatus<OpResult<usize, String>, String> {
+    pub fn write(&mut self, mut tcp_stream: impl Write) -> ConnectionStatus<OpResult<(), String>, String> {
         match self.stream.read() {
             Ok(bytes) => {
                 while let Some(bytes) = self.buffer.first() {
                     trace!("{}.write | bytes: {:?}", self.id, bytes);
-                    match tcp_stream.write(bytes) {
+                    match tcp_stream.write_all(bytes) {
                         Ok(_) => {
                             self.buffer.pop_first();
                         },
@@ -54,8 +54,8 @@ impl TcpStreamWrite {
                     };
                 }
                 trace!("{}.write | bytes: {:?}", self.id, bytes);
-                match tcp_stream.write(&bytes) {
-                    Ok(sent) => {ConnectionStatus::Active(OpResult::Ok(sent))},
+                match tcp_stream.write_all(&bytes) {
+                    Ok(_) => {ConnectionStatus::Active(OpResult::Ok(()))},
                     Err(err) => {
                         self.buffer.push(bytes);
                         let message = format!("{}.write | error: {:?}", self.id, err);

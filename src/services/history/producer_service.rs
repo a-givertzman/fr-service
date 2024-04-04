@@ -336,7 +336,7 @@ fn get_random_index(len: usize) -> usize {
 
 
 fn test_data_bool() -> Value {
-    let data = vec![
+    let data = [
         Value::Bool(true),
         Value::Bool(false),
         Value::Bool(false),
@@ -354,7 +354,7 @@ fn test_data_bool() -> Value {
     data[index].clone()
 }
 fn test_data_int() -> Value {
-    let data = vec![
+    let data = [
         Value::Int(0),
         Value::Int(1),
         Value::Int(2),
@@ -370,7 +370,7 @@ fn test_data_int() -> Value {
     data[index].clone()
 }
 fn test_data_real() -> Value {
-    let data = vec![
+    let data = [
         Value::Real(0.0),
         Value::Real(1.0),
         Value::Real(2.0),
@@ -383,7 +383,7 @@ fn test_data_real() -> Value {
     data[index].clone()
 }
 fn test_data_double() -> Value {
-    let data = vec![
+    let data = [
         Value::Double(0.0),
         Value::Double(1.0),
         Value::Double(2.0),
