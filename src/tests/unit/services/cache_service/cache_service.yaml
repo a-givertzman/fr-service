@@ -9,7 +9,7 @@ service MultiQueue:
         # - TaskTestReceiver.queue
 
 
-service CacheService:
+service CacheService MainCache:
     retain: true
     subscribe: /App/MultiQueue
 

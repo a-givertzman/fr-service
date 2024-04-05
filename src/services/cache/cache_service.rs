@@ -21,7 +21,7 @@ use crate::{
     conf::{cache_service_config::CacheServiceConfig, conf_subscribe::ConfSubscribe, point_config::name::Name}, 
     core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::point_type::PointType, status::status::Status}, 
     services::{
-        multi_queue::subscription_criteria::SubscriptionCriteria, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services
+        cache::delay_store::DelydStore, multi_queue::subscription_criteria::SubscriptionCriteria, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services
     } 
 };
 
@@ -149,11 +149,15 @@ impl CacheService {
     /// }
     /// ```
     fn write<S: Serialize>(self_id: &str, name: &Name, points: S) -> Result<(), String> {
-        // let path = concat_string!("./assets/cache", name.join());
         let path = env::current_dir().unwrap();
-        debug!("{}.write | path: {:?}", self_id, path);
-        let path = path.join("assets/cache/");
-        debug!("{}.write | path: {:?}", self_id, path);
+        let mut name_join = name.join();
+        let name_join = if name_join.starts_with('/') {
+            name_join.replace_range(..1, "");
+            name_join
+        } else {
+            name_join
+        };
+        let path = path.join("assets/cache/").join(name_join);
         let path_exists = match path.exists() {
             true => Ok(()),
             false => {
@@ -169,7 +173,6 @@ impl CacheService {
         };
         let path = path.join("cache.json");
         debug!("{}.write | path: {:?}", self_id, path);
-        // let path = concat_string!("./assets/cache", name.join(), "/cache.json");
         match path_exists {
             Ok(_) => {
                 match fs::OpenOptions::new().create(true).write(true).open(&path) {
@@ -263,7 +266,7 @@ impl Service for CacheService {
         let services = self.services.clone();
         let cache = self.cache.clone();
         let rx_recv = self.subscribe(&conf, &services);
-        let mut dely_store = DelydStore::new(10);
+        let mut dely_store = DelydStore::new(30);
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
             'main: loop {
@@ -297,7 +300,7 @@ impl Service for CacheService {
 
                 }
                 if exit.load(Ordering::SeqCst) {
-                    if !dely_store.stored {
+                    if !dely_store.stored() {
                         _ = Self::store(&self_id, &self_name, &cache.read().unwrap());
                     }
                     break;
@@ -322,40 +325,4 @@ impl Service for CacheService {
     fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
     }    
-}
-///
-/// 
-struct DelydStore {
-    count: isize,
-    val: isize,
-    stored: bool,
-}
-///
-/// 
-impl DelydStore {
-    pub fn new(count: isize) -> Self {
-        Self { count, val: count, stored: true }
-    }
-    ///
-    /// 
-    pub fn next(&mut self) -> Option<()> {
-        self.val -= 1;
-        self.stored = false;
-        if self.val <= 0 {
-            self.val = self.count;
-            None
-        } else {
-            Some(())
-        }
-    }
-    ///
-    /// 
-    pub fn stored(&self) -> bool {
-        self.stored
-    }
-    ///
-    /// 
-    pub fn set_stored(&mut self) {
-        self.stored = true;
-    }
 }
