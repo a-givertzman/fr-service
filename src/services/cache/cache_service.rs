@@ -85,59 +85,6 @@ impl CacheService {
         }
     }
     ///
-    /// Returns Receiver<PointType>, where will be pushed all points by subscription
-    pub fn gi(&self, points: &[SubscriptionCriteria]) -> Receiver<PointType> {
-        let (send, recv) = mpsc::channel();
-        let self_id = self.id.clone();
-        let self_cache = self.cache.clone();
-        let points = points.to_owned();
-        thread::spawn(move || {
-            if points.is_empty() {
-                match self_cache.read() {
-                    Ok(cache) => {
-                        for point in cache.values() {
-                            match send.send(point.clone()) {
-                                Ok(_) => {},
-                                Err(err) => {
-                                    error!("{}.gi | Send error: {:#?}", self_id, err);
-                                },
-                            }
-                        }
-    
-                    },
-                    Err(err) => {
-                        error!("{}.gi | Error read cache: {:#?}", self_id, err);
-                    },
-                }
-            } else {
-                match self_cache.read() {
-                    Ok(cache) => {
-                        for point in points {
-                            match cache.get(&point.destination()) {
-                                Some(point) => {
-                                    match send.send(point.clone()) {
-                                        Ok(_) => {},
-                                        Err(err) => {
-                                            error!("{}.gi | Send error: {:#?}", self_id, err);
-                                        },
-                                    }
-                                },
-                                None => {
-                                    error!("{}.gi | Error, requested point '{}' - not found", self_id, point.destination());
-                                },
-                            }
-                        }
-    
-                    },
-                    Err(err) => {
-                        error!("{}.gi | Error read cache: {:#?}", self_id, err);
-                    },
-                }
-            }
-        });
-        recv
-    }
-    ///
     /// Storing cache on the disk
     ///
     /// Writes file json map to the file:
@@ -320,6 +267,59 @@ impl Service for CacheService {
             },
         }
     }
+    //
+    //
+    fn gi(&self, receiver_name: &str, points: &[SubscriptionCriteria]) -> Receiver<PointType> {
+        let (send, recv) = mpsc::channel();
+        let self_id = self.id.clone();
+        let self_cache = self.cache.clone();
+        let points = points.to_owned();
+        thread::spawn(move || {
+            if points.is_empty() {
+                match self_cache.read() {
+                    Ok(cache) => {
+                        for point in cache.values() {
+                            match send.send(point.clone()) {
+                                Ok(_) => {},
+                                Err(err) => {
+                                    error!("{}.gi | Send error: {:#?}", self_id, err);
+                                },
+                            }
+                        }
+    
+                    },
+                    Err(err) => {
+                        error!("{}.gi | Error read cache: {:#?}", self_id, err);
+                    },
+                }
+            } else {
+                match self_cache.read() {
+                    Ok(cache) => {
+                        for point in points {
+                            match cache.get(&point.destination()) {
+                                Some(point) => {
+                                    match send.send(point.clone()) {
+                                        Ok(_) => {},
+                                        Err(err) => {
+                                            error!("{}.gi | Send error: {:#?}", self_id, err);
+                                        },
+                                    }
+                                },
+                                None => {
+                                    error!("{}.gi | Error, requested point '{}' - not found", self_id, point.destination());
+                                },
+                            }
+                        }
+    
+                    },
+                    Err(err) => {
+                        error!("{}.gi | Error read cache: {:#?}", self_id, err);
+                    },
+                }
+            }
+        });
+        recv
+    }    
     ///
     /// 
     fn exit(&self) {

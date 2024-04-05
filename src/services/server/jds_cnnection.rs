@@ -1,9 +1,6 @@
 use std::{
-    thread, 
-    time::{Duration, Instant},
-    collections::HashMap, hash::BuildHasherDefault, 
-    sync::{atomic::{AtomicBool, Ordering}, 
-    mpsc::{Receiver, RecvTimeoutError}, Arc, Mutex, RwLock}, 
+    collections::HashMap, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, 
+    mpsc::{Receiver, RecvTimeoutError, Sender}, Arc, Mutex, RwLock}, thread, time::{Duration, Instant} 
 };
 use hashers::fx_hash::FxHasher;
 use log::{debug, info, trace, warn};
@@ -53,7 +50,15 @@ impl From<usize> for JdsState {
     }
 }
 ///
-/// 
+/// - subscribe - service (MultiQueue) to be subscribed on
+/// - subscribe_receiver - self name, for example '/App/Jds/127.0.0.1'
+/// - jds_state - current state of the Jds autentication pocedure:
+///     - Unknown - initial
+///     - Authenticated - Auth succeded
+/// - auth - Jds-protocol specific kind of auturization on the current TcpServer
+/// - connection_id - remote IP for now
+/// - cashe - name of the CacheService
+/// - req_reply_send - Sender<PointType> - to send points to the client
 #[derive(Debug)]
 pub struct Shared {
     pub subscribe: String,
@@ -61,6 +66,8 @@ pub struct Shared {
     pub jds_state: JdsState,
     pub auth: TcpServerAuth,
     pub connection_id: String,
+    pub cache: Option<String>,
+    pub req_reply_send: Vec<Sender<PointType>>,
 }
 
 ///
@@ -114,6 +121,8 @@ impl JdsConnection {
                 }, 
                 auth: conf.auth.clone(),
                 connection_id: self.connection_id.clone(),
+                cache: conf.cache.clone(),
+                req_reply_send: vec![],
         }));
         let rx_max_length = conf.rx_max_len;
         let exit = self.exit.clone();
@@ -141,6 +150,7 @@ impl JdsConnection {
             });
             println!("{}.run | subscribe: {:?}", self_id, subscribe);
             let (req_reply_send, recv) = services.slock().subscribe(&subscribe, &receiver_name, &points);
+            shared_options.write().unwrap().req_reply_send = vec![req_reply_send.clone()];
             let buffered = rx_max_length > 0;
             let mut tcp_read_alive = TcpReadAlive::new(
                 &self_id,

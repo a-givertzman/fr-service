@@ -131,6 +131,11 @@ impl Services {
         trace!("{}.points | points: '{:#?}'", self.id, points);
         points
     }
+    ///
+    /// 
+    pub fn gi(&self, service: &str, points: &[SubscriptionCriteria]) -> Receiver<PointType> {
+        panic!("{}.gi | Not implemented yet", self.id);
+    }
 }
 ///
 /// 

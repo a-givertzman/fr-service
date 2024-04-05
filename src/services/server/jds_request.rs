@@ -1,6 +1,6 @@
-use std::{collections::HashMap, sync::{Arc, Mutex, RwLock}};
+use std::{collections::HashMap, sync::{mpsc::Sender, Arc, Mutex, RwLock}};
 use concat_string::concat_string;
-use log::{debug, trace, warn};
+use log::{debug, error, trace, warn};
 use serde_json::json;
 use crate::{
     conf::point_config::{name::Name, point_config::PointConfig},
@@ -158,7 +158,8 @@ impl JdsRequest {
                         })
                     },
                 };
-                let receiver_name = Name::new(parent, &shared.connection_id).join();
+                // let receiver_name = Name::new(parent, &shared.connection_id).join();
+                let receiver_name = shared.subscribe_receiver.clone();
                 debug!("{}.handle.Subscribe | extending subscription for receiver: '{}'", self_id, receiver_name);
                 trace!("{}.handle.Subscribe |                              points: {:#?}", self_id, points);
                 let (cot, message) = match services.slock().extend_subscription(&shared.subscribe, &receiver_name, &points) {
@@ -169,6 +170,10 @@ impl JdsRequest {
                         (Cot::ReqErr, message)
                     },
                 };
+                match shared.cache.clone() {
+                    Some(cache_service) => Self::yield_gi(&self_id, &receiver_name, services, &cache_service, &points, &mut shared),
+                    None => warn!("{}.handle.Subscribe | Gi skipped, cache service not configured", self_id),
+                }
                 RouterReply::new(
                     None,
                     Some(PointType::String(Point::new(
@@ -185,6 +190,25 @@ impl JdsRequest {
                 debug!("{}.handle | Unknown request: \n\t{:?}", self_id, request);
                 warn!("{}.handle | Unknown request name: {:?}", self_id, request.name());
                 RouterReply::new(None, None)
+            },
+        }
+    }
+    ///
+    /// 
+    fn yield_gi(self_id: &str, receiver_name: &str, services: Arc<Mutex<Services>>, cache_service: &str, points: &[SubscriptionCriteria], shared: &mut Shared) {
+        let cache = services.slock().get(cache_service);
+        let recv = cache.slock().gi(&receiver_name, &points);
+        match shared.req_reply_send.pop() {
+            Some(send) => {
+                for point in recv.iter() {
+                    if let Err(err) =  send.send(point) {
+                        error!("{}.handle.Subscribe | Send error: {:#?}", self_id, err);
+                    }
+                }
+                shared.req_reply_send.push(send);
+            },
+            None => {
+                error!("{}.handle.Subscribe | Cant get req_reply_send", self_id)
             },
         }
     }

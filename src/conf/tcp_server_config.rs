@@ -27,6 +27,7 @@ pub struct TcpServerConfig {
     pub(crate) rx: String,
     pub(crate) rx_max_len: i64,
     pub(crate) tx: String,
+    pub(crate) cache: Option<String>,
 }
 ///
 /// 
@@ -70,6 +71,8 @@ impl TcpServerConfig {
         debug!("{}.new | RX: {},\tmax-length: {}", self_id, rx, rx_max_len);
         let tx = self_conf.get_out_queue().unwrap();
         debug!("{}.new | TX: {}", self_id, tx);
+        let cache = self_conf.get_param_value("cache").map_or_else(|_| None, |v| v.as_str().map(|v| v.to_owned()));
+        debug!("{}.new | address: {:?}", self_id, cache);
         TcpServerConfig {
             name: self_name,
             cycle,
@@ -80,6 +83,7 @@ impl TcpServerConfig {
             rx,
             rx_max_len,
             tx,
+            cache,
         }
     }
     ///

@@ -12,6 +12,19 @@ pub trait SafeLock<T> where T: ?Sized {
 }
 ///
 /// 
+impl SafeLock<dyn Service> for Arc<Mutex<dyn Service>> {
+    fn slock(&self) -> MutexGuard<'_, (dyn Service + 'static)> {
+        let self_id = format!("{:?}/SafeLock", self);
+        let lock_timer = LockTimer::new(&self_id, Duration::from_millis(100));
+        info!("SafeLock.slock | Lock service: '{:?}'...", self_id);
+        let mutax_guard = self.lock().unwrap();
+        info!("SafeLock.slock | Lock service: '{:?}' - ok", self_id);
+        lock_timer.exit();
+        mutax_guard
+    }
+}
+///
+/// 
 impl SafeLock<dyn Service + Send> for Arc<Mutex<dyn Service + Send>> {
     fn slock(&self) -> MutexGuard<'_, (dyn Service + Send + 'static)> {
         let self_id = format!("{:?}/SafeLock", self);
