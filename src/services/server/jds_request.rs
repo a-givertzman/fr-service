@@ -171,7 +171,8 @@ impl JdsRequest {
                     },
                 };
                 match shared.cache.clone() {
-                    Some(cache_service) => Self::yield_gi(&self_id, &receiver_name, services, &cache_service, &points, &mut shared),
+                    // TODO add named subscription
+                    Some(cache_service) => Self::yield_gi(&self_id, &receiver_name, services, &cache_service, &[], &mut shared),
                     None => warn!("{}.handle.Subscribe | Gi skipped, cache service not configured", self_id),
                 }
                 RouterReply::new(
