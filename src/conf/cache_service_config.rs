@@ -36,7 +36,8 @@ impl CacheServiceConfig {
         let self_id = format!("CacheServiceConfig({})", conf_tree.key);
         let mut self_conf = ServiceConfig::new(&self_id, conf_tree.clone());
         trace!("{}.new | self_conf: {:?}", self_id, self_conf);
-        let self_name = Name::new(parent, self_conf.sufix());
+        let sufix = self_conf.sufix();
+        let self_name = Name::new(parent, if sufix.is_empty() {self_conf.name()} else {sufix});
         debug!("{}.new | name: {:?}", self_id, self_name);
         let retain = self_conf.get_param_value("retain").unwrap_or(serde_yaml::Value::Bool(false)).as_bool().unwrap();
         debug!("{}.new | retain: {:?}", self_id, retain);

@@ -1,0 +1,586 @@
+{
+  "Inf:/App/ied14/db906_visual_data/HPU.EmergencyHPU.State": {
+    "type": "Int",
+    "value": 8,
+    "name": "/App/ied14/db906_visual_data/HPU.EmergencyHPU.State",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:38.088269070+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMode.ParkingModeActive": {
+    "type": "Bool",
+    "value": 0,
+    "name": "/App/ied14/db906_visual_data/CraneMode.ParkingModeActive",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:44.890826705+00:00"
+  },
+  "Inf:/App/ied13/db905_visual_data_fast/Winch.LVDT2": {
+    "type": "Real",
+    "value": 5.0,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.LVDT2",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:44.890826701+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Winch1.SWL0": {
+    "type": "Real",
+    "value": 0.0,
+    "name": "/App/ied14/db906_visual_data/Winch1.SWL0",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:33.687018936+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMode.AHC": {
+    "type": "Int",
+    "value": 6,
+    "name": "/App/ied14/db906_visual_data/CraneMode.AHC",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:46.091397032+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMode.Winch1Mode": {
+    "type": "Int",
+    "value": 7,
+    "name": "/App/ied14/db906_visual_data/CraneMode.Winch1Mode",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:43.690282800+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMovement.JibUp": {
+    "type": "Int",
+    "value": 0,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.JibUp",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:40.488987931+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Crane.Reserve1": {
+    "type": "Real",
+    "value": 0.0,
+    "name": "/App/ied14/db906_visual_data/Crane.Reserve1",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:32.486510901+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMovement.RotateRight": {
+    "type": "Int",
+    "value": 0,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.RotateRight",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:39.288642025+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMovement.OutreachRev": {
+    "type": "Int",
+    "value": 3,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.OutreachRev",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:40.088806434+00:00"
+  },
+  "Inf:/App/ied13/db905_visual_data_fast/Winch.ValveEV2": {
+    "type": "Bool",
+    "value": 1,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.ValveEV2",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:45.691207676+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/HPU.Pump1.State": {
+    "type": "Int",
+    "value": 0,
+    "name": "/App/ied14/db906_visual_data/HPU.Pump1.State",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:37.288144100+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Winch2.SWL": {
+    "type": "Real",
+    "value": 2.0,
+    "name": "/App/ied14/db906_visual_data/Winch2.SWL",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:35.287488013+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMode.MOPS": {
+    "type": "Int",
+    "value": 4,
+    "name": "/App/ied14/db906_visual_data/CraneMode.MOPS",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:45.291018712+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Winch1.Load": {
+    "type": "Real",
+    "value": 2.0,
+    "name": "/App/ied14/db906_visual_data/Winch1.Load",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:34.487368174+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Winch2.Load": {
+    "type": "Real",
+    "value": 3.0,
+    "name": "/App/ied14/db906_visual_data/Winch2.Load",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:35.687628653+00:00"
+  },
+  "Inf:/App/ied13/db905_visual_data_fast/Winch.ValveEV1": {
+    "type": "Bool",
+    "value": 1,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.ValveEV1",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:45.291018729+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMovement.JibDown": {
+    "type": "Int",
+    "value": 8,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.JibDown",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:40.889077062+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Crane.Radius": {
+    "type": "Real",
+    "value": 1.0,
+    "name": "/App/ied14/db906_visual_data/Crane.Radius",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:28.884850125+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Winch1.SWL": {
+    "type": "Real",
+    "value": 0.0,
+    "name": "/App/ied14/db906_visual_data/Winch1.SWL",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:34.087198729+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMovement.OutreachFwd": {
+    "type": "Int",
+    "value": 3,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.OutreachFwd",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:39.688727966+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/ConstantTension.Reserve1": {
+    "type": "Bool",
+    "value": 0,
+    "name": "/App/ied14/db906_visual_data/ConstantTension.Reserve1",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:26.483848945+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Crane.JibAngle": {
+    "type": "Real",
+    "value": 4.0,
+    "name": "/App/ied14/db906_visual_data/Crane.JibAngle",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:32.086327687+00:00"
+  },
+  "Inf:/App/ied12/db902_panel_controls/Settings.CraneMode.MainMode": {
+    "type": "Int",
+    "value": 2,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.MainMode",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:45.893692480+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMode.Reserve1": {
+    "type": "Int",
+    "value": 1,
+    "name": "/App/ied14/db906_visual_data/CraneMode.Reserve1",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:24.483116292+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMode.AOPS": {
+    "type": "Int",
+    "value": 3,
+    "name": "/App/ied14/db906_visual_data/CraneMode.AOPS",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:45.691207686+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/ConstantTension.Level": {
+    "type": "Int",
+    "value": 4,
+    "name": "/App/ied14/db906_visual_data/ConstantTension.Level",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:25.683599759+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Hook.X": {
+    "type": "Real",
+    "value": 0.0,
+    "name": "/App/ied14/db906_visual_data/Hook.X",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:27.684351176+00:00"
+  },
+  "Inf:/App/ied13/db905_visual_data_fast/Winch.Hydromotor1Active": {
+    "type": "Bool",
+    "value": 0,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.Hydromotor1Active",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:42.889945200+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/ConstantTension.Reserve3": {
+    "type": "Bool",
+    "value": 0,
+    "name": "/App/ied14/db906_visual_data/ConstantTension.Reserve3",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:27.284147449+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/HPU.OilTemp": {
+    "type": "Real",
+    "value": 0.0,
+    "name": "/App/ied14/db906_visual_data/HPU.OilTemp",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:38.488358890+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMode.CraneOffshore": {
+    "type": "Bool",
+    "value": 1,
+    "name": "/App/ied14/db906_visual_data/CraneMode.CraneOffshore",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:44.490638881+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMode.SWLProtection": {
+    "type": "Bool",
+    "value": 1,
+    "name": "/App/ied14/db906_visual_data/CraneMode.SWLProtection",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:24.082935889+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/HPU.Pump2.State": {
+    "type": "Int",
+    "value": 1,
+    "name": "/App/ied14/db906_visual_data/HPU.Pump2.State",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:37.688203461+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Crane.DeckDepth": {
+    "type": "Real",
+    "value": 2.0,
+    "name": "/App/ied14/db906_visual_data/Crane.DeckDepth",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:29.685251531+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMode.WinchBrake": {
+    "type": "Int",
+    "value": 4,
+    "name": "/App/ied14/db906_visual_data/CraneMode.WinchBrake",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:23.682757206+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Crane.Reserve3": {
+    "type": "Real",
+    "value": 0.0,
+    "name": "/App/ied14/db906_visual_data/Crane.Reserve3",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:33.286856967+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Hook.Speed": {
+    "type": "Real",
+    "value": 2.0,
+    "name": "/App/ied14/db906_visual_data/Hook.Speed",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:28.484643414+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMode.ActiveWinch": {
+    "type": "Int",
+    "value": 5,
+    "name": "/App/ied14/db906_visual_data/CraneMode.ActiveWinch",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:43.290104653+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Crane.Roll": {
+    "type": "Real",
+    "value": 1.0,
+    "name": "/App/ied14/db906_visual_data/Crane.Roll",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:30.885846536+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMode.Reserve2": {
+    "type": "Int",
+    "value": 7,
+    "name": "/App/ied14/db906_visual_data/CraneMode.Reserve2",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:24.883292022+00:00"
+  },
+  "Inf:/App/ied13/db905_visual_data_fast/Winch.EncoderBR1": {
+    "type": "Int",
+    "value": 0,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.EncoderBR1",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:43.690282824+00:00"
+  },
+  "Inf:/App/ied12/db902_panel_controls/Settings.CraneMode.Winch1Mode": {
+    "type": "Int",
+    "value": 1,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.Winch1Mode",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:43.892786218+00:00"
+  },
+  "Inf:/App/ied12/db902_panel_controls/Settings.CraneMode.ActiveWinch": {
+    "type": "Int",
+    "value": 2,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.ActiveWinch",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:46.293882938+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMode.MainMode": {
+    "type": "Int",
+    "value": 5,
+    "name": "/App/ied14/db906_visual_data/CraneMode.MainMode",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:42.889945223+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Winch3.Load": {
+    "type": "Real",
+    "value": 3.0,
+    "name": "/App/ied14/db906_visual_data/Winch3.Load",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:36.887976286+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Winch3.SWL0": {
+    "type": "Real",
+    "value": 5.0,
+    "name": "/App/ied14/db906_visual_data/Winch3.SWL0",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:36.087693846+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Crane.BoomAngle": {
+    "type": "Real",
+    "value": 1.0,
+    "name": "/App/ied14/db906_visual_data/Crane.BoomAngle",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:31.686194287+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMovement.WinchUp": {
+    "type": "Int",
+    "value": 6,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.WinchUp",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:42.089602075+00:00"
+  },
+  "Inf:/App/ied12/db902_panel_controls/Settings.CraneMode.SetRelativeDepth": {
+    "type": "Int",
+    "value": 4,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.SetRelativeDepth",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:45.093327250+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Crane.Reserve2": {
+    "type": "Real",
+    "value": 0.0,
+    "name": "/App/ied14/db906_visual_data/Crane.Reserve2",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:32.886701081+00:00"
+  },
+  "Inf:/App/ied13/db905_visual_data_fast/Winch.EncoderBR2": {
+    "type": "Int",
+    "value": 4,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.EncoderBR2",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:44.090455420+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Crane.Wind": {
+    "type": "Real",
+    "value": 3.0,
+    "name": "/App/ied14/db906_visual_data/Crane.Wind",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:30.085464570+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Winch2.SWL0": {
+    "type": "Real",
+    "value": 5.0,
+    "name": "/App/ied14/db906_visual_data/Winch2.SWL0",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:34.887429344+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMode.WaveHeightLevel": {
+    "type": "Int",
+    "value": 0,
+    "name": "/App/ied14/db906_visual_data/CraneMode.WaveHeightLevel",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:44.090455469+00:00"
+  },
+  "Inf:/App/ied13/db905_visual_data_fast/Winch.LimitSwitchDown": {
+    "type": "Bool",
+    "value": 1,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.LimitSwitchDown",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:46.091397009+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/ConstantTension.Active": {
+    "type": "Bool",
+    "value": 1,
+    "name": "/App/ied14/db906_visual_data/ConstantTension.Active",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:26.083669486+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/ConstantTension.Reserve2": {
+    "type": "Bool",
+    "value": 1,
+    "name": "/App/ied14/db906_visual_data/ConstantTension.Reserve2",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:26.884037679+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Winch3.SWL": {
+    "type": "Real",
+    "value": 0.0,
+    "name": "/App/ied14/db906_visual_data/Winch3.SWL",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:36.487874471+00:00"
+  },
+  "Inf:/App/ied13/db905_visual_data_fast/Winch.LVDT1": {
+    "type": "Real",
+    "value": 2.0,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.LVDT1",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:44.490638839+00:00"
+  },
+  "Inf:/App/ied13/db905_visual_data_fast/Winch.Hydromotor2Active": {
+    "type": "Bool",
+    "value": 0,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.Hydromotor2Active",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:43.290104668+00:00"
+  },
+  "Inf:/App/ied12/db902_panel_controls/Settings.CraneMode.ResetRelativeDepth": {
+    "type": "Int",
+    "value": 8,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.ResetRelativeDepth",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:45.493506918+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Crane.Slewing": {
+    "type": "Real",
+    "value": 4.0,
+    "name": "/App/ied14/db906_visual_data/Crane.Slewing",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:31.286019599+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Hook.Y": {
+    "type": "Real",
+    "value": 4.0,
+    "name": "/App/ied14/db906_visual_data/Hook.Y",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:28.084459573+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMovement.BoomUp": {
+    "type": "Int",
+    "value": 7,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.BoomUp",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:41.289232528+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMode.Reserve3": {
+    "type": "Int",
+    "value": 7,
+    "name": "/App/ied14/db906_visual_data/CraneMode.Reserve3",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:25.283417421+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Crane.Pitch": {
+    "type": "Real",
+    "value": 3.0,
+    "name": "/App/ied14/db906_visual_data/Crane.Pitch",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:30.485668193+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMovement.WinchDown": {
+    "type": "Int",
+    "value": 8,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.WinchDown",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:42.489780431+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMovement.RotateLeft": {
+    "type": "Int",
+    "value": 2,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.RotateLeft",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:38.888454277+00:00"
+  },
+  "Inf:/App/ied12/db902_panel_controls/Settings.CraneMode.ConstantTensionLevel": {
+    "type": "Int",
+    "value": 4,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.ConstantTensionLevel",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:44.693145308+00:00"
+  },
+  "Inf:/App/ied12/db902_panel_controls/Settings.CraneMode.WaveHeightLevel": {
+    "type": "Int",
+    "value": 3,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.WaveHeightLevel",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:44.292966520+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMovement.BoomDown": {
+    "type": "Int",
+    "value": 7,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.BoomDown",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:41.689416899+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/Crane.Depth": {
+    "type": "Real",
+    "value": 5.0,
+    "name": "/App/ied14/db906_visual_data/Crane.Depth",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T00:07:29.285054402+00:00"
+  }
+}

@@ -28,6 +28,7 @@ impl Services {
     pub const TCP_CLIENT: &'static str = "TcpClient";
     pub const TCP_SERVER: &'static str = "TcpServer";
     pub const PRODUCER_SERVICE: &'static str = "ProducerService";
+    pub const CACHE_SERVICE: &'static str = "CacheService";
     ///
     /// Creates new instance of the Services
     pub fn new(parent: impl Into<String>) -> Self {
