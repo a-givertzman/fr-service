@@ -2,7 +2,7 @@ use std::{
     collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, RecvTimeoutError, Sender}, Arc, Mutex}, thread, time::Duration
 };
 use log::{debug, error, info, trace, warn};
-use crate::{conf::{point_config::name::Name, task_config::TaskConfig}, core_::object::object::Object, services::{safe_lock::SafeLock, service::service_handles::ServiceHandles}};
+use crate::{conf::{point_config::name::Name, task_config::TaskConfig}, core_::object::object::Object, services::{multi_queue::subscription_criteria::SubscriptionCriteria, safe_lock::SafeLock, service::service_handles::ServiceHandles}};
 use crate::services::task::service_cycle::ServiceCycle;
 use crate::{
     services::{task::task_nodes::TaskNodes, service::service::Service, services::Services}, 
@@ -43,9 +43,9 @@ impl Task {
     }
     ///
     /// 
-    fn subscribe(&mut self, conf: &TaskConfig, services: &Arc<Mutex<Services>>) -> Receiver<PointType> {
+    fn subscriptions(&mut self, conf: &TaskConfig, services: &Arc<Mutex<Services>>) -> Option<(String, Vec<SubscriptionCriteria>)> {
         if conf.subscribe.is_empty() {
-            self.rx_recv.pop().unwrap()
+            None
         } else {
             debug!("{}.subscribe | requesting points...", self.id);
             let points = services.slock().points(&self.id);
@@ -60,18 +60,58 @@ impl Task {
                 let subscriptions_first = subscriptions.clone().into_iter().next();
                 match subscriptions_first {
                     Some((service_name, Some(points))) => {
-                        let (_, rx_recv) = services.slock().subscribe(
-                                &service_name,
-                                &self.name.join(), 
-                                &points,
-                            );
-                        rx_recv
+                        Some((service_name, points))
                     },
                     Some((_, None)) => panic!("{}.run | Error. Task subscription configuration error in: {:#?}", self.id, subscriptions),
                     None => panic!("{}.run | Error. Task subscription configuration error in: {:#?}", self.id, subscriptions),
                 }
             }
         }
+    }    
+    ///
+    /// 
+    fn subscribe(&mut self, subscriptions: &Option<(String, Vec<SubscriptionCriteria>)>, services: &Arc<Mutex<Services>>) -> Receiver<PointType> {
+        match subscriptions {
+            Some((service_name, points)) => {
+                let (_, rx_recv) = services.slock().subscribe(
+                    &service_name,
+                    &self.name.join(), 
+                    &points,
+                );
+                rx_recv
+            },
+            None => {
+                self.rx_recv.pop().unwrap()
+            },
+        }
+        // if conf.subscribe.is_empty() {
+        //     self.rx_recv.pop().unwrap()
+        // } else {
+        //     debug!("{}.subscribe | requesting points...", self.id);
+        //     let points = services.slock().points(&self.id);
+        //     debug!("{}.subscribe | rceived points: {:#?}", self.id, points.len());
+        //     trace!("{}.subscribe | rceived points: {:#?}", self.id, points);
+        //     debug!("{}.subscribe | conf.subscribe: {:#?}", self.id, conf.subscribe);
+        //     let subscriptions = conf.subscribe.with(&points);
+        //     trace!("{}.subscribe | subscriptions: {:#?}", self.id, subscriptions);
+        //     if subscriptions.len() > 1 {
+        //         panic!("{}.run | Error. Task does not supports multiple subscriptions for now: {:#?}.\n\tTry to use single subscription.", self.id, subscriptions);
+        //     } else {
+        //         let subscriptions_first = subscriptions.clone().into_iter().next();
+        //         match subscriptions_first {
+        //             Some((service_name, Some(points))) => {
+        //                 let (_, rx_recv) = services.slock().subscribe(
+        //                     &service_name,
+        //                     &self.name.join(), 
+        //                     &points,
+        //                 );
+        //                 rx_recv
+        //             },
+        //             Some((_, None)) => panic!("{}.run | Error. Task subscription configuration error in: {:#?}", self.id, subscriptions),
+        //             None => panic!("{}.run | Error. Task subscription configuration error in: {:#?}", self.id, subscriptions),
+        //         }
+        //     }
+        // }
     }
 }
 ///
@@ -118,11 +158,12 @@ impl Service for Task {
             Some(interval) => (interval > Duration::ZERO, interval),
             None => (false, Duration::ZERO),
         };
-        let rx_recv = self.subscribe(&conf, &services);
+        let subscriptions = self.subscriptions(&conf, &services);
+        let rx_recv = self.subscribe(&subscriptions, &services);
         let handle = thread::Builder::new().name(format!("{} - main", self_id)).spawn(move || {
             let mut cycle = ServiceCycle::new(&self_id, cycle_interval);
             let mut task_nodes = TaskNodes::new(&self_id);
-            task_nodes.buildNodes(&self_name, conf, services);
+            task_nodes.buildNodes(&self_name, conf, services.clone());
             trace!("{}.run | taskNodes: {:#?}", self_id, task_nodes);
             'main: loop {
                 cycle.start();
@@ -149,6 +190,11 @@ impl Service for Task {
                     },
                 };
                 if exit.load(Ordering::SeqCst) {
+                    if let Some((service_name, points)) = subscriptions {
+                        if let Err(err) = services.slock().unsubscribe(&service_name,&self_name.join(), &points) {
+                            error!("{}.run | Unsubscribe error: {:#?}", self_id, err);
+                        }
+                    }
                     break 'main;
                 }
             };

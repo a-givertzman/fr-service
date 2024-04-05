@@ -1198,8 +1198,8 @@ service Task HistoryTask:
     subscribe: 
         /App/MultiQueue:                     # - multicast subscription to the MultiQueue
             {cot: Inf, history: rw}: []               #   - on all points having Cot::Inf and history::ReadWrite
-    fn debug:
-        input: point any every
+    # fn debug:
+    #     input: point any every
     fn ToApiQueue:
         queue: /App/ApiClient.in-queue
         input fn SqlMetric:
