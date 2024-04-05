@@ -1,11 +1,19 @@
 {
-  "Inf:/App/ied12/db902_panel_controls/Settings.CraneMode.ActiveWinch": {
-    "type": "Int",
-    "value": 8,
-    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.ActiveWinch",
+  "Inf:/App/ied13/db905_visual_data_fast/Winch.ValveEV1": {
+    "type": "Bool",
+    "value": 1,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.ValveEV1",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:16.855597407+00:00"
+    "timestamp": "2024-04-05T02:20:45.520853875+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMovement.RotateLeft": {
+    "type": "Int",
+    "value": 5,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.RotateLeft",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T02:20:36.011149595+00:00"
   },
   "Inf:/App/ied13/db905_visual_data_fast/Winch.ValveEV2": {
     "type": "Bool",
@@ -13,23 +21,23 @@
     "name": "/App/ied13/db905_visual_data_fast/Winch.ValveEV2",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:16.555625346+00:00"
+    "timestamp": "2024-04-05T02:20:45.920954486+00:00"
   },
-  "Inf:/App/ied14/db906_visual_data/CraneMovement.OutreachFwd": {
+  "Inf:/App/ied14/db906_visual_data/CraneMovement.RotateRight": {
     "type": "Int",
-    "value": 5,
-    "name": "/App/ied14/db906_visual_data/CraneMovement.OutreachFwd",
+    "value": 8,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.RotateRight",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:19.055923053+00:00"
+    "timestamp": "2024-04-05T02:20:36.411204133+00:00"
   },
-  "Inf:/App/ied12/db902_panel_controls/Settings.CraneMode.Winch1Mode": {
+  "Inf:/App/ied12/db902_panel_controls/Settings.CraneMode.MainMode": {
     "type": "Int",
     "value": 5,
-    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.Winch1Mode",
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.MainMode",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:17.255663404+00:00"
+    "timestamp": "2024-04-05T02:20:45.214311550+00:00"
   },
   "Inf:/App/ied13/db905_visual_data_fast/Winch.LimitSwitchDown": {
     "type": "Bool",
@@ -37,23 +45,23 @@
     "name": "/App/ied13/db905_visual_data_fast/Winch.LimitSwitchDown",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:16.955801530+00:00"
+    "timestamp": "2024-04-05T02:20:42.719921142+00:00"
   },
-  "Inf:/App/ied14/db906_visual_data/CraneMovement.OutreachRev": {
+  "Inf:/App/ied14/db906_visual_data/CraneMovement.OutreachFwd": {
     "type": "Int",
-    "value": 2,
-    "name": "/App/ied14/db906_visual_data/CraneMovement.OutreachRev",
+    "value": 4,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.OutreachFwd",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:04:56.646810455+00:00"
+    "timestamp": "2024-04-05T02:20:36.811412537+00:00"
   },
-  "Inf:/App/ied12/db902_panel_controls/Settings.CraneMode.WaveHeightLevel": {
+  "Inf:/App/ied12/db902_panel_controls/Settings.CraneMode.ActiveWinch": {
     "type": "Int",
     "value": 0,
-    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.WaveHeightLevel",
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.ActiveWinch",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:17.655729630+00:00"
+    "timestamp": "2024-04-05T02:20:45.614409779+00:00"
   },
   "Inf:/App/ied13/db905_visual_data_fast/Winch.Hydromotor1Active": {
     "type": "Bool",
@@ -61,47 +69,47 @@
     "name": "/App/ied13/db905_visual_data_fast/Winch.Hydromotor1Active",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:17.355907244+00:00"
+    "timestamp": "2024-04-05T02:20:43.119978796+00:00"
   },
-  "Inf:/App/ied14/db906_visual_data/CraneMovement.JibUp": {
+  "Inf:/App/ied14/db906_visual_data/CraneMovement.OutreachRev": {
     "type": "Int",
-    "value": 8,
-    "name": "/App/ied14/db906_visual_data/CraneMovement.JibUp",
+    "value": 9,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.OutreachRev",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:04:57.046984993+00:00"
+    "timestamp": "2024-04-05T02:20:37.211588476+00:00"
   },
-  "Inf:/App/ied12/db902_panel_controls/Settings.CraneMode.ConstantTensionLevel": {
+  "Inf:/App/ied12/db902_panel_controls/Settings.CraneMode.Winch1Mode": {
     "type": "Int",
     "value": 0,
-    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.ConstantTensionLevel",
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.Winch1Mode",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:18.055868330+00:00"
+    "timestamp": "2024-04-05T02:20:46.014566885+00:00"
   },
   "Inf:/App/ied13/db905_visual_data_fast/Winch.Hydromotor2Active": {
     "type": "Bool",
-    "value": 0,
+    "value": 1,
     "name": "/App/ied13/db905_visual_data_fast/Winch.Hydromotor2Active",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:17.756066773+00:00"
+    "timestamp": "2024-04-05T02:20:43.520071783+00:00"
   },
-  "Inf:/App/ied14/db906_visual_data/CraneMovement.JibDown": {
+  "Inf:/App/ied14/db906_visual_data/CraneMovement.JibUp": {
     "type": "Int",
-    "value": 3,
-    "name": "/App/ied14/db906_visual_data/CraneMovement.JibDown",
+    "value": 6,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.JibUp",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:04:57.447154132+00:00"
+    "timestamp": "2024-04-05T02:20:37.611658243+00:00"
   },
-  "Inf:/App/ied12/db902_panel_controls/Settings.CraneMode.SetRelativeDepth": {
+  "Inf:/App/ied12/db902_panel_controls/Settings.CraneMode.WaveHeightLevel": {
     "type": "Int",
-    "value": 8,
-    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.SetRelativeDepth",
+    "value": 4,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.WaveHeightLevel",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:18.456034129+00:00"
+    "timestamp": "2024-04-05T02:20:43.613696798+00:00"
   },
   "Inf:/App/ied13/db905_visual_data_fast/Winch.EncoderBR1": {
     "type": "Int",
@@ -109,23 +117,23 @@
     "name": "/App/ied13/db905_visual_data_fast/Winch.EncoderBR1",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:18.156131382+00:00"
+    "timestamp": "2024-04-05T02:20:43.920234095+00:00"
   },
-  "Inf:/App/ied14/db906_visual_data/CraneMovement.BoomUp": {
+  "Inf:/App/ied14/db906_visual_data/CraneMovement.JibDown": {
     "type": "Int",
-    "value": 1,
-    "name": "/App/ied14/db906_visual_data/CraneMovement.BoomUp",
+    "value": 0,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.JibDown",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:04:57.847337443+00:00"
+    "timestamp": "2024-04-05T02:20:38.011837221+00:00"
   },
-  "Inf:/App/ied12/db902_panel_controls/Settings.CraneMode.ResetRelativeDepth": {
+  "Inf:/App/ied12/db902_panel_controls/Settings.CraneMode.ConstantTensionLevel": {
     "type": "Int",
-    "value": 4,
-    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.ResetRelativeDepth",
+    "value": 2,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.ConstantTensionLevel",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:18.856213909+00:00"
+    "timestamp": "2024-04-05T02:20:44.013757374+00:00"
   },
   "Inf:/App/ied13/db905_visual_data_fast/Winch.EncoderBR2": {
     "type": "Int",
@@ -133,39 +141,47 @@
     "name": "/App/ied13/db905_visual_data_fast/Winch.EncoderBR2",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:18.556312961+00:00"
+    "timestamp": "2024-04-05T02:20:44.320388839+00:00"
   },
-  "Inf:/App/ied14/db906_visual_data/CraneMovement.BoomDown": {
+  "Inf:/App/ied14/db906_visual_data/CraneMovement.BoomUp": {
     "type": "Int",
-    "value": 6,
-    "name": "/App/ied14/db906_visual_data/CraneMovement.BoomDown",
+    "value": 5,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.BoomUp",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:04:58.247523099+00:00"
+    "timestamp": "2024-04-05T02:20:38.412029631+00:00"
   },
-  "Inf:/App/ied12/db902_panel_controls/Settings.CraneMode.MainMode": {
+  "Inf:/App/ied12/db902_panel_controls/Settings.CraneMode.SetRelativeDepth": {
     "type": "Int",
-    "value": 8,
-    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.MainMode",
+    "value": 2,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.SetRelativeDepth",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:19.256378319+00:00"
+    "timestamp": "2024-04-05T02:20:44.413939279+00:00"
   },
   "Inf:/App/ied13/db905_visual_data_fast/Winch.LVDT1": {
     "type": "Real",
-    "value": 0.0,
+    "value": 5.0,
     "name": "/App/ied13/db905_visual_data_fast/Winch.LVDT1",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:18.956380707+00:00"
+    "timestamp": "2024-04-05T02:20:44.720571179+00:00"
   },
-  "Inf:/App/ied14/db906_visual_data/CraneMovement.WinchUp": {
+  "Inf:/App/ied14/db906_visual_data/CraneMovement.BoomDown": {
     "type": "Int",
     "value": 2,
-    "name": "/App/ied14/db906_visual_data/CraneMovement.WinchUp",
+    "name": "/App/ied14/db906_visual_data/CraneMovement.BoomDown",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:04:58.647697329+00:00"
+    "timestamp": "2024-04-05T02:20:38.812206606+00:00"
+  },
+  "Inf:/App/ied12/db902_panel_controls/Settings.CraneMode.ResetRelativeDepth": {
+    "type": "Int",
+    "value": 1,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.ResetRelativeDepth",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T02:20:44.814117967+00:00"
   },
   "Inf:/App/ied13/db905_visual_data_fast/Winch.LVDT2": {
     "type": "Real",
@@ -173,55 +189,55 @@
     "name": "/App/ied13/db905_visual_data_fast/Winch.LVDT2",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:19.356560739+00:00"
+    "timestamp": "2024-04-05T02:20:45.120670436+00:00"
+  },
+  "Inf:/App/ied14/db906_visual_data/CraneMovement.WinchUp": {
+    "type": "Int",
+    "value": 0,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.WinchUp",
+    "status": 2,
+    "cot": "Inf",
+    "timestamp": "2024-04-05T02:20:39.212418505+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/CraneMovement.WinchDown": {
     "type": "Int",
-    "value": 8,
+    "value": 3,
     "name": "/App/ied14/db906_visual_data/CraneMovement.WinchDown",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:04:59.047853577+00:00"
-  },
-  "Inf:/App/ied13/db905_visual_data_fast/Winch.ValveEV1": {
-    "type": "Bool",
-    "value": 1,
-    "name": "/App/ied13/db905_visual_data_fast/Winch.ValveEV1",
-    "status": 2,
-    "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:16.155449172+00:00"
+    "timestamp": "2024-04-05T02:20:39.612502634+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/CraneMode.MainMode": {
     "type": "Int",
-    "value": 9,
+    "value": 5,
     "name": "/App/ied14/db906_visual_data/CraneMode.MainMode",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:04:59.447918514+00:00"
+    "timestamp": "2024-04-05T02:20:40.012665871+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/CraneMode.ActiveWinch": {
     "type": "Int",
-    "value": 8,
+    "value": 3,
     "name": "/App/ied14/db906_visual_data/CraneMode.ActiveWinch",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:04:59.848081104+00:00"
+    "timestamp": "2024-04-05T02:20:40.412827482+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/CraneMode.Winch1Mode": {
     "type": "Int",
-    "value": 6,
+    "value": 5,
     "name": "/App/ied14/db906_visual_data/CraneMode.Winch1Mode",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:00.248264523+00:00"
+    "timestamp": "2024-04-05T02:20:40.813002740+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/CraneMode.WaveHeightLevel": {
     "type": "Int",
-    "value": 4,
+    "value": 8,
     "name": "/App/ied14/db906_visual_data/CraneMode.WaveHeightLevel",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:00.648448805+00:00"
+    "timestamp": "2024-04-05T02:20:41.213176124+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/CraneMode.CraneOffshore": {
     "type": "Bool",
@@ -229,7 +245,7 @@
     "name": "/App/ied14/db906_visual_data/CraneMode.CraneOffshore",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:01.048555934+00:00"
+    "timestamp": "2024-04-05T02:20:41.613339173+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/CraneMode.ParkingModeActive": {
     "type": "Bool",
@@ -237,39 +253,39 @@
     "name": "/App/ied14/db906_visual_data/CraneMode.ParkingModeActive",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:01.448736976+00:00"
+    "timestamp": "2024-04-05T02:20:42.013451839+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/CraneMode.MOPS": {
     "type": "Int",
-    "value": 7,
+    "value": 3,
     "name": "/App/ied14/db906_visual_data/CraneMode.MOPS",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:01.848889311+00:00"
+    "timestamp": "2024-04-05T02:20:42.413564383+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/CraneMode.AOPS": {
     "type": "Int",
-    "value": 7,
+    "value": 8,
     "name": "/App/ied14/db906_visual_data/CraneMode.AOPS",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:02.249075025+00:00"
+    "timestamp": "2024-04-05T02:20:42.813728768+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/CraneMode.AHC": {
     "type": "Int",
-    "value": 6,
+    "value": 4,
     "name": "/App/ied14/db906_visual_data/CraneMode.AHC",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:02.649252742+00:00"
+    "timestamp": "2024-04-05T02:20:43.213807104+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/CraneMode.WinchBrake": {
     "type": "Int",
-    "value": 3,
+    "value": 2,
     "name": "/App/ied14/db906_visual_data/CraneMode.WinchBrake",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:03.049421683+00:00"
+    "timestamp": "2024-04-05T02:20:43.613864018+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/CraneMode.SWLProtection": {
     "type": "Bool",
@@ -277,39 +293,39 @@
     "name": "/App/ied14/db906_visual_data/CraneMode.SWLProtection",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:03.449606821+00:00"
+    "timestamp": "2024-04-05T02:20:44.013922999+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/CraneMode.Reserve1": {
     "type": "Int",
-    "value": 4,
+    "value": 5,
     "name": "/App/ied14/db906_visual_data/CraneMode.Reserve1",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:03.849786123+00:00"
+    "timestamp": "2024-04-05T02:20:44.414091073+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/CraneMode.Reserve2": {
     "type": "Int",
-    "value": 4,
+    "value": 3,
     "name": "/App/ied14/db906_visual_data/CraneMode.Reserve2",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:04.249846609+00:00"
+    "timestamp": "2024-04-05T02:20:44.814260715+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/CraneMode.Reserve3": {
     "type": "Int",
-    "value": 2,
+    "value": 7,
     "name": "/App/ied14/db906_visual_data/CraneMode.Reserve3",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:04.650021072+00:00"
+    "timestamp": "2024-04-05T02:20:45.214429486+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/ConstantTension.Level": {
     "type": "Int",
-    "value": 2,
+    "value": 8,
     "name": "/App/ied14/db906_visual_data/ConstantTension.Level",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:05.050199317+00:00"
+    "timestamp": "2024-04-05T02:20:45.614596050+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/ConstantTension.Active": {
     "type": "Bool",
@@ -317,7 +333,7 @@
     "name": "/App/ied14/db906_visual_data/ConstantTension.Active",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:05.450386651+00:00"
+    "timestamp": "2024-04-05T02:20:46.014780682+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/ConstantTension.Reserve1": {
     "type": "Bool",
@@ -325,15 +341,15 @@
     "name": "/App/ied14/db906_visual_data/ConstantTension.Reserve1",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:05.850567514+00:00"
+    "timestamp": "2024-04-05T02:20:23.605635433+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/ConstantTension.Reserve2": {
     "type": "Bool",
-    "value": 1,
+    "value": 0,
     "name": "/App/ied14/db906_visual_data/ConstantTension.Reserve2",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:06.250743439+00:00"
+    "timestamp": "2024-04-05T02:20:24.005836749+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/ConstantTension.Reserve3": {
     "type": "Bool",
@@ -341,119 +357,119 @@
     "name": "/App/ied14/db906_visual_data/ConstantTension.Reserve3",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:06.650924098+00:00"
+    "timestamp": "2024-04-05T02:20:24.406042526+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Hook.X": {
     "type": "Real",
-    "value": 5.0,
+    "value": 2.0,
     "name": "/App/ied14/db906_visual_data/Hook.X",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:07.050986316+00:00"
+    "timestamp": "2024-04-05T02:20:24.806142527+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Hook.Y": {
     "type": "Real",
-    "value": 1.0,
+    "value": 0.0,
     "name": "/App/ied14/db906_visual_data/Hook.Y",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:07.451203648+00:00"
+    "timestamp": "2024-04-05T02:20:25.206331557+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Hook.Speed": {
     "type": "Real",
-    "value": 5.0,
+    "value": 1.0,
     "name": "/App/ied14/db906_visual_data/Hook.Speed",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:07.851388155+00:00"
+    "timestamp": "2024-04-05T02:20:25.606573635+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Crane.Radius": {
     "type": "Real",
-    "value": 4.0,
+    "value": 5.0,
     "name": "/App/ied14/db906_visual_data/Crane.Radius",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:08.251588439+00:00"
+    "timestamp": "2024-04-05T02:20:26.006768828+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Crane.Depth": {
     "type": "Real",
-    "value": 3.0,
+    "value": 1.0,
     "name": "/App/ied14/db906_visual_data/Crane.Depth",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:08.651785036+00:00"
+    "timestamp": "2024-04-05T02:20:26.406959511+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Crane.DeckDepth": {
     "type": "Real",
-    "value": 1.0,
+    "value": 3.0,
     "name": "/App/ied14/db906_visual_data/Crane.DeckDepth",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:09.051953733+00:00"
+    "timestamp": "2024-04-05T02:20:26.807148147+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Crane.Wind": {
     "type": "Real",
-    "value": 0.0,
+    "value": 2.0,
     "name": "/App/ied14/db906_visual_data/Crane.Wind",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:09.452010251+00:00"
+    "timestamp": "2024-04-05T02:20:27.207360551+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Crane.Pitch": {
     "type": "Real",
-    "value": 5.0,
+    "value": 3.0,
     "name": "/App/ied14/db906_visual_data/Crane.Pitch",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:09.852204105+00:00"
+    "timestamp": "2024-04-05T02:20:27.607558178+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Crane.Roll": {
     "type": "Real",
-    "value": 3.0,
+    "value": 5.0,
     "name": "/App/ied14/db906_visual_data/Crane.Roll",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:10.252411200+00:00"
+    "timestamp": "2024-04-05T02:20:28.007783501+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Crane.Slewing": {
     "type": "Real",
-    "value": 4.0,
+    "value": 5.0,
     "name": "/App/ied14/db906_visual_data/Crane.Slewing",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:10.652617390+00:00"
+    "timestamp": "2024-04-05T02:20:28.407968527+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Crane.BoomAngle": {
     "type": "Real",
-    "value": 2.0,
+    "value": 3.0,
     "name": "/App/ied14/db906_visual_data/Crane.BoomAngle",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:11.052809535+00:00"
+    "timestamp": "2024-04-05T02:20:28.808058583+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Crane.JibAngle": {
     "type": "Real",
-    "value": 4.0,
+    "value": 3.0,
     "name": "/App/ied14/db906_visual_data/Crane.JibAngle",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:11.452872686+00:00"
+    "timestamp": "2024-04-05T02:20:29.208219655+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Crane.Reserve1": {
     "type": "Real",
-    "value": 4.0,
+    "value": 2.0,
     "name": "/App/ied14/db906_visual_data/Crane.Reserve1",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:11.853074588+00:00"
+    "timestamp": "2024-04-05T02:20:29.608314437+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Crane.Reserve2": {
     "type": "Real",
-    "value": 3.0,
+    "value": 1.0,
     "name": "/App/ied14/db906_visual_data/Crane.Reserve2",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:12.253277378+00:00"
+    "timestamp": "2024-04-05T02:20:30.008511250+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Crane.Reserve3": {
     "type": "Real",
@@ -461,23 +477,23 @@
     "name": "/App/ied14/db906_visual_data/Crane.Reserve3",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:12.653472995+00:00"
+    "timestamp": "2024-04-05T02:20:30.408704343+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Winch1.SWL0": {
     "type": "Real",
-    "value": 1.0,
+    "value": 4.0,
     "name": "/App/ied14/db906_visual_data/Winch1.SWL0",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:13.053678494+00:00"
+    "timestamp": "2024-04-05T02:20:30.808898662+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Winch1.SWL": {
     "type": "Real",
-    "value": 3.0,
+    "value": 1.0,
     "name": "/App/ied14/db906_visual_data/Winch1.SWL",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:13.453882730+00:00"
+    "timestamp": "2024-04-05T02:20:31.209050569+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Winch1.Load": {
     "type": "Real",
@@ -485,47 +501,47 @@
     "name": "/App/ied14/db906_visual_data/Winch1.Load",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:13.854099683+00:00"
+    "timestamp": "2024-04-05T02:20:31.609226646+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Winch2.SWL0": {
     "type": "Real",
-    "value": 0.0,
+    "value": 5.0,
     "name": "/App/ied14/db906_visual_data/Winch2.SWL0",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:14.254301189+00:00"
+    "timestamp": "2024-04-05T02:20:32.009410617+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Winch2.SWL": {
     "type": "Real",
-    "value": 0.0,
+    "value": 4.0,
     "name": "/App/ied14/db906_visual_data/Winch2.SWL",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:14.654474521+00:00"
+    "timestamp": "2024-04-05T02:20:32.409506565+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Winch2.Load": {
     "type": "Real",
-    "value": 3.0,
+    "value": 4.0,
     "name": "/App/ied14/db906_visual_data/Winch2.Load",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:15.054665338+00:00"
+    "timestamp": "2024-04-05T02:20:32.809707101+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Winch3.SWL0": {
     "type": "Real",
-    "value": 0.0,
+    "value": 4.0,
     "name": "/App/ied14/db906_visual_data/Winch3.SWL0",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:15.454858560+00:00"
+    "timestamp": "2024-04-05T02:20:33.209894989+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Winch3.SWL": {
     "type": "Real",
-    "value": 4.0,
+    "value": 1.0,
     "name": "/App/ied14/db906_visual_data/Winch3.SWL",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:15.854920410+00:00"
+    "timestamp": "2024-04-05T02:20:33.610080745+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/Winch3.Load": {
     "type": "Real",
@@ -533,54 +549,38 @@
     "name": "/App/ied14/db906_visual_data/Winch3.Load",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:16.255008541+00:00"
+    "timestamp": "2024-04-05T02:20:34.010275421+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/HPU.Pump1.State": {
     "type": "Int",
-    "value": 5,
+    "value": 2,
     "name": "/App/ied14/db906_visual_data/HPU.Pump1.State",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:16.655192508+00:00"
+    "timestamp": "2024-04-05T02:20:34.410459019+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/HPU.Pump2.State": {
     "type": "Int",
-    "value": 5,
+    "value": 0,
     "name": "/App/ied14/db906_visual_data/HPU.Pump2.State",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:17.055308299+00:00"
+    "timestamp": "2024-04-05T02:20:34.810649697+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/HPU.EmergencyHPU.State": {
     "type": "Int",
-    "value": 3,
+    "value": 8,
     "name": "/App/ied14/db906_visual_data/HPU.EmergencyHPU.State",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:17.455501549+00:00"
+    "timestamp": "2024-04-05T02:20:35.210853764+00:00"
   },
   "Inf:/App/ied14/db906_visual_data/HPU.OilTemp": {
     "type": "Real",
-    "value": 2.0,
+    "value": 5.0,
     "name": "/App/ied14/db906_visual_data/HPU.OilTemp",
     "status": 2,
     "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:17.855565188+00:00"
-  },
-  "Inf:/App/ied14/db906_visual_data/CraneMovement.RotateLeft": {
-    "type": "Int",
-    "value": 7,
-    "name": "/App/ied14/db906_visual_data/CraneMovement.RotateLeft",
-    "status": 2,
-    "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:18.255634169+00:00"
-  },
-  "Inf:/App/ied14/db906_visual_data/CraneMovement.RotateRight": {
-    "type": "Int",
-    "value": 5,
-    "name": "/App/ied14/db906_visual_data/CraneMovement.RotateRight",
-    "status": 2,
-    "cot": "Inf",
-    "timestamp": "2024-04-05T02:05:18.655715175+00:00"
+    "timestamp": "2024-04-05T02:20:35.611036444+00:00"
   }
 }

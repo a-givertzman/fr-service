@@ -213,7 +213,7 @@ impl Service for CacheService {
         let services = self.services.clone();
         let cache = self.cache.clone();
         let rx_recv = self.subscribe(&conf, &services);
-        let mut dely_store = DelydStore::new(30);
+        let mut dely_store = DelydStore::new(10);
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
             'main: loop {
