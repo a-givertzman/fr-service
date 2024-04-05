@@ -3,7 +3,7 @@ use std::{
     mpsc::{Receiver, RecvTimeoutError, Sender}, Arc, Mutex, RwLock}, thread, time::{Duration, Instant} 
 };
 use hashers::fx_hash::FxHasher;
-use log::{debug, info, trace, warn};
+use log::{debug, error, info, trace, warn};
 use serde_json::json;
 use crate::{
     conf::{point_config::name::Name, tcp_server_config::TcpServerConfig}, 
@@ -251,6 +251,9 @@ impl JdsConnection {
                     info!("{}.run | Keeped lost connection timeout({:?}) exceeded", self_id, keep_timeout);
                     break;
                 }
+            }
+            if let Err(err) = services.slock().unsubscribe(&subscribe, &receiver_name, &[]) {
+                error!("{}.run | Unsubscribe error: {:#?}", self_id, err);
             }
             info!("{}.run | Exit", self_id);
         });

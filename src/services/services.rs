@@ -102,7 +102,7 @@ impl Services {
     ///
     /// Returns ok if subscription removed sucessfully
     /// - service - the name of the service to unsubscribe on
-    fn unsubscribe(&mut self, service: &str, receiver_name: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
+    pub fn unsubscribe(&mut self, service: &str, receiver_name: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
         match self.map.get(service) {
             Some(srvc) => {
                 debug!("{}.unsubscribe | Lock service '{:?}'...", self.id, service);
