@@ -141,7 +141,7 @@ impl Service for ProducerService {
                     }
                 }
             }
-            info!("{}.run | Stopped", self_id);
+            info!("{}.run | Exit", self_id);
         }) {
             Ok(handle) => {
                 info!("{}.run | Started", self.id);

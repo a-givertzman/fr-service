@@ -54,7 +54,7 @@ impl CacheService {
     }
     ///
     /// 
-    fn subscribe(&mut self, conf: &CacheServiceConfig, services: &Arc<Mutex<Services>>) -> Receiver<PointType> {
+    fn subscriptions(&mut self, conf: &CacheServiceConfig, services: &Arc<Mutex<Services>>) -> (String, Vec<SubscriptionCriteria>) {
         if conf.subscribe.is_empty() {
             panic!("{}.subscribe | Error. Subscription can`t be empty: {:#?}", self.id, conf.subscribe);
         } else {
@@ -68,15 +68,9 @@ impl CacheService {
             if subscriptions.len() > 1 {
                 panic!("{}.run | Error. Task does not supports multiple subscriptions for now: {:#?}.\n\tTry to use single subscription.", self.id, subscriptions);
             } else {
-                // let subscriptions_first = subscriptions.clone().into_iter().next();
                 match subscriptions.clone().into_iter().next() {
                     Some((service_name, Some(points))) => {
-                        let (_, rx_recv) = services.slock().subscribe(
-                                &service_name,
-                                &self.name.join(), 
-                                &points,
-                            );
-                        rx_recv
+                        (service_name, points)
                     },
                     Some((_, None)) => panic!("{}.run | Error. Subscription configuration error in: {:#?}", self.id, subscriptions),
                     None => panic!("{}.run | Error. Subscription configuration error in: {:#?}", self.id, subscriptions),
@@ -212,7 +206,12 @@ impl Service for CacheService {
         let conf = self.conf.clone();
         let services = self.services.clone();
         let cache = self.cache.clone();
-        let rx_recv = self.subscribe(&conf, &services);
+        let (service_name, points) = self.subscriptions(&conf, &services);
+        let (_, rx_recv) = services.slock().subscribe(
+            &service_name,
+            &self.name.join(), 
+            &points,
+        );
         let mut dely_store = DelydStore::new(10);
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
@@ -252,6 +251,9 @@ impl Service for CacheService {
                     }
                     break;
                 }
+            }
+            if let Err(err) = services.slock().unsubscribe(&service_name, &self_name.join(), &points) {
+                error!("{}.run | Unsubscribe error: {:#?}", self_id, err);
             }
             info!("{}.run | Exit", self_id);
         });

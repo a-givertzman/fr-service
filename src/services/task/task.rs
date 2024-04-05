@@ -190,15 +190,15 @@ impl Service for Task {
                     },
                 };
                 if exit.load(Ordering::SeqCst) {
-                    if let Some((service_name, points)) = subscriptions {
-                        if let Err(err) = services.slock().unsubscribe(&service_name,&self_name.join(), &points) {
-                            error!("{}.run | Unsubscribe error: {:#?}", self_id, err);
-                        }
-                    }
                     break 'main;
                 }
             };
-            info!("{}.run | Stopped", self_id);
+            if let Some((service_name, points)) = subscriptions {
+                if let Err(err) = services.slock().unsubscribe(&service_name,&self_name.join(), &points) {
+                    error!("{}.run | Unsubscribe error: {:#?}", self_id, err);
+                }
+            }
+            info!("{}.run | Exit", self_id);
         });
         match handle {
             Ok(handle) => {

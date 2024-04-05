@@ -189,7 +189,7 @@ impl Service for ApiClient {
                     cycle.wait();
                 }
             };            
-            info!("{}.run | Stopped", self_id);
+            info!("{}.run | Exit", self_id);
         });
         match handle {
             Ok(handle) => {
