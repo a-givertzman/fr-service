@@ -11,20 +11,27 @@
 //!     suscribe:
 //!         /App/MultiQueue: []
 //! ```
-use std::{collections::HashMap, env, fmt::Debug, fs, hash::BuildHasherDefault, path::Path, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, RecvTimeoutError, Sender}, Arc, Mutex, RwLock}, thread};
+use std::{
+    env, fmt::Debug, fs, hash::{BuildHasher, BuildHasherDefault}, io::Write, path::PathBuf, sync::{atomic::{AtomicBool, Ordering}, 
+    mpsc::{self, Receiver, RecvTimeoutError}, Arc, Mutex, RwLock}, thread
+};
 use concat_string::concat_string;
 use hashers::fx_hash::FxHasher;
 use indexmap::IndexMap;
 use log::{debug, error, info, trace, warn};
 use serde::Serialize;
+use serde_json::json;
 use crate::{
-    conf::{cache_service_config::CacheServiceConfig, conf_subscribe::ConfSubscribe, point_config::name::Name}, 
+    conf::{cache_service_config::CacheServiceConfig, point_config::name::Name}, 
     core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::point_type::PointType, status::status::Status}, 
     services::{
-        cache::delay_store::DelydStore, multi_queue::subscription_criteria::SubscriptionCriteria, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services
+        cache::delay_store::DelydStore, 
+        multi_queue::subscription_criteria::SubscriptionCriteria, 
+        safe_lock::SafeLock, 
+        service::{service::Service, service_handles::ServiceHandles}, 
+        services::Services,
     } 
 };
-
 ///
 /// CacheService service
 /// - Subscribe on points by configured criteria
@@ -79,31 +86,16 @@ impl CacheService {
         }
     }
     ///
-    /// Storing cache on the disk
-    ///
-    /// Writes file json map to the file:
-    /// ```json
-    /// {
-    ///     "/path/Point.name1": 0,
-    ///     "/path/Point.name2": 1,
-    ///     ...
-    /// }
-    /// ```
-    fn write<S: Serialize>(self_id: &str, name: &Name, points: S) -> Result<(), String> {
-        let path = env::current_dir().unwrap();
-        let mut name_join = name.join();
-        let name_join = if name_join.starts_with('/') {
-            name_join.replace_range(..1, "");
-            name_join
-        } else {
-            name_join
-        };
-        let path = path.join("assets/cache/").join(name_join);
-        let path_exists = match path.exists() {
-            true => Ok(()),
+    /// Creates directiry (all necessary folders in the 'path' if not exists)
+    ///  - path is relative, will be joined with current working dir
+    fn create_dir(self_id: &str, path: &str) -> Result<PathBuf, String> {
+        let current_dir = env::current_dir().unwrap();
+        let path = current_dir.join(path);
+        match path.exists() {
+            true => Ok(path),
             false => {
                 match fs::create_dir_all(&path) {
-                    Ok(_) => Ok(()),
+                    Ok(_) => Ok(path),
                     Err(err) => {
                         let message = format!("{}.read | Error create path: '{:?}'\n\terror: {:?}", self_id, path, err);
                         error!("{}", message);
@@ -111,21 +103,75 @@ impl CacheService {
                     },
                 }
             },
-        };
-        let path = path.join("cache.json");
-        debug!("{}.write | path: {:?}", self_id, path);
-        match path_exists {
-            Ok(_) => {
-                match fs::OpenOptions::new().create(true).write(true).open(&path) {
-                    Ok(f) => {
-                        match serde_json::to_writer_pretty(f, &points) {
-                            Ok(_) => Ok(()),
-                            Err(err) => {
-                                let message = format!("{}.write | Error writing to file: '{:?}'\n\terror: {:?}", self_id, path, err);
-                                error!("{}", message);
-                                Err(message)
-                            },
+        }
+    }
+    ///
+    /// 
+    fn read(&mut self, name: &Name) {
+        let mut self_cache = self.cache.write().unwrap();
+        let path = Name::new("assets/cache/", &name.join()).join();
+        match fs::OpenOptions::new().open(&path) {
+            Ok(f) => {
+                match serde_json::from_reader::<_, Vec<PointType>>(f) {
+                    Ok(v) => {
+                        for point in v {
+                            self_cache.insert(point.dest(), point);
                         }
+                    },
+                    Err(err) => {
+                        let message = format!("{}.write | Error open file: '{:?}'\n\terror: {:?}", self.id, path, err);
+                        error!("{}", message);
+                    },
+                };
+            },
+            Err(err) => {
+                let message = format!("{}.write | Error open file: '{:?}'\n\terror: {:?}", self.id, path, err);
+                error!("{}", message);
+            },
+        }
+    }
+    ///
+    /// Storing cache on the disk
+    ///
+    /// Writes file json map to the file:
+    /// ```json
+    /// [
+    ///     {
+    ///         "type": "Bool",
+    ///         "value": 1,
+    ///         "name": "/App/path/Point.name1",
+    ///         "status": 2,
+    ///         "cot": "Inf",
+    ///         "timestamp": "2024-04-08T08:52:32.656576549+00:00"
+    ///     },
+    ///     {,
+    ///     ...
+    /// ]
+    /// ```
+    fn write<S: Serialize>(self_id: &str, name: &Name, points: Vec<S>) -> Result<(), String> {
+        match Self::create_dir(self_id, Name::new("assets/cache/", &name.join()).join().trim_start_matches('/')) {
+            Ok(path) => {
+                let path = path.join("cache.json");
+                debug!("{}.write | path: {:?}", self_id, path);
+                let mut message = String::new();
+                let mut cache = String::new();
+                cache.push('[');
+                let content: String = points.into_iter().fold(String::new(), |mut points, point| {
+                    points.push_str(concat_string!("\n", json!(point).to_string(), ",").as_str());
+                    points
+                }).trim_end_matches(",").to_owned();
+                cache.push_str(content.as_str());
+                cache.push_str("\n]");
+                match fs::OpenOptions::new().create(true).write(true).open(&path) {
+                    Ok(mut f) => {
+                        match f.write_all(cache.as_bytes()) {
+                            Ok(_) => {},
+                            Err(err) => {
+                                message = format!("{}.write | Error writing to file: '{:?}'\n\terror: {:?}", self_id, path, err);
+                                error!("{}", message);
+                            },
+                        };
+                        if message.is_empty() {Ok(())} else {Err(message)}
                     },
                     Err(err) => {
                         let message = format!("{}.write | Error open file: '{:?}'\n\terror: {:?}", self_id, path, err);
@@ -142,8 +188,8 @@ impl CacheService {
     }
     ///
     /// 
-    fn store<T>(self_id: &str, name: &Name, points: &IndexMap<String, PointType, T>) -> Result<(), String> {
-        let points: IndexMap<String, PointType> = points.into_iter().map(|(dest, point)| {
+    fn store<T: BuildHasher>(self_id: &str, name: &Name, points: &IndexMap<String, PointType, T>) -> Result<(), String> {
+        let points: Vec<PointType> = points.into_iter().map(|(_dest, point)| {
             let point = match point.clone() {
                 PointType::Bool(mut point) => {
                     point.status = Status::Obsolete;
@@ -166,7 +212,7 @@ impl CacheService {
                     PointType::String(point)
                 },
             };
-            (dest.to_owned(), point)
+            point
         }).collect();
         Self::write(self_id, name, points)
 
