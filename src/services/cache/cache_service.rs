@@ -106,46 +106,43 @@ impl CacheService {
         }
     }
     ///
-    /// 
-    fn read(&mut self, name: &Name) {
-        let mut self_cache = self.cache.write().unwrap();
-        let path = Name::new("assets/cache/", &name.join()).join().trim_start_matches('/').to_owned();
-        let path = Path::new(&path).join("cache.json");
-        match fs::OpenOptions::new().read(true).open(&path) {
-            Ok(f) => {
-                match serde_json::from_reader::<_, Vec<PointType>>(f) {
-                    Ok(v) => {
-                        for point in v {
-                            self_cache.insert(point.dest(), point);
-                        }
+    /// Loads retained on the disk cache to the self.cache
+    fn load(self_id: &str, name: &Name, cache: Arc<RwLock<IndexMap<String, PointType, BuildHasherDefault<FxHasher>>>>) {
+        match cache.write() {
+            Ok(mut cache) => {
+                let path = Name::new("assets/cache/", &name.join()).join().trim_start_matches('/').to_owned();
+                let path = Path::new(&path).join("cache.json");
+                match fs::OpenOptions::new().read(true).open(&path) {
+                    Ok(f) => {
+                        match serde_json::from_reader::<_, Vec<PointType>>(f) {
+                            Ok(v) => {
+                                for point in v {
+                                    cache.insert(point.dest(), point);
+                                }
+                            },
+                            Err(err) => {
+                                let message = format!("{}.read | Error open file: '{:?}'\n\terror: {:?}", self_id, path, err);
+                                error!("{}", message);
+                            },
+                        };
                     },
                     Err(err) => {
-                        let message = format!("{}.read | Error open file: '{:?}'\n\terror: {:?}", self.id, path, err);
+                        let message = format!("{}.read | Error open file: '{:?}'\n\terror: {:?}", self_id, path, err);
                         error!("{}", message);
                     },
-                };
+                }
             },
             Err(err) => {
-                let message = format!("{}.read | Error open file: '{:?}'\n\terror: {:?}", self.id, path, err);
-                error!("{}", message);
+                error!("{}.run | Error write access cache: {:?}", self_id, err);
             },
-        }
+        };
     }
     ///
-    /// Storing cache on the disk
-    ///
-    /// Writes file json map to the file:
+    /// Writes array of the points to the json file:
     /// ```json
     /// [
-    ///     {
-    ///         "type": "Bool",
-    ///         "value": 1,
-    ///         "name": "/App/path/Point.name1",
-    ///         "status": 2,
-    ///         "cot": "Inf",
-    ///         "timestamp": "2024-04-08T08:52:32.656576549+00:00"
-    ///     },
-    ///     {,
+    ///     {"type": "Bool","value": 1,"name": "/App/path/Point.name1","status": 2,"cot": "Inf","timestamp": "2024-04-08T08:52:32.656576549+00:00"},
+    ///     {...,
     ///     ...
     /// ]
     /// ```
@@ -188,7 +185,7 @@ impl CacheService {
         }
     }
     ///
-    /// 
+    /// Stores self.cache on the disk 
     fn store<T: BuildHasher>(self_id: &str, name: &Name, points: &IndexMap<String, PointType, T>) -> Result<(), String> {
         let points: Vec<PointType> = points.into_iter().map(|(_dest, point)| {
             let point = match point.clone() {
@@ -260,9 +257,9 @@ impl Service for CacheService {
             &points,
         );
         let mut dely_store = DelyStore::new(conf.retain_delay);
-        self.read(&self_name);
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
+            Self::load(&self_id, &self_name, cache.clone());
             'main: loop {
                 match rx_recv.recv_timeout(RECV_TIMEOUT) {
                     Ok(point) => {
@@ -276,7 +273,7 @@ impl Service for CacheService {
                                 }
                             },
                             Err(err) => {
-                                error!("{}.run | Error writing to cache: {:?}", self_id, err);
+                                error!("{}.run | Error write access cache: {:?}", self_id, err);
                             },
                         }
                     },
@@ -320,8 +317,9 @@ impl Service for CacheService {
     //
     //
     fn gi(&self, receiver_name: &str, points: &[SubscriptionCriteria]) -> Receiver<PointType> {
-        let (send, recv) = mpsc::channel();
         let self_id = self.id.clone();
+        info!("{}.gi | Gi requested from: {}", self_id, receiver_name);
+        let (send, recv) = mpsc::channel();
         let self_cache = self.cache.clone();
         let points = points.to_owned();
         thread::spawn(move || {
@@ -339,7 +337,7 @@ impl Service for CacheService {
     
                     },
                     Err(err) => {
-                        error!("{}.gi | Error read cache: {:#?}", self_id, err);
+                        error!("{}.gi | Error read access cache: {:#?}", self_id, err);
                     },
                 }
             } else {
@@ -363,7 +361,7 @@ impl Service for CacheService {
     
                     },
                     Err(err) => {
-                        error!("{}.gi | Error read cache: {:#?}", self_id, err);
+                        error!("{}.gi | Error read access cache: {:#?}", self_id, err);
                     },
                 }
             }
