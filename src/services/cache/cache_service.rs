@@ -119,21 +119,20 @@ impl CacheService {
                                 for point in v {
                                     cache.insert(point.dest(), point);
                                 }
+                                info!("{}.load | Retained cache loaded from: '{:?}'", self_id, path);
                             },
                             Err(err) => {
-                                let message = format!("{}.read | Error open file: '{:?}'\n\terror: {:?}", self_id, path, err);
-                                error!("{}", message);
+                                error!("{}.load | Deserialize error: '{:?}'\n\tin file: {:?}", self_id, err, path);
                             },
                         };
                     },
                     Err(err) => {
-                        let message = format!("{}.read | Error open file: '{:?}'\n\terror: {:?}", self_id, path, err);
-                        error!("{}", message);
+                        error!("{}.load | Error open file: '{:?}'\n\terror: {:?}", self_id, path, err);
                     },
                 }
             },
             Err(err) => {
-                error!("{}.run | Error write access cache: {:?}", self_id, err);
+                error!("{}.load | Error write access cache: {:?}", self_id, err);
             },
         };
     }
