@@ -107,7 +107,7 @@ impl CacheService {
     }
     ///
     /// Loads retained on the disk cache to the self.cache
-    fn load(self_id: &str, name: &Name, cache: Arc<RwLock<IndexMap<String, PointType, BuildHasherDefault<FxHasher>>>>) {
+    fn load(self_id: &str, name: &Name, cache: &Arc<RwLock<IndexMap<String, PointType, BuildHasherDefault<FxHasher>>>>) {
         match cache.write() {
             Ok(mut cache) => {
                 let path = Name::new("assets/cache/", &name.join()).join().trim_start_matches('/').to_owned();
@@ -259,7 +259,7 @@ impl Service for CacheService {
         let mut dely_store = DelyStore::new(conf.retain_delay);
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
-            Self::load(&self_id, &self_name, cache.clone());
+            Self::load(&self_id, &self_name, &cache);
             'main: loop {
                 match rx_recv.recv_timeout(RECV_TIMEOUT) {
                     Ok(point) => {
