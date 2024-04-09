@@ -1,5 +1,5 @@
 use log::{trace, debug};
-use std::fs;
+use std::{fs, time::Duration};
 use crate::conf::{
     conf_tree::ConfTree, service_config::ServiceConfig,
     point_config::name::Name,
@@ -9,7 +9,8 @@ use crate::conf::{
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
 /// service CacheService Cache:
-///     retain: true    # true / false - enables storing cache on the disk
+///     retain: true        # true / false - enables storing cache on the disk
+///     retain-delay: 30 s  # time to wait before next store, store on exit unconditionally
 ///     suscribe:
 ///         /App/MultiQueue: []
 /// ```
@@ -17,6 +18,7 @@ use crate::conf::{
 pub struct CacheServiceConfig {
     pub(crate) name: Name,
     pub(crate) retain: bool,
+    pub(crate) retain_delay: Duration,
     pub(crate) subscribe: ConfSubscribe,
 }
 ///
@@ -26,7 +28,8 @@ impl CacheServiceConfig {
     /// creates config from serde_yaml::Value of following format:
     /// ```yaml
     /// service CacheService Cache:
-    ///     retain: true    # true / false - enables storing cache on the disk
+    ///     retain: true        # true / false - enables storing cache on the disk
+    ///     retain-delay: 30 s  # time to wait before next store, default 3 s, store on exit unconditionally
     ///     suscribe:
     ///         /App/MultiQueue: []
     /// ````
@@ -41,11 +44,14 @@ impl CacheServiceConfig {
         debug!("{}.new | name: {:?}", self_id, self_name);
         let retain = self_conf.get_param_value("retain").unwrap_or(serde_yaml::Value::Bool(false)).as_bool().unwrap();
         debug!("{}.new | retain: {:?}", self_id, retain);
+        let retain_delay = self_conf.get_duration("retain-delay").unwrap_or(Duration::from_secs(30));
+        debug!("{}.new | retain-delay: {:?}", self_id, retain_delay);
         let subscribe = ConfSubscribe::new(self_conf.get_param_value("subscribe").unwrap_or(serde_yaml::Value::Null));
         debug!("{}.new | sudscribe: {:?}", self_id, subscribe);
         Self {
             name: self_name,
             retain,
+            retain_delay,
             subscribe,
         }
     }

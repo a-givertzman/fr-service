@@ -259,7 +259,7 @@ impl Service for CacheService {
             &self.name.join(), 
             &points,
         );
-        let mut dely_store = DelyStore::new(Duration::from_secs(30));
+        let mut dely_store = DelyStore::new(conf.retain_delay);
         self.read(&self_name);
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
