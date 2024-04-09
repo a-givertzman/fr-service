@@ -13,7 +13,7 @@
 //! ```
 use std::{
     env, fmt::Debug, fs, hash::{BuildHasher, BuildHasherDefault}, io::Write, path::{Path, PathBuf}, sync::{atomic::{AtomicBool, Ordering}, 
-    mpsc::{self, Receiver, RecvTimeoutError}, Arc, Mutex, RwLock}, thread
+    mpsc::{self, Receiver, RecvTimeoutError}, Arc, Mutex, RwLock}, thread, time::Duration
 };
 use concat_string::concat_string;
 use hashers::fx_hash::FxHasher;
@@ -25,7 +25,7 @@ use crate::{
     conf::{cache_service_config::CacheServiceConfig, point_config::name::Name}, 
     core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::point_type::PointType, status::status::Status}, 
     services::{
-        cache::delay_store::DelydStore, 
+        cache::delay_store::DelyStore, 
         multi_queue::subscription_criteria::SubscriptionCriteria, 
         safe_lock::SafeLock, 
         service::{service::Service, service_handles::ServiceHandles}, 
@@ -259,7 +259,7 @@ impl Service for CacheService {
             &self.name.join(), 
             &points,
         );
-        let mut dely_store = DelydStore::new(10);
+        let mut dely_store = DelyStore::new(Duration::from_secs(30));
         self.read(&self_name);
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
@@ -269,7 +269,7 @@ impl Service for CacheService {
                         match cache.write() {
                             Ok(mut cache) => {
                                 cache.insert(point.dest(), point);
-                                if let None = dely_store.next() {
+                                if dely_store.exceeded() {
                                     if let Ok(_) = Self::store(&self_id, &self_name, &cache) {
                                         dely_store.set_stored();
                                     };
