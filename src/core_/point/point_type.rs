@@ -232,7 +232,7 @@ impl Serialize for PointType {
             PointType::Real(point) => {
                 PointSerialize {
                     type_: "Real",
-                    value: point.value.clone(),
+                    value: point.value,
                     name: &point.name,
                     status: Into::<u32>::into(point.status),
                     cot: point.cot,

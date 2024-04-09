@@ -13,7 +13,8 @@
 //! ```
 use std::{
     env, fmt::Debug, fs, hash::{BuildHasher, BuildHasherDefault}, io::Write, path::{Path, PathBuf}, sync::{atomic::{AtomicBool, Ordering}, 
-    mpsc::{self, Receiver, RecvTimeoutError}, Arc, Mutex, RwLock}, thread, time::Duration
+    mpsc::{self, Receiver, RecvTimeoutError}, Arc, Mutex, RwLock}, 
+    thread,
 };
 use concat_string::concat_string;
 use hashers::fx_hash::FxHasher;
@@ -110,7 +111,7 @@ impl CacheService {
     fn load(self_id: &str, name: &Name, cache: &Arc<RwLock<IndexMap<String, PointType, BuildHasherDefault<FxHasher>>>>) {
         match cache.write() {
             Ok(mut cache) => {
-                let path = Name::new("assets/cache/", &name.join()).join().trim_start_matches('/').to_owned();
+                let path = Name::new("assets/cache/", name.join()).join().trim_start_matches('/').to_owned();
                 let path = Path::new(&path).join("cache.json");
                 match fs::OpenOptions::new().read(true).open(&path) {
                     Ok(f) => {
@@ -146,23 +147,24 @@ impl CacheService {
     /// ]
     /// ```
     fn write<S: Serialize>(self_id: &str, name: &Name, points: Vec<S>) -> Result<(), String> {
-        match Self::create_dir(self_id, Name::new("assets/cache/", &name.join()).join().trim_start_matches('/')) {
+        match Self::create_dir(self_id, Name::new("assets/cache/", name.join()).join().trim_start_matches('/')) {
             Ok(path) => {
                 let path = path.join("cache.json");
-                debug!("{}.write | path: {:?}", self_id, path);
                 let mut message = String::new();
                 let mut cache = String::new();
                 cache.push('[');
                 let content: String = points.into_iter().fold(String::new(), |mut points, point| {
                     points.push_str(concat_string!("\n", json!(point).to_string(), ",").as_str());
                     points
-                }).trim_end_matches(",").to_owned();
+                }).trim_end_matches(',').to_owned();
                 cache.push_str(content.as_str());
                 cache.push_str("\n]");
                 match fs::OpenOptions::new().truncate(true) .create(true).write(true).open(&path) {
                     Ok(mut f) => {
                         match f.write_all(cache.as_bytes()) {
-                            Ok(_) => {},
+                            Ok(_) => {
+                                debug!("{}.write | Cache stored in: {:?}", self_id, path);
+                            },
                             Err(err) => {
                                 message = format!("{}.write | Error writing to file: '{:?}'\n\terror: {:?}", self_id, path, err);
                                 error!("{}", message);
@@ -187,7 +189,7 @@ impl CacheService {
     /// Stores self.cache on the disk 
     fn store<T: BuildHasher>(self_id: &str, name: &Name, points: &IndexMap<String, PointType, T>) -> Result<(), String> {
         let points: Vec<PointType> = points.into_iter().map(|(_dest, point)| {
-            let point = match point.clone() {
+            match point.clone() {
                 PointType::Bool(mut point) => {
                     point.status = Status::Obsolete;
                     PointType::Bool(point)
@@ -208,11 +210,9 @@ impl CacheService {
                     point.status = Status::Obsolete;
                     PointType::String(point)
                 },
-            };
-            point
+            }
         }).collect();
         Self::write(self_id, name, points)
-
     }
 }
 ///
@@ -266,7 +266,7 @@ impl Service for CacheService {
                             Ok(mut cache) => {
                                 cache.insert(point.dest(), point);
                                 if dely_store.exceeded() {
-                                    if let Ok(_) = Self::store(&self_id, &self_name, &cache) {
+                                    if Self::store(&self_id, &self_name, &cache).is_ok() {
                                         dely_store.set_stored();
                                     };
                                 }

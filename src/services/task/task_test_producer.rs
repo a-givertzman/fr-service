@@ -74,7 +74,7 @@ impl Service for TaskTestProducer {
         });
         let sent = self.sent.clone();
         let test_data = self.test_data.clone();
-        match thread::Builder::new().name(self_id.clone()).spawn(move || {
+        let handle = thread::Builder::new().name(self_id.clone()).spawn(move || {
             debug!("{}.run | calculating step...", self_id);
             for value in test_data {
                 let point = value.to_point(tx_id, "/path/Point.Name");
@@ -94,7 +94,8 @@ impl Service for TaskTestProducer {
             info!("{}.run | All sent: {}", self_id, sent.lock().unwrap().len());
             // thread::sleep(Duration::from_secs_f32(0.1));
             // debug!("TaskTestProducer({}).run | calculating step - done ({:?})", name, cycle.elapsed());
-        }) {
+        });
+        match handle {
             Ok(handle) => {
                 info!("{}.run | Started", self.id);
                 Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))

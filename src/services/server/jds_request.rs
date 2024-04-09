@@ -198,7 +198,7 @@ impl JdsRequest {
     /// 
     fn yield_gi(self_id: &str, receiver_name: &str, services: Arc<Mutex<Services>>, cache_service: &str, points: &[SubscriptionCriteria], shared: &mut Shared) {
         let cache = services.slock().get(cache_service);
-        let recv = cache.slock().gi(&receiver_name, &points);
+        let recv = cache.slock().gi(receiver_name, points);
         match shared.req_reply_send.pop() {
             Some(send) => {
                 for point in recv.iter() {

@@ -74,9 +74,9 @@ impl Task {
         match subscriptions {
             Some((service_name, points)) => {
                 let (_, rx_recv) = services.slock().subscribe(
-                    &service_name,
+                    service_name,
                     &self.name.join(), 
-                    &points,
+                    points,
                 );
                 rx_recv
             },

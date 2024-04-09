@@ -116,8 +116,7 @@ impl Service for ProducerService {
             panic!("{}.run | services.get_link error: {:#?}", self.id, err);
         });
         let mut gen_points = Self::build_gen_points(&self.id, tx_id, self.conf.points());
-        match thread::Builder::new().name(self_id.clone()).spawn(move || {
-            // let mut test_data = Self::build_test_data(&self_id);
+        let handle = thread::Builder::new().name(self_id.clone()).spawn(move || {
             'main: loop {
                 trace!("{}.run | Step...", self_id);
                 for (_, gen_point) in &mut gen_points {
@@ -142,7 +141,8 @@ impl Service for ProducerService {
                 }
             }
             info!("{}.run | Exit", self_id);
-        }) {
+        });
+        match handle {
             Ok(handle) => {
                 info!("{}.run | Started", self.id);
                 Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
