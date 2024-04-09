@@ -198,9 +198,6 @@ impl Serialize for PointType {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer {
-        // fn serialize_number<S, T>(value: T, s: S) -> Result<S::Ok, S::Error> where S: Serializer {
-        //     lexical::
-        // }
         #[derive(Debug, Serialize)]
         struct PointSerialize<'a, T> {
             #[serde(rename = "type")]
@@ -317,8 +314,7 @@ impl<'de> Deserialize<'de> for PointType {
     where
         D: serde::Deserializer<'de> {
         #[derive(Debug, Deserialize)]
-        struct PointVisitor {
-            // #[serde(rename = "type")]
+        struct PointDeserialize {
             #[serde(alias = "type")]
             pub type_: PointConfigType,
             pub value: serde_json::Value,
@@ -328,11 +324,11 @@ impl<'de> Deserialize<'de> for PointType {
             pub timestamp: String    //DateTime<chrono::Utc>,
         }
         let tx_id = 0;
-        let visitor = PointVisitor::deserialize(deserializer)?;
-        fn value_parsing_error<'de, D>(type_: &str, visitor: &PointVisitor, err: impl Debug) -> D::Error where D: serde::Deserializer<'de>{
+        let visitor = PointDeserialize::deserialize(deserializer)?;
+        fn value_parsing_error<'de, D>(type_: &str, visitor: &PointDeserialize, err: impl Debug) -> D::Error where D: serde::Deserializer<'de>{
             serde::de::Error::custom(format!("PointType.deserialize | Error parsing {} value from {:#?}, \n\terror: {:#?}", type_, visitor, err))
         }
-        fn timestamp_parsing_error<'de, D>(type_: &str, visitor: &PointVisitor, err: impl Debug) -> D::Error where D: serde::Deserializer<'de>{
+        fn timestamp_parsing_error<'de, D>(type_: &str, visitor: &PointDeserialize, err: impl Debug) -> D::Error where D: serde::Deserializer<'de>{
             serde::de::Error::custom(format!("PointType.deserialize | Error parsing {} timestamp from {:#?}, \n\terror: {:#?}", type_, visitor, err))
         }
         match visitor.type_ {

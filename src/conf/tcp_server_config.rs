@@ -72,7 +72,7 @@ impl TcpServerConfig {
         let tx = self_conf.get_out_queue().unwrap();
         debug!("{}.new | TX: {}", self_id, tx);
         let cache = self_conf.get_param_value("cache").map_or_else(|_| None, |v| v.as_str().map(|v| v.to_owned()));
-        debug!("{}.new | address: {:?}", self_id, cache);
+        debug!("{}.new | cache: {:?}", self_id, cache);
         TcpServerConfig {
             name: self_name,
             cycle,

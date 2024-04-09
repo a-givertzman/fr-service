@@ -12,7 +12,7 @@
 //!         /App/MultiQueue: []
 //! ```
 use std::{
-    env, fmt::Debug, fs, hash::{BuildHasher, BuildHasherDefault}, io::Write, path::PathBuf, sync::{atomic::{AtomicBool, Ordering}, 
+    env, fmt::Debug, fs, hash::{BuildHasher, BuildHasherDefault}, io::Write, path::{Path, PathBuf}, sync::{atomic::{AtomicBool, Ordering}, 
     mpsc::{self, Receiver, RecvTimeoutError}, Arc, Mutex, RwLock}, thread
 };
 use concat_string::concat_string;
@@ -109,8 +109,9 @@ impl CacheService {
     /// 
     fn read(&mut self, name: &Name) {
         let mut self_cache = self.cache.write().unwrap();
-        let path = Name::new("assets/cache/", &name.join()).join();
-        match fs::OpenOptions::new().open(&path) {
+        let path = Name::new("assets/cache/", &name.join()).join().trim_start_matches('/').to_owned();
+        let path = Path::new(&path).join("cache.json");
+        match fs::OpenOptions::new().read(true).open(&path) {
             Ok(f) => {
                 match serde_json::from_reader::<_, Vec<PointType>>(f) {
                     Ok(v) => {
@@ -119,13 +120,13 @@ impl CacheService {
                         }
                     },
                     Err(err) => {
-                        let message = format!("{}.write | Error open file: '{:?}'\n\terror: {:?}", self.id, path, err);
+                        let message = format!("{}.read | Error open file: '{:?}'\n\terror: {:?}", self.id, path, err);
                         error!("{}", message);
                     },
                 };
             },
             Err(err) => {
-                let message = format!("{}.write | Error open file: '{:?}'\n\terror: {:?}", self.id, path, err);
+                let message = format!("{}.read | Error open file: '{:?}'\n\terror: {:?}", self.id, path, err);
                 error!("{}", message);
             },
         }
@@ -162,7 +163,7 @@ impl CacheService {
                 }).trim_end_matches(",").to_owned();
                 cache.push_str(content.as_str());
                 cache.push_str("\n]");
-                match fs::OpenOptions::new().create(true).write(true).open(&path) {
+                match fs::OpenOptions::new().truncate(true) .create(true).write(true).open(&path) {
                     Ok(mut f) => {
                         match f.write_all(cache.as_bytes()) {
                             Ok(_) => {},
@@ -259,6 +260,7 @@ impl Service for CacheService {
             &points,
         );
         let mut dely_store = DelydStore::new(10);
+        self.read(&self_name);
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
             'main: loop {
