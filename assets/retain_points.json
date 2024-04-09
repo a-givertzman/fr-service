@@ -913,4 +913,2306 @@
 
     }}
 
-}}
+}}{
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDownMinPosFactor": {
+    "id": 73,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDownMinPosFactor",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Winch2.SWL0": {
+    "id": 211,
+    "name": "/App/ied14/db906_visual_data/Winch2.SWL0",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDownMaxPosFactor": {
+    "id": 58,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDownMaxPosFactor",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Crane.Reserve1": {
+    "id": 202,
+    "name": "/App/ied14/db906_visual_data/Crane.Reserve1",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.Reserv1": {
+    "id": 89,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.Reserv1",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.Hydromotor2Active": {
+    "id": 97,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.Hydromotor2Active",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.OilLevel": {
+    "id": 131,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.OilLevel",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Crane.Roll": {
+    "id": 198,
+    "name": "/App/ied14/db906_visual_data/Crane.Roll",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.CoolerPressureOut": {
+    "id": 139,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.CoolerPressureOut",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.AlarmHighOilTemp": {
+    "id": 129,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.AlarmHighOilTemp",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.Rsrv4": {
+    "id": 7,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.Rsrv4",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Load.jibLast": {
+    "id": 156,
+    "name": "/App/ied13/db905_visual_data_fast/Load.jibLast",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Winch1.SWL0": {
+    "id": 205,
+    "name": "/App/ied14/db906_visual_data/Winch1.SWL0",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDecelerationTime": {
+    "id": 54,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDecelerationTime",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Platform.PressureNitrogenHigh": {
+    "id": 123,
+    "name": "/App/ied13/db905_visual_data_fast/Platform.PressureNitrogenHigh",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.ActiveWinch": {
+    "id": 168,
+    "name": "/App/ied14/db906_visual_data/CraneMode.ActiveWinch",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedAccelerationTime": {
+    "id": 67,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedAccelerationTime",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/HPU.Pump1.Reserve3": {
+    "id": 220,
+    "name": "/App/ied14/db906_visual_data/HPU.Pump1.Reserve3",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.AOPS.Reserv2": {
+    "id": 35,
+    "name": "/App/ied12/db902_panel_controls/Settings.AOPS.Reserv2",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.LowOilLevel": {
+    "id": 17,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.LowOilLevel",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.AOPS.RotationLimit2": {
+    "id": 33,
+    "name": "/App/ied12/db902_panel_controls/Settings.AOPS.RotationLimit2",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/HPA.NitroPressure": {
+    "id": 142,
+    "name": "/App/ied13/db905_visual_data_fast/HPA.NitroPressure",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/LPA.NitroPressure": {
+    "id": 146,
+    "name": "/App/ied13/db905_visual_data_fast/LPA.NitroPressure",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/HPU.Pump2.Reserve2": {
+    "id": 223,
+    "name": "/App/ied14/db906_visual_data/HPU.Pump2.Reserve2",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.Hydromotor1Active": {
+    "id": 96,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.Hydromotor1Active",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/Load.swl0": {
+    "id": 150,
+    "name": "/App/ied13/db905_visual_data_fast/Load.swl0",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.PressureInPump2": {
+    "id": 135,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.PressureInPump2",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.Reserv3": {
+    "id": 76,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.Reserv3",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.Reserve1": {
+    "id": 179,
+    "name": "/App/ied14/db906_visual_data/CraneMode.Reserve1",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Rotate.Encoder": {
+    "id": 118,
+    "name": "/App/ied13/db905_visual_data_fast/Rotate.Encoder",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Hook.Reserve2": {
+    "id": 191,
+    "name": "/App/ied14/db906_visual_data/Hook.Reserve2",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Crane.Pitch": {
+    "id": 197,
+    "name": "/App/ied14/db906_visual_data/Crane.Pitch",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/Jib.LimitSwitchUp": {
+    "id": 109,
+    "name": "/App/ied13/db905_visual_data_fast/Jib.LimitSwitchUp",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.OilType": {
+    "id": 16,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.OilType",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/ConstantTension.Reserve3": {
+    "id": 186,
+    "name": "/App/ied14/db906_visual_data/ConstantTension.Reserve3",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.ValveEV1": {
+    "id": 93,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.ValveEV1",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/Rotate.PressureSafetyValve": {
+    "id": 119,
+    "name": "/App/ied13/db905_visual_data_fast/Rotate.PressureSafetyValve",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.JibUp": {
+    "id": 161,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.JibUp",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Load.boomFirst": {
+    "id": 153,
+    "name": "/App/ied13/db905_visual_data_fast/Load.boomFirst",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDown2AxisFactor": {
+    "id": 52,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDown2AxisFactor",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDown2AxisFactor": {
+    "id": 66,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDown2AxisFactor",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Art.Reserv1": {
+    "id": 29,
+    "name": "/App/ied12/db902_panel_controls/Settings.Art.Reserv1",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDecelerationTime": {
+    "id": 41,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDecelerationTime",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/HPA.AlarmNitroPressure": {
+    "id": 143,
+    "name": "/App/ied13/db905_visual_data_fast/HPA.AlarmNitroPressure",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.FastStoppingTime": {
+    "id": 42,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.FastStoppingTime",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.PressureOutPump2": {
+    "id": 133,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.PressureOutPump2",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/HPU.EmergencyHPU.Reserve3": {
+    "id": 228,
+    "name": "/App/ied14/db906_visual_data/HPU.EmergencyHPU.Reserve3",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.LoadR0": {
+    "id": 108,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.LoadR0",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.LimitSwitchDown": {
+    "id": 95,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.LimitSwitchDown",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.SlowSpeedFactor": {
+    "id": 51,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.SlowSpeedFactor",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.JibDown": {
+    "id": 162,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.JibDown",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDecelerationTime": {
+    "id": 68,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDecelerationTime",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.Reserv2": {
+    "id": 48,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.Reserv2",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/LPA.PistonMinLimit": {
+    "id": 145,
+    "name": "/App/ied13/db905_visual_data_fast/LPA.PistonMinLimit",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.ConstantTensionLevel": {
+    "id": 4,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.ConstantTensionLevel",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.Reserv2": {
+    "id": 75,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.Reserv2",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Rotate.PressureLowM2": {
+    "id": 114,
+    "name": "/App/ied13/db905_visual_data_fast/Rotate.PressureLowM2",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.LVDT2": {
+    "id": 101,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.LVDT2",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Hook.Speed": {
+    "id": 189,
+    "name": "/App/ied14/db906_visual_data/Hook.Speed",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Winch1.Reserve2": {
+    "id": 209,
+    "name": "/App/ied14/db906_visual_data/Winch1.Reserve2",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDownMaxPosFactor": {
+    "id": 71,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDownMaxPosFactor",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.Reserv1": {
+    "id": 61,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.Reserv1",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Crane.Radius": {
+    "id": 193,
+    "name": "/App/ied14/db906_visual_data/Crane.Radius",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.BoomUp": {
+    "id": 163,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.BoomUp",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.CoolerTemperatureIn": {
+    "id": 136,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.CoolerTemperatureIn",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.MOPS": {
+    "id": 173,
+    "name": "/App/ied14/db906_visual_data/CraneMode.MOPS",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.WinchBrake": {
+    "id": 176,
+    "name": "/App/ied14/db906_visual_data/CraneMode.WinchBrake",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDownMinPos": {
+    "id": 45,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDownMinPos",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDown1PumpFactor": {
+    "id": 50,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDown1PumpFactor",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.PressureInPump1": {
+    "id": 134,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.PressureInPump1",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.MainMode": {
+    "id": 167,
+    "name": "/App/ied14/db906_visual_data/CraneMode.MainMode",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Platform.PressureNitrogenLow": {
+    "id": 122,
+    "name": "/App/ied13/db905_visual_data_fast/Platform.PressureNitrogenLow",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedDown1PumpFactor": {
+    "id": 77,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedDown1PumpFactor",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDownMaxPos": {
+    "id": 57,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDownMaxPos",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Art.Reserv2": {
+    "id": 30,
+    "name": "/App/ied12/db902_panel_controls/Settings.Art.Reserv2",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/HPA.PistonMaxLimit": {
+    "id": 140,
+    "name": "/App/ied13/db905_visual_data_fast/HPA.PistonMaxLimit",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/Jib.SensorAngle": {
+    "id": 110,
+    "name": "/App/ied13/db905_visual_data_fast/Jib.SensorAngle",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Winch1.Reserve3": {
+    "id": 210,
+    "name": "/App/ied14/db906_visual_data/Winch1.Reserve3",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Crane.Reserve3": {
+    "id": 204,
+    "name": "/App/ied14/db906_visual_data/Crane.Reserve3",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.Operate": {
+    "id": 10,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.Operate",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.ActiveWinch": {
+    "id": 1,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.ActiveWinch",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.Winch1Mode": {
+    "id": 169,
+    "name": "/App/ied14/db906_visual_data/CraneMode.Winch1Mode",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.WaveHeightLevel": {
+    "id": 3,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.WaveHeightLevel",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.EncoderBR1": {
+    "id": 98,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.EncoderBR1",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Platform.PressureOilHigh": {
+    "id": 121,
+    "name": "/App/ied13/db905_visual_data_fast/Platform.PressureOilHigh",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.HighOilLevel": {
+    "id": 125,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.HighOilLevel",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/ConstantTension.Reserve2": {
+    "id": 185,
+    "name": "/App/ied14/db906_visual_data/ConstantTension.Reserve2",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/Load.nom": {
+    "id": 152,
+    "name": "/App/ied13/db905_visual_data_fast/Load.nom",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/Rotate.PressureLowSystem": {
+    "id": 115,
+    "name": "/App/ied13/db905_visual_data_fast/Rotate.PressureLowSystem",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.AHC": {
+    "id": 175,
+    "name": "/App/ied14/db906_visual_data/CraneMode.AHC",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.BoomDown": {
+    "id": 164,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.BoomDown",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.OilCooling": {
+    "id": 22,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.OilCooling",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Winch3.SWL": {
+    "id": 215,
+    "name": "/App/ied14/db906_visual_data/Winch3.SWL",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.OutreachRev": {
+    "id": 160,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.OutreachRev",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.PressureLineA_1": {
+    "id": 102,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.PressureLineA_1",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.SWLProtection": {
+    "id": 178,
+    "name": "/App/ied14/db906_visual_data/CraneMode.SWLProtection",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/Hook.Y": {
+    "id": 188,
+    "name": "/App/ied14/db906_visual_data/Hook.Y",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Winch1.Reserve1": {
+    "id": 208,
+    "name": "/App/ied14/db906_visual_data/Winch1.Reserve1",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.Pump1InUse": {
+    "id": 11,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.Pump1InUse",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDownMaxPosFactor": {
+    "id": 44,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDownMaxPosFactor",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDownMinPosFactor": {
+    "id": 46,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDownMinPosFactor",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.WinchUp": {
+    "id": 165,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.WinchUp",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/HPU.EmergencyHPU.Reserve1": {
+    "id": 226,
+    "name": "/App/ied14/db906_visual_data/HPU.EmergencyHPU.Reserve1",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.Reserv2": {
+    "id": 14,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.Reserv2",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Boom.SensorAngle": {
+    "id": 112,
+    "name": "/App/ied13/db905_visual_data_fast/Boom.SensorAngle",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/LPA.AlarmNitroPressure": {
+    "id": 147,
+    "name": "/App/ied13/db905_visual_data_fast/LPA.AlarmNitroPressure",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.CraneOffshore": {
+    "id": 171,
+    "name": "/App/ied14/db906_visual_data/CraneMode.CraneOffshore",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.AOPS": {
+    "id": 174,
+    "name": "/App/ied14/db906_visual_data/CraneMode.AOPS",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.AlarmHighOilTemp": {
+    "id": 20,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.AlarmHighOilTemp",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDownMaxPos": {
+    "id": 43,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDownMaxPos",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.Reserve3": {
+    "id": 181,
+    "name": "/App/ied14/db906_visual_data/CraneMode.Reserve3",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.Reserv2": {
+    "id": 90,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.Reserv2",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.WhaterFlowTrackingTimeout": {
+    "id": 24,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.WhaterFlowTrackingTimeout",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDownMinPos": {
+    "id": 59,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDownMinPos",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.ValveEV2": {
+    "id": 94,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.ValveEV2",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.SetRelativeDepth": {
+    "id": 5,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.SetRelativeDepth",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.PressureBrakeA": {
+    "id": 104,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.PressureBrakeA",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/HPU.Pump1.Reserve2": {
+    "id": 219,
+    "name": "/App/ied14/db906_visual_data/HPU.Pump1.Reserve2",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.PressureLineA_2": {
+    "id": 103,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.PressureLineA_2",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.LoadIndex": {
+    "id": 177,
+    "name": "/App/ied14/db906_visual_data/CraneMode.LoadIndex",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Crane.Slewing": {
+    "id": 199,
+    "name": "/App/ied14/db906_visual_data/Crane.Slewing",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.PositionMarchingMode": {
+    "id": 86,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.PositionMarchingMode",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDown2AxisFactor": {
+    "id": 39,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDown2AxisFactor",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.AlarmLowOilLevel": {
+    "id": 127,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.AlarmLowOilLevel",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/HPU.Pump1.State": {
+    "id": 217,
+    "name": "/App/ied14/db906_visual_data/HPU.Pump1.State",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDownMinPos": {
+    "id": 72,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDownMinPos",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.FastStoppingTime": {
+    "id": 82,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.FastStoppingTime",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Platform.PressureOilLow": {
+    "id": 120,
+    "name": "/App/ied13/db905_visual_data_fast/Platform.PressureOilLow",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SlowSpeedFactor": {
+    "id": 65,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SlowSpeedFactor",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.Rsrv6": {
+    "id": 9,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.Rsrv6",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Winch3.Load": {
+    "id": 216,
+    "name": "/App/ied14/db906_visual_data/Winch3.Load",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.MainMode": {
+    "id": 0,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.MainMode",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.Reserv1": {
+    "id": 13,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.Reserv1",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.AOPS.Reserv1": {
+    "id": 34,
+    "name": "/App/ied12/db902_panel_controls/Settings.AOPS.Reserv1",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.PositionOffshore": {
+    "id": 56,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.PositionOffshore",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Hook.Reserve1": {
+    "id": 190,
+    "name": "/App/ied14/db906_visual_data/Hook.Reserve1",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Crane.Reserve2": {
+    "id": 203,
+    "name": "/App/ied14/db906_visual_data/Crane.Reserve2",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/HPU.Pump2.Reserve3": {
+    "id": 224,
+    "name": "/App/ied14/db906_visual_data/HPU.Pump2.Reserve3",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Winch2.Load": {
+    "id": 213,
+    "name": "/App/ied14/db906_visual_data/Winch2.Load",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.AOPS.RotationLimit1": {
+    "id": 32,
+    "name": "/App/ied12/db902_panel_controls/Settings.AOPS.RotationLimit1",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.Winch1Mode": {
+    "id": 2,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.Winch1Mode",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.Reserve2": {
+    "id": 180,
+    "name": "/App/ied14/db906_visual_data/CraneMode.Reserve2",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Winch1.Load": {
+    "id": 207,
+    "name": "/App/ied14/db906_visual_data/Winch1.Load",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.AlarmLowOilLevel": {
+    "id": 18,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.AlarmLowOilLevel",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.PositionDefault": {
+    "id": 83,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.PositionDefault",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Load.swl": {
+    "id": 151,
+    "name": "/App/ied13/db905_visual_data_fast/Load.swl",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.SlowSpeedFactor": {
+    "id": 78,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.SlowSpeedFactor",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedAccelerationTime": {
+    "id": 40,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedAccelerationTime",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Hook.Reserve3": {
+    "id": 192,
+    "name": "/App/ied14/db906_visual_data/Hook.Reserve3",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.Reserv3": {
+    "id": 63,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.Reserv3",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.LVDT1": {
+    "id": 100,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.LVDT1",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.Reserv7": {
+    "id": 27,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.Reserv7",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.RotateLeft": {
+    "id": 157,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.RotateLeft",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Winch3.SWL0": {
+    "id": 214,
+    "name": "/App/ied14/db906_visual_data/Winch3.SWL0",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.HighOilTemp": {
+    "id": 19,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.HighOilTemp",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.ResetRelativeDepth": {
+    "id": 6,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.ResetRelativeDepth",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/HPU.OilTemp": {
+    "id": 229,
+    "name": "/App/ied14/db906_visual_data/HPU.OilTemp",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Crane.Depth": {
+    "id": 194,
+    "name": "/App/ied14/db906_visual_data/Crane.Depth",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Art.TorqueLimit": {
+    "id": 28,
+    "name": "/App/ied12/db902_panel_controls/Settings.Art.TorqueLimit",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.RotateRight": {
+    "id": 158,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.RotateRight",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedDownMaxPosFactor": {
+    "id": 88,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedDownMaxPosFactor",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Load.boomLast": {
+    "id": 154,
+    "name": "/App/ied13/db905_visual_data_fast/Load.boomLast",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.HighOilTemp": {
+    "id": 128,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.HighOilTemp",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.LowOilTemp": {
+    "id": 21,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.LowOilTemp",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDown1PumpFactor": {
+    "id": 37,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDown1PumpFactor",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.CoolerPressureIn": {
+    "id": 138,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.CoolerPressureIn",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.Reserv1": {
+    "id": 47,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.Reserv1",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.Reserv1": {
+    "id": 74,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.Reserv1",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Load.jibAngle": {
+    "id": 149,
+    "name": "/App/ied13/db905_visual_data_fast/Load.jibAngle",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.Reserv5": {
+    "id": 25,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.Reserv5",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Load.boomAngle": {
+    "id": 148,
+    "name": "/App/ied13/db905_visual_data_fast/Load.boomAngle",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.WinchDown": {
+    "id": 166,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.WinchDown",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/ConstantTension.Active": {
+    "id": 183,
+    "name": "/App/ied14/db906_visual_data/ConstantTension.Active",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/Crane.JibAngle": {
+    "id": 201,
+    "name": "/App/ied14/db906_visual_data/Crane.JibAngle",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/HPU.EmergencyHPU.Reserve2": {
+    "id": 227,
+    "name": "/App/ied14/db906_visual_data/HPU.EmergencyHPU.Reserve2",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDownMaxPos": {
+    "id": 70,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDownMaxPos",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDown1PumpFactor": {
+    "id": 64,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDown1PumpFactor",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Rotate.Pump1Active": {
+    "id": 116,
+    "name": "/App/ied13/db905_visual_data_fast/Rotate.Pump1Active",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/ConstantTension.Level": {
+    "id": 182,
+    "name": "/App/ied14/db906_visual_data/ConstantTension.Level",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Platform.SensorMRU": {
+    "id": 124,
+    "name": "/App/ied13/db905_visual_data_fast/Platform.SensorMRU",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.Reserv3": {
+    "id": 49,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.Reserv3",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.Pump2InUse": {
+    "id": 12,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.Pump2InUse",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.PositionOffshore": {
+    "id": 85,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.PositionOffshore",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.EncoderBR2": {
+    "id": 99,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.EncoderBR2",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.Rsrv5": {
+    "id": 8,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.Rsrv5",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.FastStoppingTime": {
+    "id": 55,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.FastStoppingTime",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedDecelerationTime": {
+    "id": 81,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedDecelerationTime",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Rotate.PressureLowM1": {
+    "id": 113,
+    "name": "/App/ied13/db905_visual_data_fast/Rotate.PressureLowM1",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.LowOilLevel": {
+    "id": 126,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.LowOilLevel",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.LowOilTemp": {
+    "id": 130,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.LowOilTemp",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.PressureOutPump1": {
+    "id": 132,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.PressureOutPump1",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/ConstantTension.Reserve1": {
+    "id": 184,
+    "name": "/App/ied14/db906_visual_data/ConstantTension.Reserve1",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/HPU.EmergencyHPU.State": {
+    "id": 225,
+    "name": "/App/ied14/db906_visual_data/HPU.EmergencyHPU.State",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.FastStoppingTime": {
+    "id": 69,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.FastStoppingTime",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Jib.WeightSensor": {
+    "id": 111,
+    "name": "/App/ied13/db905_visual_data_fast/Jib.WeightSensor",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Crane.BoomAngle": {
+    "id": 200,
+    "name": "/App/ied14/db906_visual_data/Crane.BoomAngle",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/HPA.PistonMinLimit": {
+    "id": 141,
+    "name": "/App/ied13/db905_visual_data_fast/HPA.PistonMinLimit",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.PositionReset": {
+    "id": 84,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.PositionReset",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.WaveHeightLevel": {
+    "id": 170,
+    "name": "/App/ied14/db906_visual_data/CraneMode.WaveHeightLevel",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.AOPS.Reserv3": {
+    "id": 36,
+    "name": "/App/ied12/db902_panel_controls/Settings.AOPS.Reserv3",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.Reserv3": {
+    "id": 15,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.Reserv3",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedDown2AxisFactor": {
+    "id": 79,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedDown2AxisFactor",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Control.Common.ResetAlarms": {
+    "id": 92,
+    "name": "/App/ied12/db902_panel_controls/Control.Common.ResetAlarms",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.OilTempHysteresis": {
+    "id": 23,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.OilTempHysteresis",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDownMinPosFactor": {
+    "id": 60,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDownMinPosFactor",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.ParkingModeActive": {
+    "id": 172,
+    "name": "/App/ied14/db906_visual_data/CraneMode.ParkingModeActive",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.TempLine2": {
+    "id": 107,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.TempLine2",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedAccelerationTime": {
+    "id": 53,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedAccelerationTime",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Winch1.SWL": {
+    "id": 206,
+    "name": "/App/ied14/db906_visual_data/Winch1.SWL",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/HPU.Pump2.State": {
+    "id": 221,
+    "name": "/App/ied14/db906_visual_data/HPU.Pump2.State",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedAccelerationTime": {
+    "id": 80,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedAccelerationTime",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.Reserv2": {
+    "id": 62,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.Reserv2",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.OutreachFwd": {
+    "id": 159,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.OutreachFwd",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Hook.X": {
+    "id": 187,
+    "name": "/App/ied14/db906_visual_data/Hook.X",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Winch2.SWL": {
+    "id": 212,
+    "name": "/App/ied14/db906_visual_data/Winch2.SWL",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Crane.Wind": {
+    "id": 196,
+    "name": "/App/ied14/db906_visual_data/Crane.Wind",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.PressureBrakeB": {
+    "id": 105,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.PressureBrakeB",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.SlowSpeedFactor": {
+    "id": 38,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.SlowSpeedFactor",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedDownMaxPos": {
+    "id": 87,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedDownMaxPos",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/ettings.HPU.Reserv6": {
+    "id": 26,
+    "name": "/App/ied12/db902_panel_controls/ettings.HPU.Reserv6",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.CoolerTemperatureOut": {
+    "id": 137,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.CoolerTemperatureOut",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Crane.DeckDepth": {
+    "id": 195,
+    "name": "/App/ied14/db906_visual_data/Crane.DeckDepth",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.Reserv3": {
+    "id": 91,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.Reserv3",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Rotate.Pump2Active": {
+    "id": 117,
+    "name": "/App/ied13/db905_visual_data_fast/Rotate.Pump2Active",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/LPA.PistonMaxLimit": {
+    "id": 144,
+    "name": "/App/ied13/db905_visual_data_fast/LPA.PistonMaxLimit",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.TempLine1": {
+    "id": 106,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.TempLine1",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Art.Reserv3": {
+    "id": 31,
+    "name": "/App/ied12/db902_panel_controls/Settings.Art.Reserv3",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/Load.jibFirst": {
+    "id": 155,
+    "name": "/App/ied13/db905_visual_data_fast/Load.jibFirst",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/HPU.Pump2.Reserve1": {
+    "id": 222,
+    "name": "/App/ied14/db906_visual_data/HPU.Pump2.Reserve1",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/HPU.Pump1.Reserve1": {
+    "id": 218,
+    "name": "/App/ied14/db906_visual_data/HPU.Pump1.Reserve1",
+    "type": "Int"
+  }
+}{
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDownMinPosFactor": {
+    "id": 137,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDownMinPosFactor",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Winch2.SWL0": {
+    "id": 211,
+    "name": "/App/ied14/db906_visual_data/Winch2.SWL0",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDownMaxPosFactor": {
+    "id": 122,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDownMaxPosFactor",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Crane.Reserve1": {
+    "id": 202,
+    "name": "/App/ied14/db906_visual_data/Crane.Reserve1",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.Reserv1": {
+    "id": 153,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.Reserv1",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.Hydromotor2Active": {
+    "id": 4,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.Hydromotor2Active",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.OilLevel": {
+    "id": 38,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.OilLevel",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Crane.Roll": {
+    "id": 198,
+    "name": "/App/ied14/db906_visual_data/Crane.Roll",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.CoolerPressureOut": {
+    "id": 46,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.CoolerPressureOut",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.AlarmHighOilTemp": {
+    "id": 36,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.AlarmHighOilTemp",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.Rsrv4": {
+    "id": 71,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.Rsrv4",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Load.jibLast": {
+    "id": 63,
+    "name": "/App/ied13/db905_visual_data_fast/Load.jibLast",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Winch1.SWL0": {
+    "id": 205,
+    "name": "/App/ied14/db906_visual_data/Winch1.SWL0",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDecelerationTime": {
+    "id": 118,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDecelerationTime",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Platform.PressureNitrogenHigh": {
+    "id": 30,
+    "name": "/App/ied13/db905_visual_data_fast/Platform.PressureNitrogenHigh",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.ActiveWinch": {
+    "id": 168,
+    "name": "/App/ied14/db906_visual_data/CraneMode.ActiveWinch",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedAccelerationTime": {
+    "id": 131,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedAccelerationTime",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/HPU.Pump1.Reserve3": {
+    "id": 220,
+    "name": "/App/ied14/db906_visual_data/HPU.Pump1.Reserve3",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.AOPS.Reserv2": {
+    "id": 99,
+    "name": "/App/ied12/db902_panel_controls/Settings.AOPS.Reserv2",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.LowOilLevel": {
+    "id": 81,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.LowOilLevel",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/LPA.NitroPressure": {
+    "id": 53,
+    "name": "/App/ied13/db905_visual_data_fast/LPA.NitroPressure",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/HPA.NitroPressure": {
+    "id": 49,
+    "name": "/App/ied13/db905_visual_data_fast/HPA.NitroPressure",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.AOPS.RotationLimit2": {
+    "id": 97,
+    "name": "/App/ied12/db902_panel_controls/Settings.AOPS.RotationLimit2",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/HPU.Pump2.Reserve2": {
+    "id": 223,
+    "name": "/App/ied14/db906_visual_data/HPU.Pump2.Reserve2",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.Hydromotor1Active": {
+    "id": 3,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.Hydromotor1Active",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/Load.swl0": {
+    "id": 57,
+    "name": "/App/ied13/db905_visual_data_fast/Load.swl0",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.PressureInPump2": {
+    "id": 42,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.PressureInPump2",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.Reserv3": {
+    "id": 140,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.Reserv3",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.Reserve1": {
+    "id": 179,
+    "name": "/App/ied14/db906_visual_data/CraneMode.Reserve1",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Rotate.Encoder": {
+    "id": 25,
+    "name": "/App/ied13/db905_visual_data_fast/Rotate.Encoder",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Hook.Reserve2": {
+    "id": 191,
+    "name": "/App/ied14/db906_visual_data/Hook.Reserve2",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Crane.Pitch": {
+    "id": 197,
+    "name": "/App/ied14/db906_visual_data/Crane.Pitch",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/Jib.LimitSwitchUp": {
+    "id": 16,
+    "name": "/App/ied13/db905_visual_data_fast/Jib.LimitSwitchUp",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.OilType": {
+    "id": 80,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.OilType",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/ConstantTension.Reserve3": {
+    "id": 186,
+    "name": "/App/ied14/db906_visual_data/ConstantTension.Reserve3",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/Rotate.PressureSafetyValve": {
+    "id": 26,
+    "name": "/App/ied13/db905_visual_data_fast/Rotate.PressureSafetyValve",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.ValveEV1": {
+    "id": 0,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.ValveEV1",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.JibUp": {
+    "id": 161,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.JibUp",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Load.boomFirst": {
+    "id": 60,
+    "name": "/App/ied13/db905_visual_data_fast/Load.boomFirst",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDown2AxisFactor": {
+    "id": 116,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDown2AxisFactor",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDown2AxisFactor": {
+    "id": 130,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDown2AxisFactor",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Art.Reserv1": {
+    "id": 93,
+    "name": "/App/ied12/db902_panel_controls/Settings.Art.Reserv1",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDecelerationTime": {
+    "id": 105,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDecelerationTime",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/HPA.AlarmNitroPressure": {
+    "id": 50,
+    "name": "/App/ied13/db905_visual_data_fast/HPA.AlarmNitroPressure",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.FastStoppingTime": {
+    "id": 106,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.FastStoppingTime",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.PressureOutPump2": {
+    "id": 40,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.PressureOutPump2",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/HPU.EmergencyHPU.Reserve3": {
+    "id": 228,
+    "name": "/App/ied14/db906_visual_data/HPU.EmergencyHPU.Reserve3",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.LoadR0": {
+    "id": 15,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.LoadR0",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.LimitSwitchDown": {
+    "id": 2,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.LimitSwitchDown",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.SlowSpeedFactor": {
+    "id": 115,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.SlowSpeedFactor",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.JibDown": {
+    "id": 162,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.JibDown",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDecelerationTime": {
+    "id": 132,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDecelerationTime",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.Reserv2": {
+    "id": 112,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.Reserv2",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/LPA.PistonMinLimit": {
+    "id": 52,
+    "name": "/App/ied13/db905_visual_data_fast/LPA.PistonMinLimit",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.ConstantTensionLevel": {
+    "id": 68,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.ConstantTensionLevel",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.Reserv2": {
+    "id": 139,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.Reserv2",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Rotate.PressureLowM2": {
+    "id": 21,
+    "name": "/App/ied13/db905_visual_data_fast/Rotate.PressureLowM2",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.LVDT2": {
+    "id": 8,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.LVDT2",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Hook.Speed": {
+    "id": 189,
+    "name": "/App/ied14/db906_visual_data/Hook.Speed",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Winch1.Reserve2": {
+    "id": 209,
+    "name": "/App/ied14/db906_visual_data/Winch1.Reserve2",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDownMaxPosFactor": {
+    "id": 135,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDownMaxPosFactor",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.Reserv1": {
+    "id": 125,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.Reserv1",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Crane.Radius": {
+    "id": 193,
+    "name": "/App/ied14/db906_visual_data/Crane.Radius",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.BoomUp": {
+    "id": 163,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.BoomUp",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.CoolerTemperatureIn": {
+    "id": 43,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.CoolerTemperatureIn",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.MOPS": {
+    "id": 173,
+    "name": "/App/ied14/db906_visual_data/CraneMode.MOPS",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.WinchBrake": {
+    "id": 176,
+    "name": "/App/ied14/db906_visual_data/CraneMode.WinchBrake",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDownMinPos": {
+    "id": 109,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDownMinPos",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDown1PumpFactor": {
+    "id": 114,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDown1PumpFactor",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.PressureInPump1": {
+    "id": 41,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.PressureInPump1",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.MainMode": {
+    "id": 167,
+    "name": "/App/ied14/db906_visual_data/CraneMode.MainMode",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Platform.PressureNitrogenLow": {
+    "id": 29,
+    "name": "/App/ied13/db905_visual_data_fast/Platform.PressureNitrogenLow",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedDown1PumpFactor": {
+    "id": 141,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedDown1PumpFactor",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDownMaxPos": {
+    "id": 121,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDownMaxPos",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Art.Reserv2": {
+    "id": 94,
+    "name": "/App/ied12/db902_panel_controls/Settings.Art.Reserv2",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/HPA.PistonMaxLimit": {
+    "id": 47,
+    "name": "/App/ied13/db905_visual_data_fast/HPA.PistonMaxLimit",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/Jib.SensorAngle": {
+    "id": 17,
+    "name": "/App/ied13/db905_visual_data_fast/Jib.SensorAngle",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Winch1.Reserve3": {
+    "id": 210,
+    "name": "/App/ied14/db906_visual_data/Winch1.Reserve3",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Crane.Reserve3": {
+    "id": 204,
+    "name": "/App/ied14/db906_visual_data/Crane.Reserve3",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.Operate": {
+    "id": 74,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.Operate",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.ActiveWinch": {
+    "id": 65,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.ActiveWinch",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.Winch1Mode": {
+    "id": 169,
+    "name": "/App/ied14/db906_visual_data/CraneMode.Winch1Mode",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.EncoderBR1": {
+    "id": 5,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.EncoderBR1",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.WaveHeightLevel": {
+    "id": 67,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.WaveHeightLevel",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Platform.PressureOilHigh": {
+    "id": 28,
+    "name": "/App/ied13/db905_visual_data_fast/Platform.PressureOilHigh",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.HighOilLevel": {
+    "id": 32,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.HighOilLevel",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/ConstantTension.Reserve2": {
+    "id": 185,
+    "name": "/App/ied14/db906_visual_data/ConstantTension.Reserve2",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/Load.nom": {
+    "id": 59,
+    "name": "/App/ied13/db905_visual_data_fast/Load.nom",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/Rotate.PressureLowSystem": {
+    "id": 22,
+    "name": "/App/ied13/db905_visual_data_fast/Rotate.PressureLowSystem",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.AHC": {
+    "id": 175,
+    "name": "/App/ied14/db906_visual_data/CraneMode.AHC",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.BoomDown": {
+    "id": 164,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.BoomDown",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.OilCooling": {
+    "id": 86,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.OilCooling",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Winch3.SWL": {
+    "id": 215,
+    "name": "/App/ied14/db906_visual_data/Winch3.SWL",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.OutreachRev": {
+    "id": 160,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.OutreachRev",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.PressureLineA_1": {
+    "id": 9,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.PressureLineA_1",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.SWLProtection": {
+    "id": 178,
+    "name": "/App/ied14/db906_visual_data/CraneMode.SWLProtection",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/Hook.Y": {
+    "id": 188,
+    "name": "/App/ied14/db906_visual_data/Hook.Y",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Winch1.Reserve1": {
+    "id": 208,
+    "name": "/App/ied14/db906_visual_data/Winch1.Reserve1",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.Pump1InUse": {
+    "id": 75,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.Pump1InUse",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDownMaxPosFactor": {
+    "id": 108,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDownMaxPosFactor",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDownMinPosFactor": {
+    "id": 110,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDownMinPosFactor",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.WinchUp": {
+    "id": 165,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.WinchUp",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/HPU.EmergencyHPU.Reserve1": {
+    "id": 226,
+    "name": "/App/ied14/db906_visual_data/HPU.EmergencyHPU.Reserve1",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.Reserv2": {
+    "id": 78,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.Reserv2",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Boom.SensorAngle": {
+    "id": 19,
+    "name": "/App/ied13/db905_visual_data_fast/Boom.SensorAngle",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/LPA.AlarmNitroPressure": {
+    "id": 54,
+    "name": "/App/ied13/db905_visual_data_fast/LPA.AlarmNitroPressure",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.CraneOffshore": {
+    "id": 171,
+    "name": "/App/ied14/db906_visual_data/CraneMode.CraneOffshore",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.AOPS": {
+    "id": 174,
+    "name": "/App/ied14/db906_visual_data/CraneMode.AOPS",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.AlarmHighOilTemp": {
+    "id": 84,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.AlarmHighOilTemp",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDownMaxPos": {
+    "id": 107,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDownMaxPos",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.Reserve3": {
+    "id": 181,
+    "name": "/App/ied14/db906_visual_data/CraneMode.Reserve3",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.Reserv2": {
+    "id": 154,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.Reserv2",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDownMinPos": {
+    "id": 123,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDownMinPos",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.WhaterFlowTrackingTimeout": {
+    "id": 88,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.WhaterFlowTrackingTimeout",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.ValveEV2": {
+    "id": 1,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.ValveEV2",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.SetRelativeDepth": {
+    "id": 69,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.SetRelativeDepth",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.PressureBrakeA": {
+    "id": 11,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.PressureBrakeA",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/HPU.Pump1.Reserve2": {
+    "id": 219,
+    "name": "/App/ied14/db906_visual_data/HPU.Pump1.Reserve2",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.PressureLineA_2": {
+    "id": 10,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.PressureLineA_2",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.LoadIndex": {
+    "id": 177,
+    "name": "/App/ied14/db906_visual_data/CraneMode.LoadIndex",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Crane.Slewing": {
+    "id": 199,
+    "name": "/App/ied14/db906_visual_data/Crane.Slewing",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.PositionMarchingMode": {
+    "id": 150,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.PositionMarchingMode",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.AlarmLowOilLevel": {
+    "id": 34,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.AlarmLowOilLevel",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDown2AxisFactor": {
+    "id": 103,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDown2AxisFactor",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/HPU.Pump1.State": {
+    "id": 217,
+    "name": "/App/ied14/db906_visual_data/HPU.Pump1.State",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDownMinPos": {
+    "id": 136,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDownMinPos",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.FastStoppingTime": {
+    "id": 146,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.FastStoppingTime",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Platform.PressureOilLow": {
+    "id": 27,
+    "name": "/App/ied13/db905_visual_data_fast/Platform.PressureOilLow",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SlowSpeedFactor": {
+    "id": 129,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SlowSpeedFactor",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.Rsrv6": {
+    "id": 73,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.Rsrv6",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Winch3.Load": {
+    "id": 216,
+    "name": "/App/ied14/db906_visual_data/Winch3.Load",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.MainMode": {
+    "id": 64,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.MainMode",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.Reserv1": {
+    "id": 77,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.Reserv1",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.AOPS.Reserv1": {
+    "id": 98,
+    "name": "/App/ied12/db902_panel_controls/Settings.AOPS.Reserv1",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.PositionOffshore": {
+    "id": 120,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.PositionOffshore",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Hook.Reserve1": {
+    "id": 190,
+    "name": "/App/ied14/db906_visual_data/Hook.Reserve1",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Crane.Reserve2": {
+    "id": 203,
+    "name": "/App/ied14/db906_visual_data/Crane.Reserve2",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/HPU.Pump2.Reserve3": {
+    "id": 224,
+    "name": "/App/ied14/db906_visual_data/HPU.Pump2.Reserve3",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Winch2.Load": {
+    "id": 213,
+    "name": "/App/ied14/db906_visual_data/Winch2.Load",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.AOPS.RotationLimit1": {
+    "id": 96,
+    "name": "/App/ied12/db902_panel_controls/Settings.AOPS.RotationLimit1",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.Winch1Mode": {
+    "id": 66,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.Winch1Mode",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.Reserve2": {
+    "id": 180,
+    "name": "/App/ied14/db906_visual_data/CraneMode.Reserve2",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Winch1.Load": {
+    "id": 207,
+    "name": "/App/ied14/db906_visual_data/Winch1.Load",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.AlarmLowOilLevel": {
+    "id": 82,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.AlarmLowOilLevel",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Load.swl": {
+    "id": 58,
+    "name": "/App/ied13/db905_visual_data_fast/Load.swl",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.PositionDefault": {
+    "id": 147,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.PositionDefault",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.SlowSpeedFactor": {
+    "id": 142,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.SlowSpeedFactor",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedAccelerationTime": {
+    "id": 104,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedAccelerationTime",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Hook.Reserve3": {
+    "id": 192,
+    "name": "/App/ied14/db906_visual_data/Hook.Reserve3",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.Reserv3": {
+    "id": 127,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.Reserv3",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.LVDT1": {
+    "id": 7,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.LVDT1",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.Reserv7": {
+    "id": 91,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.Reserv7",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.RotateLeft": {
+    "id": 157,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.RotateLeft",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Winch3.SWL0": {
+    "id": 214,
+    "name": "/App/ied14/db906_visual_data/Winch3.SWL0",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.HighOilTemp": {
+    "id": 83,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.HighOilTemp",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.ResetRelativeDepth": {
+    "id": 70,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.ResetRelativeDepth",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/HPU.OilTemp": {
+    "id": 229,
+    "name": "/App/ied14/db906_visual_data/HPU.OilTemp",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Crane.Depth": {
+    "id": 194,
+    "name": "/App/ied14/db906_visual_data/Crane.Depth",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Art.TorqueLimit": {
+    "id": 92,
+    "name": "/App/ied12/db902_panel_controls/Settings.Art.TorqueLimit",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.RotateRight": {
+    "id": 158,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.RotateRight",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Load.boomLast": {
+    "id": 61,
+    "name": "/App/ied13/db905_visual_data_fast/Load.boomLast",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedDownMaxPosFactor": {
+    "id": 152,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedDownMaxPosFactor",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.HighOilTemp": {
+    "id": 35,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.HighOilTemp",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.LowOilTemp": {
+    "id": 85,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.LowOilTemp",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDown1PumpFactor": {
+    "id": 101,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.SpeedDown1PumpFactor",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.CoolerPressureIn": {
+    "id": 45,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.CoolerPressureIn",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.Reserv1": {
+    "id": 111,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.Reserv1",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.Reserv1": {
+    "id": 138,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.Reserv1",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Load.jibAngle": {
+    "id": 56,
+    "name": "/App/ied13/db905_visual_data_fast/Load.jibAngle",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.Reserv5": {
+    "id": 89,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.Reserv5",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Load.boomAngle": {
+    "id": 55,
+    "name": "/App/ied13/db905_visual_data_fast/Load.boomAngle",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.WinchDown": {
+    "id": 166,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.WinchDown",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/ConstantTension.Active": {
+    "id": 183,
+    "name": "/App/ied14/db906_visual_data/ConstantTension.Active",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/Crane.JibAngle": {
+    "id": 201,
+    "name": "/App/ied14/db906_visual_data/Crane.JibAngle",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/HPU.EmergencyHPU.Reserve2": {
+    "id": 227,
+    "name": "/App/ied14/db906_visual_data/HPU.EmergencyHPU.Reserve2",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDownMaxPos": {
+    "id": 134,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDownMaxPos",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDown1PumpFactor": {
+    "id": 128,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.SpeedDown1PumpFactor",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Rotate.Pump1Active": {
+    "id": 23,
+    "name": "/App/ied13/db905_visual_data_fast/Rotate.Pump1Active",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/ConstantTension.Level": {
+    "id": 182,
+    "name": "/App/ied14/db906_visual_data/ConstantTension.Level",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Platform.SensorMRU": {
+    "id": 31,
+    "name": "/App/ied13/db905_visual_data_fast/Platform.SensorMRU",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.Reserv3": {
+    "id": 113,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.Reserv3",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.Pump2InUse": {
+    "id": 76,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.Pump2InUse",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Rotate.PressureLowM1": {
+    "id": 20,
+    "name": "/App/ied13/db905_visual_data_fast/Rotate.PressureLowM1",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.EncoderBR2": {
+    "id": 6,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.EncoderBR2",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.LowOilTemp": {
+    "id": 37,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.LowOilTemp",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.Rsrv5": {
+    "id": 72,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.Rsrv5",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.FastStoppingTime": {
+    "id": 119,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.FastStoppingTime",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedDecelerationTime": {
+    "id": 145,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedDecelerationTime",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.LowOilLevel": {
+    "id": 33,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.LowOilLevel",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.PositionOffshore": {
+    "id": 149,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.PositionOffshore",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.PressureOutPump1": {
+    "id": 39,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.PressureOutPump1",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/ConstantTension.Reserve1": {
+    "id": 184,
+    "name": "/App/ied14/db906_visual_data/ConstantTension.Reserve1",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/HPU.EmergencyHPU.State": {
+    "id": 225,
+    "name": "/App/ied14/db906_visual_data/HPU.EmergencyHPU.State",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.RotaryBoom.FastStoppingTime": {
+    "id": 133,
+    "name": "/App/ied12/db902_panel_controls/Settings.RotaryBoom.FastStoppingTime",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Jib.WeightSensor": {
+    "id": 18,
+    "name": "/App/ied13/db905_visual_data_fast/Jib.WeightSensor",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Crane.BoomAngle": {
+    "id": 200,
+    "name": "/App/ied14/db906_visual_data/Crane.BoomAngle",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/HPA.PistonMinLimit": {
+    "id": 48,
+    "name": "/App/ied13/db905_visual_data_fast/HPA.PistonMinLimit",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.PositionReset": {
+    "id": 148,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.PositionReset",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.WaveHeightLevel": {
+    "id": 170,
+    "name": "/App/ied14/db906_visual_data/CraneMode.WaveHeightLevel",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.AOPS.Reserv3": {
+    "id": 100,
+    "name": "/App/ied12/db902_panel_controls/Settings.AOPS.Reserv3",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.Reserv3": {
+    "id": 79,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.Reserv3",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedDown2AxisFactor": {
+    "id": 143,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedDown2AxisFactor",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Control.Common.ResetAlarms": {
+    "id": 156,
+    "name": "/App/ied12/db902_panel_controls/Control.Common.ResetAlarms",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.OilTempHysteresis": {
+    "id": 87,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.OilTempHysteresis",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDownMinPosFactor": {
+    "id": 124,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDownMinPosFactor",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.ParkingModeActive": {
+    "id": 172,
+    "name": "/App/ied14/db906_visual_data/CraneMode.ParkingModeActive",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.TempLine2": {
+    "id": 14,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.TempLine2",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedAccelerationTime": {
+    "id": 117,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedAccelerationTime",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Winch1.SWL": {
+    "id": 206,
+    "name": "/App/ied14/db906_visual_data/Winch1.SWL",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/HPU.Pump2.State": {
+    "id": 221,
+    "name": "/App/ied14/db906_visual_data/HPU.Pump2.State",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedAccelerationTime": {
+    "id": 144,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedAccelerationTime",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainBoom.Reserv2": {
+    "id": 126,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.Reserv2",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.OutreachFwd": {
+    "id": 159,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.OutreachFwd",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Hook.X": {
+    "id": 187,
+    "name": "/App/ied14/db906_visual_data/Hook.X",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Winch2.SWL": {
+    "id": 212,
+    "name": "/App/ied14/db906_visual_data/Winch2.SWL",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Crane.Wind": {
+    "id": 196,
+    "name": "/App/ied14/db906_visual_data/Crane.Wind",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.PressureBrakeB": {
+    "id": 12,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.PressureBrakeB",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.MainWinch.SlowSpeedFactor": {
+    "id": 102,
+    "name": "/App/ied12/db902_panel_controls/Settings.MainWinch.SlowSpeedFactor",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedDownMaxPos": {
+    "id": 151,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.SpeedDownMaxPos",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/HPU.CoolerTemperatureOut": {
+    "id": 44,
+    "name": "/App/ied13/db905_visual_data_fast/HPU.CoolerTemperatureOut",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/ettings.HPU.Reserv6": {
+    "id": 90,
+    "name": "/App/ied12/db902_panel_controls/ettings.HPU.Reserv6",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Crane.DeckDepth": {
+    "id": 195,
+    "name": "/App/ied14/db906_visual_data/Crane.DeckDepth",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/LPA.PistonMaxLimit": {
+    "id": 51,
+    "name": "/App/ied13/db905_visual_data_fast/LPA.PistonMaxLimit",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/Rotate.Pump2Active": {
+    "id": 24,
+    "name": "/App/ied13/db905_visual_data_fast/Rotate.Pump2Active",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Rotation.Reserv3": {
+    "id": 155,
+    "name": "/App/ied12/db902_panel_controls/Settings.Rotation.Reserv3",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.TempLine1": {
+    "id": 13,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.TempLine1",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/Load.jibFirst": {
+    "id": 62,
+    "name": "/App/ied13/db905_visual_data_fast/Load.jibFirst",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.Art.Reserv3": {
+    "id": 95,
+    "name": "/App/ied12/db902_panel_controls/Settings.Art.Reserv3",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/HPU.Pump2.Reserve1": {
+    "id": 222,
+    "name": "/App/ied14/db906_visual_data/HPU.Pump2.Reserve1",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/HPU.Pump1.Reserve1": {
+    "id": 218,
+    "name": "/App/ied14/db906_visual_data/HPU.Pump1.Reserve1",
+    "type": "Int"
+  }
+}

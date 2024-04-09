@@ -11,6 +11,7 @@ service MultiQueue:
 
 service CacheService MainCache:
     retain: true
+    retain-dely: 30s # default 30s
     subscribe: /App/MultiQueue
 
 

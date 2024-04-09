@@ -1,4 +1,4 @@
-use std::io::Write;
+use std::{fmt::Debug, io::Write};
 use log::{trace, warn, LevelFilter};
 use crate::{
     tcp::steam_read::StreamRead, 
@@ -10,7 +10,6 @@ use crate::{
 /// Sends sequences of bites from the beginning of the buffer
 /// Sent sequences of bites immediately removed from the buffer
 /// Buffering - is optional
-#[derive(Debug)]
 pub struct TcpStreamWrite {
     id: String,
     stream: Box<dyn StreamRead<Vec<u8>, RecvError> + Send>,
@@ -88,8 +87,19 @@ impl TcpStreamWrite {
 }
 ///
 /// 
+impl Debug for TcpStreamWrite {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("TcpStreamWrite")
+            .field("id", &self.id)
+            .finish()
+    }
+}
+///
+/// 
 unsafe impl Sync for TcpStreamWrite {}
-
+///
+/// 
 #[derive(Debug)]
 pub enum OpResult<T, E> {
     Ok(T),
