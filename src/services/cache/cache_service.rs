@@ -98,7 +98,7 @@ impl CacheService {
                 match fs::create_dir_all(&path) {
                     Ok(_) => Ok(path),
                     Err(err) => {
-                        let message = format!("{}.read | Error create path: '{:?}'\n\terror: {:?}", self_id, path, err);
+                        let message = format!("{}.create_dir | Error create path: '{:?}'\n\terror: {:?}", self_id, path, err);
                         error!("{}", message);
                         Err(message)
                     },
