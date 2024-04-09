@@ -29,6 +29,11 @@
     "name": "/App/ied13/db905_visual_data_fast/Winch.Hydromotor2Active",
     "type": "Bool"
   },
+  "/App/ied12/db902_panel_controls/Test.Test.Test.TestPoint": {
+    "id": 230,
+    "name": "/App/ied12/db902_panel_controls/Test.Test.Test.TestPoint",
+    "type": "Int"
+  },
   "/App/ied13/db905_visual_data_fast/HPU.OilLevel": {
     "id": 204,
     "name": "/App/ied13/db905_visual_data_fast/HPU.OilLevel",
@@ -559,14 +564,14 @@
     "name": "/App/ied12/db902_panel_controls/Settings.Rotation.Reserv2",
     "type": "Int"
   },
-  "/App/ied12/db902_panel_controls/Settings.HPU.WhaterFlowTrackingTimeout": {
-    "id": 24,
-    "name": "/App/ied12/db902_panel_controls/Settings.HPU.WhaterFlowTrackingTimeout",
-    "type": "Int"
-  },
   "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDownMinPos": {
     "id": 59,
     "name": "/App/ied12/db902_panel_controls/Settings.MainBoom.SpeedDownMinPos",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.HPU.WhaterFlowTrackingTimeout": {
+    "id": 24,
+    "name": "/App/ied12/db902_panel_controls/Settings.HPU.WhaterFlowTrackingTimeout",
     "type": "Int"
   },
   "/App/ied13/db905_visual_data_fast/Winch.ValveEV2": {
