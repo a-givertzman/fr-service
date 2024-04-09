@@ -266,51 +266,7 @@ mod jds_routes {
         println!("{} | TcpServer - ready", self_id);
         //
         // Preparing test data
-        let tx_id = PointTxId::fromStr(self_id);
         let self_name = Name::new(self_id, "Jds");
-        let test_data = [
-            PointType::String(Point::new(
-                tx_id, 
-                &Name::new(&self_name, "Auth.Secret").join(),
-                r#"{
-                    \"secret\": \"Auth.Secret\"
-                }"#.to_string(), 
-                Status::Ok, 
-                Cot::Req, 
-                chrono::offset::Utc::now(),
-            )),
-            PointType::String(Point::new(
-                tx_id, 
-                &Name::new(&self_name, "Auth.Ssh").join(),
-                r#"{
-                    \"ssh\": \"Auth.Ssh\"
-                }"#.to_string(), 
-                Status::Ok, 
-                Cot::Req, 
-                chrono::offset::Utc::now(),
-            )),
-            PointType::String(Point::new(
-                tx_id, 
-                &Name::new(&self_name, "Points").join(),
-                r#"{
-                    \"points\": []
-                }"#.to_string(), 
-                Status::Ok, 
-                Cot::Req, 
-                chrono::offset::Utc::now(),
-            )),
-            PointType::String(Point::new(
-                tx_id, 
-                &Name::new(&self_name, "Subscribe").join(),
-                r#"{
-                    \"points\": []
-                }"#.to_string(), 
-                Status::Ok, 
-                Cot::Req, 
-                chrono::offset::Utc::now(),
-            )),
-        ];
-        let test_items_count = test_data.len();
         //
         // preparing MockServicePoints with the Vec<PontConfig>
         let service_points = Arc::new(Mutex::new(MockServicePoints::new(self_id, point_configs(&self_name))));
@@ -318,7 +274,7 @@ mod jds_routes {
         //
         // Configuring Receiver
         mock_recv_service::COUNT.reset(0);
-        let receiver = Arc::new(Mutex::new(MockRecvService::new(self_id, "in-queue", Some(test_items_count * 2))));
+        let receiver = Arc::new(Mutex::new(MockRecvService::new(self_id, "in-queue", None)));
         services.lock().unwrap().insert(receiver.clone());
         println!("{} | MockRecvService - ready", self_id);
         println!("\n{} | All configurations - ok\n", self_id);
@@ -342,9 +298,9 @@ mod jds_routes {
             chrono::offset::Utc::now(),
         ));
         let result = request(self_id, &mut tcp_stream, auth_req);
-        let target = PointType::String(Point::new(0, &Name::new(&self_name, "Auth.Secret").join(), "".to_owned(), Status::Ok, Cot::ReqCon, chrono::offset::Utc::now()));
-        // assert!(result.name() == target.name(), "\nresult: {:?}\ntarget: {:?}", result.name(), target.name());
-        // assert!(result.value() == target.value(), "\nresult: {:?}\ntarget: {:?}", result.value(), target.value());
+        let target = PointType::String(Point::new(0, &Name::new(&self_name, "Auth.Secret").join(), "Authentication successful".to_owned(), Status::Ok, Cot::ReqCon, chrono::offset::Utc::now()));
+        assert!(result.name() == target.name(), "\nresult: {:?}\ntarget: {:?}", result.name(), target.name());
+        assert!(result.value() == target.value(), "\nresult: {:?}\ntarget: {:?}", result.value(), target.value());
         assert!(result.status() == target.status(), "\nresult: {:?}\ntarget: {:?}", result.status(), target.status());
         assert!(result.cot() == target.cot(), "\nresult: {:?}\ntarget: {:?}", result.cot(), target.cot());
         println!("{} | Auth.Secret request successful!\n", self_id);

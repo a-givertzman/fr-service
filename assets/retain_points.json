@@ -364,4 +364,553 @@
     "name": "/App/ied13/db905_visual_data_fast/Winch.LimitSwitchDown",
     "type": "Bool"
   }
-}
+}{
+  "/App/ied14/db906_visual_data/CraneMovement.JibDown": {
+    "id": 21,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.JibDown",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.ValveEV2": {
+    "id": 1,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.ValveEV2",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.WinchDown": {
+    "id": 25,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.WinchDown",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/ConstantTension.Active": {
+    "id": 41,
+    "name": "/App/ied14/db906_visual_data/ConstantTension.Active",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.SetRelativeDepth": {
+    "id": 14,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.SetRelativeDepth",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Crane.JibAngle": {
+    "id": 56,
+    "name": "/App/ied14/db906_visual_data/Crane.JibAngle",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Crane.Reserve1": {
+    "id": 57,
+    "name": "/App/ied14/db906_visual_data/Crane.Reserve1",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Winch2.SWL0": {
+    "id": 63,
+    "name": "/App/ied14/db906_visual_data/Winch2.SWL0",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.Hydromotor2Active": {
+    "id": 4,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.Hydromotor2Active",
+    "type": "Bool"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.ConstantTensionLevel": {
+    "id": 13,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.ConstantTensionLevel",
+    "type": "Int"
+  },
+  "/jds_request_test/Jds/Jds/Auth.Secret": {
+    "id": 73,
+    "name": "/jds_request_test/Jds/Jds/Auth.Secret",
+    "type": "String"
+  },
+  "/App/ied14/db906_visual_data/Hook.Speed": {
+    "id": 47,
+    "name": "/App/ied14/db906_visual_data/Hook.Speed",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Crane.Roll": {
+    "id": 53,
+    "name": "/App/ied14/db906_visual_data/Crane.Roll",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/ConstantTension.Level": {
+    "id": 40,
+    "name": "/App/ied14/db906_visual_data/ConstantTension.Level",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.LVDT2": {
+    "id": 8,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.LVDT2",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Crane.Slewing": {
+    "id": 54,
+    "name": "/App/ied14/db906_visual_data/Crane.Slewing",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Winch1.SWL0": {
+    "id": 60,
+    "name": "/App/ied14/db906_visual_data/Winch1.SWL0",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Crane.Radius": {
+    "id": 48,
+    "name": "/App/ied14/db906_visual_data/Crane.Radius",
+    "type": "Real"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.EncoderBR2": {
+    "id": 6,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.EncoderBR2",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/ConstantTension.Reserve1": {
+    "id": 42,
+    "name": "/App/ied14/db906_visual_data/ConstantTension.Reserve1",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/HPU.EmergencyHPU.State": {
+    "id": 71,
+    "name": "/App/ied14/db906_visual_data/HPU.EmergencyHPU.State",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.ActiveWinch": {
+    "id": 27,
+    "name": "/App/ied14/db906_visual_data/CraneMode.ActiveWinch",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.BoomUp": {
+    "id": 22,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.BoomUp",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/HPU.Pump1.State": {
+    "id": 69,
+    "name": "/App/ied14/db906_visual_data/HPU.Pump1.State",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.MOPS": {
+    "id": 32,
+    "name": "/App/ied14/db906_visual_data/CraneMode.MOPS",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.WinchBrake": {
+    "id": 35,
+    "name": "/App/ied14/db906_visual_data/CraneMode.WinchBrake",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Crane.BoomAngle": {
+    "id": 55,
+    "name": "/App/ied14/db906_visual_data/Crane.BoomAngle",
+    "type": "Real"
+  },
+  "/jds_request_test/Jds/Jds/Points": {
+    "id": 75,
+    "name": "/jds_request_test/Jds/Jds/Points",
+    "type": "String"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.WaveHeightLevel": {
+    "id": 29,
+    "name": "/App/ied14/db906_visual_data/CraneMode.WaveHeightLevel",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.MainMode": {
+    "id": 26,
+    "name": "/App/ied14/db906_visual_data/CraneMode.MainMode",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Winch3.Load": {
+    "id": 68,
+    "name": "/App/ied14/db906_visual_data/Winch3.Load",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.MainMode": {
+    "id": 9,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.MainMode",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.Hydromotor1Active": {
+    "id": 3,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.Hydromotor1Active",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.ParkingModeActive": {
+    "id": 31,
+    "name": "/App/ied14/db906_visual_data/CraneMode.ParkingModeActive",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.Reserve1": {
+    "id": 37,
+    "name": "/App/ied14/db906_visual_data/CraneMode.Reserve1",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Crane.Reserve2": {
+    "id": 58,
+    "name": "/App/ied14/db906_visual_data/Crane.Reserve2",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Winch2.Load": {
+    "id": 65,
+    "name": "/App/ied14/db906_visual_data/Winch2.Load",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Crane.Reserve3": {
+    "id": 59,
+    "name": "/App/ied14/db906_visual_data/Crane.Reserve3",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Winch1.SWL": {
+    "id": 61,
+    "name": "/App/ied14/db906_visual_data/Winch1.SWL",
+    "type": "Real"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.Winch1Mode": {
+    "id": 11,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.Winch1Mode",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.ActiveWinch": {
+    "id": 10,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.ActiveWinch",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.Reserve2": {
+    "id": 38,
+    "name": "/App/ied14/db906_visual_data/CraneMode.Reserve2",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Winch1.Load": {
+    "id": 62,
+    "name": "/App/ied14/db906_visual_data/Winch1.Load",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.Winch1Mode": {
+    "id": 28,
+    "name": "/App/ied14/db906_visual_data/CraneMode.Winch1Mode",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Crane.Pitch": {
+    "id": 52,
+    "name": "/App/ied14/db906_visual_data/Crane.Pitch",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/HPU.Pump2.State": {
+    "id": 70,
+    "name": "/App/ied14/db906_visual_data/HPU.Pump2.State",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.EncoderBR1": {
+    "id": 5,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.EncoderBR1",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.WaveHeightLevel": {
+    "id": 12,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.WaveHeightLevel",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/ConstantTension.Reserve2": {
+    "id": 43,
+    "name": "/App/ied14/db906_visual_data/ConstantTension.Reserve2",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.OutreachFwd": {
+    "id": 18,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.OutreachFwd",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Hook.X": {
+    "id": 45,
+    "name": "/App/ied14/db906_visual_data/Hook.X",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/ConstantTension.Reserve3": {
+    "id": 44,
+    "name": "/App/ied14/db906_visual_data/ConstantTension.Reserve3",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.AHC": {
+    "id": 34,
+    "name": "/App/ied14/db906_visual_data/CraneMode.AHC",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.BoomDown": {
+    "id": 23,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.BoomDown",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.ValveEV1": {
+    "id": 0,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.ValveEV1",
+    "type": "Bool"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.LVDT1": {
+    "id": 7,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.LVDT1",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.RotateLeft": {
+    "id": 16,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.RotateLeft",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Crane.Wind": {
+    "id": 51,
+    "name": "/App/ied14/db906_visual_data/Crane.Wind",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.OutreachRev": {
+    "id": 19,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.OutreachRev",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.JibUp": {
+    "id": 20,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.JibUp",
+    "type": "Int"
+  },
+  "/App/ied12/db902_panel_controls/Settings.CraneMode.ResetRelativeDepth": {
+    "id": 15,
+    "name": "/App/ied12/db902_panel_controls/Settings.CraneMode.ResetRelativeDepth",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Winch2.SWL": {
+    "id": 64,
+    "name": "/App/ied14/db906_visual_data/Winch2.SWL",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.SWLProtection": {
+    "id": 36,
+    "name": "/App/ied14/db906_visual_data/CraneMode.SWLProtection",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/Crane.Depth": {
+    "id": 49,
+    "name": "/App/ied14/db906_visual_data/Crane.Depth",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Hook.Y": {
+    "id": 46,
+    "name": "/App/ied14/db906_visual_data/Hook.Y",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.RotateRight": {
+    "id": 17,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.RotateRight",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Crane.DeckDepth": {
+    "id": 50,
+    "name": "/App/ied14/db906_visual_data/Crane.DeckDepth",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/Winch3.SWL0": {
+    "id": 66,
+    "name": "/App/ied14/db906_visual_data/Winch3.SWL0",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/CraneMovement.WinchUp": {
+    "id": 24,
+    "name": "/App/ied14/db906_visual_data/CraneMovement.WinchUp",
+    "type": "Int"
+  },
+  "/App/ied14/db906_visual_data/Winch3.SWL": {
+    "id": 67,
+    "name": "/App/ied14/db906_visual_data/Winch3.SWL",
+    "type": "Real"
+  },
+  "/App/ied14/db906_visual_data/HPU.OilTemp": {
+    "id": 72,
+    "name": "/App/ied14/db906_visual_data/HPU.OilTemp",
+    "type": "Real"
+  },
+  "/jds_request_test/Jds/Jds/Auth.Ssh": {
+    "id": 74,
+    "name": "/jds_request_test/Jds/Jds/Auth.Ssh",
+    "type": "String"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.CraneOffshore": {
+    "id": 30,
+    "name": "/App/ied14/db906_visual_data/CraneMode.CraneOffshore",
+    "type": "Bool"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.AOPS": {
+    "id": 33,
+    "name": "/App/ied14/db906_visual_data/CraneMode.AOPS",
+    "type": "Int"
+  },
+  "/jds_request_test/Jds/Jds/Subscribe": {
+    "id": 76,
+    "name": "/jds_request_test/Jds/Jds/Subscribe",
+    "type": "String"
+  },
+  "/App/ied14/db906_visual_data/CraneMode.Reserve3": {
+    "id": 39,
+    "name": "/App/ied14/db906_visual_data/CraneMode.Reserve3",
+    "type": "Int"
+  },
+  "/App/ied13/db905_visual_data_fast/Winch.LimitSwitchDown": {
+    "id": 2,
+    "name": "/App/ied13/db905_visual_data_fast/Winch.LimitSwitchDown",
+    "type": "Bool"
+  }
+}{
+  "/jds_request_test/Jds/Jds/Points": {
+    "id": 2,
+    "name": "/jds_request_test/Jds/Jds/Points",
+    "type": "String"
+  },
+  "/jds_request_test/Jds/Jds/Auth.Ssh": {
+    "id": 1,
+    "name": "/jds_request_test/Jds/Jds/Auth.Ssh",
+    "type": "String"
+  },
+  "/jds_request_test/Jds/Jds/Subscribe": {
+    "id": 3,
+    "name": "/jds_request_test/Jds/Jds/Subscribe",
+    "type": "String"
+  },
+  "/jds_request_test/Jds/Jds/Auth.Secret": {
+    "id": 0,
+    "name": "/jds_request_test/Jds/Jds/Auth.Secret",
+    "type": "String"
+  }
+}{
+  "/jds_request_test/Jds/Jds/Points": {
+    "id": 2,
+    "name": "/jds_request_test/Jds/Jds/Points",
+    "type": "String"
+  },
+  "/jds_request_test/Jds/Jds/Auth.Ssh": {
+    "id": 1,
+    "name": "/jds_request_test/Jds/Jds/Auth.Ssh",
+    "type": "String"
+  },
+  "/jds_request_test/Jds/Jds/Subscribe": {
+    "id": 3,
+    "name": "/jds_request_test/Jds/Jds/Subscribe",
+    "type": "String"
+  },
+  "/jds_request_test/Jds/Jds/Auth.Secret": {
+    "id": 0,
+    "name": "/jds_request_test/Jds/Jds/Auth.Secret",
+    "type": "String"
+  }
+}{
+  "/jds_request_test/Jds/Jds/Points": {
+    "id": 2,
+    "name": "/jds_request_test/Jds/Jds/Points",
+    "type": "String"
+  },
+  "/jds_request_test/Jds/Jds/Auth.Ssh": {
+    "id": 1,
+    "name": "/jds_request_test/Jds/Jds/Auth.Ssh",
+    "type": "String"
+  },
+  "/jds_request_test/Jds/Jds/Subscribe": {
+    "id": 3,
+    "name": "/jds_request_test/Jds/Jds/Subscribe",
+    "type": "String"
+  },
+  "/jds_request_test/Jds/Jds/Auth.Secret": {
+    "id": 0,
+    "name": "/jds_request_test/Jds/Jds/Auth.Secret",
+    "type": "String"
+  }
+}{
+  "/jds_request_test/Jds/Jds/Points": {
+    "id": 2,
+    "name": "/jds_request_test/Jds/Jds/Points",
+    "type": "String"
+  },
+  "/jds_request_test/Jds/Jds/Auth.Ssh": {
+    "id": 1,
+    "name": "/jds_request_test/Jds/Jds/Auth.Ssh",
+    "type": "String"
+  },
+  "/jds_request_test/Jds/Jds/Subscribe": {
+    "id": 3,
+    "name": "/jds_request_test/Jds/Jds/Subscribe",
+    "type": "String"
+  },
+  "/jds_request_test/Jds/Jds/Auth.Secret": {
+    "id": 0,
+    "name": "/jds_request_test/Jds/Jds/Auth.Secret",
+    "type": "String"
+  }
+}{
+  "/test Services.points/task1/CraneMovement.BoomUp": {
+    "id": 0,
+    "name": "/test Services.points/task1/CraneMovement.BoomUp",
+    "type": "Int"
+  },
+  "/test Services.points/task1/CraneMovement.BoomDown": {
+    "id": 1,
+    "name": "/test Services.points/task1/CraneMovement.BoomDown",
+    "type": "Real"
+  },
+  "/test Services.points/task1/CraneMovement.WinchUp": {
+    "id": 2,
+    "name": "/test Services.points/task1/CraneMovement.WinchUp",
+    "type": "Real"
+  }
+}{
+  "/jds_request_test/Jds/Jds/Points": {
+    "id": 2,
+    "name": "/jds_request_test/Jds/Jds/Points",
+    "type": "String"
+  },
+  "/jds_request_test/Jds/Jds/Auth.Ssh": {
+    "id": 1,
+    "name": "/jds_request_test/Jds/Jds/Auth.Ssh",
+    "type": "String"
+  },
+  "/jds_request_test/Jds/Jds/Subscribe": {
+    "id": 3,
+    "name": "/jds_request_test/Jds/Jds/Subscribe",
+    "type": "String"
+  },
+  "/jds_request_test/Jds/Jds/Auth.Secret": {
+    "id": 0,
+    "name": "/jds_request_test/Jds/Jds/Auth.Secret",
+    "type": "String"
+  }
+}{{
+
+    ""/jds_request_test/Jds/Jds/Points/jds_request_test/Jds/Jds/Points"": : {{
+
+        ""idid"": : 22,
+,
+        ""namename"": : ""/jds_request_test/Jds/Jds/Points/jds_request_test/Jds/Jds/Points"",
+,
+        ""typetype"": : ""StringString""
+
+    }},
+,
+    ""/jds_request_test/Jds/Jds/Auth.Ssh/jds_request_test/Jds/Jds/Auth.Ssh"": : {{
+
+        ""idid"": : 11,
+,
+        ""namename"": : ""/jds_request_test/Jds/Jds/Auth.Ssh/jds_request_test/Jds/Jds/Auth.Ssh"",
+,
+        ""typetype"": : ""StringString""
+
+    }},
+,
+    ""/jds_request_test/Jds/Jds/Subscribe/jds_request_test/Jds/Jds/Subscribe"": : {{
+
+        ""idid"": : 33,
+,
+        ""namename"": : ""/jds_request_test/Jds/Jds/Subscribe/jds_request_test/Jds/Jds/Subscribe"",
+,
+        ""typetype"": : ""StringString""
+
+    }},
+,
+    ""/jds_request_test/Jds/Jds/Auth.Secret/jds_request_test/Jds/Jds/Auth.Secret"": : {{
+
+        ""idid"": : 00,
+,
+        ""namename"": : ""/jds_request_test/Jds/Jds/Auth.Secret/jds_request_test/Jds/Jds/Auth.Secret"",
+,
+        ""typetype"": : ""StringString""
+
+    }}
+
+}}
