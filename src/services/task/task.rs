@@ -61,7 +61,7 @@ impl Task {
                 match subscriptions_first {
                     Some((service_name, Some(points))) => {
                         Some((service_name, points))
-                    },
+                    }
                     Some((_, None)) => panic!("{}.run | Error. Task subscription configuration error in: {:#?}", self.id, subscriptions),
                     None => panic!("{}.run | Error. Task subscription configuration error in: {:#?}", self.id, subscriptions),
                 }
@@ -79,10 +79,10 @@ impl Task {
                     points,
                 );
                 rx_recv
-            },
+            }
             None => {
                 self.rx_recv.pop().unwrap()
-            },
+            }
         }
         // if conf.subscribe.is_empty() {
         //     self.rx_recv.pop().unwrap()
@@ -106,7 +106,7 @@ impl Task {
         //                     &points,
         //                 );
         //                 rx_recv
-        //             },
+        //             }
         //             Some((_, None)) => panic!("{}.run | Error. Task subscription configuration error in: {:#?}", self.id, subscriptions),
         //             None => panic!("{}.run | Error. Task subscription configuration error in: {:#?}", self.id, subscriptions),
         //         }
@@ -176,18 +176,18 @@ impl Service for Task {
                         if cyclic {
                             cycle.wait();
                         }
-                    },
+                    }
                     Err(err) => {
                         match err {
                             RecvTimeoutError::Timeout => {
                                 trace!("{}.run | Receive error: {:?}", self_id, err);
-                            },
+                            }
                             RecvTimeoutError::Disconnected => {
                                 error!("{}.run | Error receiving from queue: {:?}", self_id, err);
                                 break 'main;
-                            },
+                            }
                         }
-                    },
+                    }
                 };
                 if exit.load(Ordering::SeqCst) {
                     break 'main;
@@ -204,12 +204,12 @@ impl Service for Task {
             Ok(handle) => {
                 info!("{}.run | Starting - ok", self.id);
                 Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
-            },
+            }
             Err(err) => {
                 let message = format!("{}.run | Start failed: {:#?}", self.id, err);
                 warn!("{}", message);
                 Err(message)
-            },
+            }
         }        
     }
     //

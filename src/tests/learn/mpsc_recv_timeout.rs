@@ -51,19 +51,19 @@ mod tests {
             match recv.recv_timeout(RECV_TIMEOUT) {
                 Ok(value) => {
                     info!("value: {}", value);
-                },
+                }
                 Err(err) => {
                     match err {
                         RecvTimeoutError::Timeout => {
                             error!("debug: {}", err);
-                        },
+                        }
                         RecvTimeoutError::Disconnected => {
                             error!("error: {}", err);
                             thread::sleep(Duration::from_millis(1000));
                             exit = true;
-                        },
+                        }
                     }
-                },
+                }
             };
             // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
@@ -78,10 +78,10 @@ mod tests {
         match &r {
             Ok(_) => {
                 info!("Waiting for thread: '{}' - finished", thdId);
-            },
+            }
             Err(err) => {
                 error!("Waiting for thread '{}' error: {:?}", thdId, err);
-            },
+            }
         }
         r
     }

@@ -133,25 +133,25 @@ impl FnOut for FnTimer {
         let state = self.state.state();
         debug!("{}.out | input.out: {:?}   |   state: {:?}", self.id, &value, &state);
         match state {
-            FnTimerState::Off => {},
+            FnTimerState::Off => {}
             FnTimerState::Start => {
                 self.start = Some(Instant::now());
-            },
+            }
             FnTimerState::Progress => {
                 self.sessionElapsed = self.start.unwrap().elapsed().as_secs_f64();
-            },
+            }
             FnTimerState::Stop => {
                 self.sessionElapsed = 0.0;
                 self.totalElapsed += self.start.unwrap().elapsed().as_secs_f64();
                 self.start = None;
-            },
+            }
             FnTimerState::Done => {
                 self.sessionElapsed = 0.0;
                 if let Some(start) = self.start {
                     self.totalElapsed += start.elapsed().as_secs_f64();
                     self.start = None;
                 }
-            },
+            }
         };
         PointType::Double(
             Point {

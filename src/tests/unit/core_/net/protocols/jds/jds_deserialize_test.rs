@@ -160,24 +160,24 @@ mod jds_deserialize {
                                             if received.load(Ordering::SeqCst) >= total {
                                                 break 'read;
                                             }
-                                        },
+                                        }
                                         OpResult::Err(err) => {
                                             panic!("socket read - parsing error: {:?}", err);
-                                        },
-                                        OpResult::Timeout() => {},
+                                        }
+                                        OpResult::Timeout() => {}
                                     }
-                                },
+                                }
                                 ConnectionStatus::Closed(_err) => {
                                     break 'read;
-                                },
+                                }
                             }
                         }
                         println!("elapsed: {:?}", time.elapsed());
                         println!("received: {:?}", received.load(Ordering::SeqCst));
                         // println!("buffer: {:?}", buffer);
                         break 'main;
-                    },
-                    Err(_) => {},
+                    }
+                    Err(_) => {}
                 };
             }
         }
@@ -211,7 +211,7 @@ mod jds_deserialize {
                                             Ok(_bytes) => {
                                                 sent += 1;
                                                 debug!("socket sent: {:?}", msg);
-                                            },
+                                            }
                                             Err(err) => {
                                                 debug!("socket read - error: {:?}", err);
                                                 max_read_errors -= 1;
@@ -219,14 +219,14 @@ mod jds_deserialize {
                                                     error!("TCP server | socket read error: {:?}", err);
                                                     break;
                                                 }
-                                            },
+                                            }
                                         };
                                         _socket.flush().unwrap();
                                         match _socket.write(&[bytes2, &eot].concat()) {
                                             Ok(_bytes) => {
                                                 sent += 1;
                                                 trace!("socket sent: {:?}", msg);
-                                            },
+                                            }
                                             Err(err) => {
                                                 debug!("socket read - error: {:?}", err);
                                                 max_read_errors -= 1;
@@ -234,7 +234,7 @@ mod jds_deserialize {
                                                     error!("TCP server | socket read error: {:?}", err);
                                                     break;
                                                 }
-                                            },
+                                            }
                                         };
                                     }
                                 }
@@ -243,18 +243,18 @@ mod jds_deserialize {
                                     thread::sleep(Duration::from_micros(10));
                                 }
                                 // while received.len() < count {}
-                            },
+                            }
                             Err(err) => {
                                 info!("incoming connection - error: {:?}", err);
-                            },
+                            }
                         }
                     }
-                },
+                }
                 Err(err) => {
                     // connectExit.send(true).unwrap();
                     // okRef.store(false, Ordering::SeqCst);
                     panic!("Preparing test TCP server - error: {:?}", err);
-                },
+                }
             };
         });
     }

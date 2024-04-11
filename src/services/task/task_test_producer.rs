@@ -82,10 +82,10 @@ impl Service for TaskTestProducer {
                     Ok(_) => {
                         sent.lock().unwrap().push(point.clone());
                         trace!("{}.run | sent points: {:?}", self_id, sent.lock().unwrap().len());
-                    },
+                    }
                     Err(err) => {
                         warn!("{}.run | Error write to queue: {:?}", self_id, err);
-                    },
+                    }
                 }
                 if delayed {
                     thread::sleep(cycle);
@@ -99,12 +99,12 @@ impl Service for TaskTestProducer {
             Ok(handle) => {
                 info!("{}.run | Started", self.id);
                 Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
-            },
+            }
             Err(err) => {
                 let message = format!("{}.run | Start failed: {:#?}", self.id, err);
                 warn!("{}", message);
                 Err(message)
-            },
+            }
         }
     }
     //

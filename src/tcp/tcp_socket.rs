@@ -32,10 +32,10 @@ impl TcpSocket {
         match Self::readAll(&self.id, &mut bytes, &mut self.tcpStreamR) {
             ConnectionStatus::Active(_) => {
                 Ok(bytes)
-            },
+            }
             ConnectionStatus::Closed(err) => {
                 Err(err)
-            },
+            }
         }
     }
     /// 
@@ -43,14 +43,14 @@ impl TcpSocket {
         match &self.tcpStreamW.write(bytes) {
             Ok(len) => {
                 Ok(*len)
-            },
+            }
             Err(err) => {
                 let message = format!("{}.write | error: {:?}", self.id, err);
                 if log::max_level() == LevelFilter::Trace {
                     warn!("{}", message);
                 }
                 Err(message)
-            },
+            }
         }
     }
     ///
@@ -67,18 +67,18 @@ impl TcpSocket {
                     match byte {
                         JDS_END_OF_TRANSMISSION => {
                             return ConnectionStatus::Active(());
-                        },
+                        }
                         _ => {
                             bytes.push(byte);
-                        },
+                        }
                     };
-                },
+                }
                 Err(err) => {
                     warn!("{}.readAll | error reading from socket: {:?}", self_id, err);
                     warn!("{}.readAll | error kind: {:?}", self_id, err.kind());
                     // Self::matchErrorKind(err.kind());
                     return ConnectionStatus::Closed(format!("{}.readAll | tcp socket error : {:?}", self_id, err))
-                },
+                }
             };
         };
         ConnectionStatus::Active(())

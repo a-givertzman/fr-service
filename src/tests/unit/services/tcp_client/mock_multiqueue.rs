@@ -80,31 +80,31 @@ impl Service for MockMultiQueue {
                                 if receivedCount >= recvLimit {
                                     break;
                                 }
-                            },
+                            }
                             Err(err) => {
                                 warn!("{}.run | recv error: {:?}", self_id, err);
-                            },
+                            }
                         }
                         if exit.load(Ordering::SeqCst) {
                             break 'main;
                         }        
                     }
-                },
+                }
                 None => {
                     'main: loop {
                         match recv.recv() {
                             Ok(point) => {
                                 received.lock().unwrap().push(point);
-                            },
+                            }
                             Err(err) => {
                                 warn!("{}.run | recv error: {:?}", self_id, err);
-                            },
+                            }
                         }
                         if exit.load(Ordering::SeqCst) {
                             break 'main;
                         }        
                     }
-                },
+                }
             }
         });
         info!("{}.run | Starting - ok", self.id);

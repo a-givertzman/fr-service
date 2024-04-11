@@ -56,7 +56,7 @@ impl TcpClientConnect {
                     Some(addr) => addr,
                     None => panic!("TcpClientConnect({}).connect | Empty address found: {:?}", parent.into(), addr),
                 }
-            },
+            }
             Err(err) => panic!("TcpClientConnect({}).connect | Address parsing error: \n\t{:?}", parent.into(), err),
         };
         let (send, recv) = mpsc::channel();
@@ -90,7 +90,7 @@ impl TcpClientConnect {
                         selfStream.slock().push(stream);
                         info!("{}.connect | connected to: \n\t{:?}", id, selfStream.slock().first().unwrap());
                         break;
-                    },
+                    }
                     Err(err) => {
                         if log::max_level() == LevelFilter::Debug {
                             warn!("{}.connect | connection error: \n\t{:?}", id, err);

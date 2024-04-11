@@ -64,7 +64,7 @@ impl Queues {
             Some(sendQueue) => sendQueue.clone(),
             None => {
                 panic!("Queues.getSendQueue | sendQueue {:?} - not found", &name);
-            },
+            }
         }
     }
     ///
@@ -74,7 +74,7 @@ impl Queues {
             Some(recvQueue) => recvQueue,
             None => {
                 panic!("Queues.getSendQueue | sendQueue {:?} - not found", &name);
-            },
+            }
         }
     }
 }

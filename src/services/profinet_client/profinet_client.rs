@@ -44,10 +44,10 @@ impl ProfinetClient {
         for (db_name, db) in dbs {
             debug!("{}.yield_status | DB '{}' - sending Invalid status...", self_id, db_name);
             match db.yield_status(Status::Invalid, tx_send) {
-                Ok(_) => {},
+                Ok(_) => {}
                 Err(err) => {
                     error!("{}.yield_status | send errors: \n\t{:?}", self_id, err);
-                },
+                }
             };
         }
     }
@@ -92,7 +92,7 @@ impl ProfinetClient {
                                                 Ok(_) => {
                                                     error_limit.reset();
                                                     trace!("{}.read | DB '{}' - reading - ok", self_id, db_name);
-                                                },
+                                                }
                                                 Err(err) => {
                                                     error!("{}.read | DB '{}' - reading - error: {:?}", self_id, db_name, err);
                                                     if error_limit.add().is_err() {
@@ -103,7 +103,7 @@ impl ProfinetClient {
                                                         };
                                                         break 'read;
                                                     }
-                                                },
+                                                }
                                             }
                                             if exit.load(Ordering::SeqCst) {
                                                 break 'main;
@@ -114,11 +114,11 @@ impl ProfinetClient {
                                     if status != Status::Ok {
                                         Self::yield_status(&self_id, &mut dbs, &tx_send);
                                     }
-                                },
+                                }
                                 Err(err) => {
                                     is_connected.add(false, &format!("{}.read | Connection lost: {:?}", self_id, err));
                                     trace!("{}.read | Connection error: {:?}", self_id, err);
-                                },
+                                }
                             }
                             thread::sleep(conf.reconnect_cycle);
                         }
@@ -130,11 +130,11 @@ impl ProfinetClient {
                     info!("{}.read | Disabled", self.id);
                     thread::Builder::new().name(format!("{}.read", self_id)).spawn(move || {})
                 }
-            },
+            }
             None => {
                 info!("{}.read | Disabled", self.id);
                 thread::Builder::new().name(format!("{}.read", self_id)).spawn(move || {})
-            },
+            }
         }
     }
     ///
@@ -203,7 +203,7 @@ impl ProfinetClient {
                                                         error!("{}.write | Error sending to queue: {:?}", self_id, err);
                                                         // break 'main;
                                                     };
-                                                },
+                                                }
                                                 Err(err) => {
                                                     error!("{}.write | DB '{}' - write - error: {:?}", self_id, db_name, err);
                                                     if errors_limit.add().is_err() {
@@ -224,21 +224,21 @@ impl ProfinetClient {
                                                         };
                                                         break 'write;
                                                     }
-                                                },
+                                                }
                                             }
-                                        },
+                                        }
                                         None => {
                                             error!("{}.write | DB '{}' - not found", self_id, db_name);
-                                        },
+                                        }
                                     };
-                                },
+                                }
                                 Err(err) => {
                                     match err {
-                                        mpsc::RecvTimeoutError::Timeout => {},
+                                        mpsc::RecvTimeoutError::Timeout => {}
                                         mpsc::RecvTimeoutError::Disconnected => {
                                             error!("{}.write | Error receiving from queue: {:?}", self_id, err);
                                             break 'main;
-                                        },
+                                        }
                                     }
                                 }
                             }
@@ -246,11 +246,11 @@ impl ProfinetClient {
                                 break 'main;
                             }
                         }
-                    },
+                    }
                     Err(err) => {
                         is_connected.add(false, &format!("{}.write | Connection lost: {:?}", self_id, err));
                         trace!("{}.write | Connection error: {:?}", self_id, err);
-                    },
+                    }
                 }
             }
             info!("{}.write | Exit", self_id);
@@ -300,15 +300,15 @@ impl Service for ProfinetClient {
                 self.exit();
                 handle_read.wait().unwrap();
                 Err(format!("{}.run | Error starting inner thread 'read': {:#?}", self.id, err))
-            },
+            }
             (Err(err), Ok(handle_write)) => {
                 self.exit();
                 handle_write.wait().unwrap();
                 Err(format!("{}.run | Error starting inner thread 'write': {:#?}", self.id, err))
-            },
+            }
             (Err(read_err), Err(write_err)) => {
                 Err(format!("{}.run | Error starting inner thread: \n\t  read: {:#?}\n\t write: {:#?}", self.id, read_err, write_err))
-            },
+            }
         }
     }
     //

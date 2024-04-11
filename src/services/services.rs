@@ -80,7 +80,7 @@ impl Services {
                 let r = srvc.slock().subscribe(receiver_name, points);
                 debug!("{}.subscribe | Lock service '{:?}' - ok", self.id, service);
                 r
-            },
+            }
             None => panic!("{}.get | service '{:?}' - not found", self.id, service),
         }
     }
@@ -95,7 +95,7 @@ impl Services {
                 let r = srvc.slock().extend_subscription(receiver_name, points);
                 debug!("{}.extend_subscription | Lock service '{:?}' - ok", self.id, service);
                 r
-            },
+            }
             None => panic!("{}.get | service '{:?}' - not found", self.id, service),
         }
     }
@@ -109,7 +109,7 @@ impl Services {
                 let r = srvc.slock().unsubscribe(receiver_name, points);
                 debug!("{}.unsubscribe | Lock service '{:?}' - ok", self.id, service);
                 r
-            },
+            }
             None => panic!("{}.get | service '{:?}' - not found", self.id, service),
         }
     }

@@ -19,10 +19,10 @@ pub static S7LIB: Lazy<LibSnap7> = Lazy::new(|| {
                 println!("initializing LibSnap7 | check '{}' - ok", path);
                 println!("initializing LibSnap7 - ok");
                 return lib;
-            },
+            }
             Err(_) => {
                 println!("initializing LibSnap7 | check '{}' - {}not found{}", path, RED, NC);
-            },
+            }
         }
     }
     println!("{}initializing LibSnap7 - ERROR{}", RED, NC);

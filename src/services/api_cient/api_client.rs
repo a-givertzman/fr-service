@@ -73,14 +73,14 @@ impl ApiClient {
                         let message = concat_string!(self_id, ".send | Error parsing API reply: {:?} \n\t reply was: {:?}", err.to_string(), reply);
                         warn!("{}", message);
                         Err(message)
-                    },
+                    }
                 }
-            },
+            }
             Err(err) => {
                 let message = concat_string!(self_id, ".send | Error sending API request: {:?}", err);
                 warn!("{}", message);
                 Err(message)
-            },
+            }
         }
     }
 }
@@ -169,15 +169,15 @@ impl Service for ApiClient {
                                             } else {
                                                 buffer.pop_first();
                                             }
-                                        },
+                                        }
                                         Err(err) => {
                                             warn!("{}.run | Error: {:?}", self_id, err);
-                                        },
+                                        }
                                     }
-                                },
+                                }
                             }
-                        },
-                        None => {break;},
+                        }
+                        None => {break;}
                     };
                     count -=1;
                 }
@@ -195,12 +195,12 @@ impl Service for ApiClient {
             Ok(handle) => {
                 info!("{}.run | Starting - ok", self.id);
                 Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
-            },
+            }
             Err(err) => {
                 let message = format!("{}.run | Start failed: {:#?}", self.id, err);
                 warn!("{}", message);
                 Err(message)
-            },
+            }
         }
     }
     //

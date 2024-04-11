@@ -127,8 +127,8 @@ impl EmulatedTcpClientRecv {
                     thread::sleep(Duration::from_millis(100));
                     trace!("{}.waitMarkerReceived | wait for {:?} marker beeng received", self.id, self.must_received);
                 }
-            },
-            None => {},
+            }
+            None => {}
         }
     }
 }
@@ -220,17 +220,17 @@ impl Service for EmulatedTcpClientRecv {
                                                                 break;
                                                             }
                                                         }
-                                                    },
+                                                    }
                                                     OpResult::Err(err) => {
                                                         warn!("{}.run | read socket error: {:?}", self_id, err);
-                                                    },
-                                                    OpResult::Timeout() => {},
+                                                    }
+                                                    OpResult::Timeout() => {}
                                                 }
-                                            },
+                                            }
                                             ConnectionStatus::Closed(err) => {
                                                 warn!("{}.run | socket connection closed: {:?}", self_id, err);
                                                 break;
-                                            },
+                                            }
                                         };
                                         if switch_state_changed {
                                             switch_state_changed = false;
@@ -254,7 +254,7 @@ impl Service for EmulatedTcpClientRecv {
                                         }
                                     }
                                 }
-                            },
+                            }
                             None => {
                                 loop {
                                     match jds_deserialize.read(&tcp_stream) {
@@ -263,29 +263,29 @@ impl Service for EmulatedTcpClientRecv {
                                             match result {
                                                 OpResult::Ok(point) => {
                                                     received.lock().unwrap().push(point);
-                                                },
+                                                }
                                                 OpResult::Err(err) => {
                                                     warn!("{}.run | read socket error: {:?}", self_id, err);
-                                                },
-                                                OpResult::Timeout() => {},
+                                                }
+                                                OpResult::Timeout() => {}
                                             }
-                                        },
+                                        }
                                         ConnectionStatus::Closed(err) => {
                                             warn!("{}.run | socket connection closed: {:?}", self_id, err);
                                             break;
-                                        },
+                                        }
                                     };
                                     if exit.load(Ordering::SeqCst) {
                                         break;
                                     }
                                 }
-                            },
+                            }
                         };
-                    },
+                    }
                     Err(err) => {
                         warn!("{}.run | connection error: {:?}", self_id, err);
                         thread::sleep(Duration::from_millis(1000))
-                    },
+                    }
                 }
                 if exit.load(Ordering::SeqCst) {
                     break 'connect;
@@ -297,12 +297,12 @@ impl Service for EmulatedTcpClientRecv {
             Ok(handle) => {
                 info!("{}.run | Starting - ok", self.id);
                 Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
-            },
+            }
             Err(err) => {
                 let message = format!("{}.run | Start failed: {:#?}", self.id, err);
                 warn!("{}", message);
                 Err(message)
-            },
+            }
         }
     }
     //

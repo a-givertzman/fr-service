@@ -79,10 +79,10 @@ impl TaskNodes {
                         TaskEvalNode::new(self.id.clone(), name, input),
                     );
                 }
-            },
+            }
             None => {
                 panic!("{}.addInput | Call beginNewNode first, then you can add inputs", self.id)
-            },
+            }
         }
     }
     ///
@@ -103,7 +103,7 @@ impl TaskNodes {
                     );
                 }
                 self.newNodeVars.as_mut().unwrap().addVar(name.clone().into());
-            },
+            }
             None => panic!("{}.addVar | Error: call beginNewNode first, then you can add inputs", self.id),
         }
     }
@@ -114,7 +114,7 @@ impl TaskNodes {
         match self.newNodeVars {
             Some(_) => {
                 self.newNodeVars.as_mut().unwrap().addVar(name.clone().into());
-            },
+            }
             None => panic!("{}.addVarOut | Error: call beginNewNode first, then you can add inputs", self.id),
         }
     }    
@@ -130,7 +130,7 @@ impl TaskNodes {
                             vars.push(
                                 var.clone()
                             );
-                        },
+                        }
                         None => panic!("{}.finishNewNode | Variable {:?} - not found", self.id, varName),
                     };
                 };
@@ -146,13 +146,13 @@ impl TaskNodes {
                                 evalNode.addOut(out.clone());
                             }
                             debug!("{}.finishNewNode | evalNode '{}' appended: {:?}", self.id, evalNode.name(), len);
-                        },
+                        }
                         None => panic!("{}.finishNewNode | Input {:?} - not found", self.id, inputName),
                     };
                 };
                 self.newNodeVars = None;
                 trace!("\n{}.finishNewNode | self.inputs: {:?}\n", self.id, self.inputs);
-            },
+            }
             None => panic!("{}.finishNewNode | Call beginNewNode first, then you can add inputs & vars, then finish node", self.id),
         }
     }
@@ -168,22 +168,22 @@ impl TaskNodes {
             let out = match nodeConf {
                 FnConfKind::Fn(_) => {
                     NestedFn::new(parent, txId, &mut nodeConf, self, services.clone())
-                },
+                }
                 FnConfKind::Var(_) => {
                     NestedFn::new(parent, txId, &mut nodeConf, self, services.clone())
-                },
+                }
                 FnConfKind::Const(conf) => {
                     panic!("{}.buildNodes | Const is not supported in the root of the Task, config: {:?}: {:?}", self.id, nodeName, conf);
-                },
+                }
                 FnConfKind::Point(conf) => {
                     panic!("{}.buildNodes | Point is not supported in the root of the Task, config: {:?}: {:?}", self.id, nodeName, conf);
-                },
+                }
                 FnConfKind::PointConf(conf) => {
                     panic!("{}.buildNodes | PointConf is not supported in the root of the Task, config: {:?}: {:?}", self.id, nodeName, conf);
-                },
+                }
                 FnConfKind::Param(conf) => {
                     panic!("{}.buildNodes | Param (custom parameter) is not supported in the root of the Task, config: {:?}: {:?} - ", self.id, nodeName, conf);
-                },
+                }
             };
             self.finishNewNode(out);
         }
@@ -218,7 +218,7 @@ impl TaskNodes {
                 evalNode.add(point.clone());
                 trace!("{}.eval | evalNode '{}' - evaluating...", self_id, &evalNode.name());
                 evalNode.eval();
-            },
+            }
             None => {
                 if let Some(evalNode) = self.getEvalNode("every") {
                     trace!("{}.eval | evalNode '{}' - evaluating...", self_id, &evalNode.name());
@@ -226,7 +226,7 @@ impl TaskNodes {
                 } else {
                     warn!("{}.eval | evalNode '{}' - not fount, input point ignored", self.id, &pointName);
                 }
-            },
+            }
         };
     }
 }

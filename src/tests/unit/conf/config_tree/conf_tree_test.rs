@@ -195,10 +195,10 @@ mod config_tree {
                     res.insert(node.key.clone(), subRes);
                 }
                 return Node::Map(res)
-            },
+            }
             None => {
                 return Node::End(confTree.clone());
-            },
+            }
         };
     }
 

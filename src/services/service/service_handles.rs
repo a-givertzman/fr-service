@@ -37,12 +37,12 @@ impl ServiceHandles {
     //                 Some(handle) => handle,
     //                 None => {
     //                     panic!("ServiceHandle.first | Handle '{}' - not found", key)
-    //                 },
+    //                 }
     //             }
-    //         },
+    //         }
     //         None => {
     //             panic!("ServiceHandle.first | Handles not found")
-    //         },
+    //         }
     //     }
     // }
 }

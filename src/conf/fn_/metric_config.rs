@@ -54,10 +54,10 @@ impl MetricConfig {
                 let self_name = match FnConfKeywd::from_str(&conf_tree.key) {
                     Ok(self_keyword) => {
                         self_keyword.data()
-                    },
+                    }
                     Err(err) => {
                         panic!("MetricConfig.new | Unknown metric name in {:?}\n\tdetales: {:?}", &conf_tree.key, err)
-                    },
+                    }
                 };
                 let mut inputs = IndexMap::new();
                 match conf_tree.get("inputs") {
@@ -76,10 +76,10 @@ impl MetricConfig {
                                 );
                             };
                         }
-                    },
+                    }
                     None => {
                         panic!("MetricConfig.new | Metric '{:?}' 'inputs' not found", &conf_tree.key)
-                    },
+                    }
                 }
                 MetricConfig {
                     name: self_name,
@@ -108,15 +108,15 @@ impl MetricConfig {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
                         MetricConfig::from_yaml(parent_id, parent_name, &config, &mut vars)
-                    },
+                    }
                     Err(err) => {
                         panic!("MetricConfig.read | Error in config: {:?}\n\terror: {:?}", yaml_string, err)
-                    },
+                    }
                 }
-            },
+            }
             Err(err) => {
                 panic!("MetricConfig.read | File {} reading error: {:?}", path, err)
-            },
+            }
         }
     }
     ///

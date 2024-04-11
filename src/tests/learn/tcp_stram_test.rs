@@ -42,19 +42,19 @@ mod tcp_stream {
                 match stream.set_read_timeout(Some(RECV_TIMEOUT)) {
                     Ok(_) => {
                         info!("{}.setStreamTimout | Socket set read timeout {:?} - ok", self_id, RECV_TIMEOUT);
-                    },
+                    }
                     Err(err) => {
                         warn!("{}.setStreamTimout | Socket set read timeout error {:?}", self_id, err);
-                    },
+                    }
                 }
                 let stream = BufReader::new(stream);
                 for byte in stream.bytes() {
                     debug!("{}.run | received byte: {:?}", self_id, byte);
                 }
-            },
+            }
             Err(err) => {
                 panic!("{}.run | TcpStream::connect error: {:?}", self_id, err);
-            },
+            }
         }
         debug!("{}.run | TcpStream::read finished", self_id);
         handle.wait().unwrap();
@@ -82,25 +82,25 @@ mod tcp_stream {
                         //         match stream.read(&mut buf) {
                         //             Ok(len) => {
                         //                 debug!("{}.run | received {} bytes", self_id, len);
-                        //             },
+                        //             }
                         //             Err(err) => {
                         //                 warn!("{}.run | TcpListener::bind error: {:?}", self_id, err);
-                        //             },
+                        //             }
                         //         }
-                        //     },
+                        //     }
                         //     Err(err) => {
                         //         panic!("{}.run | TcpListener::incoming error: {:?}", self_id, err);
-                        //     },
+                        //     }
                         // }
                         match stream {
                             Ok(mut stream) => {
                                 match stream.set_read_timeout(Some(RECV_TIMEOUT)) {
                                     Ok(_) => {
                                         info!("{}.setStreamTimout | Socket set read timeout {:?} - ok", self_id, RECV_TIMEOUT);
-                                    },
+                                    }
                                     Err(err) => {
                                         warn!("{}.setStreamTimout | Socket set read timeout error {:?}", self_id, err);
-                                    },
+                                    }
                                 }
                                 let mut buf = vec![0, 1, 2, 3];
                                 match stream.write(&mut buf) {
@@ -109,22 +109,22 @@ mod tcp_stream {
                                         info!("{}.run | sent {} bytes - ok", self_id, len);
                                         thread::sleep(Duration::from_secs(3));
                                         drop(stream);
-                                    },
+                                    }
                                     Err(err) => {
                                         warn!("{}.run | TcpListener::bind error: {:?}", self_id, err);
-                                    },
+                                    }
                                 }
-                            },
+                            }
                             Err(err) => {
                                 panic!("{}.run | TcpListener::incoming error: {:?}", self_id, err);
-                            },
+                            }
                         }
                         break;
                     }
-                },
+                }
                 Err(err) => {
                     warn!("{}.run | TcpListener::bind error: {:?}", self_id, err);
-                },
+                }
             };
             info!("{}.run | Exit...", self_id);
         });
@@ -132,12 +132,12 @@ mod tcp_stream {
             Ok(handle) => {
                 info!("{}.run | Starting - ok", self_id);
                 Ok(ServiceHandles::new(vec![(self_id.to_owned(), handle)]))
-            },
+            }
             Err(err) => {
                 let message = format!("{}.run | Start failed: {:#?}", self_id, err);
                 warn!("{}", message);
                 Err(message)
-            },
+            }
         }
     }
 }

@@ -90,10 +90,10 @@ impl Service for MockMultiQueue {
         let receiverId = PointTxId::fromStr(receiverId);
         for subscription_criteria in points {
             match self.subscriptions.lock().unwrap().remove(&receiverId, &subscription_criteria.destination()) {
-                Ok(_) => {},
+                Ok(_) => {}
                 Err(err) => {
                     return Err(err)
-                },
+                }
             }
         }
         Ok(())
@@ -123,16 +123,16 @@ impl Service for MockMultiQueue {
                         trace!("{}.run | received: {:?}", self_id, point);
                         for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {
                             match sender.send(point.clone()) {
-                                Ok(_) => {},
+                                Ok(_) => {}
                                 Err(err) => {
                                     error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", self_id, pointId, receiverId, err);
-                                },
+                                }
                             };
                         }
-                    },
+                    }
                     Err(err) => {
                         warn!("{}.run | recv error: {:?}", self_id, err);
-                    },
+                    }
                 }
                 if exit.load(Ordering::SeqCst) {
                     break;
@@ -143,12 +143,12 @@ impl Service for MockMultiQueue {
             Ok(handle) => {
                 info!("{}.run | Starting - ok", self.id);
                 Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
-            },
+            }
             Err(err) => {
                 let message = format!("{}.run | Start failed: {:#?}", self.id, err);
                 warn!("{}", message);
                 Err(message)
-            },
+            }
         }        
     }
     //

@@ -211,37 +211,35 @@ mod socket_read_performance {
                         let mut byte = [0u8];
                         'read: loop {
                             match stream.read(&mut byte) {
-                                Ok(_) => {
-                                    match byte[0] {
-                                        JDS_END_OF_TRANSMISSION => {
-                                            received.fetch_add(1, Ordering::SeqCst);
-                                            // debug!("socket read - received: {:?}", received.load(Ordering::SeqCst));
-                                            if received.load(Ordering::SeqCst) >= total {
-                                                break 'read;
-                                            }
-                                            let msg = String::from_utf8(buffer).unwrap();
-                                            let recv_index = (received.load(Ordering::SeqCst) - 1) % test_data_len;
-                                            trace!("socket read - received[{}]: {:?}", recv_index, msg);
-                                            assert!(msg == test_data[recv_index].0);
-                                            buffer = vec![];
-                                        },
-                                        _ => {
-                                            buffer.push(byte[0]);
-                                            // println!("byte[0]: {:?} => {}", byte[0], String::from_utf8(byte.to_vec()).unwrap());
-                                        },
+                                Ok(_) => match byte[0] {
+                                    JDS_END_OF_TRANSMISSION => {
+                                        received.fetch_add(1, Ordering::SeqCst);
+                                        // debug!("socket read - received: {:?}", received.load(Ordering::SeqCst));
+                                        if received.load(Ordering::SeqCst) >= total {
+                                            break 'read;
+                                        }
+                                        let msg = String::from_utf8(buffer).unwrap();
+                                        let recv_index = (received.load(Ordering::SeqCst) - 1) % test_data_len;
+                                        trace!("socket read - received[{}]: {:?}", recv_index, msg);
+                                        assert!(msg == test_data[recv_index].0);
+                                        buffer = vec![];
                                     }
-                                },
+                                    _ => {
+                                        buffer.push(byte[0]);
+                                        // println!("byte[0]: {:?} => {}", byte[0], String::from_utf8(byte.to_vec()).unwrap());
+                                    }
+                                }
                                 Err(_err) => {
                                     break 'read;
-                                },
+                                }
                             }
                         }
                         println!("elapsed: {:?}", time.elapsed());
                         println!("received: {:?}", received.load(Ordering::SeqCst));
                         // println!("buffer: {:?}", buffer);
                         break 'main;
-                    },
-                    Err(_) => {},
+                    }
+                    Err(_) => {}
                 };
             }
         }
@@ -261,37 +259,35 @@ mod socket_read_performance {
                         let mut buf_reader = BufReader::new(stream);
                         'read: loop {
                             match buf_reader.read(&mut byte) {
-                                Ok(_) => {
-                                    match byte[0] {
-                                        JDS_END_OF_TRANSMISSION => {
-                                            received.fetch_add(1, Ordering::SeqCst);
-                                            // debug!("socket read - received: {:?}", received.load(Ordering::SeqCst));
-                                            if received.load(Ordering::SeqCst) >= total {
-                                                break 'read;
-                                            }
-                                            let msg = String::from_utf8(buffer).unwrap();
-                                            let recv_index = (received.load(Ordering::SeqCst) - 1) % test_data_len;
-                                            trace!("socket read - received[{}]: {:?}", recv_index, msg);
-                                            assert!(msg == test_data[recv_index].0);
-                                            buffer = vec![];
-                                        },
-                                        _ => {
-                                            buffer.push(byte[0]);
-                                            // println!("byte[0]: {:?} => {}", byte[0], String::from_utf8(byte.to_vec()).unwrap());
-                                        },
+                                Ok(_) => match byte[0] {
+                                    JDS_END_OF_TRANSMISSION => {
+                                        received.fetch_add(1, Ordering::SeqCst);
+                                        // debug!("socket read - received: {:?}", received.load(Ordering::SeqCst));
+                                        if received.load(Ordering::SeqCst) >= total {
+                                            break 'read;
+                                        }
+                                        let msg = String::from_utf8(buffer).unwrap();
+                                        let recv_index = (received.load(Ordering::SeqCst) - 1) % test_data_len;
+                                        trace!("socket read - received[{}]: {:?}", recv_index, msg);
+                                        assert!(msg == test_data[recv_index].0);
+                                        buffer = vec![];
                                     }
-                                },
+                                    _ => {
+                                        buffer.push(byte[0]);
+                                        // println!("byte[0]: {:?} => {}", byte[0], String::from_utf8(byte.to_vec()).unwrap());
+                                    }
+                                }
                                 Err(_err) => {
                                     break 'read;
-                                },
+                                }
                             }
                         }
                         println!("elapsed: {:?}", time.elapsed());
                         println!("received: {:?}", received.load(Ordering::SeqCst));
                         // println!("buffer: {:?}", buffer);
                         break 'main;
-                    },
-                    Err(_) => {},
+                    }
+                    Err(_) => {}
                 };
             }
         }
@@ -313,37 +309,35 @@ mod socket_read_performance {
                         // let mut byte = [0u8];
                         for byte in stream.bytes() {
                             match byte {
-                                Ok(byte) => {
-                                    match byte {
-                                        JDS_END_OF_TRANSMISSION => {
-                                            received.fetch_add(1, Ordering::SeqCst);
-                                            // debug!("socket read - received: {:?}", received.load(Ordering::SeqCst));
-                                            if received.load(Ordering::SeqCst) >= total {
-                                                break;
-                                            }
-                                            let msg = String::from_utf8(buffer).unwrap();
-                                            let recv_index = (received.load(Ordering::SeqCst) - 1) % test_data_len;
-                                            trace!("socket read - received[{}]: {:?}", recv_index, msg);
-                                            assert!(msg == test_data[recv_index].0);
-                                            buffer = vec![];
-                                        },
-                                        _ => {
-                                            buffer.push(byte);
-                                            // println!("byte[0]: {:?} => {}", byte[0], String::from_utf8(byte.to_vec()).unwrap());
-                                        },
+                                Ok(byte) => match byte {
+                                    JDS_END_OF_TRANSMISSION => {
+                                        received.fetch_add(1, Ordering::SeqCst);
+                                        // debug!("socket read - received: {:?}", received.load(Ordering::SeqCst));
+                                        if received.load(Ordering::SeqCst) >= total {
+                                            break;
+                                        }
+                                        let msg = String::from_utf8(buffer).unwrap();
+                                        let recv_index = (received.load(Ordering::SeqCst) - 1) % test_data_len;
+                                        trace!("socket read - received[{}]: {:?}", recv_index, msg);
+                                        assert!(msg == test_data[recv_index].0);
+                                        buffer = vec![];
                                     }
-                                },
+                                    _ => {
+                                        buffer.push(byte);
+                                        // println!("byte[0]: {:?} => {}", byte[0], String::from_utf8(byte.to_vec()).unwrap());
+                                    }
+                                }
                                 Err(_err) => {
                                     break;
-                                },
+                                }
                             }
                         }
                         println!("elapsed: {:?}", time.elapsed());
                         println!("received: {:?}", received.load(Ordering::SeqCst));
                         // println!("buffer: {:?}", buffer);
                         break 'main;
-                    },
-                    Err(_) => {},
+                    }
+                    Err(_) => {}
                 };
             }
         }
@@ -367,37 +361,35 @@ mod socket_read_performance {
                         let buf_reader = BufReader::new(stream);
                         for byte in buf_reader.bytes() {
                             match byte {
-                                Ok(byte) => {
-                                    match byte {
-                                        JDS_END_OF_TRANSMISSION => {
-                                            received.fetch_add(1, Ordering::SeqCst);
-                                            // debug!("socket read - received: {:?}", received.load(Ordering::SeqCst));
-                                            if received.load(Ordering::SeqCst) >= total {
-                                                break;
-                                            }
-                                            let msg = String::from_utf8(buffer).unwrap();
-                                            let recv_index = (received.load(Ordering::SeqCst) - 1) % test_data_len;
-                                            trace!("socket read - received[{}]: {:?}", recv_index, msg);
-                                            assert!(msg == test_data[recv_index].0);
-                                            buffer = vec![];
-                                        },
-                                        _ => {
-                                            buffer.push(byte);
-                                            // println!("byte[0]: {:?} => {}", byte[0], String::from_utf8(byte.to_vec()).unwrap());
-                                        },
+                                Ok(byte) => match byte {
+                                    JDS_END_OF_TRANSMISSION => {
+                                        received.fetch_add(1, Ordering::SeqCst);
+                                        // debug!("socket read - received: {:?}", received.load(Ordering::SeqCst));
+                                        if received.load(Ordering::SeqCst) >= total {
+                                            break;
+                                        }
+                                        let msg = String::from_utf8(buffer).unwrap();
+                                        let recv_index = (received.load(Ordering::SeqCst) - 1) % test_data_len;
+                                        trace!("socket read - received[{}]: {:?}", recv_index, msg);
+                                        assert!(msg == test_data[recv_index].0);
+                                        buffer = vec![];
                                     }
-                                },
+                                    _ => {
+                                        buffer.push(byte);
+                                        // println!("byte[0]: {:?} => {}", byte[0], String::from_utf8(byte.to_vec()).unwrap());
+                                    }
+                                }
                                 Err(_err) => {
                                     break;
-                                },
+                                }
                             }
                         }
                         println!("elapsed: {:?}", time.elapsed());
                         println!("received: {:?}", received.load(Ordering::SeqCst));
                         // println!("buffer: {:?}", buffer);
                         break 'main;
-                    },
-                    Err(_) => {},
+                    }
+                    Err(_) => {}
                 };
             }
         }
@@ -432,7 +424,7 @@ mod socket_read_performance {
                                             Ok(_bytes) => {
                                                 sent += 1;
                                                 trace!("socket sent: {:?}", msg);
-                                            },
+                                            }
                                             Err(err) => {
                                                 debug!("socket read - error: {:?}", err);
                                                 max_read_errors -= 1;
@@ -440,7 +432,7 @@ mod socket_read_performance {
                                                     error!("TCP server | socket read error: {:?}", err);
                                                     break;
                                                 }
-                                            },
+                                            }
                                         };
                                     }
                                 }
@@ -449,20 +441,19 @@ mod socket_read_performance {
                                     thread::sleep(Duration::from_micros(10));
                                 }
                                 // while received.len() < count {}
-                            },
+                            }
                             Err(err) => {
                                 info!("incoming connection - error: {:?}", err);
-                            },
+                            }
                         }
                     }
-                },
+                }
                 Err(err) => {
                     // connectExit.send(true).unwrap();
                     // okRef.store(false, Ordering::SeqCst);
                     panic!("Preparing test TCP server - error: {:?}", err);
-                },
+                }
             };
         });
     }
 }
-

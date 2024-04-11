@@ -94,10 +94,10 @@ impl Service for MockSendService {
                     Ok(_) => {
                         trace!("{}.run | send: {:?}", self_id, point);
                         sent.lock().unwrap().push(point);
-                    },
+                    }
                     Err(err) => {
                         warn!("{}.run | send error: {:?}", self_id, err);
-                    },
+                    }
                 }
                 if exit.load(Ordering::SeqCst) {
                     break;
@@ -105,8 +105,8 @@ impl Service for MockSendService {
                 match delay {
                     Some(duration) => {
                         thread::sleep(duration);
-                    },
-                    None => {},
+                    }
+                    None => {}
                 }
             }
         });
@@ -114,12 +114,12 @@ impl Service for MockSendService {
             Ok(handle) => {
                 info!("{}.run | Starting - ok", self.id);
                 Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
-            },
+            }
             Err(err) => {
                 let message = format!("{}.run | Start failed: {:#?}", self.id, err);
                 warn!("{}", message);
                 Err(message)
-            },
+            }
         }
     }
     //

@@ -41,7 +41,7 @@ impl ServiceConfig {
             Some(index) => {
                 self.keys.remove(index);
                 Ok(())
-            },
+            }
             None => Err(format!("{}.remove_key | '{}' - not found in: {:?}", self.id, name, self.conf)),
         }
     }
@@ -52,7 +52,7 @@ impl ServiceConfig {
             Ok(self_keyword) => {
                 trace!("{}.name | selfKeyword: {:?}", self.id, self_keyword);
                 self_keyword.name()
-            },
+            }
             Err(err) => panic!("{}.name | Keyword error in {:?}\n\tdetales: {:?}", self.id, self.conf.key, err),
         }
     }
@@ -63,7 +63,7 @@ impl ServiceConfig {
             Ok(self_keyword) => {
                 trace!("{}.sufix | selfKeyword: {:?}", self.id, self_keyword);
                 self_keyword.sufix()
-            },
+            }
             Err(err) => panic!("{}.sufix | Keyword error in {:?}\n\tdetales: {:?}", self.id, self.conf.key, err),
         }
     }
@@ -76,7 +76,7 @@ impl ServiceConfig {
                     Some(conf_tree) => Ok(conf_tree.conf),
                     None => Err(format!("{}.get_param_value | '{}' - not found in: {:?}", self.id, name, self.conf)),
                 }
-            },
+            }
             Err(err) => Err(err),
         }
     }
@@ -89,7 +89,7 @@ impl ServiceConfig {
                     Some(conf_tree) => Ok(conf_tree),
                     None => Err(format!("{}.get_param_conf | '{}' - not found in: {:?}", self.id, name, self.conf)),
                 }
-            },
+            }
             Err(err) => Err(err),
         }
     }
@@ -108,10 +108,10 @@ impl ServiceConfig {
                 match ConfDuration::from_str(&value) {
                     Ok(conf_duration) => {
                         Some(conf_duration.toDuration())
-                    },
+                    }
                     Err(err) => panic!("{}.get_duration | Parse {} duration '{}' error: {:?}", self.id, &name, &value, err),
                 }
-            },
+            }
             Err(_) => None,
         }
     }
@@ -137,7 +137,7 @@ impl ServiceConfig {
         match self.get_param_value("subscribe") {
             Ok(conf) => {
                 Ok(ConfSubscribe::new(conf))
-            },
+            }
             Err(err) => Err(err),
         }
     }    
@@ -155,7 +155,7 @@ impl ServiceConfig {
                     None => Err(format!("{}.get_in_queue | '{}' - not found in: {:?}", self.id, name, self.conf)),
                 }.unwrap().as_i64().unwrap();
                 Ok((keyword.name(), max_length))
-            },
+            }
             Err(err) => Err(format!("{}.get_in_queue | {} queue - not found in: {:#?}\n\terror: {:?}", self.id, prefix, self.conf, err)),
         }        
     }    
@@ -168,7 +168,7 @@ impl ServiceConfig {
                 let name = format!("{} {} {}", keyword.prefix(), keyword.kind().to_string(), keyword.name());
                 debug!("{}.get_out_queue | self out-queue params {}: {:?}", self.id, name, tx_name);
                 Ok(tx_name.conf.as_str().unwrap().to_string())
-            },
+            }
             Err(err) => Err(format!("{}.get_out_queue | {} queue - not found in: {:#?}\n\terror: {:?}", self.id, prefix, self.conf, err)),
         }        
     }    
@@ -178,7 +178,7 @@ impl ServiceConfig {
         match self.get_param_value("send-to") {
             Ok(conf) => {
                 Ok(conf.as_str().unwrap().to_string())
-            },
+            }
             Err(err) => Err(format!("{}.get_send_to | 'send-to' - not found in: {:#?}\n\terror: {:#?}", self.id, self.conf, err)),
         }        
     }    

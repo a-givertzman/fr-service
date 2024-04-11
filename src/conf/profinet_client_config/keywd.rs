@@ -95,25 +95,25 @@ impl FromStr for Keywd {
                             Err(_err) => {
                                 panic!("Keywd.from_str | Error parsing kind of keyword '{}'", &input);
                                 // Kind::Unknown
-                            },
+                            }
                         }
-                    },
+                    }
                     None => {
                         panic!("Keywd.from_str | Error parsing kind of keyword '{}'", &input);
                         // Kind::Unknown
-                    },
+                    }
                 };
                 let name = match &caps.get(groupName) {
                     Some(arg) => {
                         Ok(arg.as_str().to_string())
-                    },
+                    }
                     None => {
                         if input.is_empty() {                            
                             Err(format!("Error reading data of keyword '{}'", &input))
                         } else {
                             Ok(String::new())
                         }
-                    },
+                    }
                 };
                 match &name {
                     Ok(name) => {
@@ -123,18 +123,18 @@ impl FromStr for Keywd {
                                     "db" => Ok( Keywd::Db( KeywdValue { prefix, kind, name: name.to_string() } )),
                                     _      => Err(format!("Unknown keyword '{:?}'", &keyword)),
                                 }
-                            },
+                            }
                             None => {
                                 Err(format!("Unknown keyword '{}'", &input))
-                            },
+                            }
                         }
-                    },
+                    }
                     Err(err) => Err(err.to_string()),
                 }
-            },
+            }
             None => {
                 Err(format!("Prefix Kinde Name - not found in keyword '{}'", &input))
-            },
+            }
         }
     }
 }

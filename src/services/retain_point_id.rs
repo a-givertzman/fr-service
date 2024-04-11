@@ -53,7 +53,7 @@ impl RetainPointId {
                     Some(conf) => {
                         trace!("{}.points |     found: {}", self.id, conf.id);
                         conf.id
-                    },
+                    }
                     None => {
                         trace!("{}.points |     not found, calculating max...",self.id);
                         update_retained = true;
@@ -66,7 +66,7 @@ impl RetainPointId {
                         retained.insert(point.name.clone(), RetainedPointConfig { id: point.id, name: point.name.clone(), _type: point._type.clone() });
                         trace!("{}.points |     calculated: {}", self.id, id);
                         id
-                    },
+                    }
                 };
                 self.cache.push(
                     PointConfig {
@@ -103,9 +103,9 @@ impl RetainPointId {
                         let message = format!("{}.create_dir | Error create path: '{:?}'\n\terror: {:?}", self_id, path, err);
                         error!("{}", message);
                         Err(message)
-                    },
+                    }
                 }
-            },
+            }
         }
     }
     ///
@@ -123,15 +123,15 @@ impl RetainPointId {
                 match serde_json::from_str(&json_string) {
                     Ok(config) => {
                         return config
-                    },
+                    }
                     Err(err) => {
                         warn!("{}.read | Error in config: {:?}\n\terror: {:?}", self.id, json_string, err);
-                    },
+                    }
                 }
-            },
+            }
             Err(err) => {
                 debug!("{}.read | File {} reading error: {:?}", self.id, path, err);
-            },
+            }
         };
         HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default())
     }
@@ -154,16 +154,16 @@ impl RetainPointId {
                             Ok(_) => Ok(()),
                             Err(err) => Err(format!("{}.read | Error writing to file: '{:?}'\n\terror: {:?}", self.id, path, err)),
                         }
-                    },
+                    }
                     Err(err) => {
                         Err(format!("{}.read | Error open file: '{:?}'\n\terror: {:?}", self.id, path, err))
-                    },
+                    }
                 }
-            },
+            }
             Err(err) => {
                 error!("{:#?}", err);
                 Err(err)
-            },
+            }
         }
     }
     ///
@@ -211,14 +211,14 @@ impl RetainPointId {
                         let message = concat_string!(self.id, ".send | Error parsing API reply: {:?} \n\t reply was: {:?}", err.to_string(), reply);
                         warn!("{}", message);
                         Err(message)
-                    },
+                    }
                 }
-            },
+            }
             Err(err) => {
                 let message = concat_string!(self.id, ".send | Error sending API request: {:?}", err);
                 warn!("{}", message);
                 Err(message)
-            },
+            }
         }
     }
 }

@@ -75,7 +75,7 @@ impl ServicesBasic {
                 let r = srvc.lock().unwrap().subscribe(receiver_id, points);
                 debug!("{}.subscribe | Lock service '{:?}' - ok", self.id, service);
                 r
-            },
+            }
             None => panic!("{}.get | service '{:?}' - not found", self.id, service),
         }
     }
@@ -90,7 +90,7 @@ impl ServicesBasic {
                 let r = srvc.lock().unwrap().extend_subscription(receiver_id, points);
                 debug!("{}.extend_subscription | Lock service '{:?}' - ok", self.id, service);
                 r
-            },
+            }
             None => panic!("{}.get | service '{:?}' - not found", self.id, service),
         }
     }
@@ -104,7 +104,7 @@ impl ServicesBasic {
                 let r = srvc.lock().unwrap().unsubscribe(receiver_id, points);
                 debug!("{}.unsubscribe | Lock service '{:?}' - ok", self.id, service);
                 r
-            },
+            }
             None => panic!("{}.get | service '{:?}' - not found", self.id, service),
         }
     }
@@ -264,7 +264,7 @@ impl RetainPointId {
                     Some(id) => {
                         debug!("{}.points |     found: {}", self.id, id);
                         *id
-                    },
+                    }
                     None => {
                         debug!("{}.points |     not found, calculating max...",self.id);
                         update_retained = true;
@@ -275,7 +275,7 @@ impl RetainPointId {
                         retained.insert(point.name.clone(), id);
                         debug!("{}.points |     calculated: {}", self.id, id);
                         id
-                    },
+                    }
                 };
                 self.cache.push(
                     PointConfig {
@@ -317,21 +317,21 @@ impl RetainPointId {
                             match value.as_u64() {
                                 Some(value) => {
                                     retained.insert(key, value as usize);
-                                },
+                                }
                                 None => {
                                     error!("{}.read | Error parsing usize value in pair: {}: {:?}", self.id, key, value);
-                                },
+                                }
                             }
                         };
-                    },
+                    }
                     Err(err) => {
                         error!("{}.read | Error in config: {:?}\n\terror: {:?}", self.id, json_string, err);
-                    },
+                    }
                 }
-            },
+            }
             Err(err) => {
                 error!("{}.read | File {} reading error: {:?}", self.id, path, err);
-            },
+            }
         };
         retained
     }
@@ -354,10 +354,10 @@ impl RetainPointId {
                     Ok(_) => Ok(()),
                     Err(err) => Err(format!("{}.read | Error writing to file: '{}'\n\terror: {:?}", self.id, path, err)),
                 }
-            },
+            }
             Err(err) => {
                 Err(format!("{}.read | Error open file: '{}'\n\terror: {:?}", self.id, path, err))
-            },
+            }
         }
     }
 }

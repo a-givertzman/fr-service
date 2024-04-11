@@ -126,10 +126,10 @@ impl FnOut for SqlMetric {
                     trace!("{}.out | input: {:?} - found", self_id, name);
                     let point = input.borrow_mut().out();
                     self.sql.insert(full_name, point);
-                },
+                }
                 None => {
                     panic!("{}.out | input: {:?} - not found", self_id, name);
-                },
+                }
             };
         }
         trace!("{}.out | sql: {:?}", self_id, self.sql.out());

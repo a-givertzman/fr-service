@@ -71,10 +71,10 @@ impl App {
                 Ok(handles) => {
                     app.write().unwrap().insert_handles(&name, handles);
                     info!("{}.run |         Starting service: {} - ok", self_id, name);
-                },
+                }
                 Err(err) => {
                     error!("{}.run |         Error starting service '{}': {:#?}", self_id, name, err);
-                },
+                }
             };
             thread::sleep(Duration::from_millis(100));
         }
@@ -89,10 +89,10 @@ impl App {
                     let handles = app.write().unwrap().handles.remove(service_name).unwrap();
                     handles.wait().unwrap();
                     info!("{}.run | Waiting for service '{}' being finished - Ok", self_id, service_name);
-                },
+                }
                 None => {
                     break;
-                },
+                }
             }
         }
         info!("{}.run | Application exit - Ok\n", self_id);
@@ -128,7 +128,7 @@ impl App {
             )),
             _ => {
                 panic!("{}.run | Unknown service: {}({})", self_id, node_name, node_sufix);
-            },
+            }
         }
     }
     ///
@@ -173,25 +173,25 @@ impl App {
                                         println!("{}.run Stopping service '{}' - Ok", self_id, _id);
                                     }
                                     break;
-                                },
+                                }
                                 SIGKILL => {
                                     println!("{}.run Received signal {:?}", self_id, signal);
                                     println!("{}.run Application halt...", self_id);
                                     exit(0);
-                                },
+                                }
                                 _ => {
                                     println!("{}.run Received unknown signal {:?}", self_id, signal);
-                                },
+                                }
                             }
                         }
                     }).unwrap();
                     handle.wait().unwrap();
                     signals_handle.close();
                 });
-            },
+            }
             Err(err) => {
                 panic!("{}.run | Application hook system signals error; {:#?}", self_id, err);
-            },
+            }
         }
     }
 }

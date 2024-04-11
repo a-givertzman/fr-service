@@ -63,10 +63,10 @@ impl FnOut for FnVar {
             Some(result) => {
                 trace!("{}.out | value: {:?}", self.id, &self.result);
                 result.clone()
-            },
+            }
             None => {
                 panic!("{}.out | not initialised", self.id);
-            },
+            }
         }
     }
     //

@@ -59,16 +59,16 @@ impl FnOut for FnToInt {
         let out = match &point {
             PointType::Bool(value) => {
                 if value.value.0 {1} else {0}
-            },
+            }
             PointType::Int(value) => {
                 value.value
-            },
+            }
             PointType::Real(value) => {
                 value.value.trunc() as i64
-            },
+            }
             PointType::Double(value) => {
                 value.value.trunc() as i64
-            },
+            }
             _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, point.print_type_of(), point),
         };
         trace!("{}.out | out: {:?}", self.id, &out);

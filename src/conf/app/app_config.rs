@@ -97,7 +97,7 @@ impl AppConfig {
                         keyword,
                         node_conf,
                     );
-                },
+                }
                 _ => {
                     panic!("{}.new | Node '{:?}' - is not allowed in the root of the application config", self_id, keyword);
                 }
@@ -124,15 +124,15 @@ impl AppConfig {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
                         AppConfig::from_yaml_value(&config)
-                    },
+                    }
                     Err(err) => {
                         panic!("AppConfig.read | Error in config: {:?}\n\terror: {:?}", yaml_string, err)
-                    },
+                    }
                 }
-            },
+            }
             Err(err) => {
                 panic!("AppConfig.read | File {} reading error: {:?}", path, err)
-            },
+            }
         }
     }
 }

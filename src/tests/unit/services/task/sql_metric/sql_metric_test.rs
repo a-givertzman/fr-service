@@ -92,10 +92,10 @@ mod sql_metric {
                             // format!("insert into SelectMetric_test_table_name values(id, value, timestamp) (SqlMetric,{:.3},{})", targetValue, point.timestamp())
                         );
                     }
-                },
+                }
                 None => {
                     panic!("input {:?} - not found in the current taskNodes", &input_name)
-                },
+                }
             };
         }
     }
@@ -171,10 +171,10 @@ mod sql_metric {
                             // format!("insert into SelectMetric_test_table_name values(id, value, timestamp) (SqlMetric,{:.3},{})", targetValue, point.timestamp())
                         );
                     }
-                },
+                }
                 None => {
                     panic!("input {:?} - not found in the current taskNodes", &input_name)
-                },
+                }
             };
         }
     }
@@ -250,10 +250,10 @@ mod sql_metric {
                             // format!("insert into SelectMetric_test_table_name values(id, value, timestamp) (SqlMetric,{:.3},{})", targetValue, point.timestamp())
                         );
                     }
-                },
+                }
                 None => {
                     panic!("input {:?} - not found in the current taskNodes", &input_name)
-                },
+                }
             };
         }
     }

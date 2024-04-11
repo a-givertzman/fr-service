@@ -112,7 +112,7 @@ impl PointConfig {
                 let  mut map: Self = map;
                 map.name = name.to_owned();
                 Ok(map)
-            },
+            }
             Err(err) => Err(format!("PointConfig.from_json | Error: {:?}", err)),
         }
     }

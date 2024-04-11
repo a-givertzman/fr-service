@@ -63,10 +63,10 @@ impl ProfinetDb {
         match fs::OpenOptions::new().create(true).append(true).open(&path) {
             Ok(mut f) => {
                 f.write_fmt(format_args!("{:?}\n", point)).unwrap();
-            },
+            }
             Err(err) => {
                 warn!("{}.log | Error open file: '{}'\n\terror: {:?}", self_id, path, err)
-            },
+            }
         }
     }
     ///
@@ -101,11 +101,11 @@ impl ProfinetDb {
     //                 Ok(_) => {
     //                     trace!("{}.read | sent point: {:?}", self.id, point);
     //                     Self::log(&self.id, &self.name, &point);
-    //                 },
+    //                 }
     //                 Err(err) => {
     //                     message = format!("{}.read | send error: {}", self.id, err);
     //                     warn!("{}", message);
-    //                 },
+    //                 }
     //             }
     //         }
     //     }
@@ -130,11 +130,11 @@ impl ProfinetDb {
                                 if let Some(point) = parse_point.next(&bytes, timestamp) {
                                     // debug!("{}.read | point: {:?}", self.id, point);
                                     match tx_send.send(point) {
-                                        Ok(_) => {},
+                                        Ok(_) => {}
                                         Err(err) => {
                                             message = format!("{}.read | send error: {}", self.id, err);
                                             warn!("{}", message);
-                                        },
+                                        }
                                     }
                                 }
                             }
@@ -154,12 +154,12 @@ impl ProfinetDb {
                     warn!("{}", message);
                     Err(message)
                 }
-            },
+            }
             Err(err) => {
                 let message = format!("{}.read | read error: {}", self.id, err);
                 warn!("{}", message);
                 Err(message)
-            },
+            }
         }
     }
     ///
@@ -172,11 +172,11 @@ impl ProfinetDb {
         for (_key, parse_point) in &mut self.points {
             if let Some(point) = parse_point.next_status(status) {
                 match tx_send.send(point) {
-                    Ok(_) => {},
+                    Ok(_) => {}
                     Err(err) => {
                         message = format!("{}.yield_status | send error: {}", self.id, err);
                         warn!("{}", message);
-                    },
+                    }
                 }
             }
         }
@@ -202,25 +202,25 @@ impl ProfinetDb {
                         // client.write(self.number, address.offset.unwrap(), 2, &mut buf)
                         message = format!("{}.write | Write 'Bool' to the S7 Device - not implemented, point: {:?}", self.id, point.name);
                         Err(message)
-                    },
+                    }
                     PointType::Int(point) => {
                         client.write(self.number, address.offset.unwrap(), 2, &mut (point.value as i16).to_be_bytes())
-                    },
+                    }
                     PointType::Real(point) => {
                         client.write(self.number, address.offset.unwrap(), 4, &mut (point.value).to_be_bytes())
-                    },
+                    }
                     PointType::Double(point) => {
                         client.write(self.number, address.offset.unwrap(), 4, &mut (point.value as f32).to_be_bytes())
-                    },
+                    }
                     PointType::String(point) => {
                         message = format!("{}.write | Write 'String' to the S7 Device - not implemented, point: {:?}", self.id, point.name);
                         Err(message)
-                    },
+                    }
                 }
-            },
+            }
             None => {
                 Err(message)
-            },
+            }
         }
     }
     ///
@@ -230,16 +230,16 @@ impl ProfinetDb {
             match point_conf._type {
                 PointConfigType::Bool => {
                     (point_conf.name.clone(), Self::box_bool(tx_id, point_conf.name.clone(), point_conf))
-                },
+                }
                 PointConfigType::Int => {
                     (point_conf.name.clone(), Self::box_int(tx_id, point_conf.name.clone(), point_conf))
-                },
+                }
                 PointConfigType::Real => {
                     (point_conf.name.clone(), Self::box_real(tx_id, point_conf.name.clone(), point_conf))
-                },
+                }
                 PointConfigType::Double => {
                     (point_conf.name.clone(), Self::box_real(tx_id, point_conf.name.clone(), point_conf))
-                },
+                }
                 _ => panic!("{}.configureParsePoints | Unknown type '{:?}' for S7 Device", self_id, point_conf._type)
             }
         }).collect()
@@ -277,7 +277,7 @@ impl ProfinetDb {
                 Box::new(
                     FilterThreshold::new(0, conf.threshold, conf.factor.unwrap_or(0.0))
                 )
-            },
+            }
             None => Box::new(FilterEmpty::new(0)),
         }
     }
@@ -289,7 +289,7 @@ impl ProfinetDb {
                 Box::new(
                     FilterThreshold::new(0.0f32, conf.threshold, conf.factor.unwrap_or(0.0))
                 )
-            },
+            }
             None => Box::new(FilterEmpty::<f32>::new(0.0)),
         }
     }
@@ -301,7 +301,7 @@ impl ProfinetDb {
     //             Box::new(
     //                 FilterThreshold::new(0.0f64, conf.threshold, conf.factor.unwrap_or(0.0))
     //             )
-    //         },
+    //         }
     //         None => Box::new(FilterEmpty::<f64>::new(0.0)),
     //     }
     // }

@@ -47,10 +47,10 @@ impl StreamRead<Vec<u8>, RecvError> for JdsEncodeMessage {
                     Ok(_) => {
                         bytes.push(JDS_END_OF_TRANSMISSION);
                         Ok(bytes)
-                    },
+                    }
                     Err(err) => Err(RecvError::Error(format!("{}.read | error: {:?}", self.id, err))),
                 }
-            },
+            }
             Err(err) => Err(err),
         }
     }

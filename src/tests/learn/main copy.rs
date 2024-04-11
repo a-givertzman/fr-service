@@ -41,14 +41,14 @@ impl<'de> Deserialize<'de> for Config {
                             nodeType: FnConfigType::Unknown,
                             services: HashMap::new(),
                         })
-                    },
+                    }
                     Err(err) => {
                         // warn!("Config.deserialize | Unknown keyword: '{:?}' in the conf: {:?}", key, conf);
                         let msg = format!("Config.deserialize | possible input name: '{:?}'", v);
                         warn!("{}", msg);
                         // nodes.insert(key, Config::new(&conf, &None));
                         Err(de::Error::custom(msg))
-                    },
+                    }
                 }
             }
 
@@ -66,14 +66,14 @@ impl<'de> Deserialize<'de> for Config {
                                 nodeType: FnConfigType::Unknown,
                                 services: HashMap::new(),
                             })
-                        },
+                        }
                         Err(err) => {
                             // warn!("Config.deserialize | Unknown keyword: '{:?}' in the conf: {:?}", key, conf);
                             let msg = format!("Config.deserialize | possible input name: '{:?}'", key);
                             warn!("{}", msg);
                             // nodes.insert(key, Config::new(&conf, &None));
                             Err(de::Error::custom(msg))
-                        },
+                        }
                     }
 
                     // debug!("Config.deserialize | key: {:?}\tvalue: {:?}", key, value);
@@ -151,19 +151,19 @@ impl Config {
                             Ok(keyword) => {
                                 trace!("FnConfig.new | keyword parsed: {:?}", keyword);
                                 nodes.insert(key, Config::new(&conf, &Some(keyword.type_())));
-                            },
+                            }
                             Err(err) => {
                                 warn!("FnConfig.new | Unknown keyword: '{:?}' in the conf: {:?}", key, conf);
                                 warn!("FnConfig.new | possible input name: '{:?}'", key);
                                 nodes.insert(key, Config::new(&conf, &None));
-                            },
+                            }
                         }
                     }
                     nodes
-                },
+                }
                 Err(err) => {
                     panic!("Error in config: {:?}\n\terror: {:?}", conf, err);
-                },
+                }
             }
         } else if conf.is_string() {
             trace!("FnConfig.new | IS STRING");
@@ -176,19 +176,19 @@ impl Config {
                             trace!("FnConfig.new | keyword parsed: {:?}", keyword);
                             // return Config { nodeType: keyword.type_(), services: HashMap::new() }
                             return ()
-                        },
+                        }
                         Err(err) => {
                             warn!("FnConfig.new | Unknown keyword in the conf: {:?}", conf);
                             warn!("FnConfig.new | possible VAR detected: '{:?}'", conf);
                             // return Config { nodeType: FnConfigType::Var, services: HashMap::new() }
                             return ()
                             // panic!("FnConfig.new | Unknown keyword: {:?}", confStr);
-                        },
+                        }
                     }
-                },
+                }
                 Err(err) => {
                     panic!("Error in config: {:?}\n\terror: {:?}", conf, err);
-                },
+                }
             }
         } else {
             panic!("Unknown config type (String & Mapping supported): {:?}", conf);

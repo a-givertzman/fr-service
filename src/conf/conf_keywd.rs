@@ -134,22 +134,22 @@ impl FromStr for ConfKeywd {
                             Err(_err) => {
                                 warn!("ConfKeywd.from_str | Error parsing kind of keyword '{}'", &input);
                                 ConfKind::Unknown
-                            },
+                            }
                         }
-                    },
+                    }
                     None => ConfKind::Unknown,
                 };
                 let name = match &caps.get(groupName) {
                     Some(arg) => {
                         Ok(arg.as_str().to_string())
-                    },
+                    }
                     None => {
                         if input.is_empty() {                            
                             Err(format!("Error reading data of keyword '{}'", &input))
                         } else {
                             Ok(String::new())
                         }
-                    },
+                    }
                 };
                 let sufix = match &caps.get(groupSufix) {
                     Some(first) => String::from(first.as_str()),
@@ -166,18 +166,18 @@ impl FromStr for ConfKeywd {
                                     "link"      => Ok( ConfKeywd::Link( ConfKeywdValue { prefix, kind, name: name.to_string(), sufix } )),
                                     _           => Err(format!("Unknown keyword '{:?}'", &keyword)),
                                 }
-                            },
+                            }
                             None => {
                                 Err(format!("Unknown keyword '{}'", &input))
-                            },
+                            }
                         }
-                    },
+                    }
                     Err(err) => Err(err.to_string()),
                 }
-            },
+            }
             None => {
                 Err(format!("Prefix Kinde Name - not found in keyword '{}'", &input))
-            },
+            }
         }
     }
 }

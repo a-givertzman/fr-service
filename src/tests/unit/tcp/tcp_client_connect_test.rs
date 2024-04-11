@@ -49,12 +49,12 @@ mod tcp_client_connect {
                             info!("incoming connection - error: {:?}", err);
                         }
                     }
-                },
+                }
                 Err(err) => {
                     // connectExit.send(true);
                     ok_ref.store(false, Ordering::SeqCst);
                     panic!("Preparing test TCP server - error: {:?}", err);
-                },
+                }
             };
         });
         let connect_exit = connect.exit();
@@ -75,14 +75,19 @@ mod tcp_client_connect {
                     info!("connected: {:?}", tcp_stream);
                     connect.exit().send(true).unwrap();
                     break;
-                },
+                }
                 None => {
                     warn!("not connected");
-                },
+                }
             };
             thread::sleep(Duration::from_millis(100));
         }
-        assert!(ok.load(Ordering::SeqCst) == true, "\nresult: connected - {:?}\ntarget: connected - {:?}", ok, true);
+        assert!(
+            ok.load(Ordering::SeqCst) == true,
+            "\nresult: connected - {:?}\ntarget: connected - {:?}",
+            ok,
+            true,
+        );
     }
     ///
     ///
@@ -113,10 +118,10 @@ mod tcp_client_connect {
             Some(tcp_stream) => {
                 ok.store(true, Ordering::SeqCst);
                 info!("connected: {:?}", tcp_stream);
-            },
+            }
             None => {
                 warn!("not connected");
-            },
+            }
         };
         assert!(
             ok.load(Ordering::SeqCst) == false,
@@ -125,5 +130,4 @@ mod tcp_client_connect {
             false,
         );
     }
-
 }

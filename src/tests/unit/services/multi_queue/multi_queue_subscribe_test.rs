@@ -215,45 +215,45 @@ impl Service for MockReceiver {
                                 received_len += 1;
                                 trace!("{}.run | Received point: {:#?}", self_id, point);
                                 received.write().unwrap().push(point);
-                            },
+                            }
                             Err(err) => match err {
                                 std::sync::mpsc::RecvTimeoutError::Timeout      => warn!("{}.run | Receive error: {:#?}", self_id, err),
-                                std::sync::mpsc::RecvTimeoutError::Disconnected => {},
-                            },
+                                std::sync::mpsc::RecvTimeoutError::Disconnected => {}
+                            }
                         }
                         if exit.load(Ordering::SeqCst) {
                             break;
                         }
                     }
-                },
+                }
                 None => {
                     loop {
                         match recv.recv_timeout(Duration::from_secs(3)) {
                             Ok(point) => {
                                 received.write().unwrap().push(point)
-                            },
+                            }
                             Err(err) => match err {
                                 std::sync::mpsc::RecvTimeoutError::Timeout      => warn!("{}.run | Receive error: {:#?}", self_id, err),
-                                std::sync::mpsc::RecvTimeoutError::Disconnected => {},
-                            },
+                                std::sync::mpsc::RecvTimeoutError::Disconnected => {}
+                            }
                         }
                         if exit.load(Ordering::SeqCst) {
                             break;
                         }
                     }
-                },
+                }
             }
         });
         match handle {
             Ok(handle) => {
                 info!("{}.run | Starting - ok", self.id);
                 Ok(ServiceHandles::new(vec![(self.id.to_owned(), handle)]))
-            },
+            }
             Err(err) => {
                 let message = format!("{}.run | Start failed: {:#?}", self.id, err);
                 warn!("{}", message);
                 Err(message)
-            },
+            }
         }
     }
     //

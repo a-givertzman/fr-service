@@ -219,7 +219,7 @@ impl Serialize for PointType {
                     cot: point.cot,
                     timestamp: point.timestamp.to_rfc3339(),
                 }.serialize(serializer)
-            },
+            }
             PointType::Int(point) => {
                 PointSerialize {
                     type_: "Int",
@@ -229,7 +229,7 @@ impl Serialize for PointType {
                     cot: point.cot,
                     timestamp: point.timestamp.to_rfc3339(),
                 }.serialize(serializer)
-            },
+            }
             PointType::Real(point) => {
                 PointSerialize {
                     type_: "Real",
@@ -239,7 +239,7 @@ impl Serialize for PointType {
                     cot: point.cot,
                     timestamp: point.timestamp.to_rfc3339(),
                 }.serialize(serializer)
-            },
+            }
             PointType::Double(point) => {
                 PointSerialize {
                     type_: "Double",
@@ -249,7 +249,7 @@ impl Serialize for PointType {
                     cot: point.cot,
                     timestamp: point.timestamp.to_rfc3339(),
                 }.serialize(serializer)
-            },
+            }
             PointType::String(point) => {
                 PointSerialize {
                     type_: "String",
@@ -259,7 +259,7 @@ impl Serialize for PointType {
                     cot: point.cot,
                     timestamp: point.timestamp.to_rfc3339(),
                 }.serialize(serializer)
-            },
+            }
         }
         // let mut state = serializer.serialize_struct("Point", 6)?;
         // match self {
@@ -270,7 +270,7 @@ impl Serialize for PointType {
         //         state.serialize_field("status", &(Into::<u32>::into( point.status)))?;
         //         state.serialize_field("cot", &point.cot)?;
         //         state.serialize_field("timestamp", &point.timestamp.to_rfc3339())?;
-        //     },
+        //     }
         //     PointType::Int(point) => {
         //         state.serialize_field("type", "Int")?;
         //         state.serialize_field("value", &point.value)?;
@@ -278,7 +278,7 @@ impl Serialize for PointType {
         //         state.serialize_field("status", &(Into::<u32>::into( point.status)))?;
         //         state.serialize_field("cot", &point.cot)?;
         //         state.serialize_field("timestamp", &point.timestamp.to_rfc3339())?;
-        //     },
+        //     }
         //     PointType::Real(point) => {
         //         state.serialize_field("type", "Real")?;
         //         state.serialize_field("value", &point.value)?;
@@ -286,7 +286,7 @@ impl Serialize for PointType {
         //         state.serialize_field("status", &(Into::<u32>::into( point.status)))?;
         //         state.serialize_field("cot", &point.cot)?;
         //         state.serialize_field("timestamp", &point.timestamp.to_rfc3339())?;
-        //     },
+        //     }
         //     PointType::Double(point) => {
         //         state.serialize_field("type", "Double")?;
         //         state.serialize_field("value", &point.value)?;
@@ -294,7 +294,7 @@ impl Serialize for PointType {
         //         state.serialize_field("status", &(Into::<u32>::into( point.status)))?;
         //         state.serialize_field("cot", &point.cot)?;
         //         state.serialize_field("timestamp", &point.timestamp.to_rfc3339())?;
-        //     },
+        //     }
         //     PointType::String(point) => {
         //         state.serialize_field("type", "String")?;
         //         state.serialize_field("value", &point.value)?;
@@ -302,7 +302,7 @@ impl Serialize for PointType {
         //         state.serialize_field("status", &(Into::<u32>::into( point.status)))?;
         //         state.serialize_field("cot", &point.cot)?;
         //         state.serialize_field("timestamp", &point.timestamp.to_rfc3339())?;
-        //     },
+        //     }
         // };
         // trace!("{}.read | json: {:?}", self.id, value);
         // state.end()
@@ -343,7 +343,7 @@ impl<'de> Deserialize<'de> for PointType {
                     visitor.cot,
                     visitor.timestamp.parse().map_err(|err| timestamp_parsing_error::<D>("Point<Bool>", &visitor, err))?,
                 )))
-            },
+            }
             PointConfigType::Int => {
                 let value = visitor.value.as_i64().ok_or_else(|| value_parsing_error::<D>("Point<Int>", &visitor, "err"))?;
                 Ok(PointType::Int(Point::new(
@@ -354,7 +354,7 @@ impl<'de> Deserialize<'de> for PointType {
                     visitor.cot,
                     visitor.timestamp.parse().map_err(|err| timestamp_parsing_error::<D>("Point<Int>", &visitor, err))?,
                 )))
-            },
+            }
             PointConfigType::Real => {
                 let value = visitor.value.as_f64().ok_or_else(|| value_parsing_error::<D>("Point<Real>", &visitor, "err"))?;
                 Ok(PointType::Real(Point::new(
@@ -365,7 +365,7 @@ impl<'de> Deserialize<'de> for PointType {
                     visitor.cot,
                     visitor.timestamp.parse().map_err(|err| timestamp_parsing_error::<D>("Point<Real>", &visitor, err))?,
                 )))
-            },
+            }
             PointConfigType::Double => {
                 let value = visitor.value.as_f64().ok_or_else(|| value_parsing_error::<D>("Point<Double>", &visitor, "err"))?;
                 Ok(PointType::Double(Point::new(
@@ -376,7 +376,7 @@ impl<'de> Deserialize<'de> for PointType {
                     visitor.cot,
                     visitor.timestamp.parse().map_err(|err| timestamp_parsing_error::<D>("Point<Double>", &visitor, err))?,
                 )))
-            },
+            }
             PointConfigType::String => {
                 Ok(PointType::String(Point::new(
                     tx_id,
@@ -386,7 +386,7 @@ impl<'de> Deserialize<'de> for PointType {
                     visitor.cot,
                     visitor.timestamp.parse().map_err(|err| timestamp_parsing_error::<D>("Point<String>", &visitor, err))?,
                 )))
-            },
+            }
             PointConfigType::Json => {
                 Err(serde::de::Error::custom("PointType.deserialize | Error parsing Point<Json> - Not implemented yet"))
                 // Ok(PointType::String(Point::new(
@@ -397,7 +397,7 @@ impl<'de> Deserialize<'de> for PointType {
                 //     visitor.cot,
                 //     visitor.timestamp.parse().map_err(|err| value_parsing_timestamp::<D>("Point<Json>", &visitor, err))?,
                 // )))
-            },
+            }
         }
     }
 }

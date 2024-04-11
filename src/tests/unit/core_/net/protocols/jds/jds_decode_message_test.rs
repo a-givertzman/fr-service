@@ -139,33 +139,33 @@ mod jds_decode_message {
                                             trace!("socket read - received[{}]: {:?}", recv_index, msg);
                                             assert!(msg == test_data[recv_index].0);
                                             // debug!("socket read - received: {:?}", received.load(Ordering::SeqCst));
-                                        },
+                                        }
                                         OpResult::Err(err) => {
                                             warn!("socket read - received error: {:?}", err);
-                                        },
-                                        OpResult::Timeout() => {},
+                                        }
+                                        OpResult::Timeout() => {}
                                     }
                                     if received.load(Ordering::SeqCst) >= total {
                                         break 'read;
                                     }
-                                },
+                                }
                                 ConnectionStatus::Closed(_err) => {
                                     break 'read;
-                                },
+                                }
                             }
                         }
                         println!("elapsed: {:?}", time.elapsed());
                         println!("received: {:?}", received.load(Ordering::SeqCst));
                         // println!("buffer: {:?}", buffer);
                         break 'main;
-                    },
+                    }
                     Err(err) => {
                         if let Err(_) = errors_limit.add() {
                             panic!("Socket connection errors {}; last error: {:#?}", errors_limit.limit(), err)
                         } else {
                             warn!("Socket connection error: {:#?}", err)
                         }
-                    },
+                    }
                 };
             }
         }
@@ -199,7 +199,7 @@ mod jds_decode_message {
                                             Ok(_bytes) => {
                                                 sent += 1;
                                                 trace!("socket sent: {:?}", msg);
-                                            },
+                                            }
                                             Err(err) => {
                                                 debug!("socket read - error: {:?}", err);
                                                 max_read_errors -= 1;
@@ -207,14 +207,14 @@ mod jds_decode_message {
                                                     error!("TCP server | socket read error: {:?}", err);
                                                     break;
                                                 }
-                                            },
+                                            }
                                         };
                                         _socket.flush().unwrap();
                                         match _socket.write(&[bytes2, &eot].concat()) {
                                             Ok(_bytes) => {
                                                 sent += 1;
                                                 trace!("socket sent: {:?}", msg);
-                                            },
+                                            }
                                             Err(err) => {
                                                 debug!("socket read - error: {:?}", err);
                                                 max_read_errors -= 1;
@@ -222,7 +222,7 @@ mod jds_decode_message {
                                                     error!("TCP server | socket read error: {:?}", err);
                                                     break;
                                                 }
-                                            },
+                                            }
                                         };
                                     }
                                 }
@@ -231,18 +231,18 @@ mod jds_decode_message {
                                     thread::sleep(Duration::from_micros(10));
                                 }
                                 // while received.len() < count {}
-                            },
+                            }
                             Err(err) => {
                                 info!("incoming connection - error: {:?}", err);
-                            },
+                            }
                         }
                     }
-                },
+                }
                 Err(err) => {
                     // connectExit.send(true).unwrap();
                     // okRef.store(false, Ordering::SeqCst);
                     panic!("Preparing test TCP server - error: {:?}", err);
-                },
+                }
             };
         });
     }

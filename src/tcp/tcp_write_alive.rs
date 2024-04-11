@@ -51,19 +51,19 @@ impl TcpWriteAlive {
                         match result {
                             OpResult::Ok(_) => {
                                 cycle.wait();
-                            },
+                            }
                             OpResult::Err(err) => {
                                 warn!("{}.run | error: {:?}", self_id, err);
                                 cycle.wait();
-                            },
+                            }
                             OpResult::Timeout() => {}
                         }
-                    },
+                    }
                     ConnectionStatus::Closed(err) => {
                         warn!("{}.run | error: {:?}", self_id, err);
                         exit_pair.store(true, Ordering::SeqCst);
                         break 'main;
-                    },
+                    }
                 };
                 if exit.load(Ordering::SeqCst) | exit_pair.load(Ordering::SeqCst) {
                     break 'main;

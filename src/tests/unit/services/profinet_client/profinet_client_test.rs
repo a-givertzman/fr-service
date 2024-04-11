@@ -76,13 +76,13 @@ mod profinet_client {
                 Value::Bool(value) => panic!("{} | Bool does not supported: {:?}", self_id, value),
                 Value::Int(value) => {
                     PointType::Int(Point::new(tx_id, &Name::new("/Ied01/db999/", "Capacitor.Capacity").join(), value, Status::Ok, Cot::Act, Utc::now()))
-                },
+                }
                 Value::Real(value) => {
                     PointType::Real(Point::new(tx_id, &Name::new("/Ied01/db899/", "Drive.Speed").join(), value, Status::Ok, Cot::Act, Utc::now()))
-                },
+                }
                 Value::Double(value) => {
                     PointType::Double(Point::new(tx_id, &Name::new("/Ied01/db899/", "Drive.Speed").join(), value, Status::Ok, Cot::Act, Utc::now()))
-                },
+                }
                 Value::String(value) => panic!("{} | String does not supported: {:?}", self_id, value),
             };
             if let Err(err) = send.send(point.clone()) {
@@ -94,31 +94,31 @@ mod profinet_client {
                         match received_point {
                             PointType::Bool(value) => {
                                 panic!("{} | Bool does not supported: {:?}", self_id, value)
-                            },
+                            }
                             PointType::Int(received_point) => {
                                 let result = received_point.value;
                                 let target = point.as_int().value;
                                 assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
-                            },
+                            }
                             PointType::Real(received_point) => {
                                 let result = received_point.value;
                                 let target = point.as_real().value;
                                 assert!(result.aprox_eq(target, 3), "\nresult: {:?}\ntarget: {:?}", result, target);
-                            },
+                            }
                             PointType::Double(received_point) => {
                                 let result = received_point.value;
                                 let target = point.as_double().value;
                                 assert!(result.aprox_eq(target, 3), "\nresult: {:?}\ntarget: {:?}", result, target);
-                            },
+                            }
                             PointType::String(value) => {
                                 panic!("{} | Bool does not supported: {:?}", self_id, value)
-                            },
+                            }
                         }
                     }
-                },
+                }
                 Err(err) => {
                     warn!("{} | Receive changed value error: {:#?}", self_id, err);
-                },
+                }
             }
         }
         // thread::sleep(Duration::from_millis(3000));

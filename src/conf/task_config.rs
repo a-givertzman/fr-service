@@ -101,10 +101,10 @@ impl TaskConfig {
         match value.as_mapping().unwrap().into_iter().next() {
             Some((key, value)) => {
                 Self::new(parent, &mut ConfTree::new(key.as_str().unwrap(), value.clone()))
-            },
+            }
             None => {
                 panic!("TaskConfig.from_yaml | Format error or empty conf: {:#?}", value)
-            },
+            }
         }        
     }
     ///
@@ -116,15 +116,15 @@ impl TaskConfig {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
                         TaskConfig::from_yaml(parent, &config)
-                    },
+                    }
                     Err(err) => {
                         panic!("TaskConfig.read | Error in config: {:?}\n\terror: {:?}", yaml_string, err)
-                    },
+                    }
                 }
-            },
+            }
             Err(err) => {
                 panic!("TaskConfig.read | File {} reading error: {:?}", path, err)
-            },
+            }
         }
     }
     ///

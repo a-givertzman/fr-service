@@ -72,17 +72,17 @@ impl ConfSubscribe {
                                         Some(entry) => entry.append(&mut points.clone()),
                                         None => {
                                             entry.replace(points.clone());
-                                        },
+                                        }
                                     };
                                 }
                             })
                             .or_insert(criterias);
                         subscriptions
                     })
-                },
+                }
                 None => {
                     panic!("{}.new | Yaml Mapping expected, but not found: {:#?}", self.id, self.conf);
-                },
+                }
             }
         } else {
             panic!("{}.new | Invalid Subscribe option format: {:#?}", self.id, self.conf);
@@ -139,7 +139,7 @@ impl Criterias {
                     }
                 }
                 points
-            },
+            }
             None => None,
         }
     }
@@ -203,17 +203,17 @@ impl Criterias {
         if let Some(history) = history {
             trace!("{}.accept | check history", self_id);
             match history {
-                PointConfigHistory::None => {},
+                PointConfigHistory::None => {}
                 PointConfigHistory::Read => {
                     accepted &= point_conf.history == PointConfigHistory::Read
-                },
+                }
                 PointConfigHistory::Write => {
                     accepted &= point_conf.history == PointConfigHistory::Write
-                },
+                }
                 PointConfigHistory::ReadWrite => {
                     trace!("{}.accept | point_conf.history != PointConfigHistory::None: {}", self_id, point_conf.history != PointConfigHistory::None);
                     accepted &= point_conf.history != PointConfigHistory::None;
-                },
+                }
             };
         }
         trace!("{}.accept | accepted: {}", self_id, accepted);

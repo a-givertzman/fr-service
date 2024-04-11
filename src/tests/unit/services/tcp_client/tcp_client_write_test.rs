@@ -159,16 +159,16 @@ mod tcp_client {
                                                         acceptCount = -1;
                                                         break;
                                                     }
-                                                },
+                                                }
                                                 OpResult::Err(err) => {
                                                     warn!("{:?}", err);
-                                                },
-                                                OpResult::Timeout() => {},
+                                                }
+                                                OpResult::Timeout() => {}
                                             }
-                                        },
+                                        }
                                         ConnectionStatus::Closed(_err) => {
                                             warn!("TCP server | connection - closed");
-                                        },
+                                        }
                                     }
 
                                 }
@@ -176,18 +176,18 @@ mod tcp_client {
                                 // while received.lock().unwrap().len() < count {
                                 //     thread::sleep(Duration::from_micros(100));
                                 // }
-                            },
+                            }
                             Err(err) => {
                                 warn!("incoming connection - error: {:?}", err);
-                            },
+                            }
                         }
                     }
-                },
+                }
                 Err(err) => {
                     // connectExit.send(true).unwrap();
                     // okRef.store(false, Ordering::SeqCst);
                     panic!("Preparing test TCP server - error: {:?}", err);
-                },
+                }
             };
         })
     }

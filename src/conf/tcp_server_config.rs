@@ -92,10 +92,10 @@ impl TcpServerConfig {
         match value.as_mapping().unwrap().into_iter().next() {
             Some((key, value)) => {
                 Self::new(parent, &mut ConfTree::new(key.as_str().unwrap(), value.clone()))
-            },
+            }
             None => {
                 panic!("TcpServerConfig.from_yaml | Format error or empty conf: {:#?}", value)
-            },
+            }
         }
     }
     ///
@@ -107,15 +107,15 @@ impl TcpServerConfig {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
                         TcpServerConfig::from_yaml(parent, &config)
-                    },
+                    }
                     Err(err) => {
                         panic!("TcpServerConfig.read | Error in config: {:?}\n\terror: {:?}", yaml_string, err)
-                    },
+                    }
                 }
-            },
+            }
             Err(err) => {
                 panic!("TcpServerConfig.read | File {} reading error: {:?}", path, err)
-            },
+            }
         }
     }
 }

@@ -152,10 +152,10 @@ mod conf_subscribe {
                     let result = conf.with(&points.to_vec());
                     println!("subscribe: {:#?}", result);
                     assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
-                },
+                }
                 Err(err) => {
                     panic!("Deserialize error: {:#?}", err);
-                },
+                }
             };
         }
         test_duration.exit();

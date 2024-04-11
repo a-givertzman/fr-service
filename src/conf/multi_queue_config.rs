@@ -54,11 +54,11 @@ impl MultiQueueConfig {
                         queues.iter().map(|value| {
                             value.as_str().unwrap().to_owned()
                         }).collect()
-                },
+                    }
                     None => vec![],
                 };
                 queues
-            },
+            }
             Err(err) => panic!("{}.new | out queue - not found in : {:?}\n\terror: {:?}", self_id, self_conf, err),
         };
         debug!("{}.new | TX: {:?}", self_id, tx);
@@ -75,10 +75,10 @@ impl MultiQueueConfig {
         match value.as_mapping().unwrap().into_iter().next() {
             Some((key, value)) => {
                 Self::new(parent, &mut ConfTree::new(key.as_str().unwrap(), value.clone()))
-            },
+            }
             None => {
                 panic!("MultiQueueConfig.from_yaml | Format error or empty conf: {:#?}", value)
-            },
+            }
         }
     }
     ///
@@ -90,15 +90,15 @@ impl MultiQueueConfig {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
                         MultiQueueConfig::from_yaml(parent, &config)
-                    },
+                    }
                     Err(err) => {
                         panic!("MultiQueueConfig.read | Error in config: {:?}\n\terror: {:?}", yaml_string, err)
-                    },
+                    }
                 }
-            },
+            }
             Err(err) => {
                 panic!("MultiQueueConfig.read | File {} reading error: {:?}", path, err)
-            },
+            }
         }
     }
 }

@@ -47,20 +47,20 @@ mod tests {
                             println!("stream 1: '{}'", stream);
                             connected += 1;
                             closed = false;
-                        },
+                        }
                         Err(err) => {
                             println!("error 1: '{}'", err);
-                        },
+                        }
                     };
                     match connect.connect(closed) {
                         Ok(stream) => {
                             println!("stream 2: '{}'", stream);
                             connected += 1;
                             closed = false;
-                        },
+                        }
                         Err(err) => {
                             println!("error 2: '{}'", err);
-                        },
+                        }
                     };
                     if connected >= 2 {break;}
                     thread::sleep(Duration::from_millis(300))
@@ -108,14 +108,14 @@ mod tests {
             match ConnectState::from( self.state.load(Ordering::Relaxed) ) {
                 ConnectState::Closed => {
                     self.connect_stream();
-                },
-                ConnectState::Connecting => {},
+                }
+                ConnectState::Connecting => {}
                 ConnectState::Connected => {
                     if closed {
                         self.state.store(ConnectState::Closed.value(), Ordering::SeqCst);
                         self.connect_stream();
                     }
-                },
+                }
             };
             match ConnectState::from( self.state.load(Ordering::Relaxed) ) {
                 ConnectState::Connected => {
@@ -123,7 +123,7 @@ mod tests {
                     let streamClone= stream.clone();
                     self.stream.lock().unwrap().push(stream);
                     Ok(streamClone)
-                },
+                }
                 _ => Err(String::from(format!("{:?}", ConnectState::from( self.state.load(Ordering::Relaxed) )))),
             }
         }
@@ -141,11 +141,11 @@ mod tests {
                             println!("TestConnect | connecting - ok");
                             stream.lock().unwrap().push(format!("Stream"));
                             state.store(ConnectState::Connected.value(), Ordering::SeqCst)
-                        },
+                        }
                         false => {
                             state.store(ConnectState::Closed.value(), Ordering::SeqCst);
                             println!("TestConnect | connecting - error");
-                        },
+                        }
                     };
                 });
                 h.join().unwrap();

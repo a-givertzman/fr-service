@@ -56,10 +56,10 @@ mod tests {
                     Ok(value) => {
                         received_local.push(value);
                         received_local_len += 1;
-                    },
+                    }
                     Err(err) => {
                         error!("Error receiving value: {:?}", err);
-                    },
+                    }
                 }
             }
             *received_clone.write().unwrap() = received_local;
@@ -78,15 +78,15 @@ mod tests {
                         match send.send(value) {
                             Ok(_) => {
                                 sent_local += 1;
-                            },
+                            }
                             Err(err) => {
                                 error!("Error sending value to the sender '{:?}'", err);
-                            },
+                            }
                         }
-                    },
+                    }
                     None => {
                         error!("Error getting sender '{}'", key);
-                    },
+                    }
                 }
             }
             *sent_clone.write().unwrap() = sent_local;
@@ -134,10 +134,10 @@ mod tests {
                     Ok(value) => {
                         received_local.push(value);
                         received_local_len += 1;
-                    },
+                    }
                     Err(err) => {
                         error!("Error receiving value: {:?}", err);
-                    },
+                    }
                 }
             }
             *received_clone.write().unwrap() = received_local;
@@ -156,15 +156,15 @@ mod tests {
                         match send.send(value) {
                             Ok(_) => {
                                 sent_local += 1;
-                            },
+                            }
                             Err(err) => {
                                 error!("Error sending value to the sender '{:?}'", err);
-                            },
+                            }
                         }
-                    },
+                    }
                     None => {
                         error!("Error getting sender '{}'", key);
-                    },
+                    }
                 }
             }
             *sent_clone.write().unwrap() = sent_local;
@@ -214,10 +214,10 @@ mod tests {
                     Ok(value) => {
                         received_local.push(value);
                         received_local_len += 1;
-                    },
+                    }
                     Err(err) => {
                         error!("Error receiving value: {:?}", err);
-                    },
+                    }
                 }
             }
             *received_clone.write().unwrap() = received_local;
@@ -236,15 +236,15 @@ mod tests {
                         match send.send(value) {
                             Ok(_) => {
                                 sent_local += 1;
-                            },
+                            }
                             Err(err) => {
                                 error!("Error sending value to the sender '{:?}'", err);
-                            },
+                            }
                         }
-                    },
+                    }
                     None => {
                         error!("Error getting sender '{}'", key);
-                    },
+                    }
                 }
             }
             *sent_clone.write().unwrap() = sent_local;
@@ -294,10 +294,10 @@ mod tests {
                     Ok(value) => {
                         received_local.push(value);
                         received_local_len += 1;
-                    },
+                    }
                     Err(err) => {
                         error!("Error receiving value: {:?}", err);
-                    },
+                    }
                 }
             }
             *received_clone.write().unwrap() = received_local;
@@ -316,92 +316,92 @@ mod tests {
                         match send.send(value) {
                             Ok(_) => {
                                 sent_local += 1;
-                            },
+                            }
                             Err(err) => error!("Error sending value to the sender '{:?}'", err),
                         }
-                    },
+                    }
                     "stream_03" => {
                         match send.send(value) {
                             Ok(_) => {
                                 sent_local += 1;
-                            },
+                            }
                             Err(err) => error!("Error sending value to the sender '{:?}'", err),
                         }
-                    },
+                    }
                     "stream_04" => {
                         match send.send(value) {
                             Ok(_) => {
                                 sent_local += 1;
-                            },
+                            }
                             Err(err) => error!("Error sending value to the sender '{:?}'", err),
                         };
-                    },
+                    }
                     "stream_05" => {
                         match send.send(value) {
                             Ok(_) => sent_local += 1,
                             Err(err) => error!("Error sending value to the sender '{:?}'", err),
                         }
-                    },
+                    }
                     "stream_06" => {
                         match send.send(value) {
                             Ok(_) => sent_local += 1,
                             Err(err) => error!("Error sending value to the sender '{:?}'", err),
                         }
-                    },
+                    }
                     "stream_07" => {
                         match send.send(value) {
                             Ok(_) => sent_local += 1,
                             Err(err) => error!("Error sending value to the sender '{:?}'", err),
                         }
-                    },
+                    }
                     "stream_08" => {
                         match send.send(value) {
                             Ok(_) => sent_local += 1,
                             Err(err) => error!("Error sending value to the sender '{:?}'", err),
                         }
-                    },
+                    }
                     "stream_09" => {
                         match send.send(value) {
                             Ok(_) => sent_local += 1,
                             Err(err) => error!("Error sending value to the sender '{:?}'", err),
                         }
-                    },
+                    }
                     "stream_10" => {
                         match send.send(value) {
                             Ok(_) => sent_local += 1,
                             Err(err) => error!("Error sending value to the sender '{:?}'", err),
                         }
-                    },
+                    }
                     "stream_11" => {
                         match send.send(value) {
                             Ok(_) => sent_local += 1,
                             Err(err) => error!("Error sending value to the sender '{:?}'", err),
                         }
-                    },
+                    }
                     "stream_12" => {
                         match send.send(value) {
                             Ok(_) => sent_local += 1,
                             Err(err) => error!("Error sending value to the sender '{:?}'", err),
                         }
-                    },
+                    }
                     "stream_13" => {
                         match send.send(value) {
                             Ok(_) => sent_local += 1,
                             Err(err) => error!("Error sending value to the sender '{:?}'", err),
                         }
-                    },
+                    }
                     "stream_14" => {
                         match send.send(value) {
                             Ok(_) => sent_local += 1,
                             Err(err) => error!("Error sending value to the sender '{:?}'", err),
                         }
-                    },
+                    }
                     "stream_15" => {
                         match send.send(value) {
                             Ok(_) => sent_local += 1,
                             Err(err) => error!("Error sending value to the sender '{:?}'", err),
                         }
-                    },
+                    }
                     _ => panic!("Unknown key '{}'", key),
                 }
             }

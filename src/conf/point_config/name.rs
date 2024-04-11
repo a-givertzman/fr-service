@@ -37,10 +37,10 @@ impl Name {
                     } else {
                         concat_string!("/", self.parent)
                     }
-                },
+                }
                 None => {
                     "/".to_owned()
-                },
+                }
             };
             *self.joined.borrow_mut() = Some(match parent.chars().last() {
                 Some(parent_last) => {
@@ -55,12 +55,12 @@ impl Name {
                             } else {
                                 concat_string!(parent, "/", self.me)
                             }
-                        },
+                        }
                         None => {
                             parent.to_owned()
-                        },
+                        }
                     }
-                },
+                }
                 None => {
                     match self.me.chars().next() {
                         Some(me_first) => {
@@ -69,12 +69,12 @@ impl Name {
                             } else {
                                 concat_string!("/", self.me)
                             }
-                        },
+                        }
                         None => {
                             panic!("PointName.new | Parent or name must not be empty")
-                        },
+                        }
                     }
-                },
+                }
             });
         }
         self.joined.borrow().clone().unwrap_or_else(|| {

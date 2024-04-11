@@ -43,7 +43,7 @@ impl JdsRequest {
                         } else {
                             (Cot::ReqErr, "Authentication error: Invalid secret or kind of auth request")
                         }
-                    },
+                    }
                     _ => {
                         (Cot::ReqErr, "Authentication error: Invalid secret or kind of auth request")
                     }
@@ -59,7 +59,7 @@ impl JdsRequest {
                         chrono::offset::Utc::now(),
                     ))),
                 )
-            },
+            }
             RequestKind::AuthSsh => {
                 debug!("{}.handle | Request '{}': \n\t{:?}", self_id, RequestKind::AUTH_SSH, request);
                 let (cot, message) = match &shared.auth {
@@ -72,12 +72,12 @@ impl JdsRequest {
                             Ok(_) => {
                                 shared.jds_state = JdsState::Authenticated;
                                 (Cot::ReqCon, "Authentication successful".to_owned())
-                            },
+                            }
                             Err(err) => {
                                 (Cot::ReqErr, format!("Authentication error: {}", err))
-                            },
+                            }
                         }
-                    },
+                    }
                     _ => {
                         (Cot::ReqErr, "Authentication error: Invalid secret or kind of auth request".to_owned())
                     }
@@ -93,7 +93,7 @@ impl JdsRequest {
                         chrono::offset::Utc::now(),
                     ))),
                 )
-            },
+            }
             RequestKind::Points => {
                 debug!("{}.handle.Points | Request '{}': \n\t{:?}", self_id, RequestKind::POINTS, request);
                 let points = services.slock().points(requester_name);
@@ -116,7 +116,7 @@ impl JdsRequest {
                 debug!("{}.handle.Points | Reply: {:?} points", self_id, points_len);
                 trace!("{}.handle.Points | Reply: \n\t{:#?}", self_id, reply);
                 reply
-            },
+            }
             RequestKind::Subscribe => {
                 debug!("{}.handle.Subscribe | Request '{}': Point( name: {:?}, status: {:?}, cot: {:?}, timestamp: {:?})", self_id, RequestKind::SUBSCRIBE, request.name(), request.status(), request.cot(), request.timestamp());
                 trace!("{}.handle.Subscribe | Request '{}': \n\t{:?}", self_id, RequestKind::SUBSCRIBE, request);
@@ -135,7 +135,7 @@ impl JdsRequest {
                                     }
                                     points
                                 })
-                            },
+                            }
                             None => {
                                 debug!("{}.handle.Subscribe | 'Subscribe' request (broadcast)", self_id);
                                 trace!("{}.handle.Subscribe | 'Subscribe' request (broadcast): {:?}", self_id, request);
@@ -145,9 +145,9 @@ impl JdsRequest {
                                     );
                                     points
                                 })
-                            },
+                            }
                         }
-                    },
+                    }
                     Err(err) => {
                         warn!("{}.handle.Subscribe | 'Subscribe' request parsing error: {:?}\n\t request: {:?}", self_id, err, request);
                         services.slock().points(requester_name).iter().fold(vec![], |mut points, point_conf| {
@@ -156,7 +156,7 @@ impl JdsRequest {
                             );
                             points
                         })
-                    },
+                    }
                 };
                 // let receiver_name = Name::new(parent, &shared.connection_id).join();
                 let receiver_name = shared.subscribe_receiver.clone();
@@ -168,7 +168,7 @@ impl JdsRequest {
                         let message = format!("{}.handle.Subscribe | extend_subscription failed with error: {:?}", self_id, err);
                         warn!("{}", message);
                         (Cot::ReqErr, message)
-                    },
+                    }
                 };
                 match shared.cache.clone() {
                     // TODO add named subscription
@@ -186,12 +186,12 @@ impl JdsRequest {
                         chrono::offset::Utc::now(),
                     ))),
                 )
-            },
+            }
             RequestKind::Unknown => {
                 debug!("{}.handle | Unknown request: \n\t{:?}", self_id, request);
                 warn!("{}.handle | Unknown request name: {:?}", self_id, request.name());
                 RouterReply::new(None, None)
-            },
+            }
         }
     }
     ///
@@ -207,10 +207,10 @@ impl JdsRequest {
                     }
                 }
                 shared.req_reply_send.push(send);
-            },
+            }
             None => {
                 error!("{}.handle.Subscribe | Cant get req_reply_send", self_id)
-            },
+            }
         }
     }
     ///

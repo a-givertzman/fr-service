@@ -163,15 +163,15 @@ mod tcp_client {
                                         match socket.write(&bytes) {
                                             Ok(_) => {
                                                 sent.lock().unwrap().push(point);
-                                            },
+                                            }
                                             Err(err) => {
                                                 warn!("TCP server | socket.wrtite error: {:?}", err);
-                                            },
+                                            }
                                         }
-                                    },
+                                    }
                                     Err(err) => {
                                         error!("TCP server | error: {:?}", err);
-                                    },
+                                    }
                                 }
                             }
                             info!("TCP server | all sent: {:?}", sent.lock().unwrap().len());
@@ -179,15 +179,15 @@ mod tcp_client {
                             while received.lock().unwrap().len() < count {
                                 thread::sleep(Duration::from_millis(100));
                             }
-                        },
+                        }
                         Err(err) => {
                             warn!("incoming connection - error: {:?}", err);
-                        },
+                        }
                     }
-                },
+                }
                 Err(err) => {
                     panic!("Preparing test TCP server - error: {:?}", err);
-                },
+                }
             };
         });
         info!("TCP server | Started");

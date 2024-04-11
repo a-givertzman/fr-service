@@ -470,10 +470,10 @@ mod jds_routes {
                     assert!(result.history == target.history, "\nresult: {:?}\ntarget: {:?}", result.history, target.history);
                     assert!(result.alarm == target.alarm, "\nresult: {:?}\ntarget: {:?}", result.alarm, target.alarm);
                     assert!(result.address == target.address, "\nresult: {:?}\ntarget: {:?}", result.address, target.address);
-                },
+                }
                 None => {
                     panic!("PointConfig '{}' - not found in the Points request reply", target.name)
-                },
+                }
             }
         }
         assert!(result.status() == target.status(), "\nresult: {:?}\ntarget: {:?}", result.status(), target.status());
@@ -609,10 +609,10 @@ mod jds_routes {
                 Ok(_) => {
                     sent += 1;
                     println!("{} | \t sent: {:?}", self_id, point);
-                },
+                }
                 Err(err) => {
                     panic!("{} | Send error: {:?}", self_id, err)
-                },
+                }
             }
         }
         println!("{} | Total sent: {}", self_id, sent);
@@ -647,17 +647,17 @@ mod jds_routes {
                 Cot::ReqCon => {
                     replies += 1;
                     println!("{} | Received ReqCon reply: {:?}", self_id, point);
-                },
+                }
                 Cot::ReqErr => {
                     reply_errors += 1;
                     println!("{} | Received ReqErr reply: {:?}", self_id, point);
-                },
+                }
                 // Cot::Read => todo!(),
                 // Cot::Write => todo!(),
                 // Cot::All => todo!(),
                 _ => {
                     println!("{} | Received unknown point: {:?}", self_id, point);
-                },
+                }
             }
         }
         let result = replies;

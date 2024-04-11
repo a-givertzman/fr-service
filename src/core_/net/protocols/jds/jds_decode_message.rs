@@ -41,17 +41,17 @@ impl JdsDecodeMessage {
                     OpResult::Ok(_) => {
                         self.remainder.clear();
                         ConnectionStatus::Active(OpResult::Ok(bytes))
-                    },
+                    }
                     OpResult::Err(err) => ConnectionStatus::Active(OpResult::Err(err)),
                     OpResult::Timeout() => ConnectionStatus::Active(OpResult::Timeout()),
                 }
-            },
+            }
             ConnectionStatus::Closed(err) => {
                 if !bytes.is_empty() {
                     self.remainder = bytes;
                 }
                 ConnectionStatus::Closed(err)
-            },
+            }
         }
     }
     ///
@@ -68,27 +68,27 @@ impl JdsDecodeMessage {
                     match byte {
                         JDS_END_OF_TRANSMISSION => {
                             return ConnectionStatus::Active(OpResult::Ok(()));
-                        },
+                        }
                         _ => {
                             bytes.push(byte);
-                        },
+                        }
                     };
-                },
+                }
                 Err(err) => {
                     // warn!("{}.read_all | error reading from socket: {:?}", self_id, err);
                     // warn!("{}.read_all | error kind: {:?}", self_id, err.kind());
                     match Self::match_error_kind(err.kind()) {
                         Status::Active => {
                             return ConnectionStatus::Active(OpResult::Err(format!("{}.read_all | tcp stream is empty", self_id)));
-                        },
+                        }
                         Status::Closed => {
                             return ConnectionStatus::Closed(format!("{}.read_all | tcp stream is closed, error: {:?}", self_id, err));
-                        },
+                        }
                         Status::Timeout => {
                             return ConnectionStatus::Active(OpResult::Timeout())
                         }
                     }
-                },
+                }
             };
         };
         trace!("{}.read_all | read bytes: {:?}", self_id, bytes);

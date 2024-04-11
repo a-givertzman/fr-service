@@ -178,13 +178,13 @@ impl JdsConnection {
                                     JdsState::Unknown => {
                                         warn!("{}.run | Rejected point from socket: \n\t{:?}", parent_id, json!(&point).to_string());
                                         RouterReply::new(None, None)
-                                    },
+                                    }
                                     JdsState::Authenticated => {
                                         debug!("{}.run | Passed point from socket: \n\t{:?}", parent, json!(&point).to_string());
                                         RouterReply::new(Some(point), None)
-                                    },
+                                    }
                                 }
-                            },
+                            }
                         }
                     },
                     shared_options,
@@ -227,21 +227,21 @@ impl JdsConnection {
                                 h_write.join().unwrap_or_else(|_| panic!("{}.run | Error joining TcpWriteAlive thread, probable exit with errors", self_id));
                                 info!("{}.run | Finished", self_id);
                                 duration = Instant::now();
-                            },
+                            }
                             Action::Exit => {
                                 info!("{}.run | Action - Exit received", self_id);
                                 break;
-                            },
+                            }
                         }
-                    },
+                    }
                     Err(err) => {
                         match err {
-                            RecvTimeoutError::Timeout => {},
+                            RecvTimeoutError::Timeout => {}
                             RecvTimeoutError::Disconnected => {
                                 break;
-                            },
+                            }
                         }
-                    },
+                    }
                 }
                 if exit.load(Ordering::SeqCst) {
                     info!("{}.run | Detected exit", self_id);
@@ -261,12 +261,12 @@ impl JdsConnection {
             Ok(handle) => {
                 info!("{}.run | Starting - ok", self.id);
                 Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
-            },
+            }
             Err(err) => {
                 let message = format!("{}.run | Start failed: {:#?}", self.id, err);
                 warn!("{}", message);
                 Err(message)
-            },
+            }
         }
     }
 }

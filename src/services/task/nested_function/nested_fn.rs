@@ -54,7 +54,7 @@ impl NestedFn {
                         let conf = conf.inputs.get_mut(name).unwrap();
                         let input = Self::function(parent, tx_id, name, conf, task_nodes, services);
                         Self::fn_timer(parent, 0.0, input, true)
-                    },
+                    }
                     Functions::ToApiQueue => {
                         let name = "input";
                         let input_conf = conf.input_conf(name);
@@ -66,7 +66,7 @@ impl NestedFn {
                         });
                         Self::to_api_queue(parent, input, send_queue)
                         // Self::toApiQueue(inputName, queue, input)
-                    },
+                    }
                     Functions::Ge => {
                         let name = "input1";
                         let input_conf = conf.input_conf(name);
@@ -75,7 +75,7 @@ impl NestedFn {
                         let input_conf = conf.input_conf(name);
                         let input2 = Self::function(parent, tx_id, name, input_conf, task_nodes, services);
                         Self::fn_ge(parent, input1, input2)
-                    },
+                    }
                     Functions::SqlMetric => {
                         debug!("{}.function | fnConf: {:?}: {:?}", self_id, conf.name, conf);
                         Rc::new(RefCell::new(                    
@@ -83,7 +83,7 @@ impl NestedFn {
                                 SqlMetric::new( parent, conf, task_nodes, services)
                             )
                         ))        
-                    },
+                    }
                     Functions::PointId => {
                         debug!("{}.function | fnConf: {:?}: {:?}", self_id, conf.name, conf);
                         let name = "input";
@@ -91,14 +91,14 @@ impl NestedFn {
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
                         let points = services.slock().points(&parent.join());
                         Self::fn_point_id(parent, input, points)
-                    },
+                    }
                     Functions::Debug => {
                         debug!("{}.function | fnConf: {:?}: {:?}", self_id, conf.name, conf);
                         let name = "input";
                         let input_conf = conf.input_conf(name);
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
                         Self::fn_debug(parent, input)
-                    },
+                    }
                     Functions::ToInt => {
                         debug!("{}.function | fn_conf: {:?}: {:?}", self_id, conf.name, conf);
                         let name = "input";
@@ -108,7 +108,7 @@ impl NestedFn {
                     }
                     _ => panic!("{}.function | Unknown function name: {:?}", self_id, conf.name)
                 }
-            },
+            }
             FnConfKind::Var(conf) => {
                 let var_name = conf.name.clone();
                 debug!("{}.function | Var: {:?}...", self_id, var_name);
@@ -124,7 +124,7 @@ impl NestedFn {
                         task_nodes.addVar(conf.name.clone(), var.clone());
                         // debug!("{}.function | Var: {:?}", input);
                         var
-                    },
+                    }
                     // Usage declared variable
                     None => {
                         let var = match task_nodes.getVar(&var_name) {
@@ -134,9 +134,9 @@ impl NestedFn {
                         // let var = nodeVar.var();
                         task_nodes.addVarOut(conf.name.clone());
                         var
-                    },
+                    }
                 }
-            },
+            }
             FnConfKind::Const(conf) => {
                 let value = conf.name.trim().to_lowercase();
                 let name = format!("const {:?} '{}'", conf.type_, value);
@@ -154,7 +154,7 @@ impl NestedFn {
                 // taskNodes.addInput(inputName, input.clone());
                 debug!("{}.function | Const: {:?} - done", self_id, fn_const);
                 fn_const
-            },
+            }
             FnConfKind::Point(conf) => {                
                 debug!("{}.function | Input (Point<{:?}>): {:?} ({:?})...", self_id, conf.type_, input_name, conf.name);
                 let initial = match conf.type_.clone() {
@@ -174,14 +174,14 @@ impl NestedFn {
                     debug!("{}.function | input (Point): {:?}", self_id, input);
                 }
                 input
-            },
+            }
             FnConfKind::PointConf(_conf) => {
                 panic!("{}.function | PointConf is not supported in the nested functions yet", self_id);
             }
             // FnConfKind::Metric(conf) => {
             //     debug!("{}.function | Metric {:?}", &conf.name);
             //     MetricBuilder::new(parent, conf, taskNodes, services)
-            // },
+            // }
             FnConfKind::Param(_conf) => {
                 panic!("{}.function | Custom parameters are not supported in the nested functions", self_id);
             }

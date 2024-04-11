@@ -131,10 +131,10 @@ mod task_nodes {
                             assert!(out_value == target, "\n   outValue: {} \ntargetValue: {}", out_value, target);
                         }
                     };
-                },
+                }
                 None => {
                     panic!("input {:?} - not found in the current taskStuff", &name)
-                },
+                }
             };
         }
         mock_service.lock().unwrap().exit();
@@ -208,10 +208,10 @@ mod task_nodes {
                     match rx_recv.recv() {
                         Ok(point) => {
                             debug!("{}.run | received: {:?}", self_id, point);
-                        },
+                        }
                         Err(err) => {
                             warn!("{}.run | error: {:?}", self_id, err);
-                        },
+                        }
                     }
                     if exit.load(Ordering::SeqCst) {
                         break;
@@ -222,12 +222,12 @@ mod task_nodes {
                 Ok(handle) => {
                     info!("{}.run | Starting - ok", self.id);
                     Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
-                },
+                }
                 Err(err) => {
                     let message = format!("{}.run | Start failed: {:#?}", self.id, err);
                     warn!("{}", message);
                     Err(message)
-                },
+                }
             }
         }
         //

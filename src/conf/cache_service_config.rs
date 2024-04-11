@@ -61,10 +61,10 @@ impl CacheServiceConfig {
         match value.as_mapping().unwrap().into_iter().next() {
             Some((key, value)) => {
                 Self::new(parent, &mut ConfTree::new(key.as_str().unwrap(), value.clone()))
-            },
+            }
             None => {
                 panic!("CacheServiceConfig.from_yaml | Format error or empty conf: {:#?}", value)
-            },
+            }
         }        
     }
     ///
@@ -76,15 +76,15 @@ impl CacheServiceConfig {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
                         CacheServiceConfig::from_yaml(parent, &config)
-                    },
+                    }
                     Err(err) => {
                         panic!("CacheServiceConfig.read | Error in config: {:?}\n\terror: {:?}", yaml_string, err)
-                    },
+                    }
                 }
-            },
+            }
             Err(err) => {
                 panic!("CacheServiceConfig.read | File {} reading error: {:?}", path, err)
-            },
+            }
         }
     }
 }

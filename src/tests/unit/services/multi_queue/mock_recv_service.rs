@@ -92,8 +92,8 @@ impl Service for MockRecvService {
                                 trace!("{}.run | received: {:?}", self_id, point);
                                 received.lock().unwrap().push(point);
                                 received_count += 1;
-                            },
-                            Err(_) => {},
+                            }
+                            Err(_) => {}
                         };
                         if received_count >= recv_limit {
                             break;
@@ -102,33 +102,33 @@ impl Service for MockRecvService {
                             break;
                         }
                     }
-                },
+                }
                 None => {
                     loop {
                         match in_recv.recv_timeout(RECV_TIMEOUT) {
                             Ok(point) => {
                                 trace!("{}.run | received: {:?}", self_id, point);
                                 received.lock().unwrap().push(point);
-                            },
-                            Err(_) => {},
+                            }
+                            Err(_) => {}
                         };
                         if exit.load(Ordering::SeqCst) {
                             break;
                         }
                     }
-                },
+                }
             }
         });
         match handle {
             Ok(handle) => {
                 info!("{}.run | Starting - ok", self.id);
                 Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
-            },
+            }
             Err(err) => {
                 let message = format!("{}.run | Start failed: {:#?}", self.id, err);
                 warn!("{}", message);
                 Err(message)
-            },
+            }
         }        
     }
     //
