@@ -35,6 +35,11 @@ impl RetainPointId {
         }
     }
     ///
+    /// 
+    pub fn is_cached(&self) -> bool {
+        !self.cache.is_empty()
+    }
+    ///
     ///
     pub fn points(&mut self, points: Vec<PointConfig>) -> Vec<PointConfig> {
         if self.cache.is_empty() {

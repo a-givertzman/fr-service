@@ -38,4 +38,14 @@ impl SubscriptionCriteria {
             _        => concat_string!(cot.as_str(), ":", name),
         }
     }
+    ///
+    /// 
+    pub fn name(&self) -> String {
+        self.name.clone()
+    }
+    ///
+    /// 
+    pub fn cot(&self) -> Cot {
+        self.cot
+    }
 }

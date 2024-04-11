@@ -115,18 +115,23 @@ impl Services {
     }
     ///
     /// Returns list of point configurations over the all services
+    ///  - requester_name - Service name !!!
     pub fn points(&mut self, requester_name: &str) -> Vec<PointConfig> {
-        debug!("{}.points | requester_id: '{}'", self.id, requester_name);
-        let mut points = vec![];
-        for (service_id, service) in &self.map {
-            if service_id != requester_name {
-                // debug!("{}.points | Lock service: '{}'...", self.id, service_id);
-                let mut service_points = service.slock().points();
-                // debug!("{}.points | Lock service: '{}' - ok", self.id, service_id);
-                points.append(&mut service_points);
-            }
+        let points = if !self.retain.is_cached() {
+            debug!("{}.points | requester_id: '{}'", self.id, requester_name);
+            let mut points = vec![];
+            for (service_id, service) in &self.map {
+                if service_id != requester_name {
+                    // debug!("{}.points | Lock service: '{}'...", self.id, service_id);
+                    let mut service_points = service.slock().points();
+                    // debug!("{}.points | Lock service: '{}' - ok", self.id, service_id);
+                    points.append(&mut service_points);
+                }
+            };
+            self.retain.points(points)
+        } else {
+            self.retain.points(vec![])
         };
-        let points = self.retain.points(points);
         debug!("{}.points | points: '{:#?}'", self.id, points.len());
         trace!("{}.points | points: '{:#?}'", self.id, points);
         points

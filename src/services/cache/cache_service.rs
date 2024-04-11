@@ -16,6 +16,7 @@ use std::{
     mpsc::{self, Receiver, RecvTimeoutError}, Arc, Mutex, RwLock}, 
     thread,
 };
+use chrono::Utc;
 use concat_string::concat_string;
 use hashers::fx_hash::FxHasher;
 use indexmap::IndexMap;
@@ -23,8 +24,8 @@ use log::{debug, error, info, trace, warn};
 use serde::Serialize;
 use serde_json::json;
 use crate::{
-    conf::{cache_service_config::CacheServiceConfig, point_config::name::Name}, 
-    core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::point_type::PointType, status::status::Status}, 
+    conf::{cache_service_config::CacheServiceConfig, point_config::{name::Name, point_config::PointConfig, point_config_type::PointConfigType}}, 
+    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, object::object::Object, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status, types::{bool::Bool, map::HashMapFxHasher}}, 
     services::{
         cache::delay_store::DelyStore, 
         multi_queue::subscription_criteria::SubscriptionCriteria, 
@@ -62,14 +63,10 @@ impl CacheService {
     }
     ///
     /// 
-    fn subscriptions(&mut self, conf: &CacheServiceConfig, services: &Arc<Mutex<Services>>) -> (String, Vec<SubscriptionCriteria>) {
+    fn subscriptions(&mut self, conf: &CacheServiceConfig, points: &[PointConfig]) -> (String, Vec<SubscriptionCriteria>) {
         if conf.subscribe.is_empty() {
             panic!("{}.subscribe | Error. Subscription can`t be empty: {:#?}", self.id, conf.subscribe);
         } else {
-            debug!("{}.subscribe | requesting points...", self.id);
-            let points = services.slock().points(&self.id);
-            debug!("{}.subscribe | rceived points: {:#?}", self.id, points.len());
-            trace!("{}.subscribe | rceived points: {:#?}", self.id, points);
             debug!("{}.subscribe | conf.subscribe: {:#?}", self.id, conf.subscribe);
             let subscriptions = conf.subscribe.with(&points);
             trace!("{}.subscribe | subscriptions: {:#?}", self.id, subscriptions);
@@ -245,16 +242,60 @@ impl Service for CacheService {
         info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let self_name = self.name.clone();
+        let tx_id = PointTxId::fromStr(&self_name.join());
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         let services = self.services.clone();
         let cache = self.cache.clone();
-        let (service_name, points) = self.subscriptions(&conf, &services);
+        debug!("{}.run | requesting points...", self_id);
+        let point_configs = services.slock().points(&self_name.join());
+        debug!("{}.run | rceived points: {:#?}", self_id, point_configs.len());
+        trace!("{}.run | rceived points: {:#?}", self_id, point_configs);
+        let (service_name, points) = self.subscriptions(&conf, &point_configs);
         let (_, rx_recv) = services.slock().subscribe(
             &service_name,
             &self.name.join(), 
             &points,
         );
+        match self.cache.write() {
+            Ok(mut cache) => {
+                let point_configs: HashMapFxHasher<String, PointConfig> = point_configs.into_iter().map(|point| {
+                    (point.name.clone(), point)
+                }).collect();
+                let timestamp = Utc::now();
+                for subscription in &points {
+                    match point_configs.get(&subscription.name()) {
+                        Some(point_config) => {
+                            let point = match point_config._type {
+                                PointConfigType::Bool => {
+                                    PointType::Bool(Point::new(tx_id, &point_config.name, Bool(false), Status::Invalid, Cot::Inf, timestamp))
+                                },
+                                PointConfigType::Int => {
+                                    PointType::Int(Point::new(tx_id, &point_config.name, 0, Status::Invalid, Cot::Inf, timestamp))
+                                },
+                                PointConfigType::Real => {
+                                    PointType::Real(Point::new(tx_id, &point_config.name, 0.0, Status::Invalid, Cot::Inf, timestamp))
+                                },
+                                PointConfigType::Double => {
+                                    PointType::Double(Point::new(tx_id, &point_config.name, 0.0, Status::Invalid, Cot::Inf, timestamp))
+                                },
+                                PointConfigType::String => {
+                                    PointType::String(Point::new(tx_id, &point_config.name, String::new(), Status::Invalid, Cot::Inf, timestamp))
+                                },
+                                PointConfigType::Json => {
+                                    PointType::String(Point::new(tx_id, &point_config.name, String::new(), Status::Invalid, Cot::Inf, timestamp))
+                                },
+                            };
+                            cache.insert(subscription.destination(), point);
+                        }
+                        None => todo!(),
+                    }
+                }
+            }
+            Err(err) => {
+                error!("{}.run | Error write access cache: {:?}", self_id, err);
+            }
+        }
         let mut dely_store = DelyStore::new(conf.retain_delay);
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
