@@ -3,8 +3,8 @@ use indexmap::IndexMap;
 use log::{debug, error, info, trace, warn};
 use testing::stuff::wait::WaitTread;
 use crate::{
-    conf::{point_config::{name::Name, point_config::PointConfig}, profinet_client_config::profinet_client_config::ProfinetClientConfig}, 
-    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, failure::errors_limit::ErrorsLimit, object::object::Object, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status}, 
+    conf::{point_config::{name::Name, point_config::PointConfig}, profinet_client_config::profinet_client_config::ProfinetClientConfig},
+    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, failure::errors_limit::ErrorsLimit, object::object::Object, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status},
     services::{
         multi_queue::subscription_criteria::SubscriptionCriteria, profinet_client::{profinet_db::ProfinetDb, s7::s7_client::S7Client}, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::service_cycle::ServiceCycle
     },
@@ -21,10 +21,10 @@ pub struct ProfinetClient {
     exit: Arc<AtomicBool>,
 }
 ///
-/// 
+///
 impl ProfinetClient {
     ///
-    /// 
+    ///
     pub fn new(conf: ProfinetClientConfig, services: Arc<Mutex<Services>>) -> Self {
         Self {
             tx_id: PointTxId::fromStr(&conf.name.join()),
@@ -65,8 +65,8 @@ impl ProfinetClient {
                     info!("{}.read | Preparing thread...", self_id);
                     let handle = thread::Builder::new().name(format!("{}.read", self_id)).spawn(move || {
                         let mut is_connected = ConnectionNotify::new(
-                            None, 
-                            Box::new(|message| info!("{}", message)), 
+                            None,
+                            Box::new(|message| info!("{}", message)),
                             Box::new(|message| warn!("{}", message)),
                         );
                         let mut dbs: IndexMap<String, ProfinetDb> = IndexMap::new();
@@ -148,8 +148,8 @@ impl ProfinetClient {
         info!("{}.write | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.write", self_id.clone())).spawn(move || {
             let mut is_connected = ConnectionNotify::new(
-                None, 
-                Box::new(|message| info!("{}", message)), 
+                None,
+                Box::new(|message| info!("{}", message)),
                 Box::new(|message| warn!("{}", message)),
             );
             let mut dbs: IndexMap<String, ProfinetDb> = IndexMap::new();
@@ -194,7 +194,7 @@ impl ProfinetClient {
                                                     debug!("{}.write | DB '{}' - writing point '{}'\t({:?}) - ok", self_id, db_name, point_name, point_value);
                                                     if let Err(err) = tx_send.send(PointType::String(Point::new(
                                                         tx_id,
-                                                        &point_name, 
+                                                        &point_name,
                                                         String::new(),
                                                         Status::Ok,
                                                         Cot::ActCon,
@@ -210,7 +210,7 @@ impl ProfinetClient {
                                                         error!("{}.write | DB '{}' - exceeded writing errors limit, trying to reconnect...", self_id, db_name);
                                                         if let Err(err) = tx_send.send(PointType::String(Point::new(
                                                             tx_id,
-                                                            &point_name, 
+                                                            &point_name,
                                                             format!("Write error: {}", err),
                                                             Status::Ok,
                                                             Cot::ActErr,
@@ -260,7 +260,7 @@ impl ProfinetClient {
     }
 }
 ///
-/// 
+///
 impl Object for ProfinetClient {
     fn id(&self) -> &str {
         &self.id
@@ -270,7 +270,7 @@ impl Object for ProfinetClient {
     }
 }
 ///
-/// 
+///
 impl Debug for ProfinetClient {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
@@ -280,7 +280,7 @@ impl Debug for ProfinetClient {
     }
 }
 ///
-/// 
+///
 impl Service for ProfinetClient {
     //
     //
@@ -317,10 +317,10 @@ impl Service for ProfinetClient {
         self.conf.points()
     }
     //
-    // 
+    //
     fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
-    }    
+    }
 }
 
 ///
@@ -331,10 +331,10 @@ struct ConnectionNotify {
     on_disconnected: Box<dyn Fn(&str)>,
 }
 ///
-/// 
+///
 impl ConnectionNotify {
     ///
-    /// 
+    ///
     pub fn new(initial: Option<bool>, on_connected: Box<dyn Fn(&str)>, on_disconnected: Box<dyn Fn(&str)>) -> Self {
         Self {
             is_connected: initial,

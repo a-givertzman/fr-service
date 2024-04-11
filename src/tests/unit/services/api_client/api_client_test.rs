@@ -7,9 +7,9 @@ mod api_client {
     use api_tools::api::reply::api_reply::ApiReply;
     use crate::{
         core_::point::point_type::ToPoint,
-        conf::api_client_config::ApiClientConfig,  
+        conf::api_client_config::ApiClientConfig,
         services::{api_cient::api_client::ApiClient, service::service::Service},
-    }; 
+    };
     ///
     static INIT: Once = Once::new();
     ///
@@ -25,7 +25,7 @@ mod api_client {
     ///  - ...
     fn init_each() -> () {}
     ///
-    ///    
+    ///
     #[test]
     fn basic() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -46,7 +46,7 @@ mod api_client {
         let count = 10;
         let mut state = 0;
         let test_data = RandomTestValues::new(
-            self_id, 
+            self_id,
             vec![
                 Value::Int(i64::MIN),
                 Value::Int(i64::MAX),
@@ -73,8 +73,8 @@ mod api_client {
                 Value::String("test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1".to_string()),
                 Value::String("test2".to_string()),
                 Value::String("test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2".to_string()),
-            ], 
-            count, 
+            ],
+            count,
         );
         let test_data: Vec<Value> = test_data.collect();
         let mut sent = vec![];

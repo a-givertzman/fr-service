@@ -39,7 +39,7 @@ mod multi_queue {
         // can be changed
         let iterations = 10;
         let test_data = RandomTestValues::new(
-            self_id, 
+            self_id,
             vec![
                 Value::Int(i64::MIN),
                 Value::Int(i64::MAX),
@@ -64,8 +64,8 @@ mod multi_queue {
                 Value::String("test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1".to_string()),
                 Value::String("test2".to_string()),
                 Value::String("test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2".to_string()),
-            ], 
-            iterations, 
+            ],
+            iterations,
         );
         let test_data: Vec<Value> = test_data.collect();
         let test_data_len = test_data.len();

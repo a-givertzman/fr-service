@@ -5,9 +5,9 @@ mod tcp_stream {
     use std::{sync::Once, net::{TcpStream, TcpListener}, io::{Read, Write, BufReader}, thread, time::Duration};
     use testing::{session::test_session::TestSession, stuff::{wait::WaitTread, max_test_duration::TestDuration}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::{core_::constants::constants::RECV_TIMEOUT, services::service::service_handles::ServiceHandles}; 
+    use crate::{core_::constants::constants::RECV_TIMEOUT, services::service::service_handles::ServiceHandles};
     ///
-    ///     
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
@@ -22,7 +22,7 @@ mod tcp_stream {
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// 
+    ///
     #[ignore = "Learn - all must be ignored"]
     #[test]
     fn read() {
@@ -62,7 +62,7 @@ mod tcp_stream {
         test_duration.exit();
     }
     ///
-    /// 
+    ///
     fn server(addr: &str) -> Result<ServiceHandles, String> {
         let self_id = "Emuleted TcpServer";
         let addr = addr.to_string();
@@ -102,7 +102,7 @@ mod tcp_stream {
                                     Err(err) => {
                                         warn!("{}.setStreamTimout | Socket set read timeout error {:?}", self_id, err);
                                     },
-                                }                
+                                }
                                 let mut buf = vec![0, 1, 2, 3];
                                 match stream.write(&mut buf) {
                                     Ok(len) => {
@@ -139,6 +139,6 @@ mod tcp_stream {
                 warn!("{}", message);
                 Err(message)
             },
-        }        
+        }
     }
 }

@@ -7,11 +7,11 @@ mod tcp_client {
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         conf::tcp_client_config::TcpClientConfig, core_::{
-            net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::point_type::{PointType, ToPoint} 
-        }, services::{safe_lock::SafeLock, service::service::Service, services::Services, tcp_client::tcp_client::TcpClient}, tcp::steam_read::StreamRead, tests::unit::services::tcp_client::mock_multiqueue::MockMultiQueue 
-    }; 
+            net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::point_type::{PointType, ToPoint}
+        }, services::{safe_lock::SafeLock, service::service::Service, services::Services, tcp_client::tcp_client::TcpClient}, tcp::steam_read::StreamRead, tests::unit::services::tcp_client::mock_multiqueue::MockMultiQueue
+    };
     ///
-    ///     
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
@@ -26,7 +26,7 @@ mod tcp_client {
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// 
+    ///
     #[test]
     fn read() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -51,7 +51,7 @@ mod tcp_client {
         conf.address = addr.parse().unwrap();
         let iterations = 100;
         let test_data = RandomTestValues::new(
-            self_id, 
+            self_id,
             vec![
                 Value::Int(i64::MIN),
                 Value::Int(i64::MAX),
@@ -78,8 +78,8 @@ mod tcp_client {
                 Value::String("test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1".to_string()),
                 Value::String("test2".to_string()),
                 Value::String("test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2".to_string()),
-            ], 
-            iterations, 
+            ],
+            iterations,
         );
         let test_data: Vec<Value> = test_data.collect();
         let total_count = test_data.len();
@@ -143,9 +143,9 @@ mod tcp_client {
             info!("TCP server | Preparing test server...");
             let (send, recv) = std::sync::mpsc::channel();
             let mut jds = JdsEncodeMessage::new(
-                "test", 
+                "test",
                 JdsSerialize::new(
-                    "test", 
+                    "test",
                     recv,
                 ),
             );

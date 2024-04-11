@@ -5,9 +5,9 @@ mod tcp_client_connect {
     use std::{sync::{Once, atomic::{AtomicBool, Ordering}, Arc}, time::Duration, thread, net::TcpListener};
     use testing::session::test_session::TestSession;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::tcp::tcp_client_connect::TcpClientConnect; 
+    use crate::tcp::tcp_client_connect::TcpClientConnect;
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
@@ -22,7 +22,7 @@ mod tcp_client_connect {
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// 
+    ///
     #[test]
     fn success_connection() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -45,10 +45,10 @@ mod tcp_client_connect {
                     match listener.accept() {
                         Ok((_socket, addr)) => {
                             info!("incoming connection - ok\n\t{:?}", addr);
-                        },
+                        }
                         Err(err) => {
                             info!("incoming connection - error: {:?}", err);
-                        },
+                        }
                     }
                 },
                 Err(err) => {
@@ -86,7 +86,7 @@ mod tcp_client_connect {
         assert!(ok.load(Ordering::SeqCst) == true, "\nresult: connected - {:?}\ntarget: connected - {:?}", ok, true);
     }
     ///
-    /// 
+    ///
     #[test]
     fn failure_connection() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);

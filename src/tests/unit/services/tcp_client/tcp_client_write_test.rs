@@ -7,11 +7,11 @@ mod tcp_client {
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         conf::tcp_client_config::TcpClientConfig, core_::{
-            net::{connection_status::ConnectionStatus, protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}}, object::object::Object, point::point_type::{PointType, ToPoint} 
+            net::{connection_status::ConnectionStatus, protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}}, object::object::Object, point::point_type::{PointType, ToPoint}
         }, services::{safe_lock::SafeLock, services::Services, tcp_client::tcp_client::TcpClient}, tcp::tcp_stream_write::OpResult, tests::unit::services::tcp_client::mock_multiqueue::MockMultiQueue
-    }; 
+    };
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
@@ -26,7 +26,7 @@ mod tcp_client {
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// 
+    ///
     #[test]
     fn write() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -51,7 +51,7 @@ mod tcp_client {
         conf.address = addr.parse().unwrap();
         let iterations = 100;
         let test_data = RandomTestValues::new(
-            self_id, 
+            self_id,
             vec![
                 Value::Int(i64::MIN),
                 Value::Int(i64::MAX),
@@ -78,8 +78,8 @@ mod tcp_client {
                 Value::String("test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1".to_string()),
                 Value::String("test2".to_string()),
                 Value::String("test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2".to_string()),
-            ], 
-            iterations, 
+            ],
+            iterations,
         );
         let test_data: Vec<Value> = test_data.collect();
 
@@ -87,8 +87,8 @@ mod tcp_client {
         let multiQueue = Arc::new(Mutex::new(MockMultiQueue::new(self_id, "", None)));
         let tcpClient = Arc::new(Mutex::new(TcpClient::new(conf, services.clone())));
         let tcpClientServiceId = tcpClient.lock().unwrap().id().to_owned();
-        services.lock().unwrap().insert(tcpClient.clone());     // tcpClientServiceId, 
-        services.lock().unwrap().insert(multiQueue.clone());            // multiQueueServiceId, 
+        services.lock().unwrap().insert(tcpClient.clone());     // tcpClientServiceId,
+        services.lock().unwrap().insert(multiQueue.clone());            // multiQueueServiceId,
         let mut sent = vec![];
         let received = Arc::new(Mutex::new(vec![]));
         let handle = mockTcpServer(addr.to_string(), iterations, received.clone());
@@ -145,7 +145,7 @@ mod tcp_client {
                                 let mut tcpStream = BufReader::new(_socket);
                                 info!("TCP server | accept connection - ok\n\t{:?}", addr);
                                 let mut jds = JdsDeserialize::new(
-                                    "test", 
+                                    "test",
                                     JdsDecodeMessage::new("test"),
                                 );
                                 let mut receivedCount = 0;
@@ -191,5 +191,5 @@ mod tcp_client {
                 },
             };
         })
-    }    
+    }
 }
