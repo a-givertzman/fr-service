@@ -6,26 +6,25 @@ mod task {
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::{point_config::name::Name, task_config::TaskConfig}, 
+        conf::{point_config::name::Name, task_config::TaskConfig},
         services::{service::service::Service, services::Services, task::{task::Task, task_test_producer::TaskTestProducer, task_test_receiver::TaskTestReceiver}},
     };
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// 
+    ///
     #[test]
     fn point_any_structure() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -64,7 +63,7 @@ mod task {
         )));
         services.lock().unwrap().insert(receiver.clone());
         let test_data = RandomTestValues::new(
-            self_id, 
+            self_id,
             vec![
                 Value::Real(-7.035),
                 Value::Real(-2.5),
@@ -78,21 +77,21 @@ mod task {
                 Value::Real(5.5),
                 Value::Real(2.5),
                 Value::Real(7.035),
-            ], 
-            iterations, 
+            ],
+            iterations,
         );
         let test_data: Vec<Value> = test_data.collect();
         let total_count = test_data.len();
         assert!(total_count == iterations, "\nresult: {:?}\ntarget: {:?}", total_count, iterations);
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
-            &self_name.join(), 
+            &self_name.join(),
             &Name::new(self_name, "TaskAny.in-queue").join(),
             Duration::ZERO,
             services.clone(),
             test_data,
         )));
         let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
-        services.lock().unwrap().insert(task.clone());      // "Task", 
+        services.lock().unwrap().insert(task.clone());      // "Task",
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         info!("receiver runing - ok");
         let task_handle = task.lock().unwrap().run().unwrap();

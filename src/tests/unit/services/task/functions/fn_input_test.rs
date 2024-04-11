@@ -8,15 +8,14 @@ mod fn_input {
         conf::fn_::fn_conf_keywd::FnConfPointType, core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, services::task::nested_function::fn_input::FnInput
     };
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
@@ -60,10 +59,10 @@ mod fn_input {
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state.as_int().value, value);
-        }        
+        }
     }
     ///
-    /// 
+    ///
     #[test]
     fn bool() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -96,10 +95,10 @@ mod fn_input {
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state.as_bool().value.0, value);
-        }        
+        }
     }
     ///
-    /// 
+    ///
     #[test]
     fn real() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -132,10 +131,10 @@ mod fn_input {
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state.as_real().value, value);
-        }        
+        }
     }
     ///
-    /// 
+    ///
     #[test]
     fn double() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -168,7 +167,7 @@ mod fn_input {
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state.as_double().value, value);
-        }        
+        }
     }
     ///
     ///
@@ -202,6 +201,6 @@ mod fn_input {
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state.as_string().value, value);
-        }        
+        }
     }
 }

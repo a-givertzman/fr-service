@@ -7,26 +7,25 @@ mod tcp_client {
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         conf::tcp_client_config::TcpClientConfig, core_::{
-            net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::point_type::{PointType, ToPoint} 
-        }, services::{safe_lock::SafeLock, service::service::Service, services::Services, tcp_client::tcp_client::TcpClient}, tcp::steam_read::StreamRead, tests::unit::services::tcp_client::mock_multiqueue::MockMultiQueue 
-    }; 
+            net::protocols::jds::{jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::point_type::{PointType, ToPoint}
+        }, services::{safe_lock::SafeLock, service::service::Service, services::Services, tcp_client::tcp_client::TcpClient}, tcp::steam_read::StreamRead, tests::unit::services::tcp_client::mock_multiqueue::MockMultiQueue
+    };
     ///
-    ///     
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// 
+    ///
     #[test]
     fn read() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -51,7 +50,7 @@ mod tcp_client {
         conf.address = addr.parse().unwrap();
         let iterations = 100;
         let test_data = RandomTestValues::new(
-            self_id, 
+            self_id,
             vec![
                 Value::Int(i64::MIN),
                 Value::Int(i64::MAX),
@@ -78,8 +77,8 @@ mod tcp_client {
                 Value::String("test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1".to_string()),
                 Value::String("test2".to_string()),
                 Value::String("test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2".to_string()),
-            ], 
-            iterations, 
+            ],
+            iterations,
         );
         let test_data: Vec<Value> = test_data.collect();
         let total_count = test_data.len();
@@ -143,9 +142,9 @@ mod tcp_client {
             info!("TCP server | Preparing test server...");
             let (send, recv) = std::sync::mpsc::channel();
             let mut jds = JdsEncodeMessage::new(
-                "test", 
+                "test",
                 JdsSerialize::new(
-                    "test", 
+                    "test",
                     recv,
                 ),
             );
@@ -164,15 +163,15 @@ mod tcp_client {
                                         match socket.write(&bytes) {
                                             Ok(_) => {
                                                 sent.lock().unwrap().push(point);
-                                            },
+                                            }
                                             Err(err) => {
                                                 warn!("TCP server | socket.wrtite error: {:?}", err);
-                                            },
+                                            }
                                         }
-                                    },
+                                    }
                                     Err(err) => {
                                         error!("TCP server | error: {:?}", err);
-                                    },
+                                    }
                                 }
                             }
                             info!("TCP server | all sent: {:?}", sent.lock().unwrap().len());
@@ -180,15 +179,15 @@ mod tcp_client {
                             while received.lock().unwrap().len() < count {
                                 thread::sleep(Duration::from_millis(100));
                             }
-                        },
+                        }
                         Err(err) => {
                             warn!("incoming connection - error: {:?}", err);
-                        },
+                        }
                     }
-                },
+                }
                 Err(err) => {
                     panic!("Preparing test TCP server - error: {:?}", err);
-                },
+                }
             };
         });
         info!("TCP server | Started");

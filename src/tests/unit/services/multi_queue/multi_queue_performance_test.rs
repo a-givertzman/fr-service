@@ -5,19 +5,18 @@ mod multi_queue {
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        tests::unit::services::multi_queue::{mock_send_service::MockSendService, mock_multi_queue::MockMultiQueue, mock_recv_service::MockRecvService, mock_multi_queue_match::MockMultiQueueMatch}, 
+        tests::unit::services::multi_queue::{mock_send_service::MockSendService, mock_multi_queue::MockMultiQueue, mock_recv_service::MockRecvService, mock_multi_queue_match::MockMultiQueueMatch},
         services::{services::Services, service::service::Service},
-    }; 
+    };
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
@@ -48,8 +47,8 @@ mod multi_queue {
         let services = Arc::new(Mutex::new(Services::new(self_id)));
         for i in 0..receiver_count {
             let receiver = Arc::new(Mutex::new(MockRecvService::new(
-                self_id, 
-                "rx-queue", 
+                self_id,
+                "rx-queue",
                 Some(total_count)
             )));
             let receiver_id = format!("Receiver{}", i + 1);
@@ -60,11 +59,11 @@ mod multi_queue {
         println!(" All receivers created");
         println!(" Creating Mock Multiqueue...");
         let mq_service = Arc::new(Mutex::new(MockMultiQueue::new(
-            self_id, 
+            self_id,
             receivers.keys().map(|v| {
                 format!("{}.rx-queue", v)
             }).collect(),
-            "rx-queue", 
+            "rx-queue",
             services.clone(),
         )));
         println!(" Creating Mock Multiqueue - ok");
@@ -72,7 +71,7 @@ mod multi_queue {
         services.lock().unwrap().insert(mq_service.clone());
         println!(" Inserting Mock Multiqueue into Services - ok");
         let test_data = RandomTestValues::new(
-            self_id, 
+            self_id,
             vec![
                 Value::Int(i64::MIN),
                 Value::Int(i64::MAX),
@@ -99,8 +98,8 @@ mod multi_queue {
                 Value::String("test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1".to_string()),
                 Value::String("test2".to_string()),
                 Value::String("test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2".to_string()),
-            ], 
-            iterations, 
+            ],
+            iterations,
         );
         let test_data: Vec<Value> = test_data.collect();
         println!(" Trying to start Multiqueue...:");
@@ -154,8 +153,8 @@ mod multi_queue {
         let services = Arc::new(Mutex::new(Services::new(self_id)));
         for i in 0..receiver_count {
             let receiver = Arc::new(Mutex::new(MockRecvService::new(
-                self_id, 
-                "rx-queue", 
+                self_id,
+                "rx-queue",
                 Some(total_count)
             )));
             let receiver_id = format!("Receiver{}", i + 1);
@@ -166,11 +165,11 @@ mod multi_queue {
         println!(" All receivers created");
         println!(" Creating Mock Multiqueue...");
         let mq_service = Arc::new(Mutex::new(MockMultiQueueMatch::new(
-            self_id, 
+            self_id,
             receivers.keys().map(|v| {
                 format!("{}.rx-queue", v)
             }).collect(),
-            "rx-queue", 
+            "rx-queue",
             services.clone(),
         )));
         println!(" Creating Mock Multiqueue - ok");
@@ -178,7 +177,7 @@ mod multi_queue {
         services.lock().unwrap().insert(mq_service.clone());
         println!(" Inserting Mock Multiqueue into Services - ok");
         let test_data = RandomTestValues::new(
-            self_id, 
+            self_id,
             vec![
                 Value::Int(7),
                 Value::Real(1.3),
@@ -187,8 +186,8 @@ mod multi_queue {
                 Value::Bool(false),
                 Value::String("test1".to_string()),
                 Value::String("test2".to_string()),
-            ], 
-            iterations, 
+            ],
+            iterations,
         );
         let test_data: Vec<Value> = test_data.collect();
         println!(" Trying to start Multiqueue...:");
@@ -217,9 +216,9 @@ mod multi_queue {
         assert!(total_received == total_count * receiver_count, "\nresult: {:?}\ntarget: {:?}", total_received, total_count * receiver_count);
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         test_duration.exit();
-    }    
+    }
     ///
-    /// 
+    ///
     fn get_sent<'a>(producers: &'a HashMap<String, MockSendService>) -> (usize, HashMap<&'a str, usize>) {
         let mut total_sent = 0;
         let mut all_sent: HashMap<&'a str, usize> = HashMap::new();
@@ -229,9 +228,9 @@ mod multi_queue {
             all_sent.insert(prod_id, sent);
         }
         (total_sent, all_sent)
-    }   
+    }
     ///
-    /// 
+    ///
     fn get_received<'a>(receivers: &'a HashMap<String, Arc<Mutex<MockRecvService>>>) -> (usize, HashMap<&'a str, usize>) {
         let mut total_received = 0;
         let mut all_received: HashMap<&'a str, usize> = HashMap::new();

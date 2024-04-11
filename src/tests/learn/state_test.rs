@@ -5,17 +5,16 @@ mod tests {
     use log::info;
     use std::sync::Once;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::core_::state::{switch_state::{SwitchState, Switch, SwitchCondition}, switch_state_changed::SwitchStateChanged}; 
+    use crate::core_::state::{switch_state::{SwitchState, Switch, SwitchCondition}, switch_state_changed::SwitchStateChanged};
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
@@ -35,7 +34,7 @@ mod tests {
                                 None => false,
                             }
                         }),
-                        target: *target,        
+                        target: *target,
                     },
                 ],
             }
@@ -50,7 +49,7 @@ mod tests {
         switchState
     }
     ///
-    /// 
+    ///
     #[ignore = "Learn - all must be ignored"]
     #[test]
     fn test_state() {

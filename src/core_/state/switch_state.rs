@@ -75,7 +75,7 @@ impl<TState: Debug + Eq + Ord + Hash + Clone, TInput: Clone> SwitchState<TState,
         match self.switches.keys().max() {
             Some(max) => {
                 self.state == *max
-            },
+            }
             None => panic!("SwitchState.isMax | switches collection is empty"),
         }
     }

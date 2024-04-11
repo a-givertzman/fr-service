@@ -101,8 +101,8 @@ impl Service for MockTcpServer {
                                 trace!("{}.run | received: {:?}", self_id, point);
                                 received.lock().unwrap().push(point);
                                 receivedCount += 1;
-                            },
-                            Err(_) => {},
+                            }
+                            Err(_) => {}
                         };
                         if receivedCount >= recvLimit {
                             break;
@@ -111,21 +111,21 @@ impl Service for MockTcpServer {
                             break;
                         }
                     }
-                },
+                }
                 None => {
                     loop {
                         match rxRecv.recv_timeout(RECV_TIMEOUT) {
                             Ok(point) => {
                                 trace!("{}.run | received: {:?}", self_id, point);
                                 received.lock().unwrap().push(point);
-                            },
-                            Err(_) => {},
+                            }
+                            Err(_) => {}
                         };
                         if exit.load(Ordering::SeqCst) {
                             break;
                         }
                     }
-                },
+                }
             }
             info!("{}.run | Exit thread Recv", self_id);
         });
@@ -142,10 +142,10 @@ impl Service for MockTcpServer {
                     Ok(_) => {
                         trace!("{}.run | send: {:?}", self_id, point);
                         sent.lock().unwrap().push(point);
-                    },
+                    }
                     Err(err) => {
                         warn!("{}.run | send error: {:?}", self_id, err);
-                    },
+                    }
                 }
                 if exit.load(Ordering::SeqCst) {
                     break;

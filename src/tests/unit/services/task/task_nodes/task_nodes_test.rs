@@ -5,22 +5,21 @@ mod task_nodes {
     use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex, Once}, thread};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::{point_config::name::Name, task_config::TaskConfig}, 
-        core_::{object::object::Object, point::point_type::{PointType, ToPoint}}, 
+        conf::{point_config::name::Name, task_config::TaskConfig},
+        core_::{object::object::Object, point::point_type::{PointType, ToPoint}},
         services::{
             safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::{nested_function::{fn_count, fn_ge, fn_kind::FnKind, sql_metric}, task_nodes::TaskNodes}
         },
-    }; 
+    };
     ///
-    ///     
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
@@ -31,7 +30,7 @@ mod task_nodes {
         // sql_metric::COUNT.reset();
     }
     ///
-    /// 
+    ///
     #[test]
     fn test() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -54,51 +53,51 @@ mod task_nodes {
         task_nodes.buildNodes(&Name::from(self_id), conf, services);
         let test_data = vec![
             (
-                "/path/Point.Name1", 101, 
+                "/path/Point.Name1", 101,
                 HashMap::from([
                     (format!("/{}/SqlMetric{}", self_id, sql_metric_count), "101, 1102, 0, 0"),
                     (format!("/{}/FnCount{}.out", self_id, fn_count_count), "101"),
                 ])
             ),
             (
-                "/path/Point.Name1", 201, 
+                "/path/Point.Name1", 201,
                 HashMap::from([
                     (format!("/{}/SqlMetric{}", self_id, sql_metric_count), "201, 1202, 0, 0"),
                     (format!("/{}/FnCount{}.out", self_id, fn_count_count), "302"),
                 ])
-                
+
             ),
             (
-                "/path/Point.Name1", 301, 
+                "/path/Point.Name1", 301,
                 HashMap::from([
                     (format!("/{}/SqlMetric{}", self_id, sql_metric_count), "301, 1302, 0, 0"),
                     (format!("/{}/FnCount{}.out", self_id, fn_count_count), "603"),
                 ])
-                
+
             ),
             (
-                "/path/Point.Name2", 202, 
+                "/path/Point.Name2", 202,
                 HashMap::from([
                     (format!("/{}/SqlMetric{}", self_id, sql_metric_count), "301, 1302, 202, 0"),
                     (format!("/{}/FnGe{}.out", self_id, fn_ge_count), "true"),
                 ])
-                
+
             ),
             (
-                "/path/Point.Name3", 303, 
+                "/path/Point.Name3", 303,
                 HashMap::from([
                     (format!("/{}/SqlMetric{}", self_id, sql_metric_count), "301, 1302, 202, 303"),
                     (format!("/{}/FnGe{}.out", self_id, fn_ge_count), "false"),
                 ])
-                
+
             ),
             (
-                "/path/Point.Name3", 304, 
+                "/path/Point.Name3", 304,
                 HashMap::from([
                     (format!("/{}/SqlMetric{}", self_id, sql_metric_count), "301, 1302, 202, 304"),
                     (format!("/{}/FnGe{}.out", self_id, fn_ge_count), "false"),
                 ])
-                
+
             ),
         ];
         mock_service.lock().unwrap().run().unwrap();
@@ -132,16 +131,16 @@ mod task_nodes {
                             assert!(out_value == target, "\n   outValue: {} \ntargetValue: {}", out_value, target);
                         }
                     };
-                },
+                }
                 None => {
                     panic!("input {:?} - not found in the current taskStuff", &name)
-                },
+                }
             };
-        } 
+        }
         mock_service.lock().unwrap().exit();
     }
     ///
-    /// 
+    ///
     struct MockService {
         id: String,
         name: Name,
@@ -150,7 +149,7 @@ mod task_nodes {
         exit: Arc<AtomicBool>,
     }
     ///
-    /// 
+    ///
     impl MockService {
         fn new(parent: &str, link_name: &str) -> Self {
             let (send, recv) = mpsc::channel();
@@ -167,7 +166,7 @@ mod task_nodes {
         }
     }
     ///
-    /// 
+    ///
     impl Object for MockService {
         fn id(&self) -> &str {
             &self.id
@@ -177,7 +176,7 @@ mod task_nodes {
         }
     }
     ///
-    /// 
+    ///
     impl Debug for MockService {
         fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             formatter
@@ -187,7 +186,7 @@ mod task_nodes {
         }
     }
     ///
-    /// 
+    ///
     impl Service for MockService {
         //
         //
@@ -209,10 +208,10 @@ mod task_nodes {
                     match rx_recv.recv() {
                         Ok(point) => {
                             debug!("{}.run | received: {:?}", self_id, point);
-                        },
+                        }
                         Err(err) => {
                             warn!("{}.run | error: {:?}", self_id, err);
-                        },
+                        }
                     }
                     if exit.load(Ordering::SeqCst) {
                         break;
@@ -223,13 +222,13 @@ mod task_nodes {
                 Ok(handle) => {
                     info!("{}.run | Starting - ok", self.id);
                     Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
-                },
+                }
                 Err(err) => {
-                    let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                    let message = format!("{}.run | Start failed: {:#?}", self.id, err);
                     warn!("{}", message);
                     Err(message)
-                },
-            }            
+                }
+            }
         }
         //
         //

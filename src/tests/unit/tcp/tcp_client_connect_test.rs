@@ -5,24 +5,23 @@ mod tcp_client_connect {
     use std::{sync::{Once, atomic::{AtomicBool, Ordering}, Arc}, time::Duration, thread, net::TcpListener};
     use testing::session::test_session::TestSession;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::tcp::tcp_client_connect::TcpClientConnect; 
+    use crate::tcp::tcp_client_connect::TcpClientConnect;
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// 
+    ///
     #[test]
     fn success_connection() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -45,17 +44,17 @@ mod tcp_client_connect {
                     match listener.accept() {
                         Ok((_socket, addr)) => {
                             info!("incoming connection - ok\n\t{:?}", addr);
-                        },
+                        }
                         Err(err) => {
                             info!("incoming connection - error: {:?}", err);
-                        },
+                        }
                     }
-                },
+                }
                 Err(err) => {
                     // connectExit.send(true);
                     ok_ref.store(false, Ordering::SeqCst);
                     panic!("Preparing test TCP server - error: {:?}", err);
-                },
+                }
             };
         });
         let connect_exit = connect.exit();
@@ -76,17 +75,22 @@ mod tcp_client_connect {
                     info!("connected: {:?}", tcp_stream);
                     connect.exit().send(true).unwrap();
                     break;
-                },
+                }
                 None => {
                     warn!("not connected");
-                },
+                }
             };
             thread::sleep(Duration::from_millis(100));
         }
-        assert!(ok.load(Ordering::SeqCst) == true, "\nresult: connected - {:?}\ntarget: connected - {:?}", ok, true);
+        assert!(
+            ok.load(Ordering::SeqCst) == true,
+            "\nresult: connected - {:?}\ntarget: connected - {:?}",
+            ok,
+            true,
+        );
     }
     ///
-    /// 
+    ///
     #[test]
     fn failure_connection() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -114,12 +118,16 @@ mod tcp_client_connect {
             Some(tcp_stream) => {
                 ok.store(true, Ordering::SeqCst);
                 info!("connected: {:?}", tcp_stream);
-            },
+            }
             None => {
                 warn!("not connected");
-            },
+            }
         };
-        assert!(ok.load(Ordering::SeqCst) == false, "\nresult: connected - {:?}\ntarget: connected - {:?}", ok, false);
+        assert!(
+            ok.load(Ordering::SeqCst) == false,
+            "\nresult: connected - {:?}\ntarget: connected - {:?}",
+            ok,
+            false,
+        );
     }
-
 }

@@ -63,10 +63,10 @@ impl FnOut for FnToApiQueue {
             match self.tx_send.send(point.clone()) {
                 Ok(_) => {
                     debug!("{}.out | Sent sql: {}", self.id, sql);
-                },
+                }
                 Err(err) => {
                     error!("{}.out | Send error: {:?}\n\tsql: {:?}", self.id, err, sql);
-                },
+                }
             };
         }
         point

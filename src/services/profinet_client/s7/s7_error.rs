@@ -137,7 +137,7 @@ impl From<i32> for S7Error {
             0x02700000 => Self::CliFunctionNotImplemented,
             _ => {
                 Self::Inner(format!("{} ({})", Self::text(value), value))
-            },
+            }
         }
     }
 }

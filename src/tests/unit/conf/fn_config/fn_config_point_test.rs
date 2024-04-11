@@ -9,22 +9,21 @@ mod tests {
         fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig, fn_point_config::FnPointConfig}, point_config::{name::Name, point_config::PointConfig, point_config_history::PointConfigHistory, point_config_type::PointConfigType}
     };
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// 
+    ///
     #[test]
     fn test_fn_config_point() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -59,7 +58,7 @@ mod tests {
                 vec![],
                 r#"let newVar:
                     input: const '13.55'
-                "#, 
+                "#,
                 FnConfKind::Var(
                     FnConfig { name: "newVar".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                         ("input".to_string(), FnConfKind::Const( FnConfig { name: "13.55".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::new() })),
@@ -70,12 +69,12 @@ mod tests {
                 vec![test_point1.clone(), test_point2.clone()],
                 r#"
                     fn ToMultiQueue:
-                        in1 point CraneMovement.BoomUp: 
+                        in1 point CraneMovement.BoomUp:
                             type: 'Int'
                             comment: 'Some indication'
                             input:
                                 const real 0.05
-                        in2 point CraneMovement.BoomDown: 
+                        in2 point CraneMovement.BoomDown:
                             type: 'Real'
                             history: r
                             comment: 'Some indication'
@@ -83,11 +82,11 @@ mod tests {
                                 const real 0.07
                 "#,
                 FnConfKind::Fn( FnConfig { name: "ToMultiQueue".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-                    ("in1".to_string(), FnConfKind::PointConf( FnPointConfig { 
+                    ("in1".to_string(), FnConfKind::PointConf( FnPointConfig {
                         conf: test_point1,
                         input: Box::new(FnConfKind::Const( FnConfig { name: "0.05".to_string(), type_: FnConfPointType::Real, inputs: IndexMap::new()} )),
                     })),
-                    ("in2".to_string(), FnConfKind::PointConf( FnPointConfig { 
+                    ("in2".to_string(), FnConfKind::PointConf( FnPointConfig {
                             conf: test_point2,
                             input: Box::new(FnConfKind::Const( FnConfig { name: "0.07".to_string(), type_: FnConfPointType::Real, inputs: IndexMap::new()} )),
                         })),

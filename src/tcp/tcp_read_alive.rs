@@ -68,27 +68,27 @@ impl TcpReadAlive {
                             OpResult::Ok(point) => {
                                 // debug!("{}.run | read point: {:?}", self_id, point);
                                 match send.send(point) {
-                                    Ok(_) => {},
+                                    Ok(_) => {}
                                     Err(err) => {
                                         warn!("{}.run | write to queue error: {:?}", self_id, err);
-                                    },
+                                    }
                                 };
                                 cycle.wait();
-                            },
+                            }
                             OpResult::Err(err) => {
                                 if log::max_level() == LevelFilter::Trace {
                                     warn!("{}.run | error: {:?}", self_id, err);
                                 }
                                 cycle.wait();
-                            },
+                            }
                             OpResult::Timeout() => {}
                         }
-                    },
+                    }
                     ConnectionStatus::Closed(err) => {
                         warn!("{}.run | error: {:?}", self_id, err);
                         exit_pair.store(true, Ordering::SeqCst);
                         break;
-                    },
+                    }
                 };
                 if exit.load(Ordering::SeqCst) | exit_pair.load(Ordering::SeqCst) {
                     break;

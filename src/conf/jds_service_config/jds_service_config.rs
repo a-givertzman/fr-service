@@ -56,10 +56,10 @@ impl JdsServiceConfig {
                     rx_max_len,
                     tx,
                 }
-            },
+            }
             None => {
                 panic!("JdsServiceConfig.new | Configuration is empty")
-            },
+            }
         }
     }
     ///
@@ -76,15 +76,15 @@ impl JdsServiceConfig {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
                         JdsServiceConfig::from_yaml(&config)
-                    },
+                    }
                     Err(err) => {
                         panic!("JdsServiceConfig.read | Error in config: {:?}\n\terror: {:?}", yaml_string, err)
-                    },
+                    }
                 }
-            },
+            }
             Err(err) => {
                 panic!("JdsServiceConfig.read | File {} reading error: {:?}", path, err)
-            },
+            }
         }
     }
     ///

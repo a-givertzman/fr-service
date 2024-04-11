@@ -11,3 +11,5 @@ mod state_test;
 mod tcp_stram_test;
 
 mod rv_lock_test;
+
+mod thread_test;

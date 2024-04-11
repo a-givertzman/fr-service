@@ -22,21 +22,21 @@ impl TcpServerAuth {
                     Some(value) => panic!("TcpServerAuth.new | Unknown value '{}' in 'auth', 'none' or 'None' expected", value),
                     _ => panic!("TcpServerAuth.new | Unknown value type in 'auth', 'none' or 'None' expected"),
                 }
-            },
+            }
             "auth-secret" => {
                 let token = match value.asStr("pass") {
                     Ok(token) => token,
                     Err(_) => panic!("TcpServerAuth.new | 'pass' - not found in 'auth-secret'"),
                 };
                 TcpServerAuth::Secret(AuthSecret::new(token))
-            },
+            }
             "auth-ssh" => {
                 let path = match value.asStr("path") {
                     Ok(path) => path,
                     Err(_) => panic!("TcpServerAuth.new | 'path' - not found in 'auth-ssh'"),
                 };
                 TcpServerAuth::Ssh(AuthSshPath::new(path))
-            },
+            }
             _ => panic!("TcpServerAuth.new | Unknown auth: '{}'", value.key),
         }
     }

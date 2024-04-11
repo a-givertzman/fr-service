@@ -1,4 +1,4 @@
-use std::io::Write;
+use std::{fmt::Debug, io::Write};
 use log::{trace, warn, LevelFilter};
 use crate::{
     tcp::steam_read::StreamRead, 
@@ -10,7 +10,6 @@ use crate::{
 /// Sends sequences of bites from the beginning of the buffer
 /// Sent sequences of bites immediately removed from the buffer
 /// Buffering - is optional
-#[derive(Debug)]
 pub struct TcpStreamWrite {
     id: String,
     stream: Box<dyn StreamRead<Vec<u8>, RecvError> + Send>,
@@ -43,19 +42,19 @@ impl TcpStreamWrite {
                     match tcp_stream.write_all(bytes) {
                         Ok(_) => {
                             self.buffer.pop_first();
-                        },
+                        }
                         Err(err) => {
                             let message = format!("{}.write | error: {:?}", self.id, err);
                             if log::max_level() == LevelFilter::Debug {
                                 warn!("{}", message);
                             }
                             return ConnectionStatus::Closed(message);
-                        },
+                        }
                     };
                 }
                 trace!("{}.write | bytes: {:?}", self.id, bytes);
                 match tcp_stream.write_all(&bytes) {
-                    Ok(_) => {ConnectionStatus::Active(OpResult::Ok(()))},
+                    Ok(_) => ConnectionStatus::Active(OpResult::Ok(())),
                     Err(err) => {
                         self.buffer.push(bytes);
                         let message = format!("{}.write | error: {:?}", self.id, err);
@@ -63,9 +62,9 @@ impl TcpStreamWrite {
                             warn!("{}", message);
                         }
                         ConnectionStatus::Closed(message)
-                    },
+                    }
                 }
-            },
+            }
             Err(err) => {
                 match err {
                     RecvError::Error(err) => {
@@ -74,22 +73,33 @@ impl TcpStreamWrite {
                             warn!("{}", message);
                         }
                         ConnectionStatus::Active(OpResult::Err(message))
-                    },
+                    }
                     RecvError::Disconnected => {
                         let message = format!("{}.write | channel disconnected, error: {:?}", self.id, err);
                         warn!("{}", message);
                         ConnectionStatus::Active(OpResult::Err(message))
-                    },
+                    }
                     RecvError::Timeout => ConnectionStatus::Active(OpResult::Timeout()),
                 }
-            },
+            }
         }
     }
 }
 ///
 /// 
+impl Debug for TcpStreamWrite {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("TcpStreamWrite")
+            .field("id", &self.id)
+            .finish()
+    }
+}
+///
+/// 
 unsafe impl Sync for TcpStreamWrite {}
-
+///
+/// 
 #[derive(Debug)]
 pub enum OpResult<T, E> {
     Ok(T),

@@ -51,26 +51,26 @@ impl From<&str> for RequestKind {
                 match kind {
                     RequestKind::AUTH_SECRET => {
                         RequestKind::AuthSecret
-                    },
+                    }
                     RequestKind::AUTH_SSH => {
                         RequestKind::AuthSsh
-                    },
+                    }
                     RequestKind::POINTS => {
                         RequestKind::Points
-                    },
+                    }
                     RequestKind::SUBSCRIBE => {
                         RequestKind::Subscribe
-                    },
+                    }
                     _ => {
                         warn!("RequestKind.from<&str> | Unknown request: '{}'", value);
                         RequestKind::Unknown
-                    },
+                    }
                 }
-            },
+            }
             None => {
                 warn!("RequestKind.from<&str> | Unknown request: '{}'", value);
                 RequestKind::Unknown
-            },
+            }
         }
     }
 }
@@ -104,8 +104,7 @@ mod tests {
     fn init_once() {
         INIT.call_once(|| {
                 // implement your initialisation code to be called only once for current test file
-            }
-        )
+        })
     }
     ///
     /// returns:

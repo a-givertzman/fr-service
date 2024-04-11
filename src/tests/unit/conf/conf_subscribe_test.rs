@@ -5,27 +5,26 @@ mod conf_subscribe {
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        core_::cot::cot::Cot, 
+        core_::cot::cot::Cot,
         services::multi_queue::subscription_criteria::SubscriptionCriteria,
-        conf::{conf_subscribe::ConfSubscribe, point_config::{point_config::PointConfig, name::Name}}, 
+        conf::{conf_subscribe::ConfSubscribe, point_config::{point_config::PointConfig, name::Name}},
     };
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// 
+    ///
     #[test]
     fn new() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -38,32 +37,32 @@ mod conf_subscribe {
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
         let points = [
-            r#"point Drive.Speed: 
+            r#"point Drive.Speed:
                 type: 'Real'
                 address:
                     offset: 0"#,
-            r#"point Drive.OutputVoltage: 
+            r#"point Drive.OutputVoltage:
                 type: 'Real'
                 address:
                     offset: 4"#,
-            r#"point Drive.DCVoltage: 
+            r#"point Drive.DCVoltage:
                 type: 'Real'
                 address:
                     offset: 8"#,
-            r#"point Drive.Current: 
+            r#"point Drive.Current:
                 type: 'Real'
                 address:
                     offset: 12
                 history: r"#,
-            r#"point Drive.Torque: 
+            r#"point Drive.Torque:
                 type: 'Real'
                 address:
                     offset: 16"#,
-            r#"point Drive.Torque1: 
+            r#"point Drive.Torque1:
                 type: 'Real'
                 address:
                     offset: 16
-                alarm: 1"#,                    
+                alarm: 1"#,
         ];
         let points = points.map(|conf| {
             let conf = serde_yaml::from_str(conf).unwrap();
@@ -89,7 +88,7 @@ mod conf_subscribe {
             ),
             (
                 r#"
-                    subscribe: 
+                    subscribe:
                         App/MultiQueue:
                             Inf: []
                 "#,
@@ -104,7 +103,7 @@ mod conf_subscribe {
             ),
             (
                 r#"
-                    subscribe: 
+                    subscribe:
                         App/MultiQueue:
                             {history: rw}: []
                 "#,
@@ -114,7 +113,7 @@ mod conf_subscribe {
             ),
             (
                 r#"
-                    subscribe: 
+                    subscribe:
                         App/MultiQueue:
                             {alarm: 1}: []
                 "#,
@@ -124,7 +123,7 @@ mod conf_subscribe {
             ),
             (
                 r#"
-                    subscribe: 
+                    subscribe:
                         MultiQueue:
                             {cot: Inf, history: r}: []
                 "#,
@@ -134,7 +133,7 @@ mod conf_subscribe {
             ),
             (
                 r#"
-                    subscribe: 
+                    subscribe:
                         MultiQueue:
                             {cot: Inf, history: r}:
                                 - /App/Service/Point.Name.01
@@ -153,10 +152,10 @@ mod conf_subscribe {
                     let result = conf.with(&points.to_vec());
                     println!("subscribe: {:#?}", result);
                     assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
-                },
+                }
                 Err(err) => {
                     panic!("Deserialize error: {:#?}", err);
-                },
+                }
             };
         }
         test_duration.exit();

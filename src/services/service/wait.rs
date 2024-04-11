@@ -12,11 +12,11 @@ impl WaitTread for ServiceHandles {
             match r {
                 Ok(_) => {
                     info!("Waiting for thread: '{}' - finished", id);
-                },
+                }
                 Err(err) => {
                     error!("Waiting for thread '{}' - error: {:#?}", id, err);
                     errors.push(err);
-                },
+                }
             }
         }
         if errors.is_empty() {

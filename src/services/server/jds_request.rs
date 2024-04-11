@@ -1,13 +1,13 @@
 use std::{collections::HashMap, sync::{Arc, Mutex, RwLock}};
 use concat_string::concat_string;
-use log::{debug, trace, warn};
+use log::{debug, error, trace, warn};
 use serde_json::json;
 use crate::{
     conf::point_config::{name::Name, point_config::PointConfig},
     core_::{
-        auth::ssh::auth_ssh::AuthSsh, 
-        cot::cot::Cot, 
-        net::protocols::jds::request_kind::RequestKind, 
+        auth::ssh::auth_ssh::AuthSsh,
+        cot::cot::Cot,
+        net::protocols::jds::request_kind::RequestKind,
         point::{point::Point, point_type::PointType},
         status::status::Status,
     }, services::{
@@ -43,7 +43,7 @@ impl JdsRequest {
                         } else {
                             (Cot::ReqErr, "Authentication error: Invalid secret or kind of auth request")
                         }
-                    },
+                    }
                     _ => {
                         (Cot::ReqErr, "Authentication error: Invalid secret or kind of auth request")
                     }
@@ -51,15 +51,15 @@ impl JdsRequest {
                 RouterReply::new(
                     None,
                     Some(PointType::String(Point::new(
-                        tx_id, 
+                        tx_id,
                         &Name::new(parent, "/Auth.Secret").join(),
-                        message.to_owned(), 
-                        Status::Ok, 
-                        cot, 
+                        message.to_owned(),
+                        Status::Ok,
+                        cot,
                         chrono::offset::Utc::now(),
                     ))),
                 )
-            },
+            }
             RequestKind::AuthSsh => {
                 debug!("{}.handle | Request '{}': \n\t{:?}", self_id, RequestKind::AUTH_SSH, request);
                 let (cot, message) = match &shared.auth {
@@ -72,12 +72,12 @@ impl JdsRequest {
                             Ok(_) => {
                                 shared.jds_state = JdsState::Authenticated;
                                 (Cot::ReqCon, "Authentication successful".to_owned())
-                            },
+                            }
                             Err(err) => {
                                 (Cot::ReqErr, format!("Authentication error: {}", err))
-                            },
+                            }
                         }
-                    },
+                    }
                     _ => {
                         (Cot::ReqErr, "Authentication error: Invalid secret or kind of auth request".to_owned())
                     }
@@ -85,15 +85,15 @@ impl JdsRequest {
                 RouterReply::new(
                     None,
                     Some(PointType::String(Point::new(
-                        tx_id, 
+                        tx_id,
                         &Name::new(parent, "/Auth.Ssh").join(),
-                        message.to_owned(), 
-                        Status::Ok, 
-                        cot, 
+                        message.to_owned(),
+                        Status::Ok,
+                        cot,
                         chrono::offset::Utc::now(),
                     ))),
                 )
-            },
+            }
             RequestKind::Points => {
                 debug!("{}.handle.Points | Request '{}': \n\t{:?}", self_id, RequestKind::POINTS, request);
                 let points = services.slock().points(requester_name);
@@ -105,18 +105,18 @@ impl JdsRequest {
                 let reply = RouterReply::new(
                     None,
                     Some(PointType::String(Point::new(
-                        tx_id, 
+                        tx_id,
                         &Name::new(parent, "/Points").join(),
-                        points, 
-                        Status::Ok, 
-                        Cot::ReqCon, 
+                        points,
+                        Status::Ok,
+                        Cot::ReqCon,
                         chrono::offset::Utc::now(),
                     ))),
                 );
                 debug!("{}.handle.Points | Reply: {:?} points", self_id, points_len);
                 trace!("{}.handle.Points | Reply: \n\t{:#?}", self_id, reply);
                 reply
-            },
+            }
             RequestKind::Subscribe => {
                 debug!("{}.handle.Subscribe | Request '{}': Point( name: {:?}, status: {:?}, cot: {:?}, timestamp: {:?})", self_id, RequestKind::SUBSCRIBE, request.name(), request.status(), request.cot(), request.timestamp());
                 trace!("{}.handle.Subscribe | Request '{}': \n\t{:?}", self_id, RequestKind::SUBSCRIBE, request);
@@ -135,7 +135,7 @@ impl JdsRequest {
                                     }
                                     points
                                 })
-                            },
+                            }
                             None => {
                                 debug!("{}.handle.Subscribe | 'Subscribe' request (broadcast)", self_id);
                                 trace!("{}.handle.Subscribe | 'Subscribe' request (broadcast): {:?}", self_id, request);
@@ -144,10 +144,10 @@ impl JdsRequest {
                                         Self::map_points_to_creteria(&point_conf.name, vec![Cot::Inf, Cot::ActCon, Cot::ActErr])
                                     );
                                     points
-                                })        
-                            },
+                                })
+                            }
                         }
-                    },
+                    }
                     Err(err) => {
                         warn!("{}.handle.Subscribe | 'Subscribe' request parsing error: {:?}\n\t request: {:?}", self_id, err, request);
                         services.slock().points(requester_name).iter().fold(vec![], |mut points, point_conf| {
@@ -156,9 +156,10 @@ impl JdsRequest {
                             );
                             points
                         })
-                    },
+                    }
                 };
-                let receiver_name = Name::new(parent, &shared.connection_id).join();
+                // let receiver_name = Name::new(parent, &shared.connection_id).join();
+                let receiver_name = shared.subscribe_receiver.clone();
                 debug!("{}.handle.Subscribe | extending subscription for receiver: '{}'", self_id, receiver_name);
                 trace!("{}.handle.Subscribe |                              points: {:#?}", self_id, points);
                 let (cot, message) = match services.slock().extend_subscription(&shared.subscribe, &receiver_name, &points) {
@@ -167,25 +168,49 @@ impl JdsRequest {
                         let message = format!("{}.handle.Subscribe | extend_subscription failed with error: {:?}", self_id, err);
                         warn!("{}", message);
                         (Cot::ReqErr, message)
-                    },
+                    }
                 };
+                match shared.cache.clone() {
+                    // TODO add named subscription
+                    Some(cache_service) => Self::yield_gi(&self_id, &receiver_name, services, &cache_service, &[], &mut shared),
+                    None => warn!("{}.handle.Subscribe | Gi skipped, cache service not configured", self_id),
+                }
                 RouterReply::new(
                     None,
                     Some(PointType::String(Point::new(
-                        tx_id, 
+                        tx_id,
                         &Name::new(parent, "/Subscribe").join(),
-                        message, 
-                        Status::Ok, 
-                        cot, 
+                        message,
+                        Status::Ok,
+                        cot,
                         chrono::offset::Utc::now(),
                     ))),
-                )                
-            },
+                )
+            }
             RequestKind::Unknown => {
                 debug!("{}.handle | Unknown request: \n\t{:?}", self_id, request);
                 warn!("{}.handle | Unknown request name: {:?}", self_id, request.name());
                 RouterReply::new(None, None)
-            },
+            }
+        }
+    }
+    ///
+    ///
+    fn yield_gi(self_id: &str, receiver_name: &str, services: Arc<Mutex<Services>>, cache_service: &str, points: &[SubscriptionCriteria], shared: &mut Shared) {
+        let cache = services.slock().get(cache_service);
+        let recv = cache.slock().gi(receiver_name, points);
+        match shared.req_reply_send.pop() {
+            Some(send) => {
+                for point in recv.iter() {
+                    if let Err(err) =  send.send(point) {
+                        error!("{}.handle.Subscribe | Send error: {:#?}", self_id, err);
+                    }
+                }
+                shared.req_reply_send.push(send);
+            }
+            None => {
+                error!("{}.handle.Subscribe | Cant get req_reply_send", self_id)
+            }
         }
     }
     ///

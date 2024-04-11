@@ -47,22 +47,22 @@ impl JdsDeserialize {
                         match Self::deserialize(&self.id, self.tx_id, bytes) {
                             Ok(point) => {
                                 ConnectionStatus::Active(OpResult::Ok(point))
-                            },
+                            }
                             Err(err) => {
                                 if log::max_level() == LevelFilter::Debug {
                                     warn!("{}", err);
                                 }
                                 ConnectionStatus::Active(OpResult::Err(err))
-                            },
+                            }
                         }
-                    },
+                    }
                     OpResult::Err(err) => ConnectionStatus::Active(OpResult::Err(err)),
                     OpResult::Timeout() => ConnectionStatus::Active(OpResult::Timeout())
                 }
-            },
+            }
             ConnectionStatus::Closed(err) => {
                 ConnectionStatus::Closed(err)
-            },
+            }
         }
     }
     ///
@@ -77,9 +77,9 @@ impl JdsDeserialize {
                         let message = concat_string!(self_id, ".parse_cot | Deserialize Point.cot error: \n\t", err.to_string(), "\n\t in the: ", name, ": ", value.to_string());
                         warn!("{}", message);
                         Cot::default()
-                    },
+                    }
                 }
-            },
+            }
             None => Cot::default(),
         }
     }
@@ -109,7 +109,7 @@ impl JdsDeserialize {
                                             direction,
                                             timestamp,
                                         )))
-                                    },
+                                    }
                                     Some("int") | Some("Int") => {
                                         let name = obj.get("name").unwrap().as_str().unwrap();
                                         let value = obj.get("value").unwrap().as_i64().unwrap();
@@ -125,7 +125,7 @@ impl JdsDeserialize {
                                             direction,
                                             timestamp,
                                         )))
-                                    },
+                                    }
                                     Some("real") | Some("Real") => {
                                         let name = obj.get("name").unwrap().as_str().unwrap();
                                         let value = obj.get("value").unwrap().as_f64().unwrap();
@@ -141,7 +141,7 @@ impl JdsDeserialize {
                                             direction,
                                             timestamp,
                                         )))
-                                    },
+                                    }
                                     Some("double") | Some("Double") => {
                                         let name = obj.get("name").unwrap().as_str().unwrap();
                                         let value = obj.get("value").unwrap().as_f64().unwrap();
@@ -157,7 +157,7 @@ impl JdsDeserialize {
                                             direction,
                                             timestamp,
                                         )))
-                                    },
+                                    }
                                     Some("string") | Some("String") => {
                                         let name = obj.get("name").unwrap().as_str().unwrap();
                                         let value = obj.get("value").unwrap().as_str().unwrap();
@@ -173,33 +173,33 @@ impl JdsDeserialize {
                                             direction,
                                             timestamp,
                                         )))
-                                    },
+                                    }
                                     _ => {
                                         let message = format!("{}.parse | Unknown point type: {}", self_id, type_);
                                         trace!("{}", message);
                                         Err(message)
                                     }
                                 }
-                            },
+                            }
                             None => {
                                 let message = format!("{}.parse | JSON convertion error: mapping not found in the JSON: {}", self_id, value);
                                 trace!("{}", message);
                                 Err(message)        
-                            },
+                            }
                         }
-                    },
+                    }
                     None => {
                         let message = format!("{}.parse | JSON convertion error: mapping not found in the JSON: {}", self_id, value);
                         trace!("{}", message);
                         Err(message)
-                    },
+                    }
                 }
-            },
+            }
             Err(err) => {
                 let message = format!("JdsDeserialize.parse | JSON convertion error: {:?}", err);
                 trace!("{}", message);
                 Err(message)        
-            },
+            }
         }
     }    
 }

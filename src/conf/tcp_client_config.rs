@@ -76,10 +76,10 @@ impl TcpClientConfig {
         match value.as_mapping().unwrap().into_iter().next() {
             Some((key, value)) => {
                 Self::new(parent, &mut ConfTree::new(key.as_str().unwrap(), value.clone()))
-            },
+            }
             None => {
                 panic!("TcpClientConfig.from_yaml | Format error or empty conf: {:#?}", value)
-            },
+            }
         }
     }
     ///
@@ -91,15 +91,15 @@ impl TcpClientConfig {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
                         TcpClientConfig::from_yaml(parent, &config)
-                    },
+                    }
                     Err(err) => {
                         panic!("TcpClientConfig.read | Error in config: {:?}\n\terror: {:#?}", yaml_string, err)
-                    },
+                    }
                 }
-            },
+            }
             Err(err) => {
                 panic!("TcpClientConfig.read | File {} reading error: {:#?}", path, err)
-            },
+            }
         }
     }
 }

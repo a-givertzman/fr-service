@@ -3,39 +3,32 @@
 
 mod tests {
     use log::{debug, info};
-    use std::sync::Once;    
+    use std::sync::Once;
     use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
     use crate::core_::aprox_eq::aprox_eq::AproxEq;
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    ///
+    ///
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
+    fn init_each() -> () {}
+    ///
+    ///
     #[test]
     fn test_f32() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
         info!("test_f32");
-    
+
         // let (initial, switches) = init_each();
         let test_data = vec![
             (6, (1.234567000f32, 1.234567890f32)),
@@ -52,16 +45,16 @@ mod tests {
             let aproxEq = value.aprox_eq(target, decimals);
             debug!("value: {:?}   |   target: {:?}  |    decimals: {:?}     |   aproxEq: {:?}", value, target, decimals, aproxEq);
             assert_eq!(aproxEq, true, "value: {:?}   |   target: {:?}  |    decimals: {:?}    |   aproxEq: {:?}", value, target, decimals, aproxEq);
-        }        
+        }
     }
-    
+
     #[test]
     fn test_f64() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
         info!("test_f64");
-    
+
         // let (initial, switches) = init_each();
         let test_data = vec![
             (16, (1.0123456789123456f64, 1.0123456789123456f64)),
@@ -86,6 +79,6 @@ mod tests {
             let aproxEq = value.aprox_eq(target, decimals);
             debug!("value: {:?}   |   target: {:?}  |    decimals: {:?}     |   aproxEq: {:?}", value, target, decimals, aproxEq);
             assert_eq!(aproxEq, true, "value: {:?}   |   target: {:?}  |    decimals: {:?}    |   aproxEq: {:?}", value, target, decimals, aproxEq);
-        }        
+        }
     }
 }

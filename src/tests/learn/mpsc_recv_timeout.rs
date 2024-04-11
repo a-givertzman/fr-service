@@ -4,28 +4,27 @@ mod tests {
     use log::{info, error};
     use std::{sync::{Once, mpsc::{self, RecvTimeoutError}}, time::Duration, thread::{self, JoinHandle}, any::Any};
     use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
-    use crate::core_::constants::constants::RECV_TIMEOUT; 
-    
+    use crate::core_::constants::constants::RECV_TIMEOUT;
+
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
-    
+
     static INIT: Once = Once::new();
-    
+
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
-    
-    
+
+
     ///
     /// returns:
     ///  - ...
     fn init_each() -> () {
-    
+
     }
 
     #[ignore = "Learn - all must be ignored"]
@@ -52,26 +51,26 @@ mod tests {
             match recv.recv_timeout(RECV_TIMEOUT) {
                 Ok(value) => {
                     info!("value: {}", value);
-                },
+                }
                 Err(err) => {
                     match err {
                         RecvTimeoutError::Timeout => {
                             error!("debug: {}", err);
-                        },
+                        }
                         RecvTimeoutError::Disconnected => {
                             error!("error: {}", err);
                             thread::sleep(Duration::from_millis(1000));
                             exit = true;
-                        },
+                        }
                     }
-                },
+                }
             };
             // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
         waitForThread(_h).unwrap();
     }
     ///
-    /// 
+    ///
     fn waitForThread(thd: JoinHandle<()>) -> Result<(), Box<dyn Any + Send>>{
         let thdId = format!("{:?}-{:?}", thd.thread().id(), thd.thread().name());
         info!("Waiting for thread: {:?}...", thdId);
@@ -79,10 +78,10 @@ mod tests {
         match &r {
             Ok(_) => {
                 info!("Waiting for thread: '{}' - finished", thdId);
-            },
+            }
             Err(err) => {
-                error!("Waiting for thread '{}' error: {:?}", thdId, err);                
-            },
+                error!("Waiting for thread '{}' error: {:?}", thdId, err);
+            }
         }
         r
     }

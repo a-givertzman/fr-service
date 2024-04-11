@@ -189,11 +189,11 @@ fn main() {
             }
             ServiceType::CmaClient(service) => {
                 RefCell::new(Box::new(service))
-            },
+            }
             ServiceType::Task(service) => {
                 RefCell::new(Box::new(service))
-            },
-            // _ => {},
+            }
+            // _ => {}
         };
         service.borrow_mut().run();
         services.push(service);

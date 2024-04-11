@@ -179,15 +179,15 @@ impl Service for EmulatedTcpClientSend {
                                                 progress_percent = (sent_count as f32) / (total_count as f32);
                                                 switch_state.add(progress_percent);
                                                 debug!("{}.run | sent: {:?}", self_id, value);
-                                            },
+                                            }
                                             Err(err) => {
                                                 warn!("{}.run | socket write error: {:?}", self_id, err);
-                                            },
+                                            }
                                         }
-                                    },
+                                    }
                                     Err(err) => {
                                         panic!("{}.run | jdsSerialize error: {:?}", self_id, err);
-                                    },
+                                    }
                                 };
                                 // if test_data.is_empty() && waitOnFinish {
                                 //     info!("{}.run | waitOnFinish: {}", self_id, waitOnFinish);
@@ -220,11 +220,11 @@ impl Service for EmulatedTcpClientSend {
                             thread::sleep(Duration::from_millis(1000));
                             break 'connect;
                         }
-                    },
+                    }
                     Err(err) => {
                         warn!("{}.run | connection error: {:?}", self_id, err);
                         thread::sleep(Duration::from_millis(1000))
-                    },
+                    }
                 }
                 if switch_state.isMax() {
                     info!("{}.run | switchState.isMax, exiting", self_id);
@@ -245,12 +245,12 @@ impl Service for EmulatedTcpClientSend {
             Ok(handle) => {
                 info!("{}.run | Starting - ok", self.id);
                 Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
-            },
+            }
             Err(err) => {
-                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                let message = format!("{}.run | Start failed: {:#?}", self.id, err);
                 warn!("{}", message);
                 Err(message)
-            },
+            }
         }    }
     //
     //

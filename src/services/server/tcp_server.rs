@@ -51,7 +51,7 @@ impl TcpServer {
         match repair_result {
             Ok(_) => {
                 info!("{}.setup_connection | Connection '{}' - reparied", self_id, connection_id);
-            },
+            }
             Err(err) => {
                 info!("{}.run | {}", self_id, err);
 
@@ -72,10 +72,10 @@ impl TcpServer {
                         }
                         let (_, handle) = handles.into_iter().next().unwrap();
                         match send.send(Action::Continue(stream)) {
-                            Ok(_) => {},
+                            Ok(_) => {}
                             Err(err) => {
                                 warn!("{}.setup_connection | Send tcpStream error {:?}", self_id, err);
-                            },
+                            }
                         }
                         info!("{}.setup_connection | connections.lock...", self_id);
                         connections.slock().insert(
@@ -84,13 +84,13 @@ impl TcpServer {
                             send,
                         );
                         info!("{}.setup_connection | connections.lock - ok", self_id);
-                    },
+                    }
                     Err(err) => {
                         warn!("{}.setup_connection | error: {:?}", self_id, err);
-                    },
+                    }
                 };
                 info!("{}.setup_connection | Connection '{}' - created new", self_id, connection_id);
-            },
+            }
         }
     }
     ///
@@ -99,19 +99,19 @@ impl TcpServer {
         match stream.set_read_timeout(Some(raad_timeout)) {
             Ok(_) => {
                 info!("{}.set_stream_timout | Socket set read timeout {:?} - ok", self_id, raad_timeout);
-            },
+            }
             Err(err) => {
                 warn!("{}.set_stream_timout | Socket set read timeout error {:?}", self_id, err);
-            },
+            }
         }
         if let Some(timeout) = write_timeout {
             match stream.set_write_timeout(Some(timeout)) {
                 Ok(_) => {
                     info!("{}.set_stream_timout | Socket set write timeout {:?} - ok", self_id, timeout);
-                },
+                }
                 Err(err) => {
                     warn!("{}.set_stream_timout | Socket set write timeout error {:?}", self_id, err);
-                },
+                }
             }
         }
     }
@@ -171,16 +171,16 @@ impl Service for TcpServer {
                                     Self::set_stream_timout(&self_id, &stream, RECV_TIMEOUT, None);
                                     info!("{}.run | Setting up Connection '{}'...", self_id, connection_id);
                                     Self::setup_connection(&self_id, &self_name, &connection_id, stream, services.clone(), conf.clone(), exit.clone(), connections.clone());
-                                },
+                                }
                                 Err(err) => {
                                     warn!("{}.run | error: {:?}", self_id, err);
-                                },
+                                }
                             }
                         }
-                    },
+                    }
                     Err(err) => {
                         warn!("{}.run | error: {:?}", self_id, err);
-                    },
+                    }
                 };
                 if exit.load(Ordering::SeqCst) {
                     break 'main;
@@ -199,12 +199,12 @@ impl Service for TcpServer {
             Ok(handle) => {
                 info!("{}.run | Starting - ok", self.id);
                 Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
-            },
+            }
             Err(err) => {
-                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                let message = format!("{}.run | Start failed: {:#?}", self.id, err);
                 warn!("{}", message);
                 Err(message)
-            },
+            }
         }        
     }
     ///
@@ -217,10 +217,10 @@ impl Service for TcpServer {
             Ok(stream) => {
                 info!("{}.exit | Final connection - ok", self.id);
                 stream.shutdown(Shutdown::Both).unwrap();
-            },
+            }
             Err(err) => {
                 info!("{}.exit | Final connection error: {:?}", self.id, err);
-            },
+            }
         };
     }    
 }

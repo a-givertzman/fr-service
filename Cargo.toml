@@ -46,6 +46,8 @@ const_format = "^0.2"
 
 signal-hook = "^0.3"
 
+lexical = "^6.1"
+
 # [[bin]]
 # name = "task_test"
 # path = "src/task_test.rs"

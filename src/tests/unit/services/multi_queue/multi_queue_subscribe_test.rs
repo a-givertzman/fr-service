@@ -8,24 +8,23 @@ mod multi_queue {
     use std::{sync::{Arc, Mutex, Once}, thread, time::{Duration, Instant}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use testing::{
-        entities::test_value::Value, 
+        entities::test_value::Value,
         stuff::{random_test_values::RandomTestValues, max_test_duration::TestDuration, wait::WaitTread},
     };
     use crate::{
-        conf::multi_queue_config::MultiQueueConfig, 
-        services::{multi_queue::multi_queue::MultiQueue, service::service::Service, services::Services}, 
+        conf::multi_queue_config::MultiQueueConfig,
+        services::{multi_queue::multi_queue::MultiQueue, service::service::Service, services::Services},
         tests::unit::services::multi_queue::{mock_send_service::MockSendService, multi_queue_subscribe_test::MockReceiver},
-    }; 
+    };
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
@@ -87,7 +86,7 @@ mod multi_queue {
         let time = Instant::now();
         for i in 0..sender_count {
             let dynamic_test_data = RandomTestValues::new(
-                self_id, 
+                self_id,
                 vec![
                     Value::String(format!("dynamic01{}", i)),
                     Value::String(format!("dynamic02{}", i)),
@@ -96,8 +95,8 @@ mod multi_queue {
                     Value::String(format!("dynamic05{}", i)),
                     Value::String(format!("dynamic06{}", i)),
                     Value::String(format!("dynamic07{}", i)),
-                ], 
-                iterations, 
+                ],
+                iterations,
             );
             let dynamic_test_data: Vec<Value> = dynamic_test_data.collect();
             let sender = Arc::new(Mutex::new(MockSendService::new(
@@ -156,7 +155,7 @@ struct MockReceiver {
     exit: Arc<AtomicBool>,
 }
 ///
-/// 
+///
 impl MockReceiver {
     pub fn new(parent: impl Into<String>, subscribe: &str, services: Arc<Mutex<Services>>, recv_limit: Option<usize>) -> Self {
         let name = Name::new(parent, format!("MockReceiver{}", COUNT.fetch_add(1, Ordering::Relaxed)));
@@ -172,7 +171,7 @@ impl MockReceiver {
     }
 }
 ///
-/// 
+///
 impl Object for MockReceiver {
     fn id(&self) -> &str {
         self.id.as_str()
@@ -182,7 +181,7 @@ impl Object for MockReceiver {
     }
 }
 ///
-/// 
+///
 impl Debug for MockReceiver {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
@@ -192,7 +191,7 @@ impl Debug for MockReceiver {
     }
 }
 ///
-/// 
+///
 impl Service for MockReceiver {
     //
     //
@@ -216,45 +215,45 @@ impl Service for MockReceiver {
                                 received_len += 1;
                                 trace!("{}.run | Received point: {:#?}", self_id, point);
                                 received.write().unwrap().push(point);
-                            },
+                            }
                             Err(err) => match err {
                                 std::sync::mpsc::RecvTimeoutError::Timeout      => warn!("{}.run | Receive error: {:#?}", self_id, err),
-                                std::sync::mpsc::RecvTimeoutError::Disconnected => {},
-                            },
+                                std::sync::mpsc::RecvTimeoutError::Disconnected => {}
+                            }
                         }
                         if exit.load(Ordering::SeqCst) {
                             break;
                         }
                     }
-                },
+                }
                 None => {
                     loop {
                         match recv.recv_timeout(Duration::from_secs(3)) {
                             Ok(point) => {
                                 received.write().unwrap().push(point)
-                            },
+                            }
                             Err(err) => match err {
                                 std::sync::mpsc::RecvTimeoutError::Timeout      => warn!("{}.run | Receive error: {:#?}", self_id, err),
-                                std::sync::mpsc::RecvTimeoutError::Disconnected => {},
-                            },
+                                std::sync::mpsc::RecvTimeoutError::Disconnected => {}
+                            }
                         }
                         if exit.load(Ordering::SeqCst) {
                             break;
                         }
                     }
-                },
+                }
             }
         });
         match handle {
             Ok(handle) => {
                 info!("{}.run | Starting - ok", self.id);
                 Ok(ServiceHandles::new(vec![(self.id.to_owned(), handle)]))
-            },
+            }
             Err(err) => {
-                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                let message = format!("{}.run | Start failed: {:#?}", self.id, err);
                 warn!("{}", message);
                 Err(message)
-            },
+            }
         }
     }
     //

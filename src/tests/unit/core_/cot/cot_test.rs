@@ -7,22 +7,21 @@ mod tests {
     use testing::stuff::max_test_duration::TestDuration;
     use crate::core_::cot::cot::Cot;
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// 
+    ///
     #[test]
     fn test_cot() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);

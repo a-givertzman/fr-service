@@ -7,7 +7,6 @@ use crate::core_::{cot::cot::Cot, status::status::Status, types::bool::Bool};
 pub struct Point<T> {
     pub tx_id: usize,
     pub name: String,
-    // pub path: PointPath,
     pub value: T,
     pub status: Status,
     pub cot: Cot,

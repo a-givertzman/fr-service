@@ -3,7 +3,7 @@ use std::array::TryFromSliceError;
 use chrono::{DateTime, Utc};
 use crate::{
     conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress, point_config_history::PointConfigHistory},
-    core_::{cot::cot::Cot, filter::filter::Filter, point::{point::Point, point_type::PointType}, status::status::Status}, 
+    core_::{cot::cot::Cot, filter::filter::Filter, point::{point::Point, point_type::PointType}, status::status::Status},
     services::profinet_client::parse_point::ParsePoint,
 };
 ///
@@ -22,10 +22,10 @@ pub struct S7ParseInt {
     is_changed: bool,
 }
 ///
-/// 
+///
 impl S7ParseInt {
     ///
-    /// 
+    ///
     pub fn new(
         tx_id: usize,
         name: String,
@@ -65,14 +65,14 @@ impl S7ParseInt {
         }
     }
     ///
-    /// 
+    ///
     fn to_point(&self) -> Option<PointType> {
         if self.is_changed {
             Some(PointType::Int(Point::new(
-                self.tx_id, 
-                &self.name, 
+                self.tx_id,
+                &self.name,
                 self.value.value(),
-                self.status, 
+                self.status,
                 Cot::Inf,
                 self.timestamp,
             )))
@@ -82,7 +82,7 @@ impl S7ParseInt {
         }
     }
     //
-    // 
+    //
     fn add_raw_simple(&mut self, bytes: &[u8]) {
         self.add_raw(bytes, Utc::now())
     }
@@ -92,10 +92,11 @@ impl S7ParseInt {
         let result = self.convert(bytes, self.offset.unwrap() as usize, 0);
         match result {
             Ok(new_val) => {
+                let status = Status::Ok;
                 let new_val = new_val as i64;
-                if new_val != self.value.value() {
+                if new_val != self.value.value() || self.status != status {
                     self.value.add(new_val);
-                    self.status = Status::Ok;
+                    self.status = status;
                     self.timestamp = timestamp;
                     self.is_changed = true;
                 }
@@ -108,7 +109,7 @@ impl S7ParseInt {
     }
 }
 ///
-/// 
+///
 impl ParsePoint for S7ParseInt {
     //
     //
@@ -120,20 +121,23 @@ impl ParsePoint for S7ParseInt {
     //
     fn next(&mut self, bytes: &[u8], timestamp: DateTime<Utc>) -> Option<PointType> {
         self.add_raw(bytes, timestamp);
-        match self.to_point() {
-            Some(point) => {
-                self.is_changed = false;
-                Some(point)
-            },
-            None => None,
-        }
+        self.to_point().map(|point| {
+            self.is_changed = false;
+            point
+        })
     }
     //
     //
     fn next_status(&mut self, status: Status) -> Option<PointType> {
-        self.status = status;
-        self.timestamp = Utc::now();
-        self.to_point()
+        if self.status != status {
+            self.status = status;
+            self.timestamp = Utc::now();
+            self.is_changed = true;
+        }
+        self.to_point().map(|point| {
+            self.is_changed = false;
+            point
+        })
     }
     //
     //

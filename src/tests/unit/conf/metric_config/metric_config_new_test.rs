@@ -8,22 +8,21 @@ mod tests {
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::conf::{fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig, metric_config::MetricConfig}, point_config::name::Name};
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// 
+    ///
     #[test]
     fn test_metric_config_new_valid() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -41,7 +40,7 @@ mod tests {
             //         sql: "select * from {table}"
             //         inputs:
             //             input: const '13.55'
-            //     "#, 
+            //     "#,
             //     FnConfig { fnType: FnConfigType::Var, name: "newVar".to_string(), inputs: IndexMap::from([
             //         ("input".to_string(), FnConfig { fnType: FnConfigType::Const, name: "13.55".to_string(), inputs: IndexMap::new() }),
             //     ]) }
@@ -50,7 +49,7 @@ mod tests {
                 r#"fn SqlMetric:
                     initial: 0.123      # начальное значение
                     table: table_name
-                    sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
+                    sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"
                     inputs:
                         input1:
                             let VarName2:
@@ -63,43 +62,43 @@ mod tests {
                                             input: point bool '/path/Point.Name/'
                         input2:
                             const 1
-                "#, 
-                MetricConfig { 
-                    name: format!("SqlMetric"), 
-                    table: format!("table_name"), 
-                    sql: String::from("UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"), 
-                    initial: 0.123, 
+                "#,
+                MetricConfig {
+                    name: format!("SqlMetric"),
+                    table: format!("table_name"),
+                    sql: String::from("UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"),
+                    initial: 0.123,
                     vars: vec![format!("VarName2")],
                     inputs: IndexMap::from([
-                        (format!("input1"), FnConfKind::Var( FnConfig { 
+                        (format!("input1"), FnConfKind::Var( FnConfig {
                             name: format!("VarName2"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-                                (format!("input"), FnConfKind::Fn( FnConfig { 
+                                (format!("input"), FnConfKind::Fn( FnConfig {
                                     name: format!("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                                         (format!("initial"), FnConfKind::Var( FnConfig { name: format!("VarName2"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
-                                        (format!("input11"), FnConfKind::Fn( FnConfig { 
+                                        (format!("input11"), FnConfKind::Fn( FnConfig {
                                             name: format!("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                                                 (format!("input1"), FnConfKind::Const( FnConfig { name: format!("someValue"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
-                                                (format!("input2"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name/"), type_: FnConfPointType::Int, inputs: IndexMap::new() } )), 
-                                                (format!("input"), FnConfKind::Fn( FnConfig { 
+                                                (format!("input2"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name/"), type_: FnConfPointType::Int, inputs: IndexMap::new() } )),
+                                                (format!("input"), FnConfKind::Fn( FnConfig {
                                                     name: format!("functionName"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                                                         (format!("input"), FnConfKind::Point( FnConfig { name: format!("/path/Point.Name/"), type_: FnConfPointType::Bool, inputs: IndexMap::new() } )),
                                                     ])
-                                                } )), 
+                                                } )),
                                             ]),
                                         } )),
-                                    ]), 
+                                    ]),
                                 } )),
                             ]),
-                        } )), 
+                        } )),
                         (format!("input2"), FnConfKind::Const( FnConfig { name: format!("1"), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
-                    ]), 
+                    ]),
                 },
             ),
         ];
         for (value, target) in test_data {
             debug!("test value: {:?}", value);
             let conf: serde_yaml::Value = serde_yaml::from_str(value).unwrap();
-    
+
             debug!("value: {:?}   |   conf: {:?}   |   target: {:?}", "_", conf, target);
             // let fnKeyword = FnConfigKeyword::from_str(conf.as_str().unwrap()).unwrap();
             // debug!("\tfnKeyword: {:?}", fnKeyword);

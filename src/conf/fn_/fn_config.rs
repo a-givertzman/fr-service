@@ -76,7 +76,7 @@ impl FnConfig {
                                     type_: value.type_,
                                 }        
                             )
-                        },
+                        }
                         FnConfKeywd::Var(value) => {
                             vars.push(value.data.clone());
                             FnConfKind::Var(
@@ -86,7 +86,7 @@ impl FnConfig {
                                     type_: value.type_,
                                 }
                             )        
-                        },
+                        }
                         FnConfKeywd::Fn(value) => {
                             FnConfKind::Fn(
                                 FnConfig {
@@ -95,7 +95,7 @@ impl FnConfig {
                                     type_: value.type_,
                                 }
                             )
-                        },
+                        }
                         FnConfKeywd::Point(value) => {
                             debug!("FnConfig.new | Point: {:?}", value);
                             let result = Self::get_param_by_keyword(conf_tree, "input", FnConfKindName::Const | FnConfKindName::Fn | FnConfKindName::Var | FnConfKindName::Point);
@@ -108,7 +108,7 @@ impl FnConfig {
                                     //     Some(conf) => conf,
                                     //     None => panic!("FnConfig.new | Point.input - can't be empty in: {:?}", confTree),
                                     // }
-                                },
+                                }
                                 Err(_) => panic!("FnConfig.new | Point.input - not found in: {:?}", conf_tree),
                             };
                             FnConfKind::PointConf(
@@ -117,9 +117,9 @@ impl FnConfig {
                                     input: Box::new(FnConfig::new(parent_id, parent_name, &input_conf, vars)),
                                 }
                             )
-                        },
+                        }
                     }
-                },
+                }
                 // no keyword 
                 //  - current node just an input name
                 //      - take input Value / Fn from first sub node,
@@ -127,7 +127,7 @@ impl FnConfig {
                 Err(err) => {
                     panic!("FnConfig.new | keyword '{:?}' parsing error: {:?}", conf_tree, err)
                     // trace!("FnConfig.new | input name detected: {:?}", confTree.key);
-                },
+                }
             }
         } else {
             trace!("FnConfig.new | SINGLE VALUE: \t{:#?}", &conf_tree.conf);
@@ -145,7 +145,7 @@ impl FnConfig {
                                         type_: value.type_,
                                     }
                                 )
-                            },
+                            }
                             FnConfKeywd::Point(value) => {
                                 FnConfKind::Point(
                                     FnConfig {
@@ -154,12 +154,12 @@ impl FnConfig {
                                         type_: value.type_,
                                     }
                                 )
-                            },
+                            }
                             _ => {
                                 panic!("FnConfig.new | Unknown keyword: {:?}", conf_tree.conf)
-                            },
+                            }
                         }
-                    },
+                    }
                     // no keyword 
                     //  - current node just an varible name
                     //  - or custom parameter
@@ -220,24 +220,24 @@ impl FnConfig {
                                     FnConfig::new(parent_id, parent_name, &sub_node, vars),
                                 );
                             }
-                        },
+                        }
                         Err(_) => {
                             trace!("FnConfig.buildInputs | sub node NO KEYWORD");
                             inputs.insert(
                                 (sub_node).key.clone(), 
                                 FnConfig::new(parent_id, parent_name, &sub_node, vars),
                             );
-                        },
+                        }
                     };
                 }
-            },
+            }
             None => {
                 trace!("FnConfig.buildInputs | sub node not found, possible Const or Var");
                 inputs.insert(
                     (conf_tree).key.clone(), 
                     FnConfig::new(parent_id, parent_name, conf_tree, vars),
                 );
-            },
+            }
         }
         inputs
     }
@@ -265,15 +265,15 @@ impl FnConfig {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
                         FnConfig::from_yaml(parent_id, parent_name, &config, &mut vars)
-                    },
+                    }
                     Err(err) => {
                         panic!("FnConfig.read | Error in config: {:?}\n\terror: {:?}", yaml_string, err)
-                    },
+                    }
                 }
-            },
+            }
             Err(err) => {
                 panic!("FnConfig.read | File {} reading error: {:?}", path, err)
-            },
+            }
         }
     }
     ///
@@ -291,7 +291,7 @@ impl FnConfig {
             Some(param) => param,
             None => {
                 panic!("FnConfig.param | parameter {:?} not fount in the {:?}", name, self.name);
-            },
+            }
         }
     }
     ///
@@ -307,12 +307,12 @@ impl FnConfig {
                     if ((keyword.kind() as u8) & kind) > 0 && keyword.input() == input {
                         return Ok(node)
                     }
-                },
+                }
                 Err(_) => {
                     if node.key == input {
                         return Ok(node)
                     }
-                },
+                }
             };
         };
         // Err(format!("{}.getParamByKeyword | keyword '{} {:?}' - not found", self.id, keywordPrefix, keywordKind))
@@ -329,22 +329,22 @@ impl FnConfig {
             let mut input_points = match input_kind {
                 FnConfKind::Fn(config) => {
                     config.points()
-                },
+                }
                 FnConfKind::Var(config) => {
                     config.points()
-                },
+                }
                 FnConfKind::Const(config) => {
                     config.points()
-                },
+                }
                 FnConfKind::Point(config) => {
                     config.points()
-                },
+                }
                 FnConfKind::PointConf(config) => {
                     config.points()
-                },
+                }
                 FnConfKind::Param(_) => {
                     vec![]
-                },
+                }
             };
             points.append(&mut input_points);
         }

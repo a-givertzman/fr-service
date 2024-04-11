@@ -6,15 +6,14 @@ mod fn_conf_keywd {
     use std::{sync::Once, str::FromStr};
     use crate::conf::fn_::fn_conf_keywd::{FnConfKeywd, FnConfKeywdValue, FnConfPointType};
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
@@ -58,7 +57,7 @@ mod fn_conf_keywd {
         }
     }
     ///
-    /// 
+    ///
     #[test]
     fn invalid() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);

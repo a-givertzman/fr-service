@@ -62,16 +62,16 @@ impl FnOut for FnAdd {
         let out = match value1 {
             PointType::Bool(value1) => {
                 PointType::Bool(value1 + value2.as_bool())
-            },
+            }
             PointType::Int(value1) => {
                 PointType::Int(value1 + value2.as_int())
-            },
+            }
             PointType::Real(value1) => {
                 PointType::Real(value1 + value2.as_real())
-            },
+            }
             PointType::Double(value1) => {
                 PointType::Double(value1 + value2.as_double())
-            },
+            }
             _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, value1.print_type_of(), value1),
         };
         trace!("{}.out | out: {:?}", self.id, &out);

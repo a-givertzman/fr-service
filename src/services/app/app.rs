@@ -9,10 +9,10 @@ use signal_hook::iterator::Signals;
 use testing::stuff::wait::WaitTread;
 use crate::{
     conf::{
-        api_client_config::ApiClientConfig, app::app_config::AppConfig, conf_tree::ConfTree, multi_queue_config::MultiQueueConfig, point_config::name::Name, profinet_client_config::profinet_client_config::ProfinetClientConfig, task_config::TaskConfig, tcp_client_config::TcpClientConfig, tcp_server_config::TcpServerConfig
+        api_client_config::ApiClientConfig, app::app_config::AppConfig, cache_service_config::CacheServiceConfig, conf_tree::ConfTree, multi_queue_config::MultiQueueConfig, point_config::name::Name, profinet_client_config::profinet_client_config::ProfinetClientConfig, task_config::TaskConfig, tcp_client_config::TcpClientConfig, tcp_server_config::TcpServerConfig
     }, 
     services::{
-        api_cient::api_client::ApiClient, history::{producer_service::ProducerService, producer_service_config::ProducerServiceConfig}, multi_queue::multi_queue::MultiQueue, profinet_client::profinet_client::ProfinetClient, safe_lock::SafeLock, server::tcp_server::TcpServer, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::task::Task, tcp_client::tcp_client::TcpClient
+        api_cient::api_client::ApiClient, cache::cache_service::CacheService, history::{producer_service::ProducerService, producer_service_config::ProducerServiceConfig}, multi_queue::multi_queue::MultiQueue, profinet_client::profinet_client::ProfinetClient, safe_lock::SafeLock, server::tcp_server::TcpServer, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::task::Task, tcp_client::tcp_client::TcpClient
     },
 };
 
@@ -71,10 +71,10 @@ impl App {
                 Ok(handles) => {
                     app.write().unwrap().insert_handles(&name, handles);
                     info!("{}.run |         Starting service: {} - ok", self_id, name);
-                },
+                }
                 Err(err) => {
                     error!("{}.run |         Error starting service '{}': {:#?}", self_id, name, err);
-                },
+                }
             };
             thread::sleep(Duration::from_millis(100));
         }
@@ -89,10 +89,10 @@ impl App {
                     let handles = app.write().unwrap().handles.remove(service_name).unwrap();
                     handles.wait().unwrap();
                     info!("{}.run | Waiting for service '{}' being finished - Ok", self_id, service_name);
-                },
+                }
                 None => {
                     break;
-                },
+                }
             }
         }
         info!("{}.run | Application exit - Ok\n", self_id);
@@ -123,9 +123,12 @@ impl App {
             Services::PRODUCER_SERVICE => Arc::new(Mutex::new(
                 ProducerService::new(ProducerServiceConfig::new(parent, node_conf), services.clone())
             )),
+            Services::CACHE_SERVICE => Arc::new(Mutex::new(
+                CacheService::new(CacheServiceConfig::new(parent, node_conf), services.clone())
+            )),
             _ => {
                 panic!("{}.run | Unknown service: {}({})", self_id, node_name, node_sufix);
-            },
+            }
         }
     }
     ///
@@ -170,25 +173,25 @@ impl App {
                                         println!("{}.run Stopping service '{}' - Ok", self_id, _id);
                                     }
                                     break;
-                                },
+                                }
                                 SIGKILL => {
                                     println!("{}.run Received signal {:?}", self_id, signal);
                                     println!("{}.run Application halt...", self_id);
                                     exit(0);
-                                },
+                                }
                                 _ => {
                                     println!("{}.run Received unknown signal {:?}", self_id, signal);
-                                },
+                                }
                             }
                         }
                     }).unwrap();
                     handle.wait().unwrap();
                     signals_handle.close();
                 });
-            },
+            }
             Err(err) => {
                 panic!("{}.run | Application hook system signals error; {:#?}", self_id, err);
-            },
+            }
         }
     }
 }

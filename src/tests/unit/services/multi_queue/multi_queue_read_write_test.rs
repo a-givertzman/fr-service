@@ -6,20 +6,19 @@ mod multi_queue {
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::multi_queue_config::MultiQueueConfig, 
-        services::{multi_queue::multi_queue::MultiQueue, services::Services, service::service::Service}, 
+        conf::multi_queue_config::MultiQueueConfig,
+        services::{multi_queue::multi_queue::MultiQueue, services::Services, service::service::Service},
         tests::unit::services::multi_queue::mock_recv_send_service::MockRecvSendService,
-    }; 
+    };
     ///
-    ///     
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
@@ -38,7 +37,7 @@ mod multi_queue {
         println!("\n{}", self_id);
         let iterations = 10;
         let test_data = RandomTestValues::new(
-            self_id, 
+            self_id,
             vec![
                 Value::Int(i64::MIN),
                 Value::Int(i64::MAX),
@@ -63,8 +62,8 @@ mod multi_queue {
                 Value::String("test1test1test1test1test1test1test1test1test1test1test1test1test1test1test1".to_string()),
                 Value::String("test2".to_string()),
                 Value::String("test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2test2".to_string()),
-            ], 
-            iterations, 
+            ],
+            iterations,
         );
         let test_data: Vec<Value> = test_data.collect();
         let test_data_len = test_data.len();

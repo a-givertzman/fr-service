@@ -4,19 +4,18 @@ use log::{debug, info};
 use std::{sync::Once, rc::Rc, cell::RefCell};
 use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
 use crate::{
-    conf::fn_::fn_conf_keywd::FnConfPointType, core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, services::task::nested_function::{fn_::FnOut, 
+    conf::fn_::fn_conf_keywd::FnConfPointType, core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, services::task::nested_function::{fn_::FnOut,
     fn_count::{self, FnCount}, fn_input::FnInput, reset_counter::AtomicReset}
 };
 ///
-/// 
+///
 static INIT: Once = Once::new();
 ///
 /// once called initialisation
 fn init_once() {
     INIT.call_once(|| {
-            // implement your initialisation code to be called only once for current test file
-        }
-    )
+        // implement your initialisation code to be called only once for current test file
+    })
 }
 ///
 /// returns:
@@ -37,7 +36,7 @@ fn test_single() {
     let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
     let mut fnCount = FnCount::new(
         "test",
-        0.0, 
+        0.0,
         input.clone(),
     );
     let test_data = vec![
@@ -64,9 +63,9 @@ fn test_single() {
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
         assert_eq!(state.as_double().value, targetState as f64);
-    }        
+    }
 }
-// 
+//
 
 #[test]
 fn test_multiple() {
@@ -76,7 +75,7 @@ fn test_multiple() {
     let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
     let mut fnCount = FnCount::new(
         "test",
-        0.0, 
+        0.0,
         input.clone(),
     );
     let test_data = vec![
@@ -103,7 +102,7 @@ fn test_multiple() {
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
         assert_eq!(state.as_double().value, targetState as f64);
-    }        
+    }
 }
 
 #[test]
@@ -114,7 +113,7 @@ fn test_multiple_reset() {
     let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
     let mut fnCount = FnCount::new(
         "test",
-        0.0, 
+        0.0,
         input.clone(),
     );
     let test_data = vec![
@@ -144,5 +143,5 @@ fn test_multiple_reset() {
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
         assert_eq!(state.as_double().value, targetState as f64);
-    }        
+    }
 }

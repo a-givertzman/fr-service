@@ -7,22 +7,21 @@ mod tests {
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::conf::{fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig}, point_config::name::Name};
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
     ///  - ...
     fn init_each() -> () {}
     ///
-    ///     
+    ///
     #[test]
     fn test_fn_config_new_valid() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -36,7 +35,7 @@ mod tests {
             (
                 r#"let newVar:
                     input: const '13.55'
-                "#, 
+                "#,
                 FnConfKind::Var( FnConfig { name: "newVar".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                     ("input".to_string(), FnConfKind::Const( FnConfig { name: "13.55".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::new() })),
                 ]) })
@@ -46,7 +45,7 @@ mod tests {
                     input fn count:
                         inputConst1: const '13.3'
                         inputConst2: const '13.7'
-                "#, 
+                "#,
                 FnConfKind::Var( FnConfig { name: "newVar".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                     ("input".to_string(), FnConfKind::Fn( FnConfig { name: "count".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                         ("inputConst1".to_string(), FnConfKind::Const( FnConfig { name: "13.3".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
@@ -62,7 +61,7 @@ mod tests {
                     input2 fn count:
                         inputConst1: const real '13.3'
                         inputConst2: const int '147'
-                "#, 
+                "#,
                 FnConfKind::Var( FnConfig { name: "newVar".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                     ("input1".to_string(), FnConfKind::Fn( FnConfig { name: "count".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                         ("inputConst1".to_string(), FnConfKind::Const( FnConfig { name: "11.3".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
@@ -103,7 +102,7 @@ mod tests {
                 r#"fn metricName1:
                     initial: 0.123
                     table: SelectMetric_test_table_name
-                    sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
+                    sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"
                     input fn functionName1:
                         initial: const int 1234567
                         input fn functionName2:

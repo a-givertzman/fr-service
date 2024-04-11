@@ -27,6 +27,7 @@ pub struct TcpServerConfig {
     pub(crate) rx: String,
     pub(crate) rx_max_len: i64,
     pub(crate) tx: String,
+    pub(crate) cache: Option<String>,
 }
 ///
 /// 
@@ -70,6 +71,8 @@ impl TcpServerConfig {
         debug!("{}.new | RX: {},\tmax-length: {}", self_id, rx, rx_max_len);
         let tx = self_conf.get_out_queue().unwrap();
         debug!("{}.new | TX: {}", self_id, tx);
+        let cache = self_conf.get_param_value("cache").map_or_else(|_| None, |v| v.as_str().map(|v| v.to_owned()));
+        debug!("{}.new | cache: {:?}", self_id, cache);
         TcpServerConfig {
             name: self_name,
             cycle,
@@ -80,6 +83,7 @@ impl TcpServerConfig {
             rx,
             rx_max_len,
             tx,
+            cache,
         }
     }
     ///
@@ -88,10 +92,10 @@ impl TcpServerConfig {
         match value.as_mapping().unwrap().into_iter().next() {
             Some((key, value)) => {
                 Self::new(parent, &mut ConfTree::new(key.as_str().unwrap(), value.clone()))
-            },
+            }
             None => {
                 panic!("TcpServerConfig.from_yaml | Format error or empty conf: {:#?}", value)
-            },
+            }
         }
     }
     ///
@@ -103,15 +107,15 @@ impl TcpServerConfig {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
                         TcpServerConfig::from_yaml(parent, &config)
-                    },
+                    }
                     Err(err) => {
                         panic!("TcpServerConfig.read | Error in config: {:?}\n\terror: {:?}", yaml_string, err)
-                    },
+                    }
                 }
-            },
+            }
             Err(err) => {
                 panic!("TcpServerConfig.read | File {} reading error: {:?}", path, err)
-            },
+            }
         }
     }
 }

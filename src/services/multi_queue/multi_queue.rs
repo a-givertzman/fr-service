@@ -57,13 +57,13 @@ impl MultiQueue {
             Ok(mut f) => {
                 f.write_fmt(format_args!("\n\n\t{} ({})", receiver_name, rceiver_hash)).unwrap();
                 match serde_json::to_writer_pretty(f, &destinations) {
-                    Ok(_) => {},
+                    Ok(_) => {}
                     Err(err) => warn!("{}.log | Error writing to file: '{}'\n\terror: {:?}", self.id, path, err),
                 }
-            },
+            }
             Err(err) => {
                 warn!("{}.log | Error open file: '{}'\n\terror: {:?}", self.id, path, err)
-            },
+            }
         }
     }
     ///
@@ -73,10 +73,10 @@ impl MultiQueue {
         match fs::OpenOptions::new().create(true).append(true).open(&path) {
             Ok(mut f) => {
                 f.write_fmt(format_args!("'{}': {:?}\n",point_id, point)).unwrap();
-            },
+            }
             Err(err) => {
                 warn!("{}.log | Error open file: '{}'\n\terror: {:?}", self_id, path, err)
-            },
+            }
         }
     }
 
@@ -172,10 +172,10 @@ impl Service for MultiQueue {
                     self.receiver_dictionary.remove(&receiver_hash);
                     changed |= true;
                     debug!("{}.unsubscribe | Broadcast subscription removed, receiver: {} ({})", self.id, receiver_name, receiver_hash);
-                },
+                }
                 Err(err) => {
                     return Err(err)
-                },
+                }
             }
         } else {
             for subscription_criteria in points {
@@ -184,10 +184,10 @@ impl Service for MultiQueue {
                         self.receiver_dictionary.remove(&receiver_hash);
                         changed |= true;
                         debug!("{}.unsubscribe | Multicat subscription '{}' removed, receiver: {} ({})", self.id, subscription_criteria.destination(), receiver_name, receiver_hash);
-                    },
+                    }
                     Err(err) => {
                         return Err(err)
-                    },
+                    }
                 }
             }
         }
@@ -232,19 +232,19 @@ impl Service for MultiQueue {
                             match receiver_hash != point.tx_id() {
                                 true => {
                                     match sender.send(point.clone()) {
-                                        Ok(_) => {},
+                                        Ok(_) => {}
                                         Err(err) => {
                                             error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", self_id, point_id, receiver_hash, err);
-                                        },
+                                        }
                                     };
-                                },
-                                false => {},
+                                }
+                                false => {}
                             }
                         }
-                    },
+                    }
                     Err(err) => {
                         trace!("{}.run | recv timeout: {:?}", self_id, err);
-                    },
+                    }
                 }
                 if exit.load(Ordering::SeqCst) {
                     break;
@@ -256,12 +256,12 @@ impl Service for MultiQueue {
             Ok(handle) => {
                 info!("{}.run | Started", self.id);
                 Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
-            },
+            }
             Err(err) => {
-                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                let message = format!("{}.run | Start failed: {:#?}", self.id, err);
                 warn!("{}", message);
                 Err(message)
-            },
+            }
         }
     }
     //

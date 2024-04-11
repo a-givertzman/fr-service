@@ -5,30 +5,29 @@ mod tests {
     use rand::Rng;
     use std::{sync::{atomic::{AtomicUsize, Ordering}, Arc, Mutex}, thread};
     use std::{sync::Once, time::Duration};
-    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace}; 
-    
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
-    
+
     static INIT: Once = Once::new();
-    
+
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
-    
-    
+
+
     ///
     /// returns:
     ///  - ...
     fn init_each() -> () {
-    
+
     }
-    
+
     #[ignore = "Learn - all must be ignored"]
     #[test]
     fn test_task_cycle() {
@@ -48,20 +47,20 @@ mod tests {
                             println!("stream 1: '{}'", stream);
                             connected += 1;
                             closed = false;
-                        },
+                        }
                         Err(err) => {
                             println!("error 1: '{}'", err);
-                        },
+                        }
                     };
                     match connect.connect(closed) {
                         Ok(stream) => {
                             println!("stream 2: '{}'", stream);
                             connected += 1;
                             closed = false;
-                        },
+                        }
                         Err(err) => {
                             println!("error 2: '{}'", err);
-                        },
+                        }
                     };
                     if connected >= 2 {break;}
                     thread::sleep(Duration::from_millis(300))
@@ -70,7 +69,7 @@ mod tests {
         }
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
     }
-    
+
     #[derive(Debug, PartialEq)]
     enum ConnectState {
         Closed,
@@ -109,22 +108,22 @@ mod tests {
             match ConnectState::from( self.state.load(Ordering::Relaxed) ) {
                 ConnectState::Closed => {
                     self.connect_stream();
-                },
-                ConnectState::Connecting => {},
+                }
+                ConnectState::Connecting => {}
                 ConnectState::Connected => {
                     if closed {
                         self.state.store(ConnectState::Closed.value(), Ordering::SeqCst);
                         self.connect_stream();
                     }
-                },
+                }
             };
             match ConnectState::from( self.state.load(Ordering::Relaxed) ) {
-                ConnectState::Connected => {                    
+                ConnectState::Connected => {
                     let stream = self.stream.lock().unwrap().pop().unwrap();
                     let streamClone= stream.clone();
                     self.stream.lock().unwrap().push(stream);
                     Ok(streamClone)
-                },
+                }
                 _ => Err(String::from(format!("{:?}", ConnectState::from( self.state.load(Ordering::Relaxed) )))),
             }
         }
@@ -142,11 +141,11 @@ mod tests {
                             println!("TestConnect | connecting - ok");
                             stream.lock().unwrap().push(format!("Stream"));
                             state.store(ConnectState::Connected.value(), Ordering::SeqCst)
-                        },
+                        }
                         false => {
                             state.store(ConnectState::Closed.value(), Ordering::SeqCst);
                             println!("TestConnect | connecting - error");
-                        },
+                        }
                     };
                 });
                 h.join().unwrap();

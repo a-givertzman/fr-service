@@ -43,22 +43,22 @@ impl ProducerService {
             match point_conf._type {
                 crate::conf::point_config::point_config_type::PointConfigType::Bool => {
                     gen_points.insert(point_conf.name.clone(), Box::new(PointGen::new(parent_id, tx_id, point_conf.name.clone(), &point_conf)));
-                },
+                }
                 crate::conf::point_config::point_config_type::PointConfigType::Int => {
                     gen_points.insert(point_conf.name.clone(), Box::new(PointGen::new(parent_id, tx_id, point_conf.name.clone(), &point_conf)));
-                },
+                }
                 crate::conf::point_config::point_config_type::PointConfigType::Real => {
                     gen_points.insert(point_conf.name.clone(), Box::new(PointGen::new(parent_id, tx_id, point_conf.name.clone(), &point_conf)));
-                },
+                }
                 crate::conf::point_config::point_config_type::PointConfigType::Double => {
                     gen_points.insert(point_conf.name.clone(), Box::new(PointGen::new(parent_id, tx_id, point_conf.name.clone(), &point_conf)));
-                },
+                }
                 crate::conf::point_config::point_config_type::PointConfigType::String => {
                     gen_points.insert(point_conf.name.clone(), Box::new(PointGen::new(parent_id, tx_id, point_conf.name.clone(), &point_conf)));
-                },
+                }
                 crate::conf::point_config::point_config_type::PointConfigType::Json => {
                     gen_points.insert(point_conf.name.clone(), Box::new(PointGen::new(parent_id, tx_id, point_conf.name.clone(), &point_conf)));
-                },
+                }
             }
         }
         gen_points
@@ -70,10 +70,10 @@ impl ProducerService {
         match fs::OpenOptions::new().create(true).append(true).open(&path) {
             Ok(mut f) => {
                 f.write_fmt(format_args!("{:?}\n", point)).unwrap();
-            },
+            }
             Err(err) => {
                 warn!("{}.log | Error open file: '{}'\n\terror: {:?}", self_id, path, err)
-            },
+            }
         }
     }
 }
@@ -116,8 +116,7 @@ impl Service for ProducerService {
             panic!("{}.run | services.get_link error: {:#?}", self.id, err);
         });
         let mut gen_points = Self::build_gen_points(&self.id, tx_id, self.conf.points());
-        match thread::Builder::new().name(self_id.clone()).spawn(move || {
-            // let mut test_data = Self::build_test_data(&self_id);
+        let handle = thread::Builder::new().name(self_id.clone()).spawn(move || {
             'main: loop {
                 trace!("{}.run | Step...", self_id);
                 for (_, gen_point) in &mut gen_points {
@@ -127,10 +126,10 @@ impl Service for ProducerService {
                             Ok(_) => {
                                 // if debug {debug!("{}.run | sent point: {:?}", self_id, point);}
                                 if debug {Self::log(&self_id, &self_name, &point);}
-                            },
+                            }
                             Err(err) => {
                                 warn!("{}.run | Send error: {:?}", self_id, err);
-                            },
+                            }
                         }
                     };
                     if delayed {
@@ -141,17 +140,18 @@ impl Service for ProducerService {
                     }
                 }
             }
-            info!("{}.run | Stopped", self_id);
-        }) {
+            info!("{}.run | Exit", self_id);
+        });
+        match handle {
             Ok(handle) => {
                 info!("{}.run | Started", self.id);
                 Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
-            },
+            }
             Err(err) => {
-                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                let message = format!("{}.run | Start failed: {:#?}", self.id, err);
                 warn!("{}", message);
                 Err(message)
-            },
+            }
         }
     }
     //
@@ -219,7 +219,7 @@ impl PointGen {
                         Cot::Inf,
                         self.timestamp,
                     )))
-                },
+                }
                 PointConfigType::Int => {
                     Some(PointType::Int(Point::new(
                         self.tx_id, 
@@ -229,7 +229,7 @@ impl PointGen {
                         Cot::Inf,
                         self.timestamp,
                     )))
-                },
+                }
                 PointConfigType::Real => {
                     Some(PointType::Real(Point::new(
                         self.tx_id, 
@@ -239,7 +239,7 @@ impl PointGen {
                         Cot::Inf,
                         self.timestamp,
                     )))
-                },
+                }
                 PointConfigType::Double => {
                     Some(PointType::Double(Point::new(
                         self.tx_id, 
@@ -249,7 +249,7 @@ impl PointGen {
                         Cot::Inf,
                         self.timestamp,
                     )))
-                },
+                }
                 PointConfigType::String => {
                     Some(PointType::String(Point::new(
                         self.tx_id, 
@@ -259,7 +259,7 @@ impl PointGen {
                         Cot::Inf,
                         self.timestamp,
                     )))
-                },
+                }
                 PointConfigType::Json => {
                     Some(PointType::String(Point::new(
                         self.tx_id, 
@@ -269,7 +269,7 @@ impl PointGen {
                         Cot::Inf,
                         self.timestamp,
                     )))
-                },
+                }
             }
         } else {
             None
@@ -296,7 +296,7 @@ impl ParsePoint<Value> for PointGen {
             Some(point) => {
                 self.is_changed = false;
                 Some(point)
-            },
+            }
             None => None,
         }
     }

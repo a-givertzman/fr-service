@@ -104,23 +104,23 @@ impl FromStr for ConfDuration {
                                     Some(u) => match ConfDurationUnit::from_str(u.as_str()) {
                                         Ok(unit) => Ok(unit),
                                         Err(err) => Err(err),
-                                    },
+                                    }
                                     None => Ok(ConfDurationUnit::Secs),
                                 };
                                 match unit {
                                     Ok(unit) => Ok(ConfDuration::new(value, unit)),
                                     Err(err) => Err(err),
                                 }
-                            },
+                            }
                             Err(err) => Err(format!("ConfDuration.from_str | Error parsing duration value: '{}'\n\terror: {:?}", &input, err)),
                         }
-                    },
+                    }
                     None => Err(format!("ConfDuration.from_str | Error parsing duration value: '{}'", &input)),
                 }
-            },
+            }
             None => {
                 Err(format!("ConfDuration.from_str | Error parsing duration value: '{}'", &input))
-            },
+            }
         }
     }
 }

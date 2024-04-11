@@ -5,30 +5,22 @@ mod tests {
     use std::{sync::Once, str::FromStr};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::conf::conf_keywd::{ConfKeywd, ConfKeywdValue, ConfKind};
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    ///
+    ///
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
-    
+    fn init_each() -> () {}
+    ///
+    ///
     #[test]
     fn test_create_valid() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -54,7 +46,7 @@ mod tests {
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
     }
-    
+
     // #[test]
     // fn test_create_invalid() {
     //     DebugSession::init(LogLevel::Info, Backtrace::Short);

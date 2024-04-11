@@ -46,6 +46,11 @@ pub trait Service: Object + std::fmt::Debug {
         vec![]
     }
     ///
+    /// Returns Receiver<PointType>, where will be pushed all points by subscription
+    fn gi(&self, receiver_name: &str, points: &[SubscriptionCriteria]) -> Receiver<PointType> {
+        panic!("{}.gi | Does not supported", self.id())
+    }    
+    ///
     /// Sends "exit" signal to the service's thread
     fn exit(&self);
 }

@@ -94,7 +94,7 @@ impl Service for TaskTestReceiver {
                         if count >= iterations {
                             break 'main;
                         }
-                    },
+                    }
                     Err(err) => {
                         warn!("{}.run | Error receiving from queue: {:?}", self_id, err);
                         // error_count += 1;
@@ -102,7 +102,7 @@ impl Service for TaskTestReceiver {
                         //     warn!("{}.run | Error receiving count > 10, exit...", self_id);
                         //     break 'inner;
                         // }        
-                    },
+                    }
                 };
                 if exit.load(Ordering::Relaxed) {
                     break 'main;
@@ -116,12 +116,12 @@ impl Service for TaskTestReceiver {
             Ok(handle) => {
                 info!("{}.run | Starting - ok", self.id);
                 Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
-            },
+            }
             Err(err) => {
-                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                let message = format!("{}.run | Start failed: {:#?}", self.id, err);
                 warn!("{}", message);
                 Err(message)
-            },
+            }
         }
     }
     //

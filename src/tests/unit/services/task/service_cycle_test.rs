@@ -1,37 +1,29 @@
 #![allow(non_snake_case)]
-use log::warn;
 #[cfg(test)]
-use log::{info, debug};
+use log::{info, warn, debug};
 use std::{sync::Once, time::{Duration, Instant}};
 use rand::Rng;
 use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
 use crate::{
-    core_::aprox_eq::aprox_eq::AproxEq, 
+    core_::aprox_eq::aprox_eq::AproxEq,
     services::task::service_cycle::ServiceCycle,
 };
-
-// Note this useful idiom: importing names from outer (for mod tests) scope.
-// use super::*;
-
+///
+///
 static INIT: Once = Once::new();
-
 ///
 /// once called initialisation
 fn init_once() {
     INIT.call_once(|| {
-            // implement your initialisation code to be called only once for current test file
-        }
-    )
+        // implement your initialisation code to be called only once for current test file
+    })
 }
-
-
 ///
 /// returns:
 ///  - ...
-fn init_each() -> () {
-
-}
-
+fn init_each() -> () {}
+///
+///
 #[test]
 fn test_ServiceCycle() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -86,10 +78,10 @@ fn test_ServiceCycle() {
             if mathElapsed.as_millis() >= targetCycleInterval.into() {
                 if ! mathElapsed.as_secs_f64().aprox_eq(cycleElapsed.as_secs_f64(), digits) {
                     errors += 1;
-                    warn!( 
-                        "values must be aprox equals ({} digits): mathElapsed: {:?} != cycleElapsed {:?}", 
-                        digits, 
-                        mathElapsed.as_secs_f64(), 
+                    warn!(
+                        "values must be aprox equals ({} digits): mathElapsed: {:?} != cycleElapsed {:?}",
+                        digits,
+                        mathElapsed.as_secs_f64(),
                         cycleElapsed.as_secs_f64(),
                     );
                 }
@@ -99,9 +91,9 @@ fn test_ServiceCycle() {
                 if ! targetInSecs.aprox_eq(cycleElapsed.as_secs_f64(), digits) {
                     errors += 1;
                     warn!(
-                        "values must be aprox equals ({} digits): targetInSecs: {:?} != cycleElapsed {:?}", 
-                        digits, 
-                        targetInSecs, 
+                        "values must be aprox equals ({} digits): targetInSecs: {:?} != cycleElapsed {:?}",
+                        digits,
+                        targetInSecs,
                         cycleElapsed.as_secs_f64(),
                     );
                 }

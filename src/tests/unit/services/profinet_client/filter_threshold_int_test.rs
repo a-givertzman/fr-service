@@ -5,30 +5,23 @@ mod tests {
     use std::{sync::Once, time::Duration};
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::core_::filter::{filter_threshold::FilterThreshold, filter::Filter}; 
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    use crate::core_::filter::{filter_threshold::FilterThreshold, filter::Filter};
+    ///
+    ///
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
+    fn init_each() -> () {}
+    ///
+    ///
     #[test]
     fn test_FilterThresholdAbs_pos() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -147,5 +140,5 @@ mod tests {
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
         test_duration.exit();
-    }    
+    }
 }

@@ -108,20 +108,20 @@ impl<F> TcpStreamRead for JdsRoutes<F> where
                             Some(point) => ConnectionStatus::Active(OpResult::Ok(point)),
                             None => ConnectionStatus::Active(OpResult::Err(concat_string!(self.id, ".read | Filtered by routes"))),
                         }
-                    },
+                    }
                     OpResult::Err(err) => {
                         if log::max_level() == LevelFilter::Trace {
                             warn!("{}.read | error: {:?}", self.id, err);
                         }
                         ConnectionStatus::Active(OpResult::Err(err))
-                    },
+                    }
                     OpResult::Timeout() => ConnectionStatus::Active(OpResult::Timeout()),
                 }
-            },
+            }
             ConnectionStatus::Closed(err) => {
                 warn!("{}.read | error: {:?}", self.id, err);
                 ConnectionStatus::Closed(err)
-            },
+            }
         }
     }
 }

@@ -8,25 +8,24 @@ mod jds_deserialize {
     use testing::session::test_session::TestSession;
     use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
     use crate::{core_::{
-        cot::cot::Cot, net::{connection_status::ConnectionStatus, protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}}, point::{point::Point, point_type::PointType}, status::status::Status, types::bool::Bool 
-    }, tcp::tcp_stream_write::OpResult}; 
+        cot::cot::Cot, net::{connection_status::ConnectionStatus, protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize}}, point::{point::Point, point_type::PointType}, status::status::Status, types::bool::Bool
+    }, tcp::tcp_stream_write::OpResult};
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// 
+    ///
     fn ts() -> DateTime<Utc> {
         chrono::offset::Utc::now()
     }
@@ -34,7 +33,7 @@ mod jds_deserialize {
         ts.to_rfc3339()
     }
     ///
-    /// 
+    ///
     #[test]
     fn basic() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -49,72 +48,72 @@ mod jds_deserialize {
         // debug!("timestamp: {:?}", ts);j
         let test_data = [
             (
-                format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": 0,   "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)), 
+                format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": 0,   "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)),
                 PointType::Bool(Point::new(tx_id, name, Bool(false), Status::Ok, Cot::default(), ts))
             ),
             (
-                format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": 1,    "status": 0, "cot": "Inf", "timestamp":"{}"}}"#, name, ts_str(ts)), 
+                format!(r#"{{"id": "1", "type": "Bool",  "name": "{}", "value": 1,    "status": 0, "cot": "Inf", "timestamp":"{}"}}"#, name, ts_str(ts)),
                 PointType::Bool(Point::new(tx_id, name, Bool(true), Status::Ok, Cot::default(), ts))
             ),
             (
-                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": 1,   "status": 0, "cot": "Inf", "timestamp":"{}"}}"#, name, ts_str(ts)), 
+                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": 1,   "status": 0, "cot": "Inf", "timestamp":"{}"}}"#, name, ts_str(ts)),
                 PointType::Int(Point::new(tx_id, name, 1, Status::Ok, Cot::Inf, ts))
             ),
             (
-                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": -9223372036854775808,   "status": 0, "cot": "Act", "timestamp":"{}"}}"#, name, ts_str(ts)), 
+                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value": -9223372036854775808,   "status": 0, "cot": "Act", "timestamp":"{}"}}"#, name, ts_str(ts)),
                 PointType::Int(Point::new(tx_id, name, -9223372036854775808, Status::Ok, Cot::Act, ts))
             ),
             (
-                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value":  9223372036854775807,   "status": 0, "cot": "act", "timestamp":"{}"}}"#, name, ts_str(ts)), 
+                format!(r#"{{"id": "1", "type": "Int",   "name": "{}", "value":  9223372036854775807,   "status": 0, "cot": "act", "timestamp":"{}"}}"#, name, ts_str(ts)),
                 PointType::Int(Point::new(tx_id, name,  9223372036854775807, Status::Ok, Cot::Act, ts))
             ),
 
 
             (
-                format!(r#"{{"id": "1", "type": "Real", "name": "{}", "value":  0.0, "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)), 
+                format!(r#"{{"id": "1", "type": "Real", "name": "{}", "value":  0.0, "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)),
                 PointType::Real(Point::new(tx_id, name,  0.0, Status::Ok, Cot::default(), ts))
             ),
             (
-                format!(r#"{{"id": "1", "type": "Real", "name": "{}", "value": -1.1, "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)), 
+                format!(r#"{{"id": "1", "type": "Real", "name": "{}", "value": -1.1, "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)),
                 PointType::Real(Point::new(tx_id, name, -1.1, Status::Ok, Cot::default(), ts))
             ),
             (
-                format!(r#"{{"id": "1", "type": "Real", "name": "{}", "value":  1.1, "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)), 
+                format!(r#"{{"id": "1", "type": "Real", "name": "{}", "value":  1.1, "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)),
                 PointType::Real(Point::new(tx_id, name,  1.1, Status::Ok, Cot::default(), ts))
             ),
             (
-                format!(r#"{{"id": "1", "type": "Real", "name": "{}", "value": -3.4028235e38, "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)), 
+                format!(r#"{{"id": "1", "type": "Real", "name": "{}", "value": -3.4028235e38, "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)),
                 PointType::Real(Point::new(tx_id, name, -f32::MAX, Status::Ok, Cot::default(), ts))
             ),
             (
-                format!(r#"{{"id": "1", "type": "Real", "name": "{}", "value":  3.4028235e38, "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)), 
+                format!(r#"{{"id": "1", "type": "Real", "name": "{}", "value":  3.4028235e38, "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)),
                 PointType::Real(Point::new(tx_id, name,  f32::MAX, Status::Ok, Cot::default(), ts))
             ),
 
 
 
             (
-                format!(r#"{{"id": "1", "type": "Double", "name": "{}", "value":  0.0, "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)), 
+                format!(r#"{{"id": "1", "type": "Double", "name": "{}", "value":  0.0, "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)),
                 PointType::Double(Point::new(tx_id, name,  0.0, Status::Ok, Cot::default(), ts))
             ),
             (
-                format!(r#"{{"id": "1", "type": "Double", "name": "{}", "value": -1.1, "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)), 
+                format!(r#"{{"id": "1", "type": "Double", "name": "{}", "value": -1.1, "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)),
                 PointType::Double(Point::new(tx_id, name, -1.1, Status::Ok, Cot::default(), ts))
             ),
             (
-                format!(r#"{{"id": "1", "type": "Double", "name": "{}", "value":  1.1, "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)), 
+                format!(r#"{{"id": "1", "type": "Double", "name": "{}", "value":  1.1, "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)),
                 PointType::Double(Point::new(tx_id, name,  1.1, Status::Ok, Cot::default(), ts))
             ),
             (
-                format!(r#"{{"id": "1", "type": "Double", "name": "{}", "value": -1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)), 
+                format!(r#"{{"id": "1", "type": "Double", "name": "{}", "value": -1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)),
                 PointType::Double(Point::new(tx_id, name, -1.7976931348623157e308, Status::Ok, Cot::default(), ts))
             ),
             (
-                format!(r#"{{"id": "1", "type": "Double", "name": "{}", "value":  1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)), 
+                format!(r#"{{"id": "1", "type": "Double", "name": "{}", "value":  1.7976931348623157e308, "status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)),
                 PointType::Double(Point::new(tx_id, name,  1.7976931348623157e308, Status::Ok, Cot::default(), ts))
             ),
             (
-                format!(r#"{{"id": "1", "type": "String","name": "{}", "value": "~!@#$%^&*()_+`1234567890-=","status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)), 
+                format!(r#"{{"id": "1", "type": "String","name": "{}", "value": "~!@#$%^&*()_+`1234567890-=","status": 0, "timestamp":"{}"}}"#, name, ts_str(ts)),
                 PointType::String(Point::new(tx_id, name, "~!@#$%^&*()_+`1234567890-=".to_string(), Status::Ok, Cot::default(), ts))
             ),
         ];
@@ -135,7 +134,7 @@ mod jds_deserialize {
                     Ok(tcp_stream) => {
                         let mut tcp_stream = BufReader::new(tcp_stream);
                         let mut stream = JdsDeserialize::new(
-                            self_id, 
+                            self_id,
                             JdsDecodeMessage::new("test")
                         );
                         'read: loop {
@@ -161,24 +160,24 @@ mod jds_deserialize {
                                             if received.load(Ordering::SeqCst) >= total {
                                                 break 'read;
                                             }
-                                        },
+                                        }
                                         OpResult::Err(err) => {
                                             panic!("socket read - parsing error: {:?}", err);
-                                        },
-                                        OpResult::Timeout() => {},
+                                        }
+                                        OpResult::Timeout() => {}
                                     }
-                                },
+                                }
                                 ConnectionStatus::Closed(_err) => {
                                     break 'read;
-                                },
+                                }
                             }
                         }
                         println!("elapsed: {:?}", time.elapsed());
                         println!("received: {:?}", received.load(Ordering::SeqCst));
                         // println!("buffer: {:?}", buffer);
                         break 'main;
-                    },
-                    Err(_) => {},
+                    }
+                    Err(_) => {}
                 };
             }
         }
@@ -212,7 +211,7 @@ mod jds_deserialize {
                                             Ok(_bytes) => {
                                                 sent += 1;
                                                 debug!("socket sent: {:?}", msg);
-                                            },
+                                            }
                                             Err(err) => {
                                                 debug!("socket read - error: {:?}", err);
                                                 max_read_errors -= 1;
@@ -220,14 +219,14 @@ mod jds_deserialize {
                                                     error!("TCP server | socket read error: {:?}", err);
                                                     break;
                                                 }
-                                            },
+                                            }
                                         };
                                         _socket.flush().unwrap();
                                         match _socket.write(&[bytes2, &eot].concat()) {
                                             Ok(_bytes) => {
                                                 sent += 1;
                                                 trace!("socket sent: {:?}", msg);
-                                            },
+                                            }
                                             Err(err) => {
                                                 debug!("socket read - error: {:?}", err);
                                                 max_read_errors -= 1;
@@ -235,7 +234,7 @@ mod jds_deserialize {
                                                     error!("TCP server | socket read error: {:?}", err);
                                                     break;
                                                 }
-                                            },
+                                            }
                                         };
                                     }
                                 }
@@ -244,18 +243,18 @@ mod jds_deserialize {
                                     thread::sleep(Duration::from_micros(10));
                                 }
                                 // while received.len() < count {}
-                            },
+                            }
                             Err(err) => {
                                 info!("incoming connection - error: {:?}", err);
-                            },
+                            }
                         }
                     }
-                },
+                }
                 Err(err) => {
                     // connectExit.send(true).unwrap();
                     // okRef.store(false, Ordering::SeqCst);
                     panic!("Preparing test TCP server - error: {:?}", err);
-                },
+                }
             };
         });
     }

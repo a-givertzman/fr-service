@@ -154,22 +154,22 @@ impl FromStr for FnConfKeywd {
                             Err(_err) => {
                                 warn!("ConfKeywd.from_str | Error reading type of keyword '{}'", &input);
                                 FnConfPointType::Unknown
-                            },
+                            }
                         }
-                    },
+                    }
                     None => FnConfPointType::Unknown,
                 };
                 let data = match &caps.get(groupData) {
                     Some(arg) => {
                         Ok(arg.as_str().to_string())
-                    },
+                    }
                     None => {
                         if input.is_empty() {                            
                             Err(format!("Error reading data of keyword '{}'", &input))
                         } else {
                             Ok(String::new())
                         }
-                    },
+                    }
                 };
                 match data {
                     Ok(data) => {
@@ -182,18 +182,18 @@ impl FromStr for FnConfKeywd {
                                     "point" => Ok( FnConfKeywd::Point( FnConfKeywdValue { input, type_, data } )),
                                     _      => Err(format!("Unknown keyword '{}'", &input)),
                                 }
-                            },
+                            }
                             None => {
                                 Err(format!("Unknown keyword '{}'", &input))
-                            },
+                            }
                         }
-                    },
+                    }
                     Err(err) => Err(err),
                 }
-            },
+            }
             None => {
                 Err(format!("Unknown keyword '{}'", &input))
-            },
+            }
         }
     }
 }

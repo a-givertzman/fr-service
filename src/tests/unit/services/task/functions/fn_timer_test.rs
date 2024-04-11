@@ -6,19 +6,18 @@ mod fn_timer {
     use std::{sync::Once, time::{Instant, Duration}, thread,rc::Rc, cell::RefCell};
     use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
     use crate::{
-        conf::fn_::fn_conf_keywd::FnConfPointType, core_::{aprox_eq::aprox_eq::AproxEq, point::point_type::{PointType, ToPoint}, 
+        conf::fn_::fn_conf_keywd::FnConfPointType, core_::{aprox_eq::aprox_eq::AproxEq, point::point_type::{PointType, ToPoint},
         types::fn_in_out_ref::FnInOutRef}, services::task::nested_function::{fn_::FnOut, fn_input::FnInput, fn_timer::FnTimer}
     };
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
@@ -39,7 +38,7 @@ mod fn_timer {
         info!("test_elapsed_repeat_false");
         let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
         let mut fnTimer = FnTimer::new(
-            "id", 
+            "id",
             0,
             input.clone(),
             false,
@@ -92,10 +91,10 @@ mod fn_timer {
             debug!("value: {:?}   |   state: {:?}", value, fnTimerElapsed);
             assert!(fnTimerElapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fnTimerElapsed, target);
             thread::sleep(Duration::from_secs_f64(0.1));
-        }        
+        }
     }
     ///
-    /// 
+    ///
     #[test]
     fn total_elapsed_repeat() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -103,7 +102,7 @@ mod fn_timer {
         info!("test_total_elapsed_repeat");
         let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
         let mut fnTimer = FnTimer::new(
-            "id", 
+            "id",
             0,
             input.clone(),
             true,
@@ -151,10 +150,10 @@ mod fn_timer {
             debug!("value: {:?}   |   state: {:?}", value, fnTimerElapsed);
             assert!(fnTimerElapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fnTimerElapsed, target);
             thread::sleep(Duration::from_secs_f64(0.1));
-        }        
+        }
     }
     ///
-    /// 
+    ///
     #[test]
     fn total_elapsed_repeat_reset() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -163,7 +162,7 @@ mod fn_timer {
         let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
         let mut fnTimer = FnTimer::new(
             "id",
-            0, 
+            0,
             input.clone(),
             true,
         );
@@ -217,10 +216,10 @@ mod fn_timer {
             debug!("value: {:?}   |   state: {:?}   |   target {}{}", value, fnTimerElapsed, target, if reset {"\t<-- reset"} else {""});
             assert!(fnTimerElapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fnTimerElapsed, target);
             thread::sleep(Duration::from_secs_f64(0.1));
-        }        
+        }
     }
     ///
-    /// 
+    ///
     #[test]
     fn initial_repeat() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -230,7 +229,7 @@ mod fn_timer {
         let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
         let mut fnTimer = FnTimer::new(
             "id",
-            initial, 
+            initial,
             input.clone(),
             true,
         );
@@ -277,6 +276,6 @@ mod fn_timer {
             debug!("value: {:?}   |   state: {:?}", value, fnTimerElapsed);
             assert!(fnTimerElapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fnTimerElapsed, target);
             thread::sleep(Duration::from_secs_f64(0.1));
-        }        
+        }
     }
 }

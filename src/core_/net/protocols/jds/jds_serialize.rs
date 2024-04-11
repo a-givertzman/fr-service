@@ -50,13 +50,13 @@ impl StreamRead<serde_json::Value, RecvError> for JdsSerialize {
                     Ok(point) => Ok(point),
                     Err(err) => Err(RecvError::Error(format!("{}.read | Serialize error: {:?}", self.id, err))),
                 }
-            },
+            }
             Err(err) => {
                 match err {
                     RecvTimeoutError::Timeout => Err(RecvError::Timeout),
                     RecvTimeoutError::Disconnected => Err(RecvError::Disconnected),
                 }
-            },
+            }
         }
     }
 }

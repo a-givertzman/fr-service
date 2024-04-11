@@ -72,11 +72,11 @@ impl Format {
                             "status" => point.status().to_string(),
                             _ => panic!("Format.out | Unknown input sufix in: {:?}, allowed: .name / .value / .timestamp", &name),
                         }
-                    },
+                    }
                     None => {
                         trace!("Format.out | name: {:?}, sufix: None, taking point.value by default", &name);
                         Self::pointValueToString(point)
-                    },
+                    }
                 };
                 let pattern = format!("{{{}}}", fullName);
                 trace!("Format.out | replacing pattern {:?} with value: {:?}", pattern, value);

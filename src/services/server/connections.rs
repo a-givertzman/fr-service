@@ -84,18 +84,18 @@ impl TcpServerConnections {
                         Ok(_) => {
                             // info!("{}.run | Keeped connection '{}' repaired", self_id, connectionId);
                             Ok(())
-                        },
+                        }
                         Err(err) => {
                             Err(format!("{}.repair | Keeped connection repair error {:?}", self.id, err))
-                        },
+                        }
                     }
                 } else {
                     Err(format!("{}.repair | Keeped connection '{}' - exceeded", self.id, connection_id))
                 }
-            },
+            }
             None => {
                 Err(format!("{}.repair | Keeped connection '{}' - not found", self.id, connection_id))
-            },
+            }
         }
     }    
     ///
@@ -112,10 +112,10 @@ impl TcpServerConnections {
                     let connection = self.connections.remove(key).unwrap();
                     connection.send(Action::Exit).unwrap_or_else(|_| {info!("{}.run | Connection '{}' - already finished", self.id, key)});
                     connection.wait().unwrap();
-                },
+                }
                 None => {
                     break;
-                },
+                }
             };
         }
     }

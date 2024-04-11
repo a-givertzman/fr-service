@@ -152,12 +152,12 @@ impl Service for TcpClient {
             Ok(handle) => {
                 info!("{}.run | Starting - ok", self.id);
                 Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
-            },
+            }
             Err(err) => {
-                let message = format!("{}.run | Start faled: {:#?}", self.id, err);
+                let message = format!("{}.run | Start failed: {:#?}", self.id, err);
                 warn!("{}", message);
                 Err(message)
-            },
+            }
         }
     }
     //
@@ -167,14 +167,14 @@ impl Service for TcpClient {
         match &self.tcp_recv_alive {
             Some(tcp_recv_alive) => {
                 tcp_recv_alive.slock().exit()
-            },
-            None => {},
+            }
+            None => {}
         }
         match &self.tcp_send_alive {
             Some(tcp_send_alive) => {
                 tcp_send_alive.slock().exit()
-            },
-            None => {},
+            }
+            None => {}
         }
     }
 }

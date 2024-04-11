@@ -1,27 +1,25 @@
 #[cfg(test)]
 
 mod services {
-    use std::{sync::Once, env, time::Duration};
-    use testing::stuff::max_test_duration::TestDuration;
+    use std::{sync::Once, env};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::services::{app::app::App, services::Services};
+    use crate::services::app::app::App;
     ///
-    ///     
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// 
+    ///
     #[test]
     #[ignore = "To be implemented and activated later"]
     fn run() {

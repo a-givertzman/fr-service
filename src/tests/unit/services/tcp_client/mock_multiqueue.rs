@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use std::{fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, mpsc::{Receiver, Sender}, Arc, Mutex}, thread};
+use std::{fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{Receiver, Sender}, Arc, Mutex}, thread};
 use log::{warn, info};
 use crate::{conf::point_config::name::Name, core_::{object::object::Object, point::point_type::PointType}, services::service::{service::Service, service_handles::ServiceHandles}};
 ///
@@ -80,31 +80,31 @@ impl Service for MockMultiQueue {
                                 if receivedCount >= recvLimit {
                                     break;
                                 }
-                            },
+                            }
                             Err(err) => {
                                 warn!("{}.run | recv error: {:?}", self_id, err);
-                            },
+                            }
                         }
                         if exit.load(Ordering::SeqCst) {
                             break 'main;
                         }        
                     }
-                },
+                }
                 None => {
                     'main: loop {
                         match recv.recv() {
                             Ok(point) => {
                                 received.lock().unwrap().push(point);
-                            },
+                            }
                             Err(err) => {
                                 warn!("{}.run | recv error: {:?}", self_id, err);
-                            },
+                            }
                         }
                         if exit.load(Ordering::SeqCst) {
                             break 'main;
                         }        
                     }
-                },
+                }
             }
         });
         info!("{}.run | Starting - ok", self.id);

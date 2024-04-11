@@ -5,27 +5,25 @@ mod sql_metric {
     use log::debug;
     use regex::RegexBuilder;
     use std::sync::{Once, Arc, Mutex};
-    
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::conf::point_config::name::Name;
     use crate::{
-        conf::task_config::TaskConfig, 
-        core_::point::point_type::{ToPoint, PointType}, 
+        conf::task_config::TaskConfig,
+        core_::point::point_type::{ToPoint, PointType},
         services::{
             task::task_nodes::TaskNodes, services::Services,
             // queues::queues::Queues,
         },
     };
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
@@ -33,7 +31,7 @@ mod sql_metric {
     // fn init_each() {
     // }
     ///
-    /// 
+    ///
     #[test]
     fn int() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -89,17 +87,17 @@ mod sql_metric {
                         };
                         debug!("TaskEvalNode.eval | evalNode '{}' out - '{}': {:?}", eval_node.name(), eval_node_out.borrow().id(), out);
                         assert_eq!(
-                            out_value, 
+                            out_value,
                             format!("UPDATE SelectMetric_test_table_name SET kind = '{:.1}' WHERE id = '{}';",target_value, 1.11),
                             // format!("insert into SelectMetric_test_table_name values(id, value, timestamp) (SqlMetric,{:.3},{})", targetValue, point.timestamp())
                         );
                     }
-                },
+                }
                 None => {
                     panic!("input {:?} - not found in the current taskNodes", &input_name)
-                },
+                }
             };
-        }        
+        }
     }
     ///
     ///
@@ -168,15 +166,15 @@ mod sql_metric {
                         trace!("out: {}", out);
                         debug!("value: {:?}   |   state: {:?}", point.as_real().value, out_value);
                         assert_eq!(
-                            out, 
+                            out,
                             format!("UPDATE SelectMetric_test_table_name SET kind = '{:.1}' WHERE id = '{}';",target_value, 3.33),
                             // format!("insert into SelectMetric_test_table_name values(id, value, timestamp) (SqlMetric,{:.3},{})", targetValue, point.timestamp())
                         );
                     }
-                },
+                }
                 None => {
                     panic!("input {:?} - not found in the current taskNodes", &input_name)
-                },
+                }
             };
         }
     }
@@ -247,16 +245,16 @@ mod sql_metric {
                         trace!("out: {}", out);
                         debug!("value: {:?}   |   state: {:?}", point.as_double().value, out_value);
                         assert_eq!(
-                            out, 
+                            out,
                             format!("UPDATE SelectMetric_test_table_name SET kind = '{:.1}' WHERE id = '{}';",target_value, 3.33),
                             // format!("insert into SelectMetric_test_table_name values(id, value, timestamp) (SqlMetric,{:.3},{})", targetValue, point.timestamp())
                         );
                     }
-                },
+                }
                 None => {
                     panic!("input {:?} - not found in the current taskNodes", &input_name)
-                },
+                }
             };
         }
-    }    
+    }
 }

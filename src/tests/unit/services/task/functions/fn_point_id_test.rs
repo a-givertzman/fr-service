@@ -6,20 +6,19 @@ mod fn_point_id {
     use std::{sync::Once, rc::Rc, cell::RefCell};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::{fn_::fn_conf_keywd::FnConfPointType, point_config::{point_config::PointConfig, name::Name}}, 
-        core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
+        conf::{fn_::fn_conf_keywd::FnConfPointType, point_config::{point_config::PointConfig, name::Name}},
+        core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef},
         services::task::nested_function::{fn_::FnOut, fn_input::FnInput, fn_point_id::FnPointId},
     };
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
@@ -34,19 +33,19 @@ mod fn_point_id {
     const POINTS: &[(usize, &str)] = &[
                     (0, r#"PointName0:
                         type: bool      # Bool / Int / Real / String / Json
-                        comment: Test Point Bool"#), 
+                        comment: Test Point Bool"#),
                     (1, r#"PointName1:
                         type: bool      # Bool / Int / Real / String / Json
-                        comment: Test Point Bool"#), 
+                        comment: Test Point Bool"#),
                     (2, r#"PointName2:
                         type: bool      # Bool / Int / Real / String / Json
-                        comment: Test Point Bool"#), 
+                        comment: Test Point Bool"#),
                     (3, r#"PointName3:
                         type: bool      # Bool / Int / Real / String / Json
-                        comment: Test Point Bool"#), 
+                        comment: Test Point Bool"#),
                     (4, r#"PointName4:
                         type: bool      # Bool / Int / Real / String / Json
-                        comment: Test Point Bool"#), 
+                        comment: Test Point Bool"#),
     ];
     ///
     ///
@@ -100,6 +99,6 @@ mod fn_point_id {
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state.as_int().value, target_id);
-        }        
+        }
     }
 }
