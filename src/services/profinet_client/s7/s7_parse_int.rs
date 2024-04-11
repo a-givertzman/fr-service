@@ -92,10 +92,11 @@ impl S7ParseInt {
         let result = self.convert(bytes, self.offset.unwrap() as usize, 0);
         match result {
             Ok(new_val) => {
+                let status = Status::Ok;
                 let new_val = new_val as i64;
-                if new_val != self.value.value() {
+                if new_val != self.value.value() || self.status != status {
                     self.value.add(new_val);
-                    self.status = Status::Ok;
+                    self.status = status;
                     self.timestamp = timestamp;
                     self.is_changed = true;
                 }

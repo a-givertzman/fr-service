@@ -98,9 +98,10 @@ impl S7ParseBool {
         );
         match result {
             Ok(new_val) => {
-                if new_val != self.value {
+                let status = Status::Ok;
+                if new_val != self.value || self.status != status {
                     self.value = new_val;
-                    self.status = Status::Ok;
+                    self.status = status;
                     self.timestamp = timestamp;
                     self.is_changed = true;
                 }

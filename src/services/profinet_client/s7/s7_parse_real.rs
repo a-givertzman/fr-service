@@ -90,10 +90,10 @@ impl S7ParseReal {
         let result = self.convert(bytes, self.offset.unwrap() as usize, 0);
         match result {
             Ok(new_val) => {
-                // let new_val = new_val as f64;
-                if (new_val) != self.value.value() {
+                let status = Status::Ok;
+                if (new_val) != self.value.value() || self.status != status {
                     self.value.add(new_val);
-                    self.status = Status::Ok;
+                    self.status = status;
                     self.timestamp = timestamp;
                     self.is_changed = true;
                 }
