@@ -1,9 +1,5 @@
-use std::cell::RefCell;
-
 use concat_string::concat_string;
-
 use crate::core_::cot::cot::Cot;
-
 ///
 /// Detailed definition of the subscription;
 /// - "name" - the name of the point to be subscribed;

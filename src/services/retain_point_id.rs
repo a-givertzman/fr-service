@@ -12,12 +12,12 @@ pub struct RetainPointId {
     id: String,
     path: String,
     cache: Vec<PointConfig>,
-    api_address: String, 
-    api_auth_token: String, 
-    api_database: String, 
+    api_address: String,
+    api_auth_token: String,
+    api_database: String,
 }
 ///
-/// 
+///
 impl RetainPointId {
     ///
     /// Creates new instance of the RetainPointId
@@ -35,7 +35,7 @@ impl RetainPointId {
         }
     }
     ///
-    /// 
+    ///
     pub fn points(&mut self, points: Vec<PointConfig>) -> Vec<PointConfig> {
         if self.cache.is_empty() {
             let mut update_retained = false;
@@ -143,7 +143,7 @@ impl RetainPointId {
         let path = Path::new(path.as_ref());
         match Self::create_dir(&self.id, path.parent().unwrap().to_str().unwrap()) {
             Ok(_) => {
-                match fs::OpenOptions::new().truncate(true).create(true).write(true).open(&path) {
+                match fs::OpenOptions::new().truncate(true).create(true).write(true).open(path) {
                     Ok(f) => {
                         match serde_json::to_writer_pretty(f, &points) {
                             Ok(_) => Ok(()),
@@ -160,22 +160,21 @@ impl RetainPointId {
                 Err(err)
             },
         }
-        
     }
     ///
-    /// 
+    ///
     fn sql_write(&self, retained: &HashMapFxHasher<String, RetainedPointConfig>) {
         let api_keep_alive = true;
         let sql_keep_alive = true;
         let mut request = ApiRequest::new(
-            &self.id, 
-            &self.api_address, 
-            &self.api_auth_token, 
+            &self.id,
+            &self.api_address,
+            &self.api_auth_token,
             ApiQuery::new(
-                ApiQueryKind::Sql(ApiQuerySql::new(&self.api_database, "select 1;")), 
+                ApiQueryKind::Sql(ApiQuerySql::new(&self.api_database, "select 1;")),
                 sql_keep_alive,
             ),
-            api_keep_alive, 
+            api_keep_alive,
             false,
         );
         _ = self.sql_request(&mut request, "truncate public.tags;", api_keep_alive);
@@ -185,7 +184,7 @@ impl RetainPointId {
         }
     }
     ///
-    /// 
+    ///
     fn sql_request(&self, request: &mut ApiRequest, sql: &str, keep_alive: bool) -> Result<ApiReply, String> {
         let query = ApiQuery::new(
             ApiQueryKind::Sql(ApiQuerySql::new(&self.api_database, sql)),

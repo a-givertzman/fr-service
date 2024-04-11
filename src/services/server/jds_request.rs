@@ -1,13 +1,13 @@
-use std::{collections::HashMap, sync::{mpsc::Sender, Arc, Mutex, RwLock}};
+use std::{collections::HashMap, sync::{Arc, Mutex, RwLock}};
 use concat_string::concat_string;
 use log::{debug, error, trace, warn};
 use serde_json::json;
 use crate::{
     conf::point_config::{name::Name, point_config::PointConfig},
     core_::{
-        auth::ssh::auth_ssh::AuthSsh, 
-        cot::cot::Cot, 
-        net::protocols::jds::request_kind::RequestKind, 
+        auth::ssh::auth_ssh::AuthSsh,
+        cot::cot::Cot,
+        net::protocols::jds::request_kind::RequestKind,
         point::{point::Point, point_type::PointType},
         status::status::Status,
     }, services::{
@@ -51,11 +51,11 @@ impl JdsRequest {
                 RouterReply::new(
                     None,
                     Some(PointType::String(Point::new(
-                        tx_id, 
+                        tx_id,
                         &Name::new(parent, "/Auth.Secret").join(),
-                        message.to_owned(), 
-                        Status::Ok, 
-                        cot, 
+                        message.to_owned(),
+                        Status::Ok,
+                        cot,
                         chrono::offset::Utc::now(),
                     ))),
                 )
@@ -85,11 +85,11 @@ impl JdsRequest {
                 RouterReply::new(
                     None,
                     Some(PointType::String(Point::new(
-                        tx_id, 
+                        tx_id,
                         &Name::new(parent, "/Auth.Ssh").join(),
-                        message.to_owned(), 
-                        Status::Ok, 
-                        cot, 
+                        message.to_owned(),
+                        Status::Ok,
+                        cot,
                         chrono::offset::Utc::now(),
                     ))),
                 )
@@ -105,11 +105,11 @@ impl JdsRequest {
                 let reply = RouterReply::new(
                     None,
                     Some(PointType::String(Point::new(
-                        tx_id, 
+                        tx_id,
                         &Name::new(parent, "/Points").join(),
-                        points, 
-                        Status::Ok, 
-                        Cot::ReqCon, 
+                        points,
+                        Status::Ok,
+                        Cot::ReqCon,
                         chrono::offset::Utc::now(),
                     ))),
                 );
@@ -144,7 +144,7 @@ impl JdsRequest {
                                         Self::map_points_to_creteria(&point_conf.name, vec![Cot::Inf, Cot::ActCon, Cot::ActErr])
                                     );
                                     points
-                                })        
+                                })
                             },
                         }
                     },
@@ -178,14 +178,14 @@ impl JdsRequest {
                 RouterReply::new(
                     None,
                     Some(PointType::String(Point::new(
-                        tx_id, 
+                        tx_id,
                         &Name::new(parent, "/Subscribe").join(),
-                        message, 
-                        Status::Ok, 
-                        cot, 
+                        message,
+                        Status::Ok,
+                        cot,
                         chrono::offset::Utc::now(),
                     ))),
-                )                
+                )
             },
             RequestKind::Unknown => {
                 debug!("{}.handle | Unknown request: \n\t{:?}", self_id, request);
@@ -195,7 +195,7 @@ impl JdsRequest {
         }
     }
     ///
-    /// 
+    ///
     fn yield_gi(self_id: &str, receiver_name: &str, services: Arc<Mutex<Services>>, cache_service: &str, points: &[SubscriptionCriteria], shared: &mut Shared) {
         let cache = services.slock().get(cache_service);
         let recv = cache.slock().gi(receiver_name, points);

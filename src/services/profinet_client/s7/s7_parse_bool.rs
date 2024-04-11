@@ -2,8 +2,8 @@ use log::warn;
 use std::array::TryFromSliceError;
 use chrono::{DateTime, Utc};
 use crate::{
-    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress, point_config_history::PointConfigHistory}, 
-    core_::{cot::cot::Cot, point::{point::Point, point_type::PointType}, status::status::Status, types::bool::Bool}, 
+    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress, point_config_history::PointConfigHistory},
+    core_::{cot::cot::Cot, point::{point::Point, point_type::PointType}, status::status::Status, types::bool::Bool},
     services::profinet_client::parse_point::ParsePoint,
 };
 
@@ -25,7 +25,7 @@ pub struct S7ParseBool {
 }
 impl S7ParseBool {
     ///
-    /// 
+    ///
     pub fn new(
         tx_id: usize,
         name: String,
@@ -67,14 +67,14 @@ impl S7ParseBool {
         }
     }
     ///
-    /// 
+    ///
     fn to_point(&self) -> Option<PointType> {
         if self.is_changed {
             Some(PointType::Bool(Point::new(
-                self.tx_id, 
-                &self.name, 
-                Bool(self.value), 
-                self.status, 
+                self.tx_id,
+                &self.name,
+                Bool(self.value),
+                self.status,
                 Cot::Inf,
                 self.timestamp,
             )))
@@ -110,7 +110,7 @@ impl S7ParseBool {
                 warn!("S7ParseBool.addRaw | convertion error: {:?}", e);
             }
         }
-    }    
+    }
 }
 ///
 impl ParsePoint for S7ParseBool {
@@ -124,20 +124,23 @@ impl ParsePoint for S7ParseBool {
     //
     fn next(&mut self, bytes: &[u8], timestamp: DateTime<Utc>) -> Option<PointType> {
         self.add_raw(bytes, timestamp);
-        match self.to_point() {
-            Some(point) => {
-                self.is_changed = false;
-                Some(point)
-            },
-            None => None,
-        }
+        self.to_point().map(|point| {
+            self.is_changed = false;
+            point
+        })
     }
     //
     //
     fn next_status(&mut self, status: Status) -> Option<PointType> {
-        self.status = status;
-        self.timestamp = Utc::now();
-        self.to_point()
+        if self.status != status {
+            self.status = status;
+            self.timestamp = Utc::now();
+            self.is_changed = true;
+        }
+        self.to_point().map(|point| {
+            self.is_changed = false;
+            point
+        })
     }
     //
     //

@@ -265,10 +265,8 @@ impl Service for CacheService {
                         match cache.write() {
                             Ok(mut cache) => {
                                 cache.insert(point.dest(), point);
-                                if dely_store.exceeded() {
-                                    if Self::store(&self_id, &self_name, &cache).is_ok() {
-                                        dely_store.set_stored();
-                                    };
+                                if dely_store.exceeded() && Self::store(&self_id, &self_name, &cache).is_ok() {
+                                    dely_store.set_stored();
                                 }
                             },
                             Err(err) => {

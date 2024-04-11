@@ -1,14 +1,15 @@
 use std::fmt::Debug;
 use chrono::DateTime;
-use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use testing::entities::test_value::Value;
 use crate::{
-    conf::point_config::point_config_type::PointConfigType, 
-    core_::{cot::cot::Cot, status::status::Status, types::bool::Bool}, 
+    conf::point_config::point_config_type::PointConfigType,
+    core_::{cot::cot::Cot, status::status::Status, types::bool::Bool},
     services::multi_queue::subscription_criteria::SubscriptionCriteria,
 };
 use super::point::Point;
-
+///
+///
 pub trait ToPoint {
     fn to_point(&self, tx_id: usize, name: &str) -> PointType;
 }
@@ -56,10 +57,10 @@ pub enum PointType {
     String(Point<String>)
 }
 ///
-/// 
+///
 impl PointType {
     ///
-    /// 
+    ///
     pub fn new<T: ToPoint>(tx_id: usize, name: &str, value: T) -> Self {
         value.to_point(tx_id, name)
     }
@@ -308,7 +309,7 @@ impl Serialize for PointType {
     }
 }
 ///
-/// 
+///
 impl<'de> Deserialize<'de> for PointType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -335,65 +336,65 @@ impl<'de> Deserialize<'de> for PointType {
             PointConfigType::Bool => {
                 let value = visitor.value.as_i64().ok_or_else(|| value_parsing_error::<D>("Point<Bool>", &visitor, "err"))?;
                 Ok(PointType::Bool(Point::new(
-                    tx_id, 
-                    &visitor.name, 
-                    Bool(value > 0), 
-                    Status::from(visitor.status), 
-                    visitor.cot, 
+                    tx_id,
+                    &visitor.name,
+                    Bool(value > 0),
+                    Status::from(visitor.status),
+                    visitor.cot,
                     visitor.timestamp.parse().map_err(|err| timestamp_parsing_error::<D>("Point<Bool>", &visitor, err))?,
                 )))
             },
             PointConfigType::Int => {
                 let value = visitor.value.as_i64().ok_or_else(|| value_parsing_error::<D>("Point<Int>", &visitor, "err"))?;
                 Ok(PointType::Int(Point::new(
-                    tx_id, 
-                    &visitor.name, 
-                    value, 
-                    Status::from(visitor.status), 
-                    visitor.cot, 
+                    tx_id,
+                    &visitor.name,
+                    value,
+                    Status::from(visitor.status),
+                    visitor.cot,
                     visitor.timestamp.parse().map_err(|err| timestamp_parsing_error::<D>("Point<Int>", &visitor, err))?,
                 )))
             },
             PointConfigType::Real => {
                 let value = visitor.value.as_f64().ok_or_else(|| value_parsing_error::<D>("Point<Real>", &visitor, "err"))?;
                 Ok(PointType::Real(Point::new(
-                    tx_id, 
-                    &visitor.name, 
-                    value as f32, 
-                    Status::from(visitor.status), 
-                    visitor.cot, 
+                    tx_id,
+                    &visitor.name,
+                    value as f32,
+                    Status::from(visitor.status),
+                    visitor.cot,
                     visitor.timestamp.parse().map_err(|err| timestamp_parsing_error::<D>("Point<Real>", &visitor, err))?,
                 )))
             },
             PointConfigType::Double => {
                 let value = visitor.value.as_f64().ok_or_else(|| value_parsing_error::<D>("Point<Double>", &visitor, "err"))?;
                 Ok(PointType::Double(Point::new(
-                    tx_id, 
-                    &visitor.name, 
-                    value, 
-                    Status::from(visitor.status), 
-                    visitor.cot, 
+                    tx_id,
+                    &visitor.name,
+                    value,
+                    Status::from(visitor.status),
+                    visitor.cot,
                     visitor.timestamp.parse().map_err(|err| timestamp_parsing_error::<D>("Point<Double>", &visitor, err))?,
                 )))
             },
             PointConfigType::String => {
                 Ok(PointType::String(Point::new(
-                    tx_id, 
-                    &visitor.name, 
-                    visitor.value.as_str().unwrap().to_owned(), 
-                    Status::from(visitor.status), 
-                    visitor.cot, 
+                    tx_id,
+                    &visitor.name,
+                    visitor.value.as_str().unwrap().to_owned(),
+                    Status::from(visitor.status),
+                    visitor.cot,
                     visitor.timestamp.parse().map_err(|err| timestamp_parsing_error::<D>("Point<String>", &visitor, err))?,
                 )))
             },
             PointConfigType::Json => {
                 Err(serde::de::Error::custom("PointType.deserialize | Error parsing Point<Json> - Not implemented yet"))
                 // Ok(PointType::String(Point::new(
-                //     tx_id, 
-                //     &visitor.name, 
-                //     visitor.value.clone(), 
-                //     Status::from(visitor.status), 
-                //     visitor.cot, 
+                //     tx_id,
+                //     &visitor.name,
+                //     visitor.value.clone(),
+                //     Status::from(visitor.status),
+                //     visitor.cot,
                 //     visitor.timestamp.parse().map_err(|err| value_parsing_timestamp::<D>("Point<Json>", &visitor, err))?,
                 // )))
             },
