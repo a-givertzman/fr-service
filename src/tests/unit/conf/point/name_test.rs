@@ -4,25 +4,24 @@ mod name {
     use std::{sync::Once, time::Duration};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use log::debug;
-    use testing::stuff::max_test_duration::TestDuration; 
-    use crate::conf::point_config::name::Name; 
+    use testing::stuff::max_test_duration::TestDuration;
+    use crate::conf::point_config::name::Name;
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// 
+    ///
     #[test]
     fn join() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -58,7 +57,7 @@ mod name {
         test_duration.exit();
     }
     ///
-    /// 
+    ///
     #[test]
     fn into_string() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);

@@ -5,24 +5,23 @@ mod tests {
     use log::info;
     use std::sync::Once;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::conf::tcp_server_config::TcpServerConfig; 
+    use crate::conf::tcp_server_config::TcpServerConfig;
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// 
+    ///
     #[test]
     fn test_TcpServer_config() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);

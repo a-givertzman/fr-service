@@ -7,7 +7,7 @@ mod tests {
     use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
     use crate::core_::state::switch_state::{Switch, SwitchCondition, SwitchState};
     ///
-    /// 
+    ///
     #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
     enum ProcessState {
         Off,
@@ -16,15 +16,14 @@ mod tests {
         Stop,
     }
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns tuple(
@@ -40,7 +39,7 @@ mod tests {
                     conditions: vec![
                         SwitchCondition {
                             condition: Box::new(|value| {value >= 5}),
-                            target: ProcessState::Start,        
+                            target: ProcessState::Start,
                         },
                     ],
                 },
@@ -62,14 +61,14 @@ mod tests {
                     conditions: vec![
                         SwitchCondition {
                             condition: Box::new(|value| {value >= 5}),
-                            target: ProcessState::Progress,        
+                            target: ProcessState::Progress,
                         },
                         SwitchCondition {
                             condition: Box::new(|value| {value < 5}),
                             target: ProcessState::Stop,
                         },
                     ],
-            
+
                 },
                 Switch{
                     state: ProcessState::Progress,
@@ -79,13 +78,13 @@ mod tests {
                             target: ProcessState::Stop,
                         },
                     ],
-            
+
                 },
             ]
         )
     }
     ///
-    /// 
+    ///
     #[test]
     fn test_single() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -135,7 +134,7 @@ mod tests {
         }
     }
     ///
-    /// 
+    ///
     #[test]
     fn test_start_step_back() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -177,10 +176,10 @@ mod tests {
             let state = switchState.state();
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state, targetState);
-        }        
+        }
     }
     ///
-    /// 
+    ///
     #[test]
     fn test_stot_step_back() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -222,6 +221,6 @@ mod tests {
             let state = switchState.state();
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state, targetState);
-        }        
+        }
     }
 }

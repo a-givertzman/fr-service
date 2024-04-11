@@ -2,22 +2,19 @@
 
 mod subscription_criteria {
     use concat_string::concat_string;
-    use log::{warn, info, debug};
     use std::{sync::Once, time::{Duration, Instant}};
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-
     use crate::{core_::cot::cot::Cot, services::multi_queue::subscription_criteria::SubscriptionCriteria};
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
@@ -181,7 +178,7 @@ mod subscription_criteria {
             (Cot::ReqCon, "/App/ied13/db905_visual_data_fast/Winch.LVDT1"),
             (Cot::ReqErr, "/App/ied13/db905_visual_data_fast/Winch.LVDT1"),
             (Cot::ReqCon, "/App/ied13/db905_visual_data_fast/Winch.LVDT2"),
-            (Cot::ReqErr, "/App/ied13/db905_visual_data_fast/Winch.LVDT2"           ) 
+            (Cot::ReqErr, "/App/ied13/db905_visual_data_fast/Winch.LVDT2"           )
         ];
         for (cot, name) in test_data {
             let criteria = SubscriptionCriteria::new(name, cot);
@@ -353,7 +350,7 @@ mod subscription_criteria {
             (Cot::ReqCon, "/App/ied13/db905_visual_data_fast/Winch.LVDT1"),
             (Cot::ReqErr, "/App/ied13/db905_visual_data_fast/Winch.LVDT1"),
             (Cot::ReqCon, "/App/ied13/db905_visual_data_fast/Winch.LVDT2"),
-            (Cot::ReqErr, "/App/ied13/db905_visual_data_fast/Winch.LVDT2"           ) 
+            (Cot::ReqErr, "/App/ied13/db905_visual_data_fast/Winch.LVDT2"           )
         ];
         let iterations = 100_000;
         build_criteria(iterations, &test_data);

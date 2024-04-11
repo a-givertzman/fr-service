@@ -1,12 +1,29 @@
-use crate::{conf::point_config::name::Name, core_::{failure::recv_error::RecvError, object::object::Object}, tcp::steam_read::StreamRead};
+use crate::{
+    conf::point_config::name::Name,
+    core_::{failure::recv_error::RecvError, object::object::Object},
+    tcp::steam_read::StreamRead,
+};
 #[cfg(test)]
 mod tcp_stream_write {
-    use log::{warn, info, debug};
+    use crate::{
+        core_::net::connection_status::ConnectionStatus,
+        tcp::tcp_stream_write::{OpResult, TcpStreamWrite},
+        tests::unit::tcp::tcp_stream_write_test::MockStreamRead,
+    };
+    use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
+    use log::{debug, info, warn};
     use rand::Rng;
-    use std::{sync::{Once, Arc, Mutex, atomic::{AtomicUsize, Ordering}}, time::{Duration, Instant}, thread, net::{TcpListener, TcpStream}, io::Read};
-    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+    use std::{
+        io::Read,
+        net::{TcpListener, TcpStream},
+        sync::{
+            atomic::{AtomicUsize, Ordering},
+            Arc, Mutex, Once,
+        },
+        thread,
+        time::{Duration, Instant},
+    };
     use testing::session::test_session::TestSession;
-    use crate::{core_::net::connection_status::ConnectionStatus, tcp::tcp_stream_write::{OpResult, TcpStreamWrite}, tests::unit::tcp::tcp_stream_write_test::MockStreamRead};
     ///
     ///
     static INIT: Once = Once::new();
@@ -14,9 +31,8 @@ mod tcp_stream_write {
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
@@ -98,9 +114,14 @@ mod tcp_stream_write {
                             }
                         };
                     }
-                },
+                }
                 Err(err) => {
-                    warn!("sent: {}/{}, connection error: {}", sent.load(Ordering::SeqCst), count, err);
+                    warn!(
+                        "sent: {}/{}, connection error: {}",
+                        sent.load(Ordering::SeqCst),
+                        count,
+                        err,
+                    );
                     thread::sleep(Duration::from_millis(100));
                 }
             };
@@ -118,7 +139,11 @@ mod tcp_stream_write {
         let wait_duration = Duration::from_millis(10);
         let mut wait_attempts = test_duration.as_micros() / wait_duration.as_micros();
         while received.lock().unwrap().len() < count {
-            debug!("waiting while all data beeng received {}/{}...", received.lock().unwrap().len(), count);
+            debug!(
+                "waiting while all data beeng received {}/{}...",
+                received.lock().unwrap().len(),
+                count,
+            );
             thread::sleep(wait_duration);
             wait_attempts -= 1;
             assert!(

@@ -7,16 +7,15 @@ mod tests {
     use std::{collections::HashMap, hash::BuildHasherDefault, sync::{mpsc, Arc, Mutex, Once, RwLock}, thread, time::{Duration, Instant}};
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
- 
+
     ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
@@ -26,7 +25,7 @@ mod tests {
         RandomTestValues::new(self_id, vec![], test_iterations).collect()
     }
     ///
-    /// 
+    ///
     #[ignore = "Learn - all must be ignored"]
     #[test]
     fn map_in_rv_lock() {
@@ -92,7 +91,7 @@ mod tests {
             }
             *sent_clone.write().unwrap() = sent_local;
         }).unwrap();
-        
+
         receiver_handle.wait().unwrap();
         sender_handle.wait().unwrap();
 
@@ -102,11 +101,11 @@ mod tests {
         println!("Total test events: {:?}", test_data_len);
         println!("Sent events: {:?}", sent.read().unwrap());
         println!("Received events: {:?}", received.read().unwrap().len());
-        
+
         test_duration.exit();
     }
     ///
-    /// 
+    ///
     #[ignore = "Learn - all must be ignored"]
     #[test]
     fn just_map() {
@@ -170,7 +169,7 @@ mod tests {
             }
             *sent_clone.write().unwrap() = sent_local;
         }).unwrap();
-        
+
         receiver_handle.wait().unwrap();
         sender_handle.wait().unwrap();
 
@@ -180,11 +179,11 @@ mod tests {
         println!("Total test events: {:?}", test_data_len);
         println!("Sent events: {:?}", sent.read().unwrap());
         println!("Received events: {:?}", received.read().unwrap().len());
-        
+
         test_duration.exit();
-    }    
+    }
     ///
-    /// 
+    ///
     #[ignore = "Learn - all must be ignored"]
     #[test]
     fn map_in_mutex() {
@@ -250,7 +249,7 @@ mod tests {
             }
             *sent_clone.write().unwrap() = sent_local;
         }).unwrap();
-        
+
         receiver_handle.wait().unwrap();
         sender_handle.wait().unwrap();
 
@@ -260,11 +259,11 @@ mod tests {
         println!("Total test events: {:?}", test_data_len);
         println!("Sent events: {:?}", sent.read().unwrap());
         println!("Received events: {:?}", received.read().unwrap().len());
-        
+
         test_duration.exit();
     }
     ///
-    /// 
+    ///
     #[ignore = "Learn - all must be ignored"]
     #[test]
     fn matching() {
@@ -408,7 +407,7 @@ mod tests {
             }
             *sent_clone.write().unwrap() = sent_local;
         }).unwrap();
-        
+
         receiver_handle.wait().unwrap();
         sender_handle.wait().unwrap();
 
@@ -418,7 +417,7 @@ mod tests {
         println!("Total test events: {:?}", test_data_len);
         println!("Sent events: {:?}", sent.read().unwrap());
         println!("Received events: {:?}", received.read().unwrap().len());
-        
+
         test_duration.exit();
     }
     const KEYS: [&str; 14] = [

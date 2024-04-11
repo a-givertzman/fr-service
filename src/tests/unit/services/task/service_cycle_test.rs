@@ -1,7 +1,6 @@
 #![allow(non_snake_case)]
-use log::warn;
 #[cfg(test)]
-use log::{info, debug};
+use log::{info, warn, debug};
 use std::{sync::Once, time::{Duration, Instant}};
 use rand::Rng;
 use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
@@ -9,29 +8,22 @@ use crate::{
     core_::aprox_eq::aprox_eq::AproxEq,
     services::task::service_cycle::ServiceCycle,
 };
-
-// Note this useful idiom: importing names from outer (for mod tests) scope.
-// use super::*;
-
+///
+///
 static INIT: Once = Once::new();
-
 ///
 /// once called initialisation
 fn init_once() {
     INIT.call_once(|| {
-            // implement your initialisation code to be called only once for current test file
-        }
-    )
+        // implement your initialisation code to be called only once for current test file
+    })
 }
-
-
 ///
 /// returns:
 ///  - ...
-fn init_each() -> () {
-
-}
-
+fn init_each() -> () {}
+///
+///
 #[test]
 fn test_ServiceCycle() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);

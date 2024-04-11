@@ -11,15 +11,14 @@ mod tests {
         }
     };
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
@@ -68,7 +67,7 @@ mod tests {
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state, point);
-        }        
+        }
     }
 
 
@@ -104,7 +103,7 @@ mod tests {
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state, point);
-        }        
+        }
     }
     ///
     ///
@@ -140,7 +139,7 @@ mod tests {
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state, point);
-        }        
+        }
     }
     ///
     ///
@@ -176,6 +175,6 @@ mod tests {
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state, point);
-        }        
-    }    
+        }
+    }
 }

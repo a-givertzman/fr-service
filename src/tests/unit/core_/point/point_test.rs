@@ -4,11 +4,8 @@ mod point {
     use std::{sync::Once, time::Duration};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use log::debug;
-    use serde_json::json;
-    use testing::stuff::max_test_duration::TestDuration; 
-    use crate::{conf::point_config::{
-        name::Name, point_config::PointConfig, point_config_address::PointConfigAddress, point_config_filters::PointConfigFilter, point_config_history::PointConfigHistory, point_config_type::PointConfigType
-    }, core_::{cot::cot::Cot, point::{point::Point, point_type::PointType}, status::status::Status, types::bool::Bool}}; 
+    use testing::stuff::max_test_duration::TestDuration;
+    use crate::core_::{cot::cot::Cot, point::{point::Point, point_type::PointType}, status::status::Status, types::bool::Bool};
     ///
     ///
     static INIT: Once = Once::new();
@@ -16,16 +13,15 @@ mod point {
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// 
+    ///
     #[test]
     fn serialize_json() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -37,7 +33,7 @@ mod point {
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
         let test_data = [
-            (r#"{"cot":"Inf","name":"/App/path/Point.Name.0","status":0,"timestamp":"2024-04-08T09:44:43.950510784+00:00","type":"Bool","value":1}"#, 
+            (r#"{"cot":"Inf","name":"/App/path/Point.Name.0","status":0,"timestamp":"2024-04-08T09:44:43.950510784+00:00","type":"Bool","value":1}"#,
                 PointType::Bool(Point::new(
                     0,
                     &format!("/App/path/Point.Name.0"),
@@ -47,7 +43,7 @@ mod point {
                     "2024-04-08T09:44:43.950510784+00:00".parse().unwrap(),
                 ))
             ),
-            (r#"{"cot":"Inf","name":"/App/path/Point.Name.1","status":0,"timestamp":"2024-04-08T09:44:44.450961534+00:00","type":"Int","value":1234567}"#, 
+            (r#"{"cot":"Inf","name":"/App/path/Point.Name.1","status":0,"timestamp":"2024-04-08T09:44:44.450961534+00:00","type":"Int","value":1234567}"#,
                 PointType::Int(Point::new(
                     0,
                     &format!("/App/path/Point.Name.1"),
@@ -57,7 +53,7 @@ mod point {
                     "2024-04-08T09:44:44.450961534+00:00".parse().unwrap(),
                 ))
             ),
-            // (r#"{"cot":"Inf","name":"/App/path/Point.Name.2","status":0,"timestamp":"2024-04-08T09:44:43.550386216+00:00","type":"Real","value":123.12345}"#, 
+            // (r#"{"cot":"Inf","name":"/App/path/Point.Name.2","status":0,"timestamp":"2024-04-08T09:44:43.550386216+00:00","type":"Real","value":123.12345}"#,
             //     PointType::Real(Point::new(
             //         0,
             //         &format!("/App/path/Point.Name.2"),
@@ -67,7 +63,7 @@ mod point {
             //         "2024-04-08T09:44:43.550386216+00:00".parse().unwrap(),
             //     ))
             // ),
-            (r#"{"cot":"Inf","name":"/App/path/Point.Name.3","status":0,"timestamp":"2024-04-08T09:44:43.550386216+00:00","type":"Double","value":123.12345}"#, 
+            (r#"{"cot":"Inf","name":"/App/path/Point.Name.3","status":0,"timestamp":"2024-04-08T09:44:43.550386216+00:00","type":"Double","value":123.12345}"#,
                 PointType::Double(Point::new(
                     0,
                     &format!("/App/path/Point.Name.3"),
@@ -101,7 +97,7 @@ mod point {
         let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
         let test_data = [
-            (r#"{"cot":"Inf","name":"/App/path/Point.Name.0","status":0,"timestamp":"2024-04-08T09:44:43.950510784+00:00","type":"Bool","value":1}"#, 
+            (r#"{"cot":"Inf","name":"/App/path/Point.Name.0","status":0,"timestamp":"2024-04-08T09:44:43.950510784+00:00","type":"Bool","value":1}"#,
                 PointType::Bool(Point::new(
                     0,
                     &format!("/App/path/Point.Name.0"),
@@ -111,7 +107,7 @@ mod point {
                     "2024-04-08T09:44:43.950510784+00:00".parse().unwrap(),
                 ))
             ),
-            (r#"{"cot":"Inf","name":"/App/path/Point.Name.1","status":0,"timestamp":"2024-04-08T09:44:44.450961534+00:00","type":"Int","value":1234567}"#, 
+            (r#"{"cot":"Inf","name":"/App/path/Point.Name.1","status":0,"timestamp":"2024-04-08T09:44:44.450961534+00:00","type":"Int","value":1234567}"#,
                 PointType::Int(Point::new(
                     0,
                     &format!("/App/path/Point.Name.1"),
@@ -121,7 +117,7 @@ mod point {
                     "2024-04-08T09:44:44.450961534+00:00".parse().unwrap(),
                 ))
             ),
-            (r#"{"cot":"Inf","name":"/App/path/Point.Name.2","status":0,"timestamp":"2024-04-08T09:44:43.550386216+00:00","type":"Real","value":123.12345}"#, 
+            (r#"{"cot":"Inf","name":"/App/path/Point.Name.2","status":0,"timestamp":"2024-04-08T09:44:43.550386216+00:00","type":"Real","value":123.12345}"#,
                 PointType::Real(Point::new(
                     0,
                     &format!("/App/path/Point.Name.2"),
@@ -139,5 +135,5 @@ mod point {
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
         test_duration.exit();
-    }    
+    }
 }

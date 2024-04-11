@@ -5,8 +5,8 @@ mod tcp_server {
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, inc_test_values::IncTestValues, wait::WaitTread}, session::test_session::TestSession};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::{multi_queue_config::MultiQueueConfig, point_config::name::Name, tcp_server_config::TcpServerConfig}, services::{multi_queue::multi_queue::MultiQueue, server::tcp_server::TcpServer, service::service::Service, services::Services, task::{task_test_producer::TaskTestProducer, task_test_receiver::TaskTestReceiver}}, tests::unit::services::tcp_server::{emulated_tcp_client_recv::EmulatedTcpClientRecv, emulated_tcp_client_send::EmulatedTcpClientSend} 
-    }; 
+        conf::{multi_queue_config::MultiQueueConfig, point_config::name::Name, tcp_server_config::TcpServerConfig}, services::{multi_queue::multi_queue::MultiQueue, server::tcp_server::TcpServer, service::service::Service, services::Services, task::{task_test_producer::TaskTestProducer, task_test_receiver::TaskTestReceiver}}, tests::unit::services::tcp_server::{emulated_tcp_client_recv::EmulatedTcpClientRecv, emulated_tcp_client_send::EmulatedTcpClientSend}
+    };
     ///
     ///
     static INIT: Once = Once::new();
@@ -14,16 +14,15 @@ mod tcp_server {
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
     ///  - ...
     fn init_each() -> () {}
     ///
-    ///     
+    ///
     #[test]
     fn keep_send() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -37,9 +36,9 @@ mod tcp_server {
         test_duration.run().unwrap();
         let iterations = 100;
         let test_data = IncTestValues::new(
-            self_id, 
-            0, 
-            iterations, 
+            self_id,
+            0,
+            iterations,
         );
         let test_data: Vec<Value> = test_data.collect();
         let total_count = test_data.len();
@@ -112,7 +111,7 @@ mod tcp_server {
         test_duration.exit();
     }
     ///
-    /// 
+    ///
     #[test]
     fn keep_receive() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -126,9 +125,9 @@ mod tcp_server {
         test_duration.run().unwrap();
         let iterations = 100;
         let test_data = IncTestValues::new(
-            self_id, 
-            0, 
-            iterations, 
+            self_id,
+            0,
+            iterations,
         );
         let test_data: Vec<Value> = test_data.collect();
         let total_count = test_data.len();
@@ -160,7 +159,7 @@ mod tcp_server {
         let mq_conf = serde_yaml::from_str(&mq_conf).unwrap();
         let mq_conf = MultiQueueConfig::from_yaml(self_name, &mq_conf);
         let mq_service = Arc::new(Mutex::new(MultiQueue::new(mq_conf, services.clone())));
-        services.lock().unwrap().insert(mq_service.clone());        // "MultiQueue", 
+        services.lock().unwrap().insert(mq_service.clone());        // "MultiQueue",
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
             self_id,
             "",

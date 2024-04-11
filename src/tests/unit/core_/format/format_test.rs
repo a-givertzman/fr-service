@@ -8,36 +8,29 @@ mod tests {
     use regex::RegexBuilder;
     use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
     use crate::core_::{format::format::Format, point::point_type::ToPoint};
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    ///
+    ///
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
+    fn init_each() -> () {}
+    ///
+    ///
     #[test]
     fn test_simple_name() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
         info!("test_bool");
-    
+
         // let (initial, switches) = init_each();
         let test_data = vec![
             ("abc {a} xyz {b} rty {c} str {d}.", (false, 12, 1.618, "1223"), "abc false xyz 12 rty 1.618 str 1223."),
@@ -52,17 +45,17 @@ mod tests {
             format.insert("d", values.3.to_point(0, ""));
             debug!("result: {}", format);
             assert!(format.out() == target, "format != target \nformat: {} \ntarget: {}", format.out(), target);
-        }        
+        }
     }
-    
-    
+
+
     #[test]
     fn test_name_sufix() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         init_each();
         info!("test_name_sufix");
-    
+
         // let (initial, switches) = init_each();
         let test_data = vec![
             ("abc {a.value} xyz {b.name} rty {c.timestamp} str {c.id}.", (false, 12, 1.618, "1223"), r"abc false xyz  rty {c.timestamp} UTC str {c.id}."),
@@ -80,7 +73,7 @@ mod tests {
                 values.2.to_point(0, "").timestamp().to_rfc3339_opts(chrono::SecondsFormat::Secs, true).replace("T", " ").replace("Z", "").as_str(),
             );
             let re = format!(
-                r"(abc false xyz  rty {})(\.\d{{9}})( UTC str \{{c\.id\}}\.)", 
+                r"(abc false xyz  rty {})(\.\d{{9}})( UTC str \{{c\.id\}}\.)",
                 values.2.to_point(0, "").timestamp().to_rfc3339_opts(chrono::SecondsFormat::Secs, true).replace("T", " ").replace("Z", ""),
             );
             trace!("re: {}", re);
@@ -88,9 +81,9 @@ mod tests {
             let out = re.replace(&out, "$1$3");
             trace!("out: {}", out);
             assert!(out == target, "format != target \nformat: {} \ntarget: {}", out, target);
-        }        
+        }
     }
-    
+
     #[test]
     fn test_prepare() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -98,7 +91,7 @@ mod tests {
         init_each();
         info!("test_prepare");
         // let (initial, switches) = init_each();
-    
+
         let mut format = Format::new("abc {const} xyz '{b.name}' rty {c.value} str {c.timestamp}.");
         format.insert("const", 12345.to_point(0, ""));
         format.insert("b.name", "".to_point(0, "the.name"));
@@ -106,7 +99,7 @@ mod tests {
         format.prepare();
         let target = "abc 12345 xyz 'the.name' rty {c.value} str {c.timestamp}.";
         assert!(format.out() == target, "prepared format != target \nformat: {} \ntarget: {}", format, target);
-    
+
         let test_data = vec![
             (1.618, r"abc 12345 xyz 'the.name' rty {c.value} str {c.timestamp} UTC."),
             (0.618, r"abc 12345 xyz 'the.name' rty {c.value} str {c.timestamp} UTC."),
@@ -121,7 +114,7 @@ mod tests {
                 values.to_point(0, "").timestamp().to_rfc3339_opts(chrono::SecondsFormat::Secs, true).replace("T", " ").replace("Z", "").as_str(),
             );
             let re = r"(.+)(\.\d+)( UTC)";
-                // r"(abc false xyz  rty {})(\.\d{{9}})( UTC str \{{c\.id\}}\.)", 
+                // r"(abc false xyz  rty {})(\.\d{{9}})( UTC str \{{c\.id\}}\.)",
             // );
             // values.toPoint("").timestamp().to_rfc3339_opts(chrono::SecondsFormat::Secs, true).replace("T", " ").replace("Z", ""),
             trace!("re: {}", re);
@@ -129,6 +122,6 @@ mod tests {
             let out = re.replace(&out, "$1$3");
             trace!("out: {}", out);
             assert!(out == target, "format != target \nformat: {} \ntarget: {}", out, target);
-        }        
+        }
     }
 }

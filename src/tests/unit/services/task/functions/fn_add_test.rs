@@ -8,22 +8,16 @@ mod tests {
     use crate::{
         conf::fn_::fn_conf_keywd::FnConfPointType, core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, services::task::nested_function::{fn_::FnOut, fn_add::FnAdd, fn_input::FnInput}
     };
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    ///
+    ///
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
-    
-    
     ///
     /// returns:
     ///  - ...
@@ -34,8 +28,8 @@ mod tests {
             )
         ))
     }
-    
-
+    ///
+    ///
     #[test]
     fn test_bool() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -76,7 +70,7 @@ mod tests {
             target = PointType::Bool(value1Stored.as_bool() + value2Stored.as_bool());
             assert_eq!(state, target);
             println!();
-        }        
+        }
     }
 
 
@@ -125,6 +119,6 @@ mod tests {
             target = PointType::Int(value1Stored.as_int() + value2Stored.as_int());
             assert_eq!(state, target);
             println!();
-        }        
+        }
     }
 }

@@ -7,31 +7,22 @@ mod config_tree {
     use testing::entities::test_value::Value;
     use debugging ::session::debug_session::{Backtrace, DebugSession, LogLevel};
     use crate::conf::conf_tree::ConfTree;
-    
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    // use super::*;
-    
+    ///
+    ///
     static INIT: Once = Once::new();
-    
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
-    
-    
     ///
     /// returns:
     ///  - ...
-    fn init_each() -> () {
-    
-    }
-    
-    
-    
+    fn init_each() -> () {}
+    ///
+    ///
     #[derive(Clone, Debug, PartialEq, Eq)]
     enum Node {
         Map(IndexMap<String, Node>),
@@ -45,8 +36,8 @@ mod config_tree {
             }
         }
     }
-    
-    
+
+
     #[test]
     fn valid() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -58,7 +49,7 @@ mod config_tree {
             // (
             //     r#"let newVar:
             //         input const '13.55'
-            //     "#, 
+            //     "#,
             //     None
             // ),
             // (
@@ -66,7 +57,7 @@ mod config_tree {
             //         input fn count:
             //             inputConst1 const '13.3'
             //             inputConst2 const '13.7'
-            //     "#, 
+            //     "#,
             //     None
             // ),
             // (
@@ -77,7 +68,7 @@ mod config_tree {
             //         input2 fn count:
             //             inputConst1 const '13.3'
             //             inputConst2 const '14.7'
-            //     "#, 
+            //     "#,
             //     None
             // ),
             (
@@ -91,13 +82,13 @@ mod config_tree {
                 "#,
                 Node::Map(IndexMap::from([
                     (format!("let newVar2"), Node::Map(IndexMap::from([
-                        (format!("input"), Node::End(ConfTree { key: format!("input"), conf: serde_yaml::from_str("const 2.2").unwrap() })), 
+                        (format!("input"), Node::End(ConfTree { key: format!("input"), conf: serde_yaml::from_str("const 2.2").unwrap() })),
                     ]))),
                     (format!("let newVar3"), Node::Map(IndexMap::from([
-                        (format!("input"), Node::End(ConfTree { key: format!("input"), conf: serde_yaml::from_str("const 3.3").unwrap() })), 
+                        (format!("input"), Node::End(ConfTree { key: format!("input"), conf: serde_yaml::from_str("const 3.3").unwrap() })),
                     ]))),
                     (format!("let newVar1"), Node::Map(IndexMap::from([
-                        (format!("input"), Node::End(ConfTree { key: format!("input"), conf: serde_yaml::from_str("const 1.1").unwrap() })), 
+                        (format!("input"), Node::End(ConfTree { key: format!("input"), conf: serde_yaml::from_str("const 1.1").unwrap() })),
                     ]))),
                 ]))
             ),
@@ -113,13 +104,13 @@ mod config_tree {
                 "#,
                 Node::Map(IndexMap::from([
                     (format!("let newVar1"), Node::Map(IndexMap::from([
-                        (format!("input2"), Node::End(ConfTree { key: format!("input2"), conf: serde_yaml::from_str("point '/Path/Point.Name/'").unwrap() })), 
+                        (format!("input2"), Node::End(ConfTree { key: format!("input2"), conf: serde_yaml::from_str("point '/Path/Point.Name/'").unwrap() })),
                         (format!("input3"), Node::Map(IndexMap::from([
                             (format!("fn count"), Node::Map(IndexMap::from([
-                                (format!("inputConst1"), Node::End(ConfTree { key: format!("inputConst1"), conf: serde_yaml::from_str("const '13.5'").unwrap() })), 
+                                (format!("inputConst1"), Node::End(ConfTree { key: format!("inputConst1"), conf: serde_yaml::from_str("const '13.5'").unwrap() })),
                                 (format!("inputConst2"), Node::End(ConfTree { key: format!("inputConst2"), conf: serde_yaml::from_str("newVar1").unwrap() }))
                             ])))
-                        ]))), 
+                        ]))),
                         (format!("input1"), Node::End(ConfTree { key: format!("input1"), conf: serde_yaml::from_str("const 177.3").unwrap() }))
                     ]))),
                 ]))
@@ -128,20 +119,20 @@ mod config_tree {
             //     r#"
             //         fn SqlMetric:
             //             initial: const 0
-            //             sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    
+            //             sql: "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"
             //             inputs:
             //                 input1:
             //                     let VarName2:
-            //                         input: 
+            //                         input:
             //                             fn functionName:
             //                                 initial: VarName2
-            //                                 input: 
+            //                                 input:
             //                                     fn functionName:
             //                                         input1: const someValue
             //                                         input2: point '/path/Point.Name/'
-            //                                         input: 
+            //                                         input:
             //                                             fn functionName:
-            //                                                 input: point '/path/Point.Name/'        
+            //                                                 input: point '/path/Point.Name/'
             //     "#,
             //     None
             // ),
@@ -160,15 +151,15 @@ mod config_tree {
                 "#,
                 Node::Map(IndexMap::from([
                     (format!("serviceCMA"), Node::Map(IndexMap::from([
-                        (format!("nodeType"), Node::End(ConfTree { key: format!("nodeType"), conf: serde_yaml::from_str("API Client").unwrap() })), 
-                        (format!("address"), Node::End(ConfTree { key: format!("address"), conf: serde_yaml::from_str("127.0.0.1:8899").unwrap() })), 
+                        (format!("nodeType"), Node::End(ConfTree { key: format!("nodeType"), conf: serde_yaml::from_str("API Client").unwrap() })),
+                        (format!("address"), Node::End(ConfTree { key: format!("address"), conf: serde_yaml::from_str("127.0.0.1:8899").unwrap() })),
                         (format!("cycle"), Node::End(ConfTree { key: format!("cycle"), conf: serde_yaml::from_str("1000").unwrap() })),
-                    ]))), 
+                    ]))),
                     (format!("serviceAPI"), Node::Map(IndexMap::from([
-                        (format!("nodeType"), Node::End(ConfTree { key: format!("nodeType"), conf: serde_yaml::from_str("API Client").unwrap() })), 
-                        (format!("address"), Node::End(ConfTree { key: format!("address"), conf: serde_yaml::from_str("127.0.0.1:8899").unwrap() })), 
+                        (format!("nodeType"), Node::End(ConfTree { key: format!("nodeType"), conf: serde_yaml::from_str("API Client").unwrap() })),
+                        (format!("address"), Node::End(ConfTree { key: format!("address"), conf: serde_yaml::from_str("127.0.0.1:8899").unwrap() })),
                         (format!("cycle"), Node::End(ConfTree { key: format!("cycle"), conf: serde_yaml::from_str("2000").unwrap() })),
-                    ]))), 
+                    ]))),
                     (format!("serviceTask"), Node::Map(IndexMap::from([
                         (format!("cycle"), Node::End(ConfTree { key: format!("cycle"), conf: serde_yaml::from_str("200").unwrap() }))
                     ]))),
@@ -193,7 +184,7 @@ mod config_tree {
             }
         }
     }
-    
+
     fn inputs(confTree: &ConfTree) -> Node {
         match confTree.subNodes() {
             Some(nodes) => {
@@ -210,9 +201,9 @@ mod config_tree {
             },
         };
     }
-    
-    
-    
+
+
+
     #[test]
     fn as_type() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -249,7 +240,7 @@ mod config_tree {
                     ("string3", Value::String("/Path/Point.Name/".to_string())),
                 ])
             ),
-    
+
         ];
         for (value, targets) in test_data {
             // debug!("test value: {:?}", value);

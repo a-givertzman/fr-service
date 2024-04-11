@@ -5,7 +5,6 @@ mod sql_metric {
     use log::debug;
     use regex::RegexBuilder;
     use std::sync::{Once, Arc, Mutex};
-
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::conf::point_config::name::Name;
     use crate::{
@@ -23,9 +22,8 @@ mod sql_metric {
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:

@@ -6,26 +6,25 @@ mod task {
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::{point_config::name::Name, task_config::TaskConfig}, 
+        conf::{point_config::name::Name, task_config::TaskConfig},
         services::{service::service::Service, services::Services, task::{task::Task, task_test_producer::TaskTestProducer, task_test_receiver::TaskTestReceiver}},
     };
     ///
-    /// 
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// 
+    ///
     #[test]
     fn structure() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -51,9 +50,9 @@ mod task {
             "in-queue",
             iterations,
         )));
-        services.lock().unwrap().insert(receiver.clone());      // "TaskTestReceiver", 
+        services.lock().unwrap().insert(receiver.clone());      // "TaskTestReceiver",
         let test_data = RandomTestValues::new(
-            self_id, 
+            self_id,
             vec![
                 Value::Real(-7.035),
                 Value::Real(-2.5),
@@ -67,14 +66,14 @@ mod task {
                 Value::Real(5.5),
                 Value::Real(2.5),
                 Value::Real(7.035),
-            ], 
-            iterations, 
+            ],
+            iterations,
         );
         let test_data: Vec<Value> = test_data.collect();
         let total_count = test_data.len();
         assert!(total_count == iterations, "\nresult: {:?}\ntarget: {:?}", total_count, iterations);
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
-            self_id, 
+            self_id,
             &format!("/{}/Task1.in-queue", self_id),
             Duration::ZERO,
             services.clone(),
@@ -105,7 +104,7 @@ mod task {
         test_duration.exit();
     }
     ///
-    /// 
+    ///
     #[test]
     #[ignore = "TODO - transfered values assertion not implemented yet"]
     fn transfer() {
@@ -130,9 +129,9 @@ mod task {
             "in-queue",
             iterations,
         )));
-        services.lock().unwrap().insert(receiver.clone());      // "TaskTestReceiver", 
+        services.lock().unwrap().insert(receiver.clone());      // "TaskTestReceiver",
         let test_data = RandomTestValues::new(
-            self_id, 
+            self_id,
             vec![
                 Value::Real(f32::MAX),
                 Value::Real(f32::MIN),
@@ -146,8 +145,8 @@ mod task {
                 Value::Double(-f64::MIN_POSITIVE),
                 Value::Double(0.11),
                 Value::Double(1.33),
-            ], 
-            iterations, 
+            ],
+            iterations,
         );
         let test_data: Vec<Value> = test_data.collect();
         // let totalCount = test_data.len();

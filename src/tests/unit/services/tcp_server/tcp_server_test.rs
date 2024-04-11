@@ -5,25 +5,24 @@ mod tcp_server {
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, inc_test_values::IncTestValues, wait::WaitTread}, session::test_session::TestSession};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::{multi_queue_config::MultiQueueConfig, point_config::name::Name, tcp_server_config::TcpServerConfig}, services::{multi_queue::multi_queue::MultiQueue, server::tcp_server::TcpServer, service::service::Service, services::Services, task::{task_test_producer::TaskTestProducer, task_test_receiver::TaskTestReceiver}}, tests::unit::services::tcp_server::{emulated_tcp_client_recv::EmulatedTcpClientRecv, emulated_tcp_client_send::EmulatedTcpClientSend} 
-    }; 
+        conf::{multi_queue_config::MultiQueueConfig, point_config::name::Name, tcp_server_config::TcpServerConfig}, services::{multi_queue::multi_queue::MultiQueue, server::tcp_server::TcpServer, service::service::Service, services::Services, task::{task_test_producer::TaskTestProducer, task_test_receiver::TaskTestReceiver}}, tests::unit::services::tcp_server::{emulated_tcp_client_recv::EmulatedTcpClientRecv, emulated_tcp_client_send::EmulatedTcpClientSend}
+    };
     ///
-    ///     
+    ///
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
     ///
     /// returns:
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// 
+    ///
     #[test]
     fn send() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -38,9 +37,9 @@ mod tcp_server {
 
         let iterations = 100;
         let test_data = IncTestValues::new(
-            self_id, 
-            0, 
-            iterations, 
+            self_id,
+            0,
+            iterations,
         );
         let test_data: Vec<Value> = test_data.collect();
         let total_count = test_data.len();
@@ -54,7 +53,7 @@ mod tcp_server {
                 reconnect: 1 s  # default 3 s
                 address: {}
                 auth: none      # auth: none / auth-secret: pass: ... / auth-ssh: path: ...
-                auth-secret: 
+                auth-secret:
                     pass: /home/scada/.ssh/ #/ auth-ssh: path: ...
                 in queue link:
                     max-length: 10000
@@ -63,7 +62,7 @@ mod tcp_server {
         let conf = serde_yaml::from_str(&conf).unwrap();
         let conf = TcpServerConfig::from_yaml(&self_name, &conf);
         let tcp_server = Arc::new(Mutex::new(TcpServer::new(conf, services.clone())));
-        services.lock().unwrap().insert(tcp_server.clone());        // "TcpServer", 
+        services.lock().unwrap().insert(tcp_server.clone());        // "TcpServer",
 
         let mq_conf = r#"
             service MultiQueue:
@@ -74,7 +73,7 @@ mod tcp_server {
         let mq_conf = serde_yaml::from_str(mq_conf).unwrap();
         let mq_conf = MultiQueueConfig::from_yaml(self_name, &mq_conf);
         let mq_service = Arc::new(Mutex::new(MultiQueue::new(mq_conf, services.clone())));
-        services.lock().unwrap().insert(mq_service.clone());        // "MultiQueue", 
+        services.lock().unwrap().insert(mq_service.clone());        // "MultiQueue",
 
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             self_id,
@@ -83,7 +82,7 @@ mod tcp_server {
             services.clone(),
             test_data.clone(),
         )));
-        services.lock().unwrap().insert(producer.clone());      // "TaskTestProducer", 
+        services.lock().unwrap().insert(producer.clone());      // "TaskTestProducer",
         let emulated_tcp_client = Arc::new(Mutex::new(EmulatedTcpClientRecv::new(
             self_id,
             &tcp_addr,
@@ -99,7 +98,7 @@ mod tcp_server {
         let producer_handle = producer.lock().unwrap().run().unwrap();
         producer_handle.wait().unwrap();
         emulated_tcp_client.lock().unwrap().wait_all_received();
-        
+
         let received = emulated_tcp_client.lock().unwrap().received();
         let mut received = received.lock().unwrap();
         let target = total_count;
@@ -110,7 +109,7 @@ mod tcp_server {
             let target = value.as_int();
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
-        
+
         emulated_tcp_client.lock().unwrap().exit();
         tcp_server.lock().unwrap().exit();
         mq_service.lock().unwrap().exit();
@@ -120,7 +119,7 @@ mod tcp_server {
         test_duration.exit();
     }
     ///
-    /// 
+    ///
     #[test]
     fn receive() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -135,9 +134,9 @@ mod tcp_server {
         test_duration.run().unwrap();
         let iterations = 100;
         let test_data = IncTestValues::new(
-            self_id, 
-            0, 
-            iterations, 
+            self_id,
+            0,
+            iterations,
         );
         let test_data: Vec<Value> = test_data.collect();
         let total_count = test_data.len();
@@ -157,7 +156,7 @@ mod tcp_server {
         let conf = serde_yaml::from_str(&conf).unwrap();
         let conf = TcpServerConfig::from_yaml(&self_name, &conf);
         let tcp_server = Arc::new(Mutex::new(TcpServer::new(conf, services.clone())));
-        services.lock().unwrap().insert(tcp_server.clone());        // "TcpServer", 
+        services.lock().unwrap().insert(tcp_server.clone());        // "TcpServer",
         let mq_conf = format!(r#"
             service MultiQueue:
                 in queue in-queue:
@@ -168,14 +167,14 @@ mod tcp_server {
         let mq_conf = serde_yaml::from_str(&mq_conf).unwrap();
         let mq_conf = MultiQueueConfig::from_yaml(self_name, &mq_conf);
         let mq_service = Arc::new(Mutex::new(MultiQueue::new(mq_conf, services.clone())));
-        services.lock().unwrap().insert(mq_service.clone());        // "MultiQueue", 
+        services.lock().unwrap().insert(mq_service.clone());        // "MultiQueue",
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
             self_id,
             "",
             "queue",
             iterations,
         )));
-        services.lock().unwrap().insert(receiver.clone());      // "TaskTestReceiver", 
+        services.lock().unwrap().insert(receiver.clone());      // "TaskTestReceiver",
         let emulated_tcp_client = Arc::new(Mutex::new(EmulatedTcpClientSend::new(
             self_id,
             "/test/Jds/",

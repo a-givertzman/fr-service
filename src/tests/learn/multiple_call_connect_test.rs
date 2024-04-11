@@ -5,30 +5,29 @@ mod tests {
     use rand::Rng;
     use std::{sync::{atomic::{AtomicUsize, Ordering}, Arc, Mutex}, thread};
     use std::{sync::Once, time::Duration};
-    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace}; 
-    
+    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
+
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     // use super::*;
-    
+
     static INIT: Once = Once::new();
-    
+
     ///
     /// once called initialisation
     fn init_once() {
         INIT.call_once(|| {
-                // implement your initialisation code to be called only once for current test file
-            }
-        )
+            // implement your initialisation code to be called only once for current test file
+        })
     }
-    
-    
+
+
     ///
     /// returns:
     ///  - ...
     fn init_each() -> () {
-    
+
     }
-    
+
     #[ignore = "Learn - all must be ignored"]
     #[test]
     fn test_task_cycle() {
@@ -70,7 +69,7 @@ mod tests {
         }
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
     }
-    
+
     #[derive(Debug, PartialEq)]
     enum ConnectState {
         Closed,
@@ -119,7 +118,7 @@ mod tests {
                 },
             };
             match ConnectState::from( self.state.load(Ordering::Relaxed) ) {
-                ConnectState::Connected => {                    
+                ConnectState::Connected => {
                     let stream = self.stream.lock().unwrap().pop().unwrap();
                     let streamClone= stream.clone();
                     self.stream.lock().unwrap().push(stream);

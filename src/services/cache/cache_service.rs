@@ -72,7 +72,7 @@ impl CacheService {
             panic!("{}.subscribe | Error. Subscription can`t be empty: {:#?}", self.id, conf.subscribe);
         } else {
             debug!("{}.subscribe | conf.subscribe: {:#?}", self.id, conf.subscribe);
-            let subscriptions = conf.subscribe.with(&points);
+            let subscriptions = conf.subscribe.with(points);
             trace!("{}.subscribe | subscriptions: {:#?}", self.id, subscriptions);
             if subscriptions.len() > 1 {
                 panic!("{}.run | Error. Task does not supports multiple subscriptions for now: {:#?}.\n\tTry to use single subscription.", self.id, subscriptions);
