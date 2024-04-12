@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::{Arc, Mutex, RwLock}};
+use std::{collections::HashMap, sync::{Arc, Mutex, RwLock}, thread, time::Duration};
 use concat_string::concat_string;
 use log::{debug, error, trace, warn};
 use serde_json::json;
@@ -175,7 +175,7 @@ impl JdsRequest {
                     Some(cache_service) => Self::yield_gi(&self_id, &receiver_name, services, &cache_service, &[], &mut shared),
                     None => warn!("{}.handle.Subscribe | Gi skipped, cache service not configured", self_id),
                 }
-                RouterReply::new(
+                let reply = RouterReply::new(
                     None,
                     Some(PointType::String(Point::new(
                         tx_id,
@@ -185,7 +185,9 @@ impl JdsRequest {
                         cot,
                         chrono::offset::Utc::now(),
                     ))),
-                )
+                );
+                debug!("{}.handle.Subscribe | Reply: {:?}", self_id, reply);
+                reply
             }
             RequestKind::Unknown => {
                 debug!("{}.handle | Unknown request: \n\t{:?}", self_id, request);
@@ -201,12 +203,16 @@ impl JdsRequest {
         let recv = cache.slock().gi(receiver_name, points);
         match shared.req_reply_send.pop() {
             Some(send) => {
-                for point in recv.iter() {
-                    if let Err(err) =  send.send(point) {
-                        error!("{}.handle.Subscribe | Send error: {:#?}", self_id, err);
+                shared.req_reply_send.push(send.clone());
+                let self_id_clone = self_id.to_owned();
+                thread::spawn(move || {
+                    thread::sleep(Duration::from_millis(32));
+                    for point in recv.iter() {
+                        if let Err(err) =  send.send(point) {
+                            error!("{}.handle.Subscribe | Send error: {:#?}", self_id_clone, err);
+                        }
                     }
-                }
-                shared.req_reply_send.push(send);
+                });
             }
             None => {
                 error!("{}.handle.Subscribe | Cant get req_reply_send", self_id)

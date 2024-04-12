@@ -190,13 +190,13 @@ impl JdsConnection {
                     shared_options,
                 ))),
                 send,
-                conf.cycle.unwrap_or(Duration::from_millis(50)),
+                None,
                 Some(exit.clone()),
                 Some(exit_pair.clone()),
             );
             let tcp_write_alive = TcpWriteAlive::new(
                 &self_id,
-                conf.cycle.unwrap_or(Duration::from_millis(50)),
+                None,
                 Arc::new(Mutex::new(TcpStreamWrite::new(
                     format!("{}/TcpWriteAlive", self_id),
                     buffered,

@@ -232,7 +232,9 @@ impl Service for MultiQueue {
                             match receiver_hash != point.tx_id() {
                                 true => {
                                     match sender.send(point.clone()) {
-                                        Ok(_) => {}
+                                        Ok(_) => {
+                                            trace!("{}.read | sent to '{}' point: {:?}", self_id, receiver_hash, point);
+                                        }
                                         Err(err) => {
                                             error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", self_id, point_id, receiver_hash, err);
                                         }
