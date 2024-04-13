@@ -16,7 +16,7 @@ pub struct TcpReadAlive {
     id: String,
     stream_read: Arc<Mutex<dyn TcpStreamRead>>,
     send: Sender<PointType>,
-    cycle: Duration,
+    cycle: Option<Duration>,
     exit: Arc<AtomicBool>,
     exit_pair: Arc<AtomicBool>,
 }
@@ -30,7 +30,7 @@ impl TcpReadAlive {
         parent: impl Into<String>, 
         stream_read: Arc<Mutex<dyn TcpStreamRead>>,
         dest: Sender<PointType>, 
-        cycle: Duration, 
+        cycle: Option<Duration>, 
         exit: Option<Arc<AtomicBool>>, 
         exit_pair: Option<Arc<AtomicBool>>
     ) -> Self {
@@ -51,7 +51,7 @@ impl TcpReadAlive {
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         let exit_pair = self.exit_pair.clone();
-        let mut cycle = ServiceCycle::new(&self_id, self.cycle);
+        let mut cycle = self.cycle.map(|cycle| ServiceCycle::new(&self_id, cycle));
         let send = self.send.clone();
         let jds_stream = self.stream_read.clone();
         info!("{}.run | Preparing thread...", self.id);
@@ -61,7 +61,7 @@ impl TcpReadAlive {
             let mut jds_stream = jds_stream.slock();
             info!("{}.run | Main loop started", self_id);
             loop {
-                cycle.start();
+                if let Some(cycle) = &mut cycle {cycle.start()}
                 match jds_stream.read(&mut tcp_stream) {
                     ConnectionStatus::Active(point) => {
                         match point {
@@ -73,13 +73,13 @@ impl TcpReadAlive {
                                         warn!("{}.run | write to queue error: {:?}", self_id, err);
                                     }
                                 };
-                                cycle.wait();
+                                if let Some(cycle) = &mut cycle {cycle.wait()}
                             }
                             OpResult::Err(err) => {
                                 if log::max_level() == LevelFilter::Trace {
                                     warn!("{}.run | error: {:?}", self_id, err);
                                 }
-                                cycle.wait();
+                                if let Some(cycle) = &mut cycle {cycle.wait()}
                             }
                             OpResult::Timeout() => {}
                         }

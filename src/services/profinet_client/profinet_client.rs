@@ -188,19 +188,14 @@ impl ProfinetClient {
                                     // let dbName = point_name.split("/").skip(1).collect::<String>();
                                     match dbs.get_mut(db_name) {
                                         Some(db) => {
-                                            match db.write(&client, point) {
+                                            match db.write(&client, point.clone()) {
                                                 Ok(_) => {
                                                     errors_limit.reset();
                                                     debug!("{}.write | DB '{}' - writing point '{}'\t({:?}) - ok", self_id, db_name, point_name, point_value);
-                                                    if let Err(err) = tx_send.send(PointType::String(Point::new(
-                                                        tx_id,
-                                                        &point_name,
-                                                        String::new(),
-                                                        Status::Ok,
-                                                        Cot::ActCon,
-                                                        chrono::offset::Utc::now(),
-                                                    ))) {
-                                                        error!("{}.write | Error sending to queue: {:?}", self_id, err);
+                                                    let reply = Self::reply_point(tx_id, point);
+                                                    match tx_send.send(reply.clone()) {
+                                                        Ok(_) => debug!("{}.write | DB '{}' - sent reply: {:#?}", self_id, db_name, reply),
+                                                        Err(err) => error!("{}.write | Error sending to queue: {:?}", self_id, err),
                                                         // break 'main;
                                                     };
                                                 }
@@ -257,6 +252,62 @@ impl ProfinetClient {
         });
         info!("{}.write | Started", self.id);
         handle
+    }
+    ///
+    /// Creates confirmation reply point with the same value & Cot::ActCon
+    fn reply_point(tx_id: usize, point: PointType) -> PointType {
+        match point {
+            PointType::Bool(point) => {
+                PointType::Bool(Point::new(
+                    tx_id,
+                    &point.name,
+                    point.value,
+                    Status::Ok,
+                    Cot::ActCon,
+                    chrono::offset::Utc::now(),
+                ))
+            },
+            PointType::Int(point) => {
+                PointType::Int(Point::new(
+                    tx_id,
+                    &point.name,
+                    point.value,
+                    Status::Ok,
+                    Cot::ActCon,
+                    chrono::offset::Utc::now(),
+                ))
+            },
+            PointType::Real(point) => {
+                PointType::Real(Point::new(
+                    tx_id,
+                    &point.name,
+                    point.value,
+                    Status::Ok,
+                    Cot::ActCon,
+                    chrono::offset::Utc::now(),
+                ))
+            },
+            PointType::Double(point) => {
+                PointType::Double(Point::new(
+                    tx_id,
+                    &point.name,
+                    point.value,
+                    Status::Ok,
+                    Cot::ActCon,
+                    chrono::offset::Utc::now(),
+                ))
+            },
+            PointType::String(point) => {
+                PointType::String(Point::new(
+                    tx_id,
+                    &point.name,
+                    point.value,
+                    Status::Ok,
+                    Cot::ActCon,
+                    chrono::offset::Utc::now(),
+                ))
+            },
+        }
     }
 }
 ///

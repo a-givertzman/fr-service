@@ -1,4 +1,4 @@
-use std::{fmt::Debug, io::Write};
+use std::{fmt::Debug, io::Write, net::TcpStream};
 use log::{trace, warn, LevelFilter};
 use crate::{
     tcp::steam_read::StreamRead, 
@@ -34,7 +34,7 @@ impl TcpStreamWrite {
     }
     ///
     /// 
-    pub fn write(&mut self, mut tcp_stream: impl Write) -> ConnectionStatus<OpResult<(), String>, String> {
+    pub fn write(&mut self, mut tcp_stream: &TcpStream) -> ConnectionStatus<OpResult<(), String>, String> {
         match self.stream.read() {
             Ok(bytes) => {
                 while let Some(bytes) = self.buffer.first() {
@@ -54,7 +54,21 @@ impl TcpStreamWrite {
                 }
                 trace!("{}.write | bytes: {:?}", self.id, bytes);
                 match tcp_stream.write_all(&bytes) {
-                    Ok(_) => ConnectionStatus::Active(OpResult::Ok(())),
+                    Ok(_) => {
+                        match tcp_stream.flush() {
+                            Ok(_) => {
+                                ConnectionStatus::Active(OpResult::Ok(()))
+                            }
+                            Err(err) => {
+                                self.buffer.push(bytes);
+                                let message = format!("{}.write | error: {:?}", self.id, err);
+                                if log::max_level() == LevelFilter::Debug {
+                                    warn!("{}", message);
+                                }
+                                ConnectionStatus::Closed(message)
+                            }
+                        }
+                    }
                     Err(err) => {
                         self.buffer.push(bytes);
                         let message = format!("{}.write | error: {:?}", self.id, err);

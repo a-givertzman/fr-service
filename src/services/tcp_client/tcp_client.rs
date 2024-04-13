@@ -110,13 +110,13 @@ impl Service for TcpClient {
                 ),
             )),
             tx_send,
-            Duration::from_millis(10),
+            Some(Duration::from_millis(10)),
             Some(exit.clone()),
             Some(exit_pair.clone()),
         );
         let tcp_write_alive = TcpWriteAlive::new(
             &self_id,
-            Duration::from_millis(10),
+            None,
             Arc::new(Mutex::new(TcpStreamWrite::new(
                 &self_id,
                 buffered,

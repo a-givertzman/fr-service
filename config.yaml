@@ -12,7 +12,9 @@ service MultiQueue:
 service CacheService MainCache:
     retain: true
     retain-dely: 30s    # default 30s
-    subscribe: /App/MultiQueue
+    subscribe: 
+        /App/MultiQueue: 
+            Inf: []             # IMPORTENT !!!
 
 
 
@@ -461,7 +463,7 @@ service ProfinetClient ied12:
 
 
 service ProfinetClient ied13:
-    cycle: 1000 ms
+    cycle: 7 ms
     subscribe: /App/MultiQueue
     out queue: /App/MultiQueue.in-queue
     protocol: 'profinet'
@@ -1226,8 +1228,7 @@ service ApiClient:
 
 
 service TcpServer:
-    cycle: 1 ms
-    reconnect: 1 s  # default 3 s
+    reconnect: 1 s      # default 3 s
     # address: 192.168.120.144:16688
     address: 127.0.0.1:16688
     auth-secret:       # auth: none / auth-secret: pass: ... / auth-ssh: path: ...

@@ -8,7 +8,7 @@ use crate::{
 #[derive(Debug)]
 pub struct TcpWriteAlive {
     id: String,
-    cycle: Duration,
+    cycle: Option<Duration>,
     stream_write: Arc<Mutex<TcpStreamWrite>>,
     exit: Arc<AtomicBool>,
     exit_pair: Arc<AtomicBool>,
@@ -21,7 +21,7 @@ impl TcpWriteAlive {
     /// - [parent] - the ID if the parent entity
     /// - [exit] - notification from parent to exit 
     /// - [exitPair] - notification from / to sibling pair to exit 
-    pub fn new(parent: impl Into<String>, cycle: Duration, stream_write: Arc<Mutex<TcpStreamWrite>>, exit: Option<Arc<AtomicBool>>, exit_pair: Option<Arc<AtomicBool>>) -> Self {
+    pub fn new(parent: impl Into<String>, cycle: Option<Duration>, stream_write: Arc<Mutex<TcpStreamWrite>>, exit: Option<Arc<AtomicBool>>, exit_pair: Option<Arc<AtomicBool>>) -> Self {
         Self {
             id: format!("{}/TcpWriteAlive", parent.into()),
             cycle,
@@ -37,7 +37,7 @@ impl TcpWriteAlive {
         let self_id = self.id.clone();
         let exit = self.exit.clone();
         let exit_pair = self.exit_pair.clone();
-        let mut cycle = ServiceCycle::new(&self_id, self.cycle);
+        let mut cycle = self.cycle.map(|cycle| ServiceCycle::new(&self_id, cycle));
         let stream_write = self.stream_write.clone();
         info!("{}.run | Preparing thread...", self.id);
         let handle = thread::Builder::new().name(format!("{} - Write", self_id.clone())).spawn(move || {
@@ -45,16 +45,16 @@ impl TcpWriteAlive {
             let mut stream_write = stream_write.slock();
             info!("{}.run | Main loop started", self_id);
             'main: loop {
-                cycle.start();
+                if let Some(cycle) = &mut cycle {cycle.start()}
                 match stream_write.write(&mut tcp_stream) {
                     ConnectionStatus::Active(result) => {
                         match result {
                             OpResult::Ok(_) => {
-                                cycle.wait();
+                                if let Some(cycle) = &mut cycle {cycle.wait()}
                             }
                             OpResult::Err(err) => {
                                 warn!("{}.run | error: {:?}", self_id, err);
-                                cycle.wait();
+                                if let Some(cycle) = &mut cycle {cycle.wait()}
                             }
                             OpResult::Timeout() => {}
                         }
