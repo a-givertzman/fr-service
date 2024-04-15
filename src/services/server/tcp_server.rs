@@ -46,15 +46,13 @@ impl TcpServer {
     ///
     fn setup_connection(self_id: &str, self_name: &Name, connection_id: &str, stream: TcpStream, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>, connections: Arc<Mutex<TcpServerConnections>>) {
         info!("{}.setup_connection | Trying to repair Connection '{}'...", self_id, connection_id);
-        // let connectionsLock = connections.slock();
         let repair_result = connections.slock().repair(connection_id, stream.try_clone().unwrap());
         match repair_result {
             Ok(_) => {
                 info!("{}.setup_connection | Connection '{}' - reparied", self_id, connection_id);
             }
             Err(err) => {
-                info!("{}.run | {}", self_id, err);
-
+                info!("{}.setup_connection | {}", self_id, err);
                 info!("{}.setup_connection | New connection: '{}'", self_id, connection_id);
                 let (send, recv) = mpsc::channel();
                 let mut connection = JdsConnection::new(
@@ -175,6 +173,7 @@ impl Service for TcpServer {
                     Ok(listener) => {
                         info!("{}.run | Open socket {} - ok", self_id, conf.address);
                         for stream in listener.incoming() {
+                            Self::clean(&self_id, &connections);
                             if exit.load(Ordering::SeqCst) {
                                 debug!("{}.run | Detected exit", self_id);
                                 break;
@@ -190,7 +189,6 @@ impl Service for TcpServer {
                                     warn!("{}.run | error: {:?}", self_id, err);
                                 }
                             }
-                            Self::clean(&self_id, &connections);
                         }
                     }
                     Err(err) => {

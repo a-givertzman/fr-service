@@ -55,8 +55,6 @@ impl Connection {
 pub struct TcpServerConnections {
     id: String,
     connections: HashMap<String, Connection>,
-    indexed: Vec<String>,
-    index: usize,
 }
 ///
 /// 
@@ -67,8 +65,6 @@ impl TcpServerConnections {
         Self { 
             id: format!("{}/TcpServerConnections", parent.into()),
             connections: HashMap::new(),
-            indexed: vec![],
-            index: 0,
         }
     }
     ///
@@ -133,20 +129,25 @@ impl TcpServerConnections {
     /// - removes finished connections
     pub fn clean(&mut self) {
         let mut to_remove = vec![];
+        info!("{}.clean | Cleaning connections...", self.id);
         for (name, connection) in &self.connections {
+            info!("{}.clean | Checking connection '{}' \t '{}' - finished: {}", self.id, name, connection.handle.thread().name().unwrap_or("unnamed"), connection.is_finished());
             if connection.is_finished() {
                 to_remove.push(name.clone());
             }
         }
+        info!("{}.clean | Finished connections found: {:#?}", self.id, to_remove);
         for name in to_remove {
             match self.connections.remove(&name) {
                 Some(connection) => {
-                    if let Err(err) = connection.handle.wait() {
-                        error!("{}.run | Connection '{}' wait error: {:#?}", self.id, name, err)
+                    match connection.handle.wait() {
+                        Ok(_) => info!("{}.clean | Connection '{}' removed successful", self.id, name),
+                        Err(err) => error!("{}.clean | Connection '{}' wait error: {:#?}", self.id, name, err),
                     }
                 }
-                None => error!("{}.run | Connection '{}':", self.id, name),
+                None => error!("{}.clean | Connection '{}':", self.id, name),
             }
         }
+        info!("{}.clean | Cleaning connections - ok", self.id);
     }
 }
