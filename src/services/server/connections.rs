@@ -1,5 +1,5 @@
 use std::{any::Any, collections::HashMap, net::TcpStream, sync::mpsc::{SendError, Sender}, thread::JoinHandle};
-use log::info;
+use log::{error, info, warn};
 use testing::stuff::wait::WaitTread;
 ///
 /// 
@@ -40,6 +40,11 @@ impl Connection {
     pub fn is_active(&self) -> bool {
         !self.handle.is_finished()
     }
+    ///
+    /// 
+    pub fn is_finished(&self) -> bool {
+        self.handle.is_finished()
+    }
 }
 
 
@@ -50,6 +55,8 @@ impl Connection {
 pub struct TcpServerConnections {
     id: String,
     connections: HashMap<String, Connection>,
+    indexed: Vec<String>,
+    index: usize,
 }
 ///
 /// 
@@ -60,6 +67,8 @@ impl TcpServerConnections {
         Self { 
             id: format!("{}/TcpServerConnections", parent.into()),
             connections: HashMap::new(),
+            indexed: vec![],
+            index: 0,
         }
     }
     ///
@@ -117,6 +126,27 @@ impl TcpServerConnections {
                     break;
                 }
             };
+        }
+    }
+    ///
+    /// Chech if finished connection threads are present in the self.connection
+    /// - removes finished connections
+    pub fn clean(&mut self) {
+        let mut to_remove = vec![];
+        for (name, connection) in &self.connections {
+            if connection.is_finished() {
+                to_remove.push(name.clone());
+            }
+        }
+        for name in to_remove {
+            match self.connections.remove(&name) {
+                Some(connection) => {
+                    if let Err(err) = connection.handle.wait() {
+                        error!("{}.run | Connection '{}' wait error: {:#?}", self.id, name, err)
+                    }
+                }
+                None => error!("{}.run | Connection '{}':", self.id, name),
+            }
         }
     }
 }
