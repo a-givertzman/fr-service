@@ -1,12 +1,11 @@
-use std::{time::Duration, str::FromStr};
+use std::{hash::BuildHasherDefault, str::FromStr, time::Duration};
+use hashers::fx_hash::FxHasher;
+use indexmap::IndexMap;
 use log::{debug, trace, warn};
+use crate::core_::types::map::IndexMapFxHasher;
+
 use super::{
-    conf_duration::ConfDuration,
-    conf_keywd::{ConfKeywd, ConfKind},
-    conf_subscribe::ConfSubscribe,
-    conf_tree::ConfTree,
-    fn_::fn_conf_keywd::{FnConfKeywd, FnConfKindName},
-    point_config::{name::Name, point_config::PointConfig},
+    conf_duration::ConfDuration, conf_keywd::{ConfKeywd, ConfKind}, conf_subscribe::ConfSubscribe, conf_tree::ConfTree, diag_keywd::DiagKeywd, fn_::fn_conf_keywd::{FnConfKeywd, FnConfKindName}, point_config::{name::Name, point_config::PointConfig}
 };
 ///
 ///
@@ -191,8 +190,8 @@ impl ServiceConfig {
     }
     ///
     /// Returns diagnosis point configs
-    pub fn get_diagnosis(&mut self, parent: &Name) -> Vec<PointConfig> {
-        let mut points = vec![];
+    pub fn get_diagnosis(&mut self, parent: &Name) -> IndexMapFxHasher<DiagKeywd, PointConfig> {
+        let mut points = IndexMap::with_hasher(BuildHasherDefault::<FxHasher>::default());
         match self.get_param_conf("diagnosis") {
             Ok(conf) => {
                 let diag_node_conf = ServiceConfig::new(&self.id, conf);
@@ -202,9 +201,9 @@ impl ServiceConfig {
                         let point_name = Name::new(parent, keyword.data()).join();
                         let point_conf = diag_node_conf.get(key).unwrap();
                         trace!("{}.get_diagnosis | Point '{}'", self.id, point_name);
-                        // trace!("{}.get_diagnosis | Point '{}'   |   conf: {:?}", self.id, point_name, point_conf);
-                        let node_conf = PointConfig::new(parent, &point_conf);
-                        points.push(node_conf)
+                        let point = PointConfig::new(parent, &point_conf);
+                        let point_name_keywd = DiagKeywd::from_str(&point.name).unwrap();
+                        points.insert(point_name_keywd, point);
                     } else {
                         warn!("{}.get_diagnosis | point conf expected, but found: {:?}", self.id, keyword);
                     }

@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 use std::str::FromStr;
 use log::trace;
 use regex::RegexBuilder;
@@ -79,16 +77,16 @@ impl FromStr for Keywd {
         // let re = r#"(?:(?:(\w+)|))(?:(?:\s|)(device|db){1}(?:$|(?:[ \t]['"]*(\S+)['"]*)))"#;
         let re = r#"(?:(?:(\w+)|))(?:(?:\s|)(db){1}(?:$|(?:[ \t]['"]*(\S+)['"]*)))"#;
         let re = RegexBuilder::new(re).multi_line(false).build().unwrap();
-        let groupPrefix = 1;
-        let groupKind = 2;
-        let groupName = 3;
+        let group_prefix = 1;
+        let group_kind = 2;
+        let group_name = 3;
         match re.captures(input) {
             Some(caps) => {
-                let prefix = match &caps.get(groupPrefix) {
+                let prefix = match &caps.get(group_prefix) {
                     Some(first) => String::from(first.as_str()),
                     None => String::new(),
                 };
-                let kind = match &caps.get(groupKind) {
+                let kind = match &caps.get(group_kind) {
                     Some(kind) => {
                         match Kind::from_str(&kind.as_str().to_lowercase()) {
                             Ok(kinde) => kinde,
@@ -103,7 +101,7 @@ impl FromStr for Keywd {
                         // Kind::Unknown
                     }
                 };
-                let name = match &caps.get(groupName) {
+                let name = match &caps.get(group_name) {
                     Some(arg) => {
                         Ok(arg.as_str().to_string())
                     }
@@ -117,7 +115,7 @@ impl FromStr for Keywd {
                 };
                 match &name {
                     Ok(name) => {
-                        match &caps.get(groupKind) {
+                        match &caps.get(group_kind) {
                             Some(keyword) => {
                                 match keyword.as_str() {
                                     "db" => Ok( Keywd::Db( KeywdValue { prefix, kind, name: name.to_string() } )),

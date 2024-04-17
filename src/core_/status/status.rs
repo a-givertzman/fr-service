@@ -1,18 +1,22 @@
 use std::cmp::Ordering;
-
-const OK            : i64 = 0;
-const OBSOLETE      : i64 = 2;      // Prevously stored information always osolete, connection lost 
-const TIME_INVALID  : i64 = 3;
-const INVALID       : i64 = 10;     // Not sampled, conversion, calculation error
-
+///
+/// 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 #[repr(u32)]
 pub enum Status {
-    Ok              = OK as u32,
-    Obsolete        = OBSOLETE as u32,
-    TimeInvalid     = TIME_INVALID as u32,
-    Invalid         = INVALID as u32,
+    Ok              = Self::OK as u32,
+    Obsolete        = Self::OBSOLETE as u32,
+    TimeInvalid     = Self::TIME_INVALID as u32,
+    Invalid         = Self::INVALID as u32,
     Unknown(i64),
+}
+///
+/// 
+impl Status {
+    const OK            : i64 = 0;
+    const OBSOLETE      : i64 = 2;      // Prevously stored information always obsolete, connection lost 
+    const TIME_INVALID  : i64 = 3;
+    const INVALID       : i64 = 10;     // Not sampled, conversion, calculation error
 }
 ///
 /// 
@@ -60,32 +64,29 @@ impl From<Status> for u64 {
         Into::<u32>::into(value) as u64
     }
 }
-// impl Into<u64> for Status {
-//     fn into(self) -> u64 {
-//         Into::<u32>::into(self) as u64
-//     }
-// }
 ///
 /// 
 impl From<Status> for u32 {
     fn from(value: Status) -> Self {
         match value {
-            Status::Ok              => OK as u32,
-            Status::Obsolete        => OBSOLETE as u32,
-            Status::TimeInvalid     => TIME_INVALID as u32,
-            Status::Invalid         => INVALID as u32,
+            Status::Ok              => Status::OK as u32,
+            Status::Obsolete        => Status::OBSOLETE as u32,
+            Status::TimeInvalid     => Status::TIME_INVALID as u32,
+            Status::Invalid         => Status::INVALID as u32,
             Status::Unknown(value) => value as u32,
         } 
     }
 }
-// impl Into<u32> for Status {
-//     fn into(self) -> u32 {
-//         match self {
-//             Status::Ok              => OK as u32,
-//             Status::Obsolete        => OBSOLETE as u32,
-//             Status::TimeInvalid     => TIME_INVALID as u32,
-//             Status::Invalid         => INVALID as u32,
-//             Status::Unknown(value) => value as u32,
-//         } 
-//     }
-// }
+///
+/// 
+impl From<Status> for i64 {
+    fn from(value: Status) -> Self {
+        match value {
+            Status::Ok              => Status::OK as i64,
+            Status::Obsolete        => Status::OBSOLETE as i64,
+            Status::TimeInvalid     => Status::TIME_INVALID as i64,
+            Status::Invalid         => Status::INVALID as i64,
+            Status::Unknown(value) => value as i64,
+        } 
+    }
+}

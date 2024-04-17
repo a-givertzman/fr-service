@@ -1,9 +1,9 @@
 use indexmap::IndexMap;
 use log::{debug, trace};
 use std::{fs, str::FromStr, time::Duration};
-use crate::conf::{
-    conf_tree::ConfTree, point_config::{name::Name, point_config::PointConfig}, profinet_client_config::{keywd::{Keywd, Kind}, profinet_db_config::ProfinetDbConfig}, service_config::ServiceConfig
-};
+use crate::{conf::{
+    conf_tree::ConfTree, diag_keywd::DiagKeywd, point_config::{name::Name, point_config::PointConfig}, profinet_client_config::{keywd::{Keywd, Kind}, profinet_db_config::ProfinetDbConfig}, service_config::ServiceConfig
+}, core_::types::map::IndexMapFxHasher};
 ///
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
@@ -50,7 +50,7 @@ pub struct ProfinetClientConfig {
     pub(crate) ip: String,
     pub(crate) rack: u64,
     pub(crate) slot: u64,
-    pub(crate) diagnosis: Vec<PointConfig>,
+    pub(crate) diagnosis: IndexMapFxHasher<DiagKeywd, PointConfig>,
     pub(crate) dbs: IndexMap<String, ProfinetDbConfig>,
 }
 ///
@@ -162,7 +162,7 @@ impl ProfinetClientConfig {
                 points
             })
             .into_iter()
-            .chain(self.diagnosis.iter().cloned())
+            .chain(self.diagnosis.values().cloned())
             .collect()
     }
 }
