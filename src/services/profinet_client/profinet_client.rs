@@ -185,7 +185,8 @@ impl ProfinetClient {
                 Box::new(|message| info!("{}", message)),
                 Box::new(|message| warn!("{}", message)),
             );
-            let mut dbs: IndexMap<String, ProfinetDb> = IndexMap::new();
+            let diagnosis = conf.diagnosis.clone();
+            let mut dbs = IndexMap::with_hasher(BuildHasherDefault::<FxHasher>::default());
             let mut points: Vec<PointConfig> = vec![];
             for (db_name, db_conf) in conf.dbs {
                 info!("{}.write | configuring DB: {:?}...", self_id, db_name);
@@ -210,6 +211,7 @@ impl ProfinetClient {
                 match client.connect() {
                     Ok(_) => {
                         is_connected.add(true, &format!("{}.write | Connection established", self_id));
+                        Self::yield_diagnosis(&self_id, tx_id, &diagnosis, &DiagKeywd::Connection, Status::Ok, &tx_send);
                         'write: while !exit.load(Ordering::SeqCst) {
                             // cycle.start();
                             match rx_recv.recv_timeout(RECV_TIMEOUT) {
