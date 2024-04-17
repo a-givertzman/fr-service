@@ -97,7 +97,7 @@ class CMA green
 %% class di orange    
 ```
 
-#### Configuration fo the tasks, metrics, functions <details><summary>...</summary>
+#### <details><summary>Configuration fo the tasks, metrics, functions</summary>
 
 ```yaml
 service CmaClient:
