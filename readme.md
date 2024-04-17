@@ -264,7 +264,7 @@ service Task FaultDetection:
             ...
 ```
 
-</details>
+#### </details>
 
 #### Complit configuration example
 
