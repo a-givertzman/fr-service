@@ -1,10 +1,11 @@
-use std::{fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Sender}, Arc, Mutex}, thread::{self, JoinHandle}, time::Duration};
+use std::{fmt::Debug, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Sender}, Arc, Mutex}, thread::{self, JoinHandle}, time::Duration};
+use hashers::fx_hash::FxHasher;
 use indexmap::IndexMap;
 use log::{debug, error, info, trace, warn};
 use testing::stuff::wait::WaitTread;
 use crate::{
     conf::{point_config::{name::Name, point_config::PointConfig}, profinet_client_config::profinet_client_config::ProfinetClientConfig},
-    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, failure::errors_limit::ErrorsLimit, object::object::Object, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status},
+    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, failure::errors_limit::ErrorsLimit, object::object::Object, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status, types::map::IndexMapFxHasher},
     services::{
         multi_queue::subscription_criteria::SubscriptionCriteria, profinet_client::{profinet_db::ProfinetDb, s7::s7_client::S7Client}, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::service_cycle::ServiceCycle
     },
@@ -69,7 +70,15 @@ impl ProfinetClient {
                             Box::new(|message| info!("{}", message)),
                             Box::new(|message| warn!("{}", message)),
                         );
-                        let mut dbs: IndexMap<String, ProfinetDb> = IndexMap::new();
+                        let mut diagnosis: IndexMapFxHasher<String, PointConfig> = conf.points().into_iter().fold(
+                            IndexMap::with_hasher(BuildHasherDefault::<FxHasher>::default()),
+                            |mut points, point| {
+                                points.insert(point.name.clone(), point);
+                                points
+                            }
+                        )
+                        ;
+                        let mut dbs = IndexMap::with_hasher(BuildHasherDefault::<FxHasher>::default());
                         for (db_name, db_conf) in conf.dbs {
                             info!("{}.read | configuring DB: {:?}...", self_id, db_name);
                             let db = ProfinetDb::new(&self_id, tx_id, &db_conf);
