@@ -66,7 +66,6 @@ impl AppConfig {
         // self conf from first sub node
         //  - if additional sub nodes presents hit warning, FnConf must have single item
         let self_id = format!("AppConfig({})", conf_tree.key);
-        trace!("{}.new | MAPPING VALUE", self_id);
         let mut self_conf = ServiceConfig::new(&self_id, conf_tree.to_owned());
         trace!("{}.new | selfConf: {:?}", self_id, self_conf);
         let self_name = self_conf.get_param_value("name").unwrap().as_str().unwrap().to_owned();
