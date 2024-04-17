@@ -1,15 +1,15 @@
 use std::fmt::Display;
-use strum_macros::{AsRefStr, EnumIter, EnumString, VariantNames};
+use strum_macros::{AsRefStr, EnumIter};
 ///
 /// The defination of all diagnosis signals
-#[derive(Debug, Clone, PartialEq, Eq, Hash, EnumIter, VariantNames, EnumString, AsRefStr)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, EnumIter, AsRefStr)]
 #[strum(serialize_all = "kebab-case")]
 pub enum DiagKeywd {
     Status,
     Connection,
 }
 ///
-/// 
+///
 impl DiagKeywd {
     ///
     /// Creates new DiagKeywd from it string representation
@@ -26,7 +26,7 @@ impl DiagKeywd {
     }
 }
 ///
-/// 
+///
 impl Display for DiagKeywd {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.as_str())

@@ -1,7 +1,7 @@
 use std::{
-    fmt::Debug, hash::BuildHasherDefault, 
-    sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Sender}, Arc, Mutex}, 
-    thread::{self, JoinHandle}, 
+    fmt::Debug, hash::BuildHasherDefault,
+    sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Sender}, Arc, Mutex},
+    thread::{self, JoinHandle},
     time::Duration,
 };
 use hashers::fx_hash::FxHasher;
@@ -10,26 +10,26 @@ use log::{debug, error, info, trace, warn};
 use testing::stuff::wait::WaitTread;
 use crate::{
     conf::{
-        diag_keywd::DiagKeywd, 
-        point_config::{name::Name, point_config::PointConfig}, 
+        diag_keywd::DiagKeywd,
+        point_config::{name::Name, point_config::PointConfig},
         profinet_client_config::profinet_client_config::ProfinetClientConfig,
     },
     core_::{
-        constants::constants::RECV_TIMEOUT, 
-        cot::cot::Cot, 
-        failure::errors_limit::ErrorsLimit, 
-        object::object::Object, 
-        point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, 
-        status::status::Status, 
+        constants::constants::RECV_TIMEOUT,
+        cot::cot::Cot,
+        failure::errors_limit::ErrorsLimit,
+        object::object::Object,
+        point::{point::Point, point_tx_id::PointTxId, point_type::PointType},
+        status::status::Status,
         types::map::IndexMapFxHasher,
     },
     services::{
-        diagnosis::diag_point::DiagPoint, 
-        multi_queue::subscription_criteria::SubscriptionCriteria, 
-        profinet_client::{profinet_db::ProfinetDb, s7::s7_client::S7Client}, 
-        safe_lock::SafeLock, 
-        service::{service::Service, service_handles::ServiceHandles}, 
-        services::Services, 
+        diagnosis::diag_point::DiagPoint,
+        multi_queue::subscription_criteria::SubscriptionCriteria,
+        profinet_client::{profinet_db::ProfinetDb, s7::s7_client::S7Client},
+        safe_lock::SafeLock,
+        service::{service::Service, service_handles::ServiceHandles},
+        services::Services,
         task::service_cycle::ServiceCycle,
     },
 };
@@ -134,9 +134,10 @@ impl ProfinetClient {
                         let mut client = S7Client::new(self_id.clone(), conf.ip.clone());
                         'main: while !exit.load(Ordering::SeqCst) {
                             let mut error_limit = ErrorsLimit::new(3);
-                            let mut status = Status::Ok;
+                            let mut status;
                             match client.connect() {
                                 Ok(_) => {
+                                    status = Status::Ok;
                                     is_connected.add(true, &format!("{}.read | Connection established", self_id));
                                     Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Ok, &tx_send);
                                     'read: while !exit.load(Ordering::SeqCst) {
@@ -153,6 +154,7 @@ impl ProfinetClient {
                                                     if error_limit.add().is_err() {
                                                         error!("{}.read | DB '{}' - exceeded reading errors limit, trying to reconnect...", self_id, db_name);
                                                         status = Status::Invalid;
+                                                        Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Invalid, &tx_send);
                                                         if let Err(err) = client.close() {
                                                             error!("{}.read | {:?}", self_id, err);
                                                         };
@@ -167,7 +169,6 @@ impl ProfinetClient {
                                         cycle.wait();
                                     }
                                     if status != Status::Ok {
-                                        Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Invalid, &tx_send);
                                         Self::yield_status(&self_id, &mut dbs, &tx_send);
                                     }
                                 }
@@ -226,7 +227,6 @@ impl ProfinetClient {
                 println!("\t{:?}", name);
             }
             let (_, rx_recv) = services.slock().subscribe(&conf.subscribe, &self_id, &points);
-            // let mut cycle = ServiceCycle::new(cycle_interval);
             let mut client = S7Client::new(self_id.clone(), conf.ip.clone());
             'main: while !exit.load(Ordering::SeqCst) {
                 let mut errors_limit = ErrorsLimit::new(3);
@@ -236,7 +236,6 @@ impl ProfinetClient {
                         is_connected.add(true, &format!("{}.write | Connection established", self_id));
                         Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Ok, &tx_send);
                         'write: while !exit.load(Ordering::SeqCst) {
-                            // cycle.start();
                             match rx_recv.recv_timeout(RECV_TIMEOUT) {
                                 Ok(point) => {
                                     let point_name = point.name();
@@ -261,6 +260,7 @@ impl ProfinetClient {
                                                     error!("{}.write | DB '{}' - write - error: {:?}", self_id, db_name, err);
                                                     if errors_limit.add().is_err() {
                                                         error!("{}.write | DB '{}' - exceeded writing errors limit, trying to reconnect...", self_id, db_name);
+                                                        Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Invalid, &tx_send);
                                                         if let Err(err) = tx_send.send(PointType::String(Point::new(
                                                             tx_id,
                                                             &point_name,
@@ -290,6 +290,7 @@ impl ProfinetClient {
                                         mpsc::RecvTimeoutError::Timeout => {}
                                         mpsc::RecvTimeoutError::Disconnected => {
                                             error!("{}.write | Error receiving from queue: {:?}", self_id, err);
+                                            Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Invalid, &tx_send);
                                             break 'main;
                                         }
                                     }

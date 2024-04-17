@@ -102,7 +102,7 @@ mod tcp_stream_write {
                                     );
                                 }
                                 OpResult::Timeout() => {}
-                            }
+                            },
                             ConnectionStatus::Closed(err) => {
                                 warn!(
                                     "sent: {}/{}, socket closed, error: {}",

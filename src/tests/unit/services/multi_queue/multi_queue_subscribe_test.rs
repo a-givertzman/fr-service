@@ -64,7 +64,7 @@ mod multi_queue {
         services.lock().unwrap().insert(mq_service.clone());
         let mut receiver_handles = vec![];
         let mut receivers = vec![];
-        for i in 0..receiver_count {
+        for _ in 0..receiver_count {
             let receiver = Arc::new(Mutex::new(MockReceiver::new(
                 self_id,
                 &format!("/{}/MultiQueue", self_id),

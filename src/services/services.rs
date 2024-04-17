@@ -138,7 +138,7 @@ impl Services {
     }
     ///
     /// 
-    pub fn gi(&self, service: &str, points: &[SubscriptionCriteria]) -> Receiver<PointType> {
+    pub fn gi(&self, _service: &str, _points: &[SubscriptionCriteria]) -> Receiver<PointType> {
         panic!("{}.gi | Not implemented yet", self.id);
     }
 }

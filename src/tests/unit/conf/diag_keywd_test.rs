@@ -1,9 +1,8 @@
 #[cfg(test)]
 
 mod diag_keywd {
-    use log::{warn, info, debug};
     use strum::IntoEnumIterator;
-    use std::{str::FromStr, sync::Once, time::{Duration, Instant}};
+    use std::{sync::Once, time::Duration};
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
 

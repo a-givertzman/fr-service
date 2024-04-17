@@ -202,7 +202,7 @@ impl ServiceConfig {
                         let point_conf = diag_node_conf.get(key).unwrap();
                         trace!("{}.get_diagnosis | Point '{}'", self.id, point_name);
                         let point = PointConfig::new(parent, &point_conf);
-                        let point_name_keywd = DiagKeywd::from_str(&point.name).unwrap();
+                        let point_name_keywd = DiagKeywd::new(&point.name);
                         points.insert(point_name_keywd, point);
                     } else {
                         warn!("{}.get_diagnosis | point conf expected, but found: {:?}", self.id, keyword);
