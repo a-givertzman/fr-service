@@ -1,14 +1,36 @@
-use std::{fmt::Debug, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Sender}, Arc, Mutex}, thread::{self, JoinHandle}, time::Duration};
-use chrono::Utc;
+use std::{
+    fmt::Debug, hash::BuildHasherDefault, 
+    sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Sender}, Arc, Mutex}, 
+    thread::{self, JoinHandle}, 
+    time::Duration,
+};
 use hashers::fx_hash::FxHasher;
 use indexmap::IndexMap;
 use log::{debug, error, info, trace, warn};
 use testing::stuff::wait::WaitTread;
 use crate::{
-    conf::{diag_keywd::DiagKeywd, point_config::{name::Name, point_config::PointConfig}, profinet_client_config::profinet_client_config::ProfinetClientConfig},
-    core_::{constants::constants::RECV_TIMEOUT, cot::cot::Cot, failure::errors_limit::ErrorsLimit, object::object::Object, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status, types::map::IndexMapFxHasher},
+    conf::{
+        diag_keywd::DiagKeywd, 
+        point_config::{name::Name, point_config::PointConfig}, 
+        profinet_client_config::profinet_client_config::ProfinetClientConfig,
+    },
+    core_::{
+        constants::constants::RECV_TIMEOUT, 
+        cot::cot::Cot, 
+        failure::errors_limit::ErrorsLimit, 
+        object::object::Object, 
+        point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, 
+        status::status::Status, 
+        types::map::IndexMapFxHasher,
+    },
     services::{
-        multi_queue::subscription_criteria::SubscriptionCriteria, profinet_client::{profinet_db::ProfinetDb, s7::s7_client::S7Client}, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::service_cycle::ServiceCycle
+        diagnosis::diag_point::DiagPoint, 
+        multi_queue::subscription_criteria::SubscriptionCriteria, 
+        profinet_client::{profinet_db::ProfinetDb, s7::s7_client::S7Client}, 
+        safe_lock::SafeLock, 
+        service::{service::Service, service_handles::ServiceHandles}, 
+        services::Services, 
+        task::service_cycle::ServiceCycle,
     },
 };
 ///
@@ -20,6 +42,7 @@ pub struct ProfinetClient {
     name: Name,
     conf: ProfinetClientConfig,
     services: Arc<Mutex<Services>>,
+    diagnosis: Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
     exit: Arc<AtomicBool>,
 }
 ///
@@ -28,12 +51,17 @@ impl ProfinetClient {
     ///
     ///
     pub fn new(conf: ProfinetClientConfig, services: Arc<Mutex<Services>>) -> Self {
+        let tx_id = PointTxId::fromStr(&conf.name.join());
+        let diagnosis = Arc::new(Mutex::new(conf.diagnosis.iter().map(|(keywd, conf)| {
+            (keywd.to_owned(), DiagPoint::new(tx_id, conf.clone()))
+        }).collect()));
         Self {
-            tx_id: PointTxId::fromStr(&conf.name.join()),
+            tx_id,
             id: format!("{}", conf.name),
             name: conf.name.clone(),
             conf: conf.clone(),
             services,
+            diagnosis,
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -41,32 +69,27 @@ impl ProfinetClient {
     /// Sends diagnosis point
     fn yield_diagnosis(
         self_id: &str,
-        tx_id: usize,
-        diagnosis: &IndexMapFxHasher<DiagKeywd, PointConfig>,
+        diagnosis: &Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
         kewd: &DiagKeywd,
         value: Status,
         tx_send: &Sender<PointType>,
     ) {
-        match diagnosis.get(kewd) {
-            Some(conf) => {
-                debug!("{}.yield_diagnosis | Sending diagnosis point '{}' ", self_id, kewd);
-                let point = PointType::Int(Point::new(
-                    tx_id,
-                    &conf.name,
-                    i64::from(value),
-                    Status::Ok,
-                    Cot::Inf,
-                    Utc::now(),
-                ));
-                match tx_send.send(point) {
-                    Ok(_) => {}
-                    Err(err) => {
-                        warn!("{}.yield_status | Send error: {}", self_id, err);
+        match diagnosis.lock() {
+            Ok(mut diagnosis) => {
+                match diagnosis.get_mut(kewd) {
+                    Some(point) => {
+                        debug!("{}.yield_diagnosis | Sending diagnosis point '{}' ", self_id, kewd);
+                        if let Some(point) = point.next(value) {
+                            if let Err(err) = tx_send.send(point) {
+                                warn!("{}.yield_status | Send error: {}", self_id, err);
+                            }
+                        }
                     }
-                };
+                    None => debug!("{}.yield_diagnosis | Diagnosis point '{}' - not configured", self_id, kewd),
+                }
             }
-            None => debug!("{}.yield_diagnosis | Diagnosis point '{}' - not configured", self_id, kewd),
-        };
+            Err(err) => error!("{}.yield_diagnosis | Diagnosis lock error: {:#?}", self_id, err),
+        }
     }
     ///
     /// Sends all configured points from the current DB with the given status
@@ -89,6 +112,7 @@ impl ProfinetClient {
         let tx_id = self.tx_id;
         let exit = self.exit.clone();
         let conf = self.conf.clone();
+        let diagnosis = self.diagnosis.clone();
         match conf.cycle {
             Some(cycle_interval) => {
                 if cycle_interval > Duration::ZERO {
@@ -99,7 +123,6 @@ impl ProfinetClient {
                             Box::new(|message| info!("{}", message)),
                             Box::new(|message| warn!("{}", message)),
                         );
-                        let diagnosis = conf.diagnosis.clone();
                         let mut dbs = IndexMap::with_hasher(BuildHasherDefault::<FxHasher>::default());
                         for (db_name, db_conf) in conf.dbs {
                             info!("{}.read | configuring DB: {:?}...", self_id, db_name);
@@ -115,7 +138,7 @@ impl ProfinetClient {
                             match client.connect() {
                                 Ok(_) => {
                                     is_connected.add(true, &format!("{}.read | Connection established", self_id));
-                                    Self::yield_diagnosis(&self_id, tx_id, &diagnosis, &DiagKeywd::Connection, Status::Ok, &tx_send);
+                                    Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Ok, &tx_send);
                                     'read: while !exit.load(Ordering::SeqCst) {
                                         cycle.start();
                                         for (db_name, db) in &mut dbs {
@@ -144,7 +167,7 @@ impl ProfinetClient {
                                         cycle.wait();
                                     }
                                     if status != Status::Ok {
-                                        Self::yield_diagnosis(&self_id, tx_id, &diagnosis, &DiagKeywd::Connection, Status::Invalid, &tx_send);
+                                        Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Invalid, &tx_send);
                                         Self::yield_status(&self_id, &mut dbs, &tx_send);
                                     }
                                 }
@@ -178,6 +201,7 @@ impl ProfinetClient {
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         let services = self.services.clone();
+        let diagnosis = self.diagnosis.clone();
         info!("{}.write | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.write", self_id.clone())).spawn(move || {
             let mut is_connected = ConnectionNotify::new(
@@ -185,7 +209,6 @@ impl ProfinetClient {
                 Box::new(|message| info!("{}", message)),
                 Box::new(|message| warn!("{}", message)),
             );
-            let diagnosis = conf.diagnosis.clone();
             let mut dbs = IndexMap::with_hasher(BuildHasherDefault::<FxHasher>::default());
             let mut points: Vec<PointConfig> = vec![];
             for (db_name, db_conf) in conf.dbs {
@@ -211,7 +234,7 @@ impl ProfinetClient {
                 match client.connect() {
                     Ok(_) => {
                         is_connected.add(true, &format!("{}.write | Connection established", self_id));
-                        Self::yield_diagnosis(&self_id, tx_id, &diagnosis, &DiagKeywd::Connection, Status::Ok, &tx_send);
+                        Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Ok, &tx_send);
                         'write: while !exit.load(Ordering::SeqCst) {
                             // cycle.start();
                             match rx_recv.recv_timeout(RECV_TIMEOUT) {
