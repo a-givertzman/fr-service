@@ -737,7 +737,29 @@ Service provides connectivity with S7 Siemens deviceы via Profinet protocol ove
 
 - Configuration
   - cycle - read cycle, readind disabled if zero or ommited
-  - subscribe - Subscribe configuration, where from commands will be received, refer to [doc](src/conf/conf_subscribe.rs) for details
+  - subscribe - Enables the subscription where from commands will be received, for subscribe configuration refer to [doc](src/conf/conf_subscribe.rs) for details
+  - in queue - Enables direct input queue, define the name of the input queue and queue length limitation 
+  - send-to - (old: out queue) The name of the input queue of the service, where all points will be sent such as 'ServiceName.in-queue'
+  - protocol - 'profinet' - always, reserved for protocol options
+  - description - Free text description
+  - ip - The IPV4 address
+  - rack - rack address configured in the S7 device
+  - clot - slot address configured in the S7 device
+  - diagnosis - Specific diagnosis points can be enabled by definition of it configurations
+  - db db_name - The definition of the S7 DB block configuration
+    - number - The address number of the DB block
+    - offset - initial address offset
+    - size of the entair block (last address + it length)
+    - point Point.Name - The point configuration
+      - type: data type of it address
+      - address
+        - offset - point value will be read from address: db block offset + point offset
+        - bit - applicable for bool type only, defines number of the bit in the current offset
+        - history - refer to the [doc](src/conf/point_config/point_config.rs)
+        - alarm - refer to the [doc](src/conf/point_config/point_config.rs)
+        - filters - refer to the [doc](src/conf/point_config/point_config.rs)
+        - comment - refer to the [doc](src/conf/point_config/point_config.rs)
+
 
 <details>
     <summary>Config example</summary>
@@ -766,7 +788,6 @@ service ProfinetClient Ied01:
         number: 899
         offset: 0
         size: 34
-        cycle: 10 ms
         point Drive.Speed: 
             type: 'Real'
             address:
