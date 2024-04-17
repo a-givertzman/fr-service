@@ -746,6 +746,12 @@ Service provides connectivity with S7 Siemens deviceы via Profinet protocol ove
   - rack - rack address configured in the S7 device
   - clot - slot address configured in the S7 device
   - diagnosis - Specific diagnosis points can be enabled by definition of it configurations
+    - General status
+      Ok(0) - service in normal operation
+      Invalid(10) - service has some Error-level events
+    - Connection status
+      Ok(0) - subordinated Profinet device connected
+      Invalid(10) - subordinated Profinet device is disconnected
   - db db_name - The definition of the S7 DB block configuration
     - number - The address number of the DB block
     - offset - initial address offset
