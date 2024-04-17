@@ -119,6 +119,13 @@ service ProfinetClient Ied01:
     ip: '192.168.100.243'
     rack: 0
     slot: 1
+    diagnosis:                          # internal diagnosis, delete/comment to disable
+        point Status:                   # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r
+        point Connection:               # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r    
     db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
         description: 'db899 | Exhibit - drive data'
         number: 899
@@ -153,6 +160,13 @@ service ProfinetClient Ied02:
     ip: '192.168.100.243'
     rack: 0
     slot: 1
+    diagnosis:                          # internal diagnosis, delete/comment to disable
+        point Status:                   # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r
+        point Connection:               # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r    
     db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
         description: 'db899 | Exhibit - drive data'
         number: 899
@@ -330,6 +344,13 @@ service ProfinetClient Ied01:
     ip: '192.168.100.243'
     rack: 0
     slot: 1
+    diagnosis:                          # internal diagnosis, delete/comment to disable
+        point Status:                   # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r
+        point Connection:               # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r    
     db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
         # description: 'db899 | Exhibit - drive data'
         number: 899
@@ -385,6 +406,13 @@ service ProfinetClient Ied02:
     ip: '192.168.100.243'
     rack: 0
     slot: 1
+    diagnosis:                          # internal diagnosis, delete/comment to disable
+        point Status:                   # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r
+        point Connection:               # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r
     db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
         description: 'db899 | Exhibit - drive data'
         number: 899
@@ -686,4 +714,64 @@ ReqErr
 }
 ```
 
+</details>
+
+#### ProfinetClient
+
+Config example
+<details>
+```yaml
+service ProfinetClient Ied01:
+    cycle: 500 ms                         # operating cycle time of the module
+    # in queue in-queue:
+        # max-length: 10000
+    subscribe: MultiQueue
+    out queue: MultiQueue.in-queue
+    protocol: 'profinet'
+    description: 'S7-IED-01'
+    ip: '192.168.130.243'
+    rack: 0
+    slot: 1
+    diagnosis:                          # internal diagnosis
+        point Status:                   # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r
+        point Connection:               # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r
+    db db_name:                         # multiple DB blocks are allowed, must have unique namewithing parent device
+        # description: 'db899 | Exhibit - drive data'
+        number: 899
+        offset: 0
+        size: 34
+        cycle: 10 ms
+        point Drive.Speed: 
+            type: 'Real'
+            address:
+                offset: 0
+        point Drive.OutputVoltage: 
+            type: 'Real'
+            address:
+                offset: 4
+    db db_name_:                        # multiple DB blocks are allowed, must have unique namewithing parent device
+        description: 'db899 | Exhibit - drive data'
+        number: 899
+        offset: 0
+        size: 34
+        cycle: 10 ms
+        point Capacitor.Capacity: 
+            type: 'Int'
+            address:
+                offset: 28
+        point Capacitor.ChargeIn.On: 
+            type: 'Bool'
+            address:
+                offset: 30
+                bit: 0
+        point Capacitor.ChargeOut.On: 
+            type: 'Bool'
+            address:
+                offset: 32
+                bit: 0
+```
 </details>
