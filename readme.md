@@ -456,6 +456,8 @@ service ProfinetClient Ied02:
             bit: 0
 ```
 
+</details>
+
 #### Point
 
 The Entity of the information. Contains fallowing:
