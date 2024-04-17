@@ -97,7 +97,10 @@ class CMA green
 %% class di orange    
 ```
 
-#### <details> <summary>Configuration fo the tasks, metrics, functions</summary>
+#### Configuration fo the tasks, metrics, functions
+
+<details> 
+    <summary>...</summary>
 
 ```yaml
 service CmaClient:
@@ -269,6 +272,7 @@ service Task FaultDetection:
 #### Complit configuration example
 
 <details>
+    <summary>...</summary>
 
 ```yaml
 name: ApplicationName
@@ -468,6 +472,7 @@ The Entity of the information. Contains fallowing:
 - timestamp
 
 <details>
+    <summary>...</summary>
 
 ##### Point.name
 
@@ -549,6 +554,7 @@ Such as:
 ```
 
 <details>
+    <summary>...</summary>
 
 ##### PointConfig.type
 
@@ -628,6 +634,7 @@ Allows to avoid unnecessary transmissions of the same value
 #### JDS Protocol
 
 </details>
+    <summary>...</summary>
 
 ##### Request "Points"
 
@@ -722,8 +729,9 @@ ReqErr
 
 #### ProfinetClient
 
-Config example
 <details>
+    <summary>Config example</summary>
+
 ```yaml
 service ProfinetClient Ied01:
     cycle: 500 ms                         # operating cycle time of the module
@@ -778,4 +786,5 @@ service ProfinetClient Ied01:
                 offset: 32
                 bit: 0
 ```
+
 </details>
