@@ -1,9 +1,9 @@
 use std::cmp::Ordering;
 
 const OK            : i64 = 0;
-const OBSOLETE      : i64 = 2;
+const OBSOLETE      : i64 = 2;      // Prevously stored information always osolete, connection lost 
 const TIME_INVALID  : i64 = 3;
-const INVALID       : i64 = 10;
+const INVALID       : i64 = 10;     // Not sampled, conversion, calculation error
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 #[repr(u32)]
