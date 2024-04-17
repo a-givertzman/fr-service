@@ -201,7 +201,7 @@ impl ServiceConfig {
                     if keyword.kind() == FnConfKindName::Point {
                         let point_name = Name::new(parent, keyword.data()).join();
                         let point_conf = diag_node_conf.get(key).unwrap();
-                        debug!("{}.get_diagnosis | Point '{}'", self.id, point_name);
+                        trace!("{}.get_diagnosis | Point '{}'", self.id, point_name);
                         // trace!("{}.get_diagnosis | Point '{}'   |   conf: {:?}", self.id, point_name, point_conf);
                         let node_conf = PointConfig::new(parent, &point_conf);
                         points.push(node_conf)

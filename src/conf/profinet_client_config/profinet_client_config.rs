@@ -85,7 +85,7 @@ impl ProfinetClientConfig {
         let slot = self_conf.get_param_value("slot").unwrap().as_u64().unwrap();
         debug!("{}.new | slot: {:?}", self_id, slot);
         let diagnosis = self_conf.get_diagnosis(&self_name);
-        debug!("{}.new | diagnosis: {:?}", self_id, diagnosis);
+        debug!("{}.new | diagnosis: {:#?}", self_id, diagnosis);
         let mut dbs = IndexMap::new();
         for key in &self_conf.keys {
             let keyword = Keywd::from_str(key).unwrap();
@@ -155,9 +155,14 @@ impl ProfinetClientConfig {
     ///
     /// Returns list of configurations of the defined points
     pub fn points(&self) -> Vec<PointConfig> {
-        self.dbs.iter().fold(vec![], |mut points, (_device_name, device_conf)| {
-            points.extend(device_conf.points());
-            points
-        })
+        self.dbs
+            .iter()
+            .fold(vec![], |mut points, (_device_name, device_conf)| {
+                points.extend(device_conf.points());
+                points
+            })
+            .into_iter()
+            .chain(self.diagnosis.iter().cloned())
+            .collect()
     }
 }
