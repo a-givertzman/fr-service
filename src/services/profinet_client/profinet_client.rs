@@ -290,7 +290,7 @@ impl ProfinetClient {
                                         mpsc::RecvTimeoutError::Timeout => {}
                                         mpsc::RecvTimeoutError::Disconnected => {
                                             error!("{}.write | Error receiving from queue: {:?}", self_id, err);
-                                            Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Invalid, &tx_send);
+                                            Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Status, Status::Invalid, &tx_send);
                                             break 'main;
                                         }
                                     }
@@ -398,14 +398,17 @@ impl Service for ProfinetClient {
         let tx_send = self.services.slock().get_link(&self.conf.tx).unwrap_or_else(|err| {
             panic!("{}.run | services.get_link error: {:#?}", self.id, err);
         });
+        Self::yield_diagnosis(&self.id, &self.diagnosis.clone(), &DiagKeywd::Status, Status::Ok, &tx_send);
         let handle_read = self.read(tx_send.clone());
         let handle_write = self.write(tx_send);
         info!("{}.run | started", self.id);
         match (handle_read, handle_write) {
-            (Ok(handle_read), Ok(handle_write)) => Ok(ServiceHandles::new(vec![
-                (format!("{}/read", self.id), handle_read),
-                (format!("{}/write", self.id), handle_write),
-                ])),
+            (Ok(handle_read), Ok(handle_write)) => {
+                Ok(ServiceHandles::new(vec![
+                    (format!("{}/read", self.id), handle_read),
+                    (format!("{}/write", self.id), handle_write),
+                ]))
+            }
             (Ok(handle_read), Err(err)) => {
                 self.exit();
                 handle_read.wait().unwrap();
