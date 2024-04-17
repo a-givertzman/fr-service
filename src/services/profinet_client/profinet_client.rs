@@ -399,6 +399,7 @@ impl Service for ProfinetClient {
             panic!("{}.run | services.get_link error: {:#?}", self.id, err);
         });
         Self::yield_diagnosis(&self.id, &self.diagnosis.clone(), &DiagKeywd::Status, Status::Ok, &tx_send);
+        Self::yield_diagnosis(&self.id, &self.diagnosis.clone(), &DiagKeywd::Connection, Status::Invalid, &tx_send);
         let handle_read = self.read(tx_send.clone());
         let handle_write = self.write(tx_send);
         info!("{}.run | started", self.id);
