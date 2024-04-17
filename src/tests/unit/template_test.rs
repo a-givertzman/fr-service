@@ -29,7 +29,7 @@ mod tests {
         println!();
         let self_id = "test";
         println!("\n{}", self_id);
-        let test_duration = TestDuration::new("template_test", Duration::from_secs(10));
+        let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
         test_duration.run().unwrap();
         assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         test_duration.exit();

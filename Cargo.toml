@@ -48,6 +48,9 @@ signal-hook = "^0.3"
 
 lexical = "^6.1"
 
+strum = "0.26.2"
+strum_macros = "0.26.2"
+
 # [[bin]]
 # name = "task_test"
 # path = "src/task_test.rs"

@@ -1,8 +1,9 @@
-use std::{fmt::Display, str::FromStr};
-use log::trace;
+use std::fmt::Display;
+use strum_macros::{AsRefStr, EnumIter, EnumString, VariantNames};
 ///
 /// The defination of all diagnosis signals
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, EnumIter, VariantNames, EnumString, AsRefStr)]
+#[strum(serialize_all = "kebab-case")]
 pub enum DiagKeywd {
     Status,
     Connection,
@@ -10,38 +11,20 @@ pub enum DiagKeywd {
 ///
 /// 
 impl DiagKeywd {
-    const STATUS: &'static str = "status";
-    const CONNECTION: &'static str = "connection";
-    fn as_str(&self) -> &str {
-        match self {
-            DiagKeywd::Status           => DiagKeywd::STATUS,
-            DiagKeywd::Connection       => DiagKeywd::CONNECTION,
+    ///
+    /// Creates new DiagKeywd from it string representation
+    pub fn new(value: &str) -> Self {
+        let value = value.to_lowercase();
+        match "" {
+            _ if value.ends_with(Self::Status.as_str())       => Self::Status,
+            _ if value.ends_with(Self::Connection.as_str())   => Self::Connection,
+            _ => panic!("DiagKeywd.from_str | Diagnosis point '{}' - does not supported", value)
         }
     }
-}
-///
-/// 
-impl FromStr for DiagKeywd {
-    type Err = String;
-    fn from_str(input: &str) -> Result<DiagKeywd, String> {
-        trace!("DiagKeywd.from_str | input: {}", input);
-        match input.to_lowercase().as_str() {
-            Self::STATUS        if input.ends_with(&Self::STATUS) => Ok(Self::Status),
-            Self::CONNECTION    if input.ends_with(&Self::CONNECTION) => Ok(Self::Connection),
-            _ => panic!("DiagKeywd.from_str | Diagnosis point '{}' - does not supported", input)
-        }
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
     }
 }
-// ///
-// /// 
-// impl<'a> Into<&'a str> for DiagKeywd {
-//     fn into(self) -> &'a str {
-//         match self {
-//             DiagKeywd::Status           => &DiagKeywd::STATUS,
-//             DiagKeywd::Connection       => &DiagKeywd::CONNECTION,
-//         }
-//     }
-// }
 ///
 /// 
 impl Display for DiagKeywd {
