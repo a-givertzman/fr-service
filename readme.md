@@ -729,6 +729,16 @@ ReqErr
 
 #### ProfinetClient
 
+Service provides connectivity with S7 Siemens deviceы via Profinet protocol over ethernet
+
+- Read from Profinet - only periodic read of data blocks
+
+- Write to Profinet - implemented in the separate thread with independent tcp connection, wich is allow to send commands immediatelly, no need to wait complition read cycle
+
+- Configuration
+  - cycle - read cycle, readind disabled if zero or ommited
+  - subscribe - Subscribe configuration, where from commands will be received, refer to [doc](src/conf/conf_subscribe.rs) for details
+
 <details>
     <summary>Config example</summary>
 
