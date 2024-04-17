@@ -633,7 +633,7 @@ Allows to avoid unnecessary transmissions of the same value
 
 #### JDS Protocol
 
-</details>
+<details>
     <summary>...</summary>
 
 ##### Request "Points"
