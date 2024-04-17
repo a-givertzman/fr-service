@@ -1,5 +1,5 @@
 use std::{any::Any, collections::HashMap, net::TcpStream, sync::mpsc::{SendError, Sender}, thread::JoinHandle};
-use log::info;
+use log::{error, info, warn};
 use testing::stuff::wait::WaitTread;
 ///
 /// 
@@ -39,6 +39,11 @@ impl Connection {
     /// 
     pub fn is_active(&self) -> bool {
         !self.handle.is_finished()
+    }
+    ///
+    /// 
+    pub fn is_finished(&self) -> bool {
+        self.handle.is_finished()
     }
 }
 
@@ -118,5 +123,31 @@ impl TcpServerConnections {
                 }
             };
         }
+    }
+    ///
+    /// Chech if finished connection threads are present in the self.connection
+    /// - removes finished connections
+    pub fn clean(&mut self) {
+        let mut to_remove = vec![];
+        info!("{}.clean | Cleaning connections...", self.id);
+        for (name, connection) in &self.connections {
+            info!("{}.clean | Checking connection '{}' \t '{}' - finished: {}", self.id, name, connection.handle.thread().name().unwrap_or("unnamed"), connection.is_finished());
+            if connection.is_finished() {
+                to_remove.push(name.clone());
+            }
+        }
+        info!("{}.clean | Finished connections found: {:#?}", self.id, to_remove);
+        for name in to_remove {
+            match self.connections.remove(&name) {
+                Some(connection) => {
+                    match connection.handle.wait() {
+                        Ok(_) => info!("{}.clean | Connection '{}' removed successful", self.id, name),
+                        Err(err) => error!("{}.clean | Connection '{}' wait error: {:#?}", self.id, name, err),
+                    }
+                }
+                None => error!("{}.clean | Connection '{}':", self.id, name),
+            }
+        }
+        info!("{}.clean | Cleaning connections - ok", self.id);
     }
 }

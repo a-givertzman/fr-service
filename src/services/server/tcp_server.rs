@@ -3,13 +3,13 @@ use std::{
     fmt::Debug, net::{Shutdown, TcpListener, TcpStream}, sync::{atomic::{AtomicBool, Ordering}, mpsc, Arc, Mutex}, thread, time::Duration
 };
 use crate::{
-    conf::{point_config::name::Name, tcp_server_config::TcpServerConfig}, 
-    core_::{constants::constants::RECV_TIMEOUT, object::object::Object}, 
+    conf::{point_config::name::Name, tcp_server_config::TcpServerConfig},
+    core_::{constants::constants::RECV_TIMEOUT, object::object::Object},
     services::{
         safe_lock::SafeLock, server::{
             connections::{Action, TcpServerConnections}, jds_cnnection::JdsConnection
         }, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::service_cycle::ServiceCycle
-    }, 
+    },
 };
 ///
 /// Bounds TCP socket server
@@ -24,7 +24,7 @@ pub struct TcpServer {
     exit: Arc<AtomicBool>,
 }
 ///
-/// 
+///
 impl TcpServer {
     ///
     /// Creates new instance of the TcpServer:
@@ -43,18 +43,16 @@ impl TcpServer {
         }
     }
     ///
-    /// 
+    ///
     fn setup_connection(self_id: &str, self_name: &Name, connection_id: &str, stream: TcpStream, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>, connections: Arc<Mutex<TcpServerConnections>>) {
         info!("{}.setup_connection | Trying to repair Connection '{}'...", self_id, connection_id);
-        // let connectionsLock = connections.slock();
         let repair_result = connections.slock().repair(connection_id, stream.try_clone().unwrap());
         match repair_result {
             Ok(_) => {
                 info!("{}.setup_connection | Connection '{}' - reparied", self_id, connection_id);
             }
             Err(err) => {
-                info!("{}.run | {}", self_id, err);
-
+                info!("{}.setup_connection | {}", self_id, err);
                 info!("{}.setup_connection | New connection: '{}'", self_id, connection_id);
                 let (send, recv) = mpsc::channel();
                 let mut connection = JdsConnection::new(
@@ -94,8 +92,8 @@ impl TcpServer {
         }
     }
     ///
-    /// 
-    fn set_stream_timout(self_id: &String, stream: &TcpStream, raad_timeout: Duration, write_timeout: Option<Duration>) {
+    ///
+    fn set_stream_timout(self_id: &str, stream: &TcpStream, raad_timeout: Duration, write_timeout: Option<Duration>) {
         match stream.set_read_timeout(Some(raad_timeout)) {
             Ok(_) => {
                 info!("{}.set_stream_timout | Socket set read timeout {:?} - ok", self_id, raad_timeout);
@@ -115,9 +113,23 @@ impl TcpServer {
             }
         }
     }
+    ///
+    /// Chech if finished connection threads are present in the self.connection
+    /// - removes finished connections
+    fn clean(self_id: &str, connections: &Arc<Mutex<TcpServerConnections>>) {
+        match connections.lock() {
+            Ok(mut connections) => {
+                connections.clean()
+            }
+            Err(err) => {
+                warn!("{}.clean | Connections lock error {:?}", self_id, err);
+            }
+        }
+    }
+    
 }
 ///
-/// 
+///
 impl Object for TcpServer {
     fn id(&self) -> &str {
         &self.id
@@ -127,7 +139,7 @@ impl Object for TcpServer {
     }
 }
 ///
-/// 
+///
 impl Debug for TcpServer {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
@@ -137,7 +149,7 @@ impl Debug for TcpServer {
     }
 }
 ///
-/// 
+///
 impl Service for TcpServer {
     //
     //
@@ -161,6 +173,7 @@ impl Service for TcpServer {
                     Ok(listener) => {
                         info!("{}.run | Open socket {} - ok", self_id, conf.address);
                         for stream in listener.incoming() {
+                            Self::clean(&self_id, &connections);
                             if exit.load(Ordering::SeqCst) {
                                 debug!("{}.run | Detected exit", self_id);
                                 break;
@@ -205,10 +218,10 @@ impl Service for TcpServer {
                 warn!("{}", message);
                 Err(message)
             }
-        }        
+        }
     }
     ///
-    /// 
+    ///
     fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
         thread::sleep(Duration::from_millis(10));
@@ -222,5 +235,5 @@ impl Service for TcpServer {
                 info!("{}.exit | Final connection error: {:?}", self.id, err);
             }
         };
-    }    
+    }
 }
