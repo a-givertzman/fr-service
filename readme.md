@@ -1,9 +1,11 @@
-# Fault Recorder Service
+# CMA Server
+
+## Fault Recorder Service
 
 - receives data points from the CMA server
 - stores number of configured metrics into the database
 
-#### Storeing following information into the API Server
+### Storeing following information into the API Server
 
 - operating cycle
   - start timestamp
@@ -19,6 +21,8 @@
 - process metrics
   - process values
   - faults values
+
+### CMA Data Server
 
 #### Function diagram
 
@@ -99,7 +103,7 @@ class CMA green
 
 #### Configuration fo the tasks, metrics, functions
 
-<details> 
+<details>
     <summary>...</summary>
 
 ```yaml
