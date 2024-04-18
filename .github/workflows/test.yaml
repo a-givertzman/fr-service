@@ -33,6 +33,8 @@ jobs:
 
       - name: Static analisis
         run: |
+          sudo apt install ruby-mdl
+          mdl ./
           cargo check
           cargo clippy
           # cargo fmt --check
