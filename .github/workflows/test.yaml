@@ -32,6 +32,9 @@ jobs:
           override: true
 
       - name: Static analysis | Markdown lint tool
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUNDLE_GITHUB__COM: ${{ secrets.GITHUB_TOKEN }}:x-oauth-basic      
         run: |
           # sudo apt install rake
           # cd /tmp
