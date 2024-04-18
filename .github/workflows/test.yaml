@@ -34,6 +34,7 @@ jobs:
       - name: Static analysis | Markdown lint tool
         uses: docker://avtodev/markdown-lint:v1
         with:
+          config: 'markdownlint.yaml'
           args: "**/*.md"
       - name: Static analysis | cargo check
         run: |
