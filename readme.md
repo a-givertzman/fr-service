@@ -735,13 +735,19 @@ Service provides connectivity with S7 Siemens deviceы via Profinet protocol ove
 
 - Read from Profinet - only periodic read of data blocks
 
-- Write to Profinet - implemented in the separate thread with independent tcp connection, wich is allow to send commands immediatelly, no need to wait complition read cycle
+- Write to Profinet - implemented in the separate thread
+    with independent tcp connection, wich is allow to send
+    commands immediatelly, no need to wait complition read cycle
 
 - Configuration
   - cycle - read cycle, readind disabled if zero or ommited
-  - subscribe - Enables the subscription where from commands will be received, for subscribe configuration refer to [doc](src/conf/conf_subscribe.rs) for details
-  - in queue - Enables direct input queue, define the name of the input queue and queue length limitation 
-  - send-to - (old: out queue) The name of the input queue of the service, where all points will be sent such as 'ServiceName.in-queue'
+  - subscribe - Enables the subscription where from commands
+  will be received, for subscribe configuration
+  refer to [doc](src/conf/conf_subscribe.rs) for details
+  - in queue - Enables direct input queue,
+  define the name of the input queue and queue length limitation
+  - send-to - (old: out queue) The name of the input queue of the service,
+  where all points will be sent such as 'ServiceName.in-queue'
   - protocol - 'profinet' - always, reserved for protocol options
   - description - Free text description
   - ip - The IPV4 address
