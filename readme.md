@@ -774,7 +774,6 @@ Service provides connectivity with S7 Siemens deviceы via Profinet protocol ove
         - filters - refer to the [doc](src/conf/point_config/point_config.rs)
         - comment - refer to the [doc](src/conf/point_config/point_config.rs)
 
-
 <details>
     <summary>Config example</summary>
 
