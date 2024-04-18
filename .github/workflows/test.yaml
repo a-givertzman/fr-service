@@ -33,11 +33,11 @@ jobs:
 
       - name: Static analysis | Markdown lint tool
         run: |
-          sudo apt install rake
-          cd /tmp
-          git clone https://github.com/markdownlint/markdownlint
-          cd markdownlint
-          rake install
+          # sudo apt install rake
+          # cd /tmp
+          # git clone https://github.com/markdownlint/markdownlint
+          # cd markdownlint
+          gem install mdl
           mdl ./
       - name: Static analysis | cargo check
         run: |
