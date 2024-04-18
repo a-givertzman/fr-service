@@ -1,5 +1,8 @@
-# Example markdownlint configuration with all properties set to their default value
-
+# Markdownlint configuration
+# refet to the documentation for details:
+# - [Linter for markdown](https://github.com/avto-dev/markdown-lint)
+# - [Rules configuration](https://github.com/DavidAnson/markdownlint/blob/main/schema/.markdownlint.yaml)
+# - [github](https://github.com/markdownlint/markdownlint?tab=readme-ov-file)
 # Default state for all rules
 default: true
 
