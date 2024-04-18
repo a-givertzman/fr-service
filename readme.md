@@ -116,24 +116,23 @@ service CmaClient:
     out queue: MultiQueue.in-queue
 
 service ProfinetClient Ied01:
-    cycle: 1 ms                         # operating cycle time of the module, if 0 or ommited, module read cycle will be disable
+    cycle: 1 ms          # read cycle time, 0 or ommit to disable
     in queue in-queue:
         max-length: 10000
     out queue: MultiQueue.in-queue
-    # name Ied01:                       # device will be executed in the independent thread, must have unique name
     protocol: 'profinet'
     description: 'S7-IED-01'
     ip: '192.168.100.243'
     rack: 0
     slot: 1
-    diagnosis:                          # internal diagnosis, delete/comment to disable
-        point Status:                   # Ok(0) / Invalid(10)
+    diagnosis:                  # internal diagnosis, delete to disable
+        point Status:           # Ok(0) / Invalid(10)
             type: 'Int'
             # history: r
-        point Connection:               # Ok(0) / Invalid(10)
+        point Connection:       # Ok(0) / Invalid(10)
             type: 'Int'
             # history: r    
-    db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
+    db db899:                   # many DB blocks allowed, name must be unique
         description: 'db899 | Exhibit - drive data'
         number: 899
         offset: 0
@@ -144,7 +143,7 @@ service ProfinetClient Ied01:
         point Drive.OutputVoltage: 
             type: 'Real'
             offset: 4
-    db db999:                       # multiple DB blocks are allowed, must have unique namewithing parent device
+    db db999:                   # many DB blocks allowed, name must be unique
         description: 'db899 | Exhibit - drive data'
         number: 899
         offset: 0
@@ -157,24 +156,23 @@ service ProfinetClient Ied01:
             offset: 4
 
 service ProfinetClient Ied02:
-    cycle: 1 ms                         # operating cycle time of the module, if 0 or ommited, module read cycle will be disable
+    cycle: 1 ms          # read cycle time, 0 or ommit to disable
     in queue in-queue:
         max-length: 10000
     out queue: MultiQueue.in-queue
-    name Ied02:                       # device will be executed in the independent thread, must have unique name
     protocol: 'profinet'
     description: 'S7-IED-02'
     ip: '192.168.100.243'
     rack: 0
     slot: 1
-    diagnosis:                          # internal diagnosis, delete/comment to disable
-        point Status:                   # Ok(0) / Invalid(10)
+    diagnosis:                  # internal diagnosis, delete to disable
+        point Status:           # Ok(0) / Invalid(10)
             type: 'Int'
             # history: r
-        point Connection:               # Ok(0) / Invalid(10)
+        point Connection:       # Ok(0) / Invalid(10)
             type: 'Int'
             # history: r    
-    db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
+    db db899:                   # many DB blocks allowed, name must be unique
         description: 'db899 | Exhibit - drive data'
         number: 899
         offset: 0
@@ -210,8 +208,8 @@ service Task CoreTask:
     in queue api-link:
         max-length: 10000
 
-    fn ToMultiQueue:            # points will be produced as regular Points to the MultiQueue
-        point CraneMovement.BoomDown:           # /AppName/CoreTask/CraneMovement.BoomDown
+    fn ToMultiQueue:            # points will be produced to the MultiQueue
+        point CraneMovement.BoomDown:
             type: 'Int'
             offset: 14
             comment: 'Индикация опускания рукояти'
