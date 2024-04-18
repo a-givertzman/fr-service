@@ -32,16 +32,9 @@ jobs:
           override: true
 
       - name: Static analysis | Markdown lint tool
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BUNDLE_GITHUB__COM: ${{ secrets.GITHUB_TOKEN }}:x-oauth-basic      
-        run: |
-          # sudo apt install rake
-          # cd /tmp
-          # git clone https://github.com/markdownlint/markdownlint
-          # cd markdownlint
-          gem install mdl
-          mdl ./
+        uses: docker://avtodev/markdown-lint:v1
+        with:
+          args: "**/*.md"
       - name: Static analysis | cargo check
         run: |
           cargo check
