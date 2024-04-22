@@ -31,10 +31,21 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Static analisis
+      - name: Static analysis | Markdown lint tool
+        uses: docker://avtodev/markdown-lint:v1
+        with:
+          config: '.github/workflows/markdownlint.yaml'
+          args: "**/*.md"
+      - name: Static analysis | cargo check
         run: |
           cargo check
+      - name: Static analysis | cargo clippy
+        run: |
           cargo clippy
+          # cargo fmt --check
+      - name: Static analysis | cargo fmt
+        run: |
+          echo "escaped for now because of to much of errors, will be turned on later"
           # cargo fmt --check
       # - run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
       # - run: cargo build --release

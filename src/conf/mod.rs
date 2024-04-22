@@ -33,3 +33,5 @@ pub mod conf_subscribe;
 pub mod app;
 
 pub mod cache_service_config;
+
+pub mod diag_keywd;

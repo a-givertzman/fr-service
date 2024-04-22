@@ -59,6 +59,6 @@ impl<T> RetainBuffer<T> {
     /// Immediately stores the content of the buffer
     pub fn store(&self) {
         // TODO self.vec to be stored into the json located on the path coming from self.id
-        todo!()
+        panic!("{}.store | Method is not implemented yet", self.id);
     }
 }

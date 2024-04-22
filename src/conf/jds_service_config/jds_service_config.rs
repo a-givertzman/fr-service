@@ -38,7 +38,6 @@ impl JdsServiceConfig {
         match conf_tree.next() {
             Some(self_conf) => {
                 let self_id = format!("JdsServiceConfig({})", self_conf.key);
-                trace!("{}.new | MAPPING VALUE", self_id);
                 let mut self_conf = ServiceConfig::new(&self_id, self_conf);
                 trace!("{}.new | selfConf: {:?}", self_id, self_conf);
                 let self_name = self_conf.name();

@@ -1,8 +1,14 @@
-use std::{time::Duration, str::FromStr};
-use log::{debug, trace};
-use super::{conf_duration::ConfDuration, conf_keywd::{ConfKeywd, ConfKind}, conf_subscribe::ConfSubscribe, conf_tree::ConfTree};
+use std::{hash::BuildHasherDefault, str::FromStr, time::Duration};
+use hashers::fx_hash::FxHasher;
+use indexmap::IndexMap;
+use log::{debug, trace, warn};
+use crate::core_::types::map::IndexMapFxHasher;
+
+use super::{
+    conf_duration::ConfDuration, conf_keywd::{ConfKeywd, ConfKind}, conf_subscribe::ConfSubscribe, conf_tree::ConfTree, diag_keywd::DiagKeywd, fn_::fn_conf_keywd::{FnConfKeywd, FnConfKindName}, point_config::{name::Name, point_config::PointConfig}
+};
 ///
-/// 
+///
 #[derive(Debug, PartialEq, Clone)]
 pub struct ServiceConfig {
     id: String,
@@ -11,13 +17,13 @@ pub struct ServiceConfig {
     pub keys: Vec<String>,
 }
 ///
-/// 
+///
 impl ServiceConfig {
     ///
     /// Creates new instance of ServiceConfig
     pub fn new(parent: &str, conf: ConfTree) -> Self {
         let keys = conf.subNodes().unwrap().map(|conf| conf.key).collect();
-        Self { 
+        Self {
             id: format!("{}/ServiceConfig", parent),
             key: conf.key.clone(),
             conf,
@@ -30,12 +36,12 @@ impl ServiceConfig {
         self.conf.next()
     }
     ///
-    /// 
+    ///
     pub fn get(&self, key: &str) -> Option<ConfTree> {
         self.conf.get(key)
     }
     ///
-    /// 
+    ///
     fn remove_key(&mut self, name: &str) -> Result<(), String> {
         match self.keys.iter().position(|x| *x == name) {
             Some(index) => {
@@ -46,7 +52,7 @@ impl ServiceConfig {
         }
     }
     ///
-    /// 
+    ///
     pub fn name(&self) -> String {
         match ConfKeywd::from_str(&self.conf.key) {
             Ok(self_keyword) => {
@@ -57,7 +63,7 @@ impl ServiceConfig {
         }
     }
     ///
-    /// 
+    ///
     pub fn sufix(&self) -> String {
         match ConfKeywd::from_str(&self.conf.key) {
             Ok(self_keyword) => {
@@ -68,7 +74,7 @@ impl ServiceConfig {
         }
     }
     ///
-    /// 
+    ///
     pub fn get_param_value(&mut self, name: &str) -> Result<serde_yaml::Value, String> {
         match self.remove_key(name) {
             Ok(_) => {
@@ -81,7 +87,7 @@ impl ServiceConfig {
         }
     }
     ///
-    /// 
+    ///
     pub fn get_param_conf(&mut self, name: &str) -> Result<ConfTree, String> {
         match self.remove_key(name) {
             Ok(_) => {
@@ -94,7 +100,7 @@ impl ServiceConfig {
         }
     }
     ///
-    /// 
+    ///
     pub fn get_duration(&mut self, name: &str) -> Option<Duration> {
         match self.get_param_value(name) {
             Ok(value) => {
@@ -116,7 +122,7 @@ impl ServiceConfig {
         }
     }
     ///
-    /// 
+    ///
     pub fn get_param_by_keyword(&mut self, keyword_prefix: &str, keyword_kind: ConfKind) -> Result<(ConfKeywd, ConfTree), String> {
         let self_conf = self.conf.clone();
         for node in self_conf.subNodes().unwrap() {
@@ -132,7 +138,7 @@ impl ServiceConfig {
         Err(format!("{}.get_param_by_keyword | keyword '{} {:?}' - not found", self.id, keyword_prefix, keyword_kind))
     }
     ///
-    /// 
+    ///
     pub fn subscribe(&mut self) -> Result<ConfSubscribe, String> {
         match self.get_param_value("subscribe") {
             Ok(conf) => {
@@ -140,9 +146,9 @@ impl ServiceConfig {
             }
             Err(err) => Err(err),
         }
-    }    
+    }
     ///
-    /// 
+    ///
     pub fn get_in_queue(&mut self) -> Result<(String, i64), String> {
         let prefix = "in";
         let sub_param = "max-length";
@@ -157,10 +163,10 @@ impl ServiceConfig {
                 Ok((keyword.name(), max_length))
             }
             Err(err) => Err(format!("{}.get_in_queue | {} queue - not found in: {:#?}\n\terror: {:?}", self.id, prefix, self.conf, err)),
-        }        
-    }    
+        }
+    }
     ///
-    /// 
+    ///
     pub fn get_out_queue(&mut self) -> Result<String, String> {
         let prefix = "out";
         match self.get_param_by_keyword(prefix, ConfKind::Queue) {
@@ -170,16 +176,44 @@ impl ServiceConfig {
                 Ok(tx_name.conf.as_str().unwrap().to_string())
             }
             Err(err) => Err(format!("{}.get_out_queue | {} queue - not found in: {:#?}\n\terror: {:?}", self.id, prefix, self.conf, err)),
-        }        
-    }    
+        }
+    }
     ///
-    /// 
+    ///
     pub fn get_send_to(&mut self) -> Result<String, String> {
         match self.get_param_value("send-to") {
             Ok(conf) => {
                 Ok(conf.as_str().unwrap().to_string())
             }
             Err(err) => Err(format!("{}.get_send_to | 'send-to' - not found in: {:#?}\n\terror: {:#?}", self.id, self.conf, err)),
-        }        
-    }    
+        }
+    }
+    ///
+    /// Returns diagnosis point configs
+    pub fn get_diagnosis(&mut self, parent: &Name) -> IndexMapFxHasher<DiagKeywd, PointConfig> {
+        let mut points = IndexMap::with_hasher(BuildHasherDefault::<FxHasher>::default());
+        match self.get_param_conf("diagnosis") {
+            Ok(conf) => {
+                let diag_node_conf = ServiceConfig::new(&self.id, conf);
+                for key in &diag_node_conf.keys {
+                    let keyword = FnConfKeywd::from_str(key).unwrap();
+                    if keyword.kind() == FnConfKindName::Point {
+                        let point_name = Name::new(parent, keyword.data()).join();
+                        let point_conf = diag_node_conf.get(key).unwrap();
+                        trace!("{}.get_diagnosis | Point '{}'", self.id, point_name);
+                        let point = PointConfig::new(parent, &point_conf);
+                        let point_name_keywd = DiagKeywd::new(&point.name);
+                        points.insert(point_name_keywd, point);
+                    } else {
+                        warn!("{}.get_diagnosis | point conf expected, but found: {:?}", self.id, keyword);
+                    }
+                }
+
+            }
+            Err(err) => {
+                warn!("{}.get_diagnosis | diagnosis - not found in {:#?},\n\terror: {:#?}", self.id, self.conf, err);
+            }
+        };
+        points
+    }
 }

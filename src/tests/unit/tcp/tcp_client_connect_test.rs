@@ -1,11 +1,19 @@
 #[cfg(test)]
 
 mod tcp_client_connect {
-    use log::{warn, info, debug};
-    use std::{sync::{Once, atomic::{AtomicBool, Ordering}, Arc}, time::Duration, thread, net::TcpListener};
-    use testing::session::test_session::TestSession;
-    use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::tcp::tcp_client_connect::TcpClientConnect;
+    use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
+    use log::{debug, info, warn};
+    use std::{
+        net::TcpListener,
+        sync::{
+            atomic::{AtomicBool, Ordering},
+            Arc, Once,
+        },
+        thread,
+        time::Duration,
+    };
+    use testing::session::test_session::TestSession;
     ///
     ///
     static INIT: Once = Once::new();

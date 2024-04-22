@@ -1,9 +1,11 @@
-# Fault Recorder Service
+# CMA Server
+
+## Fault Recorder Service
 
 - receives data points from the CMA server
 - stores number of configured metrics into the database
 
-#### Storeing following information into the API Server
+### Storeing following information into the API Server
 
 - operating cycle
   - start timestamp
@@ -19,6 +21,8 @@
 - process metrics
   - process values
   - faults values
+
+### CMA Data Server
 
 #### Function diagram
 
@@ -99,6 +103,9 @@ class CMA green
 
 #### Configuration fo the tasks, metrics, functions
 
+<details>
+    <summary>...</summary>
+
 ```yaml
 service CmaClient:
     addres: 127.0.0.1:8881  # Self local addres
@@ -109,17 +116,23 @@ service CmaClient:
     out queue: MultiQueue.in-queue
 
 service ProfinetClient Ied01:
-    cycle: 1 ms                         # operating cycle time of the module, if 0 or ommited, module read cycle will be disable
+    cycle: 1 ms          # read cycle time, 0 or ommit to disable
     in queue in-queue:
         max-length: 10000
     out queue: MultiQueue.in-queue
-    # name Ied01:                       # device will be executed in the independent thread, must have unique name
     protocol: 'profinet'
     description: 'S7-IED-01'
     ip: '192.168.100.243'
     rack: 0
     slot: 1
-    db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
+    diagnosis:                  # internal diagnosis, delete to disable
+        point Status:           # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r
+        point Connection:       # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r    
+    db db899:                   # many DB blocks allowed, name must be unique
         description: 'db899 | Exhibit - drive data'
         number: 899
         offset: 0
@@ -130,7 +143,7 @@ service ProfinetClient Ied01:
         point Drive.OutputVoltage: 
             type: 'Real'
             offset: 4
-    db db999:                       # multiple DB blocks are allowed, must have unique namewithing parent device
+    db db999:                   # many DB blocks allowed, name must be unique
         description: 'db899 | Exhibit - drive data'
         number: 899
         offset: 0
@@ -143,17 +156,23 @@ service ProfinetClient Ied01:
             offset: 4
 
 service ProfinetClient Ied02:
-    cycle: 1 ms                         # operating cycle time of the module, if 0 or ommited, module read cycle will be disable
+    cycle: 1 ms          # read cycle time, 0 or ommit to disable
     in queue in-queue:
         max-length: 10000
     out queue: MultiQueue.in-queue
-    name Ied02:                       # device will be executed in the independent thread, must have unique name
     protocol: 'profinet'
     description: 'S7-IED-02'
     ip: '192.168.100.243'
     rack: 0
     slot: 1
-    db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
+    diagnosis:                  # internal diagnosis, delete to disable
+        point Status:           # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r
+        point Connection:       # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r    
+    db db899:                   # many DB blocks allowed, name must be unique
         description: 'db899 | Exhibit - drive data'
         number: 899
         offset: 0
@@ -189,8 +208,8 @@ service Task CoreTask:
     in queue api-link:
         max-length: 10000
 
-    fn ToMultiQueue:            # points will be produced as regular Points to the MultiQueue
-        point CraneMovement.BoomDown:           # /AppName/CoreTask/CraneMovement.BoomDown
+    fn ToMultiQueue:            # points will be produced to the MultiQueue
+        point CraneMovement.BoomDown:
             type: 'Int'
             offset: 14
             comment: 'Индикация опускания рукояти'
@@ -250,9 +269,12 @@ service Task FaultDetection:
             ...
 ```
 
+</details>
+
 #### Complit configuration example
 
 <details>
+    <summary>...</summary>
 
 ```yaml
 name: ApplicationName
@@ -330,6 +352,13 @@ service ProfinetClient Ied01:
     ip: '192.168.100.243'
     rack: 0
     slot: 1
+    diagnosis:                          # internal diagnosis, delete/comment to disable
+        point Status:                   # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r
+        point Connection:               # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r    
     db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
         # description: 'db899 | Exhibit - drive data'
         number: 899
@@ -385,6 +414,13 @@ service ProfinetClient Ied02:
     ip: '192.168.100.243'
     rack: 0
     slot: 1
+    diagnosis:                          # internal diagnosis, delete/comment to disable
+        point Status:                   # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r
+        point Connection:               # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r
     db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
         description: 'db899 | Exhibit - drive data'
         number: 899
@@ -424,6 +460,8 @@ service ProfinetClient Ied02:
             bit: 0
 ```
 
+</details>
+
 #### Point
 
 The Entity of the information. Contains fallowing:
@@ -436,6 +474,7 @@ The Entity of the information. Contains fallowing:
 - timestamp
 
 <details>
+    <summary>...</summary>
 
 ##### Point.name
 
@@ -517,6 +556,7 @@ Such as:
 ```
 
 <details>
+    <summary>...</summary>
 
 ##### PointConfig.type
 
@@ -595,7 +635,8 @@ Allows to avoid unnecessary transmissions of the same value
 
 #### JDS Protocol
 
-</details>
+<details>
+    <summary>...</summary>
 
 ##### Request "Points"
 
@@ -684,6 +725,110 @@ ReqErr
     "cot":"ReqErr",    Inf / Act / ActCon / ActErr / Req / ReqCon / ReqErr
     "timestamp":"2024-03-11T14:33:19.510314994+00:00"
 }
+```
+
+</details>
+
+#### ProfinetClient
+
+Service provides connectivity with S7 Siemens deviceы via Profinet protocol over ethernet
+
+- Read from Profinet - only periodic read of data blocks
+
+- Write to Profinet - implemented in the separate thread
+    with independent tcp connection, wich is allow to send
+    commands immediatelly, no need to wait complition read cycle
+
+- Configuration
+  - cycle - read cycle, readind disabled if zero or ommited
+  - subscribe - Enables the subscription where from commands
+  will be received, for subscribe configuration
+  refer to [doc](src/conf/conf_subscribe.rs) for details
+  - in queue - Enables direct input queue,
+  define the name of the input queue and queue length limitation
+  - send-to - (old: out queue) The name of the input queue of the service,
+  where all points will be sent such as 'ServiceName.in-queue'
+  - protocol - 'profinet' - always, reserved for protocol options
+  - description - Free text description
+  - ip - The IPV4 address
+  - rack - rack address configured in the S7 device
+  - clot - slot address configured in the S7 device
+  - diagnosis - Specific diagnosis points can be enabled by definition of it configurations
+    - General status
+      - Ok(0) - service in normal operation
+      - Invalid(10) - service has some Error-level events
+    - Connection status
+      - Ok(0) - subordinated Profinet device connected
+      - Invalid(10) - subordinated Profinet device is disconnected
+  - db db_name - The definition of the S7 DB block configuration
+    - number - The address number of the DB block
+    - offset - initial address offset
+    - size of the entair block (last address + it length)
+    - point Point.Name - The point configuration
+      - type: data type of it address
+      - address
+        - offset - point value will be read from address: db block offset + point offset
+        - bit - applicable for bool type only, defines number of the bit in the current offset
+        - history - refer to the [doc](src/conf/point_config/point_config.rs)
+        - alarm - refer to the [doc](src/conf/point_config/point_config.rs)
+        - filters - refer to the [doc](src/conf/point_config/point_config.rs)
+        - comment - refer to the [doc](src/conf/point_config/point_config.rs)
+
+<details>
+    <summary>Config example</summary>
+
+```yaml
+service ProfinetClient Ied01:
+    cycle: 500 ms                         # operating cycle time of the module
+    # in queue in-queue:
+        # max-length: 10000
+    subscribe: MultiQueue
+    out queue: MultiQueue.in-queue
+    protocol: 'profinet'
+    description: 'S7-IED-01'
+    ip: '192.168.130.243'
+    rack: 0
+    slot: 1
+    diagnosis:                          # internal diagnosis
+        point Status:                   # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r
+        point Connection:               # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r
+    db db_name:                         # multiple DB blocks are allowed, must have unique namewithing parent device
+        # description: 'db899 | Exhibit - drive data'
+        number: 899
+        offset: 0
+        size: 34
+        point Drive.Speed: 
+            type: 'Real'
+            address:
+                offset: 0
+        point Drive.OutputVoltage: 
+            type: 'Real'
+            address:
+                offset: 4
+    db db_name_:                        # multiple DB blocks are allowed, must have unique namewithing parent device
+        description: 'db899 | Exhibit - drive data'
+        number: 899
+        offset: 0
+        size: 34
+        cycle: 10 ms
+        point Capacitor.Capacity: 
+            type: 'Int'
+            address:
+                offset: 28
+        point Capacitor.ChargeIn.On: 
+            type: 'Bool'
+            address:
+                offset: 30
+                bit: 0
+        point Capacitor.ChargeOut.On: 
+            type: 'Bool'
+            address:
+                offset: 32
+                bit: 0
 ```
 
 </details>

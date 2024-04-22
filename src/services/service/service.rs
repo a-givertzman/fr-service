@@ -47,7 +47,7 @@ pub trait Service: Object + std::fmt::Debug {
     }
     ///
     /// Returns Receiver<PointType>, where will be pushed all points by subscription
-    fn gi(&self, receiver_name: &str, points: &[SubscriptionCriteria]) -> Receiver<PointType> {
+    fn gi(&self, _receiver_name: &str, _points: &[SubscriptionCriteria]) -> Receiver<PointType> {
         panic!("{}.gi | Does not supported", self.id())
     }    
     ///

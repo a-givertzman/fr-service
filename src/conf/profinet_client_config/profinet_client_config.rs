@@ -1,9 +1,9 @@
 use indexmap::IndexMap;
 use log::{debug, trace};
 use std::{fs, str::FromStr, time::Duration};
-use crate::conf::{
-    conf_tree::ConfTree, point_config::{name::Name, point_config::PointConfig}, profinet_client_config::{keywd::{Keywd, Kind}, profinet_db_config::ProfinetDbConfig}, service_config::ServiceConfig
-};
+use crate::{conf::{
+    conf_tree::ConfTree, diag_keywd::DiagKeywd, point_config::{name::Name, point_config::PointConfig}, profinet_client_config::{keywd::{Keywd, Kind}, profinet_db_config::ProfinetDbConfig}, service_config::ServiceConfig
+}, core_::types::map::IndexMapFxHasher};
 ///
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
@@ -19,6 +19,14 @@ use crate::conf::{
 ///    ip: '192.168.100.243'
 ///    rack: 0
 ///    slot: 1
+///    diagnosis:                          # internal diagnosis
+///        point Status:                   # Ok(0) / Invalid(10)
+///            type: 'Int'
+///            # history: r
+///        point Connection:               # Ok(0) / Invalid(10)
+///            type: 'Int'
+///            # history: r
+/// 
 ///    db db899:                       # multiple DB blocks are allowed, must have unique namewithing parent device
 ///        description: 'db899 | Exhibit - drive data'
 ///        number: 899
@@ -42,6 +50,7 @@ pub struct ProfinetClientConfig {
     pub(crate) ip: String,
     pub(crate) rack: u64,
     pub(crate) slot: u64,
+    pub(crate) diagnosis: IndexMapFxHasher<DiagKeywd, PointConfig>,
     pub(crate) dbs: IndexMap<String, ProfinetDbConfig>,
 }
 ///
@@ -56,7 +65,6 @@ impl ProfinetClientConfig {
         let mut self_conf = ServiceConfig::new(&self_id, conf_tree.clone());
         trace!("{}.new | self_conf: {:?}", self_id, self_conf);
         let self_name = Name::new(parent, self_conf.sufix());
-        let device_name = self_name.clone();
         debug!("{}.new | name: {:?}", self_id, self_name);
         let cycle = self_conf.get_duration("cycle");
         debug!("{}.new | cycle: {:?}", self_id, cycle);
@@ -76,6 +84,8 @@ impl ProfinetClientConfig {
         debug!("{}.new | rack: {:?}", self_id, rack);
         let slot = self_conf.get_param_value("slot").unwrap().as_u64().unwrap();
         debug!("{}.new | slot: {:?}", self_id, slot);
+        let diagnosis = self_conf.get_diagnosis(&self_name);
+        debug!("{}.new | diagnosis: {:#?}", self_id, diagnosis);
         let mut dbs = IndexMap::new();
         for key in &self_conf.keys {
             let keyword = Keywd::from_str(key).unwrap();
@@ -84,7 +94,7 @@ impl ProfinetClientConfig {
                 let mut device_conf = self_conf.get(key).unwrap();
                 debug!("{}.new | DB '{}'", self_id, db_name);
                 trace!("{}.new | DB '{}'   |   conf: {:?}", self_id, db_name, device_conf);
-                let node_conf = ProfinetDbConfig::new(&device_name, &db_name, &mut device_conf);
+                let node_conf = ProfinetDbConfig::new(&self_name, &db_name, &mut device_conf);
                 dbs.insert(
                     db_name,
                     node_conf,
@@ -106,6 +116,7 @@ impl ProfinetClientConfig {
             ip,
             rack,
             slot,
+            diagnosis,
             dbs
         }
     }
@@ -144,9 +155,14 @@ impl ProfinetClientConfig {
     ///
     /// Returns list of configurations of the defined points
     pub fn points(&self) -> Vec<PointConfig> {
-        self.dbs.iter().fold(vec![], |mut points, (_device_name, device_conf)| {
-            points.extend(device_conf.points());
-            points
-        })
+        self.dbs
+            .iter()
+            .fold(vec![], |mut points, (_device_name, device_conf)| {
+                points.extend(device_conf.points());
+                points
+            })
+            .into_iter()
+            .chain(self.diagnosis.values().cloned())
+            .collect()
     }
 }

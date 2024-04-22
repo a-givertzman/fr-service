@@ -88,7 +88,7 @@ mod multi_queue {
         services.lock().unwrap().insert(mq_service.clone());
         let timer = Instant::now();
         let mut rs_services = vec![];
-        for i in 0..count {
+        for _ in 0..count {
             let rs_service = Arc::new(Mutex::new(MockRecvSendService::new(
                 self_id,
                 "in-queue",

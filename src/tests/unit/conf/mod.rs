@@ -21,3 +21,5 @@ mod profinet_client_config;
 mod conf_subscribe_test;
 
 mod subscription_ctiteria_test;
+
+mod diag_keywd_test;

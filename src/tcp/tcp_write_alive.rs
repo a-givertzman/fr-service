@@ -32,7 +32,7 @@ impl TcpWriteAlive {
     }
     ///
     /// 
-    pub fn run(&self, mut tcp_stream: TcpStream) -> JoinHandle<()> {
+    pub fn run(&self, tcp_stream: TcpStream) -> JoinHandle<()> {
         info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let exit = self.exit.clone();
@@ -46,7 +46,7 @@ impl TcpWriteAlive {
             info!("{}.run | Main loop started", self_id);
             'main: loop {
                 if let Some(cycle) = &mut cycle {cycle.start()}
-                match stream_write.write(&mut tcp_stream) {
+                match stream_write.write(&tcp_stream) {
                     ConnectionStatus::Active(result) => {
                         match result {
                             OpResult::Ok(_) => {
