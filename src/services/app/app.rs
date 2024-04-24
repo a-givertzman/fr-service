@@ -1,6 +1,6 @@
 use linked_hash_map::LinkedHashMap;
 use log::{error, info, trace};
-use std::{process::exit, sync::{Arc, Mutex, RwLock}, thread, time::Duration};
+use std::{path::Path, process::exit, sync::{Arc, Mutex, RwLock}, thread, time::Duration};
 use libc::{
     SIGABRT, SIGHUP, SIGINT, SIGKILL, SIGQUIT, SIGTERM, SIGUSR1, SIGUSR2,
     // SIGFPE, SIGILL, SIGSEGV, 
@@ -27,12 +27,11 @@ impl App {
     ///
     /// Creates new instance of the ReatinBuffer
     ///     - path - path to the application configuration
-    pub fn new(path: impl Into<String>) -> Self {
-        let path: String = path.into();
+    pub fn new(path: impl AsRef<Path>) -> Self {
         let self_id = "App".to_owned();
-        info!("{}.run | Configuration path: '{}'", self_id, path);
+        info!("{}.run | Configuration path: '{}'", self_id, path.as_ref().display());
         info!("{}.run | Reading configuration...", self_id);
-        let conf: AppConfig = AppConfig::read(&path);
+        let conf: AppConfig = AppConfig::read(path);
         info!("{}.run | Reading configuration - ok", self_id);
         Self {
             id: self_id,

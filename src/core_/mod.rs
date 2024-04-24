@@ -27,3 +27,5 @@ pub mod testing;
 pub mod cot;
 
 pub mod object;
+
+pub mod cli;

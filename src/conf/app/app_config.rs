@@ -1,6 +1,6 @@
 use indexmap::IndexMap;
 use log::{debug, trace};
-use std::{fs, str::FromStr};
+use std::{fs, path::Path, str::FromStr};
 use crate::conf::{
     conf_keywd::{ConfKeywd, ConfKind}, conf_tree::ConfTree, service_config::ServiceConfig
 };
@@ -112,8 +112,8 @@ impl AppConfig {
     ///
     /// reads config from path
     #[allow(dead_code)]
-    pub fn read(path: &str) -> AppConfig {
-        match fs::read_to_string(path) {
+    pub fn read<P>(path: P) -> AppConfig where P: AsRef<Path> {
+        match fs::read_to_string(&path) {
             Ok(yaml_string) => {
                 match serde_yaml::from_str(&yaml_string) {
                     Ok(config) => {
@@ -125,7 +125,7 @@ impl AppConfig {
                 }
             }
             Err(err) => {
-                panic!("AppConfig.read | File {} reading error: {:?}", path, err)
+                panic!("AppConfig.read | File {} reading error: {:?}", path.as_ref().display(), err)
             }
         }
     }
