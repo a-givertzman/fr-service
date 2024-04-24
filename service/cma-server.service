@@ -1,0 +1,17 @@
+[Unit]
+Description=CMA Server
+After=syslog.target network.target multi-user.target
+
+[Service]
+User=scada
+Type=simple
+Restart=always
+RestartSec=5
+# WorkingDirectory=/home/scada/cma-server/
+ExecStart=cma-server --config /home/scada/cma-server/config.yaml
+
+StandardOutput=append:/var/log/cma-server.log
+StandardError=append:/var/log/cma-server.log
+
+[Install]
+WantedBy=multi-user.target
