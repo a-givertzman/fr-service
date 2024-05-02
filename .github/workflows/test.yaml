@@ -12,12 +12,6 @@ jobs:
   build_and_test:
     name: Testing
     runs-on: ubuntu-latest
-    # strategy:
-    #   matrix:
-    #     toolchain:
-    #       - stable
-    #       - beta
-    #       - nightly
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2      
@@ -34,7 +28,7 @@ jobs:
       - name: Static analysis | Markdown lint tool
         uses: docker://avtodev/markdown-lint:v1
         with:
-          config: '.github/workflows/markdownlint.yaml'
+          config: '.github/markdownlint/markdownlint.yaml'
           args: "**/*.md"
       - name: Static analysis | cargo check
         run: |

@@ -24,6 +24,13 @@
 
 ### CMA Data Server
 
+Handling data on fly
+
+- Designed to collect any kind of data from connected devices via any kind of communication protocols
+- Make some declarative computation on data coming from connected devices
+- Share collected / computed data to the clients
+- Stores collected / computed data to the disk / database
+
 #### Function diagram
 
 ```mermaid
