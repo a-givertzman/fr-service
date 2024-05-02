@@ -291,6 +291,40 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "98cc8fbded0c607b7ba9dd60cd98df59af97e84d24e49c8557331cfc26d301ce"
 
 [[package]]
+name = "cma-server"
+version = "0.1.0"
+dependencies = [
+ "api-tools",
+ "bindgen",
+ "chrono",
+ "clap",
+ "concat-string",
+ "const_format",
+ "debugging",
+ "env_logger",
+ "erased-serde",
+ "hashers",
+ "indexmap",
+ "lexical",
+ "libc",
+ "libloading",
+ "linked-hash-map",
+ "log",
+ "once_cell",
+ "rand",
+ "regex",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "signal-hook",
+ "snap7-sys",
+ "strum",
+ "strum_macros",
+ "testing 0.1.1",
+ "typetag",
+]
+
+[[package]]
 name = "colorchoice"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -431,40 +465,6 @@ name = "finl_unicode"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8fcfdc7a0362c9f4444381a9e697c79d435fe65b52a37466fc2c1184cee9edc6"
-
-[[package]]
-name = "fr-service"
-version = "0.1.0"
-dependencies = [
- "api-tools",
- "bindgen",
- "chrono",
- "clap",
- "concat-string",
- "const_format",
- "debugging",
- "env_logger",
- "erased-serde",
- "hashers",
- "indexmap",
- "lexical",
- "libc",
- "libloading",
- "linked-hash-map",
- "log",
- "once_cell",
- "rand",
- "regex",
- "serde",
- "serde_json",
- "serde_yaml",
- "signal-hook",
- "snap7-sys",
- "strum",
- "strum_macros",
- "testing 0.1.1",
- "typetag",
-]
 
 [[package]]
 name = "futures-channel"
