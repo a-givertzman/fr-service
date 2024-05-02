@@ -1,6 +1,6 @@
 #!/bin/bash
 # 
-# Deb package prinst script for API Server
+# Deb package prinst script for the package
 #
 echo ""
 name="api-server"

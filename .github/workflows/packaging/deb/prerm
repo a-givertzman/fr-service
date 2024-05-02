@@ -1,6 +1,6 @@
 #!/bin/bash
 # 
-# Deb package prerem script for API Server
+# Deb package prerem script for the package
 #
 echo ""
 name="api-server"

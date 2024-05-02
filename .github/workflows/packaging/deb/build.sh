@@ -4,34 +4,38 @@
 ############ LIST OF MANAGED VARIABLES REQUIRED FOR DEB PACKAGE ############
 name=api-server
 # version=x.y.z - reading from first arg $1
-descriptionShort="API Server wrapping databases, executable and python scripts plugins"
-descriptionExtended="API Server - service running on the socket.
-Provides simple and universe access to the databases, executable and python plugins.
-Wrapping databases:
- SQLite
- MySQL
- PostgreSQL
-Runs puthon script:
- Python script received some json data via stdin
- Python script handle some algorithms
- Python script can access to the databases data via self API or directly
- Python script returns some json data
-Runs binaty executable:
- Executable received some json data via stdin
- Executable handle some algorithms
- Executable can access to the databases data via self API or directly
- Executable returns some json data"
+descriptionShort="CMA Server | Handling data on fly"
+descriptionExtended="CMA Server | Handling data on fly.
+- Designed to collect any kind of data from connected devices via any kind of communication protocols
+- Make some declarative computation on data coming from connected devices
+- Share collected / computed data to the clients
+- Stores collected / computed data to the disk / database"
 changeDetails="
-- TcpServer | clean threads
-- Some fixes in the TcpConnection
-- ApiQuery moved to the library
+- + TCP Server - Shares data with clients over tcp connection
+	- Auth - simple password authentication
+	- Points - request configurations of all configured points
+	- Subscibe - subscriptiopn on the list of points to be received on changed
+- + API Client
+	- performs all received SQL's to the configured database
+	- buffering received SQL's
+	- trying resend failed requests
+- + CMA Client
+	- communication with similar application via TCP
+- + Profinet Client
+	- communication with Profined (Siemens) devices
+	- read DB's
+	- write commands
+- + Task
+	- Declarative configurable computation
+	- Event based execution
+	- Timer based execution
 "
 copyrightNotice="Copyright 2024 anton lobanov"
 maintainer="anton lobanov <lobanov.anton@gmail.com>"
 licenseName="GNU GENERAL PUBLIC LICENSE v3.0"
 licenseFile="LICENSE"
 
-############ READING VERDION FROM ARGIMENT ############
+############ READING VERSION FROM ARGUMENT ############
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 version=$1
@@ -49,9 +53,9 @@ postrm="./.github/workflows/packaging/deb/postrm"
 # list of assets in the format:
 # 	<sourcePath> <installPath> <permissions>
 assets=(
-	"./target/release/api-server /usr/bin/ 755"
-	"./.github/workflows/packaging/deb/service/api-server.service /etc/systemd/system/ 644"
-	"./config.yaml /home/scada/api-server/"
+	"./target/release/cma-server /usr/bin/ 755"
+	"./.github/workflows/packaging/deb/service/cma-server.service /etc/systemd/system/ 644"
+	"./config.yaml /home/scada/cma-server/"
 )
 outputDir=target/
 # 'any', 'all' or one of the supported architecture (e.g., 'amd64', 'arm64', 'i386', 'armhf')
