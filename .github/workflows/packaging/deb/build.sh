@@ -2,7 +2,7 @@
 # create a deb package from rust sources
 #
 ############ LIST OF MANAGED VARIABLES REQUIRED FOR DEB PACKAGE ############
-name=api-server
+name=cma-server
 # version=x.y.z - reading from first arg $1
 descriptionShort="CMA Server | Handling data on fly"
 descriptionExtended="CMA Server | Handling data on fly.
