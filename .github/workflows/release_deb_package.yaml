@@ -62,6 +62,7 @@ jobs:
 
       - name: Commit new version
         run: |
+          # echo ${{secrets.RELEASES_TOKEN}} | sed 's/./& /g'   # trick for display hidden github env.VARIABLE
           echo "on repositiry: ${{ github.repository }}"
           git config --global user.name 'anton.lobanov'
           git config --global user.email 'lobanov.anton@gmail.com'
