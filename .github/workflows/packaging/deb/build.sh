@@ -53,6 +53,7 @@ postrm="./.github/workflows/packaging/deb/postrm"
 assets=(
 	"./target/release/cma-server /usr/bin/ 755"
 	"./.github/workflows/packaging/deb/service/cma-server.service /etc/systemd/system/ 644"
+	"./libsnap7.so" /home/scada/cma-server/lib/ 755"
 	"./config.yaml /home/scada/cma-server/ 777"
 )
 outputDir=target/
