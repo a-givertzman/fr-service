@@ -36,6 +36,13 @@ licenseName="GNU GENERAL PUBLIC LICENSE v3.0"
 licenseFile="LICENSE"
 
 ############ LIST OF MANAGED VARIABLES OPTIONAL FOR DEB PACKAGE ############
+#
+# list of requared working directories
+# 	<installPath> <permissions>
+workingDirs=(
+	"/home/scada/cma-server/ 777"
+)
+#
 # preinst, postinst, prerm and postrm scripts:
 preinst="./.github/workflows/packaging/deb/preinst"
 postinst="./.github/workflows/packaging/deb/postinst"
@@ -46,7 +53,7 @@ postrm="./.github/workflows/packaging/deb/postrm"
 assets=(
 	"./target/release/cma-server /usr/bin/ 755"
 	"./.github/workflows/packaging/deb/service/cma-server.service /etc/systemd/system/ 644"
-	"./config.yaml /home/scada/cma-server/"
+	"./config.yaml /home/scada/cma-server/ 777"
 )
 outputDir=target/
 # 'any', 'all' or one of the supported architecture (e.g., 'amd64', 'arm64', 'i386', 'armhf')
@@ -98,6 +105,18 @@ mkdir -p "$packageRoot"
 echo "Creating ${packageRoot}/DEBIAN directory ..."
 mkdir -p "${packageRoot}/DEBIAN"
 
+createDir() {
+	targetDir=$1; permissions=$2;
+	installPath=$(readlink -m "${packageRoot}/${targetDir}")
+	echo "Creating dir '${installPath}' ..."
+	mkdir -p $installPath
+	if [[ -d $installPath ]]; then
+		echo "Applying permissions ${permissions} to dir ${installPath} ..."
+		chmod -R "$permissions" "$installPath"
+	else
+		echo "${RED}Can't apply permissions ${permissions} to '${installPath}' ..."
+	fi
+}
 copyAsset() {
 	sourcePath=$1; targetDir=$2; permissions=$3
 	assetPath=$(readlink -m "$sourcePath")
@@ -118,6 +137,10 @@ copyAsset() {
 		echo "${RED}Unknown asset type, can't apply permissions ${permissions} to file${NC} ${installPath} ..."
 	fi
 }
+for dir in "${workingDirs[@]}"; do
+	read -ra dirOptions <<< $dir
+	createDir ${dirOptions[0]} ${dirOptions[1]}
+done
 for asset in "${assets[@]}"; do
 	read -ra assetOptions <<< $asset
 	copyAsset ${assetOptions[0]} ${assetOptions[1]} ${assetOptions[2]}

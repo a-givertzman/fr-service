@@ -7,7 +7,7 @@ User=scada
 Type=simple
 Restart=always
 RestartSec=5
-# WorkingDirectory=/home/scada/cma-server/
+WorkingDirectory=/home/scada/cma-server/
 ExecStart=cma-server --config /home/scada/cma-server/config.yaml
 
 StandardOutput=journal+console

@@ -2,6 +2,12 @@
 # 
 # Deb package prerem script for the package
 #
+############ INSTALLATION ACTIONS ############
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+GRAY='\033[1;30m'
+NC='\033[0m' # No Color
+#
 echo ""
 name="cma-server"
 if [[ $(systemctl list-units --all -t service --full --no-legend "$name.service" | sed 's/^\s*//g' | cut -f1 -d' ') == $name.service ]]; then
