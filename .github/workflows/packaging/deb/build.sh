@@ -67,6 +67,7 @@ depends=""
 
 ############ READING VERSION FROM ARGUMENT ############
 RED='\033[0;31m'
+YELLOW='\033[1;93m'
 NC='\033[0m' # No Color
 version=$1
 if [[ "$version" =~ [0-9]+\.[0-9]+\.[0-9]+ ]]; then 

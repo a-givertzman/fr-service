@@ -4,6 +4,7 @@ use once_cell::sync::Lazy;
 use snap7_sys::LibSnap7;
 
 static RED: &str = "\x1b[0;31m";
+static YELLOW: &str ="\x1b[1;93m";
 static NC: &str = "\x1b[0m"; // No Color
 
 pub static S7LIB: Lazy<LibSnap7> = Lazy::new(|| {
@@ -22,7 +23,7 @@ pub static S7LIB: Lazy<LibSnap7> = Lazy::new(|| {
                 return lib;
             }
             Err(_) => {
-                println!("initializing LibSnap7 | check '{}' - {}not found{}", path, RED, NC);
+                println!("initializing LibSnap7 | check '{}' - {}not found{}", path, YELLOW, NC);
             }
         }
     }
