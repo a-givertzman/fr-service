@@ -58,11 +58,17 @@ impl MultiQueue {
                 f.write_fmt(format_args!("\n\n\t{} ({})", receiver_name, rceiver_hash)).unwrap();
                 match serde_json::to_writer_pretty(f, &destinations) {
                     Ok(_) => {}
-                    Err(err) => warn!("{}.log | Error writing to file: '{}'\n\terror: {:?}", self.id, path, err),
+                    Err(err) => {
+                        if log::max_level() >= log::LevelFilter::Trace {
+                            warn!("{}.log | Error writing to file: '{}'\n\terror: {:?}", self.id, path, err)
+                        }
+                    }
                 }
             }
             Err(err) => {
-                warn!("{}.log | Error open file: '{}'\n\terror: {:?}", self.id, path, err)
+                if log::max_level() >= log::LevelFilter::Trace {
+                    warn!("{}.log | Error open file: '{}'\n\terror: {:?}", self.id, path, err)
+                }
             }
         }
     }
@@ -75,7 +81,9 @@ impl MultiQueue {
                 f.write_fmt(format_args!("'{}': {:?}\n",point_id, point)).unwrap();
             }
             Err(err) => {
-                warn!("{}.log | Error open file: '{}'\n\terror: {:?}", self_id, path, err)
+                if log::max_level() >= log::LevelFilter::Trace {
+                    warn!("{}.log | Error open file: '{}'\n\terror: {:?}", self_id, path, err)
+                }
             }
         }
     }

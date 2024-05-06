@@ -65,7 +65,9 @@ impl ProfinetDb {
                 f.write_fmt(format_args!("{:?}\n", point)).unwrap();
             }
             Err(err) => {
-                warn!("{}.log | Error open file: '{}'\n\terror: {:?}", self_id, path, err)
+                if log::max_level() >= log::LevelFilter::Trace {
+                    warn!("{}.log | Error open file: '{}'\n\terror: {:?}", self_id, path, err)
+                }
             }
         }
     }
