@@ -1261,31 +1261,35 @@ service Task RecorderTask:
 
     #
     # live values of the operating cycle
-    fn Merge:
-        input1 fn SqlMetric:
-            table: public.operating_cycle_value
-            sql: "insert into {table} (pid,value,status,timestamp) values ({opCycleId.value},{pid.value},{input1.status},'{input1.timestamp}');"
-            # inputs
-            opCycleId: opCycleId
-            pid fn PointId: point any '/App/ied13/db905_visual_data_fast/Load'
-            input fn Pass:
-                condittion: opCycleIsActive
-                input fn Filter:
-                    input: point real '/App/ied13/db905_visual_data_fast/Load'
-                    threshold: 0.5
-                    factor: 1.5
-        input2 fn SqlMetric:
-            table: public.operating_cycle_value
-            sql: "insert into {table} (pid,value,status,timestamp) values ({opCycleId.value},{pid.value},{input1.status},'{input1.timestamp}');"
-            # inputs
-            opCycleId: opCycleId
-            pid fn PointId: point any '/App/ied13/db905_visual_data_fast/Load'
-            input fn Pass:
-                condittion: opCycleIsActive
-                input fn Filter:
-                    input: point real '/App/ied13/db905_visual_data_fast/Load'
-                    threshold: 0.5
-                    factor: 1.5
+    # table: operating_cycle_data
+    fn debug:
+    # fn ToApiQueue:
+        # queue: /App/ApiClient.in-queue
+        input fn Merge:
+            input1 fn SqlMetric:
+                table: public.operating_cycle_data
+                sql: "insert into {table} (timestamp,pid,value) values ('{input.timestamp}',{pid.value},{input.value});"
+                # inputs
+                # opCycleId: opCycleId
+                pid fn PointId: point any '/App/ied13/db905_visual_data_fast/Load'
+                input fn Pass:
+                    condittion: opCycleIsActive
+                    input fn Filter:
+                        input: point real '/App/ied13/db905_visual_data_fast/Load'
+                        threshold: 0.5
+                        factor: 1.5
+            input2 fn SqlMetric:
+                table: public.operating_cycle_data
+                sql: "insert into {table} (timestamp,pid,value) values ({opCycleId.value},{pid.value},{input1.status},'{input1.timestamp}');"
+                # inputs
+                # opCycleId: opCycleId
+                pid fn PointId: point any '/App/ied13/db905_visual_data_fast/Load'
+                input fn Pass:
+                    condittion: opCycleIsActive
+                    input fn Filter:
+                        input: point real '/App/ied13/db905_visual_data_fast/Load'
+                        threshold: 0.5
+                        factor: 1.5
 
 
 
