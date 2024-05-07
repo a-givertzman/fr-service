@@ -7,7 +7,7 @@ Handling data on fly
 - Share collected / computed data to the clients
 - Stores collected / computed data to the disk / database
 
-## Basic functions
+## 1 Basic functions
 
 - receives data points from the connected devices:
   - [X] ProfinetClient - connectivity with the Siemens devices via profinet
@@ -19,34 +19,7 @@ Handling data on fly
 - [X] Task service - make configured computation
 - [X] API Client service - stores some data into the database
 
-## HistoryService
-
-- collect configured data points
-- stores number of configured metrics into the database
-
-## Fault Recorder Service
-
-- collect configured data points
-- stores number of configured metrics into the database
-
-### Storeing following information into the API Server
-
-- operating cycle
-  - start timestamp
-  - stop timestamp
-  - alarm class
-  - avarage load
-  - max load
-
-- operating cycle metrics
-  - list of all metrics...
-  - to be added...
-
-- process metrics
-  - process values
-  - faults values
-
-#### Function diagram
+### Function diagram
 
 ```mermaid
 flowchart LR;
@@ -122,6 +95,33 @@ class Interfaces lightBlue
 class CMA green
 %% class di orange    
 ```
+
+## 2 HistoryService
+
+- collect configured data points
+- stores number of configured metrics into the database
+
+## 3 Fault Recorder Service
+
+- collect configured data points
+- stores number of configured metrics into the database
+
+### Storeing following information into the API Server
+
+- operating cycle
+  - start timestamp
+  - stop timestamp
+  - alarm class
+  - avarage load
+  - max load
+
+- operating cycle metrics
+  - list of all metrics...
+  - to be added...
+
+- process metrics
+  - process values
+  - faults values
 
 #### Configuration fo the tasks, metrics, functions
 
