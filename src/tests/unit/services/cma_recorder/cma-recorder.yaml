@@ -1257,7 +1257,7 @@ service Task RecorderTask:
             input fn Count:
                 initial fn Retain:
                     name: 'OperatingCycleId'
-                input fn Ge:
+                input:    opCycleIsActive
 
     #
     # live values of the operating cycle
