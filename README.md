@@ -9,11 +9,15 @@ Handling data on fly
 
 ## Basic functions
 
-- receives data points from the connected devices
-- destribute data points to the intrnal serveces suscribed on
-- destribute data points to the external clients
-- make configured computation (Task service)
-- stores some data into the database (based on the Task and API Client services)
+- receives data points from the connected devices:
+  - [X] ProfinetClient - connectivity with the Siemens devices via profinet
+- [X] MultiQueue service - destribute data points to the intrnal serveces suscribed on
+- destribute data points to the external clients:
+  - [X] TcpServer - released
+  - [ ] UdpServer
+  - [ ] Additional protocols...
+- [X] Task service - make configured computation
+- [X] API Client service - stores some data into the database
 
 ## HistoryService
 
