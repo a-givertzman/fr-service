@@ -24,19 +24,19 @@ pub enum Functions {
 ///
 /// 
 impl Functions {
-    const ADD: &'static str = "add";
-    const CONST: &'static str = "const";
-    const COUNT: &'static str = "count";
-    const GE: &'static str = "ge";
-    const INPUT: &'static str = "input";
-    const TIMER: &'static str = "timer";
-    const VAR: &'static str = "var";
-    const TO_API_QUEUE: &'static str = "ToApiQueue";
-    const TO_MULTI_QUEUE: &'static str = "ToMultiQueue";
-    const SQL_METRIC: &'static str = "SqlMetric";
-    const POINT_ID: &'static str = "PointId";
-    const DEBUG: &'static str = "debug";
-    const TO_INT: &'static str = "ToInt";
+    const ADD               : &'static str = "add";
+    const CONST             : &'static str = "const";
+    const COUNT             : &'static str = "count";
+    const GE                : &'static str = "ge";
+    const INPUT             : &'static str = "input";
+    const TIMER             : &'static str = "timer";
+    const VAR               : &'static str = "var";
+    const TO_API_QUEUE      : &'static str = "ToApiQueue";
+    const TO_MULTI_QUEUE    : &'static str = "ToMultiQueue";
+    const SQL_METRIC        : &'static str = "SqlMetric";
+    const POINT_ID          : &'static str = "PointId";
+    const DEBUG             : &'static str = "debug";
+    const TO_INT            : &'static str = "ToInt";
     ///
     ///     
     pub fn name(&self) -> &str {
