@@ -1,8 +1,28 @@
 # CMA Server
 
+Handling data on fly
+
+- Designed to collect any kind of data from connected devices via any kind of communication protocols
+- Make some declarative computation on data coming from connected devices
+- Share collected / computed data to the clients
+- Stores collected / computed data to the disk / database
+
+## Basic functions
+
+- receives data points from the connected devices
+- destribute data points to the intrnal serveces suscribed on
+- destribute data points to the external clients
+- make configured computation (Task service)
+- stores some data into the database (based on the Task and API Client services)
+
+## HistoryService
+
+- collect configured data points
+- stores number of configured metrics into the database
+
 ## Fault Recorder Service
 
-- receives data points from the CMA server
+- collect configured data points
 - stores number of configured metrics into the database
 
 ### Storeing following information into the API Server
@@ -21,15 +41,6 @@
 - process metrics
   - process values
   - faults values
-
-### CMA Data Server
-
-Handling data on fly
-
-- Designed to collect any kind of data from connected devices via any kind of communication protocols
-- Make some declarative computation on data coming from connected devices
-- Share collected / computed data to the clients
-- Stores collected / computed data to the disk / database
 
 #### Function diagram
 
