@@ -1280,7 +1280,7 @@ service Task RecorderTask:
                         factor: 1.5
             input2 fn SqlMetric:
                 table: public.operating_cycle_data
-                sql: "insert into {table} (timestamp,pid,value) values ({opCycleId.value},{pid.value},{input1.status},'{input1.timestamp}');"
+                sql: "insert into {table} (timestamp,pid,value) values ({input.timestamp},{pid.value},{input.value});"
                 # inputs
                 # opCycleId: opCycleId
                 pid fn PointId: point any '/App/ied13/db905_visual_data_fast/Load'

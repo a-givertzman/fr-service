@@ -7,7 +7,7 @@ Handling data on fly
 - Share collected / computed data to the clients
 - Stores collected / computed data to the disk / database
 
-## 1 Basic functions
+## Basic functions (embedded)
 
 - receives data points from the connected devices:
   - [X] ProfinetClient - connectivity with the Siemens devices via profinet
@@ -16,10 +16,15 @@ Handling data on fly
   - [X] TcpServer - released
   - [ ] UdpServer
   - [ ] Additional protocols...
-- [X] Task service - make configured computation
+- [X] [Task service](#1-task-service) - make configured computation
 - [X] API Client service - stores some data into the database
 
-### Function diagram
+## Additional functions (built on basic)
+
+- [History service](#2-history-service) - simple storing events into the database
+- [Fault Recorder Service](#3-fault-recorder-service) - store operating cycle and standart fault recorder information into the database
+
+## Function diagram
 
 ```mermaid
 flowchart LR;
@@ -96,7 +101,82 @@ class CMA green
 %% class di orange    
 ```
 
-## 2 HistoryService
+## 1 Task service
+
+### Overview
+
+Service provides configurable in the yaml computations.  
+Consists of number of computation nodes. Each node consists of number of functions.  
+The computation value - is point {type, value, tumestamp, status}  
+Each computation cycle sequentally calls computation nodes of the task in the order defined in the configuration. So variables used in the task must be defined earlier then used.  
+The computations can be executed:
+
+- periodically with configured cycle time (min 10ms for now)
+- event-trigger, computation node will be performed if at least one if it's input received new point
+
+### Basic entities and principles of the Tasck service computations
+
+- **Definitions**
+  - let VarName - allows to define a variable
+  - const - allows to define a constant, typed
+  - input - alows to define an input, typed
+  - fn FunctionName - allows to use a function by it's name
+
+- **Inputs**
+  - VariableName - read point from defined earlier variable
+  - const - read point from constant
+  - input - read point from input
+
+- **Variable**
+
+```yaml
+# Syntax
+let <VariableName>:
+    input...
+```
+
+The result of the computation node can be stored in the variable, wich can be used late in the any computation node. For example variable 'Var' defined. And used late in the function 'Add'.
+
+```yaml
+service Task ExampleTask:
+    cycle: 1s
+    let Var:
+        input: ...
+    fn Add:
+        input1: const int 3
+        input2: Var
+# returns 3 + Var on each step
+```
+
+- **Constant**
+
+```yaml
+# Syntax
+const <type> <value>
+```
+
+Always returns configured constant value, can be used in the any input of the any function.
+
+```yaml
+service Task ExampleTask:
+    cycle: 1s
+    fn Add:
+        input1: const int 3
+        input2: const int 7
+# returns 10 on each step
+```
+
+- **Input**
+
+```yaml
+# Syntax
+input <type> <'/path/PointName'>
+```
+
+Returns latest received point
+
+
+## 2 History Service
 
 - collect configured data points
 - stores number of configured metrics into the database
