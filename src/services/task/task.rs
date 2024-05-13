@@ -5,8 +5,8 @@ use log::{debug, error, info, trace, warn};
 use crate::{conf::{point_config::name::Name, task_config::TaskConfig}, core_::object::object::Object, services::{multi_queue::subscription_criteria::SubscriptionCriteria, safe_lock::SafeLock, service::service_handles::ServiceHandles}};
 use crate::services::task::service_cycle::ServiceCycle;
 use crate::{
-    services::{task::task_nodes::TaskNodes, service::service::Service, services::Services}, 
-    core_::{point::point_type::PointType, constants::constants::RECV_TIMEOUT}, 
+    services::{task::task_nodes::TaskNodes, service::service::Service, services::Services},
+    core_::{point::point_type::PointType, constants::constants::RECV_TIMEOUT},
     conf::point_config::point_config::PointConfig,
 };
 ///
@@ -24,7 +24,7 @@ pub struct Task {
     exit: Arc<AtomicBool>,
 }
 ///
-/// 
+///
 impl Task {
     ///
     /// Creates new instance of [Task]
@@ -42,7 +42,7 @@ impl Task {
         }
     }
     ///
-    /// 
+    ///
     fn subscriptions(&mut self, conf: &TaskConfig, services: &Arc<Mutex<Services>>) -> Option<(String, Vec<SubscriptionCriteria>)> {
         if conf.subscribe.is_empty() {
             None
@@ -67,15 +67,15 @@ impl Task {
                 }
             }
         }
-    }    
+    }
     ///
-    /// 
+    ///
     fn subscribe(&mut self, subscriptions: &Option<(String, Vec<SubscriptionCriteria>)>, services: &Arc<Mutex<Services>>) -> Receiver<PointType> {
         match subscriptions {
             Some((service_name, points)) => {
                 let (_, rx_recv) = services.slock().subscribe(
                     service_name,
-                    &self.name.join(), 
+                    &self.name.join(),
                     points,
                 );
                 rx_recv
@@ -102,7 +102,7 @@ impl Task {
         //             Some((service_name, Some(points))) => {
         //                 let (_, rx_recv) = services.slock().subscribe(
         //                     &service_name,
-        //                     &self.name.join(), 
+        //                     &self.name.join(),
         //                     &points,
         //                 );
         //                 rx_recv
@@ -115,7 +115,7 @@ impl Task {
     }
 }
 ///
-/// 
+///
 impl Object for Task {
     fn id(&self) -> &str {
         &self.id
@@ -125,7 +125,7 @@ impl Object for Task {
     }
 }
 ///
-/// 
+///
 impl Debug for Task {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
@@ -135,7 +135,7 @@ impl Debug for Task {
     }
 }
 ///
-/// 
+///
 impl Service for Task {
     //
     //
@@ -163,36 +163,63 @@ impl Service for Task {
         let handle = thread::Builder::new().name(format!("{} - main", self_id)).spawn(move || {
             let mut cycle = ServiceCycle::new(&self_id, cycle_interval);
             let mut task_nodes = TaskNodes::new(&self_id);
-            task_nodes.buildNodes(&self_name, conf, services.clone());
+            task_nodes.build_nodes(&self_name, conf, services.clone());
             trace!("{}.run | taskNodes: {:#?}", self_id, task_nodes);
-            'main: loop {
-                cycle.start();
-                trace!("{}.run | calculation step...", self_id);
-                match rx_recv.recv_timeout(RECV_TIMEOUT) {
-                    Ok(point) => {
-                        debug!("{}.run | point: {:?}", self_id, &point);
-                        task_nodes.eval(point);
-                        debug!("{}.run | calculation step - done ({:?})", self_id, cycle.elapsed());
-                        if cyclic {
-                            cycle.wait();
+            if cyclic {
+                'main: loop {
+                    cycle.start();
+                    trace!("{}.run | calculation step...", self_id);
+                    match rx_recv.try_recv() {
+                        Ok(point) => {
+                            debug!("{}.run | point: {:?}", self_id, &point);
+                            task_nodes.eval(Some(point));
+                            debug!("{}.run | calculation step - done ({:?})", self_id, cycle.elapsed());
                         }
-                    }
-                    Err(err) => {
-                        match err {
-                            RecvTimeoutError::Timeout => {
-                                trace!("{}.run | Receive error: {:?}", self_id, err);
-                            }
-                            RecvTimeoutError::Disconnected => {
-                                error!("{}.run | Error receiving from queue: {:?}", self_id, err);
-                                break 'main;
+                        Err(err) => {
+                            match err {
+                                mpsc::TryRecvError::Empty => {
+                                    debug!("{}.run | point: not received", self_id);
+                                    task_nodes.eval(None);
+                                    debug!("{}.run | calculation step - done ({:?})", self_id, cycle.elapsed());
+                                }
+                                mpsc::TryRecvError::Disconnected => {
+                                    error!("{}.run | Error receiving from queue: {:?}", self_id, err);
+                                    break 'main;
+                                }
                             }
                         }
+                    };
+                    cycle.wait();
+                    if exit.load(Ordering::SeqCst) {
+                        break 'main;
                     }
                 };
-                if exit.load(Ordering::SeqCst) {
-                    break 'main;
-                }
-            };
+            } else {
+                'main: loop {
+                    trace!("{}.run | calculation step...", self_id);
+                    match rx_recv.recv_timeout(RECV_TIMEOUT) {
+                        Ok(point) => {
+                            debug!("{}.run | point: {:?}", self_id, &point);
+                            task_nodes.eval(Some(point));
+                            debug!("{}.run | calculation step - done ({:?})", self_id, cycle.elapsed());
+                        }
+                        Err(err) => {
+                            match err {
+                                RecvTimeoutError::Timeout => {
+                                    trace!("{}.run | Receive error: {:?}", self_id, err);
+                                }
+                                RecvTimeoutError::Disconnected => {
+                                    error!("{}.run | Error receiving from queue: {:?}", self_id, err);
+                                    break 'main;
+                                }
+                            }
+                        }
+                    };
+                    if exit.load(Ordering::SeqCst) {
+                        break 'main;
+                    }
+                };
+            }
             if let Some((service_name, points)) = subscriptions {
                 if let Err(err) = services.slock().unsubscribe(&service_name,&self_name.join(), &points) {
                     error!("{}.run | Unsubscribe error: {:#?}", self_id, err);
@@ -210,7 +237,7 @@ impl Service for Task {
                 warn!("{}", message);
                 Err(message)
             }
-        }        
+        }
     }
     //
     //

@@ -6,7 +6,7 @@ mod tests {
     use std::{sync::Once, rc::Rc, cell::RefCell};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::fn_::fn_conf_keywd::FnConfPointType, core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, services::task::nested_function::{fn_::FnOut, fn_add::FnAdd, fn_input::FnInput}
+        conf::fn_::fn_conf_keywd::FnConfPointType, core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, services::task::nested_function::{fn_::FnOut, fn_add::FnAdd, fn_input::FnInput, fn_previous::FnPrevious}
     };
     ///
     ///
@@ -34,16 +34,17 @@ mod tests {
     fn test_bool() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
-        info!("test_bool");
+        let self_id = "test_bool";
+        info!("{}", self_id);
         let mut value1Stored = false.to_point(0, "bool");
         let mut value2Stored = false.to_point(0, "bool");
         let mut target: PointType;
         let input1 = init_each(value1Stored.clone(), FnConfPointType::Bool);
         let input2 = init_each(value2Stored.clone(), FnConfPointType::Bool);
         let mut fnAdd = FnAdd::new(
-            "test",
-            input1.clone(),
-            input2.clone(),
+            self_id,
+            Rc::new(RefCell::new(Box::new(FnPrevious::new(self_id, input1.clone())))),
+            Rc::new(RefCell::new(Box::new(FnPrevious::new(self_id, input2.clone())))),
         );
         let test_data = vec![
             (false, false),
@@ -78,16 +79,17 @@ mod tests {
     fn test_int() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
-        info!("test_int");
+        let self_id = "test_int";
+        info!("{}", self_id);
         let mut value1Stored = 0.to_point(0, "int");
         let mut value2Stored = 0.to_point(0, "int");
         let mut target: PointType;
         let input1 = init_each(value1Stored.clone(), FnConfPointType::Int);
         let input2 = init_each(value2Stored.clone(), FnConfPointType::Int);
         let mut fnAdd = FnAdd::new(
-            "test",
-            input1.clone(),
-            input2.clone(),
+            self_id,
+            Rc::new(RefCell::new(Box::new(FnPrevious::new(self_id, input1.clone())))),
+            Rc::new(RefCell::new(Box::new(FnPrevious::new(self_id, input2.clone())))),
         );
         let test_data = vec![
             (1, 1),

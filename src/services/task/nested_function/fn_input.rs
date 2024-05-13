@@ -173,7 +173,9 @@ impl FnOut for FnInput {
     //
     fn out(&mut self) -> FnResult {
         trace!("{}.out | value: {:?}", self.id, &self.point);
-        self.point.clone()
+        let point = self.point.clone();
+        self.point = FnResult::None;
+        point
     }
     //
     fn reset(&mut self) {

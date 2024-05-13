@@ -8,7 +8,7 @@ mod task_nodes {
         conf::{point_config::name::Name, task_config::TaskConfig},
         core_::{object::object::Object, point::point_type::{PointType, ToPoint}},
         services::{
-            safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::{nested_function::{fn_count, fn_ge, fn_kind::FnKind, sql_metric}, task_nodes::TaskNodes}
+            safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::{nested_function::{fn_::FnResult, fn_count, fn_ge, fn_kind::FnKind, sql_metric}, task_nodes::TaskNodes}
         },
     };
     ///
@@ -50,7 +50,7 @@ mod task_nodes {
         let sql_metric_count = sql_metric::COUNT.load(Ordering::SeqCst);
         let fn_count_count = fn_count::COUNT.load(Ordering::SeqCst);
         let fn_ge_count = fn_ge::COUNT.load(Ordering::SeqCst);
-        task_nodes.buildNodes(&Name::from(self_id), conf, services);
+        task_nodes.build_nodes(&Name::from(self_id), conf, services);
         let test_data = vec![
             (
                 "/path/Point.Name1", 101,
@@ -105,7 +105,7 @@ mod task_nodes {
             let point = value.to_point(0, name);
             // let inputName = &point.name();
             debug!("input point name: {:?}  value: {:?}", name, value);
-            match &task_nodes.getEvalNode(&name) {
+            match &task_nodes.get_eval_node(&name) {
                 Some(eval_node) => {
                     let input = eval_node.getInput();
                     input.borrow_mut().add(point.clone());
@@ -118,17 +118,23 @@ mod task_nodes {
                     };
                     for eval_node_out in eval_node.getOuts() {
                         trace!("TaskEvalNode.eval | evalNode '{}' out...", eval_node.name());
-                        let out = eval_node_out.borrow_mut().out().unwrap();
-                        let out_value = out.value().to_string();
-                        debug!("TaskEvalNode.eval | evalNode '{}' out - '{}': {:?}", eval_node.name(), eval_node_out.borrow().id(), out);
-                        if eval_node_out.borrow().kind() != &FnKind::Var {
-                            let out_name = out.name();
-                            debug!("TaskEvalNode.eval | out.name: '{}'", out_name);
-                            let target = match target_value.get(out_name.as_str()) {
-                                Some(target) => target.to_string(),
-                                None => panic!("TaskEvalNode.eval | out.name '{}' - not foind in {:?}", out_name, target_value),
-                            };
-                            assert!(out_value == target, "\n   outValue: {} \ntargetValue: {}", out_value, target);
+                        let out = eval_node_out.borrow_mut().out();
+                        match out {
+                            FnResult::Ok(out) => {
+                                let out_value = out.value().to_string();
+                                debug!("TaskEvalNode.eval | evalNode '{}' out - '{}': {:?}", eval_node.name(), eval_node_out.borrow().id(), out);
+                                if eval_node_out.borrow().kind() != &FnKind::Var {
+                                    let out_name = out.name();
+                                    debug!("TaskEvalNode.eval | out.name: '{}'", out_name);
+                                    let target = match target_value.get(out_name.as_str()) {
+                                        Some(target) => target.to_string(),
+                                        None => panic!("TaskEvalNode.eval | out.name '{}' - not foind in {:?}", out_name, target_value),
+                                    };
+                                    assert!(out_value == target, "\n   outValue: {} \ntargetValue: {}", out_value, target);
+                                }
+                            }
+                            FnResult::Err(err) => panic!("Ok or None is expected, but Error received: {}", err),
+                            FnResult::None => {}
                         }
                     };
                 }
