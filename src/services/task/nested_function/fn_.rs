@@ -36,7 +36,7 @@ pub trait FnOut: std::fmt::Debug {
     ///
     /// - evaluate calculations
     /// - returns calculated value
-    fn out(&mut self) -> PointType;
+    fn out(&mut self) -> Option<PointType>;
     ///
     /// resets self state to the initial, calls reset method of all inputs 
     fn reset(&mut self);
