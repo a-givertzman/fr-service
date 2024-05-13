@@ -166,6 +166,7 @@ impl Service for Task {
             task_nodes.build_nodes(&self_name, conf, services.clone());
             trace!("{}.run | taskNodes: {:#?}", self_id, task_nodes);
             if cyclic {
+                debug!("{}.run | Task started with cycle {:?}", self_id, cycle_interval);
                 'main: loop {
                     cycle.start();
                     trace!("{}.run | calculation step...", self_id);
@@ -173,14 +174,14 @@ impl Service for Task {
                         Ok(point) => {
                             debug!("{}.run | point: {:?}", self_id, &point);
                             task_nodes.eval(Some(point));
-                            debug!("{}.run | calculation step - done ({:?})", self_id, cycle.elapsed());
+                            // debug!("{}.run | calculation step - done ({:?})", self_id, cycle.elapsed());
                         }
                         Err(err) => {
                             match err {
                                 mpsc::TryRecvError::Empty => {
                                     debug!("{}.run | point: not received", self_id);
                                     task_nodes.eval(None);
-                                    debug!("{}.run | calculation step - done ({:?})", self_id, cycle.elapsed());
+                                    // debug!("{}.run | calculation step - done ({:?})", self_id, cycle.elapsed());
                                 }
                                 mpsc::TryRecvError::Disconnected => {
                                     error!("{}.run | Error receiving from queue: {:?}", self_id, err);
@@ -189,12 +190,14 @@ impl Service for Task {
                             }
                         }
                     };
+                    debug!("{}.run | calculation step - done ({:?})", self_id, cycle.elapsed());
                     cycle.wait();
                     if exit.load(Ordering::SeqCst) {
                         break 'main;
                     }
                 };
             } else {
+                debug!("{}.run | Task started in event mode", self_id);
                 'main: loop {
                     trace!("{}.run | calculation step...", self_id);
                     match rx_recv.recv_timeout(RECV_TIMEOUT) {

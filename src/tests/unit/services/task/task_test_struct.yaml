@@ -12,7 +12,7 @@
 #     max-length: 10000
 
 service Task Task1:
-    cycle: 1 ms
+    cycle: 100 ms
     in queue in-queue:
         max-length: 10000
     let var0: 

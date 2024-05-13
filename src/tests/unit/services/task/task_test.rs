@@ -34,7 +34,7 @@ mod task {
         let self_id = "task_test";
         let self_name = Name::new("", self_id);
         println!("\n{}", self_id);
-        let test_duration = TestDuration::new(self_id, Duration::from_secs(3));
+        let test_duration = TestDuration::new(self_id, Duration::from_secs(30));
         test_duration.run().unwrap();
         //
         // can be changed
