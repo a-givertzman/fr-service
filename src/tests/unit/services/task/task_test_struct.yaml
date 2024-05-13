@@ -12,7 +12,7 @@
 #     max-length: 10000
 
 service Task Task1:
-    cycle: 100 ms
+    cycle: 10 ms
     in queue in-queue:
         max-length: 10000
     let var0: 
@@ -41,13 +41,15 @@ service Task Task1:
                     input fn add:
                         input1 fn add:
                             input1: const real 0.2
-                            input2: point real '/path/Point.Name'
+                            input2 fn Previous:
+                                input: point real '/path/Point.Name'
                         input2:
                             const real 0.05
             input3 fn add:
                 input1:
                     var0
-                input2: point real '/path/Point.Name'
+                input2 fn Previous: 
+                    input: point real '/path/Point.Name'
 
 # service ApiClient:
 
