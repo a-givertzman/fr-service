@@ -12,7 +12,7 @@ use crate::{
     },
 };
 ///
-/// Function returns the ID of the point from input
+/// Function | Returns the ID of the point from input
 #[derive(Debug)]
 pub struct FnPointId {
     id: String,
@@ -77,7 +77,7 @@ impl FnOut for FnPointId {
                 }
             }
             FnResult::Err(err) => FnResult::Err(err),
-            FnResult::None => todo!(),
+            FnResult::None => FnResult::None,
         }
     }
     //

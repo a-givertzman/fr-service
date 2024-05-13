@@ -10,7 +10,7 @@ use crate::{
 use concat_string::concat_string;
 use super::fn_::FnResult;
 ///
-/// Function do Add of input1 and input2
+/// Function | Do Add of input1 and input2
 #[derive(Debug)]
 pub struct FnAdd {
     id: String,

@@ -5,7 +5,7 @@ use crate::core_::{
 };
 use super::{fn_::{FnIn, FnInOut, FnOut, FnResult}, fn_kind::FnKind};
 ///
-/// Counts number of raised fronts of boolean input
+/// Function | Counts number of raised fronts of boolean input
 #[derive(Debug)]
 pub struct FnCount {
     id: String,

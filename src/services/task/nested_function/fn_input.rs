@@ -1,9 +1,15 @@
 use log::{error, trace};
 use std::{fmt::Debug, sync::atomic::{AtomicUsize, Ordering}};
-use crate::{conf::fn_::fn_conf_keywd::FnConfPointType, core_::{point::{point::Point, point_type::PointType}, types::bool::Bool}};
-use super::{fn_::{FnIn, FnInOut, FnOut, FnResult}, fn_kind::FnKind};
+use crate::{
+    core_::{point::{point::Point, point_type::PointType}, types::bool::Bool},
+    conf::fn_::fn_conf_keywd::FnConfPointType,
+    services::task::nested_function::{
+        fn_::{FnIn, FnInOut, FnOut, FnResult},
+        fn_kind::FnKind,
+    }
+};
 ///
-/// Provide receiving Point into the computing node
+/// Function | Provide receiving Point into the computing node
 ///  - Returns Point if it was received in the current cycle
 ///  - Returns None if nothing received
 #[derive(Debug, Clone)]

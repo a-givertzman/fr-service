@@ -8,7 +8,7 @@ use crate::{
     },
 };
 ///
-/// Function just doing debug of value coming from input
+/// Function | Just doing debug of the received value
 #[derive(Debug)]
 pub struct FnDebug {
     id: String,
