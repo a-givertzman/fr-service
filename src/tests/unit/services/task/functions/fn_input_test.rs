@@ -23,7 +23,7 @@ mod fn_input {
     fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(
             Box::new(
-                FnInput::new("test", initial, type_)
+                FnInput::new("test", "test", Some(initial), type_)
             )
         ))
     }
@@ -58,7 +58,7 @@ mod fn_input {
             let state = input.borrow_mut().out();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
-            assert_eq!(state.as_int().value, value);
+            assert_eq!(state.unwrap().as_int().value, value);
         }
     }
     ///
@@ -94,7 +94,7 @@ mod fn_input {
             let state = input.borrow_mut().out();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
-            assert_eq!(state.as_bool().value.0, value);
+            assert_eq!(state.unwrap().as_bool().value.0, value);
         }
     }
     ///
@@ -130,7 +130,7 @@ mod fn_input {
             let state = input.borrow_mut().out();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
-            assert_eq!(state.as_real().value, value);
+            assert_eq!(state.unwrap().as_real().value, value);
         }
     }
     ///
@@ -166,7 +166,7 @@ mod fn_input {
             let state = input.borrow_mut().out();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
-            assert_eq!(state.as_double().value, value);
+            assert_eq!(state.unwrap().as_double().value, value);
         }
     }
     ///
@@ -200,7 +200,7 @@ mod fn_input {
             let state = input.borrow_mut().out();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
-            assert_eq!(state.as_string().value, value);
+            assert_eq!(state.unwrap().as_string().value, value);
         }
     }
 }

@@ -7,6 +7,8 @@ use crate::{
         fn_kind::FnKind,
     },
 };
+use concat_string::concat_string;
+use super::fn_::FnResult;
 ///
 /// Function do Add of input1 and input2
 #[derive(Debug)]
@@ -53,29 +55,41 @@ impl FnOut for FnAdd {
     }
     //
     //
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult {
         // TODO Add overflow check
-        let value1 = self.input1.borrow_mut().out();
-        debug!("{}.out | value1: {:?}", self.id, &value1);
-        let value2 = self.input2.borrow_mut().out();
-        debug!("{}.out | value2: {:?}", self.id, &value2);
-        let out = match value1 {
-            PointType::Bool(value1) => {
-                PointType::Bool(value1 + value2.as_bool())
-            }
-            PointType::Int(value1) => {
-                PointType::Int(value1 + value2.as_int())
-            }
-            PointType::Real(value1) => {
-                PointType::Real(value1 + value2.as_real())
-            }
-            PointType::Double(value1) => {
-                PointType::Double(value1 + value2.as_double())
-            }
-            _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, value1.print_type_of(), value1),
-        };
-        trace!("{}.out | out: {:?}", self.id, &out);
-        out
+        let input1 = self.input1.borrow_mut().out();
+        let input2 = self.input2.borrow_mut().out();
+        debug!("{}.out | input1: {:?}", self.id, input1);
+        debug!("{}.out | input2: {:?}", self.id, input2);
+        match (input1, input2) {
+            (FnResult::Ok(value1), FnResult::Ok(value2)) => {
+                let out = match value1 {
+                    PointType::Bool(value1) => {
+                        PointType::Bool(value1 + value2.as_bool())
+                    }
+                    PointType::Int(value1) => {
+                        PointType::Int(value1 + value2.as_int())
+                    }
+                    PointType::Real(value1) => {
+                        PointType::Real(value1 + value2.as_real())
+                    }
+                    PointType::Double(value1) => {
+                        PointType::Double(value1 + value2.as_double())
+                    }
+                    _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, value1.print_type_of(), value1),
+                };
+                trace!("{}.out | out: {:?}", self.id, &out);
+                FnResult::Ok(out)
+            },
+            (FnResult::Ok(_), FnResult::Err(err)) => FnResult::Err(err),
+            (FnResult::Err(err), FnResult::Ok(_)) => FnResult::Err(err),
+            (FnResult::Err(err1), FnResult::Err(err2)) => FnResult::Err(concat_string!(err1, "\n", err2)),
+            (FnResult::Err(_), FnResult::None) => FnResult::None,
+            (FnResult::Ok(_), FnResult::None) => FnResult::None,
+            (FnResult::None, FnResult::Ok(_)) => FnResult::None,
+            (FnResult::None, FnResult::Err(_)) => FnResult::None,
+            (FnResult::None, FnResult::None) => FnResult::None,
+        }
     }
     //
     //

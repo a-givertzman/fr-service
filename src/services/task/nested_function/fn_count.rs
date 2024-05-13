@@ -1,9 +1,9 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
-use log::trace;
+use log::{debug, trace};
 use crate::core_::{
     cot::cot::Cot, point::{point::Point, point_type::PointType}, types::{fn_in_out_ref::FnInOutRef, type_of::DebugTypeOf}
 };
-use super::{fn_::{FnInOut, FnOut, FnIn}, fn_kind::FnKind};
+use super::{fn_::{FnIn, FnInOut, FnOut, FnResult}, fn_kind::FnKind};
 ///
 /// Counts number of raised fronts of boolean input
 #[derive(Debug)]
@@ -49,28 +49,35 @@ impl FnOut for FnCount {
         self.input.borrow().inputs()
     }
     ///
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult {
         // trace!("{}.out | input: {:?}", self.id, self.input.print());
-        let point = self.input.borrow_mut().out();
-        let value = match &point {
-            PointType::Bool(point) => if point.value.0 {1.0} else {0.0},
-            PointType::Int(point) => point.value as f64,
-            PointType::Real(point) => point.value as f64,
-            PointType::Double(point) => point.value,
-            _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id,  point.print_type_of(), point),
-        };
-        self.count += value;
-        trace!("{}.out | input.out: {:?}   | state: {:?}", self.id, &value, self.count);
-        PointType::Double(
-            Point {
-                tx_id: *point.tx_id(),
-                name: format!("{}.out", self.id),
-                value: self.count,
-                status: point.status(),
-                cot: Cot::Inf,
-                timestamp: point.timestamp(),
+        let input = self.input.borrow_mut().out();
+        debug!("{}.out | input: {:?}", self.id, input);
+        match input {
+            FnResult::Ok(point) => {
+                let value = match &point {
+                    PointType::Bool(point) => if point.value.0 {1.0} else {0.0},
+                    PointType::Int(point) => point.value as f64,
+                    PointType::Real(point) => point.value as f64,
+                    PointType::Double(point) => point.value,
+                    _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id,  point.print_type_of(), point),
+                };
+                self.count += value;
+                trace!("{}.out | input.out: {:?}   | state: {:?}", self.id, &value, self.count);
+                FnResult::Ok(PointType::Double(
+                    Point {
+                        tx_id: *point.tx_id(),
+                        name: format!("{}.out", self.id),
+                        value: self.count,
+                        status: point.status(),
+                        cot: Cot::Inf,
+                        timestamp: point.timestamp(),
+                    }
+                ))
             }
-        )
+            FnResult::Err(err) => FnResult::Err(err),
+            FnResult::None => FnResult::None,
+        }
     }
     fn reset(&mut self) {
         self.count = self.initial;

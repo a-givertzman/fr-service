@@ -4,12 +4,29 @@ use crate::{
     conf::{fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind}, point_config::{name::Name, point_config::PointConfig}}, core_::{
         point::point_type::{PointType, ToPoint},
         types::fn_in_out_ref::FnInOutRef, 
-    }, services::{safe_lock::SafeLock, services::Services, task::{nested_function::{fn_var::FnVar, sql_metric::SqlMetric}, task_nodes::TaskNodes}}
+    },
+    services::{
+        safe_lock::SafeLock, services::Services, 
+        task::{
+            nested_function::{
+                fn_var::FnVar, 
+                sql_metric::SqlMetric,
+                export::fn_to_api_queue::FnToApiQueue, 
+                fn_add::FnAdd, 
+                fn_const::FnConst, 
+                fn_count::FnCount, 
+                fn_debug::FnDebug, 
+                fn_ge::FnGe, 
+                fn_input::FnInput, 
+                fn_point_id::FnPointId, 
+                fn_timer::FnTimer, 
+                fn_to_int::FnToInt, 
+                functions::Functions,
+            }, 
+            task_nodes::TaskNodes,
+        },
+    }
 };
-use super::{
-    export::fn_to_api_queue::FnToApiQueue, fn_add::FnAdd, fn_const::FnConst, fn_count::FnCount, fn_debug::FnDebug, fn_ge::FnGe, fn_input::FnInput, fn_point_id::FnPointId, fn_timer::FnTimer, fn_to_int::FnToInt, functions::Functions 
-};
-
 ///
 /// Creates nested functions tree from it config
 pub struct NestedFn {}
@@ -168,7 +185,10 @@ impl NestedFn {
                 };
                 debug!("{}.function | Input initial: {:?}", self_id, initial);
                 let point_name = conf.name.clone();
-                task_nodes.addInput(&point_name, Self::fn_input(&point_name, initial, conf.type_.clone()));
+                task_nodes.addInput(
+                    &point_name,
+                    Self::fn_input(&parent.join(), &point_name, Some(initial), conf.type_.clone())
+                );
                 let input = task_nodes.getInput(&point_name).unwrap();
                 if log::max_level() == LevelFilter::Trace {
                     debug!("{}.function | input (Point): {:?}", self_id, input);
@@ -210,29 +230,29 @@ impl NestedFn {
             FnToApiQueue::new(parent, input, send_queue)
         )))
     }
-    // ///
-    // /// 
+    ///
+    /// 
     fn fn_const(parent: &str, value: PointType) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
             FnConst::new(parent, value)
         )))
     }
-    // ///
-    // /// 
-    fn fn_input(parent: &str, initial: PointType, type_: FnConfPointType) -> FnInOutRef {
+    ///
+    /// 
+    fn fn_input(parent: &str, name: &str, initial: Option<PointType>, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
-            FnInput::new(parent, initial, type_)
+            FnInput::new(parent, name, initial, type_)
         )))
     }
-    // ///
-    // /// 
+    ///
+    /// 
     fn fn_add(parent: impl Into<String>, input1: FnInOutRef, input2: FnInOutRef) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(        
             FnAdd::new(parent, input1, input2)
         )))
     }    
-    // ///
-    // /// 
+    ///
+    /// 
     fn fn_timer(parent: impl Into<String>, initial: impl Into<f64> + Clone,input: FnInOutRef, repeat: bool) -> FnInOutRef {
         Rc::new(RefCell::new(
             Box::new(        
@@ -245,29 +265,29 @@ impl NestedFn {
             )
         ))
     }    
-    // ///
-    // /// 
+    ///
+    /// 
     fn fn_ge(parent: impl Into<String>, input1: FnInOutRef, input2: FnInOutRef) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(        
             FnGe::new(parent, input1, input2)
         )))
     }
-    // ///
-    // /// 
+    ///
+    /// 
     fn fn_point_id(parent: impl Into<String>, input: FnInOutRef, points: Vec<PointConfig>) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
             FnPointId::new(parent, input, points)
         )))
     }
-    // ///
-    // /// 
+    ///
+    /// 
     fn fn_debug(parent: impl Into<String>, input: FnInOutRef) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
             FnDebug::new(parent, input)
         )))
     }
-    // ///
-    // /// 
+    ///
+    /// 
     fn fn_to_int(parent: impl Into<String>, input: FnInOutRef) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
             FnToInt::new(parent, input)

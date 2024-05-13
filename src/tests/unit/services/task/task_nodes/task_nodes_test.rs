@@ -118,7 +118,7 @@ mod task_nodes {
                     };
                     for eval_node_out in eval_node.getOuts() {
                         trace!("TaskEvalNode.eval | evalNode '{}' out...", eval_node.name());
-                        let out = eval_node_out.borrow_mut().out();
+                        let out = eval_node_out.borrow_mut().out().unwrap();
                         let out_value = out.value().to_string();
                         debug!("TaskEvalNode.eval | evalNode '{}' out - '{}': {:?}", eval_node.name(), eval_node_out.borrow().id(), out);
                         if eval_node_out.borrow().kind() != &FnKind::Var {

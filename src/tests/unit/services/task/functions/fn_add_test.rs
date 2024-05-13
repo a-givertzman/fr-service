@@ -24,7 +24,7 @@ mod tests {
     fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(
             Box::new(
-                FnInput::new("test", initial, type_)
+                FnInput::new("test", "test", Some(initial), type_)
             )
         ))
     }
@@ -62,13 +62,13 @@ mod tests {
             debug!("value1: {:?}   |   state: {:?}", value1, state);
             value1Stored = point1.clone();
             target = PointType::Bool(value1Stored.as_bool() + value2Stored.as_bool());
-            assert_eq!(state, target);
+            assert_eq!(state.unwrap(), target);
             input2.borrow_mut().add(point2.clone());
             let state = fnAdd.out();
             debug!("value2: {:?}   |   state: {:?}", value2, state);
             value2Stored = point2.clone();
             target = PointType::Bool(value1Stored.as_bool() + value2Stored.as_bool());
-            assert_eq!(state, target);
+            assert_eq!(state.unwrap(), target);
             println!();
         }
     }
@@ -111,13 +111,13 @@ mod tests {
             debug!("value1: {:?}   |   state: {:?}", value1, state);
             value1Stored = point1.clone();
             target = PointType::Int(value1Stored.as_int() + value2Stored.as_int());
-            assert_eq!(state, target);
+            assert_eq!(state.unwrap(), target);
             input2.borrow_mut().add(point2.clone());
             let state = fnAdd.out();
             debug!("value2: {:?}   |   state: {:?}", value2, state);
             value2Stored = point2.clone();
             target = PointType::Int(value1Stored.as_int() + value2Stored.as_int());
-            assert_eq!(state, target);
+            assert_eq!(state.unwrap(), target);
             println!();
         }
     }

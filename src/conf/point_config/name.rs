@@ -27,7 +27,7 @@ impl Name {
         }
     }
     ///
-    /// Returns 
+    /// Returns joined parent & me in the format: /parent/me
     pub fn join(&self) -> String {
         if self.joined.borrow().is_none() {
             let parent = match self.parent.chars().next() {

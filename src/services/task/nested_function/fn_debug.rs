@@ -1,9 +1,9 @@
 use log::debug;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::{
-    core_::{point::point_type::PointType, types::fn_in_out_ref::FnInOutRef},
+    core_::types::fn_in_out_ref::FnInOutRef,
     services::task::nested_function::{
-        fn_::{FnInOut, FnIn, FnOut},
+        fn_::{FnInOut, FnIn, FnOut, FnResult},
         fn_kind::FnKind,
     },
 };
@@ -49,7 +49,7 @@ impl FnOut for FnDebug {
     }
     //
     //
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult {
         let value = self.input.borrow_mut().out();
         debug!("{}.out | value: {:#?}", self.id, value);
         value

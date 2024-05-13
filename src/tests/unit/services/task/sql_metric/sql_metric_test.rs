@@ -77,7 +77,7 @@ mod sql_metric {
                     };
                     for eval_node_out in eval_node.getOuts() {
                         trace!("TaskEvalNode.eval | evalNode '{}' out...", eval_node.name());
-                        let out = eval_node_out.borrow_mut().out();
+                        let out = eval_node_out.borrow_mut().out().unwrap();
                         let out_value = match &out {
                             PointType::Bool(point) => point.value.to_string(),
                             PointType::Int(point) => point.value.to_string(),
@@ -146,7 +146,7 @@ mod sql_metric {
                     };
                     for eval_node_out in eval_node.getOuts() {
                         trace!("TaskEvalNode.eval | evalNode '{}' out...", eval_node.name());
-                        let out = eval_node_out.borrow_mut().out();
+                        let out = eval_node_out.borrow_mut().out().unwrap();
                         let out_value = match &out {
                             PointType::Bool(point) => point.value.to_string(),
                             PointType::Int(point) => point.value.to_string(),
@@ -225,7 +225,7 @@ mod sql_metric {
                     };
                     for eval_node_out in eval_node.getOuts() {
                         trace!("TaskEvalNode.eval | evalNode '{}' out...", eval_node.name());
-                        let out = eval_node_out.borrow_mut().out();
+                        let out = eval_node_out.borrow_mut().out().unwrap();
                         let out_value = match &out {
                             PointType::Bool(point) => point.value.to_string(),
                             PointType::Int(point) => point.value.to_string(),

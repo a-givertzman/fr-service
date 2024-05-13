@@ -23,7 +23,7 @@ fn init_once() {
 fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
     fn_count::COUNT.reset(0);
     Rc::new(RefCell::new(Box::new(
-        FnInput::new("test", initial, type_)
+        FnInput::new("test", "test", Some(initial), type_)
     )))
 }
 ///
@@ -62,7 +62,7 @@ fn test_single() {
         let state = fnCount.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.as_double().value, targetState as f64);
+        assert_eq!(state.unwrap().as_double().value, targetState as f64);
     }
 }
 //
@@ -101,7 +101,7 @@ fn test_multiple() {
         let state = fnCount.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.as_double().value, targetState as f64);
+        assert_eq!(state.unwrap().as_double().value, targetState as f64);
     }
 }
 
@@ -142,6 +142,6 @@ fn test_multiple_reset() {
         let state = fnCount.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.as_double().value, targetState as f64);
+        assert_eq!(state.unwrap().as_double().value, targetState as f64);
     }
 }

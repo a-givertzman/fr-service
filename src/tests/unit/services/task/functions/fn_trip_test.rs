@@ -22,7 +22,7 @@ mod fn_trip {
     ///  - ...
     fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
-            FnInput::new("test", initial, type_)
+            FnInput::new("test", "test", Some(initial), type_)
         )))
     }
     ///
@@ -63,7 +63,7 @@ mod fn_trip {
             let state = fn_trip.out();
             // debug!("input: {:?}", &mut input);
             debug!("value1: {:?}  >=  value2: {:?}  |   state: {:?}", value1, value2, state);
-            assert_eq!(state.as_bool().value.0, target_state);
+            assert_eq!(state.unwrap().as_bool().value.0, target_state);
         }
     }
     ///
@@ -109,7 +109,7 @@ mod fn_trip {
             let state = fn_trip.out();
             // debug!("input: {:?}", &mut input);
             debug!("value1: {:?}  >=  value2: {:?}  |   state: {:?}", value1, value2, state);
-            assert_eq!(state.as_bool().value.0, target_dtate);
+            assert_eq!(state.unwrap().as_bool().value.0, target_dtate);
         }
     }
     ///
@@ -155,7 +155,7 @@ mod fn_trip {
             // debug!("input: {:?}", &mut input);
             debug!("value1: {:?}  >=  value2: {:?}  |   state: {:?}", value1, value2, state);
 
-            assert_eq!(state.as_bool().value.0, target_state);
+            assert_eq!(state.unwrap().as_bool().value.0, target_state);
         }
     }
     ///
@@ -201,7 +201,7 @@ mod fn_trip {
             // debug!("input: {:?}", &mut input);
             debug!("value1: {:?}  >=  value2: {:?}  |   state: {:?}", value1, value2, state);
 
-            assert_eq!(state.as_bool().value.0, target_state);
+            assert_eq!(state.unwrap().as_bool().value.0, target_state);
         }
     }
 }

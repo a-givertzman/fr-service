@@ -1,6 +1,6 @@
 use std::sync::{mpsc::Sender, atomic::{AtomicUsize, Ordering}};
 use log::{debug, error};
-use crate::{services::task::nested_function::{fn_::{FnInOut, FnIn, FnOut}, fn_kind::FnKind}, core_::{point::point_type::PointType, types::fn_in_out_ref::FnInOutRef}};
+use crate::{core_::{point::point_type::PointType, types::fn_in_out_ref::FnInOutRef}, services::task::nested_function::{fn_::{FnIn, FnInOut, FnOut, FnResult}, fn_kind::FnKind}};
 ///
 /// Exports data from the input into the associated queue
 #[derive(Debug)]
@@ -55,21 +55,26 @@ impl FnOut for FnToApiQueue {
         self.input.borrow().inputs()
     }
     //
-    fn out(&mut self) -> PointType {
-        let point = self.input.borrow_mut().out();
-        let sql = point.as_string().value;
-        if sql != self.state {
-            self.state = sql.clone();
-            match self.tx_send.send(point.clone()) {
-                Ok(_) => {
-                    debug!("{}.out | Sent sql: {}", self.id, sql);
+    fn out(&mut self) -> FnResult {
+        match self.input.borrow_mut().out() {
+            FnResult::Ok(point) => {
+                let sql = point.as_string().value;
+                if sql != self.state {
+                    self.state = sql.clone();
+                    match self.tx_send.send(point.clone()) {
+                        Ok(_) => {
+                            debug!("{}.out | Sent sql: {}", self.id, sql);
+                        }
+                        Err(err) => {
+                            error!("{}.out | Send error: {:?}\n\tsql: {:?}", self.id, err, sql);
+                        }
+                    };
                 }
-                Err(err) => {
-                    error!("{}.out | Send error: {:?}\n\tsql: {:?}", self.id, err, sql);
-                }
-            };
+                FnResult::Ok(point)
+            }
+            FnResult::Err(err) => FnResult::Err(err),
+            FnResult::None => FnResult::None,
         }
-        point
     }
     //
     fn reset(&mut self) {

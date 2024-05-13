@@ -26,7 +26,7 @@ mod tests {
     fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(
             Box::new(
-                FnInput::new("test", initial, type_)
+                FnInput::new("test", "test", Some(initial), type_)
             )
         ))
     }
@@ -66,7 +66,7 @@ mod tests {
             let state = fn_var.out();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
-            assert_eq!(state, point);
+            assert_eq!(state.unwrap(), point);
         }
     }
 
@@ -102,7 +102,7 @@ mod tests {
             let state = fn_var.out();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
-            assert_eq!(state, point);
+            assert_eq!(state.unwrap(), point);
         }
     }
     ///
@@ -138,7 +138,7 @@ mod tests {
             let state = fn_var.out();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
-            assert_eq!(state, point);
+            assert_eq!(state.unwrap(), point);
         }
     }
     ///
@@ -174,7 +174,7 @@ mod tests {
             let state = fn_var.out();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
-            assert_eq!(state, point);
+            assert_eq!(state.unwrap(), point);
         }
     }
 }

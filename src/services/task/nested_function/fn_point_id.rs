@@ -7,7 +7,7 @@ use crate::{
     conf::point_config::point_config::PointConfig, 
     core_::{point::{point::Point, point_type::PointType}, types::fn_in_out_ref::FnInOutRef}, 
     services::task::nested_function::{
-        fn_::{FnIn, FnInOut, FnOut},
+        fn_::{FnIn, FnInOut, FnOut, FnResult},
         fn_kind::FnKind,
     },
 };
@@ -55,23 +55,29 @@ impl FnOut for FnPointId {
     }
     //
     //
-    fn out(&mut self) -> PointType {
-        let point = self.input.borrow_mut().out();
-        trace!("{}.out | input: {:?}", self.id, point);
-        match self.points.get(&point.name()) {
-            Some(id) => {
-                PointType::Int(
-                    Point {
-                        tx_id: *point.tx_id(),
-                        name: concat_string!(self.id, ".out"),
-                        value: *id as i64,
-                        status: point.status(),
-                        cot: point.cot(),
-                        timestamp: point.timestamp(),
+    fn out(&mut self) -> FnResult {
+        let input = self.input.borrow_mut().out();
+        trace!("{}.out | input: {:?}", self.id, input);
+        match input {
+            FnResult::Ok(point) => {
+                match self.points.get(&point.name()) {
+                    Some(id) => {
+                        FnResult::Ok(PointType::Int(
+                            Point {
+                                tx_id: *point.tx_id(),
+                                name: concat_string!(self.id, ".out"),
+                                value: *id as i64,
+                                status: point.status(),
+                                cot: point.cot(),
+                                timestamp: point.timestamp(),
+                            }
+                        ))
                     }
-                )
+                    None => panic!("{}.out | point '{}' - not found in configured points", self.id, point.name()),
+                }
             }
-            None => panic!("{}.out | point '{}' - not found in configured points", self.id, point.name()),
+            FnResult::Err(err) => FnResult::Err(err),
+            FnResult::None => todo!(),
         }
     }
     //

@@ -1,15 +1,21 @@
 use std::{collections::HashMap, sync::{Arc, Mutex, atomic::{AtomicUsize, Ordering}}};
 use indexmap::IndexMap;
-use log::{debug, trace};
+use log::{debug, error, trace};
 use crate::{
     conf::{fn_::fn_config::FnConfig, point_config::name::Name}, core_::{
         format::format::Format, point::{point::Point, point_tx_id::PointTxId, point_type::{PointType, ToPoint}}, types::fn_in_out_ref::FnInOutRef 
-    }, services::{services::Services, task::task_nodes::TaskNodes}
+    },
+    services::{
+        services::Services, task::task_nodes::TaskNodes,
+        task::nested_function::{
+            fn_::{FnIn, FnInOut, FnOut, FnResult}, fn_kind::FnKind, nested_fn::NestedFn
+        }
+    }
 };
-use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn, fn_kind::FnKind};
 ///
 /// Function | SqlMetric
-///     - values received from the [input]s puts into the target sql query
+///     - on Ok values received from the [input]s puts into the target sql query
+///     - on Err or None sql query will canceled
 ///     - sql query buit by replacing markers with current values:
 ///         - table = 'point_values'
 ///         - input1.name = 'test-point'
@@ -101,13 +107,16 @@ impl FnIn for SqlMetric {
 /// 
 impl FnOut for SqlMetric {
     //
+    //
     fn id(&self) -> String {
         self.id.clone()
     }
     //
+    //
     fn kind(&self) -> &FnKind {
         &self.kind
     }
+    //
     //
     fn inputs(&self) -> Vec<String> {
         let mut inputs = vec![];
@@ -117,7 +126,8 @@ impl FnOut for SqlMetric {
         inputs
     }
     //
-    fn out(&mut self) -> PointType {
+    //
+    fn out(&mut self) -> FnResult {
         let self_id = self.id.clone();
         for (full_name, (name, sufix)) in &self.sql_names {
             trace!("{}.out | name: {:?}, sufix: {:?}", self_id, name, sufix);
@@ -125,7 +135,17 @@ impl FnOut for SqlMetric {
                 Some(input) => {
                     trace!("{}.out | input: {:?} - found", self_id, name);
                     let point = input.borrow_mut().out();
-                    self.sql.insert(full_name, point);
+                    match point {
+                        FnResult::Ok(point) => {
+                            self.sql.insert(full_name, point);
+                        }
+                        FnResult::Err(err) => {
+                            let message = format!("{}.out | input error: {}", self_id, err);
+                            error!("{}", message);
+                            return FnResult::Err(message);
+                        }
+                        FnResult::None => return FnResult::None,
+                    }
                 }
                 None => {
                     panic!("{}.out | input: {:?} - not found", self_id, name);
@@ -133,12 +153,13 @@ impl FnOut for SqlMetric {
             };
         }
         trace!("{}.out | sql: {:?}", self_id, self.sql.out());
-        PointType::String(Point::new_string(
+        FnResult::Ok(PointType::String(Point::new_string(
             self.tx_id,
             &self.name.join(), 
             self.sql.out(),
-        ))
+        )))
     }
+    //
     //
     fn reset(&mut self) {
         todo!()
