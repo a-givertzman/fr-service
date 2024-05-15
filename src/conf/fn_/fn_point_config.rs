@@ -5,10 +5,13 @@ use crate::conf::{
 
 
 ///
-/// Reperesents configuration of the point with it input as point value source 
+/// Represents configuration of the point in the NestedFn
+///  - send-to - Service.Queue where the point will be sent
+///  - input - the source of the point value  
 #[derive(Debug, PartialEq, Clone)]
 pub struct FnPointConfig {
     pub conf: PointConfig,
+    pub send_to: Option<String>,
     pub input: Box<FnConfKind>,
 }
 ///

@@ -143,7 +143,7 @@ impl ConfTree {
         }
     }
     ///
-    /// returns tree node value as bool by it's key if exists
+    /// returns tree node value as str by it's key if exists
     pub fn asStr(&self, key: &str) -> Result<&str, String> {
         if self.conf.is_mapping() {
             match self.conf.as_mapping().unwrap().get(key) {

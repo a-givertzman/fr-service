@@ -20,9 +20,10 @@ pub enum Functions {
     PointId,
     Debug,
     ToInt,
+    Export,
 }
 ///
-/// 
+///
 impl Functions {
     const ADD               : &'static str = "add";
     const CONST             : &'static str = "const";
@@ -37,46 +38,49 @@ impl Functions {
     const POINT_ID          : &'static str = "PointId";
     const DEBUG             : &'static str = "debug";
     const TO_INT            : &'static str = "ToInt";
+    const EXPORT            : &'static str = "Export";
     ///
-    ///     
+    ///
     pub fn name(&self) -> &str {
         match self {
-            Functions::Add              => Self::ADD,
-            Functions::Const            => Self::CONST,
-            Functions::Count            => Self::COUNT,
-            Functions::Ge               => Self::GE,
-            Functions::Input            => Self::INPUT,
-            Functions::Timer            => Self::TIMER,
-            Functions::Var              => Self::VAR,
-            Functions::ToApiQueue       => Self::TO_API_QUEUE,
-            Functions::ToMultiQueue     => Self::TO_MULTI_QUEUE,
-            Functions::SqlMetric        => Self::SQL_METRIC,
-            Functions::PointId          => Self::POINT_ID,
-            Functions::Debug            => Self::DEBUG,
-            Functions::ToInt            => Self::TO_INT,
+            Self::Add               => Self::ADD,
+            Self::Const             => Self::CONST,
+            Self::Count             => Self::COUNT,
+            Self::Ge                => Self::GE,
+            Self::Input             => Self::INPUT,
+            Self::Timer             => Self::TIMER,
+            Self::Var               => Self::VAR,
+            Self::ToApiQueue        => Self::TO_API_QUEUE,
+            Self::ToMultiQueue      => Self::TO_MULTI_QUEUE,
+            Self::SqlMetric         => Self::SQL_METRIC,
+            Self::PointId           => Self::POINT_ID,
+            Self::Debug             => Self::DEBUG,
+            Self::ToInt             => Self::TO_INT,
+            Self::Export            => Self::EXPORT,
         }
     }
 }
 ///
-/// 
+///
 impl FromStr for Functions {
     type Err = String;
     fn from_str(input: &str) -> Result<Functions, String> {
         trace!("Functions.from_str | input: {}", input);
         match input {
-            Self::ADD               => Ok( Functions::Add ),
-            Self::CONST             => Ok( Functions::Const ),
-            Self::COUNT             => Ok( Functions::Count ),
-            Self::GE                => Ok( Functions::Ge ),
-            Self::INPUT             => Ok( Functions::Input ),
-            Self::TIMER             => Ok( Functions::Timer ),
-            Self::VAR               => Ok( Functions::Var ),
-            Self::TO_API_QUEUE      => Ok( Functions::ToApiQueue ),
-            Self::TO_MULTI_QUEUE    => Ok( Functions::ToMultiQueue ),
-            Self::SQL_METRIC        => Ok( Functions::SqlMetric ),
-            Self::POINT_ID          => Ok( Functions::PointId ),
-            Self::DEBUG             => Ok( Functions::Debug ),
-            Self::TO_INT            => Ok( Functions::ToInt ),
+            Self::ADD               => Ok( Self::Add ),
+            Self::CONST             => Ok( Self::Const ),
+            Self::COUNT             => Ok( Self::Count ),
+            Self::GE                => Ok( Self::Ge ),
+            Self::INPUT             => Ok( Self::Input ),
+            Self::TIMER             => Ok( Self::Timer ),
+            Self::VAR               => Ok( Self::Var ),
+            Self::TO_API_QUEUE      => Ok( Self::ToApiQueue ),
+            Self::TO_MULTI_QUEUE    => Ok( Self::ToMultiQueue ),
+            Self::SQL_METRIC        => Ok( Self::SqlMetric ),
+            Self::POINT_ID          => Ok( Self::PointId ),
+            Self::DEBUG             => Ok( Self::Debug ),
+            Self::TO_INT            => Ok( Self::ToInt ),
+            Self::EXPORT            => Ok( Self::Export ),
             _ => Err(format!("Functions.from_str | Unknown function name '{}'", &input)),
         }
     }

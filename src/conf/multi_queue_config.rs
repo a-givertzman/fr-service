@@ -41,7 +41,8 @@ impl MultiQueueConfig {
         let self_id = format!("MultiQueueConfig({})", conf_tree.key);
         let mut self_conf = ServiceConfig::new(&self_id, conf_tree.clone());
         trace!("{}.new | self_conf: {:?}", self_id, self_conf);
-        let self_name = Name::new(parent, self_conf.name());
+        let me = if self_conf.sufix().is_empty() {self_conf.name()} else {self_conf.sufix()};
+        let self_name = Name::new(parent, me);
         debug!("{}.new | self_name: {:?}", self_id, self_name);
         let (rx, rx_max_length) = self_conf.get_in_queue().unwrap();
         debug!("{}.new | RX: {},\tmax-length: {}", self_id, rx, rx_max_length);

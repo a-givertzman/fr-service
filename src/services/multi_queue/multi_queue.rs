@@ -87,7 +87,6 @@ impl MultiQueue {
             }
         }
     }
-
 }
 ///
 /// 
@@ -214,13 +213,14 @@ impl Service for MultiQueue {
         let recv = self.rx_recv.pop().unwrap();
         let subscriptions_ref = self.subscriptions.clone();
         let subscriptions_changed = self.subscriptions_changed.clone();
+        // let receiver_dictionary = self.receiver_dictionary.clone();
         for receiver_name in &self.send_queues {
             let send = self.services.slock().get_link(receiver_name).unwrap_or_else(|err| {
                 panic!("{}.run | services.get_link error: {:#?}", self_id, err);
             });
             let receiver_hash = PointTxId::fromStr(receiver_name);
             self.subscriptions.slock().add_broadcast(receiver_hash, send.clone());
-            debug!("{}.subscribe | Broadcast subscription registered, receiver: \n\t{} ({})", self.id, receiver_name, receiver_hash);
+            debug!("{}.run | Broadcast subscription registered, receiver: \n\t{} ({})", self.id, receiver_name, receiver_hash);
         }
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
@@ -241,14 +241,16 @@ impl Service for MultiQueue {
                                 true => {
                                     match sender.send(point.clone()) {
                                         Ok(_) => {
-                                            trace!("{}.read | sent to '{}' point: {:?}", self_id, receiver_hash, point);
+                                            trace!("{}.run | sent to '{}' point: {:?}", self_id, receiver_hash, point);
                                         }
                                         Err(err) => {
                                             error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", self_id, point_id, receiver_hash, err);
                                         }
                                     };
                                 }
-                                false => {}
+                                false => {
+                                    // warn!("{}.run | ignored for receiver '{:?}' point: {:?}", self_id, receiver_dictionary.get(&receiver_hash).cloned(), point);
+                                }
                             }
                         }
                     }

@@ -1228,30 +1228,19 @@ service Task RecorderTask:
     subscribe:
         /App/MultiQueue:                    # - multicast subscription to the MultiQueue
             {cot: Inf}: []                      #   - on all points having Cot::Inf
-    # fn debug:
-    #     input: point any every
-    fn ToApiQueue:
-        queue: /App/ApiClient.in-queue
-        input fn SqlMetric:
-            initial: 0.123      # начальное значение
-            table: public.event
-            sql: "insert into {table} (pid,value,status,timestamp) values ({input2.value},{input1.value},{input1.status},'{input1.timestamp}');"
-            input1 fn ToInt:
-                input: point any every      # point: every point of any type
-            input2 fn PointId:
-                input: point any every
-
     #
     # Detect if operating cycle is active (1 - isActive, 0 - isNotActive)
-    let opCycleIsActive:
+    fn debug debug01:
+    # let opCycleIsActive:
         input fn DetectOpCycle:
             nom: 1200           # The nominal value of the crane load
             threshold: 0.05     # Triggering threshold of the operating cycle detection function on the input value based on the nominal value 
-            input: point real '/App/ied13/db905_visual_data_fast/Load'
+            input: point real '/App/Load'
 
     #
     # Count the operating cycle ID (retained licaly)
-    let opCycleId:
+    fn debug02:
+    # let opCycleId:
         input fn Retain:
             name: 'OperatingCycleId'
             input fn Count:
@@ -1262,7 +1251,7 @@ service Task RecorderTask:
     #
     # live values of the operating cycle
     # table: operating_cycle_data
-    fn debug:
+    fn debug03:
     # fn ToApiQueue:
         # queue: /App/ApiClient.in-queue
         input fn Merge:

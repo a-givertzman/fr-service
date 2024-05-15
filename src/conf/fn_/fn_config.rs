@@ -114,6 +114,7 @@ impl FnConfig {
                             FnConfKind::PointConf(
                                 FnPointConfig {
                                     conf: PointConfig::new(parent_name, conf_tree),
+                                    send_to: conf_tree.asStr("send-to").map_or(None, |v| Some(v.to_owned())),
                                     input: Box::new(FnConfig::new(parent_id, parent_name, &input_conf, vars)),
                                 }
                             )
@@ -277,7 +278,7 @@ impl FnConfig {
         }
     }
     ///
-    /// returns input config by itc name
+    /// Returns input config by it's name
     pub fn input_conf<'a>(&'a mut self, input_name: &str) -> &'a mut FnConfKind {
         match self.inputs.get_mut(input_name) {
             Some(conf) => conf,
@@ -285,7 +286,7 @@ impl FnConfig {
         }
     }
     ///
-    /// returns custom parameter by it's name if exists, else none
+    /// Returns custom parameter by it's name if exists, else none
     pub fn param(&self, name: &str) -> &FnConfKind {
         match self.inputs.get(name) {
             Some(param) => param,
