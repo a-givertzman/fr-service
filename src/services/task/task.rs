@@ -154,9 +154,9 @@ impl Service for Task {
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         let services = self.services.clone();
-        let (cyclic, cycle_interval) = match conf.cycle {
-            Some(interval) => (interval > Duration::ZERO, interval),
-            None => (false, Duration::ZERO),
+        let (cyclic, cycle_interval, recv_timeout) = match conf.cycle {
+            Some(interval) => (interval > Duration::ZERO, interval, interval),
+            None => (false, Duration::ZERO, RECV_TIMEOUT),
         };
         let subscriptions = self.subscriptions(&conf, &services);
         let rx_recv = self.subscribe(&subscriptions, &services);
@@ -168,7 +168,7 @@ impl Service for Task {
             'main: loop {
                 cycle.start();
                 trace!("{}.run | calculation step...", self_id);
-                match rx_recv.recv_timeout(RECV_TIMEOUT) {
+                match rx_recv.recv_timeout(recv_timeout) {
                     Ok(point) => {
                         debug!("{}.run | point: {:?}", self_id, &point);
                         task_nodes.eval(point);
