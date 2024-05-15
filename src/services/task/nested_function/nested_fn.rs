@@ -11,8 +11,7 @@ use crate::{
         task::{
             nested_function::{
                 export::{fn_export::FnExport, fn_point::FnPoint, fn_to_api_queue::FnToApiQueue},
-                fn_var::FnVar,
-                sql_metric::SqlMetric,
+                fn_var::FnVar, sql_metric::SqlMetric,
                 fn_add::FnAdd, fn_const::FnConst, fn_count::FnCount, fn_debug::FnDebug, fn_ge::FnGe, 
                 fn_input::FnInput, fn_point_id::FnPointId, fn_timer::FnTimer, fn_to_int::FnToInt, functions::Functions,
             },

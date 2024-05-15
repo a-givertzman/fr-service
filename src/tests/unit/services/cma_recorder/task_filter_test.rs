@@ -44,7 +44,7 @@ mod cma_recorder {
             &self_name,
             &serde_yaml::from_str(r"
                 service Task RecorderTask:
-                    cycle: 1 s
+                    cycle: 100 ms
                     in queue recv-queue:
                         max-length: 10000
                     subscribe:
@@ -56,7 +56,10 @@ mod cma_recorder {
                             input: point real '/App/Load'
                             send-to: /App/MultiQueue.in-queue
                     fn debug debug02:
-                        input: point real '/App/RecorderTask/Load001'
+                        input point Load002:
+                            type: 'Real'
+                            input: point real '/App/RecorderTask/Load001'
+                            send-to: /App/TaskTestReceiver.in-queue
             ").unwrap(),
         );
         trace!("config: {:?}", config);
