@@ -1,39 +1,44 @@
 use std::sync::{mpsc::Sender, atomic::{AtomicUsize, Ordering}};
 use log::{debug, error};
 use crate::{
-    conf::point_config::{point_config::PointConfig, point_config_type::PointConfigType}, core_::{point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, types::{bool::Bool, fn_in_out_ref::FnInOutRef}}, services::task::nested_function::{fn_::{FnIn, FnInOut, FnOut}, fn_kind::FnKind}
+    conf::point_config::{point_config::PointConfig, point_config_type::PointConfigType},
+    core_::{point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, types::{bool::Bool, fn_in_out_ref::FnInOutRef}},
+    services::task::nested_function::{fn_::{FnIn, FnInOut, FnOut}, fn_kind::FnKind},
 };
 ///
-/// Specific function used for exports configured point into the Service.in-queue
+/// Function | Filtered input exports as configured point into the Service.in-queue
 ///  - Poiont will be sent to the queue only if:
+///     - [pass] is true (possible pass > 0)
 ///     - queue name provided
 ///     - Point was changed
-///  - finally point will be passed to the parent function
+///  - finally [pass] Point will be passed to the parent function
 #[derive(Debug)]
-pub struct FnPoint {
+pub struct FnFilter {
     id: String,
     tx_id: usize,
     kind: FnKind,
     conf: PointConfig,
-    input: Option<FnInOutRef>,
+    input: FnInOutRef,
+    pass: FnInOutRef,
     tx_send: Option<Sender<PointType>>,
     state: Option<PointType>,
 }
 ///
 ///
-impl FnPoint {
+impl FnFilter {
     ///
-    /// creates new instance of the FnPoint
+    /// creates new instance of the FnFilter
     /// - id - just for proper debugging
     /// - input - incoming points
-    pub fn new(parent: impl Into<String>, conf: PointConfig, input: Option<FnInOutRef>, send: Option<Sender<PointType>>) -> Self {
-        let self_id = format!("{}/FnPoint{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed));
+    pub fn new(parent: impl Into<String>, conf: PointConfig, input: FnInOutRef, pass: FnInOutRef, send: Option<Sender<PointType>>) -> Self {
+        let self_id = format!("{}/FnFilter{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed));
         Self {
             id: self_id.clone(),
             tx_id: PointTxId::fromStr(&self_id),
             kind: FnKind::Fn,
             conf,
             input,
+            pass,
             tx_send: send,
             state: None,
         }
@@ -117,7 +122,7 @@ impl FnPoint {
 }
 ///
 ///
-impl FnIn for FnPoint {
+impl FnIn for FnFilter {
     //
     fn add(&mut self, _: PointType) {
         panic!("{}.add | method is not used", self.id);
@@ -125,7 +130,7 @@ impl FnIn for FnPoint {
 }
 ///
 ///
-impl FnOut for FnPoint {
+impl FnOut for FnFilter {
     //
     fn id(&self) -> String {
         self.id.clone()
@@ -136,43 +141,49 @@ impl FnOut for FnPoint {
     }
     //
     fn inputs(&self) -> Vec<String> {
-        match &self.input {
-            Some(input) => input.borrow().inputs(),
-            None => vec![],
-        }
+        self.input.borrow().inputs()
     }
     //
     fn out(&mut self) -> PointType {
-        match &self.input {
-            Some(input) => {
-                let point = input.borrow_mut().out();
-                match &self.state {
-                    Some(state) => {
-                        if &point != state {
-                            self.state = Some(point.clone());
-                            self.send(point.clone());
-                        }
-                    }
-                    None => {
-                        self.state = Some(point.clone());
-                        self.send(point.clone());
+        let input = self.input.borrow_mut().out();
+        let pass_point = self.pass.borrow_mut().out();
+        let pass = match &pass_point {
+            PointType::Bool(pass) => pass.value.0,
+            PointType::Int(pass) => pass.value > 0,
+            PointType::Real(pass) => pass.value > 0.0,
+            PointType::Double(pass) => pass.value > 0.0,
+            PointType::String(_) => panic!("{}.out | On the 'pass' input String type received, but expected type Bool / Int / Real / Double", self.id),
+        };
+        debug!("{}.out | pass: {:?}", self.id, pass);
+        match &self.state {
+            Some(state) => {
+                if input.value() != state.value() {
+                    if pass {
+                        self.state = Some(input.clone());
+                        debug!("{}.out | Sending point: {:?}", self.id, input);
+                        self.send(input.clone());
                     }
                 }
-                point
             }
-            None => panic!("{}.out | Input is not configured for the Point '{}'", self.id, self.conf.name),
+            None => {
+                if pass {
+                    self.state = Some(input.clone());
+                    debug!("{}.out | Sending point: {:?}", self.id, input);
+                    self.send(input.clone());
+                }
+            }
         }
+        pass_point
     }
     //
     fn reset(&mut self) {
-        if let Some(input) = &self.input {
-            input.borrow_mut().reset();
-        }
+        self.input.borrow_mut().reset();
+        self.pass.borrow_mut().reset();
     }
 }
 ///
 ///
-impl FnInOut for FnPoint {}
+impl FnInOut for FnFilter {}
 ///
-/// Global static counter of FnPoint instances
+/// Global static counter of FnFilter instances
 static COUNT: AtomicUsize = AtomicUsize::new(1);

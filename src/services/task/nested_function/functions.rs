@@ -1,7 +1,7 @@
 //!
 //! Here must be defined all functions to be awalible in the Task -> NestedFn
 use std::str::FromStr;
-use log::trace;
+use log::{trace, warn};
 ///
 /// Entair list of public functions
 /// supported by NestedFn builder
@@ -21,24 +21,28 @@ pub enum Functions {
     Debug,
     ToInt,
     Export,
+    Filter,
 }
 ///
 ///
 impl Functions {
-    const ADD               : &'static str = "add";
-    const CONST             : &'static str = "const";
-    const COUNT             : &'static str = "count";
-    const GE                : &'static str = "ge";
+    /// embedded functions
     const INPUT             : &'static str = "input";
-    const TIMER             : &'static str = "timer";
+    const CONST             : &'static str = "const";
     const VAR               : &'static str = "var";
+    const DEBUG             : &'static str = "debug";
+    /// user defined functions
+    const ADD               : &'static str = "Add";
+    const COUNT             : &'static str = "Count";
+    const GE                : &'static str = "Ge";
+    const TIMER             : &'static str = "Timer";
     const TO_API_QUEUE      : &'static str = "ToApiQueue";
     const TO_MULTI_QUEUE    : &'static str = "ToMultiQueue";
     const SQL_METRIC        : &'static str = "SqlMetric";
     const POINT_ID          : &'static str = "PointId";
-    const DEBUG             : &'static str = "debug";
     const TO_INT            : &'static str = "ToInt";
     const EXPORT            : &'static str = "Export";
+    const FILTER            : &'static str = "Filter";
     ///
     ///
     pub fn name(&self) -> &str {
@@ -57,15 +61,12 @@ impl Functions {
             Self::Debug             => Self::DEBUG,
             Self::ToInt             => Self::TO_INT,
             Self::Export            => Self::EXPORT,
+            Self::Filter            => Self::FILTER,
         }
     }
-}
-///
-///
-impl FromStr for Functions {
-    type Err = String;
-    fn from_str(input: &str) -> Result<Functions, String> {
-        trace!("Functions.from_str | input: {}", input);
+    ///
+    /// 
+    fn match_name(input: &str) -> Result<Functions, String> {
         match input {
             Self::ADD               => Ok( Self::Add ),
             Self::CONST             => Ok( Self::Const ),
@@ -81,7 +82,17 @@ impl FromStr for Functions {
             Self::DEBUG             => Ok( Self::Debug ),
             Self::TO_INT            => Ok( Self::ToInt ),
             Self::EXPORT            => Ok( Self::Export ),
+            Self::FILTER            => Ok( Self::Filter ),
             _ => Err(format!("Functions.from_str | Unknown function name '{}'", &input)),
         }
+    }
+}
+///
+///
+impl FromStr for Functions {
+    type Err = String;
+    fn from_str(input: &str) -> Result<Functions, String> {
+        trace!("Functions.from_str | input: {}", input);
+        Self::match_name(input)
     }
 }

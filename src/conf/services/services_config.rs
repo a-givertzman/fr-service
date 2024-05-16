@@ -42,8 +42,8 @@ use crate::conf::{
 ///         in1 point CraneMovement.BoomUp: 
 ///             type: 'Int'
 ///             comment: 'Some indication'
-///             input fn add:
-///                 input1 fn add:
+///             input fn Add:
+///                 input1 fn Add:
 ///                     input1: const real 0.2
 ///                     input2: point real '/path/Point.Name'
 ///     ...

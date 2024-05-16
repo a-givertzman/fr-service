@@ -87,7 +87,7 @@ impl Service for TaskTestReceiver {
                 match in_recv.recv() {
                     Ok(point) => {
                         debug!("{}.run | received: {}/{}, (value: {:?})", self_id, count, iterations, point.value());
-                        trace!("{}.run | received SQL: {:?}", self_id, point.as_string().value);
+                        trace!("{}.run | received Point: {:#?}", self_id, point);
                         // debug!("{}.run | value: {}\treceived SQL: {:?}", value, sql);
                         count += 1;
                         received.lock().unwrap().push(point.clone());
@@ -108,7 +108,7 @@ impl Service for TaskTestReceiver {
                     break 'main;
                 }
             };
-            info!("{}.run | received {} SQL's", self_id, count);
+            info!("{}.run | received {} Point's", self_id, count);
             info!("{}.run | exit", self_id);
             // thread::sleep(Duration::from_secs_f32(2.1));
         });

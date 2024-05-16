@@ -1,6 +1,6 @@
 #[cfg(test)]
 
-mod cma_recorder {
+mod task_export {
     use log::{debug, info, trace};
     use std::{env, sync::{Arc, Mutex, Once}, thread, time::{Duration, Instant}};
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, wait::WaitTread}};
@@ -26,7 +26,7 @@ mod cma_recorder {
     ///
     ///
     #[test]
-    fn filter() {
+    fn point() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
@@ -51,14 +51,10 @@ mod cma_recorder {
                         /App/MultiQueue:                    # - multicast subscription to the MultiQueue
                             {cot: Inf}: []                      #   - on all points having Cot::Inf
                     fn debug debug01:
-                        input fn Filter:
-                            send-to: /App/MultiQueue.in-queue
-                            conf point Load001:
-                                type: 'Real'
+                        input point Load001:
+                            type: 'Real'
                             input: point real '/App/Load'
-                            pass fn Ge:
-                                input1: point real '/App/Load'
-                                input2: const real 1.5
+                            send-to: /App/MultiQueue.in-queue
                     fn debug debug02:
                         input point Load002:
                             type: 'Real'
@@ -97,24 +93,15 @@ mod cma_recorder {
             (format!("/{}/Load", self_id), Value::Real(2.5)),
             (format!("/{}/Load", self_id), Value::Real(7.035)),
         ];
-        let filtered_test_data: Vec<(String, Value)> = test_data.iter().cloned().filter(|(_, value)| {
-            match value {
-                Value::Bool(_value) => false,
-                Value::Int(_value) => false,
-                Value::Real(value) => value >= &1.5,
-                Value::Double(_value) => false,
-                Value::String(_value) => false,
-            }
-        }).collect();
-        let filtered_total_count = filtered_test_data.len();
         let total_count = test_data.len();
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
             self_id,
             "",
             "in-queue",
-            filtered_total_count,
+            total_count,
         )));
-        services.slock().insert(receiver.clone());
+        services.slock().insert(receiver.clone());      // "TaskTestReceiver",
+        // assert!(total_count == iterations, "\nresult: {:?}\ntarget: {:?}", total_count, iterations);
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             self_id,
             &format!("/{}/MultiQueue.in-queue", self_id),
@@ -145,10 +132,10 @@ mod cma_recorder {
         println!("    sent: {:?}", sent);
         println!("received: {:?}", result);
         assert!(sent == total_count, "\nresult: {:?}\ntarget: {:?}", sent, total_count);
-        assert!(result == filtered_total_count, "\nresult: {:?}\ntarget: {:?}", result, total_count);
+        assert!(result == total_count, "\nresult: {:?}\ntarget: {:?}", result, total_count);
         let target_name = "/App/RecorderTask/Load002";
         for (i, result) in receiver.lock().unwrap().received().lock().unwrap().iter().enumerate() {
-            let (_, target) = filtered_test_data[i].clone();
+            let (_, target) = test_data[i].clone();
             assert!(result.value() == target, "\nresult: {:?}\ntarget: {:?}", result.value(), target);
             assert!(result.name() == target_name, "\nresult: {:?}\ntarget: {:?}", result.name(), target_name);
         };

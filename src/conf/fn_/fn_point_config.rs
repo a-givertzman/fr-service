@@ -12,7 +12,7 @@ use crate::conf::{
 pub struct FnPointConfig {
     pub conf: PointConfig,
     pub send_to: Option<String>,
-    pub input: Box<FnConfKind>,
+    pub input: Option<Box<FnConfKind>>,
 }
 ///
 /// 
@@ -20,8 +20,13 @@ impl FnPointConfig {
     ///
     /// Returns list of configurations of the defined points
     pub fn points(&self) -> Vec<PointConfig> {
-        let mut points = self.input.points();
-        points.push(self.conf.clone());
-        points
+        match &self.input {
+            Some(input) => {
+                let mut points = input.points();
+                points.push(self.conf.clone());
+                points
+            },
+            None => vec![self.conf.clone()],
+        }
     }
 }
