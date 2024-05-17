@@ -1,4 +1,4 @@
-use std::{fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, Arc, Mutex}, thread, time::Duration};
+use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, Arc, Mutex}, thread, time::Duration};
 use log::{debug, warn, info, trace};
 use testing::entities::test_value::Value;
 use crate::{conf::point_config::{name::Name, point_config::PointConfig}, core_::{object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, services::{safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services}};
@@ -108,22 +108,30 @@ impl Service for TaskTestProducer {
         }
     }
     //
-    //
+    // Returns Vec<PointConfig> of points found in the test_data
     fn points(&self) -> Vec<crate::conf::point_config::point_config::PointConfig> {
-        self.test_data.iter().map(|(name, value)| {
-            let type_ = match value {
-                Value::Bool(_) => "Bool",
-                Value::Int(_) => "Int",
-                Value::Real(_) => "Real",
-                Value::Double(_) => "Double",
-                Value::String(_) => "String",
-            };
-            PointConfig::from_yaml(
-                &Name::new("", ""),
-                &serde_yaml::from_str(&format!(r#"{}:
-                    type: {}"#, name, type_)).unwrap()
-            )
-        }).collect()
+        self.test_data
+            .iter()
+            .map(|(name, value)| {
+                (name.clone(), value.clone())
+            })
+            .collect::<HashMap<String, Value>>()
+            .iter()
+            .map(|(name, value)| {
+                let type_ = match value {
+                    Value::Bool(_) => "Bool",
+                    Value::Int(_) => "Int",
+                    Value::Real(_) => "Real",
+                    Value::Double(_) => "Double",
+                    Value::String(_) => "String",
+                };
+                PointConfig::from_yaml(
+                    &Name::new("", ""),
+                    &serde_yaml::from_str(&format!(r#"{}:
+                        type: {}"#, name, type_)).unwrap()
+                )
+            })
+            .collect()
     }
     //
     //

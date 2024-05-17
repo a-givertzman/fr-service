@@ -331,13 +331,13 @@ service Task OperatingCycle:
             table: table_name
             sql: "insert into {table} (id, value, timestamp) values ({id}, {input.value}, {input3.value});"
             input let Var3:
-                    input fn add:
-                        input1 fn add:
+                    input fn Add:
+                        input1 fn Add:
                             input1: const real 0.2
                             input2: point real '/path/Point.Name'
                         input2:
                             const real 0.05
-            input3 fn add:
+            input3 fn Add:
                 input1:
                     var0
                 input2: point real '/path/Point.Name'
@@ -399,8 +399,8 @@ service Task Task1:
         in1 point CraneMovement.BoomUp: 
             type: 'Int'
             comment: 'Some indication'
-            input fn add:
-                input1 fn add:
+            input fn Add:
+                input1 fn Add:
                     input1: const real 0.2
                     input2: point real '/path/Point.Name'
         in2 point CraneMovement.BoomDown: 

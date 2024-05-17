@@ -1,5 +1,5 @@
 use std::{rc::Rc, cell::RefCell, str::FromStr, sync::{Arc, Mutex}};
-use log::{debug, LevelFilter};
+use log::{debug, warn, LevelFilter};
 use crate::{
     conf::{fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind}, point_config::name::Name},
     core_::{
@@ -10,10 +10,7 @@ use crate::{
         safe_lock::SafeLock, services::Services,
         task::{
             nested_function::{
-                export::{fn_export::FnExport, fn_point::FnPoint, fn_to_api_queue::FnToApiQueue},
-                fn_var::FnVar, sql_metric::SqlMetric,
-                fn_add::FnAdd, fn_const::FnConst, fn_count::FnCount, fn_debug::FnDebug, fn_ge::FnGe, 
-                fn_input::FnInput, fn_point_id::FnPointId, fn_timer::FnTimer, fn_to_int::FnToInt, functions::Functions,
+                export::{fn_export::FnExport, fn_filter::FnFilter, fn_point::FnPoint, fn_to_api_queue::FnToApiQueue}, fn_add::FnAdd, fn_const::FnConst, fn_count::FnCount, fn_debug::FnDebug, fn_ge::FnGe, fn_input::FnInput, fn_point_id::FnPointId, fn_timer::FnTimer, fn_to_int::FnToInt, fn_var::FnVar, functions::Functions, sql_metric::SqlMetric
             },
             task_nodes::TaskNodes,
         }
@@ -75,7 +72,9 @@ impl NestedFn {
                         let name = "input";
                         let input_conf = conf.input_conf(name);
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes ,services.clone());
-                        let queue_name = conf.param("queue").name();
+                        let queue_name = conf.param("queue").unwrap_or_else(|_|
+                            panic!("{}.function | Parameter 'queue' - missed in '{}'", self_id, conf.name)
+                        ).name();
                         let services_lock = services.slock();
                         let send_queue = services_lock.get_link(&queue_name).unwrap_or_else(|err| {
                             panic!("{}.function | services.get_link error: {:#?}", self_id, err);
@@ -129,13 +128,40 @@ impl NestedFn {
                         let name = "input";
                         let input_conf = conf.input_conf(name);
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
-                        let queue_name = conf.param("queue").name();
+                        let queue_name = conf.param("send-to").unwrap_or_else(|_|
+                            panic!("{}.function | Parameter 'send-to' - missed in '{}'", self_id, conf.name)
+                        ).name();
                         let services_lock = services.slock();
                         let send_queue = services_lock.get_link(&queue_name).unwrap_or_else(|err| {
                             panic!("{}.function | services.get_link error: {:#?}", self_id, err);
                         });
                         Rc::new(RefCell::new(Box::new(
                             FnExport::new(parent, input, send_queue)
+                        )))
+                    }
+                    Functions::Filter => {
+                        let name = "input";
+                        let input_conf = conf.input_conf(name);
+                        let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        let name = "pass";
+                        let input_conf = conf.input_conf(name);
+                        let pass = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        let point_conf = match conf.input_conf("conf") {
+                            FnConfKind::PointConf(conf) => conf.clone(),
+                            _ => panic!("{}.function | Invalid Point config in: {:?}", self_id, conf.name),
+                        };
+                        let send_queue = match conf.param("send-to") {
+                            Ok(queue_name) => {
+                                let services_lock = services.slock();
+                                services_lock.get_link(&queue_name.name()).map_or(None, |send| Some(send))
+                            }
+                            Err(_) => {
+                                warn!("{}.function | Parameter 'send-to' - missed in '{}'", self_id, conf.name);
+                                None
+                            },
+                        };
+                        Rc::new(RefCell::new(Box::new(
+                            FnFilter::new(parent, point_conf.conf, input, pass, send_queue)
                         )))
                     }
                     _ => panic!("{}.function | Unknown function name: {:?}", self_id, conf.name)
@@ -219,7 +245,12 @@ impl NestedFn {
                 };
                 let name = "input";
                 let input_conf = conf.input.as_mut();//.input_conf(name);
-                let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                let input = match input_conf {
+                    Some(input_conf) => {
+                        Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone()))
+                    }
+                    None => None,
+                };
                 Rc::new(RefCell::new(Box::new(
                     FnPoint::new(parent, conf.conf.clone(), input, send_queue),
                 )))

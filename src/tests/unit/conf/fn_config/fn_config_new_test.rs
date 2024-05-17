@@ -42,12 +42,12 @@ mod tests {
             ),
             (
                 r#"let newVar:
-                    input fn count:
+                    input fn Count:
                         inputConst1: const '13.3'
                         inputConst2: const '13.7'
                 "#,
                 FnConfKind::Var( FnConfig { name: "newVar".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-                    ("input".to_string(), FnConfKind::Fn( FnConfig { name: "count".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                    ("input".to_string(), FnConfKind::Fn( FnConfig { name: "Count".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                         ("inputConst1".to_string(), FnConfKind::Const( FnConfig { name: "13.3".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
                         ("inputConst2".to_string(), FnConfKind::Const( FnConfig { name: "13.7".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
                     ]) } )),
@@ -55,19 +55,19 @@ mod tests {
             ),
             (
                 r#"let newVar:
-                    input1 fn count:
+                    input1 fn Count:
                         inputConst1: const '11.3'
                         inputConst2: const '12.7'"
-                    input2 fn count:
+                    input2 fn Count:
                         inputConst1: const real '13.3'
                         inputConst2: const int '147'
                 "#,
                 FnConfKind::Var( FnConfig { name: "newVar".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-                    ("input1".to_string(), FnConfKind::Fn( FnConfig { name: "count".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                    ("input1".to_string(), FnConfKind::Fn( FnConfig { name: "Count".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                         ("inputConst1".to_string(), FnConfKind::Const( FnConfig { name: "11.3".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
                         ("inputConst2".to_string(), FnConfKind::Const( FnConfig { name: "12.7".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
                     ]) } )),
-                    ("input2".to_string(), FnConfKind::Fn( FnConfig { name: "count".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
+                    ("input2".to_string(), FnConfKind::Fn( FnConfig { name: "Count".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                         ("inputConst1".to_string(), FnConfKind::Const( FnConfig { name: "13.3".to_string(), type_: FnConfPointType::Real, inputs: IndexMap::new() } )),
                         ("inputConst2".to_string(), FnConfKind::Const( FnConfig { name: "147".to_string(), type_: FnConfPointType::Int, inputs: IndexMap::new() } )),
                     ]) } )),

@@ -103,19 +103,18 @@ impl FnConfig {
                             let input_conf = match result {
                                 Ok(conf) => {
                                     // debug!("FnConfig.new | Point input keyword: {:?}", keyword);
-                                    conf
-                                    // match conf.get(&keyword.input()) {
-                                    //     Some(conf) => conf,
-                                    //     None => panic!("FnConfig.new | Point.input - can't be empty in: {:?}", confTree),
-                                    // }
+                                    Some(Box::new(FnConfig::new(parent_id, parent_name, &conf, vars)))
                                 }
-                                Err(_) => panic!("FnConfig.new | Point.input - not found in: {:?}", conf_tree),
+                                Err(_) => {
+                                    None
+                                    // panic!("FnConfig.new | Point.input - not found in: {:?}", conf_tree),
+                                }
                             };
                             FnConfKind::PointConf(
                                 FnPointConfig {
                                     conf: PointConfig::new(parent_name, conf_tree),
                                     send_to: conf_tree.asStr("send-to").map_or(None, |v| Some(v.to_owned())),
-                                    input: Box::new(FnConfig::new(parent_id, parent_name, &input_conf, vars)),
+                                    input: input_conf,
                                 }
                             )
                         }
@@ -287,12 +286,10 @@ impl FnConfig {
     }
     ///
     /// Returns custom parameter by it's name if exists, else none
-    pub fn param(&self, name: &str) -> &FnConfKind {
+    pub fn param(&self, name: &str) -> Result<&FnConfKind, String> {
         match self.inputs.get(name) {
-            Some(param) => param,
-            None => {
-                panic!("FnConfig.param | parameter {:?} not fount in the {:?}", name, self.name);
-            }
+            Some(param) => Ok(param),
+            None => Err(format!("FnConfig.param | parameter {:?} not fount in the {:?}", name, self.name)),
         }
     }
     ///
