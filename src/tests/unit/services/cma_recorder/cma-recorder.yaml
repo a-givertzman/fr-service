@@ -1250,7 +1250,7 @@ service Task RecorderTask:
             input: point real '/App/ied13/db905_visual_data_fast/Load'
 
     #
-    # Count the operating cycle ID (retained licaly)
+    # Count the operating cycle ID (retained localy)
     let opCycleId:
         input fn Retain:
             name: 'OperatingCycleId'
@@ -1259,9 +1259,45 @@ service Task RecorderTask:
                     name: 'OperatingCycleId'
                 input:    opCycleIsActive
 
+
+    ###############   Operating Cycle Metrics   ###############
+    #
+    # table: operating_cycle_metric_value
+    #
+    #
+    # metric:    Average Load
+    fn Export ExportOpCycleMetricAverageLoad:
+        enable: opCycleIsActive
+        input fn SqlMetric:
+            table: operating_cycle_metric_value
+            sql: "insert into {table} (operating_cycle_id, pid, metric_id, value) values ({opCycleId.value}, 0, 'average_load', {input.value});"
+            # inputs
+            opCycleId: opCycleId
+            input fn Average:
+                enable: opCycleIsActive
+                input: point real '/App/ied13/db905_visual_data_fast/Load'
+    #
+    # metric:    Max Load
+    fn Export ExportOpCycleMetricMaxLoad:
+        enable: opCycleIsActive
+        input fn SqlMetric:
+            table: operating_cycle_metric_value
+            sql: "insert into {table} (operating_cycle_id, pid, metric_id, value) values ({opCycleId.value}, 0, 'average_load', {input.value});"
+            # inputs
+            opCycleId: opCycleId
+            input fn Max:
+                enable: opCycleIsActive
+                input: point real '/App/ied13/db905_visual_data_fast/Load'
+
+
+
+
+
+    ###############   Operating Cycle Live Data   ###############
+    #
+    # table: operating_cycle_data
     #
     # live values of the operating cycle
-    # table: operating_cycle_data
     fn debug:
     # fn ToApiQueue:
         # queue: /App/ApiClient.in-queue
@@ -1270,7 +1306,6 @@ service Task RecorderTask:
                 table: public.operating_cycle_data
                 sql: "insert into {table} (timestamp,pid,value) values ('{input.timestamp}',{pid.value},{input.value});"
                 # inputs
-                # opCycleId: opCycleId
                 pid fn PointId: point any '/App/ied13/db905_visual_data_fast/Load'
                 input fn Pass:
                     condittion: opCycleIsActive

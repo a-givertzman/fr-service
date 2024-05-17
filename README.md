@@ -129,13 +129,15 @@ The computations can be executed:
 
 - **Variable**
 
+The result of the computation node can be stored in the variable, wich can be used late in the any computation node.
+
 ```yaml
 # Syntax
 let <VariableName>:
     input...
 ```
 
-The result of the computation node can be stored in the variable, wich can be used late in the any computation node. For example variable 'Var' defined. And used late in the function 'Add'.
+For example variable 'Var' defined. And used late in the function 'Add':
 
 ```yaml
 service Task ExampleTask:
@@ -150,12 +152,14 @@ service Task ExampleTask:
 
 - **Constant**
 
+Always returns configured constant value, can be used in the any input of the any function.
+
 ```yaml
 # Syntax
 const <type> <value>
 ```
 
-Always returns configured constant value, can be used in the any input of the any function.
+For example constant used on the inputs of the 'Add' function:
 
 ```yaml
 service Task ExampleTask:
@@ -168,13 +172,12 @@ service Task ExampleTask:
 
 - **Input**
 
+Returns latest received point
+
 ```yaml
 # Syntax
 input <type> <'/path/PointName'>
 ```
-
-Returns latest received point
-
 
 ## 2 History Service
 

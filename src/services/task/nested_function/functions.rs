@@ -30,10 +30,10 @@ impl Functions {
     const INPUT             : &'static str = "input";
     const CONST             : &'static str = "const";
     const VAR               : &'static str = "var";
-    const DEBUG             : &'static str = "debug";
     /// user defined functions
     const ADD               : &'static str = "Add";
     const COUNT             : &'static str = "Count";
+    const DEBUG             : &'static str = "Debug";
     const GE                : &'static str = "Ge";
     const TIMER             : &'static str = "Timer";
     const TO_API_QUEUE      : &'static str = "ToApiQueue";
