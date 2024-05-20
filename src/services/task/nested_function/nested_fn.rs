@@ -10,7 +10,7 @@ use crate::{
         safe_lock::SafeLock, services::Services,
         task::{
             nested_function::{
-                edge_detection::fn_rising_edge::FnRisingEdge, export::{fn_export::FnExport, fn_filter::FnFilter, fn_point::FnPoint, fn_to_api_queue::FnToApiQueue}, fn_add::FnAdd, fn_const::FnConst, fn_count::FnCount, fn_debug::FnDebug, fn_ge::FnGe, fn_input::FnInput, fn_point_id::FnPointId, fn_timer::FnTimer, fn_to_int::FnToInt, fn_var::FnVar, functions::Functions, sql_metric::SqlMetric
+                edge_detection::{fn_falling_edge::FnFallingEdge, fn_rising_edge::FnRisingEdge}, export::{fn_export::FnExport, fn_filter::FnFilter, fn_point::FnPoint, fn_to_api_queue::FnToApiQueue}, fn_add::FnAdd, fn_const::FnConst, fn_count::FnCount, fn_debug::FnDebug, fn_ge::FnGe, fn_input::FnInput, fn_point_id::FnPointId, fn_timer::FnTimer, fn_to_int::FnToInt, fn_var::FnVar, functions::Functions, sql_metric::SqlMetric
             },
             task_nodes::TaskNodes,
         }
@@ -182,6 +182,15 @@ impl NestedFn {
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
                         Rc::new(RefCell::new(Box::new(
                             FnRisingEdge::new(parent, input)
+                        )))
+                    }
+                    //
+                    Functions::FallingEdge => {
+                        let name = "input";
+                        let input_conf = conf.input_conf(name);
+                        let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        Rc::new(RefCell::new(Box::new(
+                            FnFallingEdge::new(parent, input)
                         )))
                     }
                     //

@@ -1,9 +1,9 @@
 use log::debug;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::{
-    core_::{point::point_type::PointType, types::fn_in_out_ref::FnInOutRef},
+    core_::{point::{point::Point, point_type::PointType}, types::{bool::Bool, fn_in_out_ref::FnInOutRef}},
     services::task::nested_function::{
-        fn_::{FnInOut, FnIn, FnOut},
+        fn_::{FnIn, FnInOut, FnOut},
         fn_kind::FnKind,
     },
 };
@@ -11,31 +11,33 @@ use crate::{
 /// Function | Returns true one tic (single computation cycle)
 /// if input value falling true -> false (any positive -> 0 (or any negative))
 #[derive(Debug)]
-pub struct FnDebug {
+pub struct FnFallingEdge {
     id: String,
     kind: FnKind,
     input: FnInOutRef,
+    prev: bool,
 }
 ///
 /// 
-impl FnDebug {
+impl FnFallingEdge {
     ///
-    /// Creates new instance of the FnDebug
+    /// Creates new instance of the FnFallingEdge
     #[allow(dead_code)]
     pub fn new(parent: impl Into<String>, input: FnInOutRef) -> Self {
         Self { 
-            id: format!("{}/FnDebug{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
+            id: format!("{}/FnFallingEdge{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
             kind: FnKind::Fn,
             input,
+            prev: false,
         }
     }    
 }
 ///
 /// 
-impl FnIn for FnDebug {}
+impl FnIn for FnFallingEdge {}
 ///
 /// 
-impl FnOut for FnDebug { 
+impl FnOut for FnFallingEdge { 
     //
     fn id(&self) -> String {
         self.id.clone()
@@ -51,7 +53,24 @@ impl FnOut for FnDebug {
     //
     //
     fn out(&mut self) -> PointType {
-        let value = self.input.borrow_mut().out();
+        let input = self.input.borrow_mut().out();
+        debug!("{}.out | input: {:#?}", self.id, input);
+        let (name, input, tx_id, timestamp, status, cot) = match input {
+            PointType::Bool(point) => (point.name, point.value.0, point.tx_id, point.timestamp, point.status, point.cot),
+            PointType::Int(point) => (point.name, point.value > 0, point.tx_id, point.timestamp, point.status, point.cot),
+            PointType::Real(point) => (point.name, point.value > 0.0, point.tx_id, point.timestamp, point.status, point.cot),
+            PointType::Double(point) => (point.name, point.value > 0.0, point.tx_id, point.timestamp, point.status, point.cot),
+            PointType::String(_) => panic!("{}.out | String input value does not supported", self.id),
+        };
+        let value = PointType::Bool(Point::new(
+            tx_id,
+            &name,
+            Bool((! input) & self.prev),
+            status,
+            cot,
+            timestamp,
+        ));
+        self.prev = input;
         debug!("{}.out | value: {:#?}", self.id, value);
         value
     }
@@ -63,7 +82,7 @@ impl FnOut for FnDebug {
 }
 ///
 /// 
-impl FnInOut for FnDebug {}
+impl FnInOut for FnFallingEdge {}
 ///
-/// Global static counter of FnDebug instances
+/// Global static counter of FnFallingEdge instances
 static COUNT: AtomicUsize = AtomicUsize::new(1);

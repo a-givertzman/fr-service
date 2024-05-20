@@ -14,3 +14,4 @@ mod fn_add_test;
 mod fn_point_id_test;
 
 mod fn_rising_edge_test;
+mod fn_falling_edge_test;

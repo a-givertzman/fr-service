@@ -22,7 +22,8 @@ pub enum Functions {
     ToInt,
     Export,
     Filter,
-    RisingEdge
+    RisingEdge,
+    FallingEdge,
 }
 ///
 ///
@@ -45,6 +46,7 @@ impl Functions {
     const EXPORT            : &'static str = "Export";
     const FILTER            : &'static str = "Filter";
     const RISING_EDGE       : &'static str = "RisingEdge";
+    const FALLING_EDGE      : &'static str = "FallingEdge";
     ///
     ///
     pub fn name(&self) -> &str {
@@ -65,6 +67,7 @@ impl Functions {
             Self::Export            => Self::EXPORT,
             Self::Filter            => Self::FILTER,
             Self::RisingEdge        => Self::RISING_EDGE,
+            Self::FallingEdge       => Self::FALLING_EDGE,
         }
     }
     ///
@@ -87,6 +90,7 @@ impl Functions {
             Self::EXPORT            => Ok( Self::Export ),
             Self::FILTER            => Ok( Self::Filter ),
             Self::RISING_EDGE       => Ok( Self::RisingEdge ),
+            Self::FALLING_EDGE      => Ok( Self::FallingEdge ),
             _ => Err(format!("Functions.from_str | Unknown function name '{}'", &input)),
         }
     }
