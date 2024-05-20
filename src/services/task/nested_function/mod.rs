@@ -5,7 +5,7 @@
 //!   - if point '/App/Ied001/Load' has value > 5.5 'true' will be logged
 //!   - if point '/App/Ied001/Load' has value < 5.5 'false' will be logged
 //! ```yaml
-//! fn debug:
+//! fn Debug:
 //!     input fn Ge:
 //!         input1: point real '/App/Ied001/Load'
 //!         input2: const real 5.5

@@ -1228,7 +1228,7 @@ service Task RecorderTask:
     subscribe:
         /App/MultiQueue:                    # - multicast subscription to the MultiQueue
             {cot: Inf}: []                      #   - on all points having Cot::Inf
-    # fn debug:
+    # fn Debug:
     #     input: point any every
     fn ToApiQueue:
         queue: /App/ApiClient.in-queue
@@ -1298,7 +1298,7 @@ service Task RecorderTask:
     # table: operating_cycle_data
     #
     # live values of the operating cycle
-    fn debug:
+    fn Debug:
     # fn ToApiQueue:
         # queue: /App/ApiClient.in-queue
         input fn Merge:

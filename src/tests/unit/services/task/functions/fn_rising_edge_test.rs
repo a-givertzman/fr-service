@@ -27,17 +27,15 @@ mod fn_rising_edge {
     /// returns:
     ///  - ...
     fn init_each(parent: &str, initial: Value) -> FnInOutRef {
-        Rc::new(RefCell::new(
-            Box::new(
-                FnInput::new(parent, initial.to_point(0, "test"), FnConfPointType::Bool)
-            )
-        ))
+        Rc::new(RefCell::new(Box::new(
+            FnInput::new(parent, initial.to_point(0, "test"), FnConfPointType::Bool)
+        )))
     }
     ///
     ///
     #[test]
-    fn test_single() {
-        DebugSession::init(LogLevel::Info, Backtrace::Short);
+    fn test() {
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         let self_id = "test_single";
         info!("{}", self_id);
