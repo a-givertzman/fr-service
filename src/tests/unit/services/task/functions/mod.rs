@@ -1,14 +1,16 @@
 
-pub mod fn_input_test;
+mod fn_input_test;
 
-pub mod fn_count_test;
+mod fn_count_test;
 
-pub mod fn_trip_test;
+mod fn_trip_test;
 
-pub mod fn_timer_test;
+mod fn_timer_test;
 
-pub mod fn_var_test;
+mod fn_var_test;
 
-pub mod fn_add_test;
+mod fn_add_test;
 
-pub mod fn_point_id_test;
+mod fn_point_id_test;
+
+mod fn_rising_edge_test;

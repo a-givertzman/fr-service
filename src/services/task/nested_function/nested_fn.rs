@@ -10,7 +10,7 @@ use crate::{
         safe_lock::SafeLock, services::Services,
         task::{
             nested_function::{
-                export::{fn_export::FnExport, fn_filter::FnFilter, fn_point::FnPoint, fn_to_api_queue::FnToApiQueue}, fn_add::FnAdd, fn_const::FnConst, fn_count::FnCount, fn_debug::FnDebug, fn_ge::FnGe, fn_input::FnInput, fn_point_id::FnPointId, fn_timer::FnTimer, fn_to_int::FnToInt, fn_var::FnVar, functions::Functions, sql_metric::SqlMetric
+                edge_detection::fn_rising_edge::FnRisingEdge, export::{fn_export::FnExport, fn_filter::FnFilter, fn_point::FnPoint, fn_to_api_queue::FnToApiQueue}, fn_add::FnAdd, fn_const::FnConst, fn_count::FnCount, fn_debug::FnDebug, fn_ge::FnGe, fn_input::FnInput, fn_point_id::FnPointId, fn_timer::FnTimer, fn_to_int::FnToInt, fn_var::FnVar, functions::Functions, sql_metric::SqlMetric
             },
             task_nodes::TaskNodes,
         }
@@ -40,6 +40,7 @@ impl NestedFn {
                 debug!("{}.function | Fn '{}' detected", self_id, fn_name.name());
                 debug!("{}.function | fn_conf: {:?}: {:#?}", self_id, conf.name, conf);
                 match fn_name {
+                    //
                     Functions::Count => {
                         let initial = 0.0;
                         let name = "input";
@@ -49,6 +50,7 @@ impl NestedFn {
                             FnCount::new(parent, initial, input),
                         )))
                     }
+                    //
                     Functions::Add => {
                         let name = "input1";
                         let input_conf = conf.input_conf(name);
@@ -60,6 +62,7 @@ impl NestedFn {
                             FnAdd::new(parent, input1, input2)
                         )))
                     }
+                    //
                     Functions::Timer => {
                         let name = "input1";
                         let conf = conf.inputs.get_mut(name).unwrap();
@@ -68,6 +71,7 @@ impl NestedFn {
                             FnTimer::new(parent, 0.0, input, true)
                         )))
                     }
+                    //
                     Functions::ToApiQueue => {
                         let name = "input";
                         let input_conf = conf.input_conf(name);
@@ -83,6 +87,7 @@ impl NestedFn {
                             FnToApiQueue::new(parent, input, send_queue)
                         )))
                     }
+                    //
                     Functions::Ge => {
                         let name = "input1";
                         let input_conf = conf.input_conf(name);
@@ -94,11 +99,13 @@ impl NestedFn {
                             FnGe::new(parent, input1, input2)
                         )))
                     }
+                    //
                     Functions::SqlMetric => {
                         Rc::new(RefCell::new(Box::new(
                             SqlMetric::new( parent, conf, task_nodes, services)
                         )))
                     }
+                    //
                     Functions::PointId => {
                         let name = "input";
                         let input_conf = conf.input_conf(name);
@@ -108,6 +115,7 @@ impl NestedFn {
                             FnPointId::new(parent, input, points)
                         )))
                     }
+                    //
                     Functions::Debug => {
                         let name = "input";
                         let input_conf = conf.input_conf(name);
@@ -116,6 +124,7 @@ impl NestedFn {
                             FnDebug::new(parent, input)
                         )))
                     }
+                    //
                     Functions::ToInt => {
                         let name = "input";
                         let input_conf = conf.input_conf(name);
@@ -124,6 +133,7 @@ impl NestedFn {
                             FnToInt::new(parent, input)
                         )))
                     }
+                    //
                     Functions::Export => {
                         let name = "input";
                         let input_conf = conf.input_conf(name);
@@ -139,6 +149,7 @@ impl NestedFn {
                             FnExport::new(parent, input, send_queue)
                         )))
                     }
+                    //
                     Functions::Filter => {
                         let name = "input";
                         let input_conf = conf.input_conf(name);
@@ -164,6 +175,17 @@ impl NestedFn {
                             FnFilter::new(parent, point_conf.conf, input, pass, send_queue)
                         )))
                     }
+                    //
+                    Functions::RisingEdge => {
+                        let name = "input";
+                        let input_conf = conf.input_conf(name);
+                        let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        Rc::new(RefCell::new(Box::new(
+                            FnRisingEdge::new(parent, input)
+                        )))
+                    }
+                    //
+                    // Add a new function here...
                     _ => panic!("{}.function | Unknown function name: {:?}", self_id, conf.name)
                 }
             }

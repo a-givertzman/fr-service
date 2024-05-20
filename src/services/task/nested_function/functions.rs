@@ -1,7 +1,7 @@
 //!
 //! Here must be defined all functions to be awalible in the Task -> NestedFn
 use std::str::FromStr;
-use log::{trace, warn};
+use log::trace;
 ///
 /// Entair list of public functions
 /// supported by NestedFn builder
@@ -22,6 +22,7 @@ pub enum Functions {
     ToInt,
     Export,
     Filter,
+    RisingEdge
 }
 ///
 ///
@@ -43,6 +44,7 @@ impl Functions {
     const TO_INT            : &'static str = "ToInt";
     const EXPORT            : &'static str = "Export";
     const FILTER            : &'static str = "Filter";
+    const RISING_EDGE       : &'static str = "RisingEdge";
     ///
     ///
     pub fn name(&self) -> &str {
@@ -62,6 +64,7 @@ impl Functions {
             Self::ToInt             => Self::TO_INT,
             Self::Export            => Self::EXPORT,
             Self::Filter            => Self::FILTER,
+            Self::RisingEdge        => Self::RISING_EDGE,
         }
     }
     ///
@@ -83,6 +86,7 @@ impl Functions {
             Self::TO_INT            => Ok( Self::ToInt ),
             Self::EXPORT            => Ok( Self::Export ),
             Self::FILTER            => Ok( Self::Filter ),
+            Self::RISING_EDGE       => Ok( Self::RisingEdge ),
             _ => Err(format!("Functions.from_str | Unknown function name '{}'", &input)),
         }
     }
