@@ -8,7 +8,8 @@ use crate::{
     },
 };
 ///
-/// Function just doing debug of value coming from input
+/// Function | Returns true one tic (single computation cycle)
+/// if input value falling true -> false (any positive -> 0 (or any negative))
 #[derive(Debug)]
 pub struct FnDebug {
     id: String,

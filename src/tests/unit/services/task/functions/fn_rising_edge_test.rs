@@ -28,16 +28,26 @@ mod fn_rising_edge {
     ///  - ...
     fn init_each(parent: &str, initial: Value) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
-            FnInput::new(parent, initial.to_point(0, "test"), FnConfPointType::Bool)
+            FnInput::new(
+                parent,
+                initial.to_point(0, "test"),
+                match initial {
+                    Value::Bool(_) => FnConfPointType::Bool,
+                    Value::Int(_) => FnConfPointType::Int,
+                    Value::Real(_) => FnConfPointType::Real,
+                    Value::Double(_) => FnConfPointType::Double,
+                    Value::String(_) => FnConfPointType::String,
+                } 
+            )
         )))
     }
     ///
     ///
     #[test]
-    fn test() {
+    fn test_bool() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
-        let self_id = "test_single";
+        let self_id = "test_bool";
         info!("{}", self_id);
         let input = init_each(&self_id, Value::Bool(false));
         let mut fn_rising_edge = FnRisingEdge::new(
@@ -71,4 +81,124 @@ mod fn_rising_edge {
         assert!(result.as_bool().value.0 == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
     }
+    ///
+    ///
+    #[test]
+    fn test_int() {
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        init_once();
+        let self_id = "test_int";
+        info!("{}", self_id);
+        let input = init_each(&self_id, Value::Int(0));
+        let mut fn_rising_edge = FnRisingEdge::new(
+            self_id,
+            input.clone(),
+        );
+        let test_data = vec![
+            (00,    0,      false),
+            (01,    0,      false),
+            (02,    1,      true),
+            (03,    0,      false),
+            (04,    0,      false),
+            (05,    3,      true),
+            (06,    0,      false),
+            (07,    2,      true),
+            (08,    0,      false),
+            (09,    -1,     false),
+            (10,    3,      true),
+            (11,    77,     false),
+            (12,    65,     false),
+            (13,    0,      false),
+            (14,    -10,    false),
+        ];
+        for (step, value, target) in test_data {
+            let point = value.to_point(0, "test");
+            input.borrow_mut().add(point);
+            // debug!("input: {:?}", &input);
+            let result = fn_rising_edge.out();
+            // debug!("input: {:?}", &mut input);
+            debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
+        assert!(result.as_bool().value.0 == target, "\nresult: {:?}\ntarget: {:?}", result, target);
+        }
+    }
+    ///
+    ///
+    #[test]
+    fn test_real() {
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        init_once();
+        let self_id = "test_real";
+        info!("{}", self_id);
+        let input = init_each(&self_id, Value::Real(0.0));
+        let mut fn_rising_edge = FnRisingEdge::new(
+            self_id,
+            input.clone(),
+        );
+        let test_data = vec![
+            (00,    0.0,      false),
+            (01,    0.0,      false),
+            (02,    0.1,      true),
+            (03,    0.0,      false),
+            (04,    0.0,      false),
+            (05,    3.0,      true),
+            (06,    0.0,      false),
+            (07,    2.0,      true),
+            (08,    0.0,      false),
+            (09,    -1.0,     false),
+            (10,    3.0,      true),
+            (11,    77.0,     false),
+            (12,    65.0,     false),
+            (13,    0.0,      false),
+            (14,    -10.0,    false),
+        ];
+        for (step, value, target) in test_data {
+            let point = value.to_point(0, "test");
+            input.borrow_mut().add(point);
+            // debug!("input: {:?}", &input);
+            let result = fn_rising_edge.out();
+            // debug!("input: {:?}", &mut input);
+            debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
+        assert!(result.as_bool().value.0 == target, "\nresult: {:?}\ntarget: {:?}", result, target);
+        }
+    }
+    ///
+    ///
+    #[test]
+    fn test_double() {
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        init_once();
+        let self_id = "test_real";
+        info!("{}", self_id);
+        let input = init_each(&self_id, Value::Double(0.0));
+        let mut fn_rising_edge = FnRisingEdge::new(
+            self_id,
+            input.clone(),
+        );
+        let test_data = vec![
+            (00,    0.0,      false),
+            (01,    0.0,      false),
+            (02,    0.1,      true),
+            (03,    0.0,      false),
+            (04,    0.0,      false),
+            (05,    3.0,      true),
+            (06,    0.0,      false),
+            (07,    2.0,      true),
+            (08,    0.0,      false),
+            (09,    -1.0,     false),
+            (10,    3.0,      true),
+            (11,    77.0,     false),
+            (12,    65.0,     false),
+            (13,    0.0,      false),
+            (14,    -10.0,    false),
+        ];
+        for (step, value, target) in test_data {
+            let point = value.to_point(0, "test");
+            input.borrow_mut().add(point);
+            // debug!("input: {:?}", &input);
+            let result = fn_rising_edge.out();
+            // debug!("input: {:?}", &mut input);
+            debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
+        assert!(result.as_bool().value.0 == target, "\nresult: {:?}\ntarget: {:?}", result, target);
+        }
+    }     
 }
