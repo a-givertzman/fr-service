@@ -1230,7 +1230,7 @@ service Task RecorderTask:
             {cot: Inf}: []                      #   - on all points having Cot::Inf
     #
     # Detect if operating cycle is active (1 - isActive, 0 - isNotActive)
-    fn debug debug01:
+    fn Debug Debug01:
     # let opCycleIsActive:
         input fn DetectOpCycle:
             nom: 1200           # The nominal value of the crane load
@@ -1239,7 +1239,7 @@ service Task RecorderTask:
 
     #
     # Count the operating cycle ID (retained licaly)
-    fn debug02:
+    fn Debug Debug02:
     # let opCycleId:
         input fn Retain:
             name: 'OperatingCycleId'
@@ -1251,7 +1251,7 @@ service Task RecorderTask:
     #
     # live values of the operating cycle
     # table: operating_cycle_data
-    fn debug03:
+    fn Debug Debug03:
     # fn ToApiQueue:
         # queue: /App/ApiClient.in-queue
         input fn Merge:

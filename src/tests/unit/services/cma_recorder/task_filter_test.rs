@@ -50,7 +50,7 @@ mod cma_recorder {
                     subscribe:
                         /App/MultiQueue:                    # - multicast subscription to the MultiQueue
                             {cot: Inf}: []                      #   - on all points having Cot::Inf
-                    fn debug debug01:
+                    fn Debug debug01:
                         input fn Filter:
                             send-to: /App/MultiQueue.in-queue
                             conf point Load001:
@@ -59,7 +59,7 @@ mod cma_recorder {
                             pass fn Ge:
                                 input1: point real '/App/Load'
                                 input2: const real 1.5
-                    fn debug debug02:
+                    fn Debug debug02:
                         input point Load002:
                             type: 'Real'
                             input: point real '/App/RecorderTask/Load001'
