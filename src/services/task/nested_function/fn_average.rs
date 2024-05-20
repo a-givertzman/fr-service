@@ -52,7 +52,7 @@ impl FnOut for FnAverage {
     }
     ///
     fn out(&mut self) -> PointType {
-        let enable = match self.input.borrow_mut().out() {
+        let enable = match self.enable.borrow_mut().out() {
             PointType::Bool(point) => point.value.0,
             PointType::Int(point) => point.value > 0,
             PointType::Real(point) => point.value > 0.0,
@@ -76,7 +76,13 @@ impl FnOut for FnAverage {
             self.count = 0;
             self.sum = 0.0;
         }
-        let average = self.sum / (self.count as f64);
+        let average = if self.count != 0 {
+            self.sum / (self.count as f64)
+        } else {
+            self.sum
+        };
+        debug!("{}.out | sum: {:?}", self.id, self.sum);
+        debug!("{}.out | count: {:?}", self.id, self.count);
         debug!("{}.out | average: {:?}", self.id, average);
         PointType::Double(
             Point {
