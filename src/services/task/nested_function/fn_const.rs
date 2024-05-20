@@ -55,5 +55,5 @@ impl FnOut for FnConst {
 /// 
 impl FnInOut for FnConst {}
 ///
-/// Global static counter of FnOut instances
+/// Global static counter of FnConst instances
 static COUNT: AtomicUsize = AtomicUsize::new(1);
