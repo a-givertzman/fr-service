@@ -1267,7 +1267,8 @@ service Task RecorderTask:
     #
     # metric:    Average Load
     fn Export ExportOpCycleMetricAverageLoad:
-        enable: opCycleIsActive
+        enable fn FallingEdge:      # exports when Op Cycle is finished
+            input: opCycleIsActive
         input fn SqlMetric:
             table: operating_cycle_metric_value
             sql: "insert into {table} (operating_cycle_id, pid, metric_id, value) values ({opCycleId.value}, 0, 'average_load', {input.value});"
@@ -1279,7 +1280,8 @@ service Task RecorderTask:
     #
     # metric:    Max Load
     fn Export ExportOpCycleMetricMaxLoad:
-        enable: opCycleIsActive
+        enable fn FallingEdge:
+            input: opCycleIsActive
         input fn SqlMetric:
             table: operating_cycle_metric_value
             sql: "insert into {table} (operating_cycle_id, pid, metric_id, value) values ({opCycleId.value}, 0, 'average_load', {input.value});"
