@@ -1267,6 +1267,7 @@ service Task RecorderTask:
     #
     # metric:    Average Load
     fn Export ExportOpCycleMetricAverageLoad:
+        send-to: /App/ApiClient.in-queue
         enable fn FallingEdge:      # exports when Op Cycle is finished
             input: opCycleIsActive
         input fn SqlMetric:
@@ -1280,6 +1281,7 @@ service Task RecorderTask:
     #
     # metric:    Max Load
     fn Export ExportOpCycleMetricMaxLoad:
+        send-to: /App/ApiClient.in-queue
         enable fn FallingEdge:
             input: opCycleIsActive
         input fn SqlMetric:
