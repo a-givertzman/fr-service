@@ -7,7 +7,7 @@ pub struct QueueName {
     queue: String,
 }
 ///
-/// 
+/// Contains the Service's queue name in the format 'Servece.queue'
 impl QueueName {
     ///
     /// Creates new instance of the QueueName from the string like "Service.Queue"
@@ -27,12 +27,12 @@ impl QueueName {
         }
     }
     ///
-    /// 
+    /// Returns the Service name
     pub fn service(&self) -> &str {
         &self.service
     }
     ///
-    /// 
+    /// Returns the Service's queue name
     pub fn queue(&self) -> &str {
         &self.queue
     }

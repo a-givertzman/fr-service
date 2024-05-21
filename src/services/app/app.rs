@@ -21,8 +21,8 @@ pub struct App {
     handles: LinkedHashMap<String, ServiceHandles>,
     conf: AppConfig,
 }
-///
-/// 
+//
+// 
 impl App {
     ///
     /// Creates new instance of the ReatinBuffer
@@ -55,7 +55,7 @@ impl App {
             info!("{}.run |         Configuring service: {}({})...", self_id, node_name, node_sufix);
             trace!("{}.run |         Config: {:#?}", self_id, node_conf);
             services.slock().insert(
-                Self::match_service(&self_id, &self_name, &node_name, &node_sufix, &mut node_conf, services.clone()),
+                Self::build_service(&self_id, &self_name, &node_name, &node_sufix, &mut node_conf, services.clone()),
             );
             info!("{}.run |         Configuring service: {}({}) - ok\n", self_id, node_name, node_sufix);
         }
@@ -98,8 +98,8 @@ impl App {
         Ok(())
     }    
     ///
-    /// 
-    fn match_service(self_id: &str, parent: &Name, node_name: &str, node_sufix: &str, node_conf: &mut ConfTree, services: Arc<Mutex<Services>>) -> Arc<Mutex<dyn Service + Send>> {
+    /// Returns service by it's name
+    fn build_service(self_id: &str, parent: &Name, node_name: &str, node_sufix: &str, node_conf: &mut ConfTree, services: Arc<Mutex<Services>>) -> Arc<Mutex<dyn Service + Send>> {
         match node_name {
             Services::API_CLIENT => Arc::new(Mutex::new(
                 ApiClient::new(ApiClientConfig::new(parent, node_conf))

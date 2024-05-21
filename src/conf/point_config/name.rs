@@ -18,7 +18,7 @@ pub struct Name {
 /// 
 impl Name {
     ///
-    /// 
+    /// Creates new instance of Name from 'parent' and 'me'
     pub fn new(parent: impl Into<String>, me: impl Into<String>) -> Self {
         Self {
             parent: parent.into(),

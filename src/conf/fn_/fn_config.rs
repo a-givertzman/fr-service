@@ -202,7 +202,7 @@ impl FnConfig {
         cfg
     }
     ///
-    /// 
+    /// Returns input ronfigurations in IndexMap
     fn build_inputs(parent_id: &str, parent_name: &Name, conf_tree: &ConfTree, vars: &mut Vec<String>) -> IndexMap<String, FnConfKind> {
         let mut inputs = IndexMap::new();
         match conf_tree.subNodes() {
@@ -293,7 +293,7 @@ impl FnConfig {
         }
     }
     ///
-    /// 
+    /// Returns ConfTree by keyword or Err
     fn get_param_by_keyword(conf: &ConfTree, input: &str, kind: u8) -> Result<ConfTree, String> {
         debug!("FnConfig.getParamByKeyword | conf: {:?}", conf);
         for node in conf.subNodes().unwrap() {

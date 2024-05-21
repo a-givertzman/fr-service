@@ -16,8 +16,8 @@ pub struct RetainPointId {
     api_auth_token: String,
     api_database: String,
 }
-///
-///
+//
+//
 impl RetainPointId {
     ///
     /// Creates new instance of the RetainPointId
@@ -35,12 +35,12 @@ impl RetainPointId {
         }
     }
     ///
-    /// 
+    /// Returns true if already cached
     pub fn is_cached(&self) -> bool {
         !self.cache.is_empty()
     }
     ///
-    ///
+    /// Returns configuration of the Point's
     pub fn points(&mut self, points: Vec<PointConfig>) -> Vec<PointConfig> {
         if self.cache.is_empty() {
             let mut update_retained = false;
@@ -167,7 +167,7 @@ impl RetainPointId {
         }
     }
     ///
-    ///
+    /// Stores points into the database
     fn sql_write(&self, retained: &HashMapFxHasher<String, RetainedPointConfig>) {
         let api_keep_alive = true;
         let sql_keep_alive = true;
@@ -189,7 +189,7 @@ impl RetainPointId {
         }
     }
     ///
-    ///
+    /// Make the sql request to store ponts to the database
     fn sql_request(&self, request: &mut ApiRequest, sql: &str, keep_alive: bool) -> Result<ApiReply, String> {
         let query = ApiQuery::new(
             ApiQueryKind::Sql(ApiQuerySql::new(&self.api_database, sql)),
@@ -223,7 +223,7 @@ impl RetainPointId {
     }
 }
 ///
-///
+/// Private wroper for Point to be stored
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 struct RetainedPointConfig {
     pub id: usize,

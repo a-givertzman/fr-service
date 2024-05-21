@@ -45,11 +45,11 @@ pub struct ProfinetClient {
     diagnosis: Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
     exit: Arc<AtomicBool>,
 }
-///
-///
+//
+//
 impl ProfinetClient {
     ///
-    ///
+    /// Creates new instance of the ProfinetClient
     pub fn new(conf: ProfinetClientConfig, services: Arc<Mutex<Services>>) -> Self {
         let tx_id = PointTxId::fromStr(&conf.name.join());
         let diagnosis = Arc::new(Mutex::new(conf.diagnosis.iter().map(|(keywd, conf)| {
@@ -369,8 +369,8 @@ impl ProfinetClient {
         }
     }
 }
-///
-///
+//
+//
 impl Object for ProfinetClient {
     fn id(&self) -> &str {
         &self.id
@@ -379,8 +379,8 @@ impl Object for ProfinetClient {
         self.name.clone()
     }
 }
-///
-///
+//
+//
 impl Debug for ProfinetClient {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
@@ -389,8 +389,8 @@ impl Debug for ProfinetClient {
             .finish()
     }
 }
-///
-///
+//
+//
 impl Service for ProfinetClient {
     //
     //
@@ -436,7 +436,6 @@ impl Service for ProfinetClient {
         self.exit.store(true, Ordering::SeqCst);
     }
 }
-
 ///
 /// Logging connection status on changes only
 struct ConnectionNotify {
@@ -444,11 +443,11 @@ struct ConnectionNotify {
     on_connected: Box<dyn Fn(&str)>,
     on_disconnected: Box<dyn Fn(&str)>,
 }
-///
-///
+//
+//
 impl ConnectionNotify {
-    ///
-    ///
+    //
+    //
     pub fn new(initial: Option<bool>, on_connected: Box<dyn Fn(&str)>, on_disconnected: Box<dyn Fn(&str)>) -> Self {
         Self {
             is_connected: initial,

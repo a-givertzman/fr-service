@@ -46,7 +46,7 @@ impl EmulatedTcpClientSend {
         }
     }
     ///
-    /// 
+    /// Returns self id
     pub fn id(&self) -> String {
         self.id.clone()
     }
@@ -210,7 +210,7 @@ impl Service for EmulatedTcpClientSend {
                                 }
                             }
                         }
-                        if switch_state.isMax() {
+                        if switch_state.is_max() {
                             info!("{}.run | switchState.isMax, exiting", self_id);
                             break 'connect;
                         }
@@ -226,7 +226,7 @@ impl Service for EmulatedTcpClientSend {
                         thread::sleep(Duration::from_millis(1000))
                     }
                 }
-                if switch_state.isMax() {
+                if switch_state.is_max() {
                     info!("{}.run | switchState.isMax, exiting", self_id);
                     break 'connect;
                 }

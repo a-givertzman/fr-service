@@ -15,7 +15,7 @@ impl AuthSshPath {
         }
     }
     ///
-    /// 
+    /// Returns path to the SSH cert
     pub fn path(&self) -> String {
         self.path.clone()
     }

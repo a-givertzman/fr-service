@@ -30,13 +30,13 @@ impl<T> FilterThreshold<T> {
 ///
 impl Filter for FilterThreshold<i64> {
     type Item = i64;
-    ///
-    /// 
+    //
+    //
     fn value(&self) -> Self::Item {
         self.value
     }
-    ///
-    /// 
+    //
+    //
     fn add(&mut self, value: Self::Item) {
         let delta = (self.value as f64) - (value as f64);
         let delta = if self.factor > 0.0 {
@@ -53,8 +53,8 @@ impl Filter for FilterThreshold<i64> {
             self.isChanged = false;
         }
     }
-    ///
-    /// 
+    //
+    //
     fn is_changed(&self) -> bool {
         self.isChanged
     }
@@ -63,13 +63,13 @@ impl Filter for FilterThreshold<i64> {
 ///
 impl Filter for FilterThreshold<f32> {
     type Item = f32;
-    ///
-    /// 
+    //
+    //
     fn value(&self) -> Self::Item {
         self.value
     }
-    ///
-    /// 
+    //
+    //
     fn add(&mut self, value: Self::Item) {
         let delta = self.value - value;
         let delta = if self.factor > 0.0 {
@@ -86,8 +86,8 @@ impl Filter for FilterThreshold<f32> {
             self.isChanged = false;
         }
     }
-    ///
-    /// 
+    //
+    //
     fn is_changed(&self) -> bool {
         self.isChanged
     }
@@ -96,13 +96,13 @@ impl Filter for FilterThreshold<f32> {
 ///
 impl Filter for FilterThreshold<f64> {
     type Item = f64;
-    ///
-    /// 
+    //
+    //
     fn value(&self) -> Self::Item {
         self.value
     }
-    ///
-    /// 
+    //
+    //
     fn add(&mut self, value: Self::Item) {
         let delta = self.value - value;
         let delta = if self.factor > 0.0 {
@@ -119,8 +119,8 @@ impl Filter for FilterThreshold<f64> {
             self.isChanged = false;
         }
     }
-    ///
-    /// 
+    //
+    //
     fn is_changed(&self) -> bool {
         self.isChanged
     }

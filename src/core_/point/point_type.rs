@@ -60,7 +60,10 @@ pub enum PointType {
 ///
 impl PointType {
     ///
-    ///
+    /// Creates instance of PointType
+    ///  - tx_id - identifier of the producer - service
+    ///  - name - the name of the Point
+    ///  - value - current value stored in the Point
     pub fn new<T: ToPoint>(tx_id: usize, name: &str, value: T) -> Self {
         value.to_point(tx_id, name)
     }

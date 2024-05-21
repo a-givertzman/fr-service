@@ -95,7 +95,7 @@ impl JdsDecodeMessage {
         ConnectionStatus::Closed(format!("{}.read_all | tcp stream is closed", self_id))
     }
     ///
-    /// 
+    /// Returns Current connection status on error kind
     fn match_error_kind(kind: ErrorKind) -> Status {
         match kind {
             std::io::ErrorKind::NotFound => todo!(),

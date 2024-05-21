@@ -89,7 +89,7 @@ impl ConfSubscribe {
         }
     }
     ///
-    /// 
+    /// Reurns true if subscription conf is empty
     pub fn is_empty(&self) -> bool {
         self.conf.is_null()
     }

@@ -84,7 +84,7 @@ impl JdsDeserialize {
         }
     }
     ///
-    /// 
+    /// Deserialize point from JSON string
     pub fn deserialize(self_id: &str, tx_id: usize, bytes: Vec<u8>) -> Result<PointType, String> {
         match serde_json::from_slice(&bytes) {
             Ok(value) => {

@@ -22,7 +22,6 @@ use crate::{
         }
     }
 };
-
 ///
 /// Represents PROFINET DB - a collection of the PROFINET addresses
 pub struct ProfinetDb {
@@ -35,8 +34,8 @@ pub struct ProfinetDb {
     pub cycle: Option<Duration>,
     pub points: IndexMap<String, Box<dyn ParsePoint>>,
 }
-///
-///
+//
+//
 impl ProfinetDb {
     ///
     /// Creates new instance of the [ProfinetDb]
@@ -57,7 +56,7 @@ impl ProfinetDb {
         }
     }
     ///
-    ///
+    /// Writes Point's to the log file
     fn log(self_id: &str, parent: &Name, point: &PointType) {
         let path = concat_string!("./logs", parent.join(), "/points.log");
         match fs::OpenOptions::new().create(true).append(true).open(&path) {
@@ -117,7 +116,10 @@ impl ProfinetDb {
     //     }
     // }
     ///
-    ///
+    /// Returns updated points from the current DB
+    ///     - reads data slice from the S7 device,
+    ///     - parses raw data into the configured points
+    ///     - returns only points with updated value or status
     pub fn read(&mut self, client: &S7Client, tx_send: &Sender<PointType>) -> Result<(), String> {
         match client.is_connected() {
             Ok(is_connected) => {
@@ -165,10 +167,7 @@ impl ProfinetDb {
         }
     }
     ///
-    /// Returns updated points from the current DB
-    ///     - reads data slice from the S7 device,
-    ///     - parses raw data into the configured points
-    ///     - returns only points with updated value or status
+    /// Sends all configured points from the current DB with the given status
     pub fn yield_status(&mut self, status: Status, tx_send: &Sender<PointType>) -> Result<(), String> {
         let mut message = String::new();
         for (_key, parse_point) in &mut self.points {
