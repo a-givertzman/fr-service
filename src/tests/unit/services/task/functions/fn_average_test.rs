@@ -69,9 +69,9 @@ mod fn_average {
             (09,    true,  false,     0.300),
             (10,    true,   true,      0.363),
             (11,    true,   true,      0.416),
-            (12,    true,   true,      0.333),
-            (13,    true,  false,     0.388),
-            (14,    true,  false,     0.444),
+            (12,    true,   true,      0.461),
+            (13,    true,  false,     0.428),
+            (14,    true,  false,     0.400),
         ];
         for (step, en, value, target) in test_data {
             let en = en.to_point(0, "enable");
@@ -85,124 +85,200 @@ mod fn_average {
             assert!(result.as_double().value.aprox_eq(target, 3), "\nresult: {:?}\ntarget: {:?}", result, target);
         }
     }
-    // ///
-    // ///
-    // #[test]
-    // fn test_int() {
-    //     DebugSession::init(LogLevel::Debug, Backtrace::Short);
-    //     init_once();
-    //     let self_id = "test_int";
-    //     info!("{}", self_id);
-    //     let input = init_each(&self_id, Value::Int(0));
-    //     let mut fn_rising_edge = FnFallingEdge::new(
-    //         self_id,
-    //         input.clone(),
-    //     );
-    //     let test_data = vec![
-    //         (00,    0,      false),
-    //         (01,    0,      false),
-    //         (02,    1,      false),
-    //         (03,    0,      true),
-    //         (04,    0,      false),
-    //         (05,    3,      false),
-    //         (06,    0,      true),
-    //         (07,    2,      false),
-    //         (08,    0,      true),
-    //         (09,    -1,     false),
-    //         (10,    3,      false),
-    //         (11,    77,     false),
-    //         (12,    65,     false),
-    //         (13,    0,      true),
-    //         (14,    -10,    false),
-    //     ];
-    //     for (step, value, target) in test_data {
-    //         let point = value.to_point(0, "test");
-    //         input.borrow_mut().add(point);
-    //         // debug!("input: {:?}", &input);
-    //         let result = fn_rising_edge.out();
-    //         // debug!("input: {:?}", &mut input);
-    //         debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
-    //     assert!(result.as_bool().value.0 == target, "\nresult: {:?}\ntarget: {:?}", result, target);
-    //     }
-    // }
-    // ///
-    // ///
-    // #[test]
-    // fn test_real() {
-    //     DebugSession::init(LogLevel::Debug, Backtrace::Short);
-    //     init_once();
-    //     let self_id = "test_real";
-    //     info!("{}", self_id);
-    //     let input = init_each(&self_id, Value::Real(0.0));
-    //     let mut fn_rising_edge = FnFallingEdge::new(
-    //         self_id,
-    //         input.clone(),
-    //     );
-    //     let test_data = vec![
-    //         (00,    0.0,      false),
-    //         (01,    0.0,      false),
-    //         (02,    0.1,      false),
-    //         (03,    0.0,      true),
-    //         (04,    0.0,      false),
-    //         (05,    3.0,      false),
-    //         (06,    0.0,      true),
-    //         (07,    2.0,      false),
-    //         (08,    0.0,      true),
-    //         (09,    -1.0,     false),
-    //         (10,    3.0,      false),
-    //         (11,    77.0,     false),
-    //         (12,    65.0,     false),
-    //         (13,    0.0,      true),
-    //         (14,    -10.0,    false),
-    //     ];
-    //     for (step, value, target) in test_data {
-    //         let point = value.to_point(0, "test");
-    //         input.borrow_mut().add(point);
-    //         // debug!("input: {:?}", &input);
-    //         let result = fn_rising_edge.out();
-    //         // debug!("input: {:?}", &mut input);
-    //         debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
-    //     assert!(result.as_bool().value.0 == target, "\nresult: {:?}\ntarget: {:?}", result, target);
-    //     }
-    // }
-    // ///
-    // ///
-    // #[test]
-    // fn test_double() {
-    //     DebugSession::init(LogLevel::Debug, Backtrace::Short);
-    //     init_once();
-    //     let self_id = "test_real";
-    //     info!("{}", self_id);
-    //     let input = init_each(&self_id, Value::Double(0.0));
-    //     let mut fn_rising_edge = FnFallingEdge::new(
-    //         self_id,
-    //         input.clone(),
-    //     );
-    //     let test_data = vec![
-    //         (00,    0.0,      false),
-    //         (01,    0.0,      false),
-    //         (02,    0.1,      false),
-    //         (03,    0.0,      true),
-    //         (04,    0.0,      false),
-    //         (05,    3.0,      false),
-    //         (06,    0.0,      true),
-    //         (07,    2.0,      false),
-    //         (08,    0.0,      true),
-    //         (09,    -1.0,     false),
-    //         (10,    3.0,      false),
-    //         (11,    77.0,     false),
-    //         (12,    65.0,     false),
-    //         (13,    0.0,      true),
-    //         (14,    -10.0,    false),
-    //     ];
-    //     for (step, value, target) in test_data {
-    //         let point = value.to_point(0, "test");
-    //         input.borrow_mut().add(point);
-    //         // debug!("input: {:?}", &input);
-    //         let result = fn_rising_edge.out();
-    //         // debug!("input: {:?}", &mut input);
-    //         debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
-    //     assert!(result.as_bool().value.0 == target, "\nresult: {:?}\ntarget: {:?}", result, target);
-    //     }
-    // }     
+    ///
+    ///
+    #[test]
+    fn test_int() {
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        init_once();
+        let self_id = "test_int";
+        info!("{}", self_id);
+        let enable = init_each(&self_id, Value::Bool(false));
+        let input = init_each(&self_id, Value::Int(0));
+        let mut fn_average = FnAverage::new(
+            self_id,
+            enable.clone(),
+            input.clone(),
+        );
+        let test_data = vec![
+            (00,    true,  0,     0.0),
+            (01,    true,  0,     0.0),
+            (02,    true,  3,     1.0),
+            (03,    true,  0,     0.75),
+            (04,    true,  0,     0.6),
+            (05,    true,  1,     0.666666666666667),
+            (06,    true,  0,     0.571428571428571),
+            (07,    true,  7,     1.375),
+            (08,    true,  0,     1.22222222222222),
+            (09,    true,  0,     1.1),
+            (10,    true,  2,     1.18181818181818),
+            (11,    true,  8,     1.75),
+            (12,    true,  1,     1.69230769230769),
+            (13,    true,  0,     1.57142857142857),
+            (14,    true,  0,     1.46666666666667),
+        ];
+        for (step, en, value, target) in test_data {
+            let en = en.to_point(0, "enable");
+            let point = value.to_point(0, "input");
+            enable.borrow_mut().add(en);
+            input.borrow_mut().add(point);
+            // debug!("input: {:?}", &input);
+            let result = fn_average.out();
+            // debug!("input: {:?}", &mut input);
+            debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
+            assert!(result.as_double().value.aprox_eq(target, 3), "\nresult: {:?}\ntarget: {:?}", result, target);
+        }
+    }
+    ///
+    ///
+    #[test]
+    fn test_real() {
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        init_once();
+        let self_id = "test_real";
+        info!("{}", self_id);
+        let enable = init_each(&self_id, Value::Bool(false));
+        let input = init_each(&self_id, Value::Real(0.0));
+        let mut fn_average = FnAverage::new(
+            self_id,
+            enable.clone(),
+            input.clone(),
+        );
+        let test_data = vec![
+            (00,    true,  0.0,     0.0),
+            (01,    true,  0.0,     0.0),
+            (02,    true,  3.3,     1.09999),
+            (03,    true,  0.1,     0.84999),
+            (04,    true,  0.0,     0.67999),
+            (05,    true,  1.6,     0.83333),
+            (06,    true,  0.0,     0.71428),
+            (07,    true,  7.2,     1.52499),
+            (08,    true,  0.0,     1.35555),
+            (09,    true,  0.3,     1.24999),
+            (10,    true,  2.2,     1.33636),
+            (11,    true,  8.1,     1.9),
+            (12,    true,  1.9,     1.9),
+            (13,    true,  0.1,     1.77142),
+            (14,    true,  0.0,     1.65333),
+        ];
+        for (step, en, value, target) in test_data {
+            let en = en.to_point(0, "enable");
+            let point = value.to_point(0, "input");
+            enable.borrow_mut().add(en);
+            input.borrow_mut().add(point);
+            // debug!("input: {:?}", &input);
+            let result = fn_average.out();
+            // debug!("input: {:?}", &mut input);
+            debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
+            assert!(result.as_double().value.aprox_eq(target, 3), "\nresult: {:?}\ntarget: {:?}", result, target);
+        }
+    }
+    ///
+    ///
+    #[test]
+    fn test_real_enable() {
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        init_once();
+        let self_id = "test_real_enable";
+        info!("{}", self_id);
+        let enable = init_each(&self_id, Value::Bool(false));
+        let input = init_each(&self_id, Value::Real(0.0));
+        let mut fn_average = FnAverage::new(
+            self_id,
+            enable.clone(),
+            input.clone(),
+        );
+        let test_data = vec![
+            (00,    false,  0.0,     0.0),
+            (01,    false,  0.0,     0.0),
+            (02,    false,  3.3,     0.0),
+            (03,    true,  0.1,     0.1),
+            (04,    true,  0.0,     0.05),
+            (05,    true,  1.6,     0.566666666666667),
+            (06,    true,  0.0,     0.425),
+            (07,    true,  7.2,     1.77999),
+            (08,    true,  0.0,     1.48333333333333),
+            (09,    true,  0.3,     1.31428571428571),
+            (10,    true,  2.2,     1.424999),
+            (11,    false,  8.1,     0.0),
+            (12,    false,  1.9,     0.0),
+            (13,    false,  0.1,     0.0),
+            (14,    false,  0.0,     0.0),
+            (15,    true,  0.1,     0.1),
+            (16,    true,  0.0,     0.05),
+            (17,    true,  1.6,     0.566666666666667),
+            (18,    true,  0.0,     0.425),
+            (19,    true,  7.2,     1.77999),
+            (20,    true,  0.0,     1.48333333333333),
+            (21,    true,  0.3,     1.31428571428571),
+            (22,    true,  2.2,     1.424999),
+            (23,    false,  0.0,     0.0),
+            (24,    false,  0.0,     0.0),
+        ];
+        for (step, en, value, target) in test_data {
+            let en = en.to_point(0, "enable");
+            let point = value.to_point(0, "input");
+            enable.borrow_mut().add(en);
+            input.borrow_mut().add(point);
+            // debug!("input: {:?}", &input);
+            let result = fn_average.out();
+            // debug!("input: {:?}", &mut input);
+            debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
+            assert!(result.as_double().value.aprox_eq(target, 3), "\nresult: {:?}\ntarget: {:?}", result, target);
+        }
+    }
+    ///
+    ///
+    #[test]
+    fn test_double_enable() {
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        init_once();
+        let self_id = "test_double_enable";
+        info!("{}", self_id);
+        let enable = init_each(&self_id, Value::Bool(false));
+        let input = init_each(&self_id, Value::Double(0.0));
+        let mut fn_average = FnAverage::new(
+            self_id,
+            enable.clone(),
+            input.clone(),
+        );
+        let test_data = vec![
+            (00,    false,  0.0,     0.0),
+            (01,    false,  0.0,     0.0),
+            (02,    false,  3.3,     0.0),
+            (03,    true,  0.1,     0.1),
+            (04,    true,  0.0,     0.05),
+            (05,    true,  1.6,     0.566666666666667),
+            (06,    true,  0.0,     0.425),
+            (07,    true,  7.2,     1.78),
+            (08,    true,  0.0,     1.48333333333333),
+            (09,    true,  0.3,     1.31428571428571),
+            (10,    true,  2.2,     1.425),
+            (11,    false,  8.1,     0.0),
+            (12,    false,  1.9,     0.0),
+            (13,    false,  0.1,     0.0),
+            (14,    false,  0.0,     0.0),
+            (15,    true,  0.1,     0.1),
+            (16,    true,  0.0,     0.05),
+            (17,    true,  1.6,     0.566666666666667),
+            (18,    true,  0.0,     0.425),
+            (19,    true,  7.2,     1.78),
+            (20,    true,  0.0,     1.48333333333333),
+            (21,    true,  0.3,     1.31428571428571),
+            (22,    true,  2.2,     1.425),
+            (23,    false,  0.0,     0.0),
+            (24,    false,  0.0,     0.0),
+        ];
+        for (step, en, value, target) in test_data {
+            let en = en.to_point(0, "enable");
+            let point = value.to_point(0, "input");
+            enable.borrow_mut().add(en);
+            input.borrow_mut().add(point);
+            // debug!("input: {:?}", &input);
+            let result = fn_average.out();
+            // debug!("input: {:?}", &mut input);
+            debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
+            assert!(result.as_double().value.aprox_eq(target, 3), "\nresult: {:?}\ntarget: {:?}", result, target);
+        }
+    }
 }
