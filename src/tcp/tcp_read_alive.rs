@@ -100,7 +100,7 @@ impl TcpReadAlive {
         handle
     }
     ///
-    /// 
+    /// Sends exit event into the main loop
     pub fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
     }

@@ -24,8 +24,8 @@ mod tcp_stream_write {
         time::{Duration, Instant},
     };
     use testing::session::test_session::TestSession;
-    ///
-    ///
+    //
+    //
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
@@ -53,7 +53,7 @@ mod tcp_stream_write {
         bytes
     }
     ///
-    ///
+    /// Testing TcpStreamWrite
     #[test]
     fn test() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);

@@ -164,8 +164,8 @@ impl FnOut for FnTimer {
             }
         )
     }
-    ///
-    /// 
+    //
+    //
     fn reset(&mut self) {
         self.start = None;
         self.sessionElapsed = 0.0;
