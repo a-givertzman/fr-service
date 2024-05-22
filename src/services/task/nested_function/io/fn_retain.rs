@@ -67,27 +67,26 @@ impl FnRetain {
         };
         match path {
             Ok(path) => {
-                let mut message = String::new();
-                let mut cache = String::new();
-                cache.push('[');
-                let content: String = points.into_iter().fold(String::new(), |mut points, point| {
-                    points.push_str(concat_string!("\n", json!(point).to_string(), ",").as_str());
-                    points
-                }).trim_end_matches(',').to_owned();
-                cache.push_str(content.as_str());
-                cache.push_str("\n]");
+                let value = match point {
+                    PointType::Bool(point) => point.value.0.to_string(),
+                    PointType::Int(point) => point.value.to_string(),
+                    PointType::Real(point) => point.value.to_string(),
+                    PointType::Double(point) => point.value.to_string(),
+                    PointType::String(point) => point.value,
+                };
                 match fs::OpenOptions::new().truncate(true) .create(true).write(true).open(&path) {
                     Ok(mut f) => {
-                        match f.write_all(cache.as_bytes()) {
+                        match f.write_all(value.as_bytes()) {
                             Ok(_) => {
                                 debug!("{}.write | Cache stored in: {:?}", self.id, path);
+                                Ok(())
                             }
                             Err(err) => {
-                                message = format!("{}.write | Error writing to file: '{:?}'\n\terror: {:?}", self.id, path, err);
+                                let message = format!("{}.write | Error writing to file: '{:?}'\n\terror: {:?}", self.id, path, err);
                                 error!("{}", message);
+                                Err(message)
                             }
-                        };
-                        if message.is_empty() {Ok(())} else {Err(message)}
+                        }
                     }
                     Err(err) => {
                         let message = format!("{}.write | Error open file: '{:?}'\n\terror: {:?}", self.id, path, err);
