@@ -107,7 +107,6 @@ mod fn_export {
         for (name, value) in test_data.clone() {
             if name == format!("/{}/Enable", self_id) {
                 enable = value.as_bool();
-                // target_data.push(target.clone());
             } else if name == format!("/{}/Load", self_id) {
                 target = (name.clone(), value);
             }
@@ -142,6 +141,7 @@ mod fn_export {
         info!("producer runing - ok");
         let time = Instant::now();
         receiver_handle.wait().unwrap();
+        thread::sleep(Duration::from_millis(100));
         producer.lock().unwrap().exit();
         task.lock().unwrap().exit();
         task_handle.wait().unwrap();
