@@ -145,8 +145,13 @@ impl NestedFn {
                             None => None,
                         };
                         let point_conf = match conf.input_conf("conf") {
-                            Ok(FnConfKind::PointConf(conf)) => conf.clone(),
-                            _ => panic!("{}.function | Invalid Point config in: {:?}", self_id, conf.name),
+                            Ok(conf) => {
+                                match conf {
+                                    FnConfKind::PointConf(conf) => Some(conf.conf.clone()),
+                                    _ => panic!("{}.function | Invalid Point config in: {:?}", self_id, conf.name()),
+                                }
+                            }
+                            Err(_) => None,
                         };
                         let send_queue = match conf.param("send-to") {
                             Ok(queue_name) => {
@@ -159,7 +164,7 @@ impl NestedFn {
                             },
                         };
                         Rc::new(RefCell::new(Box::new(
-                            FnExport::new(parent, enable, point_conf.conf, input, send_queue)
+                            FnExport::new(parent, enable, point_conf, input, send_queue)
                         )))
                     }
                     //
