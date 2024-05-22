@@ -4,11 +4,10 @@ use crate::{
     conf::point_config::{point_config::PointConfig, point_config_type::PointConfigType}, core_::{point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, types::{bool::Bool, fn_in_out_ref::FnInOutRef}}, services::task::nested_function::{fn_::{FnIn, FnInOut, FnOut}, fn_kind::FnKind}
 };
 ///
-/// Specific function used for exports configured point into the Service.in-queue
+/// Function | Used for export Point from Task service to another service
 ///  - Poiont will be sent to the queue only if:
-///     - queue name provided
-///     - Point was changed
-///  - finally point will be passed to the parent function
+///     - send-to - is specified
+///  - finally input Point will be returned to the parent function
 #[derive(Debug)]
 pub struct FnPoint {
     id: String,

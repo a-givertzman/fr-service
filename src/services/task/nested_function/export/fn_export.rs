@@ -9,21 +9,21 @@ use crate::{
     services::task::nested_function::{fn_::{FnIn, FnInOut, FnOut}, fn_kind::FnKind},
 };
 ///
-/// Specific function used for exports configured point into the Service.in-queue
+/// Function | Used for export Point from Task service to another service
 ///  - Poiont will be sent to the queue only if:
 ///     - [enable] 
-///         - if provided and is true (possible pass > 0)
-///         - if not provided - default is true
-///     - queue name is provided
-///     - Point was changed
-///  - finally point will be passed to the parent function
+///         - if specified and is true (or [enable] > 0)
+///         - if not specified - default is true
+///     - send-to - is specified
+///  - if point conf is not specified - input Point will be sent
+///  - finally input Point will be returned to the parent function
 #[derive(Debug)]
 pub struct FnExport {
     id: String,
     tx_id: usize,
     kind: FnKind,
     enable: Option<FnInOutRef>,
-    conf: PointConfig,
+    conf: Option<PointConfig>,
     input: FnInOutRef,
     tx_send: Option<Sender<PointType>>,
 }
@@ -34,10 +34,10 @@ impl FnExport {
     /// creates new instance of the FnExport
     /// - parent - the name of the parent entitie
     /// - enable - boolean (numeric) input enables the export if true (> 0)
-    /// - conf - the configuration of the Point to be prodused
+    /// - conf - the configuration of the Point to be prodused, if None - input Point will be sent
     /// - input - incoming points
     /// - send - destination queue
-    pub fn new(parent: impl Into<String>, enable: Option<FnInOutRef>, conf: PointConfig, input: FnInOutRef, send: Option<Sender<PointType>>) -> Self {
+    pub fn new(parent: impl Into<String>, enable: Option<FnInOutRef>, conf: Option<PointConfig>, input: FnInOutRef, send: Option<Sender<PointType>>) -> Self {
         let self_id = format!("{}/FnExport{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed));
         Self {
             id: self_id.clone(),
@@ -53,11 +53,15 @@ impl FnExport {
     /// 
     fn send(&self, point: PointType) {
         if let Some(tx_send) = &self.tx_send {
-            let point = match self.conf._type {
+            let (type_, name) = match &self.conf {
+                Some(conf) => (conf._type.clone(), conf.name.clone()),
+                None => (point.type_(), point.name()),
+            };
+            let point = match type_ {
                 PointConfigType::Bool => {
                     PointType::Bool(Point::new(
                         self.tx_id, 
-                        &self.conf.name, 
+                        &name, 
                         Bool(point.value().as_bool()), 
                         point.status(), 
                         point.cot(), 
@@ -67,7 +71,7 @@ impl FnExport {
                 PointConfigType::Int => {
                     PointType::Int(Point::new(
                         self.tx_id, 
-                        &self.conf.name, 
+                        &name, 
                         point.value().as_int(), 
                         point.status(), 
                         point.cot(), 
@@ -77,7 +81,7 @@ impl FnExport {
                 PointConfigType::Real => {
                     PointType::Real(Point::new(
                         self.tx_id, 
-                        &self.conf.name, 
+                        &name, 
                         point.value().as_real(), 
                         point.status(), 
                         point.cot(), 
@@ -87,7 +91,7 @@ impl FnExport {
                 PointConfigType::Double => {
                     PointType::Double(Point::new(
                         self.tx_id, 
-                        &self.conf.name, 
+                        &name, 
                         point.value().as_double(), 
                         point.status(), 
                         point.cot(), 
@@ -97,7 +101,7 @@ impl FnExport {
                 PointConfigType::String => {
                     PointType::String(Point::new(
                         self.tx_id, 
-                        &self.conf.name, 
+                        &name, 
                         point.value().as_string(), 
                         point.status(), 
                         point.cot(), 
@@ -107,7 +111,7 @@ impl FnExport {
                 PointConfigType::Json => {
                     PointType::String(Point::new(
                         self.tx_id, 
-                        &self.conf.name, 
+                        &name, 
                         point.value().as_string(), 
                         point.status(), 
                         point.cot(), 

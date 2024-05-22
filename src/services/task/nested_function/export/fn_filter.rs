@@ -8,10 +8,10 @@ use crate::{
 ///
 /// Function | Filtered input exports as configured point into the Service.in-queue
 ///  - Poiont will be sent to the queue only if:
-///     - [pass] is true (possible pass > 0)
-///     - queue name provided
+///     - [pass] is true (or [pass] > 0)
+///     - send-to - is specified
 ///     - Point was changed
-///  - finally [pass] Point will be passed to the parent function
+///  - finally input Point will be returned to the parent function
 #[derive(Debug)]
 pub struct FnFilter {
     id: String,
@@ -145,13 +145,7 @@ impl FnOut for FnFilter {
     fn out(&mut self) -> PointType {
         let input = self.input.borrow_mut().out();
         let pass_point = self.pass.borrow_mut().out();
-        let pass = match &pass_point {
-            PointType::Bool(pass) => pass.value.0,
-            PointType::Int(pass) => pass.value > 0,
-            PointType::Real(pass) => pass.value > 0.0,
-            PointType::Double(pass) => pass.value > 0.0,
-            PointType::String(_) => panic!("{}.out | On the 'pass' input String type received, but expected type Bool / Int / Real / Double", self.id),
-        };
+        let pass = pass_point.to_bool().as_bool().value.0;
         debug!("{}.out | pass: {:?}", self.id, pass);
         match &self.state {
             Some(state) => {
@@ -171,7 +165,7 @@ impl FnOut for FnFilter {
                 }
             }
         }
-        pass_point
+        input
     }
     //
     fn reset(&mut self) {

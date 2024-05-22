@@ -79,6 +79,17 @@ impl PointType {
         }
     }
     ///
+    /// Returns type of the containing Point
+    pub fn type_(&self) -> PointConfigType {
+        match self {
+            PointType::Bool(_) => PointConfigType::Bool,
+            PointType::Int(_) => PointConfigType::Int,
+            PointType::Real(_) => PointConfigType::Real,
+            PointType::Double(_) => PointConfigType::Double,
+            PointType::String(_) => PointConfigType::String,
+        }        
+    }
+    ///
     /// Returns name of the containing Point
     pub fn name(&self) -> String {
         match self {
