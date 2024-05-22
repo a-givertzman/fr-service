@@ -19,8 +19,8 @@ pub struct FnPoint {
     tx_send: Option<Sender<PointType>>,
     state: Option<PointType>,
 }
-///
-///
+//
+//
 impl FnPoint {
     ///
     /// creates new instance of the FnPoint
@@ -115,16 +115,16 @@ impl FnPoint {
         }
     }
 }
-///
-///
+//
+//
 impl FnIn for FnPoint {
     //
     fn add(&mut self, _: PointType) {
         panic!("{}.add | method is not used", self.id);
     }
 }
-///
-///
+//
+//
 impl FnOut for FnPoint {
     //
     fn id(&self) -> String {
@@ -170,8 +170,8 @@ impl FnOut for FnPoint {
         }
     }
 }
-///
-///
+//
+//
 impl FnInOut for FnPoint {}
 ///
 /// Global static counter of FnPoint instances

@@ -14,8 +14,8 @@ pub struct FnPointConfig {
     pub send_to: Option<String>,
     pub input: Option<Box<FnConfKind>>,
 }
-///
-/// 
+//
+// 
 impl FnPointConfig {
     ///
     /// Returns list of configurations of the defined points

@@ -38,8 +38,8 @@ pub struct SqlMetric {
     sql: Format,
     sql_names: HashMap<String, (String, Option<String>)>,
 }
-///
-/// 
+//
+// 
 impl SqlMetric {
     //
     //
@@ -95,15 +95,15 @@ impl SqlMetric {
         }
     }
 }
-///
-/// 
+//
+// 
 impl FnIn for SqlMetric {
     fn add(&mut self, _point: PointType) {
         panic!("{}.add | method is not used", self.id)
     }
 }
-///
-/// 
+//
+// 
 impl FnOut for SqlMetric {
     //
     fn id(&self) -> String {
@@ -149,8 +149,8 @@ impl FnOut for SqlMetric {
         todo!()
     }
 }
-///
-/// 
+//
+// 
 impl FnInOut for SqlMetric {}
 ///
 /// Global static counter of SqlMetric instances

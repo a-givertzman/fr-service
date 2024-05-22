@@ -35,8 +35,8 @@ pub struct TaskNodes {
     vars: IndexMap<String, FnInOutRef>,
     newNodeVars: Option<TaskNodeVars>,
 }
-///
-/// 
+//
+// 
 impl TaskNodes {
     ///
     /// Creates new empty instance 

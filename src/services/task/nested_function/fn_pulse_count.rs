@@ -17,8 +17,8 @@ pub struct FnPulseCount {
     count: i64,
     initial: i64,
 }
-///
-///
+//
+//
 impl FnPulseCount {
     ///
     /// Creates new instance of the FnPulseCount
@@ -52,11 +52,11 @@ impl FnPulseCount {
         }
     }
 }
-///
-/// 
+//
+// 
 impl FnIn for FnPulseCount {}
-///
-/// 
+//
+// 
 impl FnOut for FnPulseCount {
     //
     fn id(&self) -> String {
@@ -102,8 +102,8 @@ impl FnOut for FnPulseCount {
         self.input.borrow_mut().reset();
     }
 }
-///
-/// 
+//
+// 
 impl FnInOut for FnPulseCount {}
 ///
 /// Global static counter of FnOut instances

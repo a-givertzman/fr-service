@@ -15,8 +15,8 @@ pub struct MockSendService {
     delay: Option<Duration>,
     exit: Arc<AtomicBool>,
 }
-///
-/// 
+//
+// 
 impl MockSendService {
     pub fn new(parent: impl Into<String>, sendQueue: &str, services: Arc<Mutex<Services>>, test_data: Vec<Value>, delay: Option<Duration>) -> Self {
         let name = Name::new(parent, format!("MockSendService{}", COUNT.fetch_add(1, Ordering::Relaxed)));
@@ -42,8 +42,8 @@ impl MockSendService {
         self.sent.clone()
     }
 }
-///
-/// 
+//
+// 
 impl Object for MockSendService {
     fn id(&self) -> &str {
         &self.id
@@ -52,8 +52,8 @@ impl Object for MockSendService {
         self.name.clone()
     }
 }
-///
-/// 
+//
+// 
 impl Debug for MockSendService {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
@@ -62,8 +62,8 @@ impl Debug for MockSendService {
             .finish()
     }
 }
-///
-/// 
+//
+// 
 impl Service for MockSendService {
     //
     //

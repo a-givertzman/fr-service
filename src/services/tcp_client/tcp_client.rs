@@ -22,8 +22,8 @@ pub struct TcpClient {
     tcp_send_alive: Option<Arc<Mutex<TcpWriteAlive>>>,
     exit: Arc<AtomicBool>,
 }
-///
-/// 
+//
+// 
 impl TcpClient {
     ///
     /// Creates new instance of [ApiClient]
@@ -51,8 +51,8 @@ impl Object for TcpClient {
         self.name.clone()
     }
 }
-///
-/// 
+//
+// 
 impl Debug for TcpClient {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
@@ -61,8 +61,8 @@ impl Debug for TcpClient {
             .finish()
     }
 }
-///
-/// 
+//
+// 
 impl Service for TcpClient {
     //
     // 

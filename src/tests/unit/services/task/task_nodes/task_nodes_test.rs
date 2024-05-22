@@ -148,8 +148,8 @@ mod task_nodes {
         rx_recv: Vec<Receiver<PointType>>,
         exit: Arc<AtomicBool>,
     }
-    ///
-    ///
+    //
+    //
     impl MockService {
         fn new(parent: &str, link_name: &str) -> Self {
             let (send, recv) = mpsc::channel();
@@ -165,8 +165,8 @@ mod task_nodes {
             }
         }
     }
-    ///
-    ///
+    //
+    //
     impl Object for MockService {
         fn id(&self) -> &str {
             &self.id
@@ -175,8 +175,8 @@ mod task_nodes {
             self.name.clone()
         }
     }
-    ///
-    ///
+    //
+    //
     impl Debug for MockService {
         fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             formatter
@@ -185,8 +185,8 @@ mod task_nodes {
                 .finish()
         }
     }
-    ///
-    ///
+    //
+    //
     impl Service for MockService {
         //
         //

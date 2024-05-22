@@ -22,8 +22,8 @@ pub struct ProducerService {
     services: Arc<Mutex<Services>>,
     exit: Arc<AtomicBool>,
 }
-///
-/// 
+//
+// 
 impl ProducerService {
     pub fn new(conf: ProducerServiceConfig, services: Arc<Mutex<Services>>) -> Self {
         Self {

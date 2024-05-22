@@ -34,8 +34,8 @@ pub struct FnTimer {
     totalElapsed: f64,
     start: Option<Instant>,
 }
-///
-/// 
+//
+// 
 impl FnTimer {
     #[allow(dead_code)]
     pub fn new(parent: impl Into<String>, initial: impl Into<f64> + Clone, input: FnInOutRef, repeat: bool) -> Self {
@@ -101,11 +101,11 @@ impl FnTimer {
         }
     }
 }
-///
-/// 
+//
+//
 impl FnIn for FnTimer {}
-///
-///
+//
+//
 impl FnOut for FnTimer {
     //
     fn id(&self) -> String {
@@ -174,8 +174,8 @@ impl FnOut for FnTimer {
         self.input.borrow_mut().reset();
     }
 }
-///
-/// 
+//
+// 
 impl FnInOut for FnTimer {}
 ///
 /// Global static counter of FnOut instances

@@ -26,8 +26,8 @@ pub struct Task {
     conf: TaskConfig,
     exit: Arc<AtomicBool>,
 }
-///
-///
+//
+//
 impl Task {
     ///
     /// Creates new instance of [Task]
@@ -91,8 +91,8 @@ impl Task {
         }
     }
 }
-///
-///
+//
+//
 impl Object for Task {
     fn id(&self) -> &str {
         &self.id
@@ -101,8 +101,8 @@ impl Object for Task {
         self.name.clone()
     }
 }
-///
-///
+//
+//
 impl Debug for Task {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
@@ -111,8 +111,8 @@ impl Debug for Task {
             .finish()
     }
 }
-///
-///
+//
+//
 impl Service for Task {
     //
     //

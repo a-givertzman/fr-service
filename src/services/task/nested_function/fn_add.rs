@@ -16,8 +16,8 @@ pub struct FnAdd {
     input1: FnInOutRef,
     input2: FnInOutRef,
 }
-///
-/// 
+//
+// 
 impl FnAdd {
     ///
     /// Creates new instance of the FnAdd
@@ -31,11 +31,11 @@ impl FnAdd {
         }
     }    
 }
-///
-/// 
+//
+// 
 impl FnIn for FnAdd {}
-///
-/// 
+//
+// 
 impl FnOut for FnAdd { 
     //
     fn id(&self) -> String {
@@ -84,8 +84,8 @@ impl FnOut for FnAdd {
         self.input2.borrow_mut().reset();
     }
 }
-///
-/// 
+//
+// 
 impl FnInOut for FnAdd {}
 ///
 /// Global static counter of FnAdd instances

@@ -10,8 +10,8 @@ use serde::Deserialize;
 pub enum Kind {
     Db,
 }
-///
-/// 
+//
+// 
 impl FromStr for Kind {
     type Err = String;
     fn from_str(input: &str) -> Result<Self, Self::Err> {
@@ -50,8 +50,8 @@ pub struct KeywdValue {
 pub enum Keywd {
     Db(KeywdValue),
 }
-///
-/// 
+//
+// 
 impl Keywd {
     pub fn prefix(&self) -> String {
         match self {

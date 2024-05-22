@@ -19,8 +19,8 @@ pub struct JdsDecodeMessage {
     // tcpStream: BufReader<TcpStream>,
     remainder: Vec<u8>,
 }
-///
-/// 
+//
+// 
 impl JdsDecodeMessage {
     ///
     /// Creates new instance of the JdsDecodeMessage

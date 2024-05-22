@@ -20,8 +20,8 @@ pub struct MockMultiQueueMatch {
     services: Arc<Mutex<Services>>,
     exit: Arc<AtomicBool>,
 }
-///
-/// 
+//
+// 
 impl MockMultiQueueMatch {
     ///
     /// Creates new instance of [ApiClient]
@@ -41,8 +41,8 @@ impl MockMultiQueueMatch {
         }
     }
 }
-///
-/// 
+//
+// 
 impl Object for MockMultiQueueMatch {
     fn id(&self) -> &str {
         &self.id
@@ -51,8 +51,8 @@ impl Object for MockMultiQueueMatch {
         self.name.clone()
     }
 }
-///
-/// 
+//
+// 
 impl Debug for MockMultiQueueMatch {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
@@ -61,8 +61,8 @@ impl Debug for MockMultiQueueMatch {
             .finish()
     }
 }
-///
-/// 
+//
+// 
 impl Service for MockMultiQueueMatch {
     //
     //

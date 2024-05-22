@@ -10,8 +10,8 @@ pub struct FnConst {
     kind: FnKind,
     point: PointType,
 }
-///
-/// 
+//
+// 
 impl FnConst {
     ///
     /// Creates new instance of function [Const] value
@@ -25,11 +25,11 @@ impl FnConst {
         }
     }
 }
-///
-/// 
+//
+// 
 impl FnIn for FnConst {}
-///
-/// 
+//
+// 
 impl FnOut for FnConst {
     //
     fn id(&self) -> String {
@@ -51,8 +51,8 @@ impl FnOut for FnConst {
     //
     fn reset(&mut self) {}
 }
-///
-/// 
+//
+// 
 impl FnInOut for FnConst {}
 ///
 /// Global static counter of FnConst instances

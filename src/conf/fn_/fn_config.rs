@@ -32,8 +32,8 @@ pub struct FnConfig {
     pub inputs: IndexMap<String, FnConfKind>,
     pub type_: FnConfPointType,
 }
-///
-/// 
+//
+// 
 impl FnConfig {
     ///
     /// creates config from serde_yaml::Value of following format:

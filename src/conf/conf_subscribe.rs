@@ -105,8 +105,8 @@ struct Criterias {
     conf: serde_yaml::Value,
     points: Vec<PointConfig>
 }
-///
-/// 
+//
+// 
 impl Criterias {
     fn new(parent: &str, conf: &serde_yaml::Value, points: &[PointConfig]) -> Self {
         Self {

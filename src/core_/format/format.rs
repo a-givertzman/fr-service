@@ -29,8 +29,8 @@ pub struct Format {
     names: HashMap<String, (String, Option<String>)>,
     values: HashMap<String, PointType>,
 }
-///
-/// 
+//
+// 
 impl Format {
     ///
     /// Creates new instance of the Format from configuration string
@@ -131,8 +131,8 @@ impl std::fmt::Display for Format {
         write!(f, "{}", self.out())
     }
 }
-///
-/// 
+//
+// 
 impl std::fmt::Debug for Format {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.out())

@@ -22,8 +22,8 @@ pub struct FnExport {
     input: FnInOutRef,
     tx_send: Option<Sender<PointType>>,
 }
-///
-///
+//
+//
 impl FnExport {
     ///
     /// creates new instance of the FnExport
@@ -121,16 +121,16 @@ impl FnExport {
         }
     }
 }
-///
-///
+//
+//
 impl FnIn for FnExport {
     //
     fn add(&mut self, _: PointType) {
         panic!("{}.add | method is not used", self.id);
     }
 }
-///
-///
+//
+//
 impl FnOut for FnExport {
     //
     fn id(&self) -> String {
@@ -178,8 +178,8 @@ impl FnOut for FnExport {
         self.input.borrow_mut().reset();
     }
 }
-///
-///
+//
+//
 impl FnInOut for FnExport {}
 ///
 /// Global static counter of FnExport instances

@@ -42,8 +42,8 @@ pub struct JdsRoutes<F> {
     rautes: F,
     shared: Arc<RwLock<Shared>>,
 }
-///
-/// 
+//
+// 
 impl<F> JdsRoutes<F> {
     ///
     /// 
@@ -75,8 +75,8 @@ impl<F> Debug for JdsRoutes<F> {
             .finish()
     }
 }
-///
-/// 
+//
+// 
 impl<F> Object for JdsRoutes<F> {
     fn id(&self) -> &str {
         &self.id
@@ -85,8 +85,8 @@ impl<F> Object for JdsRoutes<F> {
         self.name.clone()
     }
 }
-///
-/// 
+//
+// 
 impl<F> TcpStreamRead for JdsRoutes<F> where
     //    parent_id, name
     F: Fn(String, Name, PointType, Arc<Mutex<Services>>, Arc<RwLock<Shared>>) -> RouterReply,

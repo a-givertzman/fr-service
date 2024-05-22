@@ -12,8 +12,8 @@ pub struct ServiceCycle {
     instant: Instant,
     interval: Duration,
 }
-///
-/// 
+//
+// 
 impl ServiceCycle {
     ///
     /// creates ServiceCycle with Duration of interval

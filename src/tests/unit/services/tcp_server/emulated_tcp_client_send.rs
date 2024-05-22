@@ -28,8 +28,8 @@ pub struct EmulatedTcpClientSend {
     wait_on_finish: bool,
     exit: Arc<AtomicBool>,
 }
-///
-/// 
+//
+// 
 impl EmulatedTcpClientSend {
     pub fn new(parent: impl Into<String>, point_path: impl Into<String>, addr: &str, test_data: Vec<Value>, disconnect: Vec<i8>, wait_on_finish: bool) -> Self {
         let name = Name::new(parent, format!("EmulatedTcpClientSend{}", COUNT.fetch_add(1, Ordering::Relaxed)));
@@ -103,8 +103,8 @@ impl EmulatedTcpClientSend {
         switch_state
     }
 }
-///
-/// 
+//
+// 
 impl Object for EmulatedTcpClientSend {
     fn id(&self) -> &str {
         &self.id
@@ -113,8 +113,8 @@ impl Object for EmulatedTcpClientSend {
         self.name.clone()
     }
 }
-///
-/// 
+//
+// 
 impl Debug for EmulatedTcpClientSend {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
@@ -123,8 +123,8 @@ impl Debug for EmulatedTcpClientSend {
             .finish()
     }
 }
-///
-/// 
+//
+// 
 impl Service for EmulatedTcpClientSend {
     //
     //

@@ -19,8 +19,8 @@ pub struct FnToInt {
     kind: FnKind,
     input: FnInOutRef,
 }
-///
-/// 
+//
+// 
 impl FnToInt {
     ///
     /// Creates new instance of the FnToInt
@@ -33,11 +33,11 @@ impl FnToInt {
         }
     }    
 }
-///
-/// 
+//
+// 
 impl FnIn for FnToInt {}
-///
-/// 
+//
+// 
 impl FnOut for FnToInt { 
     //
     fn id(&self) -> String {
@@ -89,8 +89,8 @@ impl FnOut for FnToInt {
         self.input.borrow_mut().reset();
     }
 }
-///
-/// 
+//
+// 
 impl FnInOut for FnToInt {}
 ///
 /// Global static counter of FnToInt instances

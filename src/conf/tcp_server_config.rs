@@ -29,8 +29,8 @@ pub struct TcpServerConfig {
     pub(crate) tx: String,
     pub(crate) cache: Option<String>,
 }
-///
-/// 
+//
+// 
 impl TcpServerConfig {
     ///
     /// creates config from serde_yaml::Value of following format:

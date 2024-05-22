@@ -13,8 +13,8 @@ pub struct FilterThreshold<T> {
     factor: f64,
     acc: f64,
 }
-///
-/// 
+//
+// 
 impl<T> FilterThreshold<T> {
     pub fn new(initial: T, threshold: f64, factor: f64) -> Self {
         Self {
@@ -26,8 +26,8 @@ impl<T> FilterThreshold<T> {
         }
     }
 }
-///
-///
+//
+//
 impl Filter for FilterThreshold<i64> {
     type Item = i64;
     //
@@ -59,8 +59,8 @@ impl Filter for FilterThreshold<i64> {
         self.isChanged
     }
 }
-///
-///
+//
+//
 impl Filter for FilterThreshold<f32> {
     type Item = f32;
     //
@@ -92,8 +92,8 @@ impl Filter for FilterThreshold<f32> {
         self.isChanged
     }
 }
-///
-///
+//
+//
 impl Filter for FilterThreshold<f64> {
     type Item = f64;
     //

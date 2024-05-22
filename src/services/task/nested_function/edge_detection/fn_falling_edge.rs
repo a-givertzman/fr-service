@@ -17,8 +17,8 @@ pub struct FnFallingEdge {
     input: FnInOutRef,
     prev: bool,
 }
-///
-/// 
+//
+// 
 impl FnFallingEdge {
     ///
     /// Creates new instance of the FnFallingEdge
@@ -32,11 +32,11 @@ impl FnFallingEdge {
         }
     }    
 }
-///
-/// 
+//
+// 
 impl FnIn for FnFallingEdge {}
-///
-/// 
+//
+// 
 impl FnOut for FnFallingEdge { 
     //
     fn id(&self) -> String {
@@ -80,8 +80,8 @@ impl FnOut for FnFallingEdge {
         self.input.borrow_mut().reset();
     }
 }
-///
-/// 
+//
+// 
 impl FnInOut for FnFallingEdge {}
 ///
 /// Global static counter of FnFallingEdge instances

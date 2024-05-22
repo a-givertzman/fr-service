@@ -15,8 +15,8 @@ pub struct FnDebug {
     kind: FnKind,
     input: FnInOutRef,
 }
-///
-/// 
+//
+// 
 impl FnDebug {
     ///
     /// Creates new instance of the FnDebug
@@ -29,11 +29,11 @@ impl FnDebug {
         }
     }    
 }
-///
-/// 
+//
+// 
 impl FnIn for FnDebug {}
-///
-/// 
+//
+// 
 impl FnOut for FnDebug { 
     //
     fn id(&self) -> String {
@@ -60,8 +60,8 @@ impl FnOut for FnDebug {
         self.input.borrow_mut().reset();
     }
 }
-///
-/// 
+//
+// 
 impl FnInOut for FnDebug {}
 ///
 /// Global static counter of FnDebug instances

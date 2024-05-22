@@ -17,8 +17,8 @@ pub struct FnRisingEdge {
     input: FnInOutRef,
     prev: bool,
 }
-///
-/// 
+//
+// 
 impl FnRisingEdge {
     ///
     /// Creates new instance of the FnRisingEdge
@@ -32,11 +32,11 @@ impl FnRisingEdge {
         }
     }    
 }
-///
-/// 
+//
+// 
 impl FnIn for FnRisingEdge {}
-///
-/// 
+//
+// 
 impl FnOut for FnRisingEdge { 
     //
     fn id(&self) -> String {
@@ -80,8 +80,8 @@ impl FnOut for FnRisingEdge {
         self.input.borrow_mut().reset();
     }
 }
-///
-/// 
+//
+// 
 impl FnInOut for FnRisingEdge {}
 ///
 /// Global static counter of FnRisingEdge instances

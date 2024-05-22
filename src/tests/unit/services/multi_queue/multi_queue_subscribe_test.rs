@@ -154,8 +154,8 @@ struct MockReceiver {
     recv_limit: Option<usize>,
     exit: Arc<AtomicBool>,
 }
-///
-///
+//
+//
 impl MockReceiver {
     pub fn new(parent: impl Into<String>, subscribe: &str, services: Arc<Mutex<Services>>, recv_limit: Option<usize>) -> Self {
         let name = Name::new(parent, format!("MockReceiver{}", COUNT.fetch_add(1, Ordering::Relaxed)));
@@ -170,8 +170,8 @@ impl MockReceiver {
         }
     }
 }
-///
-///
+//
+//
 impl Object for MockReceiver {
     fn id(&self) -> &str {
         self.id.as_str()
@@ -180,8 +180,8 @@ impl Object for MockReceiver {
         self.name.clone()
     }
 }
-///
-///
+//
+//
 impl Debug for MockReceiver {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
@@ -190,8 +190,8 @@ impl Debug for MockReceiver {
             .finish()
     }
 }
-///
-///
+//
+//
 impl Service for MockReceiver {
     //
     //

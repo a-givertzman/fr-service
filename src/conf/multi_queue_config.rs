@@ -20,8 +20,8 @@ pub struct MultiQueueConfig {
     pub(crate) rx_max_length: i64,
     pub(crate) tx: Vec<String>,
 }
-///
-/// 
+//
+// 
 impl MultiQueueConfig {
     ///
     /// creates config from serde_yaml::Value of following format:

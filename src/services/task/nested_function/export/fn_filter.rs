@@ -23,8 +23,8 @@ pub struct FnFilter {
     tx_send: Option<Sender<PointType>>,
     state: Option<PointType>,
 }
-///
-///
+//
+//
 impl FnFilter {
     ///
     /// creates new instance of the FnFilter
@@ -120,16 +120,16 @@ impl FnFilter {
         }
     }
 }
-///
-///
+//
+//
 impl FnIn for FnFilter {
     //
     fn add(&mut self, _: PointType) {
         panic!("{}.add | method is not used", self.id);
     }
 }
-///
-///
+//
+//
 impl FnOut for FnFilter {
     //
     fn id(&self) -> String {
@@ -181,8 +181,8 @@ impl FnOut for FnFilter {
         self.pass.borrow_mut().reset();
     }
 }
-///
-///
+//
+//
 impl FnInOut for FnFilter {}
 ///
 /// Global static counter of FnFilter instances

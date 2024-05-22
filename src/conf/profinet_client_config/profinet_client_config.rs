@@ -53,8 +53,8 @@ pub struct ProfinetClientConfig {
     pub(crate) diagnosis: IndexMapFxHasher<DiagKeywd, PointConfig>,
     pub(crate) dbs: IndexMap<String, ProfinetDbConfig>,
 }
-///
-/// 
+//
+// 
 impl ProfinetClientConfig {
     ///
     /// Creates new instance of the [ProfinetClientConfig]:

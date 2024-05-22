@@ -55,8 +55,8 @@ pub struct AppConfig {
     // pub(crate) cycle: Option<Duration>,
     pub(crate) nodes: IndexMap<ConfKeywd, ConfTree>,
 }
-///
-/// 
+//
+// 
 impl AppConfig {
     ///
     /// Creates new instance of the [AppConfig]:

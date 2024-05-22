@@ -18,8 +18,8 @@ struct ConnectionInfo<'a> {
     self_name: &'a Name,
     connection_id: &'a str,
 }
-///
-/// 
+//
+// 
 impl<'a> ConnectionInfo<'a> {
     pub fn new(self_id: &'a str, self_name: &'a Name, connection_id: &'a str) -> Self {
         Self {
@@ -41,8 +41,8 @@ pub struct TcpServer {
     services: Arc<Mutex<Services>>,
     exit: Arc<AtomicBool>,
 }
-///
-///
+//
+//
 impl TcpServer {
     ///
     /// Creates new instance of the TcpServer:
@@ -146,8 +146,8 @@ impl TcpServer {
     }
     
 }
-///
-///
+//
+//
 impl Object for TcpServer {
     fn id(&self) -> &str {
         &self.id
@@ -156,8 +156,8 @@ impl Object for TcpServer {
         self.name.clone()
     }
 }
-///
-///
+//
+//
 impl Debug for TcpServer {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
@@ -166,8 +166,8 @@ impl Debug for TcpServer {
             .finish()
     }
 }
-///
-///
+//
+//
 impl Service for TcpServer {
     //
     //

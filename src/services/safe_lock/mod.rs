@@ -10,8 +10,8 @@ use super::{multi_queue::subscriptions::Subscriptions, server::connections::TcpS
 pub trait SafeLock<T> where T: ?Sized {
     fn slock(&self) -> MutexGuard<T>;
 }
-///
-/// 
+//
+// 
 impl SafeLock<dyn Service> for Arc<Mutex<dyn Service>> {
     fn slock(&self) -> MutexGuard<'_, (dyn Service + 'static)> {
         let self_id = format!("{:?}/SafeLock", self);
@@ -23,8 +23,8 @@ impl SafeLock<dyn Service> for Arc<Mutex<dyn Service>> {
         mutax_guard
     }
 }
-///
-/// 
+//
+// 
 impl SafeLock<dyn Service + Send> for Arc<Mutex<dyn Service + Send>> {
     fn slock(&self) -> MutexGuard<'_, (dyn Service + Send + 'static)> {
         let self_id = format!("{:?}/SafeLock", self);
@@ -36,8 +36,8 @@ impl SafeLock<dyn Service + Send> for Arc<Mutex<dyn Service + Send>> {
         mutax_guard
     }
 }
-///
-///
+//
+//
 impl SafeLock<Services> for Arc<Mutex<Services>> {
     fn slock(&self) -> MutexGuard<'_, Services> {
         let self_id = format!("{:?}/SafeLock", self);
@@ -50,8 +50,8 @@ impl SafeLock<Services> for Arc<Mutex<Services>> {
         mutax_guard
     }
 }
-///
-///
+//
+//
 impl SafeLock<Subscriptions> for Arc<Mutex<Subscriptions>> {
     fn slock(&self) -> MutexGuard<'_, Subscriptions> {
         let self_id = format!("{:?}/SafeLock", self);
@@ -64,8 +64,8 @@ impl SafeLock<Subscriptions> for Arc<Mutex<Subscriptions>> {
         mutax_guard
     }
 }
-///
-///
+//
+//
 impl SafeLock<TcpServerConnections> for Arc<Mutex<TcpServerConnections>> {
     fn slock(&self) -> MutexGuard<'_, TcpServerConnections> {
         let self_id = format!("{:?}/SafeLock", self);
@@ -78,9 +78,8 @@ impl SafeLock<TcpServerConnections> for Arc<Mutex<TcpServerConnections>> {
         mutax_guard
     }
 }
-
-///
-///
+//
+//
 impl SafeLock<TcpReadAlive> for Arc<Mutex<TcpReadAlive>> {
     fn slock(&self) -> MutexGuard<'_, TcpReadAlive> {
         let self_id = format!("{:?}/SafeLock", self);
@@ -93,8 +92,8 @@ impl SafeLock<TcpReadAlive> for Arc<Mutex<TcpReadAlive>> {
         mutax_guard
     }
 }
-///
-///
+//
+//
 impl SafeLock<TcpWriteAlive> for Arc<Mutex<TcpWriteAlive>> {
     fn slock(&self) -> MutexGuard<'_, TcpWriteAlive> {
         let self_id = format!("{:?}/SafeLock", self);
@@ -107,8 +106,8 @@ impl SafeLock<TcpWriteAlive> for Arc<Mutex<TcpWriteAlive>> {
         mutax_guard
     }
 }
-///
-///
+//
+//
 impl SafeLock<TcpStreamWrite> for Arc<Mutex<TcpStreamWrite>> {
     fn slock(&self) -> MutexGuard<'_, TcpStreamWrite> {
         let self_id = format!("{:?}/SafeLock", self);
@@ -121,8 +120,8 @@ impl SafeLock<TcpStreamWrite> for Arc<Mutex<TcpStreamWrite>> {
         mutax_guard
     }
 }
-///
-/// 
+//
+// 
 impl SafeLock<dyn TcpStreamRead> for Arc<Mutex<dyn TcpStreamRead>> {
     fn slock(&self) -> MutexGuard<'_, (dyn TcpStreamRead + 'static)> {
         let self_id = format!("{:?}/SafeLock", self);
@@ -135,8 +134,8 @@ impl SafeLock<dyn TcpStreamRead> for Arc<Mutex<dyn TcpStreamRead>> {
         mutax_guard
     }
 }
-///
-/// 
+//
+// 
 impl SafeLock<Receiver<bool>> for Arc<Mutex<Receiver<bool>>> {
     fn slock(&self) -> MutexGuard<'_, Receiver<bool>> {
         let self_id = format!("{:?}/SafeLock", self);
@@ -149,8 +148,8 @@ impl SafeLock<Receiver<bool>> for Arc<Mutex<Receiver<bool>>> {
         mutax_guard
     }
 }
-///
-/// 
+//
+// 
 impl SafeLock<Vec<TcpStream>> for Arc<Mutex<Vec<TcpStream>>> {
     fn slock(&self) -> MutexGuard<'_, Vec<TcpStream>> {
         let self_id = format!("{:?}/SafeLock", self);

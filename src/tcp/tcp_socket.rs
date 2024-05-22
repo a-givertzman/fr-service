@@ -14,8 +14,8 @@ struct TcpSocket {
     tcpStreamW: TcpStream,
     isConnected: AtomicBool,
 }
-///
-/// 
+//
+// 
 impl TcpSocket {
     pub fn new(parent: impl Into<String>, tcpStream: TcpStream) -> Self {
         Self {

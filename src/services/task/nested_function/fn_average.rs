@@ -15,8 +15,8 @@ pub struct FnAverage {
     count: i64,
     sum: f64,
 }
-///
-/// 
+//
+// 
 impl FnAverage {
     ///
     /// Creates new instance of the FnAverage
@@ -32,11 +32,11 @@ impl FnAverage {
         }
     }
 }
-///
-/// 
+//
+// 
 impl FnIn for FnAverage {}
-///
-/// 
+//
+// 
 impl FnOut for FnAverage {
     //
     fn id(&self) -> String {
@@ -101,8 +101,8 @@ impl FnOut for FnAverage {
         self.input.borrow_mut().reset();
     }
 }
-///
-/// 
+//
+// 
 impl FnInOut for FnAverage {}
 ///
 /// Global static counter of FnAverage instances

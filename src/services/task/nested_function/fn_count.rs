@@ -14,8 +14,8 @@ pub struct FnCount {
     count: f64,
     initial: f64,
 }
-///
-/// 
+//
+// 
 impl FnCount {
     ///
     /// Creates new instance of the FnCount
@@ -30,11 +30,11 @@ impl FnCount {
         }
     }
 }
-///
-/// 
+//
+// 
 impl FnIn for FnCount {}
-///
-/// 
+//
+// 
 impl FnOut for FnCount {
     //
     fn id(&self) -> String {
@@ -77,8 +77,8 @@ impl FnOut for FnCount {
         self.input.borrow_mut().reset();
     }
 }
-///
-/// 
+//
+// 
 impl FnInOut for FnCount {}
 ///
 /// Global static counter of FnCount instances

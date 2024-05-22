@@ -12,8 +12,8 @@ pub struct TaskTestReceiver {
     received: Arc<Mutex<Vec<PointType>>>,
     exit: Arc<AtomicBool>,
 }
-///
-/// 
+//
+// 
 impl TaskTestReceiver {
     ///
     /// 
@@ -36,8 +36,8 @@ impl TaskTestReceiver {
         self.received.clone()
     }
 }
-///
-/// 
+//
+// 
 impl Object for TaskTestReceiver {
     fn id(&self) -> &str {
         &self.id
@@ -46,8 +46,8 @@ impl Object for TaskTestReceiver {
         self.name.clone()
     }
 }
-///
-/// 
+//
+// 
 impl Debug for TaskTestReceiver {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
@@ -56,8 +56,8 @@ impl Debug for TaskTestReceiver {
             .finish()
     }
 }
-///
-/// 
+//
+// 
 impl Service for TaskTestReceiver {
     //
     //

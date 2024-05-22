@@ -7,8 +7,8 @@ pub struct LockTimer {
     duration: Duration,
     exit: Arc<AtomicBool>,
 }
-///
-/// 
+//
+// 
 impl LockTimer {
     ///
     /// If maximum lock duration exceeded - error message printed

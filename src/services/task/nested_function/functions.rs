@@ -25,8 +25,8 @@ pub enum Functions {
     RisingEdge,
     FallingEdge,
 }
-///
-///
+//
+//
 impl Functions {
     /// embedded functions
     const INPUT             : &'static str = "input";
@@ -95,8 +95,8 @@ impl Functions {
         }
     }
 }
-///
-///
+//
+//
 impl FromStr for Functions {
     type Err = String;
     fn from_str(input: &str) -> Result<Functions, String> {

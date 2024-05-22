@@ -12,8 +12,8 @@ pub struct FnGe {
     input1: FnInOutRef,
     input2: FnInOutRef,
 }
-///
-/// 
+//
+// 
 impl FnGe {
     #[allow(dead_code)]
     pub fn new(parent: impl Into<String>, input1: FnInOutRef, input2: FnInOutRef) -> Self {
@@ -44,11 +44,11 @@ impl FnGe {
         }
     }
 }
-///
-/// 
+//
+// 
 impl FnIn for FnGe {}
-///
-///
+//
+//
 impl FnOut for FnGe {
     //
     fn id(&self) -> String {
@@ -99,8 +99,8 @@ impl FnOut for FnGe {
         self.input1.borrow_mut().reset();
     }
 }
-///
-/// 
+//
+// 
 impl FnInOut for FnGe {}
 ///
 /// Global static counter of FnOut instances

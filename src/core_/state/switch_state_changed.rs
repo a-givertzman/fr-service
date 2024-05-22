@@ -5,8 +5,8 @@ pub struct SwitchStateChanged<TState, TInput> {
     switch_state: SwitchState<TState, TInput>,
     prev: TState,
 }
-///
-/// 
+//
+// 
 impl<TState: std::fmt::Debug + Eq + Ord + core::hash::Hash + Clone, TInput: Clone> SwitchStateChanged<TState, TInput> {
     ///
     /// Creates new instance of the SwitchStateChanged

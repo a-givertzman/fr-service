@@ -33,8 +33,8 @@ pub struct ProducerServiceConfig {
     // pub(crate) subscribe: ConfSubscribe,
     pub(crate) nodes: IndexMap<String, PointConfig>,
 }
-///
-/// 
+//
+// 
 impl ProducerServiceConfig {
     ///
     /// creates config from serde_yaml::Value of following format:

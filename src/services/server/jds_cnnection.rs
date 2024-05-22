@@ -38,8 +38,8 @@ pub enum JdsState {
     Unknown,
     Authenticated,
 }
-///
-/// 
+//
+// 
 impl From<usize> for JdsState {
     fn from(value: usize) -> Self {
         match value {
@@ -81,8 +81,8 @@ pub struct JdsConnection {
     conf: TcpServerConfig, 
     exit: Arc<AtomicBool>,
 }
-///
-/// 
+//
+// 
 impl JdsConnection {
     ///
     /// Creates new instance of the [JdsConnection]

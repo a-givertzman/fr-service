@@ -4,8 +4,8 @@
 pub struct AuthSsh {
     path: String,
 }
-///
-/// 
+//
+// 
 impl AuthSsh {
     ///
     /// Creates new instance of AuthSsh

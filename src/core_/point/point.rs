@@ -12,8 +12,8 @@ pub struct Point<T> {
     pub cot: Cot,
     pub timestamp: DateTime<chrono::Utc>,
 }
-///
-/// 
+//
+// 
 impl<T> Point<T> {
     ///
     /// Creates new instance of the Point
@@ -34,8 +34,8 @@ impl<T> Point<T> {
         }
     }
 }
-///
-/// 
+//
+// 
 impl Point<Bool> {
     ///
     /// creates Point<Bool> with given name & value, taking current timestamp, Status::Ok, Direction::Read
@@ -50,8 +50,8 @@ impl Point<Bool> {
         }
     }
 }
-///
-/// 
+//
+// 
 impl Point<i64> {
     ///
     /// creates Point<i64> with given name & value, taking current timestamp, Status::Ok, Direction::Read
@@ -66,8 +66,8 @@ impl Point<i64> {
         }
     }
 }
-///
-/// 
+//
+// 
 impl Point<f32> {
     ///
     /// creates Point<f32> with given name & value, taking current timestamp, Status::Ok, Direction::Read
@@ -82,8 +82,8 @@ impl Point<f32> {
         }
     }
 }
-///
-/// 
+//
+// 
 impl Point<f64> {
     ///
     /// creates Point<f64> with given name & value, taking current timestamp, Status::Ok, Direction::Read
@@ -98,8 +98,8 @@ impl Point<f64> {
         }
     }
 }
-///
-/// 
+//
+// 
 impl Point<String> {
     ///
     /// creates Point<String> with given name & value, taking current timestamp, Status::Ok, Direction::Read
@@ -114,8 +114,8 @@ impl Point<String> {
         }
     }
 }
-///
-/// 
+//
+// 
 impl<T: std::ops::Add<Output = T> + Clone> std::ops::Add for Point<T> {
     type Output = Point<T>;
     fn add(self, rhs: Self) -> Self::Output {

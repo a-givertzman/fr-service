@@ -56,8 +56,8 @@ pub enum PointType {
     Double(Point<f64>),
     String(Point<String>)
 }
-///
-///
+//
+//
 impl PointType {
     ///
     /// Creates instance of PointType
@@ -196,8 +196,8 @@ impl PointType {
         }
     }
 }
-///
-///
+//
+//
 impl Serialize for PointType {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -311,8 +311,8 @@ impl Serialize for PointType {
         // state.end()
     }
 }
-///
-///
+//
+//
 impl<'de> Deserialize<'de> for PointType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
