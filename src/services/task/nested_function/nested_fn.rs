@@ -44,7 +44,7 @@ impl NestedFn {
                     Functions::Count => {
                         let initial = 0.0;
                         let name = "input";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services);
                         Rc::new(RefCell::new(Box::new(
                             FnCount::new(parent, initial, input),
@@ -53,10 +53,10 @@ impl NestedFn {
                     //
                     Functions::Add => {
                         let name = "input1";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input1 = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
                         let name = "input2";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input2 = Self::function(parent, tx_id, name, input_conf, task_nodes, services);
                         Rc::new(RefCell::new(Box::new(
                             FnAdd::new(parent, input1, input2)
@@ -74,7 +74,7 @@ impl NestedFn {
                     //
                     Functions::ToApiQueue => {
                         let name = "input";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes ,services.clone());
                         let queue_name = conf.param("queue").unwrap_or_else(|_|
                             panic!("{}.function | Parameter 'queue' - missed in '{}'", self_id, conf.name)
@@ -90,10 +90,10 @@ impl NestedFn {
                     //
                     Functions::Ge => {
                         let name = "input1";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input1 = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
                         let name = "input2";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input2 = Self::function(parent, tx_id, name, input_conf, task_nodes, services);
                         Rc::new(RefCell::new(Box::new(
                             FnGe::new(parent, input1, input2)
@@ -108,7 +108,7 @@ impl NestedFn {
                     //
                     Functions::PointId => {
                         let name = "input";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
                         let points = services.slock().points(&parent.join());
                         Rc::new(RefCell::new(Box::new(
@@ -118,7 +118,7 @@ impl NestedFn {
                     //
                     Functions::Debug => {
                         let name = "input";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
                         Rc::new(RefCell::new(Box::new(
                             FnDebug::new(parent, input)
@@ -127,7 +127,7 @@ impl NestedFn {
                     //
                     Functions::ToInt => {
                         let name = "input";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
                         Rc::new(RefCell::new(Box::new(
                             FnToInt::new(parent, input)
@@ -136,29 +136,42 @@ impl NestedFn {
                     //
                     Functions::Export => {
                         let name = "input";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
-                        let queue_name = conf.param("send-to").unwrap_or_else(|_|
-                            panic!("{}.function | Parameter 'send-to' - missed in '{}'", self_id, conf.name)
-                        ).name();
-                        let services_lock = services.slock();
-                        let send_queue = services_lock.get_link(&queue_name).unwrap_or_else(|err| {
-                            panic!("{}.function | services.get_link error: {:#?}", self_id, err);
-                        });
+                        let name = "enable";
+                        let input_conf = conf.input_conf(name).map_or(None, |conf| Some(conf));
+                        let enable = match input_conf {
+                            Some(input_conf) => Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone())),
+                            None => None,
+                        };
+                        let point_conf = match conf.input_conf("conf") {
+                            Ok(FnConfKind::PointConf(conf)) => conf.clone(),
+                            _ => panic!("{}.function | Invalid Point config in: {:?}", self_id, conf.name),
+                        };
+                        let send_queue = match conf.param("send-to") {
+                            Ok(queue_name) => {
+                                let services_lock = services.slock();
+                                services_lock.get_link(&queue_name.name()).map_or(None, |send| Some(send))
+                            }
+                            Err(_) => {
+                                warn!("{}.function | Parameter 'send-to' - missed in '{}'", self_id, conf.name);
+                                None
+                            },
+                        };
                         Rc::new(RefCell::new(Box::new(
-                            FnExport::new(parent, input, send_queue)
+                            FnExport::new(parent, enable, point_conf.conf, input, send_queue)
                         )))
                     }
                     //
                     Functions::Filter => {
                         let name = "input";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
                         let name = "pass";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let pass = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
                         let point_conf = match conf.input_conf("conf") {
-                            FnConfKind::PointConf(conf) => conf.clone(),
+                            Ok(FnConfKind::PointConf(conf)) => conf.clone(),
                             _ => panic!("{}.function | Invalid Point config in: {:?}", self_id, conf.name),
                         };
                         let send_queue = match conf.param("send-to") {
@@ -178,7 +191,7 @@ impl NestedFn {
                     //
                     Functions::RisingEdge => {
                         let name = "input";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
                         Rc::new(RefCell::new(Box::new(
                             FnRisingEdge::new(parent, input)
@@ -187,7 +200,7 @@ impl NestedFn {
                     //
                     Functions::FallingEdge => {
                         let name = "input";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
                         Rc::new(RefCell::new(Box::new(
                             FnFallingEdge::new(parent, input)

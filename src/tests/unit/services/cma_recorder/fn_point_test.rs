@@ -1,6 +1,6 @@
 #[cfg(test)]
 
-mod task_export {
+mod fn_point {
     use log::{debug, info, trace};
     use std::{env, sync::{Arc, Mutex, Once}, thread, time::{Duration, Instant}};
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, wait::WaitTread}};
@@ -26,7 +26,7 @@ mod task_export {
     ///
     ///
     #[test]
-    fn point() {
+    fn export_point() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
