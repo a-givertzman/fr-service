@@ -117,12 +117,7 @@ impl FnPoint {
 }
 //
 //
-impl FnIn for FnPoint {
-    //
-    fn add(&mut self, _: PointType) {
-        panic!("{}.add | method is not used", self.id);
-    }
-}
+impl FnIn for FnPoint {}
 //
 //
 impl FnOut for FnPoint {

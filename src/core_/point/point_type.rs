@@ -195,6 +195,25 @@ impl PointType {
             PointType::String(point) => point.value == other.as_string().value,
         }
     }
+    ///
+    /// Returns Point converted to the boolean
+    pub fn to_bool(&self) -> Self {
+        let value = match self {
+            PointType::Bool(point) => point.value.0,
+            PointType::Int(point) => point.value > 0,
+            PointType::Real(point) => point.value > 0.0,
+            PointType::Double(point) => point.value > 0.0,
+            PointType::String(point) => panic!("{}.out | Eror conversion to Bool - from 'String' is not supported", point.name),
+        };
+        PointType::Bool(Point::new(
+            *self.tx_id(), 
+            &self.name(), 
+            Bool(value), 
+            self.status(), 
+            self.cot(), 
+            self.timestamp(),
+        ))
+    }
 }
 //
 //

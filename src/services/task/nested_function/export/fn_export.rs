@@ -1,7 +1,12 @@
 use std::sync::{mpsc::Sender, atomic::{AtomicUsize, Ordering}};
 use log::{debug, error};
 use crate::{
-    conf::point_config::{point_config::PointConfig, point_config_type::PointConfigType}, core_::{point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, types::{bool::Bool, fn_in_out_ref::FnInOutRef}}, services::task::nested_function::{fn_::{FnIn, FnInOut, FnOut}, fn_kind::FnKind}
+    conf::point_config::{point_config::PointConfig, point_config_type::PointConfigType},
+    core_::{
+        point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, 
+        types::{bool::Bool, fn_in_out_ref::FnInOutRef}
+    }, 
+    services::task::nested_function::{fn_::{FnIn, FnInOut, FnOut}, fn_kind::FnKind},
 };
 ///
 /// Specific function used for exports configured point into the Service.in-queue
@@ -123,12 +128,7 @@ impl FnExport {
 }
 //
 //
-impl FnIn for FnExport {
-    //
-    fn add(&mut self, _: PointType) {
-        panic!("{}.add | method is not used", self.id);
-    }
-}
+impl FnIn for FnExport {}
 //
 //
 impl FnOut for FnExport {
@@ -152,16 +152,7 @@ impl FnOut for FnExport {
     //
     fn out(&mut self) -> PointType {
         let enable = match &self.enable {
-            Some(enable) => {
-                let en = enable.borrow_mut().out();
-                match en {
-                    PointType::Bool(point) => point.value.0,
-                    PointType::Int(point) => point.value > 0,
-                    PointType::Real(point) => point.value > 0.0,
-                    PointType::Double(point) => point.value > 0.0,
-                    PointType::String(_) => panic!("{}.out | Type 'String' - is not supported for 'enable'", self.id),
-                }
-            }
+            Some(enable) => enable.borrow_mut().out().to_bool().as_bool().value.0,
             None => true,
         };
         let point = self.input.borrow_mut().out();

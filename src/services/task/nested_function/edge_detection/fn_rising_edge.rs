@@ -55,22 +55,16 @@ impl FnOut for FnRisingEdge {
     fn out(&mut self) -> PointType {
         let input = self.input.borrow_mut().out();
         debug!("{}.out | input: {:#?}", self.id, input);
-        let (name, input, tx_id, timestamp, status, cot) = match input {
-            PointType::Bool(point) => (point.name, point.value.0, point.tx_id, point.timestamp, point.status, point.cot),
-            PointType::Int(point) => (point.name, point.value > 0, point.tx_id, point.timestamp, point.status, point.cot),
-            PointType::Real(point) => (point.name, point.value > 0.0, point.tx_id, point.timestamp, point.status, point.cot),
-            PointType::Double(point) => (point.name, point.value > 0.0, point.tx_id, point.timestamp, point.status, point.cot),
-            PointType::String(_) => panic!("{}.out | String input value does not supported", self.id),
-        };
+        let input_value = input.to_bool().as_bool().value.0;
         let value = PointType::Bool(Point::new(
-            tx_id,
-            &name,
-            Bool(input & (! self.prev)),
-            status,
-            cot,
-            timestamp,
+            *input.tx_id(),
+            &input.name(),
+            Bool(input_value & (! self.prev)),
+            input.status(),
+            input.cot(),
+            input.timestamp(),
         ));
-        self.prev = input;
+        self.prev = input_value;
         debug!("{}.out | value: {:#?}", self.id, value);
         value
     }
@@ -78,6 +72,7 @@ impl FnOut for FnRisingEdge {
     //
     fn reset(&mut self) {
         self.input.borrow_mut().reset();
+        self.prev = false;
     }
 }
 //

@@ -26,7 +26,7 @@ mod fn_export {
     ///
     ///
     #[test]
-    fn export_point() {
+    fn export_point_with_enable() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
@@ -51,13 +51,17 @@ mod fn_export {
                         /App/MultiQueue:                    # - multicast subscription to the MultiQueue
                             {cot: Inf}: []                      #   - on all points having Cot::Inf
                     fn Debug debug01:
-                        input point Load001:
-                            type: 'Real'
+                        input fn Export:
+                            enable: const bool true
+                            conf point Load001:
+                                type: 'Real'
                             input: point real '/App/Load'
                             send-to: /App/MultiQueue.in-queue
                     fn Debug debug02:
-                        input point Load002:
-                            type: 'Real'
+                        input fn Export
+                            enable: point bool '/App/Enable'
+                            conf point Load002:
+                                type: 'Real'
                             input: point real '/App/RecorderTask/Load001'
                             send-to: /App/TaskTestReceiver.in-queue
             ").unwrap(),
@@ -80,17 +84,29 @@ mod fn_export {
         let multi_queue = Arc::new(Mutex::new(MultiQueue::new(conf, services.clone())));
         services.slock().insert(multi_queue.clone());
         let test_data = vec![
+            (format!("/{}/Enable", self_id), Value::Bool(false)),
             (format!("/{}/Load", self_id), Value::Real(-7.035)),
+            (format!("/{}/Enable", self_id), Value::Bool(false)),
             (format!("/{}/Load", self_id), Value::Real(-2.5)),
+            (format!("/{}/Enable", self_id), Value::Bool(true)),
             (format!("/{}/Load", self_id), Value::Real(-5.5)),
+            (format!("/{}/Enable", self_id), Value::Bool(true)),
             (format!("/{}/Load", self_id), Value::Real(-1.5)),
+            (format!("/{}/Enable", self_id), Value::Bool(true)),
             (format!("/{}/Load", self_id), Value::Real(-1.0)),
+            (format!("/{}/Enable", self_id), Value::Bool(true)),
             (format!("/{}/Load", self_id), Value::Real(-0.1)),
+            (format!("/{}/Enable", self_id), Value::Bool(true)),
             (format!("/{}/Load", self_id), Value::Real(0.1)),
+            (format!("/{}/Enable", self_id), Value::Bool(true)),
             (format!("/{}/Load", self_id), Value::Real(1.0)),
+            (format!("/{}/Enable", self_id), Value::Bool(true)),
             (format!("/{}/Load", self_id), Value::Real(1.5)),
+            (format!("/{}/Enable", self_id), Value::Bool(true)),
             (format!("/{}/Load", self_id), Value::Real(5.5)),
+            (format!("/{}/Enable", self_id), Value::Bool(false)),
             (format!("/{}/Load", self_id), Value::Real(2.5)),
+            (format!("/{}/Enable", self_id), Value::Bool(false)),
             (format!("/{}/Load", self_id), Value::Real(7.035)),
         ];
         let total_count = test_data.len();
@@ -134,8 +150,21 @@ mod fn_export {
         assert!(sent == total_count, "\nresult: {:?}\ntarget: {:?}", sent, total_count);
         assert!(result == total_count, "\nresult: {:?}\ntarget: {:?}", result, total_count);
         let target_name = "/App/RecorderTask/Load002";
-        for (i, result) in receiver.lock().unwrap().received().lock().unwrap().iter().enumerate() {
-            let (_, target) = test_data[i].clone();
+        let mut target_data = vec![];
+        let mut enable = false;
+        for (name, value) in test_data {
+            if name == format!("/{}/Enable", self_id) {
+                enable = value.as_bool()
+            } else {
+                if enable {
+                    if name == format!("/{}/Load", self_id) {
+                        target_data.push((name, value))
+                    }
+                }
+            }
+        }
+        for result in receiver.lock().unwrap().received().lock().unwrap().iter() {
+            let (_, target) = target_data.pop().unwrap();
             assert!(result.value() == target, "\nresult: {:?}\ntarget: {:?}", result.value(), target);
             assert!(result.name() == target_name, "\nresult: {:?}\ntarget: {:?}", result.name(), target_name);
         };

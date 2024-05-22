@@ -122,12 +122,7 @@ impl FnFilter {
 }
 //
 //
-impl FnIn for FnFilter {
-    //
-    fn add(&mut self, _: PointType) {
-        panic!("{}.add | method is not used", self.id);
-    }
-}
+impl FnIn for FnFilter {}
 //
 //
 impl FnOut for FnFilter {
@@ -141,7 +136,10 @@ impl FnOut for FnFilter {
     }
     //
     fn inputs(&self) -> Vec<String> {
-        self.input.borrow().inputs()
+        let mut inputs = vec![];
+        inputs.append(&mut self.pass.borrow().inputs());
+        inputs.append(&mut self.input.borrow().inputs());
+        inputs
     }
     //
     fn out(&mut self) -> PointType {
