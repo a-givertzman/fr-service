@@ -42,7 +42,7 @@ impl NestedFn {
                 match fn_name {
                     //
                     Functions::Count => {
-                        let initial = 0.0;
+                        let initial = 0;
                         let name = "input";
                         let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services);

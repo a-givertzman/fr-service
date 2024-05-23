@@ -90,7 +90,7 @@ impl FnRetain {
                     PointType::Double(point) => point.value.to_string(),
                     PointType::String(point) => point.value.clone(),
                 };
-                match fs::OpenOptions::new().truncate(true) .create(true).write(true).open(&path) {
+                match fs::OpenOptions::new().truncate(true).create(true).write(true).open(&path) {
                     Ok(mut f) => {
                         match f.write_all(value.as_bytes()) {
                             Ok(_) => {

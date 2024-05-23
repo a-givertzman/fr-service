@@ -58,7 +58,7 @@ mod fn_retain {
                                 key: 'Count'
                                 input fn Count:
                                     initial fn Retain:
-                                        default: const real 0.0
+                                        default: const real 0
                                         key: 'Count'
                                     input fn Ge:
                                         input1: point real '/App/Load
@@ -84,7 +84,7 @@ mod fn_retain {
         services.slock().insert(multi_queue.clone());
         let test_data = vec![
             (format!("/{}/Load", self_id), Value::Real(0.0)),
-            (format!("/{}/Load", self_id), Value::Real(0.5)),
+            (format!("/{}/Load", self_id), Value::Real(1.5)),
             (format!("/{}/Load", self_id), Value::Real(0.0)),
             (format!("/{}/Load", self_id), Value::Real(1.5)),
             (format!("/{}/Load", self_id), Value::Real(1.0)),
@@ -106,7 +106,23 @@ mod fn_retain {
             }
             prev = value.as_real()
         }
+        let mut target_data = vec![
+            Value::Int(0),
+            Value::Int(1),
+            Value::Int(1),
+            Value::Int(2),
+            Value::Int(2),
+            Value::Int(2),
+            Value::Int(3),
+            Value::Int(3),
+            Value::Int(4),
+            Value::Int(4),
+        ];
+
         let target_count = target_data.len();
+        for (i, point) in target_data.iter().enumerate() {
+            println!("target {}: {:?}", i, point)
+        }
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
             self_id,
             "",

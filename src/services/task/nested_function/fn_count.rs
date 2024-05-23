@@ -11,8 +11,9 @@ pub struct FnCount {
     id: String,
     kind: FnKind,
     input: FnInOutRef,
-    count: f64,
-    initial: f64,
+    prev: bool,
+    count: i64,
+    initial: i64,
 }
 //
 // 
@@ -20,11 +21,12 @@ impl FnCount {
     ///
     /// Creates new instance of the FnCount
     #[allow(dead_code)]
-    pub fn new(parent: impl Into<String>, initial: f64, input: FnInOutRef) -> Self {
+    pub fn new(parent: impl Into<String>, initial: i64, input: FnInOutRef) -> Self {
         Self { 
             id: format!("{}/FnCount{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
             kind:FnKind::Fn,
             input,
+            prev: false,
             count: initial,
             initial,
         }
@@ -51,25 +53,22 @@ impl FnOut for FnCount {
     ///
     fn out(&mut self) -> PointType {
         // trace!("{}.out | input: {:?}", self.id, self.input.print());
-        let point = self.input.borrow_mut().out();
-        let value = match &point {
-            PointType::Bool(point) => if point.value.0 {1.0} else {0.0},
-            PointType::Int(point) => point.value as f64,
-            PointType::Real(point) => point.value as f64,
-            PointType::Double(point) => point.value,
-            _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id,  point.print_type_of(), point),
-        };
-        self.count += value;
+        let input = self.input.borrow_mut().out();
+        let value = input.to_bool().as_bool().value.0;
+        if !self.prev && value {
+            self.count += 1;
+        }
+        self.prev = value;
         trace!("{}.out | input.out: {:?}   | state: {:?}", self.id, &value, self.count);
-        PointType::Double(
-            Point {
-                tx_id: *point.tx_id(),
-                name: format!("{}.out", self.id),
-                value: self.count,
-                status: point.status(),
-                cot: Cot::Inf,
-                timestamp: point.timestamp(),
-            }
+        PointType::Int(
+            Point::new(
+                *input.tx_id(),
+                &format!("{}.out", self.id),
+                self.count,
+                input.status(),
+                input.cot(),
+                input.timestamp(),
+            )
         )
     }
     fn reset(&mut self) {

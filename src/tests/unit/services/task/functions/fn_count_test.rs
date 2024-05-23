@@ -35,7 +35,7 @@ fn test_single() {
     let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
     let mut fn_count = FnCount::new(
         "test",
-        0.0,
+        0,
         input.clone(),
     );
     let test_data = vec![
@@ -50,9 +50,9 @@ fn test_single() {
         (false, 3),
         (false, 3),
         (true, 4),
-        (true, 5),
-        (false, 5),
-        (false, 5),
+        (true, 4),
+        (false, 4),
+        (false, 4),
     ];
     for (value, target) in test_data {
         let point = value.to_point(0, "test");
@@ -61,7 +61,7 @@ fn test_single() {
         let state = fn_count.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.as_double().value, target as f64);
+        assert_eq!(state.as_int().value, target);
     }
 }
 //
@@ -74,7 +74,7 @@ fn test_multiple() {
     let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
     let mut fn_count = FnCount::new(
         "test",
-        0.0,
+        0,
         input.clone(),
     );
     let test_data = vec![
@@ -89,9 +89,9 @@ fn test_multiple() {
         (false, 3),
         (false, 3),
         (true, 4),
-        (true, 5),
-        (false, 5),
-        (false, 5),
+        (true, 4),
+        (false, 4),
+        (false, 4),
     ];
     for (value, target) in test_data {
         let point = value.to_point(0, "test");
@@ -100,7 +100,7 @@ fn test_multiple() {
         let state = fn_count.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.as_double().value, target as f64);
+        assert_eq!(state.as_int().value, target);
     }
 }
 
@@ -112,7 +112,7 @@ fn test_multiple_reset() {
     let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
     let mut fn_count = FnCount::new(
         "test",
-        0.0,
+        0,
         input.clone(),
     );
     let test_data = vec![
@@ -127,7 +127,7 @@ fn test_multiple_reset() {
         (false, 1, false),
         (false, 1, false),
         (true, 2, false),
-        (true, 3, false),
+        (true, 2, false),
         (false, 0, true),
         (false, 0, false),
     ];
@@ -141,6 +141,6 @@ fn test_multiple_reset() {
         let state = fn_count.out();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
-        assert_eq!(state.as_double().value, target as f64);
+        assert_eq!(state.as_int().value, target);
     }
 }
