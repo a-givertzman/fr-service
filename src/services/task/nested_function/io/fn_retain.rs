@@ -94,7 +94,7 @@ impl FnRetain {
                     Ok(mut f) => {
                         match f.write_all(value.as_bytes()) {
                             Ok(_) => {
-                                debug!("{}.store | Cache stored in: {:?}", self.id, path);
+                                debug!("{}.store | Retain stored in: {:?}", self.id, path);
                                 Ok(())
                             }
                             Err(err) => {

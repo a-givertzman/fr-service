@@ -1,13 +1,13 @@
 #[cfg(test)]
 
 mod fn_retain {
-    use log::{debug, info, trace};
-    use std::{env, sync::{Arc, Mutex, Once}, thread, time::{Duration, Instant}};
+    use chrono::Utc;
+    use log::{debug, error, info, trace};
+    use std::{env, fs, io::Read, sync::{Arc, Mutex, Once}, thread, time::{Duration, Instant}};
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::{multi_queue_config::MultiQueueConfig, point_config::name::Name, task_config::TaskConfig},
-        services::{multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, service::service::Service, services::Services, task::{task::Task, task_test_receiver::TaskTestReceiver}}, tests::unit::services::task::functions::task_test_producer::TaskTestProducer,
+        conf::{multi_queue_config::MultiQueueConfig, point_config::{name::Name, point_config_type::PointConfigType}, task_config::TaskConfig}, core_::{cot::cot::Cot, point::{point::Point, point_type::PointType}, status::status::Status, types::bool::Bool}, services::{multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, service::service::Service, services::Services, task::{task::Task, task_test_receiver::TaskTestReceiver}}, tests::unit::services::task::functions::task_test_producer::TaskTestProducer
     };
     ///
     ///
@@ -18,6 +18,72 @@ mod fn_retain {
         INIT.call_once(|| {
             // implement your initialisation code to be called only once for current test file
         })
+    }
+    ///
+    /// Loads retained Point value from the disk
+    fn load(self_id: &str, path: &str, type_: PointConfigType) -> Option<PointType> {
+        let tx_id = 10001;
+        match fs::OpenOptions::new().read(true).open(&path) {
+            Ok(mut f) => {
+                let mut input = String::new();
+                match f.read_to_string(&mut input) {
+                    Ok(_) => {
+                        match type_ {
+                            PointConfigType::Bool => match input.as_str() {
+                                "true" => Some(PointType::Bool(Point::new(tx_id, &self_id, Bool(true), Status::Ok, Cot::Inf, Utc::now()))),
+                                "false" => Some(PointType::Bool(Point::new(tx_id, &self_id, Bool(false), Status::Ok, Cot::Inf, Utc::now()))),
+                                _ => {
+                                    error!("{}.load | Error parse 'bool' from '{}' \n\tretain: '{:?}'", self_id, input, path);
+                                    None
+                                }
+                            }
+                            PointConfigType::Int => match input.as_str().parse() {
+                                Ok(value) => {
+                                    Some(PointType::Int(Point::new(tx_id, &self_id, value, Status::Ok, Cot::Inf, Utc::now())))
+                                }
+                                Err(err) => {
+                                    error!("{}.load | Error parse 'Int' from '{}' \n\tretain: '{:?}'\n\terror: {:?}", self_id, input, path, err);
+                                    None
+                                }
+                            }
+                            PointConfigType::Real => match input.as_str().parse() {
+                                Ok(value) => {
+                                    Some(PointType::Real(Point::new(tx_id, &self_id, value, Status::Ok, Cot::Inf, Utc::now())))
+                                }
+                                Err(err) => {
+                                    error!("{}.load | Error parse 'Real' from '{}' \n\tretain: '{:?}'\n\terror: {:?}", self_id, input, path, err);
+                                    None
+                                }
+                            }
+                            PointConfigType::Double => match input.as_str().parse() {
+                                Ok(value) => {
+                                    Some(PointType::Double(Point::new(tx_id, &self_id, value, Status::Ok, Cot::Inf, Utc::now())))
+                                }
+                                Err(err) => {
+                                    error!("{}.load | Error parse 'Double' from '{}' \n\tretain: '{:?}'\n\terror: {:?}", self_id, input, path, err);
+                                    None
+                                }
+                            }
+                            PointConfigType::String => {
+                                Some(PointType::String(Point::new(tx_id, &self_id, input, Status::Ok, Cot::Inf, Utc::now())))
+                            }
+                            PointConfigType::Json => {
+                                Some(PointType::String(Point::new(tx_id, &self_id, input, Status::Ok, Cot::Inf, Utc::now())))
+                            }
+                        }
+
+                    }
+                    Err(err) => {
+                        error!("{}.load | Error read from retain: '{:?}'\n\terror: {:?}", self_id, path, err);
+                        None
+                    }
+                }
+            }
+            Err(err) => {
+                error!("{}.load | Error open file: '{:?}'\n\terror: {:?}", self_id, path, err);
+                None
+            }
+        }
     }
     ///
     /// returns:
@@ -95,8 +161,10 @@ mod fn_retain {
             (format!("/{}/Load", self_id), Value::Real(0.0)),
         ];
         let total_count = test_data.len();
+        let initial = load(self_id, &format!("./assets/retain/{}/RetainTask/Count.json", self_id), PointConfigType::Int)
+            .map_or(0, |init| init.as_int().value);
         let mut target_data = vec![];
-        let mut count = 0;
+        let mut count = initial;
         let mut prev = 0.0;
         for (_name, value) in test_data.clone() {
             if prev == 0.0 && value.as_real() > 0.1 {
@@ -106,18 +174,18 @@ mod fn_retain {
             }
             prev = value.as_real()
         }
-        let mut target_data = vec![
-            Value::Int(0),
-            Value::Int(1),
-            Value::Int(1),
-            Value::Int(2),
-            Value::Int(2),
-            Value::Int(2),
-            Value::Int(3),
-            Value::Int(3),
-            Value::Int(4),
-            Value::Int(4),
-        ];
+        // let mut target_data = vec![
+        //     Value::Int(0),
+        //     Value::Int(1),
+        //     Value::Int(1),
+        //     Value::Int(2),
+        //     Value::Int(2),
+        //     Value::Int(2),
+        //     Value::Int(3),
+        //     Value::Int(3),
+        //     Value::Int(4),
+        //     Value::Int(4),
+        // ];
 
         let target_count = target_data.len();
         for (i, point) in target_data.iter().enumerate() {
