@@ -13,7 +13,7 @@ pub struct FnCount {
     kind: FnKind,
     input: FnInOutRef,
     prev: bool,
-    count: i64,
+    count: Option<i64>,
     initial: Option<FnInOutRef>,
 }
 //
@@ -28,7 +28,7 @@ impl FnCount {
             kind:FnKind::Fn,
             input,
             prev: false,
-            count: 0,
+            count: None,
             initial,
         }
     }
@@ -59,10 +59,22 @@ impl FnOut for FnCount {
     ///
     fn out(&mut self) -> PointType {
         // trace!("{}.out | input: {:?}", self.id, self.input.print());
+        let mut count = match self.count {
+            Some(count) => count,
+            None => {
+                match &mut self.initial {
+                    Some(initial) => {
+                        initial.borrow_mut().out().as_int().value
+                    },
+                    None => 0,
+                }
+            }
+        };
         let input = self.input.borrow_mut().out();
         let value = input.to_bool().as_bool().value.0;
         if !self.prev && value {
-            self.count += 1;
+            count += 1;
+            self.count = Some(count);
         }
         self.prev = value;
         trace!("{}.out | input.out: {:?}   | state: {:?}", self.id, &value, self.count);
@@ -70,7 +82,7 @@ impl FnOut for FnCount {
             Point::new(
                 *input.tx_id(),
                 &format!("{}.out", self.id),
-                self.count,
+                count,
                 input.status(),
                 input.cot(),
                 input.timestamp(),
@@ -85,7 +97,7 @@ impl FnOut for FnCount {
             }
             None => 0,
         };
-        self.count = initial;
+        self.count = Some(initial);
         self.input.borrow_mut().reset();
     }
 }
