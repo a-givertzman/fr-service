@@ -1256,6 +1256,7 @@ service Task RecorderTask:
             name: 'OperatingCycleId'
             input fn Count:
                 initial fn Retain:
+                    default: const int 1
                     name: 'OperatingCycleId'
                 input:    opCycleIsActive
 
