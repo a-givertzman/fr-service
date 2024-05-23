@@ -163,30 +163,18 @@ mod fn_retain {
         let total_count = test_data.len();
         let initial = load(self_id, &format!("./assets/retain/{}/RetainTask/Count.json", self_id), PointConfigType::Int)
             .map_or(0, |init| init.as_int().value);
-        let mut target_data = vec![];
-        let mut count = initial;
-        let mut prev = 0.0;
-        for (_name, value) in test_data.clone() {
-            if prev == 0.0 && value.as_real() > 0.1 {
-                count += 1;
-                target_data.push(Value::Int(count))
-            } else {
-            }
-            prev = value.as_real()
-        }
-        // let mut target_data = vec![
-        //     Value::Int(0),
-        //     Value::Int(1),
-        //     Value::Int(1),
-        //     Value::Int(2),
-        //     Value::Int(2),
-        //     Value::Int(2),
-        //     Value::Int(3),
-        //     Value::Int(3),
-        //     Value::Int(4),
-        //     Value::Int(4),
-        // ];
-
+        let mut target_data = vec![
+            Value::Int(initial + 0),
+            Value::Int(initial + 1),
+            Value::Int(initial + 1),
+            Value::Int(initial + 2),
+            Value::Int(initial + 2),
+            Value::Int(initial + 2),
+            Value::Int(initial + 3),
+            Value::Int(initial + 3),
+            Value::Int(initial + 4),
+            Value::Int(initial + 4),
+        ];
         let target_count = target_data.len();
         for (i, point) in target_data.iter().enumerate() {
             println!("target {}: {:?}", i, point)
