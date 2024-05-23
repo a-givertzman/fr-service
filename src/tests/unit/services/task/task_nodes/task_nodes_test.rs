@@ -56,14 +56,14 @@ mod task_nodes {
                 "/path/Point.Name1", 101,
                 HashMap::from([
                     (format!("/{}/SqlMetric{}", self_id, sql_metric_count), "101, 1102, 0, 0"),
-                    (format!("/{}/FnCount{}.out", self_id, fn_count_count), "101"),
+                    (format!("/{}/FnCount{}.out", self_id, fn_count_count), "1"),
                 ])
             ),
             (
                 "/path/Point.Name1", 201,
                 HashMap::from([
                     (format!("/{}/SqlMetric{}", self_id, sql_metric_count), "201, 1202, 0, 0"),
-                    (format!("/{}/FnCount{}.out", self_id, fn_count_count), "302"),
+                    (format!("/{}/FnCount{}.out", self_id, fn_count_count), "1"),
                 ])
 
             ),
@@ -71,7 +71,7 @@ mod task_nodes {
                 "/path/Point.Name1", 301,
                 HashMap::from([
                     (format!("/{}/SqlMetric{}", self_id, sql_metric_count), "301, 1302, 0, 0"),
-                    (format!("/{}/FnCount{}.out", self_id, fn_count_count), "603"),
+                    (format!("/{}/FnCount{}.out", self_id, fn_count_count), "1"),
                 ])
 
             ),
