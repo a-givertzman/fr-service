@@ -37,6 +37,7 @@ pub struct FnRetain {
     default: Option<FnInOutRef>,
     input: Option<FnInOutRef>,
     path: Option<PathBuf>,
+    cache: Option<PointType>,
 }
 //
 //
@@ -60,6 +61,7 @@ impl FnRetain {
             default,
             input,
             path: None,
+            cache: None,
         }
     }
     ///
@@ -252,16 +254,14 @@ impl FnOut for FnRetain {
                     }
                     None => panic!("{}.out | The [default] input is not specified", self.id),
                 };
-
-                match self.load(default.type_()) {
-                    Some(point) => point,
-                    None => {
-                        match &mut self.default {
-                            Some(default) => {
-                                default.borrow_mut().out()
-                            }
-                            None => panic!("{}.out | The [default] input is not specified", self.id),
+                match &self.cache {
+                    Some(point) => point.clone(),
+                    None => match self.load(default.type_()) {
+                        Some(point) => {
+                            self.cache = Some(point.clone());
+                            point
                         }
+                        None => default,
                     }
                 }
             }

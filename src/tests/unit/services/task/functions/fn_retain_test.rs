@@ -118,15 +118,14 @@ mod fn_retain {
                             {cot: Inf}: []                      #   - on all points having Cot::Inf
                     
                     fn Debug debug01:
-                        input fn Retain:
-                            key: 'BoolFlag'
-                            input: point bool '/AppTest/BoolFlag'
-                    fn Debug debug02:
-                        input fn Export:
+                        input1 fn Export:
                             send-to: /AppTest/TaskTestReceiver.in-queue
                             input fn Retain:
                                 default: const bool false
                                 key: 'BoolFlag'
+                        input2 fn Retain:
+                            key: 'BoolFlag'
+                            input: point bool '/AppTest/BoolFlag'
             ").unwrap(),
         );
         trace!("config: {:?}", config);
@@ -164,9 +163,6 @@ mod fn_retain {
             Value::Bool(initial),
         ];
         let target_count = target_data.len();
-        for (i, point) in target_data.iter().enumerate() {
-            println!("target {}: {:?}", i, point)
-        }
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
             self_id,
             "",
@@ -206,6 +202,9 @@ mod fn_retain {
         println!("    sent: {:?}", sent);
         println!("received: {:?}", result);
         println!("trget: {:?}", target_count);
+        for (i, point) in target_data.iter().enumerate() {
+            println!("target {}: {:?}", i, point)
+        }
         for (i, point) in receiver.lock().unwrap().received().lock().unwrap().iter().enumerate() {
             println!("received {}: {:?}", i, point)
         }
@@ -222,7 +221,7 @@ mod fn_retain {
     }
     ///
     /// Testing Task function 'Retain' for int value
-    // #[test]
+    #[test]
     fn retain_point_int() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();

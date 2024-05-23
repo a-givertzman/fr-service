@@ -125,7 +125,6 @@ impl NestedFn {
                         let name = "input";
                         let mut inputs = vec![];
                         for (_input_name, input_conf) in &mut conf.inputs {
-                            // let input_conf = conf.input_conf(name).unwrap();
                             let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
                             inputs.push(input);
                         }
