@@ -1,10 +1,9 @@
-use std::{env, fs, io::{Read, Write}, path::{Path, PathBuf}, sync::{atomic::{AtomicUsize, Ordering}, mpsc::Sender}};
+use std::{env, fs, io::{Read, Write}, path::PathBuf, sync::atomic::{AtomicUsize, Ordering}};
 use chrono::Utc;
-use log::{debug, error, info, warn};
+use log::{debug, error};
 use concat_string::concat_string;
-use regex::RegexBuilder;
 use crate::{
-    conf::point_config::{name::Name, point_config::PointConfig, point_config_type::PointConfigType},
+    conf::point_config::{name::Name, point_config_type::PointConfigType},
     core_::{
         cot::cot::Cot, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status, types::{bool::Bool, fn_in_out_ref::FnInOutRef}
     }, 
@@ -145,86 +144,65 @@ impl FnRetain {
                         let mut input = String::new();
                         match f.read_to_string(&mut input) {
                             Ok(_) => {
-                                
-
                                 match type_ {
-                                    PointConfigType::Bool => {
-                                        match input.as_str() {
-                                            "true" => Some(PointType::Bool(Point::new(self.tx_id, &self.id, Bool(true), Status::Ok, Cot::Inf, Utc::now()))),
-                                            "false" => Some(PointType::Bool(Point::new(self.tx_id, &self.id, Bool(false), Status::Ok, Cot::Inf, Utc::now()))),
-                                            _ => {
-                                                None
-                                            }
+                                    PointConfigType::Bool => match input.as_str() {
+                                        "true" => Some(PointType::Bool(Point::new(self.tx_id, &self.id, Bool(true), Status::Ok, Cot::Inf, Utc::now()))),
+                                        "false" => Some(PointType::Bool(Point::new(self.tx_id, &self.id, Bool(false), Status::Ok, Cot::Inf, Utc::now()))),
+                                        _ => {
+                                            error!("{}.load | Error parse 'bool' from '{}' \n\tretain: '{:?}'", self.id, input, path);
+                                            None
                                         }
                                     }
-                                    PointConfigType::Int => {
-                                        match input.as_str().parse() {
-                                            Ok(value) => {
-                                                Some(PointType::Int(Point::new(self.tx_id, &self.id, value, Status::Ok, Cot::Inf, Utc::now())))
-                                            }
-                                            Err(_) => {
-                                                None
-                                            }
+                                    PointConfigType::Int => match input.as_str().parse() {
+                                        Ok(value) => {
+                                            Some(PointType::Int(Point::new(self.tx_id, &self.id, value, Status::Ok, Cot::Inf, Utc::now())))
+                                        }
+                                        Err(err) => {
+                                            error!("{}.load | Error parse 'Int' from '{}' \n\tretain: '{:?}'\n\terror: {:?}", self.id, input, path, err);
+                                            None
                                         }
                                     }
-                                    PointConfigType::Real => {
-                                        match input.as_str().parse() {
-                                            Ok(value) => {
-                                                Some(PointType::Real(Point::new(self.tx_id, &self.id, value, Status::Ok, Cot::Inf, Utc::now())))
-                                            }
-                                            Err(_) => {
-                                                None
-                                            }
+                                    PointConfigType::Real => match input.as_str().parse() {
+                                        Ok(value) => {
+                                            Some(PointType::Real(Point::new(self.tx_id, &self.id, value, Status::Ok, Cot::Inf, Utc::now())))
+                                        }
+                                        Err(err) => {
+                                            error!("{}.load | Error parse 'Real' from '{}' \n\tretain: '{:?}'\n\terror: {:?}", self.id, input, path, err);
+                                            None
                                         }
                                     }
-                                    PointConfigType::Double => {
-                                        match input.as_str().parse() {
-                                            Ok(value) => {
-                                                Some(PointType::Double(Point::new(self.tx_id, &self.id, value, Status::Ok, Cot::Inf, Utc::now())))
-                                            }
-                                            Err(_) => {
-                                                None
-                                            }
+                                    PointConfigType::Double => match input.as_str().parse() {
+                                        Ok(value) => {
+                                            Some(PointType::Double(Point::new(self.tx_id, &self.id, value, Status::Ok, Cot::Inf, Utc::now())))
+                                        }
+                                        Err(err) => {
+                                            error!("{}.load | Error parse 'Double' from '{}' \n\tretain: '{:?}'\n\terror: {:?}", self.id, input, path, err);
+                                            None
                                         }
                                     }
                                     PointConfigType::String => {
-                                        match input.as_str().parse() {
-                                            Ok(value) => {
-                                                Some(PointType::String(Point::new(self.tx_id, &self.id, value, Status::Ok, Cot::Inf, Utc::now())))
-                                            }
-                                            Err(_) => {
-                                                None
-                                            }
-                                        }
+                                        Some(PointType::String(Point::new(self.tx_id, &self.id, input, Status::Ok, Cot::Inf, Utc::now())))
                                     }
                                     PointConfigType::Json => {
-                                        match input.as_str().parse() {
-                                            Ok(value) => {
-                                                Some(PointType::String(Point::new(self.tx_id, &self.id, value, Status::Ok, Cot::Inf, Utc::now())))
-                                            }
-                                            Err(_) => {
-                                                None
-                                            }
-                                        }
+                                        Some(PointType::String(Point::new(self.tx_id, &self.id, input, Status::Ok, Cot::Inf, Utc::now())))
                                     }
                                 }
 
                             }
                             Err(err) => {
+                                error!("{}.load | Error read from retain: '{:?}'\n\terror: {:?}", self.id, path, err);
                                 None
                             }
                         }
                     }
                     Err(err) => {
-                        let message = format!("{}.load | Error open file: '{:?}'\n\terror: {:?}", self.id, path, err);
-                        error!("{}", message);
+                        error!("{}.load | Error open file: '{:?}'\n\terror: {:?}", self.id, path, err);
                         None
                     }
                 }
             }
             Err(err) => {
-                let message = format!("{}.load | Error: {:?}", self.id, err);
-                error!("{}", message);
+                error!("{}.load | Error: {:?}", self.id, err);
                 None
             }
         }
