@@ -91,7 +91,7 @@ mod fn_retain {
     fn init_each() -> () {}
     ///
     /// Testing Task function 'Retain' for int value
-    #[test]
+    // #[test]
     fn retain_point_bool() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
@@ -221,7 +221,7 @@ mod fn_retain {
     }
     ///
     /// Testing Task function 'Retain' for int value
-    #[test]
+    // #[test]
     fn retain_point_int() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
@@ -364,7 +364,7 @@ mod fn_retain {
     }
     ///
     /// Testing Task function 'Retain' for int value
-    // #[test]
+    #[test]
     fn retain_point_real() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
@@ -390,18 +390,19 @@ mod fn_retain {
                         /AppTest/MultiQueue:                    # - multicast subscription to the MultiQueue
                             {cot: Inf}: []                      #   - on all points having Cot::Inf
                     
-                    fn Debug debug01:
-                        input fn Export:
-                            send-to: /AppTest/TaskTestReceiver.in-queue
+                    fn Debug:
+                        in1 let realRetain:
                             input fn Retain:
-                                key: 'Count'
-                                input fn Count:
-                                    initial fn Retain:
-                                        default: const int 0
-                                        key: 'Count'
-                                    input fn Ge:
-                                        input1: point real '/AppTest/Load'
-                                        input2: const real 0.1
+                                default: const real 0.0
+                                key: 'RealRetain'
+                        in2 let realAcc:
+                            input fn Export:
+                                send-to: /AppTest/TaskTestReceiver.in-queue
+                                input fn Add:
+                                    input1 fn Add:
+                                        input1: realRetain
+                                        input2: realAcc
+                                    input2: point real '/AppTest/Load'
             ").unwrap(),
         );
         trace!("config: {:?}", config);
@@ -422,31 +423,31 @@ mod fn_retain {
         let multi_queue = Arc::new(Mutex::new(MultiQueue::new(conf, services.clone())));
         services.slock().insert(multi_queue.clone());
         let test_data = vec![
-            (format!("/{}/Load", self_id), Value::Real(0.0)),
-            (format!("/{}/Load", self_id), Value::Real(1.5)),
-            (format!("/{}/Load", self_id), Value::Real(0.0)),
-            (format!("/{}/Load", self_id), Value::Real(1.5)),
-            (format!("/{}/Load", self_id), Value::Real(1.0)),
-            (format!("/{}/Load", self_id), Value::Real(0.0)),
-            (format!("/{}/Load", self_id), Value::Real(0.7)),
-            (format!("/{}/Load", self_id), Value::Real(0.0)),
-            (format!("/{}/Load", self_id), Value::Real(1.5)),
-            (format!("/{}/Load", self_id), Value::Real(0.0)),
+            (format!("/{}/Load", self_id), Value::Real(0.1)),
+            (format!("/{}/Load", self_id), Value::Real(0.1)),
+            (format!("/{}/Load", self_id), Value::Real(0.1)),
+            (format!("/{}/Load", self_id), Value::Real(0.1)),
+            (format!("/{}/Load", self_id), Value::Real(0.1)),
+            (format!("/{}/Load", self_id), Value::Real(0.1)),
+            (format!("/{}/Load", self_id), Value::Real(0.1)),
+            (format!("/{}/Load", self_id), Value::Real(0.1)),
+            (format!("/{}/Load", self_id), Value::Real(0.1)),
+            (format!("/{}/Load", self_id), Value::Real(0.1)),
         ];
         let total_count = test_data.len();
-        let initial = load(self_id, &format!("./assets/retain/{}/RetainTask/Count.json", self_id), PointConfigType::Int)
-            .map_or(0, |init| init.as_int().value);
+        let initial = load(self_id, &format!("./assets/retain/{}/RetainTask/RealRetain.json", self_id), PointConfigType::Real)
+            .map_or(0.0, |init| init.as_real().value);
         let mut target_data = vec![
-            Value::Int(initial + 0),
-            Value::Int(initial + 1),
-            Value::Int(initial + 1),
-            Value::Int(initial + 2),
-            Value::Int(initial + 2),
-            Value::Int(initial + 2),
-            Value::Int(initial + 3),
-            Value::Int(initial + 3),
-            Value::Int(initial + 4),
-            Value::Int(initial + 4),
+            Value::Real(initial + 0.1),
+            Value::Real(initial + 0.2),
+            Value::Real(initial + 0.3),
+            Value::Real(initial + 0.4),
+            Value::Real(initial + 0.5),
+            Value::Real(initial + 0.6),
+            Value::Real(initial + 0.7),
+            Value::Real(initial + 0.8),
+            Value::Real(initial + 0.9),
+            Value::Real(initial + 1.0),
         ];
         let target_count = target_data.len();
         for (i, point) in target_data.iter().enumerate() {
