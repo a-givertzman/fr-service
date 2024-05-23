@@ -31,7 +31,7 @@ mod fn_retain {
         init_once();
         init_each();
         println!();
-        let self_id = "App";
+        let self_id = "AppTest";
         let self_name = Name::new("", self_id);
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
@@ -48,12 +48,12 @@ mod fn_retain {
                     in queue in-queue:
                         max-length: 10000
                     subscribe:
-                        /App/MultiQueue:                    # - multicast subscription to the MultiQueue
+                        /AppTest/MultiQueue:                    # - multicast subscription to the MultiQueue
                             {cot: Inf}: []                      #   - on all points having Cot::Inf
                     
                     fn Debug debug01:
                         input fn Export:
-                            send-to: /App/TaskTestReceiver.in-queue
+                            send-to: /AppTest/TaskTestReceiver.in-queue
                             input fn Retain:
                                 key: 'Count'
                                 input fn Count:
@@ -61,7 +61,7 @@ mod fn_retain {
                                         default: const int 0
                                         key: 'Count'
                                     input fn Ge:
-                                        input1: point real '/App/Load
+                                        input1: point real '/AppTest/Load
                                         input2: const real 0.1
             ").unwrap(),
         );
@@ -167,7 +167,7 @@ mod fn_retain {
         }
         assert!(sent == total_count, "\nresult: {:?}\ntarget: {:?}", sent, total_count);
         assert!(result == target_count, "\nresult: {:?}\ntarget: {:?}", result, target_count);
-        let target_name = "/App/RecorderTask/Load002";
+        let target_name = "/AppTest/RecorderTask/Load002";
         target_data.reverse();
         for result in receiver.lock().unwrap().received().lock().unwrap().iter() {
             let target = target_data.pop().unwrap();
@@ -201,21 +201,21 @@ mod fn_retain {
     //                 in queue recv-queue:
     //                     max-length: 10000
     //                 subscribe:
-    //                     /App/MultiQueue:                    # - multicast subscription to the MultiQueue
+    //                     /AppTest/MultiQueue:                    # - multicast subscription to the MultiQueue
     //                         {cot: Inf}: []                      #   - on all points having Cot::Inf
     //                 fn Debug debug01:
     //                     input fn Export:
     //                         enable: const bool true
     //                         conf point Load001:
     //                             type: 'Real'
-    //                         input: point real '/App/Load'
-    //                         send-to: /App/MultiQueue.in-queue
+    //                         input: point real '/AppTest/Load'
+    //                         send-to: /AppTest/MultiQueue.in-queue
     //                 fn Debug debug02:
     //                     input fn Export:
     //                         conf point Load002:
     //                             type: 'Real'
-    //                         input: point real '/App/RecorderTask/Load001'
-    //                         send-to: /App/TaskTestReceiver.in-queue
+    //                         input: point real '/AppTest/RecorderTask/Load001'
+    //                         send-to: /AppTest/TaskTestReceiver.in-queue
     //                 ").unwrap(),
     //     );
     //     trace!("config: {:?}", config);
@@ -295,7 +295,7 @@ mod fn_retain {
     //     }
     //     assert!(sent == total_count, "\nresult: {:?}\ntarget: {:?}", sent, total_count);
     //     assert!(result == target_count, "\nresult: {:?}\ntarget: {:?}", result, target_count);
-    //     let target_name = "/App/RecorderTask/Load002";
+    //     let target_name = "/AppTest/RecorderTask/Load002";
     //     target_data.reverse();
     //     for result in receiver.lock().unwrap().received().lock().unwrap().iter() {
     //         let (_, target) = target_data.pop().unwrap();
@@ -329,19 +329,19 @@ mod fn_retain {
     //                 in queue recv-queue:
     //                     max-length: 10000
     //                 subscribe:
-    //                     /App/MultiQueue:                    # - multicast subscription to the MultiQueue
+    //                     /AppTest/MultiQueue:                    # - multicast subscription to the MultiQueue
     //                         {cot: Inf}: []                      #   - on all points having Cot::Inf
     //                 fn Debug debug01:
     //                     input fn Export:
     //                         enable: const bool true
     //                         conf point Load001:
     //                             type: 'Real'
-    //                         input: point real '/App/Load'
-    //                         send-to: /App/MultiQueue.in-queue
+    //                         input: point real '/AppTest/Load'
+    //                         send-to: /AppTest/MultiQueue.in-queue
     //                 fn Debug debug02:
     //                     input fn Export:
-    //                         input: point real '/App/RecorderTask/Load001'
-    //                         send-to: /App/TaskTestReceiver.in-queue
+    //                         input: point real '/AppTest/RecorderTask/Load001'
+    //                         send-to: /AppTest/TaskTestReceiver.in-queue
     //                 ").unwrap(),
     //     );
     //     trace!("config: {:?}", config);
@@ -421,7 +421,7 @@ mod fn_retain {
     //     }
     //     assert!(sent == total_count, "\nresult: {:?}\ntarget: {:?}", sent, total_count);
     //     assert!(result == target_count, "\nresult: {:?}\ntarget: {:?}", result, target_count);
-    //     let target_name = "/App/RecorderTask/Load001";
+    //     let target_name = "/AppTest/RecorderTask/Load001";
     //     target_data.reverse();
     //     for result in receiver.lock().unwrap().received().lock().unwrap().iter() {
     //         let (_, target) = target_data.pop().unwrap();
