@@ -32,10 +32,11 @@ fn test_single() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     init_once();
     info!("test_single");
+    let initial = Some(init_each(0.to_point(0, "initial int"), FnConfPointType::Int));
     let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
     let mut fn_count = FnCount::new(
         "test",
-        0,
+        initial,
         input.clone(),
     );
     let test_data = vec![
@@ -71,10 +72,11 @@ fn test_multiple() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     init_once();
     info!("test_multiple");
+    let initial = Some(init_each(0.to_point(0, "initial int"), FnConfPointType::Int));
     let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
     let mut fn_count = FnCount::new(
         "test",
-        0,
+        initial,
         input.clone(),
     );
     let test_data = vec![
@@ -109,10 +111,11 @@ fn test_multiple_reset() {
     DebugSession::init(LogLevel::Info, Backtrace::Short);
     init_once();
     info!("test_multiple_reset");
+    let initial = Some(init_each(0.to_point(0, "initial int"), FnConfPointType::Int));
     let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
     let mut fn_count = FnCount::new(
         "test",
-        0,
+        initial,
         input.clone(),
     );
     let test_data = vec![

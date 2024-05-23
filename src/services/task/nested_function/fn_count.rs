@@ -1,7 +1,8 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use log::trace;
 use crate::core_::{
-    cot::cot::Cot, point::{point::Point, point_type::PointType}, types::{fn_in_out_ref::FnInOutRef, type_of::DebugTypeOf}
+    point::{point::Point, point_type::PointType},
+    types::fn_in_out_ref::FnInOutRef,
 };
 use super::{fn_::{FnInOut, FnOut, FnIn}, fn_kind::FnKind};
 ///
@@ -13,7 +14,7 @@ pub struct FnCount {
     input: FnInOutRef,
     prev: bool,
     count: i64,
-    initial: i64,
+    initial: Option<FnInOutRef>,
 }
 //
 // 
@@ -21,13 +22,13 @@ impl FnCount {
     ///
     /// Creates new instance of the FnCount
     #[allow(dead_code)]
-    pub fn new(parent: impl Into<String>, initial: i64, input: FnInOutRef) -> Self {
+    pub fn new(parent: impl Into<String>, initial: Option<FnInOutRef>, input: FnInOutRef) -> Self {
         Self { 
             id: format!("{}/FnCount{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
             kind:FnKind::Fn,
             input,
             prev: false,
-            count: initial,
+            count: 0,
             initial,
         }
     }
@@ -48,7 +49,12 @@ impl FnOut for FnCount {
     }
     //
     fn inputs(&self) -> Vec<String> {
-        self.input.borrow().inputs()
+        let mut inputs = vec![];
+        inputs.append(&mut self.input.borrow().inputs());
+        if let Some(initial) = &self.initial {
+            inputs.append(&mut initial.borrow().inputs());
+        }
+        inputs
     }
     ///
     fn out(&mut self) -> PointType {
@@ -72,7 +78,14 @@ impl FnOut for FnCount {
         )
     }
     fn reset(&mut self) {
-        self.count = self.initial;
+        let initial = match &self.initial {
+            Some(initial) => {
+                initial.borrow_mut().reset();
+                initial.borrow_mut().out().as_int().value
+            }
+            None => 0,
+        };
+        self.count = initial;
         self.input.borrow_mut().reset();
     }
 }
