@@ -17,3 +17,6 @@ mod fn_rising_edge_test;
 mod fn_falling_edge_test;
 
 mod fn_average_test;
+
+mod fn_retain_test;
+mod task_test_producer;
