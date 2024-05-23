@@ -58,7 +58,7 @@ mod fn_retain {
                                 key: 'Count'
                                 input fn Count:
                                     initial fn Retain:
-                                        default: const real 0
+                                        default: const int 0
                                         key: 'Count'
                                     input fn Ge:
                                         input1: point real '/App/Load

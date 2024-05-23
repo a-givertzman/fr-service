@@ -1,11 +1,12 @@
-use std::{env, fs, io::Write, path::{Path, PathBuf}, sync::{atomic::{AtomicUsize, Ordering}, mpsc::Sender}};
+use std::{env, fs, io::{Read, Write}, path::{Path, PathBuf}, sync::{atomic::{AtomicUsize, Ordering}, mpsc::Sender}};
+use chrono::Utc;
 use log::{debug, error, info, warn};
 use concat_string::concat_string;
+use regex::RegexBuilder;
 use crate::{
     conf::point_config::{name::Name, point_config::PointConfig, point_config_type::PointConfigType},
     core_::{
-        point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, 
-        types::{bool::Bool, fn_in_out_ref::FnInOutRef}
+        cot::cot::Cot, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status, types::{bool::Bool, fn_in_out_ref::FnInOutRef}
     }, 
     services::task::nested_function::{fn_::{FnIn, FnInOut, FnOut}, fn_kind::FnKind},
 };
@@ -73,13 +74,13 @@ impl FnRetain {
                         self.path = Some(path.clone());
                         Ok(path)
                     }
-                    Err(err) => Err(concat_string!(self.id, ".write | Error: {}", err)),
+                    Err(err) => Err(concat_string!(self.id, ".path | Error: {}", err)),
                 }
             }
         }
     }
     ///
-    /// Writes Point value to the file:
+    /// Writes Point value to the file
     fn store(&mut self, point: &PointType) -> Result<(), String> {
         match self.path() {
             Ok(path) => {
@@ -94,18 +95,18 @@ impl FnRetain {
                     Ok(mut f) => {
                         match f.write_all(value.as_bytes()) {
                             Ok(_) => {
-                                debug!("{}.write | Cache stored in: {:?}", self.id, path);
+                                debug!("{}.store | Cache stored in: {:?}", self.id, path);
                                 Ok(())
                             }
                             Err(err) => {
-                                let message = format!("{}.write | Error writing to file: '{:?}'\n\terror: {:?}", self.id, path, err);
+                                let message = format!("{}.store | Error writing to file: '{:?}'\n\terror: {:?}", self.id, path, err);
                                 error!("{}", message);
                                 Err(message)
                             }
                         }
                     }
                     Err(err) => {
-                        let message = format!("{}.write | Error open file: '{:?}'\n\terror: {:?}", self.id, path, err);
+                        let message = format!("{}.store | Error open file: '{:?}'\n\terror: {:?}", self.id, path, err);
                         error!("{}", message);
                         Err(message)
                     }
@@ -135,20 +136,81 @@ impl FnRetain {
         }
     }
     ///
-    /// Loads retained point value from the disk
-    fn load(&mut self) -> Option<PointType> {
+    /// Loads retained Point value from the disk
+    fn load(&mut self, type_: PointConfigType) -> Option<PointType> {
         match self.path() {
             Ok(path) => {
                 match fs::OpenOptions::new().read(true).open(&path) {
-                    Ok(f) => {
-                        match serde_json::from_reader::<_, PointType>(f) {
-                            Ok(point) => {
-                                info!("{}.load | Retained point loaded from: '{:?}'", self.id, path);
-                                Some(point)
+                    Ok(mut f) => {
+                        let mut input = String::new();
+                        match f.read_to_string(&mut input) {
+                            Ok(_) => {
+                                
+
+                                match type_ {
+                                    PointConfigType::Bool => {
+                                        match input.as_str() {
+                                            "true" => Some(PointType::Bool(Point::new(self.tx_id, &self.id, Bool(true), Status::Ok, Cot::Inf, Utc::now()))),
+                                            "false" => Some(PointType::Bool(Point::new(self.tx_id, &self.id, Bool(false), Status::Ok, Cot::Inf, Utc::now()))),
+                                            _ => {
+                                                None
+                                            }
+                                        }
+                                    }
+                                    PointConfigType::Int => {
+                                        match input.as_str().parse() {
+                                            Ok(value) => {
+                                                Some(PointType::Int(Point::new(self.tx_id, &self.id, value, Status::Ok, Cot::Inf, Utc::now())))
+                                            }
+                                            Err(_) => {
+                                                None
+                                            }
+                                        }
+                                    }
+                                    PointConfigType::Real => {
+                                        match input.as_str().parse() {
+                                            Ok(value) => {
+                                                Some(PointType::Real(Point::new(self.tx_id, &self.id, value, Status::Ok, Cot::Inf, Utc::now())))
+                                            }
+                                            Err(_) => {
+                                                None
+                                            }
+                                        }
+                                    }
+                                    PointConfigType::Double => {
+                                        match input.as_str().parse() {
+                                            Ok(value) => {
+                                                Some(PointType::Double(Point::new(self.tx_id, &self.id, value, Status::Ok, Cot::Inf, Utc::now())))
+                                            }
+                                            Err(_) => {
+                                                None
+                                            }
+                                        }
+                                    }
+                                    PointConfigType::String => {
+                                        match input.as_str().parse() {
+                                            Ok(value) => {
+                                                Some(PointType::String(Point::new(self.tx_id, &self.id, value, Status::Ok, Cot::Inf, Utc::now())))
+                                            }
+                                            Err(_) => {
+                                                None
+                                            }
+                                        }
+                                    }
+                                    PointConfigType::Json => {
+                                        match input.as_str().parse() {
+                                            Ok(value) => {
+                                                Some(PointType::String(Point::new(self.tx_id, &self.id, value, Status::Ok, Cot::Inf, Utc::now())))
+                                            }
+                                            Err(_) => {
+                                                None
+                                            }
+                                        }
+                                    }
+                                }
+
                             }
                             Err(err) => {
-                                let message = format!("{}.load | Deserialize error: '{:?}'\n\tin file: {:?}", self.id, err, path);
-                                error!("{}", message);
                                 None
                             }
                         }
@@ -203,7 +265,14 @@ impl FnOut for FnRetain {
                 input.borrow_mut().out()
             }
             None => {
-                match self.load() {
+                let default = match &mut self.default {
+                    Some(default) => {
+                        default.borrow_mut().out()
+                    }
+                    None => panic!("{}.out | The [default] input is not specified", self.id),
+                };
+
+                match self.load(default.type_()) {
                     Some(point) => point,
                     None => {
                         match &mut self.default {
@@ -231,6 +300,9 @@ impl FnOut for FnRetain {
     fn reset(&mut self) {
         if let Some(enable) = &self.enable {
             enable.borrow_mut().reset();
+        }
+        if let Some(default) = &self.default {
+            default.borrow_mut().reset();
         }
         if let Some(input) = &self.input {
             input.borrow_mut().reset();
