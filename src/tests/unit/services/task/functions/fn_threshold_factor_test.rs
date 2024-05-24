@@ -59,6 +59,7 @@ mod fn_threshold_factor {
             input.clone(),
         );
         let test_data = vec![
+        //  step    thrh  input  target
             (00,    3.0,  0,     0),// delta
             (01,    3.0,  1,     0),// 0.5
             (01,    3.0,  1,     0),// 1.0
@@ -90,94 +91,108 @@ mod fn_threshold_factor {
             println!("------------")
         }
     }
-    // ///
-    // /// Threshold Reals's
-    // #[test]
-    // fn fn_threshold_real() {
-    //     DebugSession::init(LogLevel::Debug, Backtrace::Short);
-    //     init_once();
-    //     let self_id = "fn_threshold_real";
-    //     info!("{}", self_id);
-    //     let threshold = init_each(&self_id, Value::Double(0.0));
-    //     let input = init_each(&self_id, Value::Real(0.0));
-    //     let mut fn_threshold = FnThreshold::new(
-    //         self_id,
-    //         threshold.clone(),
-    //         None,
-    //         input.clone(),
-    //     );
-    //     let test_data = vec![
-    //         (00,    0.3,  0.0,     0.0),
-    //         (01,    0.3,  0.1,     0.0),
-    //         (02,    0.3,  0.2,     0.0),
-    //         (03,    0.3,  0.3,     0.3),
-    //         (04,    0.3,  0.4,     0.3),
-    //         (05,    0.3,  0.5,     0.3),
-    //         (06,    0.3,  0.4,     0.3),
-    //         (07,    0.3,  0.3,     0.3),
-    //         (08,    0.3,  0.2,     0.3),
-    //         (09,    0.3,  0.1,     0.3),
-    //         (10,    0.3,  0.0,     0.0),
-    //         (11,    0.3,  0.0,     0.0),
-    //         (12,    0.3,  0.0,     0.0),
-    //         (13,    0.3,  0.0,     0.0),
-    //         (14,    0.3,  0.0,     0.0),
-    //     ];
-    //     for (step, thrh, value, target) in test_data {
-    //         let thrh = thrh.to_point(0, "threshold");
-    //         let point = value.to_point(0, &format!("input step {}", step));
-    //         threshold.borrow_mut().add(thrh);
-    //         input.borrow_mut().add(point);
-    //         // debug!("input: {:?}", &input);
-    //         let result = fn_threshold.out();
-    //         // debug!("input: {:?}", &mut input);
-    //         debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
-    //         assert!(result.as_real().value == target, "step {}\nresult: {:?}\ntarget: {:?}", step, result, target);
-    //     }
-    // }
-    // ///
-    // /// Threshold Double's
-    // #[test]
-    // fn fn_threshold_double() {
-    //     DebugSession::init(LogLevel::Debug, Backtrace::Short);
-    //     init_once();
-    //     let self_id = "fn_threshold_double";
-    //     info!("{}", self_id);
-    //     let threshold = init_each(&self_id, Value::Double(0.0));
-    //     let input = init_each(&self_id, Value::Double(0.0));
-    //     let mut fn_threshold = FnThreshold::new(
-    //         self_id,
-    //         threshold.clone(),
-    //         None,
-    //         input.clone(),
-    //     );
-    //     let test_data = vec![
-    //         (00,    0.3,  0.0,     0.0),
-    //         (01,    0.3,  0.1,     0.0),
-    //         (02,    0.3,  0.2,     0.0),
-    //         (03,    0.3,  0.3,     0.3),
-    //         (04,    0.3,  0.4,     0.3),
-    //         (05,    0.3,  0.5,     0.3),
-    //         (06,    0.3,  0.4,     0.3),
-    //         (07,    0.3,  0.3,     0.3),
-    //         (08,    0.3,  0.2,     0.3),
-    //         (09,    0.3,  0.1,     0.3),
-    //         (10,    0.3,  0.0,     0.0),
-    //         (11,    0.3,  0.0,     0.0),
-    //         (12,    0.3,  0.0,     0.0),
-    //         (13,    0.3,  0.0,     0.0),
-    //         (14,    0.3,  0.0,     0.0),
-    //     ];
-    //     for (step, thrh, value, target) in test_data {
-    //         let thrh = thrh.to_point(0, "threshold");
-    //         let point = value.to_point(0, &format!("input step {}", step));
-    //         threshold.borrow_mut().add(thrh);
-    //         input.borrow_mut().add(point);
-    //         // debug!("input: {:?}", &input);
-    //         let result = fn_threshold.out();
-    //         // debug!("input: {:?}", &mut input);
-    //         debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
-    //         assert!(result.as_double().value == target, "step {}\nresult: {:?}\ntarget: {:?}", step, result, target);
-    //     }
-    // }
+    ///
+    /// Threshold Real's
+    #[test]
+    fn fn_threshold_real() {
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        init_once();
+        let self_id = "fn_threshold_real";
+        info!("{}", self_id);
+        let threshold = init_each(&self_id, Value::Double(0.0));
+        let factor = init_each(&self_id, Value::Double(0.5));
+        let input = init_each(&self_id, Value::Real(0.0));
+        let mut fn_threshold = FnThreshold::new(
+            self_id,
+            threshold.clone(),
+            Some(factor),
+            input.clone(),
+        );
+        let test_data = vec![
+        //  step    thrh  input  target
+            (00,    0.3,  0.0,     0.0),// delta
+            (01,    0.3,  0.1,     0.0),// 0.05
+            (02,    0.3,  0.1,     0.0),// 0.10
+            (03,    0.3,  0.2,     0.0),// 0.20
+            (04,    0.3,  0.2,     0.2),// 0.30 -> 0.2
+            (05,    0.3,  0.3,     0.2),// 0.05
+            (06,    0.3,  0.4,     0.2),// 0.15
+            (07,    0.3,  0.5,     0.5),// 0.30 -> 0.5
+            (08,    0.3,  0.4,     0.5),// 0.05
+            (09,    0.3,  0.3,     0.5),// 0.15
+            (10,    0.3,  0.2,     0.5),// 0.2999
+            (11,    0.3,  0.1,     0.1),// 0.4999 -> 0.1
+            (12,    0.3,  0.0,     0.1),// 0.05
+            (13,    0.3,  0.0,     0.1),// 0.10
+            (14,    0.3,  0.0,     0.1),// 0.15
+            (15,    0.3,  0.0,     0.1),// 0.20
+            (16,    0.3,  0.0,     0.1),// 0.25
+            (17,    0.3,  0.0,     0.0),// 0.30 -> 0.0
+            (18,    0.3,  0.0,     0.0),// 0.25
+        ];
+        for (step, thrh, value, target) in test_data {
+            let thrh = thrh.to_point(0, "threshold");
+            let point = value.to_point(0, &format!("input step {}", step));
+            threshold.borrow_mut().add(thrh);
+            input.borrow_mut().add(point);
+            // debug!("input: {:?}", &input);
+            let result = fn_threshold.out();
+            // debug!("input: {:?}", &mut input);
+            debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
+            assert!(result.as_real().value == target, "step {}\nresult: {:?}\ntarget: {:?}", step, result, target);
+            println!("------------")
+        }
+    }
+    ///
+    /// Threshold Double's
+    #[test]
+    fn fn_threshold_double() {
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        init_once();
+        let self_id = "fn_threshold_double";
+        info!("{}", self_id);
+        let threshold = init_each(&self_id, Value::Double(0.0));
+        let factor = init_each(&self_id, Value::Double(0.5));
+        let input = init_each(&self_id, Value::Double(0.0));
+        let mut fn_threshold = FnThreshold::new(
+            self_id,
+            threshold.clone(),
+            Some(factor),
+            input.clone(),
+        );
+        let test_data = vec![
+        //  step    thrh  input  target
+            (00,    0.3,  0.0,     0.0),// delta
+            (01,    0.3,  0.1,     0.0),// 0.05
+            (02,    0.3,  0.1,     0.0),// 0.10
+            (03,    0.3,  0.2,     0.0),// 0.20
+            (04,    0.3,  0.2,     0.2),// 0.30 -> 0.2
+            (05,    0.3,  0.3,     0.2),// 0.05
+            (06,    0.3,  0.4,     0.2),// 0.15
+            (07,    0.3,  0.5,     0.5),// 0.30 -> 0.5
+            (08,    0.3,  0.4,     0.5),// 0.05
+            (09,    0.3,  0.3,     0.5),// 0.15
+            (10,    0.3,  0.2,     0.2),// 0.30 -> 0.2
+            (11,    0.3,  0.1,     0.2),// 0.05
+            (12,    0.3,  0.0,     0.2),// 0.15
+            (13,    0.3,  0.0,     0.2),// 0.25
+            (14,    0.3,  0.0,     0.0),// 0.35 -> 0.0
+            (15,    0.3,  0.0,     0.0),// 0.00
+            (16,    0.3,  0.0,     0.0),// 0.00
+            (17,    0.3,  0.0,     0.0),// 0.00
+            (18,    0.3,  0.0,     0.0),// 0.00
+        ];
+        for (step, thrh, value, target) in test_data {
+            let thrh = thrh.to_point(0, "threshold");
+            let point = value.to_point(0, &format!("input step {}", step));
+            threshold.borrow_mut().add(thrh);
+            input.borrow_mut().add(point);
+            // debug!("input: {:?}", &input);
+            let result = fn_threshold.out();
+            // debug!("input: {:?}", &mut input);
+            debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
+            assert!(result.as_double().value == target, "step {}\nresult: {:?}\ntarget: {:?}", step, result, target);
+            println!("------------")
+        }
+    }
 }
