@@ -82,7 +82,7 @@ mod fn_average {
             let result = fn_average.out();
             // debug!("input: {:?}", &mut input);
             debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
-            assert!(result.as_double().value.aprox_eq(target, 3), "\nresult: {:?}\ntarget: {:?}", result, target);
+            assert!(result.as_double().value.trunc_eq(target, 3), "\nresult: {:?}\ntarget: {:?}", result, target);
         }
     }
     ///

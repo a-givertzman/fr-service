@@ -1,6 +1,6 @@
 use chrono::Utc;
 use concat_string::concat_string;
-use log::{debug, error};
+use log::{debug, error, warn};
 use std::{env, fs, io::{Read, Write}, path::PathBuf, sync::atomic::{AtomicUsize, Ordering}};
 use crate::{
     conf::point_config::{name::Name, point_config_type::PointConfigType},
@@ -15,7 +15,9 @@ use crate::{
 ///
 /// Function | Used for store input Point value to the local disk
 ///  - Point will be read from disk if:
-///     - if retain file already exists, read will be done only once
+///     - if retain file already exists
+///         - if [every-cycle] is true - read will done in every computing cycle
+///         - if [every-cycle] is false - read will be done only once
 ///     - if retain file does not exists, [default] value will be returned
 ///  - Point will be stored to the disk if:
 ///     - [input] is specified
@@ -33,6 +35,7 @@ pub struct FnRetain {
     tx_id: usize,
     kind: FnKind,
     enable: Option<FnInOutRef>,
+    every_cycle: bool,
     key: String,
     default: Option<FnInOutRef>,
     input: Option<FnInOutRef>,
@@ -44,12 +47,13 @@ pub struct FnRetain {
 impl FnRetain {
     ///
     /// Creates new instance of the FnRetain
-    /// - parent - the name of the parent entitie
-    /// - name - the name of the parent
-    /// - enable - boolean (numeric) input enables the storing if true (> 0)
-    /// - key - the key to store Point with (full path: ./assets/retain/App/TaskName/key.json)
-    /// - input - incoming Point's
-    pub fn new(parent: &Name, enable: Option<FnInOutRef>, key: String, default: Option<FnInOutRef>, input: Option<FnInOutRef>) -> Self {
+    /// - [parent] - the name of the parent entitie
+    /// - [name] - the name of the parent
+    /// - [enable] - boolean (numeric) input enables the storing if true (> 0)
+    /// - [every-cycle] - if true read will done in every computing cycle, else read will done only once
+    /// - [key] - the key to store Point with (full path: ./assets/retain/App/TaskName/key.json)
+    /// - [input] - incoming Point's
+    pub fn new(parent: &Name, enable: Option<FnInOutRef>, every_cycle: bool, key: String, default: Option<FnInOutRef>, input: Option<FnInOutRef>) -> Self {
         let self_id = format!("{}/FnRetain{}", parent.join(), COUNT.fetch_add(1, Ordering::Relaxed));
         Self {
             id: self_id.clone(),
@@ -57,6 +61,7 @@ impl FnRetain {
             tx_id: PointTxId::fromStr(&self_id),
             kind: FnKind::Fn,
             enable,
+            every_cycle,
             key,
             default,
             input,
@@ -245,7 +250,14 @@ impl FnOut for FnRetain {
     fn out(&mut self) -> PointType {
         let point = match &self.input {
             Some(input) => {
-                input.borrow_mut().out()
+                let point = input.borrow_mut().out();
+                let enable = self.enable.as_ref().map_or(true, |enable| enable.borrow_mut().out().to_bool().as_bool().value.0);
+                if enable {
+                    if let Err(err) = self.store(&point) {
+                        error!("{}.out | Error: '{:?}'", self.id, err);
+                    };
+                }
+                point
             }
             None => {
                 let default = match &mut self.default {
@@ -254,27 +266,29 @@ impl FnOut for FnRetain {
                     }
                     None => panic!("{}.out | The [default] input is not specified", self.id),
                 };
-                match &self.cache {
-                    Some(point) => point.clone(),
-                    None => match self.load(default.type_()) {
-                        Some(point) => {
-                            self.cache = Some(point.clone());
-                            point
-                        }
+                if self.every_cycle {
+                    let point = match self.load(default.type_()) {
+                        Some(point) => point,
                         None => default,
-                    }
+                    };
+                    warn!("{}.out | every cycle: {} \t loaded: {:#?}", self.id, self.every_cycle, point);
+                    point
+                } else {
+                    let point = match &self.cache {
+                        Some(point) => point.clone(),
+                        None => match self.load(default.type_()) {
+                            Some(point) => {
+                                self.cache = Some(point.clone());
+                                point
+                            }
+                            None => default,
+                        }
+                    };
+                    warn!("{}.out | every cycle: {} \t loaded: {:#?}", self.id, self.every_cycle, point);
+                    point
                 }
             }
         };
-        let enable = match &self.enable {
-            Some(enable) => enable.borrow_mut().out().to_bool().as_bool().value.0,
-            None => true,
-        };
-        if enable {
-            if let Err(err) = self.store(&point) {
-                error!("{}.out | Error: '{:?}'", self.id, err);
-            };
-        }
         point
     }
     //

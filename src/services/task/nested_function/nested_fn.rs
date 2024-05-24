@@ -239,11 +239,22 @@ impl NestedFn {
                             Some(input_conf) => Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone())),
                             None => None,
                         };
+                        let name = "every-cycle";
+                        let every_cycle = conf.param(name).map_or(false, |param| {
+                            match param.name().as_str() {
+                                "true" => true,
+                                "false" => false,
+                                _ => {
+                                    warn!("{}.function | Illegal value in 'every_cycle' of '{}'", self_id, conf.name);
+                                    false
+                                }
+                            }
+                        });
                         let key = conf.param("key").unwrap_or_else(|_|
                             panic!("{}.function | Parameter 'key' - missed in '{}'", self_id, conf.name)
                         ).name();
                         Rc::new(RefCell::new(Box::new(
-                            FnRetain::new(parent, enable, key, default, input)
+                            FnRetain::new(parent, enable, every_cycle, key, default, input)
                         )))
                     }                    
                     //
