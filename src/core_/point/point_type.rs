@@ -207,7 +207,7 @@ impl PointType {
         }
     }
     ///
-    /// Returns Point converted to the boolean
+    /// Returns Point converted to the Bool
     pub fn to_bool(&self) -> Self {
         let value = match self {
             PointType::Bool(point) => point.value.0,
@@ -226,6 +226,66 @@ impl PointType {
             self.timestamp(),
         ))
     }
+    ///
+    /// Returns Point converted to the Int
+    pub fn to_int(&self) -> Self {
+        let value = match self {
+            PointType::Bool(point) => if point.value.0 {1} else {0},
+            PointType::Int(point) => point.value,
+            PointType::Real(point) => point.value.round() as i64 ,
+            PointType::Double(point) => point.value.round() as i64,
+            PointType::String(point) => panic!("{}.to_int | Conversion to Int for 'String' - is not supported", point.name),
+            // _ => panic!("{}.to_int | Conversion to Int for '{}' - is not supported", self.name(),  self.type_of()),
+        };
+        PointType::Int(Point::new(
+            *self.tx_id(), 
+            &self.name(), 
+            value, 
+            self.status(), 
+            self.cot(), 
+            self.timestamp(),
+        ))
+    }
+    ///
+    /// Returns Point converted to the Real
+    pub fn to_real(&self) -> Self {
+        let value = match self {
+            PointType::Bool(point) => if point.value.0 {1.0} else {0.0},
+            PointType::Int(point) => point.value as f32,
+            PointType::Real(point) => point.value,
+            PointType::Double(point) => point.value as f32,
+            PointType::String(point) => panic!("{}.to_real | Conversion to Real for 'String' - is not supported", point.name),
+            // _ => panic!("{}.to_real | Conversion to Real for '{}' - is not supported", self.name(),  self.type_of()),
+        };
+        PointType::Real(Point::new(
+            *self.tx_id(), 
+            &self.name(), 
+            value, 
+            self.status(), 
+            self.cot(), 
+            self.timestamp(),
+        ))
+    }
+    ///
+    /// Returns Point converted to the Double
+    pub fn to_double(&self) -> Self {
+        let value = match self {
+            PointType::Bool(point) => if point.value.0 {1.0} else {0.0},
+            PointType::Int(point) => point.value as f64,
+            PointType::Real(point) => point.value as f64,
+            PointType::Double(point) => point.value,
+            PointType::String(point) => panic!("{}.to_double | Conversion to Double for 'String' - is not supported", point.name),
+            // _ => panic!("{}.to_double | Conversion to Double for '{}' - is not supported", self.name(),  self.type_of()),
+        };
+        PointType::Double(Point::new(
+            *self.tx_id(), 
+            &self.name(), 
+            value, 
+            self.status(), 
+            self.cot(), 
+            self.timestamp(),
+        ))
+    }    
 }
 //
 //

@@ -1,9 +1,9 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use log::trace;
-use crate::core_::{
+use crate::{conf::point_config::point_config_type::PointConfigType, core_::{
     point::{point::Point, point_type::PointType},
     types::fn_in_out_ref::FnInOutRef,
-};
+}};
 use super::{fn_::{FnInOut, FnOut, FnIn}, fn_kind::FnKind};
 ///
 /// Accumulates numeric incoming Point's value
@@ -67,14 +67,14 @@ impl FnOut for FnAcc {
                     Some(initial) => {
                         initial.borrow_mut().out()
                     }
-                    None => match input {
-                        PointType::Bool(_) | PointType::Int(_)  => PointType::Int(Point::new(
+                    None => match input.type_() {
+                        PointConfigType::Bool | PointConfigType::Int  => PointType::Int(Point::new(
                             *input.tx_id(), &input.name(), 0, input.status(), input.cot(), input.timestamp(),
                         )),
-                        PointType::Real(_) => PointType::Real(Point::new(
+                        PointConfigType::Real => PointType::Real(Point::new(
                             *input.tx_id(), &input.name(), 0.0, input.status(), input.cot(), input.timestamp(),
                         )),
-                        PointType::Double(_) => PointType::Double(Point::new(
+                        PointConfigType::Double => PointType::Double(Point::new(
                             *input.tx_id(), &input.name(), 0.0, input.status(), input.cot(), input.timestamp(),
                         )),
                         _ => panic!("{}.out | Invalit input type '{:?}'", self.id, input.type_()),
@@ -83,11 +83,8 @@ impl FnOut for FnAcc {
             }
         };
         let acc = match acc {
-            PointType::Bool(acc) => {
-                PointType::Bool(acc + input.as_bool())
-            }
             PointType::Int(acc) => {
-                PointType::Int(acc + input.as_int())
+                PointType::Int(acc + input.to_int().as_int())
             }
             PointType::Real(acc) => {
                 PointType::Real(acc + input.as_real())

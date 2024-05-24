@@ -20,3 +20,5 @@ mod fn_average_test;
 
 mod fn_retain_test;
 mod task_test_producer;
+
+mod fn_acc_test;
