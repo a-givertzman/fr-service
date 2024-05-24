@@ -8,7 +8,7 @@ use crate::{
     },
 };
 ///
-/// Function | Returns filtered input
+/// Function | Returns filtered input:
 /// - if factor is not specified:
 ///     - new input value returned if (prev - [input]) > [threshold]
 /// - if factor is specified:
