@@ -61,7 +61,13 @@ impl FnOut for FnThreshold {
     }
     //
     fn inputs(&self) -> Vec<String> {
-        self.input.borrow().inputs()
+        let mut inputs = vec![];
+        inputs.append(&mut self.threshold.borrow().inputs());
+        if let Some(factor) = &self.factor {
+            inputs.append(&mut factor.borrow().inputs());
+        }
+        inputs.append(&mut self.input.borrow().inputs());
+        inputs
     }
     //
     //
