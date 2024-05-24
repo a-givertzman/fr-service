@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use testing::entities::test_value::Value;
 use crate::{
     conf::point_config::point_config_type::PointConfigType,
-    core_::{cot::cot::Cot, status::status::Status, types::bool::Bool},
+    core_::{cot::cot::Cot, status::status::Status, types::{bool::Bool, type_of::{DebugTypeOf, TypeOf}}},
     services::multi_queue::subscription_criteria::SubscriptionCriteria,
 };
 use super::point::Point;
@@ -214,7 +214,8 @@ impl PointType {
             PointType::Int(point) => point.value > 0,
             PointType::Real(point) => point.value > 0.0,
             PointType::Double(point) => point.value > 0.0,
-            PointType::String(point) => panic!("{}.out | Eror conversion to Bool - from 'String' is not supported", point.name),
+            PointType::String(point) => panic!("{}.to_bool | Conversion to Bool for 'String' - is not supported", point.name),
+            // _ => panic!("{}.to_bool | Conversion to Bool for '{}' - is not supported", self.name(),  self.type_of()),
         };
         PointType::Bool(Point::new(
             *self.tx_id(), 

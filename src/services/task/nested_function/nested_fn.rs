@@ -10,7 +10,7 @@ use crate::{
         safe_lock::SafeLock, services::Services,
         task::{
             nested_function::{
-                edge_detection::{fn_falling_edge::FnFallingEdge, fn_rising_edge::FnRisingEdge}, export::{fn_export::FnExport, fn_filter::FnFilter, fn_point::FnPoint, fn_to_api_queue::FnToApiQueue}, fn_add::FnAdd, fn_const::FnConst, fn_count::FnCount, fn_debug::FnDebug, fn_ge::FnGe, fn_input::FnInput, fn_point_id::FnPointId, fn_timer::FnTimer, fn_to_int::FnToInt, fn_var::FnVar, functions::Functions, sql_metric::SqlMetric
+                edge_detection::{fn_falling_edge::FnFallingEdge, fn_rising_edge::FnRisingEdge}, export::{fn_export::FnExport, fn_filter::FnFilter, fn_point::FnPoint, fn_to_api_queue::FnToApiQueue}, fn_add::FnAdd, fn_const::FnConst, fn_count::FnCount, fn_debug::FnDebug, fn_ge::FnGe, fn_input::FnInput, fn_point_id::FnPointId, fn_timer::FnTimer, fn_to_int::FnToInt, fn_var::FnVar, functions::Functions, io::fn_retain::FnRetain, sql_metric::SqlMetric
             },
             task_nodes::TaskNodes,
         }
@@ -42,7 +42,12 @@ impl NestedFn {
                 match fn_name {
                     //
                     Functions::Count => {
-                        let initial = 0.0;
+                        let name = "initial";
+                        let input_conf = conf.input_conf(name).map_or(None, |conf| Some(conf));
+                        let initial = match input_conf {
+                            Some(input_conf) => Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone())),
+                            None => None,
+                        };
                         let name = "input";
                         let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services);
@@ -118,10 +123,13 @@ impl NestedFn {
                     //
                     Functions::Debug => {
                         let name = "input";
-                        let input_conf = conf.input_conf(name).unwrap();
-                        let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        let mut inputs = vec![];
+                        for (_input_name, input_conf) in &mut conf.inputs {
+                            let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                            inputs.push(input);
+                        }
                         Rc::new(RefCell::new(Box::new(
-                            FnDebug::new(parent, input)
+                            FnDebug::new(parent, inputs)
                         )))
                     }
                     //
@@ -211,6 +219,44 @@ impl NestedFn {
                             FnFallingEdge::new(parent, input)
                         )))
                     }
+                    //
+                    Functions::Retain => {
+                        let name = "default";
+                        let input_conf = conf.input_conf(name).map_or(None, |conf| Some(conf));
+                        let default = match input_conf {
+                            Some(input_conf) => Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone())),
+                            None => None,
+                        };
+                        let name = "input";
+                        let input_conf = conf.input_conf(name).map_or(None, |conf| Some(conf));
+                        let input = match input_conf {
+                            Some(input_conf) => Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone())),
+                            None => None,
+                        };
+                        let name = "enable";
+                        let input_conf = conf.input_conf(name).map_or(None, |conf| Some(conf));
+                        let enable = match input_conf {
+                            Some(input_conf) => Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone())),
+                            None => None,
+                        };
+                        let name = "every-cycle";
+                        let every_cycle = conf.param(name).map_or(false, |param| {
+                            match param.name().as_str() {
+                                "true" => true,
+                                "false" => false,
+                                _ => {
+                                    warn!("{}.function | Illegal value in 'every_cycle' of '{}'", self_id, conf.name);
+                                    false
+                                }
+                            }
+                        });
+                        let key = conf.param("key").unwrap_or_else(|_|
+                            panic!("{}.function | Parameter 'key' - missed in '{}'", self_id, conf.name)
+                        ).name();
+                        Rc::new(RefCell::new(Box::new(
+                            FnRetain::new(parent, enable, every_cycle, key, default, input)
+                        )))
+                    }                    
                     //
                     // Add a new function here...
                     _ => panic!("{}.function | Unknown function name: {:?}", self_id, conf.name)

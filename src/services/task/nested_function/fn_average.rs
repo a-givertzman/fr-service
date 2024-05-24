@@ -52,13 +52,7 @@ impl FnOut for FnAverage {
     }
     ///
     fn out(&mut self) -> PointType {
-        let enable = match self.enable.borrow_mut().out() {
-            PointType::Bool(point) => point.value.0,
-            PointType::Int(point) => point.value > 0,
-            PointType::Real(point) => point.value > 0.0,
-            PointType::Double(point) => point.value > 0.0,
-            PointType::String(_) => panic!("{}.out | Type 'String' - is not supported for 'enable'", self.id),
-        };
+        let enable = self.enable.borrow_mut().out().to_bool().as_bool().value.0;
         // trace!("{}.out | enable: {:?}", self.id, enable);
         let input = self.input.borrow_mut().out();
         // trace!("{}.out | input: {:?}", self.id, input);

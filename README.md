@@ -108,7 +108,9 @@ class CMA green
 Service provides configurable in the yaml computations.  
 Consists of number of computation nodes. Each node consists of number of functions.  
 The computation value - is point {type, value, tumestamp, status}  
-Each computation cycle sequentally calls computation nodes of the task in the order defined in the configuration. So variables used in the task must be defined earlier then used.  
+Each computation cycle sequentally calls computation nodes of the task
+in the order defined in the configuration.
+So variables used in the task must be defined earlier then used.  
 The computations can be executed:
 
 - periodically with configured cycle time (min 10ms for now)

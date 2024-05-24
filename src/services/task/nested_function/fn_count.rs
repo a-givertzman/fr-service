@@ -1,7 +1,8 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use log::trace;
 use crate::core_::{
-    cot::cot::Cot, point::{point::Point, point_type::PointType}, types::{fn_in_out_ref::FnInOutRef, type_of::DebugTypeOf}
+    point::{point::Point, point_type::PointType},
+    types::fn_in_out_ref::FnInOutRef,
 };
 use super::{fn_::{FnInOut, FnOut, FnIn}, fn_kind::FnKind};
 ///
@@ -11,8 +12,9 @@ pub struct FnCount {
     id: String,
     kind: FnKind,
     input: FnInOutRef,
-    count: f64,
-    initial: f64,
+    prev: bool,
+    count: Option<i64>,
+    initial: Option<FnInOutRef>,
 }
 //
 // 
@@ -20,12 +22,13 @@ impl FnCount {
     ///
     /// Creates new instance of the FnCount
     #[allow(dead_code)]
-    pub fn new(parent: impl Into<String>, initial: f64, input: FnInOutRef) -> Self {
+    pub fn new(parent: impl Into<String>, initial: Option<FnInOutRef>, input: FnInOutRef) -> Self {
         Self { 
             id: format!("{}/FnCount{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
             kind:FnKind::Fn,
             input,
-            count: initial,
+            prev: false,
+            count: None,
             initial,
         }
     }
@@ -46,34 +49,55 @@ impl FnOut for FnCount {
     }
     //
     fn inputs(&self) -> Vec<String> {
-        self.input.borrow().inputs()
+        let mut inputs = vec![];
+        inputs.append(&mut self.input.borrow().inputs());
+        if let Some(initial) = &self.initial {
+            inputs.append(&mut initial.borrow().inputs());
+        }
+        inputs
     }
     ///
     fn out(&mut self) -> PointType {
         // trace!("{}.out | input: {:?}", self.id, self.input.print());
-        let point = self.input.borrow_mut().out();
-        let value = match &point {
-            PointType::Bool(point) => if point.value.0 {1.0} else {0.0},
-            PointType::Int(point) => point.value as f64,
-            PointType::Real(point) => point.value as f64,
-            PointType::Double(point) => point.value,
-            _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id,  point.print_type_of(), point),
-        };
-        self.count += value;
-        trace!("{}.out | input.out: {:?}   | state: {:?}", self.id, &value, self.count);
-        PointType::Double(
-            Point {
-                tx_id: *point.tx_id(),
-                name: format!("{}.out", self.id),
-                value: self.count,
-                status: point.status(),
-                cot: Cot::Inf,
-                timestamp: point.timestamp(),
+        let mut count = match self.count {
+            Some(count) => count,
+            None => {
+                match &mut self.initial {
+                    Some(initial) => {
+                        initial.borrow_mut().out().as_int().value
+                    },
+                    None => 0,
+                }
             }
+        };
+        let input = self.input.borrow_mut().out();
+        let value = input.to_bool().as_bool().value.0;
+        if !self.prev && value {
+            count += 1;
+            self.count = Some(count);
+        }
+        self.prev = value;
+        trace!("{}.out | input.out: {:?}   | state: {:?}", self.id, &value, self.count);
+        PointType::Int(
+            Point::new(
+                *input.tx_id(),
+                &format!("{}.out", self.id),
+                count,
+                input.status(),
+                input.cot(),
+                input.timestamp(),
+            )
         )
     }
     fn reset(&mut self) {
-        self.count = self.initial;
+        let initial = match &self.initial {
+            Some(initial) => {
+                initial.borrow_mut().reset();
+                initial.borrow_mut().out().as_int().value
+            }
+            None => 0,
+        };
+        self.count = Some(initial);
         self.input.borrow_mut().reset();
     }
 }

@@ -42,5 +42,6 @@ pub mod sql_metric;
 pub mod edge_detection;
 pub mod export;
 pub mod import;
+pub mod io;
 
 pub mod reset_counter;

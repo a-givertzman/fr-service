@@ -24,6 +24,7 @@ pub enum Functions {
     Filter,
     RisingEdge,
     FallingEdge,
+    Retain,
 }
 //
 //
@@ -47,6 +48,7 @@ impl Functions {
     const FILTER            : &'static str = "Filter";
     const RISING_EDGE       : &'static str = "RisingEdge";
     const FALLING_EDGE      : &'static str = "FallingEdge";
+    const RETAIN            : &'static str = "Retain";
     ///
     ///
     pub fn name(&self) -> &str {
@@ -68,6 +70,7 @@ impl Functions {
             Self::Filter            => Self::FILTER,
             Self::RisingEdge        => Self::RISING_EDGE,
             Self::FallingEdge       => Self::FALLING_EDGE,
+            Self::Retain            => Self::RETAIN,
         }
     }
     ///
@@ -91,6 +94,7 @@ impl Functions {
             Self::FILTER            => Ok( Self::Filter ),
             Self::RISING_EDGE       => Ok( Self::RisingEdge ),
             Self::FALLING_EDGE      => Ok( Self::FallingEdge ),
+            Self::RETAIN            => Ok( Self::Retain ),
             _ => Err(format!("Functions.from_str | Unknown function name '{}'", &input)),
         }
     }
