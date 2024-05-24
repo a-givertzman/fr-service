@@ -25,3 +25,5 @@ mod fn_acc_test;
 
 mod fn_threshold_test;
 mod fn_threshold_factor_test;
+
+mod fn_smooth_test;

@@ -12,7 +12,7 @@ use crate::{
 };
 ///
 /// Function | Returns smoothed input:
-/// out = out + (input - prev) / factor
+/// out = out + (input - prev) * factor
 #[derive(Debug)]
 pub struct FnSmooth {
     id: String,
@@ -62,9 +62,14 @@ impl FnOut for FnSmooth {
     //
     fn out(&mut self) -> PointType {
         let input = self.input.borrow_mut().out();
+        warn!("{}.out | input: {:?}", self.id, input);
         let input_type = input.type_();
         let factor = self.factor.borrow_mut().out().to_double().as_double();
-        let value = self.value.to_double().as_double() + (input.to_double().as_double() - input.to_double().as_double()) * factor;
+        warn!("{}.out | factor: {:?}", self.id, factor);
+        let delta = self.value.to_double().as_double() - input.to_double().as_double();
+        warn!("{}.out | delta: {:?}", self.id, delta);
+        let value = self.value.to_double().as_double() + delta * factor;
+        warn!("{}.out | value: {:?}", self.id, value);
         let value = PointType::Double(value);
         self.value = match input_type {
             PointConfigType::Int => value.to_int(),
