@@ -26,7 +26,7 @@ mod fn_acc {
         )))
     }
     ///
-    /// Testing accumulation of the bool's
+    /// Testing accumulation of the BSool's
     #[test]
     fn acc_bool() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -62,18 +62,18 @@ mod fn_acc {
             let state = fn_count.out();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
-            assert_eq!(state.as_int().value, target);
+            assert_eq!(state.as_int().value, target, "\n   result: {} \ntarget: {}", state.as_int().value, target);
         }
     }
     ///
-    /// Testing accumulation of the bool's
+    /// Testing accumulation of the Int's
     #[test]
     fn acc_int() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("acc_int");
         let initial = Some(init_each(0.to_point(0, "initial int"), FnConfPointType::Int));
-        let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
+        let input = init_each(0.to_point(0, "input int"), FnConfPointType::Int);
         let mut fn_count = FnCount::new(
             "test",
             initial,
@@ -102,7 +102,7 @@ mod fn_acc {
             let state = fn_count.out();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
-            assert_eq!(state.as_int().value, target);
+            assert_eq!(state.as_int().value, target, "\n   result: {} \ntarget: {}", state.as_int().value, target);
         }
     }
     ///
