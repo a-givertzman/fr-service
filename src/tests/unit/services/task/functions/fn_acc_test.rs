@@ -31,7 +31,7 @@ mod fn_acc {
     fn acc_bool() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
-        info!("test_single");
+        info!("acc_bool");
         let initial = Some(init_each(0.to_point(0, "initial int"), FnConfPointType::Int));
         let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
         let mut fn_count = FnAcc::new(
@@ -52,8 +52,8 @@ mod fn_acc {
             (false, 3),
             (true, 4),
             (true, 5),
-            (false, 4),
-            (false, 4),
+            (false, 5),
+            (false, 5),
         ];
         for (value, target) in test_data {
             let point = value.to_point(0, "test");
@@ -66,12 +66,12 @@ mod fn_acc {
         }
     }
     ///
-    ///
-    // #[test]
-    fn test_multiple() {
+    /// Testing accumulation of the bool's
+    #[test]
+    fn acc_int() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
-        info!("test_multiple");
+        info!("acc_int");
         let initial = Some(init_each(0.to_point(0, "initial int"), FnConfPointType::Int));
         let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
         let mut fn_count = FnCount::new(
@@ -80,20 +80,20 @@ mod fn_acc {
             input.clone(),
         );
         let test_data = vec![
-            (false, 0),
-            (false, 0),
-            (true, 1),
-            (false, 1),
-            (false, 1),
-            (true, 2),
-            (false, 2),
-            (true, 3),
-            (false, 3),
-            (false, 3),
-            (true, 4),
-            (true, 4),
-            (false, 4),
-            (false, 4),
+            (0, 0),
+            (1, 1),
+            (22, 23),
+            (1457, 1480),
+            (-10, 1470),
+            (0, 1470),
+            (99, 1569),
+            (0, 1569),
+            (0, 1569),
+            (-2, 1567),
+            (15, 1582),
+            (0, 1582),
+            (1, 1583),
+            (0, 1583),
         ];
         for (value, target) in test_data {
             let point = value.to_point(0, "test");
