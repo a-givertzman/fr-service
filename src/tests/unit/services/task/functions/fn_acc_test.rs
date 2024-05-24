@@ -62,7 +62,7 @@ mod fn_acc {
             let state = fn_count.out();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
-            assert_eq!(state.as_int().value, target, "\n   result: {} \ntarget: {}", state.as_int().value, target);
+            assert_eq!(state.as_int().value, target, "\n result: {:?} \ntarget: {}", state, target);
         }
     }
     ///
@@ -74,7 +74,7 @@ mod fn_acc {
         info!("acc_int");
         let initial = Some(init_each(0.to_point(0, "initial int"), FnConfPointType::Int));
         let input = init_each(0.to_point(0, "input int"), FnConfPointType::Int);
-        let mut fn_count = FnCount::new(
+        let mut fn_count = FnAcc::new(
             "test",
             initial,
             input.clone(),
@@ -102,38 +102,38 @@ mod fn_acc {
             let state = fn_count.out();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
-            assert_eq!(state.as_int().value, target, "\n   result: {} \ntarget: {}", state.as_int().value, target);
+            assert_eq!(state.as_int().value, target, "\n   result: {:?} \ntarget: {}", state, target);
         }
     }
     ///
-    /// 
-    // #[test]
-    fn test_multiple_reset() {
+    /// Testing accumulation of the Int's using reset
+    #[test]
+    fn acc_int_reset() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
-        info!("test_multiple_reset");
+        info!("acc_int_reset");
         let initial = Some(init_each(0.to_point(0, "initial int"), FnConfPointType::Int));
-        let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
-        let mut fn_count = FnCount::new(
+        let input = init_each(0.to_point(0, "input int"), FnConfPointType::Int);
+        let mut fn_count = FnAcc::new(
             "test",
             initial,
             input.clone(),
         );
         let test_data = vec![
-            (false, 0, false),
-            (false, 0, false),
-            (true, 1, false),
-            (false, 1, false),
-            (false, 1, false),
-            (true, 2, false),
-            (false, 0, true),
-            (true, 1, false),
-            (false, 1, false),
-            (false, 1, false),
-            (true, 2, false),
-            (true, 2, false),
-            (false, 0, true),
-            (false, 0, false),
+            (0, 0, false),
+            (1, 1, false),
+            (22, 23, false),
+            (1457, 1480, false),
+            (-10, 1470, false),
+            (0, 1470, false),
+            (99, 99, true),
+            (0, 99, false),
+            (0, 99, false),
+            (-2, 97, false),
+            (15, 112, false),
+            (0, 112, false),
+            (1, 1, true),
+            (0, 1, false),
         ];
         for (value, target, reset) in test_data {
             if reset {
@@ -145,7 +145,87 @@ mod fn_acc {
             let state = fn_count.out();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
-            assert_eq!(state.as_int().value, target);
+            assert_eq!(state.as_int().value, target, "\n   result: {:?} \ntarget: {}", state, target);
+        }
+    }
+    ///
+    /// Testing accumulation of the Real's
+    #[test]
+    fn acc_real() {
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
+        init_once();
+        info!("acc_real");
+        let initial = Some(init_each(0.0f32.to_point(0, "initial real"), FnConfPointType::Real));
+        let input = init_each(0.0f32.to_point(0, "input real"), FnConfPointType::Real);
+        let mut fn_count = FnAcc::new(
+            "test",
+            initial,
+            input.clone(),
+        );
+        let test_data = vec![
+            (0.0f32, 0.0),
+            (1.0, 1.0),
+            (22.0, 23.0),
+            (1457.0, 1480.0),
+            (-10.0, 1470.0),
+            (0.0, 1470.0),
+            (99.0, 1569.0),
+            (0.0, 1569.0),
+            (0.0, 1569.0),
+            (-2.0, 1567.0),
+            (15.0, 1582.0),
+            (0.0, 1582.0),
+            (1.0, 1583.0),
+            (0.0, 1583.0),
+        ];
+        for (value, target) in test_data {
+            let point = value.to_point(0, "test");
+            input.borrow_mut().add(point);
+            // debug!("input: {:?}", &input);
+            let state = fn_count.out();
+            // debug!("input: {:?}", &mut input);
+            debug!("value: {:?}   |   state: {:?}", value, state);
+            assert_eq!(state.as_real().value, target, "\n   result: {:?} \ntarget: {}", state, target);
+        }
+    }
+    ///
+    /// Testing accumulation of the Double's
+    #[test]
+    fn acc_double() {
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
+        init_once();
+        info!("acc_double");
+        let initial = Some(init_each(0.0f64.to_point(0, "initial double"), FnConfPointType::Double));
+        let input = init_each(0.0f64.to_point(0, "input double"), FnConfPointType::Double);
+        let mut fn_count = FnAcc::new(
+            "test",
+            initial,
+            input.clone(),
+        );
+        let test_data = vec![
+            (0.0f64, 0.0),
+            (1.0, 1.0),
+            (22.0, 23.0),
+            (1457.0, 1480.0),
+            (-10.0, 1470.0),
+            (0.0, 1470.0),
+            (99.0, 1569.0),
+            (0.0, 1569.0),
+            (0.0, 1569.0),
+            (-2.0, 1567.0),
+            (15.0, 1582.0),
+            (0.0, 1582.0),
+            (1.0, 1583.0),
+            (0.0, 1583.0),
+        ];
+        for (value, target) in test_data {
+            let point = value.to_point(0, "test");
+            input.borrow_mut().add(point);
+            // debug!("input: {:?}", &input);
+            let state = fn_count.out();
+            // debug!("input: {:?}", &mut input);
+            debug!("value: {:?}   |   state: {:?}", value, state);
+            assert_eq!(state.as_double().value, target, "\n   result: {:?} \ntarget: {}", state, target);
         }
     }
 }
