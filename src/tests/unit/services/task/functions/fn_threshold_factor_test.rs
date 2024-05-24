@@ -7,7 +7,7 @@ mod fn_threshold_factor {
     use crate::{
         conf::fn_::fn_conf_keywd::FnConfPointType, 
         core_::{
-            aprox_eq::aprox_eq::AproxEq, point::point_type::ToPoint, types::fn_in_out_ref::FnInOutRef
+            point::point_type::ToPoint, types::fn_in_out_ref::FnInOutRef
         },
         services::task::nested_function::{
             filter::fn_threshold::FnThreshold, fn_::FnOut, fn_input::FnInput
