@@ -1,5 +1,5 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
-use log::warn;
+use log::trace;
 
 use crate::{
     conf::point_config::point_config_type::PointConfigType, core_::{
@@ -82,7 +82,7 @@ impl FnOut for FnThreshold {
                     Some(factor) => {
                         let factor = factor.borrow_mut().out().to_double().as_double();
                         self.delta = self.delta.clone() + ((input.clone() - value.to_double().as_double()) * factor).abs();
-                        warn!("{}.out | Integral delta: {}", self.id, self.delta.value);
+                        trace!("{}.out | Integral delta: {}", self.id, self.delta.value);
                         if self.delta >= threshold {
                             self.value = Some(PointType::Double(input));
                             self.delta = Point::new_double(0, "", 0.0);
@@ -90,7 +90,7 @@ impl FnOut for FnThreshold {
                     }
                     None => {
                         let delta = (input.clone() - value.to_double().as_double()).abs();
-                        warn!("{}.out | Absolute delta: {}", self.id, delta.value);
+                        trace!("{}.out | Absolute delta: {}", self.id, delta.value);
                         if delta >= threshold {
                             self.value = Some(PointType::Double(input));
                         }
@@ -110,7 +110,7 @@ impl FnOut for FnThreshold {
             }
             None => panic!("{}.out | Internal error - self.value is not initialised", self.id),
         };
-        warn!("{}.out | value: {:?}", self.id, value);
+        trace!("{}.out | value: {:?}", self.id, value);
         value
     }
     //
