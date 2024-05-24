@@ -1253,8 +1253,8 @@ service Task RecorderTask:
     # Count the operating cycle ID (retained localy)
     let opCycleId:
         input fn Retain:
-            name: 'OperatingCycleId'
-            input fn Count:
+            key: 'OperatingCycleId'
+            input fn Acc:
                 initial fn Retain:
                     default: const int 1
                     name: 'OperatingCycleId'

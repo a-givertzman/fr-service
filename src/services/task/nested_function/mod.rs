@@ -34,6 +34,7 @@ pub mod fn_point_id;
 pub mod fn_debug;
 pub mod fn_to_int;
 pub mod fn_average;
+pub mod fn_acc;
 
 pub mod nested_fn;
 
