@@ -79,6 +79,7 @@ impl FnOut for FnThreshold {
                         warn!("{}.out | Integral delta: {}", self.id, self.delta.value);
                         if self.delta >= threshold {
                             self.value = Some(PointType::Double(input));
+                            self.delta = Point::new_double(0, "", 0.0);
                         }
                     }
                     None => {
@@ -115,6 +116,7 @@ impl FnOut for FnThreshold {
         }
         self.input.borrow_mut().reset();
         self.value = None;
+        self.delta = Point::new_double(0, "", 0.0);
     }
 }
 //

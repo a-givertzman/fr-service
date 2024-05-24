@@ -64,7 +64,7 @@ mod fn_threshold_factor {
             (01,    3.0,  1,     0),// 1.0
             (02,    3.0,  2,     0),// 2.0
             (02,    3.0,  2,     2),// 3.0
-            (03,    3.0,  3,     2),
+            (03,    3.0,  3,     2),// 
             (04,    3.0,  4,     2),
             (05,    3.0,  5,     3),
             (06,    3.0,  4,     3),
@@ -87,6 +87,7 @@ mod fn_threshold_factor {
             // debug!("input: {:?}", &mut input);
             debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
             assert!(result.as_int().value == target, "step {}\nresult: {:?}\ntarget: {:?}", step, result, target);
+            println!("------------")
         }
     }
     // ///
