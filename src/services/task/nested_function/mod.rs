@@ -44,5 +44,6 @@ pub mod edge_detection;
 pub mod export;
 pub mod import;
 pub mod io;
+pub mod filter;
 
 pub mod reset_counter;
