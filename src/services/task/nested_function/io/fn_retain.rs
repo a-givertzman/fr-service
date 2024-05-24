@@ -278,12 +278,12 @@ impl FnOut for FnRetain {
                         Some(point) => point.clone(),
                         None => match self.load(default.type_()) {
                             Some(point) => {
-                                self.cache = Some(point.clone());
                                 point
                             }
                             None => default,
                         }
                     };
+                    self.cache = Some(point.clone());
                     warn!("{}.out | every cycle: {} \t loaded: {:#?}", self.id, self.every_cycle, point);
                     point
                 }

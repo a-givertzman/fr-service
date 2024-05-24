@@ -111,6 +111,8 @@ mod fn_retain {
         //
         // can be changed
         trace!("dir: {:?}", env::current_dir());
+        let initial = load(self_id, &format!("./assets/retain/{}/RetainTask/BoolFlag.json", self_id), PointConfigType::Bool)
+            .map_or(false, |init| init.as_bool().value.0);
         let services = Arc::new(Mutex::new(Services::new(self_id)));
         let config = TaskConfig::from_yaml(
             &self_name,
@@ -136,10 +138,8 @@ mod fn_retain {
         );
         trace!("config: {:?}", config);
         debug!("Task config points: {:#?}", config.points());
-
         let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
         debug!("Task points: {:#?}", task.lock().unwrap().points());
-
         services.slock().insert(task.clone());
         let conf = MultiQueueConfig::from_yaml(
             self_id,
@@ -151,8 +151,6 @@ mod fn_retain {
         );
         let multi_queue = Arc::new(Mutex::new(MultiQueue::new(conf, services.clone())));
         services.slock().insert(multi_queue.clone());
-        let initial = load(self_id, &format!("./assets/retain/{}/RetainTask/BoolFlag.json", self_id), PointConfigType::Bool)
-            .map_or(false, |init| init.as_bool().value.0);
         let test_data = vec![
             (format!("/{}/BoolFlag", self_id), Value::Bool(!initial)),
             (format!("/{}/BoolFlag", self_id), Value::Bool(initial)),
