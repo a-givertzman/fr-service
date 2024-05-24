@@ -1,7 +1,7 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
-use log::{debug, trace};
+use log::debug;
 use crate::core_::{
-    cot::cot::Cot, point::{point::Point, point_type::PointType}, types::{fn_in_out_ref::FnInOutRef, type_of::DebugTypeOf}
+    point::{point::Point, point_type::PointType}, types::{fn_in_out_ref::FnInOutRef, type_of::DebugTypeOf}
 };
 use super::{fn_::{FnInOut, FnOut, FnIn}, fn_kind::FnKind};
 ///
