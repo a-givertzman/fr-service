@@ -3,7 +3,7 @@ use log::warn;
 
 use crate::{
     conf::point_config::point_config_type::PointConfigType, core_::{
-        point::{point::Point, point_type::PointType}, 
+        point::point_type::PointType, 
         types::fn_in_out_ref::FnInOutRef,
     }, services::task::nested_function::{
         fn_::{FnIn, FnInOut, FnOut},
