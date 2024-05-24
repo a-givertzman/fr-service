@@ -23,9 +23,9 @@ impl FnAcc {
     ///
     /// Creates new instance of the FnAcc
     #[allow(dead_code)]
-    pub fn new(parent: impl Into<String>, name: Option<String>, initial: Option<FnInOutRef>, input: FnInOutRef) -> Self {
+    pub fn new(parent: impl Into<String>, initial: Option<FnInOutRef>, input: FnInOutRef) -> Self {
         Self { 
-            id: name.unwrap_or(format!("{}/FnAcc{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed))),
+            id: format!("{}/FnAcc{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
             kind:FnKind::Fn,
             input,
             acc: None,
