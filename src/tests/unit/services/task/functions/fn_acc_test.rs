@@ -4,7 +4,9 @@ mod fn_acc {
     use std::{sync::Once, rc::Rc, cell::RefCell};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::fn_::fn_conf_keywd::FnConfPointType, core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, services::task::nested_function::{fn_::FnOut, fn_acc::FnAcc, fn_count::{self, FnCount}, fn_input::FnInput, reset_counter::AtomicReset}
+        conf::fn_::fn_conf_keywd::FnConfPointType, 
+        core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
+        services::task::nested_function::{fn_::FnOut, fn_acc::{self, FnAcc}, fn_input::FnInput, reset_counter::AtomicReset}
     };
     ///
     ///
@@ -20,7 +22,7 @@ mod fn_acc {
     /// returns:
     ///  - ...
     fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
-        fn_count::COUNT.reset(0);
+        fn_acc::COUNT.reset(0);
         Rc::new(RefCell::new(Box::new(
             FnInput::new("test", initial, type_)
         )))
