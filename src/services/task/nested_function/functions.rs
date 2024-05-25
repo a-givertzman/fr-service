@@ -25,7 +25,10 @@ pub enum Functions {
     RisingEdge,
     FallingEdge,
     Retain,
-    Acc
+    Acc,
+    Mul,
+    Div,
+    Sub,
 }
 //
 //
@@ -51,6 +54,9 @@ impl Functions {
     const FALLING_EDGE      : &'static str = "FallingEdge";
     const RETAIN            : &'static str = "Retain";
     const ACC               : &'static str = "Acc";
+    const MUL               : &'static str = "Mul";
+    const DIV               : &'static str = "Div";
+    const SUB               : &'static str = "Sub";
     ///
     ///
     pub fn name(&self) -> &str {
@@ -74,6 +80,9 @@ impl Functions {
             Self::FallingEdge       => Self::FALLING_EDGE,
             Self::Retain            => Self::RETAIN,
             Self::Acc               => Self::ACC,
+            Self::Mul               => Self::MUL,
+            Self::Div               => Self::DIV,
+            Self::Sub               => Self::SUB,
         }
     }
     ///
@@ -99,6 +108,9 @@ impl Functions {
             Self::FALLING_EDGE      => Ok( Self::FallingEdge ),
             Self::RETAIN            => Ok( Self::Retain ),
             Self::ACC               => Ok( Self::Acc ),
+            Self::MUL               => Ok( Self::Mul ),
+            Self::DIV               => Ok( Self::Div ),
+            Self::SUB               => Ok( Self::Sub ),
             _ => Err(format!("Functions.from_str | Unknown function name '{}'", &input)),
         }
     }
