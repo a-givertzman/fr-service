@@ -1,7 +1,8 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use log::debug;
 use crate::core_::{
-    point::{point::Point, point_type::PointType}, types::{fn_in_out_ref::FnInOutRef, type_of::DebugTypeOf}
+    point::{point::Point, point_type::PointType},
+    types::fn_in_out_ref::FnInOutRef,
 };
 use super::{fn_::{FnInOut, FnOut, FnIn}, fn_kind::FnKind};
 ///
@@ -57,13 +58,7 @@ impl FnOut for FnAverage {
         let input = self.input.borrow_mut().out();
         // trace!("{}.out | input: {:?}", self.id, input);
         if enable {
-            let value = match &input {
-                PointType::Bool(point) => if point.value.0 {1.0} else {0.0},
-                PointType::Int(point) => point.value as f64,
-                PointType::Real(point) => point.value as f64,
-                PointType::Double(point) => point.value,
-                _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id,  input.print_type_of(), input),
-            };
+            let value = input.to_double().as_double().value;
             self.sum += value;
             self.count += 1;
         } else {

@@ -315,6 +315,36 @@ impl<T: std::ops::BitOr<Output = T>> std::ops::BitOr for Point<T> {
 }
 //
 //
+impl<T: std::ops::BitAnd<Output = T>> std::ops::BitAnd for Point<T> {
+    type Output = Point<T>;
+    fn bitand(self, rhs: Self) -> Self::Output {
+        let status = match self.status.cmp(&rhs.status) {
+            std::cmp::Ordering::Less => rhs.status,
+            std::cmp::Ordering::Equal => self.status,
+            std::cmp::Ordering::Greater => self.status,
+        };
+        let (tx_id, timestamp) = match self.timestamp.cmp(&rhs.timestamp) {
+            std::cmp::Ordering::Less => (rhs.tx_id, rhs.timestamp),
+            std::cmp::Ordering::Equal => (self.tx_id, self.timestamp),
+            std::cmp::Ordering::Greater => (self.tx_id, self.timestamp),
+        };
+        let cot = if self.cot == rhs.cot {
+            self.cot
+        } else {
+            panic!("Point.bitor | Cot's are not equals")
+        };
+        Point {
+            tx_id,
+            name: String::from("Point.BitOr"),
+            value: self.value & rhs.value,
+            status,
+            cot,
+            timestamp,
+        }        
+    }
+}
+//
+//
 impl<T: std::cmp::PartialOrd> std::cmp::PartialOrd for Point<T> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self.value.partial_cmp(&other.value)
