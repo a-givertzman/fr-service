@@ -28,7 +28,8 @@ mod fn_sub {
     }
     ///
     /// Testing Task Sub Bool's
-    // #[test]
+    #[ignore = "Task FnSub ignored for Bool's - not implemented, under discussion"]
+    #[test]
     fn test_bool() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
