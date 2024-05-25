@@ -1,14 +1,14 @@
-use log::{debug, trace};
+use log::debug;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::{
-    core_::{point::point_type::PointType, types::{type_of::DebugTypeOf, fn_in_out_ref::FnInOutRef}},
+    core_::{point::point_type::PointType, types::fn_in_out_ref::FnInOutRef},
     services::task::nested_function::{
         fn_::{FnInOut, FnIn, FnOut},
         fn_kind::FnKind,
     },
 };
 ///
-/// Function | Returns the multiplication of input1 and input2
+/// Function | Returns input1 * input2
 #[derive(Debug)]
 pub struct FnMul {
     id: String,

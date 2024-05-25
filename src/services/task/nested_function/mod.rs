@@ -36,6 +36,7 @@ pub mod fn_to_int;
 pub mod fn_average;
 pub mod fn_acc;
 pub mod fn_mul;
+pub mod fn_sub;
 
 pub mod nested_fn;
 
