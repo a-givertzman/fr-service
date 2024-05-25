@@ -127,7 +127,7 @@ impl PointType {
     pub fn as_bool(&self) -> Point<Bool> {
         match self {
             PointType::Bool(point) => point.clone(),
-            _ => panic!("PointType.as_bool | Expected type 'Bool', but found '{}' point: '{}'", self.type_of(), self.name()),
+            _ => panic!("PointType.as_bool | Expected type 'Bool', but found '{:?}' point: '{}'", self.type_(), self.name()),
         }
     }
     ///
@@ -135,7 +135,7 @@ impl PointType {
     pub fn try_as_bool(&self) -> Result<Point<Bool>, String> {
         match self {
             PointType::Bool(point) => Ok(point.clone()),
-            _ => Err(format!("PointType.try_as_bool | Expected type 'Bool', but found '{}' point: '{}'", self.type_of(), self.name())),
+            _ => Err(format!("PointType.try_as_bool | Expected type 'Bool', but found '{:?}' point: '{}'", self.type_(), self.name())),
         }
     }
     ///
@@ -143,7 +143,7 @@ impl PointType {
     pub fn as_int(&self) -> Point<i64> {
         match self {
             PointType::Int(point) => point.clone(),
-            _ => panic!("PointType.as_int | Expected type 'Int', but found '{}' point: '{}'", self.type_of(), self.name()),
+            _ => panic!("PointType.as_int | Expected type 'Int', but found '{:?}' point: '{}'", self.type_(), self.name()),
         }
     }
     ///
@@ -159,7 +159,7 @@ impl PointType {
     pub fn as_real(&self) -> Point<f32> {
         match self {
             PointType::Real(point) => point.clone(),
-            _ => panic!("PointType.as_real | Expected type 'Real', but found '{}' point: '{}'", self.type_of(), self.name()),
+            _ => panic!("PointType.as_real | Expected type 'Real', but found '{:?}' point: '{}'", self.type_(), self.name()),
         }
     }
     ///
@@ -167,7 +167,7 @@ impl PointType {
     pub fn try_as_real(&self) -> Result<Point<f32>, String> {
         match self {
             PointType::Real(point) => Ok(point.clone()),
-            _ => Err(format!("PointType.try_as_real | Expected type 'Real', but found '{}' point: '{}'", self.type_of(), self.name())),
+            _ => Err(format!("PointType.try_as_real | Expected type 'Real', but found '{:?}' point: '{}'", self.type_(), self.name())),
         }
     }
     ///
@@ -175,7 +175,7 @@ impl PointType {
     pub fn as_double(&self) -> Point<f64> {
         match self {
             PointType::Double(point) => point.clone(),
-            _ => panic!("PointType.as_double | Expected type 'Double', but found '{}' point: '{}'", self.type_of(), self.name()),
+            _ => panic!("PointType.as_double | Expected type 'Double', but found '{:?}' point: '{}'", self.type_(), self.name()),
         }
     }
     ///
@@ -183,7 +183,7 @@ impl PointType {
     pub fn try_as_double(&self) -> Result<Point<f64>, String> {
         match self {
             PointType::Double(point) => Ok(point.clone()),
-            _ => Err(format!("PointType.try_as_double | Expected type 'Double', but found '{}' point: '{}'", self.type_of(), self.name())),
+            _ => Err(format!("PointType.try_as_double | Expected type 'Double', but found '{:?}' point: '{}'", self.type_(), self.name())),
         }
     }
     ///
@@ -191,7 +191,7 @@ impl PointType {
     pub fn as_string(&self) -> Point<String> {
         match self {
             PointType::String(point) => point.clone(),
-            _ => panic!("PointType.as_string | Expected type 'String', but found '{}' point: '{}'", self.type_of(), self.name()),
+            _ => panic!("PointType.as_string | Expected type 'String', but found '{:?}' point: '{}'", self.type_(), self.name()),
         }
     }
     ///
@@ -199,7 +199,7 @@ impl PointType {
     pub fn try_as_string(&self) -> Result<Point<String>, String> {
         match self {
             PointType::String(point) => Ok(point.clone()),
-            _ => Err(format!("PointType.try_as_string | Expected type 'String', but found '{}' point: '{}'", self.type_of(), self.name())),
+            _ => Err(format!("PointType.try_as_string | Expected type 'String', but found '{:?}' point: '{}'", self.type_(), self.name())),
         }
     }
     ///
@@ -523,14 +523,17 @@ impl std::ops::Add for PointType {
     fn add(self, rhs: Self) -> Self::Output {
         assert_eq!(self.type_(), rhs.type_(), "PointType.add | Incopitable types self: '{}' and other: '{}'", self.type_of(), rhs.type_of());
         match self {
+            PointType::Bool(self_point) => {
+                PointType::Bool(self_point + rhs.as_bool())
+            }
             PointType::Int(self_point) => {
-                PointType::Int(self_point - rhs.as_int())
+                PointType::Int(self_point + rhs.as_int())
             }
             PointType::Real(self_point) => {
-                PointType::Real(self_point - rhs.as_real())
+                PointType::Real(self_point + rhs.as_real())
             }
             PointType::Double(self_point) => {
-                PointType::Double(self_point - rhs.as_double())
+                PointType::Double(self_point + rhs.as_double())
             }
             _ => panic!("PointType.add | Add is not supported for type '{:?}'", self.type_of()),
         }
@@ -563,6 +566,9 @@ impl std::ops::Mul for PointType {
     fn mul(self, rhs: Self) -> Self::Output {
         assert_eq!(self.type_(), rhs.type_(), "PointType.mul | Incopitable types self: '{}' and other: '{}'", self.type_of(), rhs.type_of());
         match self {
+            PointType::Bool(self_point) => {
+                PointType::Bool(self_point * rhs.as_bool())
+            }
             PointType::Int(self_point) => {
                 PointType::Int(self_point * rhs.as_int())
             }
