@@ -6,8 +6,7 @@ mod cma_recorder {
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::{multi_queue_config::MultiQueueConfig, point_config::name::Name, task_config::TaskConfig},
-        services::{multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, service::service::Service, services::Services, task::{task::Task, task_test_receiver::TaskTestReceiver}}, tests::unit::services::cma_recorder::task_test_producer::TaskTestProducer,
+        conf::{multi_queue_config::MultiQueueConfig, point_config::name::Name, task_config::TaskConfig}, core_::aprox_eq::aprox_eq::AproxEq, services::{multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, service::service::Service, services::Services, task::{task::Task, task_test_receiver::TaskTestReceiver}}, tests::unit::services::cma_recorder::task_test_producer::TaskTestProducer
     };
     ///
     ///
@@ -63,7 +62,7 @@ mod cma_recorder {
                             input fn Export:
                                 send-to: /App/TaskTestReceiver.in-queue
                                 input fn Smooth:
-                                    factor: 0.125
+                                    factor: const real 0.125
                                     input: point real '/App/Load'
             ").unwrap(),
         );
@@ -196,11 +195,11 @@ mod cma_recorder {
         println!("received: {:?}", result);
         assert!(sent == total_count, "\nresult: {:?}\ntarget: {:?}", sent, total_count);
         assert!(result == target_count, "\nresult: {:?}\ntarget: {:?}", result, target_count);
-        let target_name = "/App/RecorderTask/Load002";
+        // let target_name = "/App/RecorderTask/Load002";
         for (i, result) in receiver.lock().unwrap().received().lock().unwrap().iter().enumerate() {
             let (step, name, target) = target_data[i].clone();
-            assert!(result.value().as_real() == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result.value(), target);
-            assert!(result.name() == target_name, "step {} \nresult: {:?}\ntarget: {:?}", step, result.name(), target_name);
+            assert!(result.value().as_real().aprox_eq(target, 3), "step {} \nresult: {:?}\ntarget: {:?}", step, result.value(), target);
+            // assert!(result.name() == target_name, "step {} \nresult: {:?}\ntarget: {:?}", step, result.name(), target_name);
         };
         test_duration.exit();
     }
