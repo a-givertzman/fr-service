@@ -8,9 +8,9 @@ use crate::{
     },
 };
 ///
-/// Function | Returns input1 * input2
+/// Function | Returns input1 - input2
 #[derive(Debug)]
-pub struct FnMul {
+pub struct FnSub {
     id: String,
     kind: FnKind,
     input1: FnInOutRef,
@@ -18,13 +18,13 @@ pub struct FnMul {
 }
 //
 // 
-impl FnMul {
+impl FnSub {
     ///
-    /// Creates new instance of the FnMul
+    /// Creates new instance of the FnSub
     #[allow(dead_code)]
     pub fn new(parent: impl Into<String>, input1: FnInOutRef, input2: FnInOutRef) -> Self {
         Self { 
-            id: format!("{}/FnMul{}", parent.into(), COUNT.fetch_add(1, Ordering::SeqCst)),
+            id: format!("{}/FnSub{}", parent.into(), COUNT.fetch_add(1, Ordering::SeqCst)),
             kind: FnKind::Fn,
             input1,
             input2,
@@ -33,10 +33,10 @@ impl FnMul {
 }
 //
 // 
-impl FnIn for FnMul {}
+impl FnIn for FnSub {}
 //
 // 
-impl FnOut for FnMul { 
+impl FnOut for FnSub { 
     //
     fn id(&self) -> String {
         self.id.clone()
@@ -54,12 +54,12 @@ impl FnOut for FnMul {
     //
     //
     fn out(&mut self) -> PointType {
-        // TODO Mul overflow check
+        // TODO Add overflow check
         let input1 = self.input1.borrow_mut().out();
         debug!("{}.out | input1: {:?}", self.id, &input1);
         let input2 = self.input2.borrow_mut().out();
         debug!("{}.out | input2: {:?}", self.id, &input2);
-        let out = input1 * input2;
+        let out = input1 - input2;
         debug!("{}.out | out: {:?}", self.id, &out);
         out
     }
@@ -72,7 +72,7 @@ impl FnOut for FnMul {
 }
 //
 // 
-impl FnInOut for FnMul {}
+impl FnInOut for FnSub {}
 ///
-/// Global static counter of FnMul instances
+/// Global static counter of FnSub instances
 static COUNT: AtomicUsize = AtomicUsize::new(1);

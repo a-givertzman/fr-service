@@ -8,7 +8,7 @@ use crate::{
     },
 };
 ///
-/// Function do Add of input1 and input2
+/// Function | Returns input1 + input2
 #[derive(Debug)]
 pub struct FnAdd {
     id: String,
