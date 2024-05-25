@@ -121,7 +121,7 @@ mod fn_sub {
         }
     }
     ///
-    /// Testing Add Real's
+    /// Testing Task Sub Real's
     #[test]
     fn real() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -180,7 +180,7 @@ mod fn_sub {
         }
     }
     ///
-    /// Testing Add Double's
+    /// Testing Task Sub Double's
     #[test]
     fn double() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
