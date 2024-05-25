@@ -1,16 +1,16 @@
-use log::debug;
+use log::{debug, trace};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::{
-    core_::{point::point_type::PointType, types::fn_in_out_ref::FnInOutRef},
+    core_::{point::point_type::PointType, types::{type_of::DebugTypeOf, fn_in_out_ref::FnInOutRef}},
     services::task::nested_function::{
         fn_::{FnInOut, FnIn, FnOut},
         fn_kind::FnKind,
     },
 };
 ///
-/// Function do Add of input1 and input2
+/// Function | Returns the multiplication of input1 and input2
 #[derive(Debug)]
-pub struct FnAdd {
+pub struct FnMul {
     id: String,
     kind: FnKind,
     input1: FnInOutRef,
@@ -18,13 +18,13 @@ pub struct FnAdd {
 }
 //
 // 
-impl FnAdd {
+impl FnMul {
     ///
-    /// Creates new instance of the FnAdd
+    /// Creates new instance of the FnMul
     #[allow(dead_code)]
     pub fn new(parent: impl Into<String>, input1: FnInOutRef, input2: FnInOutRef) -> Self {
         Self { 
-            id: format!("{}/FnAdd{}", parent.into(), COUNT.fetch_add(1, Ordering::SeqCst)),
+            id: format!("{}/FnMul{}", parent.into(), COUNT.fetch_add(1, Ordering::SeqCst)),
             kind: FnKind::Fn,
             input1,
             input2,
@@ -33,10 +33,10 @@ impl FnAdd {
 }
 //
 // 
-impl FnIn for FnAdd {}
+impl FnIn for FnMul {}
 //
 // 
-impl FnOut for FnAdd { 
+impl FnOut for FnMul { 
     //
     fn id(&self) -> String {
         self.id.clone()
@@ -54,12 +54,12 @@ impl FnOut for FnAdd {
     //
     //
     fn out(&mut self) -> PointType {
-        // TODO Add overflow check
+        // TODO Mul overflow check
         let input1 = self.input1.borrow_mut().out();
         debug!("{}.out | input1: {:?}", self.id, &input1);
         let input2 = self.input2.borrow_mut().out();
         debug!("{}.out | input2: {:?}", self.id, &input2);
-        let out = input1 + input2;
+        let out = input1 * input2;
         debug!("{}.out | out: {:?}", self.id, &out);
         out
     }
@@ -72,7 +72,7 @@ impl FnOut for FnAdd {
 }
 //
 // 
-impl FnInOut for FnAdd {}
+impl FnInOut for FnMul {}
 ///
-/// Global static counter of FnAdd instances
+/// Global static counter of FnMul instances
 static COUNT: AtomicUsize = AtomicUsize::new(1);

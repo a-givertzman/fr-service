@@ -1242,12 +1242,12 @@ service Task RecorderTask:
                 input: point any every
 
     let loadNom:    # The nominal value of the crane load
-        input: point real '/App/ied13/db905_visual_data_fast/Load.Nom'
+        input: const real 1200           
+        # input: point real '/App/ied13/db905_visual_data_fast/Load.Nom'
     #
     # Detect if operating cycle is active (1 - isActive, 0 - isNotActive)
     let opCycleIsActive:
         input fn Treshold:              # Triggering threshold of the operating cycle detection function on the input value based on the nominal value
-            nom: 1200           
             threshold fn Mul:           # 5 % of the nominal crane load
                 input1: const real 0.05
                 input2: loadNom         # The nominal value of the crane load 
