@@ -29,6 +29,8 @@ pub enum Functions {
     Mul,
     Div,
     Sub,
+    Threshold,
+    Smooth,
 }
 //
 //
@@ -57,6 +59,8 @@ impl Functions {
     const MUL               : &'static str = "Mul";
     const DIV               : &'static str = "Div";
     const SUB               : &'static str = "Sub";
+    const THRESHOLD         : &'static str = "Threshold";
+    const SMOOTH            : &'static str = "Smooth";
     ///
     ///
     pub fn name(&self) -> &str {
@@ -83,6 +87,8 @@ impl Functions {
             Self::Mul               => Self::MUL,
             Self::Div               => Self::DIV,
             Self::Sub               => Self::SUB,
+            Self::Threshold         => Self::THRESHOLD,
+            Self::Smooth            => Self::SMOOTH,
         }
     }
     ///
@@ -111,6 +117,8 @@ impl Functions {
             Self::MUL               => Ok( Self::Mul ),
             Self::DIV               => Ok( Self::Div ),
             Self::SUB               => Ok( Self::Sub ),
+            Self::THRESHOLD         => Ok( Self::Threshold ),
+            Self::SMOOTH            => Ok( Self::Smooth ),
             _ => Err(format!("Functions.from_str | Unknown function name '{}'", &input)),
         }
     }
