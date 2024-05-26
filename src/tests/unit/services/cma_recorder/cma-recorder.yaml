@@ -1258,8 +1258,8 @@ service Task RecorderTask:
             key: 'OperatingCycleId'
             input fn Acc:
                 initial fn Retain:
+                    key: 'OperatingCycleId'
                     default: const int 1
-                    name: 'OperatingCycleId'
                 input: opCycleIsActive
 
 

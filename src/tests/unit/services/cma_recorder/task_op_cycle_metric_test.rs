@@ -78,6 +78,17 @@ mod cma_recorder {
                                         factor: const real 0.125
                                         input: point real '/App/Load'
 
+                    #
+                    # Count the operating cycle ID (retained localy)
+                    let opCycleId:
+                        input fn Retain:
+                            key: 'OperatingCycleId'
+                            input fn Acc:
+                                initial fn Retain:
+                                    default: const int 1
+                                    key: 'OperatingCycleId'
+                                input: opCycleIsActive
+
                     ###############   Operating Cycle Metrics   ###############
                     #   table: operating_cycle_metric_value
                     #   metric:    Average Load
