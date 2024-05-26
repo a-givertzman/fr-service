@@ -1228,32 +1228,28 @@ service Task RecorderTask:
     subscribe:
         /App/MultiQueue:                    # - multicast subscription to the MultiQueue
             {cot: Inf}: []                      #   - on all points having Cot::Inf
-    # fn Debug:
-    #     input: point any every
-    fn ToApiQueue:
-        queue: /App/ApiClient.in-queue
-        input fn SqlMetric:
-            initial: 0.123      # начальное значение
-            table: public.event
-            sql: "insert into {table} (pid,value,status,timestamp) values ({input2.value},{input1.value},{input1.status},'{input1.timestamp}');"
-            input1 fn ToInt:
-                input: point any every      # point: every point of any type
-            input2 fn PointId:
-                input: point any every
 
-    let loadNom:    # The nominal value of the crane load
-        input: const real 1200           
+    #
+    # The nominal value of the crane load
+    let loadNom:
+        input: const real 150           
         # input: point real '/App/ied13/db905_visual_data_fast/Load.Nom'
+    #
+    # 5 % of the nominal crane load - used for Op Cycle detection
+    let opCycleThreshold:
+        input fn Mul:              
+            input1: const real 0.05
+            input2: loadNom
     #
     # Detect if operating cycle is active (1 - isActive, 0 - isNotActive)
     let opCycleIsActive:
-        input fn Treshold:              # Triggering threshold of the operating cycle detection function on the input value based on the nominal value
-            threshold fn Mul:           # 5 % of the nominal crane load
-                input1: const real 0.05
-                input2: loadNom         # The nominal value of the crane load 
-            input fn Smooth:
-                factor: 0.125
-                input: point real '/App/ied13/db905_visual_data_fast/Load'
+        input fn Ge:
+            input2: opCycleThreshold
+            input1 fn Threshold:                 # Triggering threshold of the operating cycle detection function on the input value based on the nominal value
+                threshold: opCycleThreshold
+                input fn Smooth:
+                    factor: const real 0.125
+                    input: point real '/App/Load'
 
     #
     # Count the operating cycle ID (retained localy)
@@ -1264,7 +1260,7 @@ service Task RecorderTask:
                 initial fn Retain:
                     default: const int 1
                     name: 'OperatingCycleId'
-                input:    opCycleIsActive
+                input: opCycleIsActive
 
 
     ###############   Operating Cycle Metrics   ###############

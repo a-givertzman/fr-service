@@ -6,7 +6,7 @@ mod cma_recorder {
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::{multi_queue_config::MultiQueueConfig, point_config::name::Name, task_config::TaskConfig}, core_::aprox_eq::aprox_eq::AproxEq, services::{multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, service::service::Service, services::Services, task::{task::Task, task_test_receiver::TaskTestReceiver}}, tests::unit::services::cma_recorder::task_test_producer::TaskTestProducer
+        conf::{multi_queue_config::MultiQueueConfig, point_config::name::Name, task_config::TaskConfig}, core_::{aprox_eq::aprox_eq::AproxEq, point::point_type::PointType}, services::{multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, service::service::Service, services::Services, task::{task::Task, task_test_receiver::TaskTestReceiver}}, tests::unit::services::cma_recorder::task_test_producer::TaskTestProducer
     };
     ///
     ///
@@ -55,15 +55,29 @@ mod cma_recorder {
                         input: point real '/App/Load.Nom'
 
                     let opCycleIsActive:
-                        input fn Threshold:              # Triggering threshold of the operating cycle detection function on the input value based on the nominal value
-                            threshold fn Mul:           # 5 % of the nominal crane load
-                                input1: const real 0.05
-                                input2: loadNom         # The nominal value of the crane load 
-                            input fn Export:
-                                send-to: /App/TaskTestReceiver.in-queue
-                                input fn Smooth:
-                                    factor: const real 0.125
-                                    input: point real '/App/Load'
+                        input fn Export:
+                            send-to: /App/TaskTestReceiver.in-queue
+                            conf point OpCycle:
+                                type: 'Bool'
+                            input fn Ge:
+                                input2 fn Mul:              # 5 % of the nominal crane load
+                                    input1: const real 0.05
+                                    input2: loadNom         # The nominal value of the crane load .
+                                input1 fn Export:
+                                    send-to: /App/TaskTestReceiver.in-queue
+                                    conf point Threshold:
+                                        type: 'Real'
+                                    input fn Threshold:                 # Triggering threshold of the operating cycle detection function on the input value based on the nominal value
+                                        threshold fn Mul:               # 5 % of the nominal crane load
+                                            input1: const real 0.05
+                                            input2: loadNom             # The nominal value of the crane load 
+                                        input fn Export:
+                                            send-to: /App/TaskTestReceiver.in-queue
+                                            conf point Smooth:
+                                                type: 'Real'
+                                            input fn Smooth:
+                                                factor: const real 0.125
+                                                input: point real '/App/Load'
             ").unwrap(),
         );
         trace!("config: {:?}", config);
@@ -82,86 +96,93 @@ mod cma_recorder {
         let multi_queue = Arc::new(Mutex::new(MultiQueue::new(conf, services.clone())));
         services.slock().insert(multi_queue.clone());
         let test_data = vec![
-        //  step    input  target
-            (00,    format!("/{}/Load.Nom", self_id),   Value::Real(  150.00),      0.0f32),
-            (00,    format!("/{}/Load", self_id),       Value::Real(  0.00),        0.0),
-            (01,    format!("/{}/Load", self_id),       Value::Real(  0.00),        0.0),
-            (02,    format!("/{}/Load", self_id),       Value::Real(  3.30),        0.4125),
-            (03,    format!("/{}/Load", self_id),       Value::Real(  0.10),        0.3734375),
-            (04,    format!("/{}/Load", self_id),       Value::Real(  0.00),        0.3267578125),
-            (05,    format!("/{}/Load", self_id),       Value::Real(  1.60),        0.4859130859375),
-            (06,    format!("/{}/Load", self_id),       Value::Real(  0.00),        0.425173950195313),
-            (07,    format!("/{}/Load", self_id),       Value::Real(  7.20),        1.2720272064209),
-            (08,    format!("/{}/Load", self_id),       Value::Real(  0.00),        1.11302380561829),
-            (09,    format!("/{}/Load", self_id),       Value::Real(  0.30),        1.011395829916),
-            (10,    format!("/{}/Load", self_id),       Value::Real(  2.20),        1.1599713511765),
-            (11,    format!("/{}/Load", self_id),       Value::Real(  8.10),        2.02747493227944),
-            (12,    format!("/{}/Load", self_id),       Value::Real(  1.90),        2.01154056574451),
-            (13,    format!("/{}/Load", self_id),       Value::Real(  0.10),        1.77259799502644),
-            (14,    format!("/{}/Load", self_id),       Value::Real(  0.00),        1.55102324564814),
-            (15,    format!("/{}/Load", self_id),       Value::Real(  0.00),        1.35714533994212),
-            (16,    format!("/{}/Load", self_id),       Value::Real(  5.00),        1.81250217244936),
-            (17,    format!("/{}/Load", self_id),       Value::Real(  2.00),        1.83593940089319),
-            (18,    format!("/{}/Load", self_id),       Value::Real(  1.00),        1.73144697578154),
-            (19,    format!("/{}/Load", self_id),       Value::Real(  0.00),        1.51501610380885),
-            (20,    format!("/{}/Load", self_id),       Value::Real(  2.00),        1.57563909083274),
-            (21,    format!("/{}/Load", self_id),       Value::Real(  4.00),        1.87868420447865),
-            (22,    format!("/{}/Load", self_id),       Value::Real(  6.00),        2.39384867891882),
-            (23,    format!("/{}/Load", self_id),       Value::Real( 12.00),        3.59461759405396),
-            (24,    format!("/{}/Load", self_id),       Value::Real( 64.00),        11.1452903947972),
-            (25,    format!("/{}/Load", self_id),       Value::Real(128.00),        25.7521290954476),
-            (26,    format!("/{}/Load", self_id),       Value::Real(120.00),        37.5331129585166),
-            (27,    format!("/{}/Load", self_id),       Value::Real(133.00),        49.466473838702),
-            (28,    format!("/{}/Load", self_id),       Value::Real(121.00),        58.4081646088643),
-            (29,    format!("/{}/Load", self_id),       Value::Real(130.00),        67.3571440327563),
-            (30,    format!("/{}/Load", self_id),       Value::Real(127.00),        74.8125010286617),
-            (31,    format!("/{}/Load", self_id),       Value::Real(123.00),        80.835938400079),
-            (32,    format!("/{}/Load", self_id),       Value::Real(122.00),        85.9814461000691),
-            (33,    format!("/{}/Load", self_id),       Value::Real(120.00),        90.2337653375605),
-            (34,    format!("/{}/Load", self_id),       Value::Real( 64.00),        86.9545446703654),
-            (35,    format!("/{}/Load", self_id),       Value::Real( 32.00),        80.0852265865698),
-            (36,    format!("/{}/Load", self_id),       Value::Real( 24.00),        73.0745732632485),
-            (37,    format!("/{}/Load", self_id),       Value::Real( 12.00),        65.4402516053425),
-            (38,    format!("/{}/Load", self_id),       Value::Real(  8.00),        58.2602201546747),
-            (39,    format!("/{}/Load", self_id),       Value::Real( 17.00),        53.1026926353403),
-            (40,    format!("/{}/Load", self_id),       Value::Real( 10.00),        47.7148560559228),
-            (41,    format!("/{}/Load", self_id),       Value::Real(  7.00),        42.6254990489324),
-            (42,    format!("/{}/Load", self_id),       Value::Real(  3.00),        37.6723116678159),
-            (43,    format!("/{}/Load", self_id),       Value::Real(  6.00),        33.7132727093389),
-            (44,    format!("/{}/Load", self_id),       Value::Real(  4.00),        29.9991136206715),
-            (45,    format!("/{}/Load", self_id),       Value::Real(  2.00),        26.4992244180876),
-            (46,    format!("/{}/Load", self_id),       Value::Real(  0.00),        23.1868213658266),
-            (47,    format!("/{}/Load", self_id),       Value::Real(  4.00),        20.7884686950983),
-            (48,    format!("/{}/Load", self_id),       Value::Real(  2.00),        18.439910108211),
-            (49,    format!("/{}/Load", self_id),       Value::Real(  1.00),        16.2599213446847),
-            (50,    format!("/{}/Load", self_id),       Value::Real(  3.00),        14.6024311765991),
-            (51,    format!("/{}/Load", self_id),       Value::Real(  0.00),        12.7771272795242),
-            (52,    format!("/{}/Load", self_id),       Value::Real(  2.00),        11.4299863695837),
-            (53,    format!("/{}/Load", self_id),       Value::Real(  1.00),        10.1262380733857),
-            (54,    format!("/{}/Load", self_id),       Value::Real(  0.70),        8.94795831421249),
-            (55,    format!("/{}/Load", self_id),       Value::Real(  0.80),        7.92946352493593),
-            (56,    format!("/{}/Load", self_id),       Value::Real(  0.40),        6.98828058431894),
-            (57,    format!("/{}/Load", self_id),       Value::Real(  0.30),        6.15224551127907),
-            (58,    format!("/{}/Load", self_id),       Value::Real(  0.20),        5.40821482236919),
-            (59,    format!("/{}/Load", self_id),       Value::Real(  0.10),        4.74468796957304),
-            (60,    format!("/{}/Load", self_id),       Value::Real(  0.00),        4.15160197337641),
-            (61,    format!("/{}/Load", self_id),       Value::Real(  0.00),        3.63265172670436),
-            (62,    format!("/{}/Load", self_id),       Value::Real(  0.00),        3.17857026086631),
-            (63,    format!("/{}/Load", self_id),       Value::Real(  0.00),        2.78124897825802),
+        //  step    nape                                input                               target_thrh             target_smooth
+            (00,    format!("/{}/Load.Nom", self_id),   Value::Real(  150.00),     0,       00.0000,                0.0f32),
+            (00,    format!("/{}/Load", self_id),       Value::Real(  0.00),       0,       00.0000,                0.0),
+            (01,    format!("/{}/Load", self_id),       Value::Real(  0.00),       0,       00.0000,                0.0),
+            (02,    format!("/{}/Load", self_id),       Value::Real(  3.30),       0,       00.0000,                0.4125),
+            (03,    format!("/{}/Load", self_id),       Value::Real(  0.10),       0,       00.0000,                0.3734375),
+            (04,    format!("/{}/Load", self_id),       Value::Real(  0.00),       0,       00.0000,                0.3267578125),
+            (05,    format!("/{}/Load", self_id),       Value::Real(  1.60),       0,       00.0000,                0.4859130859375),
+            (06,    format!("/{}/Load", self_id),       Value::Real(  0.00),       0,       00.0000,                0.425173950195313),
+            (07,    format!("/{}/Load", self_id),       Value::Real(  7.20),       0,       00.0000,                1.2720272064209),
+            (08,    format!("/{}/Load", self_id),       Value::Real(  0.00),       0,       00.0000,                1.11302380561829),
+            (09,    format!("/{}/Load", self_id),       Value::Real(  0.30),       0,       00.0000,                1.011395829916),
+            (10,    format!("/{}/Load", self_id),       Value::Real(  2.20),       0,       00.0000,                1.1599713511765),
+            (11,    format!("/{}/Load", self_id),       Value::Real(  8.10),       0,       00.0000,                2.02747493227944),
+            (12,    format!("/{}/Load", self_id),       Value::Real(  1.90),       0,       00.0000,                2.01154056574451),
+            (13,    format!("/{}/Load", self_id),       Value::Real(  0.10),       0,       00.0000,                1.77259799502644),
+            (14,    format!("/{}/Load", self_id),       Value::Real(  0.00),       0,       00.0000,                1.55102324564814),
+            (15,    format!("/{}/Load", self_id),       Value::Real(  0.00),       0,       00.0000,                1.35714533994212),
+            (16,    format!("/{}/Load", self_id),       Value::Real(  5.00),       0,       00.0000,                1.81250217244936),
+            (17,    format!("/{}/Load", self_id),       Value::Real(  2.00),       0,       00.0000,                1.83593940089319),
+            (18,    format!("/{}/Load", self_id),       Value::Real(  1.00),       0,       00.0000,                1.73144697578154),
+            (19,    format!("/{}/Load", self_id),       Value::Real(  0.00),       0,       00.0000,                1.51501610380885),
+            (20,    format!("/{}/Load", self_id),       Value::Real(  2.00),       0,       00.0000,                1.57563909083274),
+            (21,    format!("/{}/Load", self_id),       Value::Real(  4.00),       0,       00.0000,                1.87868420447865),
+            (22,    format!("/{}/Load", self_id),       Value::Real(  6.00),       0,       00.0000,                2.39384867891882),
+            (23,    format!("/{}/Load", self_id),       Value::Real( 12.00),       0,       00.0000,                3.59461759405396),
+            (24,    format!("/{}/Load", self_id),       Value::Real( 64.00),       1,       11.1452903947972,       11.1452903947972),
+            (25,    format!("/{}/Load", self_id),       Value::Real(128.00),       1,       25.7521290954476,       25.7521290954476),
+            (26,    format!("/{}/Load", self_id),       Value::Real(120.00),       1,       37.5331129585166,       37.5331129585166),
+            (27,    format!("/{}/Load", self_id),       Value::Real(133.00),       1,       49.466473838702,       49.466473838702),
+            (28,    format!("/{}/Load", self_id),       Value::Real(121.00),       1,       58.4081646088643,       58.4081646088643),
+            (29,    format!("/{}/Load", self_id),       Value::Real(130.00),       1,       67.3571440327563,       67.3571440327563),
+            (30,    format!("/{}/Load", self_id),       Value::Real(127.00),       1,       67.3571440327563,       74.8125010286617),
+            (31,    format!("/{}/Load", self_id),       Value::Real(123.00),       1,       80.835938400079,       80.835938400079),
+            (32,    format!("/{}/Load", self_id),       Value::Real(122.00),       1,       80.835938400079,       85.9814461000691),
+            (33,    format!("/{}/Load", self_id),       Value::Real(120.00),       1,       90.2337653375605,       90.2337653375605),
+            (34,    format!("/{}/Load", self_id),       Value::Real( 64.00),       1,       90.2337653375605,       86.9545446703654),
+            (35,    format!("/{}/Load", self_id),       Value::Real( 32.00),       1,       80.0852265865698,       80.0852265865698),
+            (36,    format!("/{}/Load", self_id),       Value::Real( 24.00),       1,       80.0852265865698,       73.0745732632485),
+            (37,    format!("/{}/Load", self_id),       Value::Real( 12.00),       1,       65.4402516053425,       65.4402516053425),
+            (38,    format!("/{}/Load", self_id),       Value::Real(  8.00),       1,       65.4402516053425,       58.2602201546747),
+            (39,    format!("/{}/Load", self_id),       Value::Real( 17.00),       1,       53.1026926353403,       53.1026926353403),
+            (40,    format!("/{}/Load", self_id),       Value::Real( 10.00),       1,       53.1026926353403,       47.7148560559228),
+            (41,    format!("/{}/Load", self_id),       Value::Real(  7.00),       1,       42.6254990489324,       42.6254990489324),
+            (42,    format!("/{}/Load", self_id),       Value::Real(  3.00),       1,       42.6254990489324,       37.6723116678159),
+            (43,    format!("/{}/Load", self_id),       Value::Real(  6.00),       1,       33.7132727093389,       33.7132727093389),
+            (44,    format!("/{}/Load", self_id),       Value::Real(  4.00),       1,       33.7132727093389,       29.9991136206715),
+            (45,    format!("/{}/Load", self_id),       Value::Real(  2.00),       1,       33.7132727093389,       26.4992244180876),
+            (46,    format!("/{}/Load", self_id),       Value::Real(  0.00),       1,       23.1868213658266,       23.1868213658266),
+            (47,    format!("/{}/Load", self_id),       Value::Real(  4.00),       1,       23.1868213658266,       20.7884686950983),
+            (48,    format!("/{}/Load", self_id),       Value::Real(  2.00),       1,       23.1868213658266,       18.439910108211),
+            (49,    format!("/{}/Load", self_id),       Value::Real(  1.00),       1,       23.1868213658266,       16.2599213446847),
+            (50,    format!("/{}/Load", self_id),       Value::Real(  3.00),       1,       14.6024311765991,       14.6024311765991),
+            (51,    format!("/{}/Load", self_id),       Value::Real(  0.00),       1,       14.6024311765991,       12.7771272795242),
+            (52,    format!("/{}/Load", self_id),       Value::Real(  2.00),       1,       14.6024311765991,       11.4299863695837),
+            (53,    format!("/{}/Load", self_id),       Value::Real(  1.00),       1,       14.6024311765991,       10.1262380733857),
+            (54,    format!("/{}/Load", self_id),       Value::Real(  0.70),       1,       14.6024311765991,       8.94795831421249),
+            (55,    format!("/{}/Load", self_id),       Value::Real(  0.80),       1,       14.6024311765991,       7.92946352493593),
+            (56,    format!("/{}/Load", self_id),       Value::Real(  0.40),       0,       6.98828058431894,       6.98828058431894),
+            (57,    format!("/{}/Load", self_id),       Value::Real(  0.30),       0,       6.98828058431894,       6.15224551127907),
+            (58,    format!("/{}/Load", self_id),       Value::Real(  0.20),       0,       6.98828058431894,       5.40821482236919),
+            (59,    format!("/{}/Load", self_id),       Value::Real(  0.10),       0,       6.98828058431894,       4.74468796957304),
+            (60,    format!("/{}/Load", self_id),       Value::Real(  0.00),       0,       6.98828058431894,       4.15160197337641),
+            (61,    format!("/{}/Load", self_id),       Value::Real(  0.00),       0,       6.98828058431894,       3.63265172670436),
+            (62,    format!("/{}/Load", self_id),       Value::Real(  0.00),       0,       6.98828058431894,       3.17857026086631),
+            (63,    format!("/{}/Load", self_id),       Value::Real(  0.00),       0,       6.98828058431894,       2.78124897825802),
         ];
         let total_count = test_data.len();
-        let target_data: Vec<(i32, String, f32)> = test_data.iter().map(|(i, name, value, target)| {
-            (*i, name.clone(), target.clone())
+        let target_thrd: Vec<(i32, f32)> = test_data.iter().filter_map(|(i, _name, _value, _op_cycle, thrd, _smooth)| {
+            Some((*i, thrd.clone()))
         }).collect();
-        let target_count = target_data.len();
+        let target_smooth: Vec<(i32, f32)> = test_data.iter().filter_map(|(i, _name, _value, _op_cycle, _thrd, smooth)| {
+            Some((*i, smooth.clone()))
+        }).collect();
+        let target_op_cycle: Vec<(i32, i32)> = test_data.iter().filter_map(|(i, _name, _value, op_cycle, _thrd, _smooth)| {
+            Some((*i, op_cycle.clone()))
+        }).collect();
+        let target_thrd_count = target_thrd.len();
+        let target_smooth_count = target_smooth.len();
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
             self_id,
             "",
             "in-queue",
-            target_count,
+            total_count * 2,
         )));
         services.slock().insert(receiver.clone());
-        let test_data: Vec<(String, Value)> = test_data.into_iter().map(|(i, name, value, target)| {
+        let test_data: Vec<(String, Value)> = test_data.into_iter().map(|(_, name, value, _, _, _)| {
             (name, value)
         }).collect();
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
@@ -193,13 +214,51 @@ mod cma_recorder {
         println!(" elapsed: {:?}", time.elapsed());
         println!("    sent: {:?}", sent);
         println!("received: {:?}", result);
-        assert!(sent == total_count, "\nresult: {:?}\ntarget: {:?}", sent, total_count);
-        assert!(result == target_count, "\nresult: {:?}\ntarget: {:?}", result, target_count);
-        // let target_name = "/App/RecorderTask/Load002";
+        println!("target smooth   : {:?}", target_smooth_count);
+        println!("target threshold: {:?}", target_thrd_count);
+
         for (i, result) in receiver.lock().unwrap().received().lock().unwrap().iter().enumerate() {
-            let (step, name, target) = target_data[i].clone();
-            assert!(result.value().as_real().aprox_eq(target, 3), "step {} \nresult: {:?}\ntarget: {:?}", step, result.value(), target);
+            println!("received: {}\t|\t{}\t|\t{:?}", i, result.name(), result.value());
             // assert!(result.name() == target_name, "step {} \nresult: {:?}\ntarget: {:?}", step, result.name(), target_name);
+        };
+        assert!(sent == total_count, "\nresult: {:?}\ntarget: {:?}", sent, total_count);
+        assert!(result == total_count * 2, "\nresult: {:?}\ntarget: {:?}", result, total_count * 2);
+        let smooth: Vec<PointType> = receiver.lock().unwrap().received().lock().unwrap().iter().cloned().filter(|point| {
+            point.name() == format!("/{}/RecorderTask/Smooth", self_id)
+        }).collect();
+        for (i, result) in smooth.iter().enumerate() {
+            println!("smooth: {}\t|\t{}\t|\t{:?}", i, result.name(), result.value());
+        };
+        let thrd: Vec<PointType> = receiver.lock().unwrap().received().lock().unwrap().iter().cloned().filter(|point| {
+            point.name() == format!("/{}/RecorderTask/Threshold", self_id)
+        }).collect();
+        for (i, result) in thrd.iter().enumerate() {
+            println!("threshold: {}\t|\t{}\t|\t{:?}", i, result.name(), result.value());
+        };
+        let op_cycle: Vec<PointType> = receiver.lock().unwrap().received().lock().unwrap().iter().cloned().filter(|point| {
+            point.name() == format!("/{}/RecorderTask/OpCycle", self_id)
+        }).collect();
+        for (i, result) in op_cycle.iter().enumerate() {
+            println!("op cycle: {}\t|\t{}\t|\t{:?}", i, result.name(), result.value());
+        };
+
+        let target_name = "/App/RecorderTask/Smooth";
+        for (i, result) in smooth.iter().enumerate() {
+            let (step, target) = target_smooth[i].clone();
+            assert!(result.value().as_real().aprox_eq(target, 3), "step {} \nresult smooth: {:?}\ntarget smooth: {:?}", step, result.value(), target);
+            assert!(result.name() == target_name, "step {} \nresult: {:?}\ntarget: {:?}", step, result.name(), target_name);
+        };
+        let target_name = "/App/RecorderTask/Threshold";
+        for (i, result) in thrd.iter().enumerate() {
+            let (step, target) = target_thrd[i].clone();
+            assert!(result.value().as_real().aprox_eq(target, 3), "step {} \nresult threshold: {:?}\ntarget threshold: {:?}", step, result.value(), target);
+            assert!(result.name() == target_name, "step {} \nresult: {:?}\ntarget: {:?}", step, result.name(), target_name);
+        };
+        let target_name = "/App/RecorderTask/OpCycle";
+        for (i, result) in op_cycle.iter().enumerate() {
+            let (step, target) = target_op_cycle[i].clone();
+            assert!(result.value().as_bool() == (target > 0), "step {} \nresult op cycle: {:?}\ntarget op cycle: {:?}", step, result.value(), target);
+            assert!(result.name() == target_name, "step {} \nresult: {:?}\ntarget: {:?}", step, result.name(), target_name);
         };
         test_duration.exit();
     }

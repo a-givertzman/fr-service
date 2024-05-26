@@ -16,7 +16,7 @@ use crate::{
 ///         - if not specified - default is true
 ///     - send-to - is specified
 ///  - if point conf is not specified - input Point will be sent
-///  - finally input Point will be returned to the parent function
+///  - finally returns input Point to the parent function
 #[derive(Debug)]
 pub struct FnExport {
     id: String,
