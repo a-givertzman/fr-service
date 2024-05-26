@@ -1259,7 +1259,7 @@ service Task RecorderTask:
             input fn Acc:
                 initial fn Retain:
                     key: 'OperatingCycleId'
-                    default: const int 1
+                    default: const int 0
                 input: opCycleIsActive
 
 

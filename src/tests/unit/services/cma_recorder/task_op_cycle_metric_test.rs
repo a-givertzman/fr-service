@@ -85,7 +85,7 @@ mod cma_recorder {
                             key: 'OperatingCycleId'
                             input fn Acc:
                                 initial fn Retain:
-                                    default: const int 1
+                                    default: const int 0
                                     key: 'OperatingCycleId'
                                 input fn FallingEdge:
                                     input: opCycleIsActive
