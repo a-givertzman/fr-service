@@ -106,7 +106,10 @@ mod cma_recorder {
                             sql: insert into {table} (operating_cycle_id, pid, metric_id, value) values ({opCycleId.value}, 0, 'average_load', {input.value});
                             opCycleId: opCycleId
                             input fn Average:
-                                enable: opCycleIsActive
+                                enable fn Add:
+                                    input1: opCycleIsActive
+                                    input2 fn fallingEdge:
+                                        input: opCycleIsActive
                                 input: point real '/App/Load'
 
 
