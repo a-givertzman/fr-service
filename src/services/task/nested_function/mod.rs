@@ -50,3 +50,7 @@ pub mod io;
 pub mod filter;
 
 pub mod reset_counter;
+
+///
+/// Recorder functions
+pub mod fn_rec_op_cycle_metric; 

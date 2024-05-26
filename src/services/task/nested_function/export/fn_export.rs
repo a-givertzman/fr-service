@@ -50,7 +50,7 @@ impl FnExport {
         }
     }
     ///
-    /// 
+    /// Sending Point to the external service if 'send-to' specified
     fn send(&self, point: PointType) {
         if let Some(tx_send) = &self.tx_send {
             let (type_, name) = match &self.conf {

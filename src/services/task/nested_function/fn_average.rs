@@ -56,7 +56,7 @@ impl FnOut for FnAverage {
         inputs.append(&mut self.input.borrow().inputs());
         inputs
     }
-    ///
+    //
     fn out(&mut self) -> PointType {
         let enable = match &mut self.enable {
             Some(en) => en.borrow_mut().out().to_bool().as_bool().value.0,
@@ -82,19 +82,23 @@ impl FnOut for FnAverage {
         debug!("{}.out | count: {:?}", self.id, self.count);
         debug!("{}.out | average: {:?}", self.id, average);
         PointType::Double(
-            Point {
-                tx_id: *input.tx_id(),
-                name: self.id.clone(),
-                value: average,
-                status: input.status(),
-                cot: input.cot(),
-                timestamp: input.timestamp(),
-            }
+            Point::new(
+                input.tx_id(),
+                &self.id,
+                average,
+                input.status(),
+                input.cot(),
+                input.timestamp(),
+            )
         )
     }
+    //
     fn reset(&mut self) {
         self.count = 0;
         self.sum = 0.0;
+        if let Some(enable) = &self.enable {
+            enable.borrow_mut().reset();
+        }
         self.input.borrow_mut().reset();
     }
 }

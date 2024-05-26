@@ -57,7 +57,7 @@ impl FnOut for FnRisingEdge {
         debug!("{}.out | input: {:#?}", self.id, input);
         let input_value = input.to_bool().as_bool().value.0;
         let value = PointType::Bool(Point::new(
-            *input.tx_id(),
+            input.tx_id(),
             &input.name(),
             Bool(input_value & (! self.prev)),
             input.status(),

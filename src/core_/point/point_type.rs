@@ -69,13 +69,13 @@ impl PointType {
     }
     ///
     /// Returns transmitter ID of the containing Point
-    pub fn tx_id(&self) -> &usize {
+    pub fn tx_id(&self) -> usize {
         match self {
-            PointType::Bool(point) => &point.tx_id,
-            PointType::Int(point) => &point.tx_id,
-            PointType::Real(point) => &point.tx_id,
-            PointType::Double(point) => &point.tx_id,
-            PointType::String(point) => &point.tx_id,
+            PointType::Bool(point) => point.tx_id,
+            PointType::Int(point) => point.tx_id,
+            PointType::Real(point) => point.tx_id,
+            PointType::Double(point) => point.tx_id,
+            PointType::String(point) => point.tx_id,
         }
     }
     ///
@@ -87,7 +87,7 @@ impl PointType {
             PointType::Real(_) => PointConfigType::Real,
             PointType::Double(_) => PointConfigType::Double,
             PointType::String(_) => PointConfigType::String,
-        }        
+        }
     }
     ///
     /// Returns name of the containing Point
@@ -266,11 +266,11 @@ impl PointType {
             // _ => panic!("{}.to_bool | Conversion to Bool for '{}' - is not supported", self.name(),  self.type_of()),
         };
         PointType::Bool(Point::new(
-            *self.tx_id(), 
-            &self.name(), 
-            Bool(value), 
-            self.status(), 
-            self.cot(), 
+            self.tx_id(),
+            &self.name(),
+            Bool(value),
+            self.status(),
+            self.cot(),
             self.timestamp(),
         ))
     }
@@ -292,11 +292,11 @@ impl PointType {
             // _ => panic!("{}.to_int | Conversion to Int for '{}' - is not supported", self.name(),  self.type_of()),
         };
         PointType::Int(Point::new(
-            *self.tx_id(), 
-            &self.name(), 
-            value, 
-            self.status(), 
-            self.cot(), 
+            self.tx_id(),
+            &self.name(),
+            value,
+            self.status(),
+            self.cot(),
             self.timestamp(),
         ))
     }
@@ -318,11 +318,11 @@ impl PointType {
             // _ => panic!("{}.to_real | Conversion to Real for '{}' - is not supported", self.name(),  self.type_of()),
         };
         PointType::Real(Point::new(
-            *self.tx_id(), 
-            &self.name(), 
-            value, 
-            self.status(), 
-            self.cot(), 
+            self.tx_id(),
+            &self.name(),
+            value,
+            self.status(),
+            self.cot(),
             self.timestamp(),
         ))
     }
@@ -340,18 +340,18 @@ impl PointType {
                 Err(err) => {
                     panic!("{}.add | Error conversion into<f64> value: {:?}\n\terror: {:#?}", self.name(), self.value(), err);
                 }
-            }            
+            }
             // _ => panic!("{}.to_double | Conversion to Double for '{}' - is not supported", self.name(),  self.type_of()),
         };
         PointType::Double(Point::new(
-            *self.tx_id(), 
-            &self.name(), 
-            value, 
-            self.status(), 
-            self.cot(), 
+            self.tx_id(),
+            &self.name(),
+            value,
+            self.status(),
+            self.cot(),
             self.timestamp(),
         ))
-    }    
+    }
 }
 //
 //

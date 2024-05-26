@@ -124,7 +124,7 @@ impl Service for MockMultiQueueMatch {
                         let pointId = point.name();
                         trace!("{}.run | received: {:?}", self_id, point);
                         for (receiverId, sender) in subscriptions.iter(&pointId).chain(&staticSubscriptions) {
-                            match receiverId != point.tx_id() {
+                            match receiverId != &point.tx_id() {
                                 true => {
                                     match sender.send(point.clone()) {
                                         Ok(_) => {}

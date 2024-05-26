@@ -73,14 +73,14 @@ impl FnOut for FnToInt {
         };
         trace!("{}.out | out: {:?}", self.id, &out);
         PointType::Int(
-            Point {
-                tx_id: *point.tx_id(),
-                name: concat_string!(self.id, ".out"),
-                value: out,
-                status: point.status(),
-                cot: point.cot(),
-                timestamp: point.timestamp(),
-            }
+            Point::new(
+                point.tx_id(),
+                &concat_string!(self.id, ".out"),
+                out,
+                point.status(),
+                point.cot(),
+                point.timestamp(),
+            )
         )
     }
     //

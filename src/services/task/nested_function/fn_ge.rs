@@ -69,7 +69,7 @@ impl FnOut for FnGe {
         };
         PointType::Bool(
             Point::new(
-                *tx_id,
+                tx_id,
                 &format!("{}.out", self.id),
                 Bool(value),
                 status,

@@ -80,7 +80,7 @@ impl FnOut for FnCount {
         trace!("{}.out | input.out: {:?}   | state: {:?}", self.id, &value, self.count);
         PointType::Int(
             Point::new(
-                *input.tx_id(),
+                input.tx_id(),
                 &format!("{}.out", self.id),
                 count,
                 input.status(),

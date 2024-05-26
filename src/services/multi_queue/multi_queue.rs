@@ -237,7 +237,7 @@ impl Service for MultiQueue {
                         trace!("{}.run | received: \n\t{:?}", self_id, point);
                         Self::log_point(&self_id, &self_name, &point_id, &point);
                         for (receiver_hash, sender) in subscriptions.iter(&point_id) {
-                            match receiver_hash != point.tx_id() {
+                            match receiver_hash != &point.tx_id() {
                                 true => {
                                     match sender.send(point.clone()) {
                                         Ok(_) => {

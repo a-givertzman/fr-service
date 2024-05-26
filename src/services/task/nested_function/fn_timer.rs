@@ -154,14 +154,14 @@ impl FnOut for FnTimer {
             }
         };
         PointType::Double(
-            Point {
-                tx_id: *point.tx_id(),
-                name: format!("{}.out", self.id),
-                value: self.totalElapsed + self.sessionElapsed,
-                status: point.status(),
-                cot: Cot::Inf,
-                timestamp: point.timestamp(),
-            }
+            Point::new(
+                point.tx_id(),
+                &format!("{}.out", self.id),
+                self.totalElapsed + self.sessionElapsed,
+                point.status(),
+                Cot::Inf,
+                point.timestamp(),
+            )
         )
     }
     //
