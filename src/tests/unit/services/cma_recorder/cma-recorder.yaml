@@ -1241,7 +1241,7 @@ service Task RecorderTask:
             input1: const real 0.05
             input2: loadNom
     #
-    # Detect if operating cycle is active (1 - isActive, 0 - isNotActive)
+    # Detect if operating cycle is active (true - isActive, false - isNotActive)
     let opCycleIsActive:
         input fn Ge:
             input2: opCycleThreshold

@@ -52,9 +52,18 @@ mod cma_recorder {
                         /App/MultiQueue:                    # - multicast subscription to the MultiQueue
                             {cot: Inf}: []                      #   - on all points having Cot::Inf
 
-                    let loadNom:    # The nominal value of the crane load
-                        # input: const real 1200
+                    #
+                    # The nominal value of the crane load
+                    let loadNom:
+                        # input: const real 150
                         input: point real '/App/Load.Nom'
+
+                    #
+                    # 5 % of the nominal crane load - used for Op Cycle detection
+                    let opCycleThreshold:
+                        input fn Mul:              
+                            input1: const real 0.05
+                            input2: loadNom
 
                     let opCycleIsActive:
                         input fn Export:
@@ -62,17 +71,13 @@ mod cma_recorder {
                             conf point OpCycle:
                                 type: 'Bool'
                             input fn Ge:
-                                input2 fn Mul:              # 5 % of the nominal crane load
-                                    input1: const real 0.05
-                                    input2: loadNom         # The nominal value of the crane load .
+                                input2: opCycleThreshold
                                 input1 fn Export:
                                     send-to: /App/TaskTestReceiver.in-queue
                                     conf point Threshold:
                                         type: 'Real'
                                     input fn Threshold:                 # Triggering threshold of the operating cycle detection function on the input value based on the nominal value
-                                        threshold fn Mul:               # 5 % of the nominal crane load
-                                            input1: const real 0.05
-                                            input2: loadNom             # The nominal value of the crane load 
+                                        threshold: opCycleThreshold
                                         input fn Export:
                                             send-to: /App/TaskTestReceiver.in-queue
                                             conf point Smooth:

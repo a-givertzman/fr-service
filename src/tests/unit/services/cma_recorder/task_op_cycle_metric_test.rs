@@ -25,7 +25,7 @@ mod cma_recorder {
     ///
     /// Testing the SQL generated after detected operating cycle finished
     #[test]
-    fn detect_operating_cycle() {
+    fn operating_cycle_metric() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
@@ -50,34 +50,34 @@ mod cma_recorder {
                         /App/MultiQueue:                    # - multicast subscription to the MultiQueue
                             {cot: Inf}: []                      #   - on all points having Cot::Inf
 
-                    let loadNom:    # The nominal value of the crane load
-                        # input: const real 1200
+                    #
+                    # The nominal value of the crane load
+                    let loadNom:
+                        # input: const real 150
                         input: point real '/App/Load.Nom'
 
+                    #
+                    # 5 % of the nominal crane load - used for Op Cycle detection
+                    let opCycleThreshold:
+                        input fn Mul:              
+                            input1: const real 0.05
+                            input2: loadNom
+
+                    #
+                    # Detect if operating cycle is active (true - isActive, false - isNotActive)
                     let opCycleIsActive:
                         input fn Export:
                             send-to: /App/TaskTestReceiver.in-queue
                             conf point OpCycle:
                                 type: 'Bool'
                             input fn Ge:
-                                input2 fn Mul:              # 5 % of the nominal crane load
-                                    input1: const real 0.05
-                                    input2: loadNom         # The nominal value of the crane load .
-                                input1 fn Export:
-                                    send-to: /App/TaskTestReceiver.in-queue
-                                    conf point Threshold:
-                                        type: 'Real'
-                                    input fn Threshold:                 # Triggering threshold of the operating cycle detection function on the input value based on the nominal value
-                                        threshold fn Mul:               # 5 % of the nominal crane load
-                                            input1: const real 0.05
-                                            input2: loadNom             # The nominal value of the crane load 
-                                        input fn Export:
-                                            send-to: /App/TaskTestReceiver.in-queue
-                                            conf point Smooth:
-                                                type: 'Real'
-                                            input fn Smooth:
-                                                factor: const real 0.125
-                                                input: point real '/App/Load'
+                                input2: opCycleThreshold
+                                input1 fn Threshold:                 # Triggering threshold of the operating cycle detection function on the input value based on the nominal value
+                                    threshold: opCycleThreshold
+                                    input fn Smooth:
+                                        factor: const real 0.125
+                                        input: point real '/App/Load'
+
                     ###############   Operating Cycle Metrics   ###############
                     #   table: operating_cycle_metric_value
                     #   metric:    Average Load
@@ -272,18 +272,18 @@ mod cma_recorder {
             println!("op cycle: {}\t|\t{}\t|\t{:?}", i, result.name(), result.value());
         };
 
-        let target_name = "/App/RecorderTask/Smooth";
-        for (i, result) in smooth.iter().enumerate() {
-            let (step, target) = target_smooth[i].clone();
-            assert!(result.value().as_real().aprox_eq(target, 3), "step {} \nresult smooth: {:?}\ntarget smooth: {:?}", step, result.value(), target);
-            assert!(result.name() == target_name, "step {} \nresult: {:?}\ntarget: {:?}", step, result.name(), target_name);
-        };
-        let target_name = "/App/RecorderTask/Threshold";
-        for (i, result) in thrd.iter().enumerate() {
-            let (step, target) = target_thrd[i].clone();
-            assert!(result.value().as_real().aprox_eq(target, 3), "step {} \nresult threshold: {:?}\ntarget threshold: {:?}", step, result.value(), target);
-            assert!(result.name() == target_name, "step {} \nresult: {:?}\ntarget: {:?}", step, result.name(), target_name);
-        };
+        // let target_name = "/App/RecorderTask/Smooth";
+        // for (i, result) in smooth.iter().enumerate() {
+        //     let (step, target) = target_smooth[i].clone();
+        //     assert!(result.value().as_real().aprox_eq(target, 3), "step {} \nresult smooth: {:?}\ntarget smooth: {:?}", step, result.value(), target);
+        //     assert!(result.name() == target_name, "step {} \nresult: {:?}\ntarget: {:?}", step, result.name(), target_name);
+        // };
+        // let target_name = "/App/RecorderTask/Threshold";
+        // for (i, result) in thrd.iter().enumerate() {
+        //     let (step, target) = target_thrd[i].clone();
+        //     assert!(result.value().as_real().aprox_eq(target, 3), "step {} \nresult threshold: {:?}\ntarget threshold: {:?}", step, result.value(), target);
+        //     assert!(result.name() == target_name, "step {} \nresult: {:?}\ntarget: {:?}", step, result.name(), target_name);
+        // };
         let target_name = "/App/RecorderTask/OpCycle";
         for (i, result) in op_cycle.iter().enumerate() {
             let (step, target) = target_op_cycle[i].clone();
