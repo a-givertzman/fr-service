@@ -1275,7 +1275,7 @@ service Task RecorderTask:
             input: opCycleIsActive
         input fn SqlMetric:
             table: operating_cycle_metric_value
-            sql: "insert into {table} (operating_cycle_id, pid, metric_id, value) values ({opCycleId.value}, 0, 'average_load', {input.value});"
+            sql: insert into {table} (operating_cycle_id, pid, metric_id, value) values ({opCycleId.value}, 0, 'average_load', {input.value});
             # inputs
             opCycleId: opCycleId
             input fn Average:
@@ -1289,7 +1289,7 @@ service Task RecorderTask:
             input: opCycleIsActive
         input fn SqlMetric:
             table: operating_cycle_metric_value
-            sql: "insert into {table} (operating_cycle_id, pid, metric_id, value) values ({opCycleId.value}, 0, 'average_load', {input.value});"
+            sql: insert into {table} (operating_cycle_id, pid, metric_id, value) values ({opCycleId.value}, 0, 'average_load', {input.value});
             # inputs
             opCycleId: opCycleId
             input fn Max:

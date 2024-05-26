@@ -23,9 +23,7 @@ mod cma_recorder {
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// Testing detection of the operating cycle
-    /// - smoothing crane load value
-    /// - filtering (thresholding filter) smoothed value
+    /// Testing the SQL generated after detected operating cycle finished
     #[test]
     fn detect_operating_cycle() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -80,6 +78,36 @@ mod cma_recorder {
                                             input fn Smooth:
                                                 factor: const real 0.125
                                                 input: point real '/App/Load'
+                    ###############   Operating Cycle Metrics   ###############
+                    #   table: operating_cycle_metric_value
+                    #   metric:    Average Load
+                    fn Export ExportOpCycleMetricAverageLoad:
+                        send-to: /App/ApiClient.in-queue
+                        enable fn FallingEdge:      # exports when Op Cycle is finished
+                            input: opCycleIsActive
+                        input fn SqlMetric:
+                            table: operating_cycle_metric_value
+                            sql: insert into {table} (operating_cycle_id, pid, metric_id, value) values ({opCycleId.value}, 0, 'average_load', {input.value});
+                            # inputs
+                            opCycleId: opCycleId
+                            input fn Average:
+                                enable: opCycleIsActive
+                                input: point real '/App/ied13/db905_visual_data_fast/Load'
+                    #
+                    # metric:    Max Load
+                    fn Export ExportOpCycleMetricMaxLoad:
+                        send-to: /App/ApiClient.in-queue
+                        enable fn FallingEdge:
+                            input: opCycleIsActive
+                        input fn SqlMetric:
+                            table: operating_cycle_metric_value
+                            sql: insert into {table} (operating_cycle_id, pid, metric_id, value) values ({opCycleId.value}, 0, 'average_load', {input.value});
+                            # inputs
+                            opCycleId: opCycleId
+                            input fn Max:
+                                enable: opCycleIsActive
+                                input: point real '/App/ied13/db905_visual_data_fast/Load'
+
             ").unwrap(),
         );
         trace!("config: {:?}", config);
