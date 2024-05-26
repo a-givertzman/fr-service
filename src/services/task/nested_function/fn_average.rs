@@ -76,7 +76,7 @@ impl FnOut for FnAverage {
         let average = if self.count != 0 {
             self.sum / (self.count as f64)
         } else {
-            self.sum
+            0.0
         };
         debug!("{}.out | sum: {:?}", self.id, self.sum);
         debug!("{}.out | count: {:?}", self.id, self.count);

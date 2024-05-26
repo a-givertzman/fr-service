@@ -108,9 +108,9 @@ mod cma_recorder {
                             input fn Average:
                                 enable fn Add:
                                     input1: opCycleIsActive
-                                    input2 fn fallingEdge:
+                                    input2 fn FallingEdge:
                                         input: opCycleIsActive
-                                input: point real '/App/Load'
+                                input: point real '/AppTest/Load'
 
 
 
@@ -200,6 +200,13 @@ mod cma_recorder {
             (63,    format!("/{}/Load", self_id),       Value::Real(  0.00),       0,       6.98828058431894,       2.78124897825802),
         ];
         let total_count = test_data.len();
+        let (len, sum) = test_data.iter().fold((0, 0.0), |(mut len, mut sum), (i, _name, value, _op_cycle, _thrd, _smooth)| {
+            len += 1;
+            sum += value.as_real();
+            println!("{}\taverage: {}", i, sum / (len as f32));
+            (len, sum)
+        });
+        let target_average = sum / (len as f32);
         let target_thrd: Vec<(i32, f32)> = test_data.iter().filter_map(|(i, _name, _value, _op_cycle, thrd, _smooth)| {
             Some((*i, thrd.clone()))
         }).collect();
@@ -282,7 +289,7 @@ mod cma_recorder {
         for (i, result) in op_cycle_sql.iter().enumerate() {
             println!("op cycle SQL: {}\t|\t{}\t|\t{:?}", i, result.name(), result.value());
         };
-
+        println!("target average: {}", target_average);
         // let target_name = "/AppTest/RecorderTask/Smooth";
         // for (i, result) in smooth.iter().enumerate() {
         //     let (step, target) = target_smooth[i].clone();
