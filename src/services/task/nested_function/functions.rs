@@ -31,6 +31,7 @@ pub enum Functions {
     Sub,
     Threshold,
     Smooth,
+    Average,
 }
 //
 //
@@ -61,6 +62,7 @@ impl Functions {
     const SUB               : &'static str = "Sub";
     const THRESHOLD         : &'static str = "Threshold";
     const SMOOTH            : &'static str = "Smooth";
+    const AVERAGE           : &'static str = "Average";
     ///
     ///
     pub fn name(&self) -> &str {
@@ -89,6 +91,7 @@ impl Functions {
             Self::Sub               => Self::SUB,
             Self::Threshold         => Self::THRESHOLD,
             Self::Smooth            => Self::SMOOTH,
+            Self::Average           => Self::AVERAGE,
         }
     }
     ///
@@ -119,6 +122,7 @@ impl Functions {
             Self::SUB               => Ok( Self::Sub ),
             Self::THRESHOLD         => Ok( Self::Threshold ),
             Self::SMOOTH            => Ok( Self::Smooth ),
+            Self::AVERAGE           => Ok( Self::Average ),
             _ => Err(format!("Functions.from_str | Unknown function name '{}'", &input)),
         }
     }
