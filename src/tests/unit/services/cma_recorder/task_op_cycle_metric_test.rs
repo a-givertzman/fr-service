@@ -201,8 +201,10 @@ mod cma_recorder {
         ];
         let total_count = test_data.len();
         let (len, sum) = test_data.iter().fold((0, 0.0), |(mut len, mut sum), (i, _name, value, _op_cycle, _thrd, _smooth)| {
-            len += 1;
-            sum += value.as_real();
+            if _op_cycle > &0 {
+                len += 1;
+                sum += value.as_real();
+            }
             println!("{}\taverage: {}", i, sum / (len as f32));
             (len, sum)
         });
