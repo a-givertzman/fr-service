@@ -90,6 +90,25 @@ mod cma_recorder {
                                 input fn FallingEdge:
                                     input: opCycleIsActive
 
+                    ###############   Operating Cycle Metrics   ###############
+                    #
+                    #   table:      operating_cycle_metric_value
+                    #   metric:     Average Load
+                    fn Export ExportOpCycleMetricAverageLoad:
+                        # send-to: /App/ApiClient.in-queue
+                        send-to: /AppTest/TaskTestReceiver.in-queue
+                        conf point OpCycleSql:
+                            type: 'String'
+                        enable fn FallingEdge:      # exports when Op Cycle is finished
+                            input: opCycleIsActive
+                        input fn SqlMetric:
+                            table: operating_cycle_metric_value
+                            sql: insert into {table} (operating_cycle_id, pid, metric_id, value) values ({opCycleId.value}, 0, 'average_load', {input.value});
+                            opCycleId: opCycleId
+                            input fn Average:
+                                enable: opCycleIsActive
+                                input: point real '/App/Load'
+
 
 
             ").unwrap(),
@@ -253,6 +272,12 @@ mod cma_recorder {
         }).collect();
         for (i, result) in op_cycle.iter().enumerate() {
             println!("op cycle: {}\t|\t{}\t|\t{:?}", i, result.name(), result.value());
+        };
+        let op_cycle_sql: Vec<PointType> = receiver.lock().unwrap().received().lock().unwrap().iter().cloned().filter(|point| {
+            point.name() == format!("/{}/RecorderTask/OpCycleSql", self_id)
+        }).collect();
+        for (i, result) in op_cycle_sql.iter().enumerate() {
+            println!("op cycle SQL: {}\t|\t{}\t|\t{:?}", i, result.name(), result.value());
         };
 
         // let target_name = "/AppTest/RecorderTask/Smooth";

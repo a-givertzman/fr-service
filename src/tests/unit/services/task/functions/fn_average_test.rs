@@ -53,7 +53,7 @@ mod fn_average {
         let input = init_each(&self_id, Value::Bool(false));
         let mut fn_average = FnAverage::new(
             self_id,
-            enable.clone(),
+            Some(enable.clone()),
             input.clone(),
         );
         let test_data = vec![
@@ -97,7 +97,7 @@ mod fn_average {
         let input = init_each(&self_id, Value::Int(0));
         let mut fn_average = FnAverage::new(
             self_id,
-            enable.clone(),
+            Some(enable.clone()),
             input.clone(),
         );
         let test_data = vec![
@@ -141,7 +141,7 @@ mod fn_average {
         let input = init_each(&self_id, Value::Real(0.0));
         let mut fn_average = FnAverage::new(
             self_id,
-            enable.clone(),
+            Some(enable.clone()),
             input.clone(),
         );
         let test_data = vec![
@@ -185,7 +185,7 @@ mod fn_average {
         let input = init_each(&self_id, Value::Real(0.0));
         let mut fn_average = FnAverage::new(
             self_id,
-            enable.clone(),
+            Some(enable.clone()),
             input.clone(),
         );
         let test_data = vec![
@@ -239,7 +239,7 @@ mod fn_average {
         let input = init_each(&self_id, Value::Double(0.0));
         let mut fn_average = FnAverage::new(
             self_id,
-            enable.clone(),
+            Some(enable.clone()),
             input.clone(),
         );
         let test_data = vec![

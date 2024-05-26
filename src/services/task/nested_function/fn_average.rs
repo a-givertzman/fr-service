@@ -11,7 +11,7 @@ use super::{fn_::{FnInOut, FnOut, FnIn}, fn_kind::FnKind};
 pub struct FnAverage {
     id: String,
     kind: FnKind,
-    enable: FnInOutRef,
+    enable: Option<FnInOutRef>,
     input: FnInOutRef,
     count: i64,
     sum: f64,
@@ -22,7 +22,7 @@ impl FnAverage {
     ///
     /// Creates new instance of the FnAverage
     #[allow(dead_code)]
-    pub fn new(parent: impl Into<String>, enable: FnInOutRef, input: FnInOutRef) -> Self {
+    pub fn new(parent: impl Into<String>, enable: Option<FnInOutRef>, input: FnInOutRef) -> Self {
         Self { 
             id: format!("{}/FnAverage{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
             kind:FnKind::Fn,
@@ -49,11 +49,19 @@ impl FnOut for FnAverage {
     }
     //
     fn inputs(&self) -> Vec<String> {
-        self.input.borrow().inputs()
+        let mut inputs = vec![];
+        if let Some(enable) = &self.enable {
+            inputs.append(&mut enable.borrow().inputs());
+        }
+        inputs.append(&mut self.input.borrow().inputs());
+        inputs
     }
     ///
     fn out(&mut self) -> PointType {
-        let enable = self.enable.borrow_mut().out().to_bool().as_bool().value.0;
+        let enable = match &mut self.enable {
+            Some(en) => en.borrow_mut().out().to_bool().as_bool().value.0,
+            None => true,
+        };
         // trace!("{}.out | enable: {:?}", self.id, enable);
         let input = self.input.borrow_mut().out();
         // trace!("{}.out | input: {:?}", self.id, input);
