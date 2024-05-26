@@ -521,7 +521,7 @@ impl<'de> Deserialize<'de> for PointType {
 impl std::ops::Add for PointType {
     type Output = PointType;
     fn add(self, rhs: Self) -> Self::Output {
-        assert_eq!(self.type_(), rhs.type_(), "PointType.add | Incopitable types self: '{}' and other: '{}'", self.type_of(), rhs.type_of());
+        assert_eq!(self.type_(), rhs.type_(), "PointType.add | Incopitable types self: '{:?}' and other: '{:?}'", self.type_(), rhs.type_());
         match self {
             PointType::Bool(self_point) => {
                 PointType::Bool(self_point + rhs.as_bool())
@@ -535,7 +535,7 @@ impl std::ops::Add for PointType {
             PointType::Double(self_point) => {
                 PointType::Double(self_point + rhs.as_double())
             }
-            _ => panic!("PointType.add | Add is not supported for type '{:?}'", self.type_of()),
+            _ => panic!("PointType.add | Add is not supported for type '{:?}'", self.type_()),
         }
     }
 }
@@ -544,7 +544,7 @@ impl std::ops::Add for PointType {
 impl std::ops::Sub for PointType {
     type Output = PointType;
     fn sub(self, rhs: Self) -> Self::Output {
-        assert_eq!(self.type_(), rhs.type_(), "PointType.sub | Incopitable types self: '{}' and other: '{}'", self.type_of(), rhs.type_of());
+        assert_eq!(self.type_(), rhs.type_(), "PointType.sub | Incopitable types self: '{:?}' and other: '{:?}'", self.type_(), rhs.type_());
         match self {
             PointType::Int(self_point) => {
                 PointType::Int(self_point - rhs.as_int())
@@ -555,7 +555,7 @@ impl std::ops::Sub for PointType {
             PointType::Double(self_point) => {
                 PointType::Double(self_point - rhs.as_double())
             }
-            _ => panic!("PointType.sub | Sub is not supported for type '{:?}'", self.type_of()),
+            _ => panic!("PointType.sub | Sub is not supported for type '{:?}'", self.type_()),
         }
     }
 }
@@ -564,7 +564,7 @@ impl std::ops::Sub for PointType {
 impl std::ops::Mul for PointType {
     type Output = PointType;
     fn mul(self, rhs: Self) -> Self::Output {
-        assert_eq!(self.type_(), rhs.type_(), "PointType.mul | Incopitable types self: '{}' and other: '{}'", self.type_of(), rhs.type_of());
+        assert_eq!(self.type_(), rhs.type_(), "PointType.mul | Incopitable types self: '{:?}' and other: '{:?}'", self.type_(), rhs.type_());
         match self {
             PointType::Bool(self_point) => {
                 PointType::Bool(self_point * rhs.as_bool())
@@ -578,7 +578,7 @@ impl std::ops::Mul for PointType {
             PointType::Double(self_point) => {
                 PointType::Double(self_point * rhs.as_double())
             }
-            _ => panic!("PointType.mul | Mul is not supported for type '{:?}'", self.type_of()),
+            _ => panic!("PointType.mul | Mul is not supported for type '{:?}'", self.type_()),
         }
     }
 }
@@ -587,7 +587,7 @@ impl std::ops::Mul for PointType {
 impl std::ops::Div for PointType {
     type Output = PointType;
     fn div(self, rhs: Self) -> Self::Output {
-        assert_eq!(self.type_(), rhs.type_(), "PointType.div | Incopitable types self: '{}' and other: '{}'", self.type_of(), rhs.type_of());
+        assert_eq!(self.type_(), rhs.type_(), "PointType.div | Incopitable types self: '{:?}' and other: '{:?}'", self.type_(), rhs.type_());
         match self {
             PointType::Int(self_point) => {
                 PointType::Int(self_point / rhs.as_int())
@@ -598,7 +598,7 @@ impl std::ops::Div for PointType {
             PointType::Double(self_point) => {
                 PointType::Double(self_point / rhs.as_double())
             }
-            _ => panic!("PointType.div | Div is not supported for type '{:?}'", self.type_of()),
+            _ => panic!("PointType.div | Div is not supported for type '{:?}'", self.type_()),
         }
     }
 }
@@ -606,7 +606,7 @@ impl std::ops::Div for PointType {
 //
 impl std::cmp::PartialOrd for PointType {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        assert_eq!(self.type_(), other.type_(), "PointType.partial_cmp | Incopitable types self: '{}' and other: '{}'", self.type_of(), other.type_of());
+        assert_eq!(self.type_(), other.type_(), "PointType.partial_cmp | Incopitable types self: '{:?}' and other: '{:?}'", self.type_(), other.type_());
         match self {
             PointType::Bool(self_point) => {
                 self_point.partial_cmp(&other.as_bool())

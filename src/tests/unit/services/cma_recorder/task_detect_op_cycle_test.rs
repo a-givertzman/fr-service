@@ -103,7 +103,7 @@ mod cma_recorder {
         let multi_queue = Arc::new(Mutex::new(MultiQueue::new(conf, services.clone())));
         services.slock().insert(multi_queue.clone());
         let test_data = vec![
-        //  step    nape                                input                               target_thrh             target_smooth
+        //  step    nape                                input                    OpCycle    target_thrh             target_smooth
             (00,    format!("/{}/Load.Nom", self_id),   Value::Real(  150.00),     0,       00.0000,                0.0f32),
             (00,    format!("/{}/Load", self_id),       Value::Real(  0.00),       0,       00.0000,                0.0),
             (01,    format!("/{}/Load", self_id),       Value::Real(  0.00),       0,       00.0000,                0.0),

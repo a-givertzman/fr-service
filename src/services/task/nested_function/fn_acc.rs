@@ -82,19 +82,11 @@ impl FnOut for FnAcc {
                 }
             }
         };
-        let acc = match acc {
-            PointType::Int(acc) => {
-                PointType::Int(acc + input.to_int().as_int())
-            }
-            PointType::Real(acc) => {
-                PointType::Real(acc + input.as_real())
-            }
-            PointType::Double(acc) => {
-                PointType::Double(acc + input.as_double())
-            }
-            _ => panic!("{}.out | Invalit type '{:?}'", self.id, acc.type_()),
+        let acc = match &input {
+            PointType::Bool(_) => acc + input.to_int(),
+            _ => acc + input,
         };
-        trace!("{}.out | value: {:?}", self.id, acc);
+        trace!("{}.out | out: {:?}", self.id, acc);
         self.acc = Some(acc.clone());
         acc
     }

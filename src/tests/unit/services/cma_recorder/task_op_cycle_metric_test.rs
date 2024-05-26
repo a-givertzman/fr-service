@@ -30,7 +30,7 @@ mod cma_recorder {
         init_once();
         init_each();
         println!();
-        let self_id = "App";
+        let self_id = "AppTest";
         let self_name = Name::new("", self_id);
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(20));
@@ -47,14 +47,14 @@ mod cma_recorder {
                     in queue recv-queue:
                         max-length: 10000
                     subscribe:
-                        /App/MultiQueue:                    # - multicast subscription to the MultiQueue
+                        /AppTest/MultiQueue:                    # - multicast subscription to the MultiQueue
                             {cot: Inf}: []                      #   - on all points having Cot::Inf
 
                     #
                     # The nominal value of the crane load
                     let loadNom:
                         # input: const real 150
-                        input: point real '/App/Load.Nom'
+                        input: point real '/AppTest/Load.Nom'
 
                     #
                     # 5 % of the nominal crane load - used for Op Cycle detection
@@ -67,7 +67,7 @@ mod cma_recorder {
                     # Detect if operating cycle is active (true - isActive, false - isNotActive)
                     let opCycleIsActive:
                         input fn Export:
-                            send-to: /App/TaskTestReceiver.in-queue
+                            send-to: /AppTest/TaskTestReceiver.in-queue
                             conf point OpCycle:
                                 type: 'Bool'
                             input fn Ge:
@@ -76,7 +76,7 @@ mod cma_recorder {
                                     threshold: opCycleThreshold
                                     input fn Smooth:
                                         factor: const real 0.125
-                                        input: point real '/App/Load'
+                                        input: point real '/AppTest/Load'
 
                     #
                     # Count the operating cycle ID (retained localy)
@@ -87,37 +87,10 @@ mod cma_recorder {
                                 initial fn Retain:
                                     default: const int 1
                                     key: 'OperatingCycleId'
-                                input: opCycleIsActive
+                                input fn FallingEdge:
+                                    input: opCycleIsActive
 
-                    ###############   Operating Cycle Metrics   ###############
-                    #   table: operating_cycle_metric_value
-                    #   metric:    Average Load
-                    fn Export ExportOpCycleMetricAverageLoad:
-                        send-to: /App/ApiClient.in-queue
-                        enable fn FallingEdge:      # exports when Op Cycle is finished
-                            input: opCycleIsActive
-                        input fn SqlMetric:
-                            table: operating_cycle_metric_value
-                            sql: insert into {table} (operating_cycle_id, pid, metric_id, value) values ({opCycleId.value}, 0, 'average_load', {input.value});
-                            # inputs
-                            opCycleId: opCycleId
-                            input fn Average:
-                                enable: opCycleIsActive
-                                input: point real '/App/ied13/db905_visual_data_fast/Load'
-                    #
-                    # metric:    Max Load
-                    fn Export ExportOpCycleMetricMaxLoad:
-                        send-to: /App/ApiClient.in-queue
-                        enable fn FallingEdge:
-                            input: opCycleIsActive
-                        input fn SqlMetric:
-                            table: operating_cycle_metric_value
-                            sql: insert into {table} (operating_cycle_id, pid, metric_id, value) values ({opCycleId.value}, 0, 'average_load', {input.value});
-                            # inputs
-                            opCycleId: opCycleId
-                            input fn Max:
-                                enable: opCycleIsActive
-                                input: point real '/App/ied13/db905_visual_data_fast/Load'
+
 
             ").unwrap(),
         );
@@ -137,7 +110,7 @@ mod cma_recorder {
         let multi_queue = Arc::new(Mutex::new(MultiQueue::new(conf, services.clone())));
         services.slock().insert(multi_queue.clone());
         let test_data = vec![
-        //  step    nape                                input                               target_thrh             target_smooth
+        //  step    nape                                input                    Pp Cycle   target_thrh             target_smooth
             (00,    format!("/{}/Load.Nom", self_id),   Value::Real(  150.00),     0,       00.0000,                0.0f32),
             (00,    format!("/{}/Load", self_id),       Value::Real(  0.00),       0,       00.0000,                0.0),
             (01,    format!("/{}/Load", self_id),       Value::Real(  0.00),       0,       00.0000,                0.0),
@@ -220,7 +193,7 @@ mod cma_recorder {
             self_id,
             "",
             "in-queue",
-            total_count * 2,
+            total_count,
         )));
         services.slock().insert(receiver.clone());
         let test_data: Vec<(String, Value)> = test_data.into_iter().map(|(_, name, value, _, _, _)| {
@@ -257,13 +230,12 @@ mod cma_recorder {
         println!("received: {:?}", result);
         println!("target smooth   : {:?}", target_smooth_count);
         println!("target threshold: {:?}", target_thrd_count);
-
         for (i, result) in receiver.lock().unwrap().received().lock().unwrap().iter().enumerate() {
             println!("received: {}\t|\t{}\t|\t{:?}", i, result.name(), result.value());
             // assert!(result.name() == target_name, "step {} \nresult: {:?}\ntarget: {:?}", step, result.name(), target_name);
         };
         assert!(sent == total_count, "\nresult: {:?}\ntarget: {:?}", sent, total_count);
-        assert!(result == total_count * 2, "\nresult: {:?}\ntarget: {:?}", result, total_count * 2);
+        assert!(result == total_count, "\nresult: {:?}\ntarget: {:?}", result, total_count);
         let smooth: Vec<PointType> = receiver.lock().unwrap().received().lock().unwrap().iter().cloned().filter(|point| {
             point.name() == format!("/{}/RecorderTask/Smooth", self_id)
         }).collect();
@@ -283,19 +255,19 @@ mod cma_recorder {
             println!("op cycle: {}\t|\t{}\t|\t{:?}", i, result.name(), result.value());
         };
 
-        // let target_name = "/App/RecorderTask/Smooth";
+        // let target_name = "/AppTest/RecorderTask/Smooth";
         // for (i, result) in smooth.iter().enumerate() {
         //     let (step, target) = target_smooth[i].clone();
         //     assert!(result.value().as_real().aprox_eq(target, 3), "step {} \nresult smooth: {:?}\ntarget smooth: {:?}", step, result.value(), target);
         //     assert!(result.name() == target_name, "step {} \nresult: {:?}\ntarget: {:?}", step, result.name(), target_name);
         // };
-        // let target_name = "/App/RecorderTask/Threshold";
+        // let target_name = "/AppTest/RecorderTask/Threshold";
         // for (i, result) in thrd.iter().enumerate() {
         //     let (step, target) = target_thrd[i].clone();
         //     assert!(result.value().as_real().aprox_eq(target, 3), "step {} \nresult threshold: {:?}\ntarget threshold: {:?}", step, result.value(), target);
         //     assert!(result.name() == target_name, "step {} \nresult: {:?}\ntarget: {:?}", step, result.name(), target_name);
         // };
-        let target_name = "/App/RecorderTask/OpCycle";
+        let target_name = "/AppTest/RecorderTask/OpCycle";
         for (i, result) in op_cycle.iter().enumerate() {
             let (step, target) = target_op_cycle[i].clone();
             assert!(result.value().as_bool() == (target > 0), "step {} \nresult op cycle: {:?}\ntarget op cycle: {:?}", step, result.value(), target);
