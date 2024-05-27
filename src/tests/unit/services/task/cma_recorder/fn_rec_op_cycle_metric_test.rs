@@ -6,7 +6,14 @@ mod cma_recorder {
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::{multi_queue_config::MultiQueueConfig, point_config::name::Name, task_config::TaskConfig}, core_::{aprox_eq::aprox_eq::AproxEq, point::point_type::PointType}, services::{multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, service::service::Service, services::Services, task::{task::Task, task_test_receiver::TaskTestReceiver}}, tests::unit::services::cma_recorder::task_test_producer::TaskTestProducer
+        conf::{multi_queue_config::MultiQueueConfig, point_config::name::Name, task_config::TaskConfig},
+        core_::point::point_type::PointType,
+        services::{
+            multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, service::service::Service, services::Services,
+            task::{task::Task, task_test_receiver::TaskTestReceiver},
+        },
+        tests::unit::services::task::task_test_producer::TaskTestProducer,
+        // tests::unit::services::cma_recorder::task_test_producer::TaskTestProducer
     };
     ///
     ///
@@ -94,13 +101,12 @@ mod cma_recorder {
                     #
                     #   table:      operating_cycle_metric_value
                     #   metric:     Average Load
-                    fn Export ExportOpCycleMetricAverageLoad:
+                    fn RecOpCycleMetric:
                         # send-to: /App/ApiClient.in-queue
                         send-to: /AppTest/TaskTestReceiver.in-queue
-                        conf point OpCycleSql:
-                            type: 'String'
-                        enable fn FallingEdge:      # exports when Op Cycle is finished
-                            input: opCycleIsActive
+                        op-cycle: opCycleIsActive
+                        # conf point OpCycleSql:
+                        #     type: 'String'
                         input fn SqlMetric:
                             table: operating_cycle_metric_value
                             sql: insert into {table} (operating_cycle_id, pid, metric_id, value) values ({opCycleId.value}, 0, 'average_load', {input.value});
@@ -111,8 +117,6 @@ mod cma_recorder {
                                     input2 fn FallingEdge:
                                         input: opCycleIsActive
                                 input: point real '/AppTest/Load'
-
-
 
             ").unwrap(),
         );

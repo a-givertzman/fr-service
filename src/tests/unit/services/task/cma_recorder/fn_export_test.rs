@@ -7,7 +7,8 @@ mod fn_export {
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         conf::{multi_queue_config::MultiQueueConfig, point_config::name::Name, task_config::TaskConfig},
-        services::{multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, service::service::Service, services::Services, task::{task::Task, task_test_receiver::TaskTestReceiver}}, tests::unit::services::cma_recorder::task_test_producer::TaskTestProducer,
+        services::{multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, service::service::Service, services::Services, task::{task::Task, task_test_receiver::TaskTestReceiver}},
+        tests::unit::services::task::cma_recorder::task_test_producer::TaskTestProducer,
     };
     ///
     ///

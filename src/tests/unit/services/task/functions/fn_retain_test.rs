@@ -13,7 +13,7 @@ mod fn_retain {
             multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, service::service::Service, services::Services,
             task::{task::Task, task_test_receiver::TaskTestReceiver}
         },
-        tests::unit::services::task::functions::task_test_producer::TaskTestProducer,
+        tests::unit::services::task::task_test_producer::TaskTestProducer,
     };
     ///
     ///

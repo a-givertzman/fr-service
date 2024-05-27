@@ -1,13 +1,17 @@
 #[cfg(test)]
 
-mod fn_point {
+mod cma_recorder {
     use log::{debug, info, trace};
     use std::{env, sync::{Arc, Mutex, Once}, thread, time::{Duration, Instant}};
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         conf::{multi_queue_config::MultiQueueConfig, point_config::name::Name, task_config::TaskConfig},
-        services::{multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, service::service::Service, services::Services, task::{task::Task, task_test_receiver::TaskTestReceiver}}, tests::unit::services::cma_recorder::task_test_producer::TaskTestProducer,
+        services::{
+            multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, service::service::Service, services::Services,
+            task::{task::Task, task_test_receiver::TaskTestReceiver},
+        },
+        tests::unit::services::task::task_test_producer::TaskTestProducer,
     };
     ///
     ///
@@ -24,9 +28,9 @@ mod fn_point {
     ///  - ...
     fn init_each() -> () {}
     ///
-    ///
-    #[test]
-    fn export_point() {
+    /// Testing Task FnFilter
+    // #[test]
+    fn filter() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
@@ -51,10 +55,14 @@ mod fn_point {
                         /App/MultiQueue:                    # - multicast subscription to the MultiQueue
                             {cot: Inf}: []                      #   - on all points having Cot::Inf
                     fn Debug debug01:
-                        input point Load001:
-                            type: 'Real'
-                            input: point real '/App/Load'
+                        input fn Filter:
                             send-to: /App/MultiQueue.in-queue
+                            conf point Load001:
+                                type: 'Real'
+                            input: point real '/App/Load'
+                            pass fn Ge:
+                                input1: point real '/App/Load'
+                                input2: const real 1.5
                     fn Debug debug02:
                         input point Load002:
                             type: 'Real'
@@ -93,15 +101,24 @@ mod fn_point {
             (format!("/{}/Load", self_id), Value::Real(2.5)),
             (format!("/{}/Load", self_id), Value::Real(7.035)),
         ];
+        let filtered_test_data: Vec<(String, Value)> = test_data.iter().cloned().filter(|(_, value)| {
+            match value {
+                Value::Bool(_value) => false,
+                Value::Int(_value) => false,
+                Value::Real(value) => value >= &1.5,
+                Value::Double(_value) => false,
+                Value::String(_value) => false,
+            }
+        }).collect();
+        let filtered_total_count = filtered_test_data.len();
         let total_count = test_data.len();
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
             self_id,
             "",
             "in-queue",
-            total_count,
+            filtered_total_count,
         )));
-        services.slock().insert(receiver.clone());      // "TaskTestReceiver",
-        // assert!(total_count == iterations, "\nresult: {:?}\ntarget: {:?}", total_count, iterations);
+        services.slock().insert(receiver.clone());
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             self_id,
             &format!("/{}/MultiQueue.in-queue", self_id),
@@ -132,10 +149,10 @@ mod fn_point {
         println!("    sent: {:?}", sent);
         println!("received: {:?}", result);
         assert!(sent == total_count, "\nresult: {:?}\ntarget: {:?}", sent, total_count);
-        assert!(result == total_count, "\nresult: {:?}\ntarget: {:?}", result, total_count);
+        assert!(result == filtered_total_count, "\nresult: {:?}\ntarget: {:?}", result, total_count);
         let target_name = "/App/RecorderTask/Load002";
         for (i, result) in receiver.lock().unwrap().received().lock().unwrap().iter().enumerate() {
-            let (_, target) = test_data[i].clone();
+            let (_, target) = filtered_test_data[i].clone();
             assert!(result.value() == target, "\nresult: {:?}\ntarget: {:?}", result.value(), target);
             assert!(result.name() == target_name, "\nresult: {:?}\ntarget: {:?}", result.name(), target_name);
         };
