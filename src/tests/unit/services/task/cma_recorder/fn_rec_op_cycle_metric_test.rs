@@ -107,7 +107,7 @@ mod cma_recorder {
                     #
                     #   table:      operating_cycle
                     #   table:      operating_cycle_metric_value
-                    #   metric:     Average Load
+                    #
                     fn RecOpCycleMetric:
                         # send-to: /App/ApiClient.in-queue
                         send-to: /AppTest/TaskTestReceiver.in-queue
@@ -140,6 +140,34 @@ mod cma_recorder {
                                     input2 fn FallingEdge:
                                         input: opCycleIsActive
                                 input: point real '/AppTest/Load'
+
+                    ###############   Operating Metrics   ###############
+                    #
+                    #   table:      operating_metric
+                    #
+                        #
+                        # 3.1   | real | crane-total-operating-hours  | общее количество часов работы крана
+                        input3 fn SqlMetric:
+                            table: public.operating_metric
+                            sql: update {table} set value = {input.value} where name = 'crane-total-operating-hours';
+                            input fn Timer:
+                                input: opCycleIsActive
+
+                        #
+                        # 3.2.0 | real | pump-total-operating-hours   | общее количество часов работы насосной станции (моточасы)
+                        #
+                        # 3.2.1 | real | winch1-total-operating-hours | общее количество часов работы лебедки 1 (моточасы)
+                        #
+                        # 3.2.2 | real | winch2-total-operating-hours | общее количество часов работы лебедки 2 (моточасы)
+                        #
+                        # 3.2.3 | real | winch3-total-operating-hours | общее количество часов работы лебедки 3 (моточасы)
+                        #
+                        # 3.3 | int | total-operating-cycles-count | суммарное число рабочих циклов
+                        input4 fn SqlMetric:
+                            table: public.operating_metric
+                            sql: update {table} set value = {input.value} where name = 'total-operating-cycles-count';
+                            input: opCycleId
+
 
             ").unwrap(),
         );
