@@ -28,8 +28,8 @@ mod cma_recorder {
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// Testing Task FnFilter
-    // #[test]
+    /// Testing Task FnFilter for Real's
+    #[test]
     fn filter() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
@@ -55,14 +55,15 @@ mod cma_recorder {
                         /App/MultiQueue:                    # - multicast subscription to the MultiQueue
                             {cot: Inf}: []                      #   - on all points having Cot::Inf
                     fn Debug debug01:
-                        input fn Filter:
+                        input fn Export:
                             send-to: /App/MultiQueue.in-queue
                             conf point Load001:
                                 type: 'Real'
-                            input: point real '/App/Load'
-                            pass fn Ge:
-                                input1: point real '/App/Load'
-                                input2: const real 1.5
+                            input fn Filter:
+                                pass fn Ge:
+                                    input1: point real '/App/Load'
+                                    input2: const real 1.5
+                                input: point real '/App/Load'
                     fn Debug debug02:
                         input point Load002:
                             type: 'Real'
@@ -72,10 +73,8 @@ mod cma_recorder {
         );
         trace!("config: {:?}", config);
         debug!("Task config points: {:#?}", config.points());
-
         let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
         debug!("Task points: {:#?}", task.lock().unwrap().points());
-
         services.slock().insert(task.clone());
         let conf = MultiQueueConfig::from_yaml(
             self_id,
@@ -88,43 +87,35 @@ mod cma_recorder {
         let multi_queue = Arc::new(Mutex::new(MultiQueue::new(conf, services.clone())));
         services.slock().insert(multi_queue.clone());
         let test_data = vec![
-            (format!("/{}/Load", self_id), Value::Real(-7.035)),
-            (format!("/{}/Load", self_id), Value::Real(-2.5)),
-            (format!("/{}/Load", self_id), Value::Real(-5.5)),
-            (format!("/{}/Load", self_id), Value::Real(-1.5)),
-            (format!("/{}/Load", self_id), Value::Real(-1.0)),
-            (format!("/{}/Load", self_id), Value::Real(-0.1)),
-            (format!("/{}/Load", self_id), Value::Real(0.1)),
-            (format!("/{}/Load", self_id), Value::Real(1.0)),
-            (format!("/{}/Load", self_id), Value::Real(1.5)),
-            (format!("/{}/Load", self_id), Value::Real(5.5)),
-            (format!("/{}/Load", self_id), Value::Real(2.5)),
-            (format!("/{}/Load", self_id), Value::Real(7.035)),
+            (format!("/{}/Load", self_id), Value::Real(1.5),     1.5),
+            (format!("/{}/Load", self_id), Value::Real(-7.035),  0.0),
+            (format!("/{}/Load", self_id), Value::Real(-2.5),    0.0),
+            (format!("/{}/Load", self_id), Value::Real(-5.5),    0.0),
+            (format!("/{}/Load", self_id), Value::Real(-1.5),    0.0),
+            (format!("/{}/Load", self_id), Value::Real(-1.0),    0.0),
+            (format!("/{}/Load", self_id), Value::Real(-0.1),    0.0),
+            (format!("/{}/Load", self_id), Value::Real(0.1),     0.0),
+            (format!("/{}/Load", self_id), Value::Real(1.0),     0.0),
+            (format!("/{}/Load", self_id), Value::Real(1.5),     1.5),
+            (format!("/{}/Load", self_id), Value::Real(5.5),     5.5),
+            (format!("/{}/Load", self_id), Value::Real(2.5),     2.5),
+            (format!("/{}/Load", self_id), Value::Real(7.035),   7.035),
         ];
-        let filtered_test_data: Vec<(String, Value)> = test_data.iter().cloned().filter(|(_, value)| {
-            match value {
-                Value::Bool(_value) => false,
-                Value::Int(_value) => false,
-                Value::Real(value) => value >= &1.5,
-                Value::Double(_value) => false,
-                Value::String(_value) => false,
-            }
-        }).collect();
-        let filtered_total_count = filtered_test_data.len();
         let total_count = test_data.len();
+        let target_count = total_count;
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
             self_id,
             "",
             "in-queue",
-            filtered_total_count,
+            target_count,
         )));
         services.slock().insert(receiver.clone());
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             self_id,
             &format!("/{}/MultiQueue.in-queue", self_id),
-            Duration::ZERO,
+            Duration::from_millis(10),
             services.clone(),
-            &test_data,
+            &test_data.iter().cloned().map(|(name, value, _)| (name, value)).collect::<Vec<(String, Value)>>(),
         )));
         services.slock().insert(producer.clone());
         let multi_queue_handle = multi_queue.lock().unwrap().run().unwrap();
@@ -148,12 +139,13 @@ mod cma_recorder {
         println!(" elapsed: {:?}", time.elapsed());
         println!("    sent: {:?}", sent);
         println!("received: {:?}", result);
+        println!("target  : {:?}", target_count);
         assert!(sent == total_count, "\nresult: {:?}\ntarget: {:?}", sent, total_count);
-        assert!(result == filtered_total_count, "\nresult: {:?}\ntarget: {:?}", result, total_count);
+        assert!(result == target_count, "\nresult: {:?}\ntarget: {:?}", result, target_count);
         let target_name = "/App/RecorderTask/Load002";
         for (i, result) in receiver.lock().unwrap().received().lock().unwrap().iter().enumerate() {
-            let (_, target) = filtered_test_data[i].clone();
-            assert!(result.value() == target, "\nresult: {:?}\ntarget: {:?}", result.value(), target);
+            let (_, _, target) = test_data[i].clone();
+            assert!(result.value().as_real() == target, "\nresult: {:?}\ntarget: {:?}", result.value(), target);
             assert!(result.name() == target_name, "\nresult: {:?}\ntarget: {:?}", result.name(), target_name);
         };
         test_duration.exit();

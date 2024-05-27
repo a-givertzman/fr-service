@@ -98,9 +98,9 @@ impl FnOut for FnFilter {
                             default
                         }
                         None => {
-                            debug!("{}.out | Passed default: {:?}", self.id, input);
                             let default = self.default();
                             self.state = Some(default.clone());
+                            debug!("{}.out | Passed default: {:?}", self.id, default);
                             default
                         }
                     }
