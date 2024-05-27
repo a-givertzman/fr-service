@@ -176,28 +176,20 @@ impl NestedFn {
                     }
                     //
                     Functions::Filter => {
+                        let name = "default";
+                        let input_conf = conf.input_conf(name).map_or(None, |conf| Some(conf));
+                        let default = match input_conf {
+                            Some(input_conf) => Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone())),
+                            None => None,
+                        };
                         let name = "input";
                         let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
                         let name = "pass";
                         let input_conf = conf.input_conf(name).unwrap();
                         let pass = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
-                        let point_conf = match conf.input_conf("conf") {
-                            Ok(FnConfKind::PointConf(conf)) => conf.clone(),
-                            _ => panic!("{}.function | Invalid Point config in: {:?}", self_id, conf.name),
-                        };
-                        let send_queue = match conf.param("send-to") {
-                            Ok(queue_name) => {
-                                let services_lock = services.slock();
-                                services_lock.get_link(&queue_name.name()).map_or(None, |send| Some(send))
-                            }
-                            Err(_) => {
-                                warn!("{}.function | Parameter 'send-to' - missed in '{}'", self_id, conf.name);
-                                None
-                            },
-                        };
                         Rc::new(RefCell::new(Box::new(
-                            FnFilter::new(parent, point_conf.conf, input, pass, send_queue)
+                            FnFilter::new(parent, default, input, pass)
                         )))
                     }
                     //

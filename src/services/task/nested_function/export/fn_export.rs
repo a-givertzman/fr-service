@@ -16,7 +16,7 @@ use crate::{
 ///         - if not specified - default is true
 ///     - send-to - is specified
 ///  - if point conf is not specified - input Point will be sent
-///  - finally returns input Point to the parent function
+///  - Returns input Point
 #[derive(Debug)]
 pub struct FnExport {
     id: String,
@@ -31,7 +31,7 @@ pub struct FnExport {
 //
 impl FnExport {
     ///
-    /// creates new instance of the FnExport
+    /// Creates new instance of the FnExport
     /// - parent - the name of the parent entitie
     /// - enable - boolean (numeric) input enables the export if true (> 0)
     /// - conf - the configuration of the Point to be prodused, if None - input Point will be sent
