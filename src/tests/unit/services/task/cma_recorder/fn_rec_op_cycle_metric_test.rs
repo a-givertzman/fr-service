@@ -30,7 +30,7 @@ mod cma_recorder {
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// Testing the SQL generated after detected operating cycle finished
+    /// Testing the Recorder's SQL generated after detected operating cycle finished
     #[test]
     fn operating_cycle_metric() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -86,6 +86,12 @@ mod cma_recorder {
                                         input: point real '/AppTest/Load'
 
                     #
+                    # Alarm class of the operating cycle
+                    # Must be >0 if one of metric is alarmed
+                    let alarmClass:
+                        input: const int 0
+
+                    #
                     # Count the operating cycle ID (retained localy)
                     let opCycleId:
                         input fn Retain:
@@ -107,8 +113,19 @@ mod cma_recorder {
                         op-cycle: opCycleIsActive
                         # conf point OpCycleSql:
                         #     type: 'String'
-                        input fn SqlMetric:
-                            table: operating_cycle_metric_value
+                        input1 fn SqlMetric:
+                            table: public.operating_cycle
+                            sql: insert into {table} (id, timestamp_start, timestamp_stop, alarm_class) values ({opCycleId.value}, '{start.timestamp}', '{stop.timestamp}', {alarmClass.value});
+                            opCycleId: opCycleId
+                            start fn Filter:
+                                pass fn RisingEdge:
+                                    input: opCycleIsActive
+                                input: point real '/AppTest/Load'
+                            stop: point real '/AppTest/Load'
+                            alarmClass: alarmClass
+
+                        input2 fn SqlMetric:
+                            table: public.operating_cycle_metric_value
                             sql: insert into {table} (operating_cycle_id, pid, metric_id, value) values ({opCycleId.value}, 0, 'average_load', {input.value});
                             opCycleId: opCycleId
                             input fn Average:
@@ -237,7 +254,7 @@ mod cma_recorder {
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             self_id,
             &format!("/{}/MultiQueue.in-queue", self_id),
-            Duration::ZERO,
+            Duration::from_millis(10),
             services.clone(),
             &test_data,
         )));
