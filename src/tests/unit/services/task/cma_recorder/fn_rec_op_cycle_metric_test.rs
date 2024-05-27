@@ -105,6 +105,7 @@ mod cma_recorder {
 
                     ###############   Operating Cycle Metrics   ###############
                     #
+                    #   table:      operating_cycle
                     #   table:      operating_cycle_metric_value
                     #   metric:     Average Load
                     fn RecOpCycleMetric:
@@ -113,6 +114,9 @@ mod cma_recorder {
                         op-cycle: opCycleIsActive
                         # conf point OpCycleSql:
                         #     type: 'String'
+
+                        #
+                        # Operating cycle 
                         input1 fn SqlMetric:
                             table: public.operating_cycle
                             sql: insert into {table} (id, timestamp_start, timestamp_stop, alarm_class) values ({opCycleId.value}, '{start.timestamp}', '{stop.timestamp}', {alarmClass.value});
@@ -124,6 +128,8 @@ mod cma_recorder {
                             stop: point real '/AppTest/Load'
                             alarmClass: alarmClass
 
+                        #
+                        # Operating cycle metric Average Load
                         input2 fn SqlMetric:
                             table: public.operating_cycle_metric_value
                             sql: insert into {table} (operating_cycle_id, pid, metric_id, value) values ({opCycleId.value}, 0, 'average_load', {input.value});
