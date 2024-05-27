@@ -146,12 +146,20 @@ mod cma_recorder {
                     #   table:      operating_metric
                     #
                         #
+                        #                !!! IN SECONDS
                         # 3.1   | real | crane-total-operating-hours  | общее количество часов работы крана
                         input3 fn SqlMetric:
                             table: public.operating_metric
                             sql: update {table} set value = {input.value} where name = 'crane-total-operating-hours';
-                            input fn Timer:
-                                input: opCycleIsActive
+                            input fn Retain:
+                                key: 'crane-total-operating-hours'
+                                input fn Timer:
+                                    initial fn Retain:
+                                        default: const double 0.0
+                                        key: 'crane-total-operating-hours'
+                                    input: opCycleIsActive
+
+                            
 
                         #
                         # 3.2.0 | real | pump-total-operating-hours   | общее количество часов работы насосной станции (моточасы)
