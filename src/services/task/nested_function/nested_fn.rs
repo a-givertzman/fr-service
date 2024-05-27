@@ -466,8 +466,16 @@ impl NestedFn {
                     }
                     None => None,
                 };
+                let name = "changes_only";
+                let input_conf = conf.input.as_mut();
+                let changes_only = match input_conf {
+                    Some(input_conf) => {
+                        Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone()))
+                    }
+                    None => None,
+                };
                 let name = "input";
-                let input_conf = conf.input.as_mut();//.input_conf(name);
+                let input_conf = conf.input.as_mut();
                 let input = match input_conf {
                     Some(input_conf) => {
                         Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone()))
@@ -475,7 +483,7 @@ impl NestedFn {
                     None => None,
                 };
                 Rc::new(RefCell::new(Box::new(
-                    FnPoint::new(parent, conf.conf.clone(), input, send_queue),
+                    FnPoint::new(parent, conf.conf.clone(), changes_only, input, send_queue),
                 )))
             }
             FnConfKind::Param(conf) => {

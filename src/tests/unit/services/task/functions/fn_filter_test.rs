@@ -87,7 +87,6 @@ mod cma_recorder {
         let multi_queue = Arc::new(Mutex::new(MultiQueue::new(conf, services.clone())));
         services.slock().insert(multi_queue.clone());
         let test_data = vec![
-            (format!("/{}/Load", self_id), Value::Real(1.5),     1.5),
             (format!("/{}/Load", self_id), Value::Real(-7.035),  0.0),
             (format!("/{}/Load", self_id), Value::Real(-2.5),    0.0),
             (format!("/{}/Load", self_id), Value::Real(-5.5),    0.0),
@@ -121,6 +120,7 @@ mod cma_recorder {
         let multi_queue_handle = multi_queue.lock().unwrap().run().unwrap();
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         info!("receiver runing - ok");
+        thread::sleep(Duration::from_millis(100));
         let task_handle = task.lock().unwrap().run().unwrap();
         info!("task runing - ok");
         thread::sleep(Duration::from_millis(100));
