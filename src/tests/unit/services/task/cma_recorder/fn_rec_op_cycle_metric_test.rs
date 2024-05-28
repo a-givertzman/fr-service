@@ -185,11 +185,43 @@ mod cma_recorder {
                                     key: 'winch3-load-limiter-trip-count'
                                 input fn RisingEdge:
                                     input: point bool '/AppTest/Winch3.Load.Limiter.Trip'
+                    #
                     # crane-characteristic-number	текущее характеристическое число для крана
-                    let craneEigenvalue:
-                        input fn Div:
-                            input1: point real '/AppTest/Load'
-                            input2: point real '/AppTest/Load.Nom'
+                    let craneEigenValue:
+                        input fn Retain:
+                            key: 'crane-characteristic-number'
+                            input fn Add:
+                                input1 fn Filter:
+                                    default: const real 0.0
+                                    pass: opCycleIsActive
+                                    input fn Pow:
+                                        input1 fn Div:
+                                            input1: cycleAverageLoad
+                                            input2: loadNom
+                                        input2: const real 3.0
+                                input2 fn Retain:
+                                    default: const real 0.0
+                                    key: 'crane-characteristic-number'
+                    #
+                    # winch1-characteristic-number	текущее характеристическое число лебедка
+                    #let winch1EigenValue:
+                    #    input fn Acc:
+                    #        input fn Pow:
+                    #            input1 fn Div:
+                    #                input1: point real '/AppTest/Load'
+                    #                input2: loadNom
+                    #            input2: const real 3.0
+                    #
+                    #        input fn Retain:
+                    #            key: 'winch1-characteristic-number'
+                    #            input fn Add:
+                    #                input1 fn Filter:
+                    #                    default: const real 0.0
+                    #                    pass: opCycleIsActive
+                    #                    input: cycleAverageLoad
+                    #                input2 fn Retain:
+                    #                    default: const real 0.0
+                    #                    key: 'winch1-characteristic-number'
 
                     ###############   Operating Cycle Metrics   ###############
                     #
@@ -238,7 +270,7 @@ mod cma_recorder {
                                 key: 'crane-total-operating-secs'
                                 input fn Timer:
                                     initial fn Retain:
-                                        default: const double 0.0
+                                        default: const real 0.0
                                         key: 'crane-total-operating-secs'
                                     input: opCycleIsActive
                         #
@@ -250,7 +282,7 @@ mod cma_recorder {
                                 key: 'pump-total-operating-secs'
                                 input fn Timer:
                                     initial fn Retain:
-                                        default: const double 0.0
+                                        default: const real 0.0
                                         key: 'pump-total-operating-secs'
                                     input: pumpIsActive
                         #
@@ -262,7 +294,7 @@ mod cma_recorder {
                                 key: 'winch1-total-operating-secs'
                                 input fn Timer:
                                     initial fn Retain:
-                                        default: const double 0.0
+                                        default: const real 0.0
                                         key: 'winch1-total-operating-secs'
                                     input: winch1IsActive
                         #
@@ -274,7 +306,7 @@ mod cma_recorder {
                                 key: 'winch2-total-operating-secs'
                                 input fn Timer:
                                     initial fn Retain:
-                                        default: const double 0.0
+                                        default: const real 0.0
                                         key: 'winch2-total-operating-secs'
                                     input: winch2IsActive
                         #
@@ -286,7 +318,7 @@ mod cma_recorder {
                                 key: 'winch3-total-operating-secs'
                                 input fn Timer:
                                     initial fn Retain:
-                                        default: const double 0.0
+                                        default: const real 0.0
                                         key: 'winch3-total-operating-secs'
                                     input: winch3IsActive
                         #
@@ -332,11 +364,11 @@ mod cma_recorder {
                                 key: 'crane-total-lifted-mass'
                                 input fn Add:
                                     input1 fn Filter:
-                                        default: const double 0.0
+                                        default: const real 0.0
                                         pass: opCycleIsActive
                                         input: cycleAverageLoad
                                     input2 fn Retain:
-                                        default: const double 0.0
+                                        default: const real 0.0
                                         key: 'crane-total-lifted-mass'
 
                         #
@@ -348,11 +380,11 @@ mod cma_recorder {
                                 key: 'winch1-total-lifted-mass'
                                 input fn Add:
                                     input1 fn Filter:
-                                        default: const double 0.0
+                                        default: const real 0.0
                                         pass: opCycleIsActive
                                         input: winch1CycleAverageLoad
                                     input2 fn Retain:
-                                        default: const double 0.0
+                                        default: const real 0.0
                                         key: 'winch1-total-lifted-mass'
                         #
                         # 3.5.2 	real	winch2-total-lifted-mass	суммарная масса поднятых грузов лебедка 2	0.0
@@ -363,11 +395,11 @@ mod cma_recorder {
                                 key: 'winch2-total-lifted-mass'
                                 input fn Add:
                                     input1 fn Filter:
-                                        default: const double 0.0
+                                        default: const real 0.0
                                         pass: opCycleIsActive
                                         input: winch2CycleAverageLoad
                                     input2 fn Retain:
-                                        default: const double 0.0
+                                        default: const real 0.0
                                         key: 'winch2-total-lifted-mass'
                         #
                         # 3.5.3 	real	winch3-total-lifted-mass	суммарная масса поднятых грузов лебедка 3	0.0
@@ -378,11 +410,11 @@ mod cma_recorder {
                                 key: 'winch3-total-lifted-mass'
                                 input fn Add:
                                     input1 fn Filter:
-                                        default: const double 0.0
+                                        default: const real 0.0
                                         pass: opCycleIsActive
                                         input: winch3CycleAverageLoad
                                     input2 fn Retain:
-                                        default: const double 0.0
+                                        default: const real 0.0
                                         key: 'winch3-total-lifted-mass'
                         #
                         # 3.6.1 	int	winch1-load-limiter-trip-count	количество срабатываний ограничителя грузоподъемности лебедка 1	0
@@ -404,10 +436,10 @@ mod cma_recorder {
                             input: winch3LoadLimiterTripCount
                         #
                         # 3.7   	real	crane-characteristic-number	текущее характеристическое число для крана	0.0
-                        let craneEigenvalue:
-                            input fn Div:
-                                input1: point real '/AppTest/Load'
-                                input2: point real '/AppTest/Load.Nom'
+                        input37 fn SqlMetric:
+                            table: public.operating_metric
+                            sql: update {table} set value = {input.value} where name = 'crane-characteristic-number';
+                            input: craneEigenValue
                         #
                         # 3.7.1 	real	winch1-characteristic-number	текущее характеристическое число лебедка 1	0.0
                         #

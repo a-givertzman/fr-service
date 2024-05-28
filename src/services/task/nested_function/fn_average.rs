@@ -1,9 +1,9 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use log::debug;
-use crate::core_::{
+use crate::{conf::point_config::point_config_type::PointConfigType, core_::{
     point::{point::Point, point_type::PointType},
     types::fn_in_out_ref::FnInOutRef,
-};
+}};
 use super::{fn_::{FnInOut, FnOut, FnIn}, fn_kind::FnKind};
 ///
 /// Counts number of raised fronts of boolean input
@@ -81,7 +81,7 @@ impl FnOut for FnAverage {
         debug!("{}.out | sum: {:?}", self.id, self.sum);
         debug!("{}.out | count: {:?}", self.id, self.count);
         debug!("{}.out | average: {:?}", self.id, average);
-        PointType::Double(
+        let out = PointType::Double(
             Point::new(
                 input.tx_id(),
                 &self.id,
@@ -90,7 +90,13 @@ impl FnOut for FnAverage {
                 input.cot(),
                 input.timestamp(),
             )
-        )
+        );
+        match input.type_() {
+            PointConfigType::Int => out.to_int(),
+            PointConfigType::Real => out.to_real(),
+            PointConfigType::Double => out,
+            _ => panic!("{}.out | FnAverage does not supports [input] type '{:?}'", self.id, input.type_()),
+        }
     }
     //
     fn reset(&mut self) {
