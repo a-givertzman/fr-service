@@ -154,15 +154,42 @@ mod cma_recorder {
                             input: point real '/AppTest/Load'   # ??? unit ???
                     #
                     # Winch1 load-limiter-trip-count
-                    let loadLimiterTripCount:
+                    let winch1LoadLimiterTripCount:
                         input fn Retain:
-                            key: 'load-limiter-trip-count'
+                            key: 'winch1-load-limiter-trip-count'
                             input fn Acc:
                                 initial fn Retain:
                                     default: const int 0
-                                    key: 'load-limiter-trip-count'
+                                    key: 'winch1-load-limiter-trip-count'
                                 input fn RisingEdge:
                                     input: point bool '/AppTest/Winch1.Load.Limiter.Trip'
+                    #
+                    # Winch2 load-limiter-trip-count
+                    let winch2LoadLimiterTripCount:
+                        input fn Retain:
+                            key: 'winch2-load-limiter-trip-count'
+                            input fn Acc:
+                                initial fn Retain:
+                                    default: const int 0
+                                    key: 'winch2-load-limiter-trip-count'
+                                input fn RisingEdge:
+                                    input: point bool '/AppTest/Winch2.Load.Limiter.Trip'
+                    #
+                    # Winch3 load-limiter-trip-count
+                    let winch3LoadLimiterTripCount:
+                        input fn Retain:
+                            key: 'winch3-load-limiter-trip-count'
+                            input fn Acc:
+                                initial fn Retain:
+                                    default: const int 0
+                                    key: 'winch3-load-limiter-trip-count'
+                                input fn RisingEdge:
+                                    input: point bool '/AppTest/Winch3.Load.Limiter.Trip'
+                    # crane-characteristic-number	текущее характеристическое число для крана
+                    let craneEigenvalue:
+                        input fn Div:
+                            input1: point real '/AppTest/Load'
+                            input2: point real '/AppTest/Load.Nom'
 
                     ###############   Operating Cycle Metrics   ###############
                     #
@@ -362,14 +389,25 @@ mod cma_recorder {
                         input361 fn SqlMetric:
                             table: public.operating_metric
                             sql: update {table} set value = {input.value} where name = 'winch1-load-limiter-trip-count';
-                            input: loadLimiterTripCount
-
+                            input: winch1LoadLimiterTripCount
                         #
                         # 3.6.2 	int	winch2-load-limiter-trip-count	количество срабатываний ограничителя грузоподъемности лебедка 2	0
+                        input362 fn SqlMetric:
+                            table: public.operating_metric
+                            sql: update {table} set value = {input.value} where name = 'winch2-load-limiter-trip-count';
+                            input: winch2LoadLimiterTripCount
                         #
                         # 3.6.3 	int	winch3-load-limiter-trip-count	количество срабатываний ограничителя грузоподъемности лебедка 3	0
+                        input363 fn SqlMetric:
+                            table: public.operating_metric
+                            sql: update {table} set value = {input.value} where name = 'winch3-load-limiter-trip-count';
+                            input: winch3LoadLimiterTripCount
                         #
                         # 3.7   	real	crane-characteristic-number	текущее характеристическое число для крана	0.0
+                        let craneEigenvalue:
+                            input fn Div:
+                                input1: point real '/AppTest/Load'
+                                input2: point real '/AppTest/Load.Nom'
                         #
                         # 3.7.1 	real	winch1-characteristic-number	текущее характеристическое число лебедка 1	0.0
                         #
@@ -424,6 +462,10 @@ mod cma_recorder {
             ("17.0",    format!("/{}/Load", self_id),       Value::Real(  2.00),       0,       00.0000,                1.83593940089319),
             ("17.1",    format!("/{}/Winch1.Load.Limiter.Trip", self_id),       Value::Bool(true),       0,       00.0000,                1.83593940089319),
             ("17.2",    format!("/{}/Winch1.Load.Limiter.Trip", self_id),       Value::Bool(false),       0,       00.0000,                1.83593940089319),
+            ("17.3",    format!("/{}/Winch2.Load.Limiter.Trip", self_id),       Value::Bool(true),       0,       00.0000,                1.83593940089319),
+            ("17.4",    format!("/{}/Winch2.Load.Limiter.Trip", self_id),       Value::Bool(false),       0,       00.0000,                1.83593940089319),
+            ("17.5",    format!("/{}/Winch3.Load.Limiter.Trip", self_id),       Value::Bool(true),       0,       00.0000,                1.83593940089319),
+            ("17.6",    format!("/{}/Winch3.Load.Limiter.Trip", self_id),       Value::Bool(false),       0,       00.0000,                1.83593940089319),
             ("18.0",    format!("/{}/Load", self_id),       Value::Real(  1.00),       0,       00.0000,                1.73144697578154),
             ("19.0",    format!("/{}/Load", self_id),       Value::Real(  0.00),       0,       00.0000,                1.51501610380885),
             ("20.0",    format!("/{}/Load", self_id),       Value::Real(  2.00),       0,       00.0000,                1.57563909083274),
