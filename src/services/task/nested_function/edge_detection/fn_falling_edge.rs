@@ -59,7 +59,7 @@ impl FnOut for FnFallingEdge {
         let value = PointType::Bool(Point::new(
             input.tx_id(),
             &input.name(),
-            Bool((! input_value) & self.prev),
+            Bool((! input_value) && self.prev),
             input.status(),
             input.cot(),
             input.timestamp(),

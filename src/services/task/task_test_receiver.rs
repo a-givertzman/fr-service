@@ -94,6 +94,17 @@ impl Service for TaskTestReceiver {
                         if count >= iterations {
                             break 'main;
                         }
+                        match point {
+                            PointType::Bool(_) => {},
+                            PointType::Int(_) => {},
+                            PointType::Real(_) => {},
+                            PointType::Double(_) => {},
+                            PointType::String(p) => {
+                                if p.name.to_lowercase().ends_with("exit") || p.value == "exit" {
+                                    break 'main;
+                                }
+                            },
+                        }
                     }
                     Err(err) => {
                         warn!("{}.run | Error receiving from queue: {:?}", self_id, err);
