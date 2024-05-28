@@ -63,7 +63,6 @@ mod cma_recorder {
                     #
                     # The nominal value of the crane load
                     let loadNom:
-                        # input: const real 150
                         input: point real '/AppTest/Load.Nom'
 
                     #
