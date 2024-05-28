@@ -34,6 +34,7 @@ pub enum Functions {
     Threshold,
     Smooth,
     Average,
+    Pow,
     /// Recorder functions
     RecOpCycleMetric,
 }
@@ -67,6 +68,7 @@ impl Functions {
     const THRESHOLD                     : &'static str = "Threshold";
     const SMOOTH                        : &'static str = "Smooth";
     const AVERAGE                       : &'static str = "Average";
+    const POW                           : &'static str = "Pow";
     /// Recorder functions
     const REC_OP_CYCLE_METRIC           : &'static str = "RecOpCycleMetric";
     ///
@@ -98,6 +100,7 @@ impl Functions {
             Self::Threshold             => Self::THRESHOLD,
             Self::Smooth                => Self::SMOOTH,
             Self::Average               => Self::AVERAGE,
+            Self::Pow                   => Self::POW,
             Self::RecOpCycleMetric      => Self::REC_OP_CYCLE_METRIC,
         }
     }
@@ -130,6 +133,7 @@ impl Functions {
             Self::THRESHOLD             => Ok( Self::Threshold ),
             Self::SMOOTH                => Ok( Self::Smooth ),
             Self::AVERAGE               => Ok( Self::Average ),
+            Self::POW               => Ok( Self::Pow ),
             Self::REC_OP_CYCLE_METRIC   => Ok( Self::RecOpCycleMetric ),
             _ => Err(format!("Functions.from_str | Unknown function name '{}'", &input)),
         }

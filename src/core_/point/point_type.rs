@@ -352,6 +352,37 @@ impl PointType {
             self.timestamp(),
         ))
     }
+    ///
+    /// Raises self to a [factor] power.
+    pub fn pow(&self, exp: Self) -> Self {
+        match &self {
+            PointType::Int(self_point) => {
+                match exp {
+                    PointType::Int(exp) => PointType::Int(self_point.pow(exp)),
+                    PointType::Real(exp) => PointType::Int(self_point.to_real().pow(exp).to_int()),
+                    PointType::Double(exp) => PointType::Int(self_point.to_double().pow(exp).to_int()),
+                    _ => panic!("PointType.pow | Pow is not supported for 'exp' of type '{:?}'", self.type_()),
+                }
+            }
+            PointType::Real(self_point) => {
+                match exp {
+                    PointType::Int(exp) => PointType::Real(self_point.pow(exp.to_real())),
+                    PointType::Real(exp) => PointType::Real(self_point.pow(exp)),
+                    PointType::Double(exp) => PointType::Real(self_point.pow(exp.to_real())),
+                    _ => panic!("PointType.pow | Pow is not supported for 'exp' of type '{:?}'", self.type_()),
+                }
+            }
+            PointType::Double(self_point) => {
+                match exp {
+                    PointType::Int(exp) => PointType::Double(self_point.pow(exp.to_double())),
+                    PointType::Real(exp) => PointType::Double(self_point.pow(exp.to_double())),
+                    PointType::Double(exp) => PointType::Double(self_point.pow(exp)),
+                    _ => panic!("PointType.pow | Pow is not supported for 'exp' of type '{:?}'", self.type_()),
+                }
+            }
+            _ => panic!("PointType.pow | Pow is not supported for type '{:?}'", self.type_()),
+        }
+    }
 }
 //
 //

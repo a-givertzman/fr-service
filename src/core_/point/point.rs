@@ -61,6 +61,66 @@ impl Point<Bool> {
             timestamp: self.timestamp,
         }
     }
+    ///
+    /// Returns Point converted to the Bool
+    pub fn to_bool(&self) -> Point<Bool> {
+        Point {
+            tx_id: self.tx_id,
+            name: self.name.clone(),
+            value: self.value,
+            status: self.status,
+            cot: self.cot,
+            timestamp: self.timestamp,
+        }
+    }
+    ///
+    /// Returns Point converted to the Int
+    pub fn to_int(&self) -> Point<i64> {
+        Point {
+            tx_id: self.tx_id,
+            name: self.name.clone(),
+            value: if self.value.0 {1} else {0},
+            status: self.status,
+            cot: self.cot,
+            timestamp: self.timestamp,
+        }
+    }
+    ///
+    /// Returns Point converted to the Real
+    pub fn to_real(&self) -> Point<f32> {
+        Point {
+            tx_id: self.tx_id,
+            name: self.name.clone(),
+            value: if self.value.0 {1.0f32} else {0.0f32},
+            status: self.status,
+            cot: self.cot,
+            timestamp: self.timestamp,
+        }
+    }
+    ///
+    /// Returns Point converted to the Double
+    pub fn to_double(&self) -> Point<f64> {
+        Point {
+            tx_id: self.tx_id,
+            name: self.name.clone(),
+            value: if self.value.0 {1.0f64} else {0.0f64},
+            status: self.status,
+            cot: self.cot,
+            timestamp: self.timestamp,
+        }
+    }
+    ///
+    /// Returns Point converted to the String
+    pub fn to_string(&self) -> Point<String> {
+        Point {
+            tx_id: self.tx_id,
+            name: self.name.clone(),
+            value: self.value.to_string(),
+            status: self.status,
+            cot: self.cot,
+            timestamp: self.timestamp,
+        }
+    }
 }
 //
 // 
@@ -88,6 +148,93 @@ impl Point<i64> {
             status: self.status,
             cot: self.cot,
             timestamp: self.timestamp,
+        }
+    }
+    ///
+    /// Returns Point converted to the Bool
+    pub fn to_bool(&self) -> Point<Bool> {
+        Point {
+            tx_id: self.tx_id,
+            name: self.name.clone(),
+            value: Bool(self.value > 0),
+            status: self.status,
+            cot: self.cot,
+            timestamp: self.timestamp,
+        }
+    }
+    ///
+    /// Returns Point converted to the Int
+    pub fn to_int(&self) -> Point<i64> {
+        Point {
+            tx_id: self.tx_id,
+            name: self.name.clone(),
+            value: self.value,
+            status: self.status,
+            cot: self.cot,
+            timestamp: self.timestamp,
+        }
+    }
+    ///
+    /// Returns Point converted to the Real
+    pub fn to_real(&self) -> Point<f32> {
+        Point {
+            tx_id: self.tx_id,
+            name: self.name.clone(),
+            value: self.value as f32,
+            status: self.status,
+            cot: self.cot,
+            timestamp: self.timestamp,
+        }
+    }
+    ///
+    /// Returns Point converted to the Double
+    pub fn to_double(&self) -> Point<f64> {
+        Point {
+            tx_id: self.tx_id,
+            name: self.name.clone(),
+            value: self.value as f64,
+            status: self.status,
+            cot: self.cot,
+            timestamp: self.timestamp,
+        }
+    }
+    ///
+    /// Returns Point converted to the String
+    pub fn to_string(&self) -> Point<String> {
+        Point {
+            tx_id: self.tx_id,
+            name: self.name.clone(),
+            value: self.value.to_string(),
+            status: self.status,
+            cot: self.cot,
+            timestamp: self.timestamp,
+        }
+    }
+    ///
+    /// Raises self to a [factor] power.
+    pub fn pow(&self, exp: Self) -> Self {
+        let status = match self.status.cmp(&exp.status) {
+            std::cmp::Ordering::Less => exp.status,
+            std::cmp::Ordering::Equal => self.status,
+            std::cmp::Ordering::Greater => self.status,
+        };
+        let (tx_id, timestamp) = match self.timestamp.cmp(&exp.timestamp) {
+            std::cmp::Ordering::Less => (exp.tx_id, exp.timestamp),
+            std::cmp::Ordering::Equal => (self.tx_id, self.timestamp),
+            std::cmp::Ordering::Greater => (self.tx_id, self.timestamp),
+        };
+        let cot = if self.cot == exp.cot {
+            self.cot
+        } else {
+            panic!("Point.pow | Cot's are not equals")
+        };
+        Point {
+            tx_id,
+            name: String::from("Point.Pow"),
+            value: self.value.pow(exp.value as u32),
+            status,
+            cot,
+            timestamp,
         }
     }
 }
@@ -118,6 +265,93 @@ impl Point<f32> {
             timestamp: self.timestamp,
         }
     }
+    ///
+    /// Returns Point converted to the Bool
+    pub fn to_bool(&self) -> Point<Bool> {
+        Point {
+            tx_id: self.tx_id,
+            name: self.name.clone(),
+            value: Bool(self.value > 0.0),
+            status: self.status,
+            cot: self.cot,
+            timestamp: self.timestamp,
+        }
+    }
+    ///
+    /// Returns Point converted to the Int
+    pub fn to_int(&self) -> Point<i64> {
+        Point {
+            tx_id: self.tx_id,
+            name: self.name.clone(),
+            value: self.value.round() as i64,
+            status: self.status,
+            cot: self.cot,
+            timestamp: self.timestamp,
+        }
+    }
+    ///
+    /// Returns Point converted to the Real
+    pub fn to_real(&self) -> Point<f32> {
+        Point {
+            tx_id: self.tx_id,
+            name: self.name.clone(),
+            value: self.value,
+            status: self.status,
+            cot: self.cot,
+            timestamp: self.timestamp,
+        }
+    }
+    ///
+    /// Returns Point converted to the Double
+    pub fn to_double(&self) -> Point<f64> {
+        Point {
+            tx_id: self.tx_id,
+            name: self.name.clone(),
+            value: self.value as f64,
+            status: self.status,
+            cot: self.cot,
+            timestamp: self.timestamp,
+        }
+    }
+    ///
+    /// Returns Point converted to the String
+    pub fn to_string(&self) -> Point<String> {
+        Point {
+            tx_id: self.tx_id,
+            name: self.name.clone(),
+            value: self.value.to_string(),
+            status: self.status,
+            cot: self.cot,
+            timestamp: self.timestamp,
+        }
+    }
+    ///
+    /// Raises self to a [factor] power.
+    pub fn pow(&self, exp: Self) -> Self {
+        let status = match self.status.cmp(&exp.status) {
+            std::cmp::Ordering::Less => exp.status,
+            std::cmp::Ordering::Equal => self.status,
+            std::cmp::Ordering::Greater => self.status,
+        };
+        let (tx_id, timestamp) = match self.timestamp.cmp(&exp.timestamp) {
+            std::cmp::Ordering::Less => (exp.tx_id, exp.timestamp),
+            std::cmp::Ordering::Equal => (self.tx_id, self.timestamp),
+            std::cmp::Ordering::Greater => (self.tx_id, self.timestamp),
+        };
+        let cot = if self.cot == exp.cot {
+            self.cot
+        } else {
+            panic!("Point.pow | Cot's are not equals")
+        };
+        Point {
+            tx_id,
+            name: String::from("Point.Pow"),
+            value: self.value.powf(exp.value),
+            status,
+            cot,
+            timestamp,
+        }
+    }
 }
 //
 // 
@@ -144,6 +378,93 @@ impl Point<f64> {
             status: self.status,
             cot: self.cot,
             timestamp: self.timestamp,
+        }
+    }
+    ///
+    /// Returns Point converted to the Bool
+    pub fn to_bool(&self) -> Point<Bool> {
+        Point {
+            tx_id: self.tx_id,
+            name: self.name.clone(),
+            value: Bool(self.value > 0.0),
+            status: self.status,
+            cot: self.cot,
+            timestamp: self.timestamp,
+        }
+    }
+    ///
+    /// Returns Point converted to the Int
+    pub fn to_int(&self) -> Point<i64> {
+        Point {
+            tx_id: self.tx_id,
+            name: self.name.clone(),
+            value: self.value.round() as i64,
+            status: self.status,
+            cot: self.cot,
+            timestamp: self.timestamp,
+        }
+    }
+    ///
+    /// Returns Point converted to the Real
+    pub fn to_real(&self) -> Point<f32> {
+        Point {
+            tx_id: self.tx_id,
+            name: self.name.clone(),
+            value: self.value as f32,
+            status: self.status,
+            cot: self.cot,
+            timestamp: self.timestamp,
+        }
+    }
+    ///
+    /// Returns Point converted to the Double
+    pub fn to_double(&self) -> Point<f64> {
+        Point {
+            tx_id: self.tx_id,
+            name: self.name.clone(),
+            value: self.value,
+            status: self.status,
+            cot: self.cot,
+            timestamp: self.timestamp,
+        }
+    }
+    ///
+    /// Returns Point converted to the String
+    pub fn to_string(&self) -> Point<String> {
+        Point {
+            tx_id: self.tx_id,
+            name: self.name.clone(),
+            value: self.value.to_string(),
+            status: self.status,
+            cot: self.cot,
+            timestamp: self.timestamp,
+        }
+    }
+    ///
+    /// Raises self to a [factor] power.
+    pub fn pow(&self, exp: Self) -> Self {
+        let status = match self.status.cmp(&exp.status) {
+            std::cmp::Ordering::Less => exp.status,
+            std::cmp::Ordering::Equal => self.status,
+            std::cmp::Ordering::Greater => self.status,
+        };
+        let (tx_id, timestamp) = match self.timestamp.cmp(&exp.timestamp) {
+            std::cmp::Ordering::Less => (exp.tx_id, exp.timestamp),
+            std::cmp::Ordering::Equal => (self.tx_id, self.timestamp),
+            std::cmp::Ordering::Greater => (self.tx_id, self.timestamp),
+        };
+        let cot = if self.cot == exp.cot {
+            self.cot
+        } else {
+            panic!("Point.pow | Cot's are not equals")
+        };
+        Point {
+            tx_id,
+            name: String::from("Point.Pow"),
+            value: self.value.powf(exp.value),
+            status,
+            cot,
+            timestamp,
         }
     }
 }

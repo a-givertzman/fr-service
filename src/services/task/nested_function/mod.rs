@@ -38,6 +38,7 @@ pub mod fn_acc;
 pub mod fn_mul;
 pub mod fn_sub;
 pub mod fn_div;
+pub mod fn_pow;
 
 pub mod nested_fn;
 
