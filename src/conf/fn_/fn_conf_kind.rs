@@ -17,8 +17,8 @@ pub enum FnConfKind {
     PointConf(FnPointConfig),
     Param(String),
 }
-///
-/// 
+//
+// 
 impl FnConfKind {
     ///
     /// Returns the name of the incapsulated config

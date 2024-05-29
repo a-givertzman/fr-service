@@ -1,14 +1,14 @@
-use log::{debug, trace};
+use log::debug;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::{
-    core_::{point::point_type::PointType, types::{type_of::DebugTypeOf, fn_in_out_ref::FnInOutRef}},
+    core_::{point::point_type::PointType, types::fn_in_out_ref::FnInOutRef},
     services::task::nested_function::{
         fn_::{FnInOut, FnIn, FnOut},
         fn_kind::FnKind,
     },
 };
 ///
-/// Function do Add of input1 and input2
+/// Function | Returns input1 + input2
 #[derive(Debug)]
 pub struct FnAdd {
     id: String,
@@ -16,8 +16,8 @@ pub struct FnAdd {
     input1: FnInOutRef,
     input2: FnInOutRef,
 }
-///
-/// 
+//
+// 
 impl FnAdd {
     ///
     /// Creates new instance of the FnAdd
@@ -31,11 +31,11 @@ impl FnAdd {
         }
     }    
 }
-///
-/// 
+//
+// 
 impl FnIn for FnAdd {}
-///
-/// 
+//
+// 
 impl FnOut for FnAdd { 
     //
     fn id(&self) -> String {
@@ -55,26 +55,12 @@ impl FnOut for FnAdd {
     //
     fn out(&mut self) -> PointType {
         // TODO Add overflow check
-        let value1 = self.input1.borrow_mut().out();
-        debug!("{}.out | value1: {:?}", self.id, &value1);
-        let value2 = self.input2.borrow_mut().out();
-        debug!("{}.out | value2: {:?}", self.id, &value2);
-        let out = match value1 {
-            PointType::Bool(value1) => {
-                PointType::Bool(value1 + value2.as_bool())
-            }
-            PointType::Int(value1) => {
-                PointType::Int(value1 + value2.as_int())
-            }
-            PointType::Real(value1) => {
-                PointType::Real(value1 + value2.as_real())
-            }
-            PointType::Double(value1) => {
-                PointType::Double(value1 + value2.as_double())
-            }
-            _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, value1.print_type_of(), value1),
-        };
-        trace!("{}.out | out: {:?}", self.id, &out);
+        let input1 = self.input1.borrow_mut().out();
+        debug!("{}.out | input1: {:?}", self.id, &input1);
+        let input2 = self.input2.borrow_mut().out();
+        debug!("{}.out | input2: {:?}", self.id, &input2);
+        let out = input1 + input2;
+        debug!("{}.out | out: {:?}", self.id, &out);
         out
     }
     //
@@ -84,18 +70,9 @@ impl FnOut for FnAdd {
         self.input2.borrow_mut().reset();
     }
 }
-///
-/// 
+//
+// 
 impl FnInOut for FnAdd {}
 ///
 /// Global static counter of FnAdd instances
 static COUNT: AtomicUsize = AtomicUsize::new(1);
-
-
-
-
-
-
-// pub struct FnMul;
-// pub struct FnOr;
-// pub struct FnCompare;

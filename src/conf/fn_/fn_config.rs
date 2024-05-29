@@ -32,8 +32,8 @@ pub struct FnConfig {
     pub inputs: IndexMap<String, FnConfKind>,
     pub type_: FnConfPointType,
 }
-///
-/// 
+//
+// 
 impl FnConfig {
     ///
     /// creates config from serde_yaml::Value of following format:
@@ -202,7 +202,7 @@ impl FnConfig {
         cfg
     }
     ///
-    /// 
+    /// Returns input ronfigurations in IndexMap
     fn build_inputs(parent_id: &str, parent_name: &Name, conf_tree: &ConfTree, vars: &mut Vec<String>) -> IndexMap<String, FnConfKind> {
         let mut inputs = IndexMap::new();
         match conf_tree.subNodes() {
@@ -278,10 +278,10 @@ impl FnConfig {
     }
     ///
     /// Returns input config by it's name
-    pub fn input_conf<'a>(&'a mut self, input_name: &str) -> &'a mut FnConfKind {
+    pub fn input_conf<'a>(&'a mut self, input_name: &str) -> Result<&'a mut FnConfKind, String> {
         match self.inputs.get_mut(input_name) {
-            Some(conf) => conf,
-            None => panic!("FnConfig.inputConf | function {:?} must have {:?}", self.name, input_name),
+            Some(conf) => Ok(conf),
+            None => Err(format!("FnConfig.inputConf | function {:?} must have {:?}", self.name, input_name)),
         }
     }
     ///
@@ -293,7 +293,7 @@ impl FnConfig {
         }
     }
     ///
-    /// 
+    /// Returns ConfTree by keyword or Err
     fn get_param_by_keyword(conf: &ConfTree, input: &str, kind: u8) -> Result<ConfTree, String> {
         debug!("FnConfig.getParamByKeyword | conf: {:?}", conf);
         for node in conf.subNodes().unwrap() {

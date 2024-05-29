@@ -16,8 +16,8 @@ pub struct TaskTestProducer {
     sent: Arc<Mutex<Vec<PointType>>>,
     exit: Arc<AtomicBool>,
 }
-///
-/// 
+//
+// 
 impl TaskTestProducer {
     pub fn new(parent: &str, link: &str, cycle: Duration, services: Arc<Mutex<Services>>, test_data: &[(String, Value)]) -> Self {
         let name = Name::new(parent, format!("TaskTestProducer{}", COUNT.fetch_add(1, Ordering::Relaxed)));
@@ -39,8 +39,8 @@ impl TaskTestProducer {
         self.sent.clone()
     }
 }
-///
-/// 
+//
+// 
 impl Object for TaskTestProducer {
     fn id(&self) -> &str {
         &self.id
@@ -49,8 +49,8 @@ impl Object for TaskTestProducer {
         self.name.clone()
     }
 }
-///
-/// 
+//
+// 
 impl Debug for TaskTestProducer {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
@@ -59,8 +59,8 @@ impl Debug for TaskTestProducer {
             .finish()
     }
 }
-///
-/// 
+//
+// 
 impl Service for TaskTestProducer {
     //
     // 

@@ -6,8 +6,8 @@ pub struct ErrorsLimit {
     value: usize,
     limit: usize,
 }
-///
-/// 
+//
+// 
 impl ErrorsLimit {
     ///
     /// Creates new instance of the ErrorLimit wir the [limit]

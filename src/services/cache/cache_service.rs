@@ -50,11 +50,11 @@ pub struct CacheService {
     cache: Arc<RwLock<IndexMap<String, PointType, BuildHasherDefault<FxHasher>>>>,
     exit: Arc<AtomicBool>,
 }
-///
-///
+//
+//
 impl CacheService {
     ///
-    ///
+    /// Creates new instance of the CacheService
     pub fn new(conf: CacheServiceConfig, services: Arc<Mutex<Services>>) -> Self {
         Self {
             id: conf.name.join(),
@@ -66,7 +66,7 @@ impl CacheService {
         }
     }
     ///
-    ///
+    /// Returns vector of the SubscriptionCriteria by config and list of configured Point's
     fn subscriptions(&mut self, conf: &CacheServiceConfig, points: &[PointConfig]) -> (String, Vec<SubscriptionCriteria>) {
         if conf.subscribe.is_empty() {
             panic!("{}.subscribe | Error. Subscription can`t be empty: {:#?}", self.id, conf.subscribe);
@@ -287,8 +287,8 @@ impl CacheService {
         }
     }
 }
-///
-///
+//
+//
 impl Object for CacheService {
     fn id(&self) -> &str {
         &self.id
@@ -297,8 +297,8 @@ impl Object for CacheService {
         self.name.clone()
     }
 }
-///
-///
+//
+//
 impl Debug for CacheService {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
@@ -308,8 +308,8 @@ impl Debug for CacheService {
             .finish()
     }
 }
-///
-///
+//
+//
 impl Service for CacheService {
     //
     //
@@ -442,8 +442,8 @@ impl Service for CacheService {
         });
         recv
     }
-    ///
-    ///
+    //
+    //
     fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
     }

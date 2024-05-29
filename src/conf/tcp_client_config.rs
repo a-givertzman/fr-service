@@ -25,8 +25,8 @@ pub struct TcpClientConfig {
     pub(crate) rx_max_len: i64,
     pub(crate) tx: String,
 }
-///
-/// 
+//
+// 
 impl TcpClientConfig {
     ///
     /// creates config from serde_yaml::Value of following format:

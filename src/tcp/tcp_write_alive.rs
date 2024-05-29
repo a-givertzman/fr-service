@@ -13,8 +13,8 @@ pub struct TcpWriteAlive {
     exit: Arc<AtomicBool>,
     exit_pair: Arc<AtomicBool>,
 }
-///
-/// 
+//
+// 
 impl TcpWriteAlive {
     ///
     /// Creates new instance of [TcpWriteAlive]

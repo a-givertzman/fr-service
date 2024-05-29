@@ -5,8 +5,8 @@ use std::{collections::hash_map::DefaultHasher, hash::{Hash, Hasher}};
 ///
 /// Creates hash from string for Point.txId
 pub struct PointTxId {}
-///
-/// 
+//
+// 
 impl PointTxId {
     /// 
     /// Returns hash from string for Point.txId

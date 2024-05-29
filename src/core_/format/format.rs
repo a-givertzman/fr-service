@@ -29,11 +29,11 @@ pub struct Format {
     names: HashMap<String, (String, Option<String>)>,
     values: HashMap<String, PointType>,
 }
-///
-/// 
+//
+// 
 impl Format {
     ///
-    /// 
+    /// Creates new instance of the Format from configuration string
     pub fn new(input: &str) -> Self {
         let re = r#"\{(.*?)\}"#;
         let re = RegexBuilder::new(re).multi_line(true).build().unwrap();
@@ -52,12 +52,12 @@ impl Format {
         }
     }
     ///
-    /// 
+    /// Inserts a Point by key to the configured format
     pub fn insert(&mut self, key: &str, value: PointType) {
         self.values.insert(key.into(), value);
     }
     ///
-    /// 
+    /// Returns formatted string? replacing configured markers with the associated values by them keys
     pub fn out(&self) -> String {
         let mut input = self.input.clone();
         for (fullName, (name, sufix)) in &self.names {
@@ -87,7 +87,7 @@ impl Format {
         input
     }
     ///
-    /// 
+    /// Returns string value from the Point
     fn pointValueToString(point: &PointType) -> String{
         point.value().to_string()
     }
@@ -131,8 +131,8 @@ impl std::fmt::Display for Format {
         write!(f, "{}", self.out())
     }
 }
-///
-/// 
+//
+// 
 impl std::fmt::Debug for Format {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.out())

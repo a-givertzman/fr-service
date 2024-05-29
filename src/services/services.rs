@@ -7,10 +7,9 @@ use crate::{
         queue_name::QueueName, 
         safe_lock::SafeLock, 
         service::service::Service,
+        retain_point_id::RetainPointId,
     }
 };
-
-use super::retain_point_id::RetainPointId;
 ///
 /// Holds a map of the all services in app by there names
 pub struct Services {
@@ -18,8 +17,8 @@ pub struct Services {
     map: HashMap<String, Arc<Mutex<dyn Service + Send>>>,
     retain: RetainPointId,
 }
-///
-/// 
+//
+//
 impl Services {
     pub const API_CLIENT: &'static str = "ApiClient";
     pub const MULTI_QUEUE: &'static str = "MultiQueue";
@@ -45,7 +44,7 @@ impl Services {
         self.map.clone()
     }
     ///
-    /// 
+    /// Inserts a new service into the collection
     pub fn insert(&mut self, service: Arc<Mutex<dyn Service + Send>>) {
         let name = service.slock().name().join();
         if self.map.contains_key(&name) {
@@ -137,13 +136,13 @@ impl Services {
         points
     }
     ///
-    /// 
+    /// Sends the General Interogation request to all services
     pub fn gi(&self, _service: &str, _points: &[SubscriptionCriteria]) -> Receiver<PointType> {
         panic!("{}.gi | Not implemented yet", self.id);
     }
 }
-///
-/// 
+//
+// 
 impl Debug for Services {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter

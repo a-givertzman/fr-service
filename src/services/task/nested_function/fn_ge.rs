@@ -1,6 +1,10 @@
 use log::debug;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use crate::core_::{cot::cot::Cot, point::{point::Point, point_type::PointType}, types::{bool::Bool, fn_in_out_ref::FnInOutRef, type_of::DebugTypeOf}};
+use crate::core_::{
+    cot::cot::Cot,
+    point::{point::Point, point_type::PointType},
+    types::{bool::Bool, fn_in_out_ref::FnInOutRef},
+};
 use super::{fn_::{FnInOut, FnIn, FnOut}, fn_kind::FnKind};
 ///
 /// Function | Greater than or equal to
@@ -12,8 +16,8 @@ pub struct FnGe {
     input1: FnInOutRef,
     input2: FnInOutRef,
 }
-///
-/// 
+//
+// 
 impl FnGe {
     #[allow(dead_code)]
     pub fn new(parent: impl Into<String>, input1: FnInOutRef, input2: FnInOutRef) -> Self {
@@ -24,31 +28,12 @@ impl FnGe {
             input2,
         }
     }
-    ///
-    /// 
-    fn to_double(&self, point: &PointType) -> f64 {
-        match point {
-            PointType::Bool(point) => {
-                if point.value.0 {1.0} else {0.0}
-            }
-            PointType::Int(point) => {
-                point.value as f64
-            }
-            PointType::Real(point) => {
-                point.value as f64
-            }
-            PointType::Double(point) => {
-                point.value
-            }
-            _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, point.print_type_of(), point),
-        }
-    }
 }
-///
-/// 
+//
+// 
 impl FnIn for FnGe {}
-///
-///
+//
+//
 impl FnOut for FnGe {
     //
     fn id(&self) -> String {
@@ -68,39 +53,40 @@ impl FnOut for FnGe {
     //
     fn out(&mut self) -> PointType {
         // debug!("FnTrip.out | input: {:?}", self.input.print());
-        let point1 = self.input1.borrow_mut().out();     
-        let point2 = self.input2.borrow_mut().out();    
-        let value = self.to_double(&point1) >= self.to_double(&point2);
-        debug!("{}.out | input.out: {:?}", self.id, &value);
-        let status = match point1.status().cmp(&point2.status()) {
-            std::cmp::Ordering::Less => point2.status(),
-            std::cmp::Ordering::Equal => point1.status(),
-            std::cmp::Ordering::Greater => point1.status(),
+        let input1 = self.input1.borrow_mut().out();     
+        let input2 = self.input2.borrow_mut().out();    
+        let value = input1 >= input2;
+        debug!("{}.out | value: {:?}", self.id, &value);
+        let status = match input1.status().cmp(&input2.status()) {
+            std::cmp::Ordering::Less => input2.status(),
+            std::cmp::Ordering::Equal => input1.status(),
+            std::cmp::Ordering::Greater => input1.status(),
         };
-        let (tx_id, timestamp) = match point1.timestamp().cmp(&point2.timestamp()) {
-            std::cmp::Ordering::Less => (point2.tx_id(), point2.timestamp()),
-            std::cmp::Ordering::Equal => (point1.tx_id(), point1.timestamp()),
-            std::cmp::Ordering::Greater => (point1.tx_id(), point1.timestamp()),
+        let (tx_id, timestamp) = match input1.timestamp().cmp(&input2.timestamp()) {
+            std::cmp::Ordering::Less => (input2.tx_id(), input2.timestamp()),
+            std::cmp::Ordering::Equal => (input1.tx_id(), input1.timestamp()),
+            std::cmp::Ordering::Greater => (input1.tx_id(), input1.timestamp()),
         };
         PointType::Bool(
-            Point::<Bool> {
-                tx_id: *tx_id,
-                name: format!("{}.out", self.id),
-                value: Bool(value),
+            Point::new(
+                tx_id,
+                &format!("{}.out", self.id),
+                Bool(value),
                 status,
-                cot: Cot::Inf,
+                Cot::Inf,
                 timestamp,
-            }
+            )
         )
     }
     //
     //
     fn reset(&mut self) {
         self.input1.borrow_mut().reset();
+        self.input2.borrow_mut().reset();
     }
 }
-///
-/// 
+//
+// 
 impl FnInOut for FnGe {}
 ///
 /// Global static counter of FnOut instances

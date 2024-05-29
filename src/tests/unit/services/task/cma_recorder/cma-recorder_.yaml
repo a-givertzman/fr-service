@@ -5,7 +5,7 @@
 #
 
 name: App
-description: Testing filtering
+description: Basic coniguration with CMA Recorder service
 
 
 service MultiQueue:
@@ -1228,30 +1228,84 @@ service Task RecorderTask:
     subscribe:
         /App/MultiQueue:                    # - multicast subscription to the MultiQueue
             {cot: Inf}: []                      #   - on all points having Cot::Inf
-    #
-    # Detect if operating cycle is active (1 - isActive, 0 - isNotActive)
-    fn debug debug01:
-    # let opCycleIsActive:
-        input fn DetectOpCycle:
-            nom: 1200           # The nominal value of the crane load
-            threshold: 0.05     # Triggering threshold of the operating cycle detection function on the input value based on the nominal value 
-            input: point real '/App/Load'
 
     #
-    # Count the operating cycle ID (retained licaly)
-    fn debug02:
-    # let opCycleId:
+    # The nominal value of the crane load
+    let loadNom:
+        input: const real 150           
+        # input: point real '/App/ied13/db905_visual_data_fast/Load.Nom'
+    #
+    # 5 % of the nominal crane load - used for Op Cycle detection
+    let opCycleThreshold:
+        input fn Mul:              
+            input1: const real 0.05
+            input2: loadNom
+    #
+    # Detect if operating cycle is active (true - isActive, false - isNotActive)
+    let opCycleIsActive:
+        input fn Ge:
+            input2: opCycleThreshold
+            input1 fn Threshold:                 # Triggering threshold of the operating cycle detection function on the input value based on the nominal value
+                threshold: opCycleThreshold
+                input fn Smooth:
+                    factor: const real 0.125
+                    input: point real '/App/Load'
+
+    #
+    # Count the operating cycle ID (retained localy)
+    let opCycleId:
         input fn Retain:
-            name: 'OperatingCycleId'
-            input fn Count:
+            key: 'OperatingCycleId'
+            input fn Acc:
                 initial fn Retain:
-                    name: 'OperatingCycleId'
-                input:    opCycleIsActive
+                    key: 'OperatingCycleId'
+                    default: const int 0
+                input: opCycleIsActive
 
+
+    ###############   Operating Cycle Metrics   ###############
+    #
+    # table: operating_cycle_metric_value
+    #
+    #
+    # metric:    Average Load
+    fn Export ExportOpCycleMetricAverageLoad:
+        send-to: /App/ApiClient.in-queue
+        enable fn FallingEdge:      # exports when Op Cycle is finished
+            input: opCycleIsActive
+        input fn SqlMetric:
+            table: operating_cycle_metric_value
+            sql: insert into {table} (operating_cycle_id, pid, metric_id, value) values ({opCycleId.value}, 0, 'average_load', {input.value});
+            # inputs
+            opCycleId: opCycleId
+            input fn Average:
+                enable: opCycleIsActive
+                input: point real '/App/ied13/db905_visual_data_fast/Load'
+    #
+    # metric:    Max Load
+    fn Export ExportOpCycleMetricMaxLoad:
+        send-to: /App/ApiClient.in-queue
+        enable fn FallingEdge:
+            input: opCycleIsActive
+        input fn SqlMetric:
+            table: operating_cycle_metric_value
+            sql: insert into {table} (operating_cycle_id, pid, metric_id, value) values ({opCycleId.value}, 0, 'average_load', {input.value});
+            # inputs
+            opCycleId: opCycleId
+            input fn Max:
+                enable: opCycleIsActive
+                input: point real '/App/ied13/db905_visual_data_fast/Load'
+
+
+
+
+
+    ###############   Operating Cycle Live Data   ###############
+    #
+    # table: operating_cycle_data
     #
     # live values of the operating cycle
-    # table: operating_cycle_data
-    fn debug03:
+    fn Debug:
     # fn ToApiQueue:
         # queue: /App/ApiClient.in-queue
         input fn Merge:
@@ -1259,7 +1313,6 @@ service Task RecorderTask:
                 table: public.operating_cycle_data
                 sql: "insert into {table} (timestamp,pid,value) values ('{input.timestamp}',{pid.value},{input.value});"
                 # inputs
-                # opCycleId: opCycleId
                 pid fn PointId: point any '/App/ied13/db905_visual_data_fast/Load'
                 input fn Pass:
                     condittion: opCycleIsActive

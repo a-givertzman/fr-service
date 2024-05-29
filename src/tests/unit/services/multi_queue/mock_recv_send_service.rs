@@ -20,8 +20,8 @@ pub struct MockRecvSendService {
     recvLimit: Option<usize>,
     exit: Arc<AtomicBool>,
 }
-///
-/// 
+//
+// 
 impl MockRecvSendService {
     pub fn new(parent: impl Into<String>, rxQueue: &str, txQueue: &str, services: Arc<Mutex<Services>>, test_data: Vec<Value>, recvLimit: Option<usize>) -> Self {
         let name = Name::new(parent, format!("MockRecvSendService{}", COUNT.fetch_add(1, Ordering::Relaxed)));
@@ -56,8 +56,8 @@ impl MockRecvSendService {
         self.received.clone()
     }
 }
-///
-/// 
+//
+// 
 impl Object for MockRecvSendService {
     fn id(&self) -> &str {
         &self.id
@@ -66,8 +66,8 @@ impl Object for MockRecvSendService {
         self.name.clone()
     }
 }
-///
-/// 
+//
+// 
 impl Debug for MockRecvSendService {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
@@ -76,8 +76,8 @@ impl Debug for MockRecvSendService {
             .finish()
     }
 }
-///
-/// 
+//
+// 
 impl Service for MockRecvSendService {
     //
     //

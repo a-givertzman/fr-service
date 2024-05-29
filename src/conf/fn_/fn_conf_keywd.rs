@@ -83,8 +83,8 @@ pub enum FnConfKeywd {
     Const(FnConfKeywdValue),
     Point(FnConfKeywdValue),
 }
-///
-/// 
+//
+// 
 impl FnConfKeywd {
     pub fn input(&self) -> String {
         match self {

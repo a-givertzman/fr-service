@@ -1,13 +1,17 @@
 #[cfg(test)]
 
-mod task_export {
+mod cma_recorder {
     use log::{debug, info, trace};
     use std::{env, sync::{Arc, Mutex, Once}, thread, time::{Duration, Instant}};
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         conf::{multi_queue_config::MultiQueueConfig, point_config::name::Name, task_config::TaskConfig},
-        services::{multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, service::service::Service, services::Services, task::{task::Task, task_test_receiver::TaskTestReceiver}}, tests::unit::services::cma_recorder::task_test_producer::TaskTestProducer,
+        services::{
+            multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, service::service::Service, services::Services,
+            task::{task::Task, task_test_receiver::TaskTestReceiver},
+        },
+        tests::unit::services::task::task_test_producer::TaskTestProducer,
     };
     ///
     ///
@@ -24,9 +28,9 @@ mod task_export {
     ///  - ...
     fn init_each() -> () {}
     ///
-    ///
+    /// Testing Task FnFilter for Real's
     #[test]
-    fn point() {
+    fn filter() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
@@ -50,12 +54,17 @@ mod task_export {
                     subscribe:
                         /App/MultiQueue:                    # - multicast subscription to the MultiQueue
                             {cot: Inf}: []                      #   - on all points having Cot::Inf
-                    fn debug debug01:
-                        input point Load001:
-                            type: 'Real'
-                            input: point real '/App/Load'
+                    fn Debug debug01:
+                        input fn Export:
                             send-to: /App/MultiQueue.in-queue
-                    fn debug debug02:
+                            conf point Load001:
+                                type: 'Real'
+                            input fn Filter:
+                                pass fn Ge:
+                                    input1: point real '/App/Load'
+                                    input2: const real 1.5
+                                input: point real '/App/Load'
+                    fn Debug debug02:
                         input point Load002:
                             type: 'Real'
                             input: point real '/App/RecorderTask/Load001'
@@ -64,10 +73,8 @@ mod task_export {
         );
         trace!("config: {:?}", config);
         debug!("Task config points: {:#?}", config.points());
-
         let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
         debug!("Task points: {:#?}", task.lock().unwrap().points());
-
         services.slock().insert(task.clone());
         let conf = MultiQueueConfig::from_yaml(
             self_id,
@@ -80,39 +87,40 @@ mod task_export {
         let multi_queue = Arc::new(Mutex::new(MultiQueue::new(conf, services.clone())));
         services.slock().insert(multi_queue.clone());
         let test_data = vec![
-            (format!("/{}/Load", self_id), Value::Real(-7.035)),
-            (format!("/{}/Load", self_id), Value::Real(-2.5)),
-            (format!("/{}/Load", self_id), Value::Real(-5.5)),
-            (format!("/{}/Load", self_id), Value::Real(-1.5)),
-            (format!("/{}/Load", self_id), Value::Real(-1.0)),
-            (format!("/{}/Load", self_id), Value::Real(-0.1)),
-            (format!("/{}/Load", self_id), Value::Real(0.1)),
-            (format!("/{}/Load", self_id), Value::Real(1.0)),
-            (format!("/{}/Load", self_id), Value::Real(1.5)),
-            (format!("/{}/Load", self_id), Value::Real(5.5)),
-            (format!("/{}/Load", self_id), Value::Real(2.5)),
-            (format!("/{}/Load", self_id), Value::Real(7.035)),
+            (format!("/{}/Load", self_id), Value::Real(-7.035),  0.0),
+            (format!("/{}/Load", self_id), Value::Real(-2.5),    0.0),
+            (format!("/{}/Load", self_id), Value::Real(-5.5),    0.0),
+            (format!("/{}/Load", self_id), Value::Real(-1.5),    0.0),
+            (format!("/{}/Load", self_id), Value::Real(-1.0),    0.0),
+            (format!("/{}/Load", self_id), Value::Real(-0.1),    0.0),
+            (format!("/{}/Load", self_id), Value::Real(0.1),     0.0),
+            (format!("/{}/Load", self_id), Value::Real(1.0),     0.0),
+            (format!("/{}/Load", self_id), Value::Real(1.5),     1.5),
+            (format!("/{}/Load", self_id), Value::Real(5.5),     5.5),
+            (format!("/{}/Load", self_id), Value::Real(2.5),     2.5),
+            (format!("/{}/Load", self_id), Value::Real(7.035),   7.035),
         ];
         let total_count = test_data.len();
+        let target_count = total_count;
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
             self_id,
             "",
             "in-queue",
-            total_count,
+            target_count,
         )));
-        services.slock().insert(receiver.clone());      // "TaskTestReceiver",
-        // assert!(total_count == iterations, "\nresult: {:?}\ntarget: {:?}", total_count, iterations);
+        services.slock().insert(receiver.clone());
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             self_id,
             &format!("/{}/MultiQueue.in-queue", self_id),
-            Duration::ZERO,
+            Duration::from_millis(10),
             services.clone(),
-            &test_data,
+            &test_data.iter().cloned().map(|(name, value, _)| (name, value)).collect::<Vec<(String, Value)>>(),
         )));
         services.slock().insert(producer.clone());
         let multi_queue_handle = multi_queue.lock().unwrap().run().unwrap();
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         info!("receiver runing - ok");
+        thread::sleep(Duration::from_millis(100));
         let task_handle = task.lock().unwrap().run().unwrap();
         info!("task runing - ok");
         thread::sleep(Duration::from_millis(100));
@@ -131,12 +139,13 @@ mod task_export {
         println!(" elapsed: {:?}", time.elapsed());
         println!("    sent: {:?}", sent);
         println!("received: {:?}", result);
+        println!("target  : {:?}", target_count);
         assert!(sent == total_count, "\nresult: {:?}\ntarget: {:?}", sent, total_count);
-        assert!(result == total_count, "\nresult: {:?}\ntarget: {:?}", result, total_count);
+        assert!(result == target_count, "\nresult: {:?}\ntarget: {:?}", result, target_count);
         let target_name = "/App/RecorderTask/Load002";
         for (i, result) in receiver.lock().unwrap().received().lock().unwrap().iter().enumerate() {
-            let (_, target) = test_data[i].clone();
-            assert!(result.value() == target, "\nresult: {:?}\ntarget: {:?}", result.value(), target);
+            let (_, _, target) = test_data[i].clone();
+            assert!(result.value().as_real() == target, "\nresult: {:?}\ntarget: {:?}", result.value(), target);
             assert!(result.name() == target_name, "\nresult: {:?}\ntarget: {:?}", result.name(), target_name);
         };
         test_duration.exit();

@@ -20,8 +20,8 @@ pub struct FnPointId {
     input: FnInOutRef,
     points: IndexMap<String, usize, BuildHasherDefault<FxHasher>>,
 }
-///
-/// 
+//
+// 
 impl FnPointId {
     ///
     /// Creates new instance of the FnPointId
@@ -35,11 +35,11 @@ impl FnPointId {
         }
     }    
 }
-///
-/// 
+//
+// 
 impl FnIn for FnPointId {}
-///
-/// 
+//
+// 
 impl FnOut for FnPointId { 
     //
     fn id(&self) -> String {
@@ -61,14 +61,14 @@ impl FnOut for FnPointId {
         match self.points.get(&point.name()) {
             Some(id) => {
                 PointType::Int(
-                    Point {
-                        tx_id: *point.tx_id(),
-                        name: concat_string!(self.id, ".out"),
-                        value: *id as i64,
-                        status: point.status(),
-                        cot: point.cot(),
-                        timestamp: point.timestamp(),
-                    }
+                    Point::new(
+                        point.tx_id(),
+                        &concat_string!(self.id, ".out"),
+                        *id as i64,
+                        point.status(),
+                        point.cot(),
+                        point.timestamp(),
+                    )
                 )
             }
             None => panic!("{}.out | point '{}' - not found in configured points", self.id, point.name()),
@@ -80,8 +80,8 @@ impl FnOut for FnPointId {
         self.input.borrow_mut().reset();
     }
 }
-///
-/// 
+//
+// 
 impl FnInOut for FnPointId {}
 ///
 /// Global static counter of FnOut instances

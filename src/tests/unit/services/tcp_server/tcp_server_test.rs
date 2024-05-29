@@ -7,8 +7,8 @@ mod tcp_server {
     use crate::{
         conf::{multi_queue_config::MultiQueueConfig, point_config::name::Name, tcp_server_config::TcpServerConfig}, services::{multi_queue::multi_queue::MultiQueue, server::tcp_server::TcpServer, service::service::Service, services::Services, task::{task_test_producer::TaskTestProducer, task_test_receiver::TaskTestReceiver}}, tests::unit::services::tcp_server::{emulated_tcp_client_recv::EmulatedTcpClientRecv, emulated_tcp_client_send::EmulatedTcpClientSend}
     };
-    ///
-    ///
+    //
+    //
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
@@ -22,7 +22,7 @@ mod tcp_server {
     ///  - ...
     fn init_each() -> () {}
     ///
-    ///
+    /// Testing sending points from the TcpServer
     #[test]
     fn send() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
@@ -119,7 +119,7 @@ mod tcp_server {
         test_duration.exit();
     }
     ///
-    ///
+    /// Testing receiving points on the TcpServer
     #[test]
     fn receive() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);

@@ -21,8 +21,8 @@ pub struct Subscriptions {
     broadcast: HashMapFxHasher<ReceiverId, Sender<PointType>>,
     empty: HashMapFxHasher<ReceiverId, Sender<PointType>>,
 }
-///
-/// 
+//
+// 
 impl Subscriptions {
     ///
     /// Creates new instance of Subscriptions
@@ -130,8 +130,8 @@ impl Subscriptions {
         }
     }
 }
-///
-/// 
+//
+// 
 impl Debug for Subscriptions {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter

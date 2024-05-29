@@ -27,8 +27,8 @@ pub struct ApiClientConfig {
     pub(crate) rx_max_len: i64,
     pub(crate) debug: bool,
 }
-///
-/// 
+//
+// 
 impl ApiClientConfig {
     ///
     /// creates config from serde_yaml::Value of following format:

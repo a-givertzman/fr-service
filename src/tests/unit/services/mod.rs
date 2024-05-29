@@ -21,5 +21,3 @@ mod history;
 mod app;
 
 mod cache_service;
-
-mod cma_recorder;

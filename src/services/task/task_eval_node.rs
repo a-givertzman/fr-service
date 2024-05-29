@@ -14,8 +14,8 @@ pub struct TaskEvalNode {
     vars: Vec<FnInOutRef>,
     outs: Vec<FnInOutRef>,
 }
-///
-/// 
+//
+// 
 impl TaskEvalNode {
     ///
     /// Creates new instance from input name, input it self and dependent vars & outs

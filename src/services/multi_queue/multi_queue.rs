@@ -25,8 +25,8 @@ pub struct MultiQueue {
     receiver_dictionary: HashMap<usize, String>,
     exit: Arc<AtomicBool>,
 }
-///
-/// 
+//
+//
 impl MultiQueue {
     ///
     /// Creates new instance of [ApiClient]
@@ -49,7 +49,7 @@ impl MultiQueue {
         }
     }
     ///
-    /// 
+    /// Writes Subscription's to the log file 
     fn log(&self, name: &str, receiver_name: &str, rceiver_hash: usize, points: &[SubscriptionCriteria]) {
         let path = concat_string!("./logs", self.name.join(), name);
         let destinations: Vec<String> = points.iter().map(|cr| {cr.destination()}).collect();
@@ -73,7 +73,7 @@ impl MultiQueue {
         }
     }
     ///
-    /// 
+    /// Writes Point's to the log file 
     fn log_point(self_id: &str, parent: &Name, point_id: &str, point: &PointType) {
         let path = concat_string!("./logs", parent.join(), "/points.log");
         match fs::OpenOptions::new().create(true).append(true).open(&path) {
@@ -88,8 +88,8 @@ impl MultiQueue {
         }
     }
 }
-///
-/// 
+//
+//
 impl Object for MultiQueue {
     fn id(&self) -> &str {
         &self.id
@@ -98,8 +98,8 @@ impl Object for MultiQueue {
         self.name.clone()
     }
 }
-///
-/// 
+//
+//
 impl Debug for MultiQueue {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
@@ -108,8 +108,8 @@ impl Debug for MultiQueue {
             .finish()
     }
 }
-///
-/// 
+//
+//
 impl Service for MultiQueue {
     //
     //
@@ -237,7 +237,7 @@ impl Service for MultiQueue {
                         trace!("{}.run | received: \n\t{:?}", self_id, point);
                         Self::log_point(&self_id, &self_name, &point_id, &point);
                         for (receiver_hash, sender) in subscriptions.iter(&point_id) {
-                            match receiver_hash != point.tx_id() {
+                            match receiver_hash != &point.tx_id() {
                                 true => {
                                     match sender.send(point.clone()) {
                                         Ok(_) => {

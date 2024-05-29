@@ -14,8 +14,8 @@ mod tcp_client_connect {
         time::Duration,
     };
     use testing::session::test_session::TestSession;
-    ///
-    ///
+    //
+    //
     static INIT: Once = Once::new();
     ///
     /// once called initialisation
@@ -29,7 +29,7 @@ mod tcp_client_connect {
     ///  - ...
     fn init_each() -> () {}
     ///
-    ///
+    /// Testing success connection case
     #[test]
     fn success_connection() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -98,7 +98,7 @@ mod tcp_client_connect {
         );
     }
     ///
-    ///
+    /// Testing connection fail case
     #[test]
     fn failure_connection() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);

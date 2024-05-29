@@ -22,8 +22,8 @@ pub struct JdsServiceConfig {
     pub(crate) rx_max_len: i64,
     pub(crate) tx: String,
 }
-///
-/// 
+//
+// 
 impl JdsServiceConfig {
     ///
     /// Creates new instance of the [JdsServiceConfig]:

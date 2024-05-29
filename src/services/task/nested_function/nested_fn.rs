@@ -10,7 +10,7 @@ use crate::{
         safe_lock::SafeLock, services::Services,
         task::{
             nested_function::{
-                export::{fn_export::FnExport, fn_filter::FnFilter, fn_point::FnPoint, fn_to_api_queue::FnToApiQueue}, fn_add::FnAdd, fn_const::FnConst, fn_count::FnCount, fn_debug::FnDebug, fn_ge::FnGe, fn_input::FnInput, fn_point_id::FnPointId, fn_timer::FnTimer, fn_to_int::FnToInt, fn_var::FnVar, functions::Functions, sql_metric::SqlMetric
+                edge_detection::{fn_falling_edge::FnFallingEdge, fn_rising_edge::FnRisingEdge}, export::{fn_export::FnExport, fn_point::FnPoint, fn_to_api_queue::FnToApiQueue}, filter::{fn_filter::FnFilter, fn_smooth::FnSmooth, fn_threshold::FnThreshold}, fn_acc::FnAcc, fn_add::FnAdd, fn_average::FnAverage, fn_const::FnConst, fn_count::FnCount, fn_debug::FnDebug, fn_div::FnDiv, fn_ge::FnGe, fn_input::FnInput, fn_mul::FnMul, fn_point_id::FnPointId, fn_pow::FnPow, fn_rec_op_cycle_metric::FnRecOpCycleMetric, fn_sub::FnSub, fn_timer::FnTimer, fn_to_bool::FnToBool, fn_to_double::FnToDouble, fn_to_int::FnToInt, fn_to_real::FnToReal, fn_var::FnVar, functions::Functions, io::fn_retain::FnRetain, sql_metric::SqlMetric
             },
             task_nodes::TaskNodes,
         }
@@ -40,37 +40,52 @@ impl NestedFn {
                 debug!("{}.function | Fn '{}' detected", self_id, fn_name.name());
                 debug!("{}.function | fn_conf: {:?}: {:#?}", self_id, conf.name, conf);
                 match fn_name {
+                    //
                     Functions::Count => {
-                        let initial = 0.0;
+                        let name = "initial";
+                        let input_conf = conf.input_conf(name).map_or(None, |conf| Some(conf));
+                        let initial = match input_conf {
+                            Some(input_conf) => Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone())),
+                            None => None,
+                        };
                         let name = "input";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services);
                         Rc::new(RefCell::new(Box::new(
                             FnCount::new(parent, initial, input),
                         )))
                     }
+                    //
                     Functions::Add => {
                         let name = "input1";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input1 = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
                         let name = "input2";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input2 = Self::function(parent, tx_id, name, input_conf, task_nodes, services);
                         Rc::new(RefCell::new(Box::new(
                             FnAdd::new(parent, input1, input2)
                         )))
                     }
+                    //
                     Functions::Timer => {
-                        let name = "input1";
+                        let name = "initial";
+                        let input_conf = conf.input_conf(name).map_or(None, |conf| Some(conf));
+                        let initial = match input_conf {
+                            Some(input_conf) => Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone())),
+                            None => None,
+                        };
+                        let name = "input";
                         let conf = conf.inputs.get_mut(name).unwrap();
                         let input = Self::function(parent, tx_id, name, conf, task_nodes, services);
                         Rc::new(RefCell::new(Box::new(
-                            FnTimer::new(parent, 0.0, input, true)
+                            FnTimer::new(parent, initial, input, true)
                         )))
                     }
+                    //
                     Functions::ToApiQueue => {
                         let name = "input";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes ,services.clone());
                         let queue_name = conf.param("queue").unwrap_or_else(|_|
                             panic!("{}.function | Parameter 'queue' - missed in '{}'", self_id, conf.name)
@@ -83,72 +98,100 @@ impl NestedFn {
                             FnToApiQueue::new(parent, input, send_queue)
                         )))
                     }
+                    //
                     Functions::Ge => {
                         let name = "input1";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input1 = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
                         let name = "input2";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input2 = Self::function(parent, tx_id, name, input_conf, task_nodes, services);
                         Rc::new(RefCell::new(Box::new(
                             FnGe::new(parent, input1, input2)
                         )))
                     }
+                    //
                     Functions::SqlMetric => {
                         Rc::new(RefCell::new(Box::new(
                             SqlMetric::new( parent, conf, task_nodes, services)
                         )))
                     }
+                    //
                     Functions::PointId => {
                         let name = "input";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
                         let points = services.slock().points(&parent.join());
                         Rc::new(RefCell::new(Box::new(
                             FnPointId::new(parent, input, points)
                         )))
                     }
+                    //
                     Functions::Debug => {
-                        let name = "input";
-                        let input_conf = conf.input_conf(name);
-                        let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        let mut inputs = vec![];
+                        for (name, input_conf) in &mut conf.inputs {
+                            let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                            inputs.push(input);
+                        }
                         Rc::new(RefCell::new(Box::new(
-                            FnDebug::new(parent, input)
+                            FnDebug::new(parent, inputs)
                         )))
                     }
+                    //
+                    Functions::ToBool => {
+                        let name = "input";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        Rc::new(RefCell::new(Box::new(
+                            FnToBool::new(parent, input)
+                        )))
+                    }
+                    //
                     Functions::ToInt => {
                         let name = "input";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
                         Rc::new(RefCell::new(Box::new(
                             FnToInt::new(parent, input)
                         )))
                     }
-                    Functions::Export => {
+                    //
+                    Functions::ToReal => {
                         let name = "input";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
-                        let queue_name = conf.param("send-to").unwrap_or_else(|_|
-                            panic!("{}.function | Parameter 'send-to' - missed in '{}'", self_id, conf.name)
-                        ).name();
-                        let services_lock = services.slock();
-                        let send_queue = services_lock.get_link(&queue_name).unwrap_or_else(|err| {
-                            panic!("{}.function | services.get_link error: {:#?}", self_id, err);
-                        });
                         Rc::new(RefCell::new(Box::new(
-                            FnExport::new(parent, input, send_queue)
+                            FnToReal::new(parent, input)
                         )))
                     }
-                    Functions::Filter => {
+                    //
+                    Functions::ToDouble => {
                         let name = "input";
-                        let input_conf = conf.input_conf(name);
+                        let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
-                        let name = "pass";
-                        let input_conf = conf.input_conf(name);
-                        let pass = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        Rc::new(RefCell::new(Box::new(
+                            FnToDouble::new(parent, input)
+                        )))
+                    }
+                    //
+                    Functions::Export => {
+                        let name = "input";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        let name = "enable";
+                        let input_conf = conf.input_conf(name).map_or(None, |conf| Some(conf));
+                        let enable = match input_conf {
+                            Some(input_conf) => Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone())),
+                            None => None,
+                        };
                         let point_conf = match conf.input_conf("conf") {
-                            FnConfKind::PointConf(conf) => conf.clone(),
-                            _ => panic!("{}.function | Invalid Point config in: {:?}", self_id, conf.name),
+                            Ok(conf) => {
+                                match conf {
+                                    FnConfKind::PointConf(conf) => Some(conf.conf.clone()),
+                                    _ => panic!("{}.function | Invalid Point config in: {:?}", self_id, conf.name()),
+                                }
+                            }
+                            Err(_) => None,
                         };
                         let send_queue = match conf.param("send-to") {
                             Ok(queue_name) => {
@@ -161,9 +204,228 @@ impl NestedFn {
                             },
                         };
                         Rc::new(RefCell::new(Box::new(
-                            FnFilter::new(parent, point_conf.conf, input, pass, send_queue)
+                            FnExport::new(parent, enable, point_conf, input, send_queue)
                         )))
                     }
+                    //
+                    Functions::Filter => {
+                        let name = "default";
+                        let input_conf = conf.input_conf(name).map_or(None, |conf| Some(conf));
+                        let default = match input_conf {
+                            Some(input_conf) => Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone())),
+                            None => None,
+                        };
+                        let name = "input";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        let name = "pass";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let pass = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        Rc::new(RefCell::new(Box::new(
+                            FnFilter::new(parent, default, input, pass)
+                        )))
+                    }
+                    //
+                    Functions::RisingEdge => {
+                        let name = "input";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        Rc::new(RefCell::new(Box::new(
+                            FnRisingEdge::new(parent, input)
+                        )))
+                    }
+                    //
+                    Functions::FallingEdge => {
+                        let name = "input";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        Rc::new(RefCell::new(Box::new(
+                            FnFallingEdge::new(parent, input)
+                        )))
+                    }
+                    //
+                    Functions::Retain => {
+                        let name = "default";
+                        let input_conf = conf.input_conf(name).map_or(None, |conf| Some(conf));
+                        let default = match input_conf {
+                            Some(input_conf) => Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone())),
+                            None => None,
+                        };
+                        let name = "input";
+                        let input_conf = conf.input_conf(name).map_or(None, |conf| Some(conf));
+                        let input = match input_conf {
+                            Some(input_conf) => Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone())),
+                            None => None,
+                        };
+                        let name = "enable";
+                        let input_conf = conf.input_conf(name).map_or(None, |conf| Some(conf));
+                        let enable = match input_conf {
+                            Some(input_conf) => Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone())),
+                            None => None,
+                        };
+                        let name = "every-cycle";
+                        let every_cycle = conf.param(name).map_or(false, |param| {
+                            match param.name().as_str() {
+                                "true" => true,
+                                "false" => false,
+                                _ => {
+                                    warn!("{}.function | Illegal value in 'every_cycle' of '{}'", self_id, conf.name);
+                                    false
+                                }
+                            }
+                        });
+                        let key = conf.param("key").unwrap_or_else(|_|
+                            panic!("{}.function | Parameter 'key' - missed in '{}'", self_id, conf.name)
+                        ).name();
+                        Rc::new(RefCell::new(Box::new(
+                            FnRetain::new(parent, enable, every_cycle, key, default, input)
+                        )))
+                    }
+                    //
+                    Functions::Acc => {
+                        let name = "initial";
+                        let input_conf = conf.input_conf(name).map_or(None, |conf| Some(conf));
+                        let initial = match input_conf {
+                            Some(input_conf) => Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone())),
+                            None => None,
+                        };
+                        let name = "input";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services);
+                        Rc::new(RefCell::new(Box::new(
+                            FnAcc::new(parent, initial, input),
+                        )))
+                    }
+                    //
+                    Functions::Mul => {
+                        let name = "input1";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input1 = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        let name = "input2";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input2 = Self::function(parent, tx_id, name, input_conf, task_nodes, services);
+                        Rc::new(RefCell::new(Box::new(
+                            FnMul::new(parent, input1, input2)
+                        )))
+                    }
+                    //
+                    Functions::Div => {
+                        let name = "input1";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input1 = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        let name = "input2";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input2 = Self::function(parent, tx_id, name, input_conf, task_nodes, services);
+                        Rc::new(RefCell::new(Box::new(
+                            FnDiv::new(parent, input1, input2)
+                        )))
+                    }
+                    //
+                    Functions::Sub => {
+                        let name = "input1";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input1 = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        let name = "input2";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input2 = Self::function(parent, tx_id, name, input_conf, task_nodes, services);
+                        Rc::new(RefCell::new(Box::new(
+                            FnSub::new(parent, input1, input2)
+                        )))
+                    }
+                    //
+                    Functions::Threshold => {
+                        let name = "threshold";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let threshold = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        let name = "factor";
+                        let input_conf = conf.input_conf(name).map_or(None, |conf| Some(conf));
+                        let factor = match input_conf {
+                            Some(input_conf) => Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone())),
+                            None => None,
+                        };
+                        let name = "input";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        Rc::new(RefCell::new(Box::new(
+                            FnThreshold::new(parent, threshold, factor, input)
+                        )))
+                    }
+                    //
+                    Functions::Smooth => {
+                        let name = "factor";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let factor = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        let name = "input";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        Rc::new(RefCell::new(Box::new(
+                            FnSmooth::new(parent, factor, input)
+                        )))
+                    }
+                    //
+                    Functions::Average => {
+                        let name = "enable";
+                        let input_conf = conf.input_conf(name).map_or(None, |conf| Some(conf));
+                        let enable = match input_conf {
+                            Some(input_conf) => Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone())),
+                            None => None,
+                        };
+                        let name = "input";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        Rc::new(RefCell::new(Box::new(
+                            FnAverage::new(parent, enable, input)
+                        )))
+                    }
+                    //
+                    Functions::Pow => {
+                        let name = "input1";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input1 = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        let name = "input2";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input2 = Self::function(parent, tx_id, name, input_conf, task_nodes, services);
+                        Rc::new(RefCell::new(Box::new(
+                            FnPow::new(parent, input1, input2)
+                        )))
+                    }
+                    //
+                    Functions::RecOpCycleMetric => {
+                        let name = "enable";
+                        let input_conf = conf.input_conf(name).map_or(None, |conf| Some(conf));
+                        let enable = match input_conf {
+                            Some(input_conf) => Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone())),
+                            None => None,
+                        };
+                        let tx_send = match conf.param("send-to") {
+                            Ok(queue_name) => {
+                                let services_lock = services.slock();
+                                services_lock.get_link(&queue_name.name()).map_or(None, |send| Some(send))
+                            }
+                            Err(_) => {
+                                warn!("{}.function | Parameter 'send-to' - missed in '{}'", self_id, conf.name);
+                                None
+                            },
+                        };
+                        let name = "op-cycle";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let op_cycle = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        let mut inputs = vec![];
+                        let conf_inputs = conf.inputs
+                            .iter_mut()
+                            .filter(|(name, _)| {
+                                ! ["enable", "send-to", "conf", "op-cycle"].contains(&name.as_str())
+                            });
+                        for (name, input_conf) in conf_inputs {
+                            let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                            inputs.push(input);
+                        }
+                        Rc::new(RefCell::new(Box::new(
+                            FnRecOpCycleMetric::new(parent, enable, tx_send, op_cycle, inputs)
+                        )))
+                    }
+                    //
+                    // Add a new function here...
                     _ => panic!("{}.function | Unknown function name: {:?}", self_id, conf.name)
                 }
             }
@@ -243,8 +505,16 @@ impl NestedFn {
                     }
                     None => None,
                 };
+                let name = "changes_only";
+                let input_conf = conf.input.as_mut();
+                let changes_only = match input_conf {
+                    Some(input_conf) => {
+                        Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone()))
+                    }
+                    None => None,
+                };
                 let name = "input";
-                let input_conf = conf.input.as_mut();//.input_conf(name);
+                let input_conf = conf.input.as_mut();
                 let input = match input_conf {
                     Some(input_conf) => {
                         Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone()))
@@ -252,11 +522,11 @@ impl NestedFn {
                     None => None,
                 };
                 Rc::new(RefCell::new(Box::new(
-                    FnPoint::new(parent, conf.conf.clone(), input, send_queue),
+                    FnPoint::new(parent, conf.conf.clone(), changes_only, input, send_queue),
                 )))
             }
-            FnConfKind::Param(_conf) => {
-                panic!("{}.function | Custom parameters are not supported in the nested functions", self_id);
+            FnConfKind::Param(conf) => {
+                panic!("{}.function | Custom parameters are not supported in the nested functions, \n\tparameter: {:#?}", self_id, conf);
             }
         }
     }

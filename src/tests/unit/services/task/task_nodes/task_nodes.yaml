@@ -12,7 +12,7 @@ service Task Task1:
     let Var3:
         input: point int '/path/Point.Name3'
 
-    fn debug:
+    fn Debug:
         input fn SqlMetric:
             initial: 0.123      # начальное значение
             table: table_name

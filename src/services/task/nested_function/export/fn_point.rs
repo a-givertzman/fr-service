@@ -4,35 +4,38 @@ use crate::{
     conf::point_config::{point_config::PointConfig, point_config_type::PointConfigType}, core_::{point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, types::{bool::Bool, fn_in_out_ref::FnInOutRef}}, services::task::nested_function::{fn_::{FnIn, FnInOut, FnOut}, fn_kind::FnKind}
 };
 ///
-/// Specific function used for exports configured point into the Service.in-queue
+/// Function | Used for export Point from Task service to another service
 ///  - Poiont will be sent to the queue only if:
-///     - queue name provided
-///     - Point was changed
-///  - finally point will be passed to the parent function
+///     - [send-to] - is specified
+///     - if [changes-only] is specified and true - changes only will be sent, default false (sending all points)
+///  - Returns input Point
 #[derive(Debug)]
 pub struct FnPoint {
     id: String,
     tx_id: usize,
     kind: FnKind,
     conf: PointConfig,
+    changes_only: Option<FnInOutRef>,
     input: Option<FnInOutRef>,
     tx_send: Option<Sender<PointType>>,
     state: Option<PointType>,
 }
-///
-///
+//
+//
 impl FnPoint {
     ///
-    /// creates new instance of the FnPoint
+    /// Creates new instance of the FnPoint
     /// - id - just for proper debugging
     /// - input - incoming points
-    pub fn new(parent: impl Into<String>, conf: PointConfig, input: Option<FnInOutRef>, send: Option<Sender<PointType>>) -> Self {
+    /// - if [changes-only] is specified and true - changes only will be sent, default false (sending all points)
+    pub fn new(parent: impl Into<String>, conf: PointConfig, changes_only: Option<FnInOutRef>, input: Option<FnInOutRef>, send: Option<Sender<PointType>>) -> Self {
         let self_id = format!("{}/FnPoint{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed));
         Self {
             id: self_id.clone(),
             tx_id: PointTxId::fromStr(&self_id),
             kind: FnKind::Fn,
             conf,
+            changes_only,
             input,
             tx_send: send,
             state: None,
@@ -115,16 +118,11 @@ impl FnPoint {
         }
     }
 }
-///
-///
-impl FnIn for FnPoint {
-    //
-    fn add(&mut self, _: PointType) {
-        panic!("{}.add | method is not used", self.id);
-    }
-}
-///
-///
+//
+//
+impl FnIn for FnPoint {}
+//
+//
 impl FnOut for FnPoint {
     //
     fn id(&self) -> String {
@@ -146,9 +144,18 @@ impl FnOut for FnPoint {
         match &self.input {
             Some(input) => {
                 let point = input.borrow_mut().out();
+                let changes_only = match &self.changes_only {
+                    Some(changes_only) => changes_only.borrow_mut().out().to_bool().as_bool().value.0,
+                    None => false,
+                };
                 match &self.state {
                     Some(state) => {
-                        if &point != state {
+                        if changes_only {
+                            if &point != state {
+                                self.state = Some(point.clone());
+                                self.send(point.clone());
+                            }
+                        } else {
                             self.state = Some(point.clone());
                             self.send(point.clone());
                         }
@@ -170,8 +177,8 @@ impl FnOut for FnPoint {
         }
     }
 }
-///
-///
+//
+//
 impl FnInOut for FnPoint {}
 ///
 /// Global static counter of FnPoint instances

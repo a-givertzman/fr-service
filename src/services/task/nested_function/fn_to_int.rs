@@ -11,7 +11,7 @@ use crate::{
 ///
 /// Function converts input to Int
 ///  - bool: true -> 1, false -> 0
-///  - real: 0.1 -> 0 | 0.5 -> 0 | 0.9 -> 0 | 1.1 -> 1
+///  - real: 0.1 -> 0 | 0.5 -> 1 | 0.9 -> 1 | 1.1 -> 1
 ///  - string: try to parse int
 #[derive(Debug)]
 pub struct FnToInt {
@@ -19,8 +19,8 @@ pub struct FnToInt {
     kind: FnKind,
     input: FnInOutRef,
 }
-///
-/// 
+//
+// 
 impl FnToInt {
     ///
     /// Creates new instance of the FnToInt
@@ -33,11 +33,11 @@ impl FnToInt {
         }
     }    
 }
-///
-/// 
+//
+// 
 impl FnIn for FnToInt {}
-///
-/// 
+//
+// 
 impl FnOut for FnToInt { 
     //
     fn id(&self) -> String {
@@ -64,23 +64,23 @@ impl FnOut for FnToInt {
                 value.value
             }
             PointType::Real(value) => {
-                value.value.trunc() as i64
+                value.value.round() as i64
             }
             PointType::Double(value) => {
-                value.value.trunc() as i64
+                value.value.round() as i64
             }
             _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, point.print_type_of(), point),
         };
         trace!("{}.out | out: {:?}", self.id, &out);
         PointType::Int(
-            Point {
-                tx_id: *point.tx_id(),
-                name: concat_string!(self.id, ".out"),
-                value: out,
-                status: point.status(),
-                cot: point.cot(),
-                timestamp: point.timestamp(),
-            }
+            Point::new(
+                point.tx_id(),
+                &concat_string!(self.id, ".out"),
+                out,
+                point.status(),
+                point.cot(),
+                point.timestamp(),
+            )
         )
     }
     //
@@ -89,8 +89,8 @@ impl FnOut for FnToInt {
         self.input.borrow_mut().reset();
     }
 }
-///
-/// 
+//
+// 
 impl FnInOut for FnToInt {}
 ///
 /// Global static counter of FnToInt instances

@@ -17,8 +17,8 @@ pub struct FnVar {
     input: FnInOutRef,
     result: Option<PointType>,
 }
-///
-/// 
+//
+// 
 impl FnVar {
     pub fn new(parent: impl Into<String>, input: FnInOutRef) -> Self {
         Self {
@@ -29,11 +29,11 @@ impl FnVar {
         }
     }
 }
-///
-/// 
+//
+// 
 impl FnIn for FnVar {}
-///
-/// 
+//
+// 
 impl FnOut for FnVar {
     //
     fn id(&self) -> String {
@@ -75,8 +75,8 @@ impl FnOut for FnVar {
         self.input.borrow_mut().reset();
     }
 }
-///
-/// 
+//
+// 
 impl FnInOut for FnVar {}
 ///
 /// Global static counter of FnVar instances

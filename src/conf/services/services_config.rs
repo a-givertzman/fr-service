@@ -55,8 +55,8 @@ pub struct ServicesConfig {
     pub(crate) cycle: Option<Duration>,
     pub(crate) nodes: IndexMap<ConfKeywd, ConfTree>,
 }
-///
-/// 
+//
+// 
 impl ServicesConfig {
     ///
     /// Creates new instance of the [ServicesConfig]:

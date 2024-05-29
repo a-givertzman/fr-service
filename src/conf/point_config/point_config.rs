@@ -52,8 +52,8 @@ pub struct PointConfig {
 fn is_none<T: Default + PartialEq>(t: &T) -> bool {
     t == &Default::default()
 }
-///
-/// 
+//
+// 
 impl PointConfig {
     ///
     /// creates PointConfig from serde_yaml::Value of following format:

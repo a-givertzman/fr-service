@@ -56,14 +56,14 @@ mod task_nodes {
                 "/path/Point.Name1", 101,
                 HashMap::from([
                     (format!("/{}/SqlMetric{}", self_id, sql_metric_count), "101, 1102, 0, 0"),
-                    (format!("/{}/FnCount{}.out", self_id, fn_count_count), "101"),
+                    (format!("/{}/FnCount{}.out", self_id, fn_count_count), "1"),
                 ])
             ),
             (
                 "/path/Point.Name1", 201,
                 HashMap::from([
                     (format!("/{}/SqlMetric{}", self_id, sql_metric_count), "201, 1202, 0, 0"),
-                    (format!("/{}/FnCount{}.out", self_id, fn_count_count), "302"),
+                    (format!("/{}/FnCount{}.out", self_id, fn_count_count), "1"),
                 ])
 
             ),
@@ -71,7 +71,7 @@ mod task_nodes {
                 "/path/Point.Name1", 301,
                 HashMap::from([
                     (format!("/{}/SqlMetric{}", self_id, sql_metric_count), "301, 1302, 0, 0"),
-                    (format!("/{}/FnCount{}.out", self_id, fn_count_count), "603"),
+                    (format!("/{}/FnCount{}.out", self_id, fn_count_count), "1"),
                 ])
 
             ),
@@ -148,8 +148,8 @@ mod task_nodes {
         rx_recv: Vec<Receiver<PointType>>,
         exit: Arc<AtomicBool>,
     }
-    ///
-    ///
+    //
+    //
     impl MockService {
         fn new(parent: &str, link_name: &str) -> Self {
             let (send, recv) = mpsc::channel();
@@ -165,8 +165,8 @@ mod task_nodes {
             }
         }
     }
-    ///
-    ///
+    //
+    //
     impl Object for MockService {
         fn id(&self) -> &str {
             &self.id
@@ -175,8 +175,8 @@ mod task_nodes {
             self.name.clone()
         }
     }
-    ///
-    ///
+    //
+    //
     impl Debug for MockService {
         fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             formatter
@@ -185,8 +185,8 @@ mod task_nodes {
                 .finish()
         }
     }
-    ///
-    ///
+    //
+    //
     impl Service for MockService {
         //
         //

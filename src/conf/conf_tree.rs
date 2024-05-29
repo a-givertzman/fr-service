@@ -8,8 +8,8 @@ pub struct ConfTree {
     pub key: String,
     pub conf: serde_yaml::Value,
 }
-///
-/// 
+//
+// 
 impl ConfTree {
     ///
     /// creates iterotor on the serde_yaml::Value mapping

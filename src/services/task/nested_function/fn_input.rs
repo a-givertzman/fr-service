@@ -12,8 +12,8 @@ pub struct FnInput {
     point: PointType,
     initial: PointType,
 }
-///
-/// 
+//
+// 
 impl FnInput {
     pub fn new(parent: &str, initial: PointType, type_: FnConfPointType) -> Self {
         Self {
@@ -25,8 +25,8 @@ impl FnInput {
         }
     }
 }
-///
-/// 
+//
+// 
 impl FnIn for FnInput {
     fn add(&mut self, point: PointType) {
         trace!("{}.add | value: {:?}", self.id, &self.point);
@@ -147,8 +147,8 @@ impl FnIn for FnInput {
         };
     }
 }
-///
-/// 
+//
+// 
 impl FnOut for FnInput {
     //
     fn id(&self) -> String {
@@ -172,8 +172,8 @@ impl FnOut for FnInput {
         self.point = self.initial.clone();
     }
 }
-///
-/// 
+//
+// 
 impl FnInOut for FnInput {}
 ///
 /// Global static counter of FnOut instances
