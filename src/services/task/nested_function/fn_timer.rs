@@ -1,10 +1,10 @@
 use log::debug;
 use std::{sync::atomic::{AtomicUsize, Ordering}, time::Instant};
-use crate::core_::{
+use crate::{conf::point_config::point_config_type::PointConfigType, core_::{
     cot::cot::Cot, point::{point::Point, point_type::PointType},
     state::switch_state::{Switch, SwitchCondition, SwitchState},
     types::fn_in_out_ref::FnInOutRef,
-};
+}};
 use super::{fn_::{FnInOut, FnIn, FnOut}, fn_kind::FnKind};
 //
 //
@@ -18,7 +18,7 @@ enum FnTimerState {
     Done,
 }
 ///
-/// Counts elapsed time in seconds from raised input (>0) to dropped (<=0)
+/// Returns elapsed time in seconds (double) from raised input (>0) to dropped (<=0)
 /// - if repeat = true, then elapsed is total secods of 
 /// multiple periods
 #[derive(Debug)]
@@ -138,7 +138,7 @@ impl FnOut for FnTimer {
         let value = point.to_bool().as_bool().value.0;
         self.state.add(value);
         let state = self.state.state();
-        debug!("{}.out | input.out: {:?}   |   state: {:?}", self.id, &value, &state);
+        debug!("{}.out | input: {:?}   |   state: {:?}", self.id, value, state);
         match state {
             FnTimerState::Off => {}
             FnTimerState::Start => {
@@ -160,16 +160,56 @@ impl FnOut for FnTimer {
                 }
             }
         };
-        PointType::Double(
-            Point::new(
-                point.tx_id(),
-                &format!("{}.out", self.id),
-                *total_elapsed + self.session_elapsed,
-                point.status(),
-                Cot::Inf,
-                point.timestamp(),
-            )
-        )
+        let out = *total_elapsed + self.session_elapsed;
+        debug!("{}.out | out: {:?}", self.id, out);
+        match &self.initial {
+            Some(initial) => {
+                let type_ = initial.borrow_mut().out().type_();
+                match type_ {
+                    PointConfigType::Int => PointType::Int(
+                        Point::new(
+                            point.tx_id(),
+                            &format!("{}.out", self.id),
+                            out.round() as i64,
+                            point.status(),
+                            Cot::Inf,
+                            point.timestamp(),
+                        )
+                    ),
+                    PointConfigType::Real => PointType::Real(
+                        Point::new(
+                            point.tx_id(),
+                            &format!("{}.out", self.id),
+                            out as f32,
+                            point.status(),
+                            Cot::Inf,
+                            point.timestamp(),
+                        )
+                    ),
+                    PointConfigType::Double => PointType::Double(
+                        Point::new(
+                            point.tx_id(),
+                            &format!("{}.out", self.id),
+                            out,
+                            point.status(),
+                            Cot::Inf,
+                            point.timestamp(),
+                        )
+                    ),
+                    _ => panic!("{}.out | Usupported initial type '{:?}'", self.id, type_),
+                }
+            }
+            None => PointType::Double(
+                Point::new(
+                    point.tx_id(),
+                    &format!("{}.out", self.id),
+                    out,
+                    point.status(),
+                    Cot::Inf,
+                    point.timestamp(),
+                )
+            ),
+        }
     }
     //
     //

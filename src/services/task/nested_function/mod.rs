@@ -39,6 +39,9 @@ pub mod fn_mul;
 pub mod fn_sub;
 pub mod fn_div;
 pub mod fn_pow;
+pub mod fn_to_real;
+pub mod fn_to_double;
+pub mod fn_to_bool;
 
 pub mod nested_fn;
 

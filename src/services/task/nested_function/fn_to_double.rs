@@ -9,25 +9,24 @@ use crate::{
     },
 };
 ///
-/// Function converts input to Int
-///  - bool: true -> 1, false -> 0
-///  - real: 0.1 -> 0 | 0.5 -> 1 | 0.9 -> 1 | 1.1 -> 1
-///  - string: try to parse int
+/// Function converts input to Double
+///  - bool: true -> 1.0, false -> 0.0
+///  - string: try to parse double
 #[derive(Debug)]
-pub struct FnToInt {
+pub struct FnToDouble {
     id: String,
     kind: FnKind,
     input: FnInOutRef,
 }
 //
 // 
-impl FnToInt {
+impl FnToDouble {
     ///
-    /// Creates new instance of the FnToInt
+    /// Creates new instance of the FnToDouble
     #[allow(dead_code)]
     pub fn new(parent: impl Into<String>, input: FnInOutRef) -> Self {
         Self { 
-            id: format!("{}/FnToInt{}", parent.into(), COUNT.fetch_add(1, Ordering::SeqCst)),
+            id: format!("{}/FnToDouble{}", parent.into(), COUNT.fetch_add(1, Ordering::SeqCst)),
             kind: FnKind::Fn,
             input,
         }
@@ -35,10 +34,10 @@ impl FnToInt {
 }
 //
 // 
-impl FnIn for FnToInt {}
+impl FnIn for FnToDouble {}
 //
 // 
-impl FnOut for FnToInt { 
+impl FnOut for FnToDouble { 
     //
     fn id(&self) -> String {
         self.id.clone()
@@ -58,21 +57,21 @@ impl FnOut for FnToInt {
         trace!("{}.out | input: {:?}", self.id, point);
         let out = match &point {
             PointType::Bool(value) => {
-                if value.value.0 {1} else {0}
+                if value.value.0 {1.0f64} else {0.0f64}
             }
             PointType::Int(value) => {
-                value.value
+                value.value as f64
             }
             PointType::Real(value) => {
-                value.value.round() as i64
+                value.value as f64
             }
             PointType::Double(value) => {
-                value.value.round() as i64
+                value.value
             }
             _ => panic!("{}.out | {:?} type is not supported: {:?}", self.id, point.print_type_of(), point),
         };
         trace!("{}.out | out: {:?}", self.id, &out);
-        PointType::Int(
+        PointType::Double(
             Point::new(
                 point.tx_id(),
                 &concat_string!(self.id, ".out"),
@@ -91,7 +90,7 @@ impl FnOut for FnToInt {
 }
 //
 // 
-impl FnInOut for FnToInt {}
+impl FnInOut for FnToDouble {}
 ///
-/// Global static counter of FnToInt instances
+/// Global static counter of FnToDouble instances
 static COUNT: AtomicUsize = AtomicUsize::new(1);

@@ -21,7 +21,10 @@ pub enum Functions {
     SqlMetric,
     PointId,
     Debug,
+    ToBool,
     ToInt,
+    ToReal,
+    ToDouble,
     Export,
     Filter,
     RisingEdge,
@@ -55,7 +58,10 @@ impl Functions {
     const TO_MULTI_QUEUE                : &'static str = "ToMultiQueue";
     const SQL_METRIC                    : &'static str = "SqlMetric";
     const POINT_ID                      : &'static str = "PointId";
+    const TO_BOOL                       : &'static str = "ToBool";
     const TO_INT                        : &'static str = "ToInt";
+    const TO_REAL                       : &'static str = "ToReal";
+    const TO_DOUBLE                     : &'static str = "ToDouble";
     const EXPORT                        : &'static str = "Export";
     const FILTER                        : &'static str = "Filter";
     const RISING_EDGE                   : &'static str = "RisingEdge";
@@ -87,7 +93,10 @@ impl Functions {
             Self::SqlMetric             => Self::SQL_METRIC,
             Self::PointId               => Self::POINT_ID,
             Self::Debug                 => Self::DEBUG,
+            Self::ToBool                => Self::TO_BOOL,
             Self::ToInt                 => Self::TO_INT,
+            Self::ToReal                => Self::TO_REAL,
+            Self::ToDouble              => Self::TO_DOUBLE,
             Self::Export                => Self::EXPORT,
             Self::Filter                => Self::FILTER,
             Self::RisingEdge            => Self::RISING_EDGE,
@@ -120,7 +129,10 @@ impl Functions {
             Self::SQL_METRIC            => Ok( Self::SqlMetric ),
             Self::POINT_ID              => Ok( Self::PointId ),
             Self::DEBUG                 => Ok( Self::Debug ),
+            Self::TO_BOOL               => Ok( Self::ToBool ),
             Self::TO_INT                => Ok( Self::ToInt ),
+            Self::TO_REAL               => Ok( Self::ToReal ),
+            Self::TO_DOUBLE             => Ok( Self::ToDouble ),
             Self::EXPORT                => Ok( Self::Export ),
             Self::FILTER                => Ok( Self::Filter ),
             Self::RISING_EDGE           => Ok( Self::RisingEdge ),
