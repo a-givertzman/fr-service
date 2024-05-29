@@ -82,39 +82,43 @@ service Task RecorderTask:
     #
     # Crane Average load in operating cycle, ??? unit ???
     let craneCycleAverageLoad:
-        input fn Average:
-            enable fn Add:
-                input1: opCycleIsActive
-                input2 fn FallingEdge:
-                    input: opCycleIsActive
-            input: point real '/AppTest/Load'   # ??? unit ???
+        input fn ToReal:
+            input fn Average:
+                enable fn Add:
+                    input1: opCycleIsActive
+                    input2 fn FallingEdge:
+                        input: opCycleIsActive
+                input: point real '/AppTest/Load'   # ??? unit ???
     #
     # Winch1 Average load in operating cycle, ??? unit ???
     let winch1CycleAverageLoad:
-        input fn Average:
-            enable fn Add:
-                input1: opCycleIsActive
-                input2 fn FallingEdge:
-                    input: opCycleIsActive
-            input: point real '/AppTest/Load'   # ??? unit ???
+        input fn ToReal:
+            input fn Average:
+                enable fn Add:
+                    input1: opCycleIsActive
+                    input2 fn FallingEdge:
+                        input: opCycleIsActive
+                input: point real '/AppTest/Load'   # ??? unit ???
     #
     # Winch2 Average load in operating cycle, ??? unit ???
     let winch2CycleAverageLoad:
-        input fn Average:
-            enable fn Add:
-                input1: opCycleIsActive
-                input2 fn FallingEdge:
-                    input: opCycleIsActive
-            input: point real '/AppTest/Load'   # ??? unit ???
+        input fn ToReal:
+            input fn Average:
+                enable fn Add:
+                    input1: opCycleIsActive
+                    input2 fn FallingEdge:
+                        input: opCycleIsActive
+                input: point real '/AppTest/Load'   # ??? unit ???
     #
     # Winch3 Average load in operating cycle, ??? unit ???
     let winch3CycleAverageLoad:
-        input fn Average:
-            enable fn Add:
-                input1: opCycleIsActive
-                input2 fn FallingEdge:
-                    input: opCycleIsActive
-            input: point real '/AppTest/Load'   # ??? unit ???
+        input fn ToReal:
+            input fn Average:
+                enable fn Add:
+                    input1: opCycleIsActive
+                    input2 fn FallingEdge:
+                        input: opCycleIsActive
+                input: point real '/AppTest/Load'   # ??? unit ???
     #
     # Winch1 load-limiter-trip-count
     let winch1LoadLimiterTripCount:
