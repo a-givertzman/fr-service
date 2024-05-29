@@ -80,13 +80,9 @@ impl Service for TcpClient {
         let conf = self.conf.clone();
         let exit = self.exit.clone();
         let exit_pair = Arc::new(AtomicBool::new(false));
-        info!("{}.run | rx queue name: {:?}", self.id, conf.rx);
-        info!("{}.run | tx queue name: {:?}", self.id, conf.tx);
-        debug!("{}.run | Lock services...", self_id);
         let tx_send = self.services.slock().get_link(&conf.tx).unwrap_or_else(|err| {
             panic!("{}.run | services.get_link error: {:#?}", self.id, err);
         });
-        debug!("{}.run | Lock services - ok", self_id);
         let buffered = conf.rx_buffered; // TODO Read this from config
         let in_recv = self.in_recv.pop().unwrap();
         // let (cyclic, cycleInterval) = match conf.cycle {

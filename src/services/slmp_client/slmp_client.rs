@@ -72,21 +72,16 @@ impl Service for SlmpClient {
     //
     fn run(&mut self) -> Result<ServiceHandles, String> {
         info!("{}.run | Starting...", self.id);
-        let tx_send = self.services.slock().get_link(&self.conf.send_to).unwrap_or_else(|err| {
-            panic!("{}.run | services.get_link error: {:#?}", self.id, err);
-        });
-
         let self_id = self.id.clone();
+        let tx_send = self.services.slock().get_link(&self.conf.send_to).unwrap_or_else(|err| {
+            panic!("{}.run | services.get_link error: {:#?}", self_id, err);
+        });
         let conf = self.conf.clone();
         let exit = self.exit.clone();
         let exit_pair = Arc::new(AtomicBool::new(false));
-        info!("{}.run | rx queue name: {:?}", self.id, conf.rx);
-        info!("{}.run | tx queue name: {:?}", self.id, conf.tx);
-        debug!("{}.run | Lock services...", self_id);
         let tx_send = self.services.slock().get_link(&conf.tx).unwrap_or_else(|err| {
             panic!("{}.run | services.get_link error: {:#?}", self.id, err);
         });
-        debug!("{}.run | Lock services - ok", self_id);
         let buffered = conf.rx_buffered; // TODO Read this from config
         let in_recv = self.in_recv.pop().unwrap();
         // let (cyclic, cycleInterval) = match conf.cycle {
@@ -114,24 +109,24 @@ impl Service for SlmpClient {
             Some(exit.clone()),
             Some(exit_pair.clone()),
         );
-        let tcp_write_alive = TcpWriteAlive::new(
-            &self_id,
-            None,
-            Arc::new(Mutex::new(TcpStreamWrite::new(
-                &self_id,
-                buffered,
-                Some(conf.rx_max_len as usize),
-                Box::new(JdsEncodeMessage::new(
-                    &self_id,
-                    JdsSerialize::new(
-                        &self_id,
-                        in_recv,
-                    ),
-                )),
-            ))),
-            Some(exit.clone()),
-            Some(exit_pair.clone()),
-        );
+        // let tcp_write_alive = TcpWriteAlive::new(
+        //     &self_id,
+        //     None,
+        //     Arc::new(Mutex::new(TcpStreamWrite::new(
+        //         &self_id,
+        //         buffered,
+        //         Some(conf.rx_max_len as usize),
+        //         Box::new(JdsEncodeMessage::new(
+        //             &self_id,
+        //             JdsSerialize::new(
+        //                 &self_id,
+        //                 in_recv,
+        //             ),
+        //         )),
+        //     ))),
+        //     Some(exit.clone()),
+        //     Some(exit_pair.clone()),
+        // );
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
