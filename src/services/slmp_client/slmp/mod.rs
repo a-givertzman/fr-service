@@ -14,3 +14,5 @@ pub mod slmp_parse_int;
 pub mod slmp_parse_real;
 
 pub mod slmp_device_code;
+
+pub mod c_slmp_client;

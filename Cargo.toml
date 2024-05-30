@@ -56,3 +56,6 @@ clap = { version = "^4.5", features = ["derive"] }
 # [[bin]]
 # name = "task_test"
 # path = "src/task_test.rs"
+
+[build-dependencies]
+cc = "^1.0"
