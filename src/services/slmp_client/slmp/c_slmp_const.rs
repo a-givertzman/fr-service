@@ -1,70 +1,9 @@
-// #[repr(C)]
-// pub struct CSlmpClient {
-    
-// }
-// //
-// //
-// impl CSlmpClient {
-
-// }
-//
-//
-extern "C" {
-    pub fn SLMP_MakePacketStream (
-        ulFrameType : std::ffi::c_ulong,         // unsigned long
-        slmp_info   : *const CSlmpInfo,          // const SLMP_INFO * p
-        pucStream   : *const std::ffi::c_uchar,  // unsigned char * pucStream
-    ) -> std::ffi::c_int;
-}
-
-
-#[repr(C)]
-pub struct CSlmpInfo {
-	ulFrameType     : std::ffi::c_ulong,			// unsigned long	/* Frame Type */
-	usSerialNumber  : std::ffi::c_ushort,			// unsigned short	/* Serial Number */
-	usNetNumber     : std::ffi::c_ushort,			// unsigned short	/* Network Number */
-	usNodeNumber    : std::ffi::c_ushort,			// unsigned short	/* Node Number */
-	usProcNumber    : std::ffi::c_ushort,			// unsigned short	/* Processor Number */
-	usDataLength    : std::ffi::c_ushort,			// unsigned short	/* Data Length */
-	usTimer         : std::ffi::c_ushort,			// unsigned short	/* Timer Value */
-	usCommand       : std::ffi::c_ushort,			// unsigned short	/* Command */
-	usSubCommand    : std::ffi::c_ushort,			// unsigned short	/* Sub Command */
-	usEndCode       : std::ffi::c_ushort,			// unsigned short	/* End Code */
-	pucData	        : *const std::ffi::c_uchar,		// unsigned char *	/* Data */
-}
-impl CSlmpInfo {
-    pub fn new(
-        ulFrameType     : FrameType,
-        usSerialNumber  : u16,
-        usNetNumber     : u16,
-        usNodeNumber    : u16,
-        usProcNumber    : ProcessorNumber,
-        usDataLength    : u16,
-        usTimer         : TimerValue,
-        usCommand       : SlmpCommand,
-        usSubCommand    : SlmpSubCommand,
-        usEndCode       : u16,
-        pucData	        : &[u8],
-    ) -> Self {
-        Self {
-            ulFrameType: ulFrameType as  u64,
-            usSerialNumber: usSerialNumber,
-            usNetNumber: usNetNumber,
-            usNodeNumber: usNodeNumber,
-            usProcNumber: usProcNumber as u16,
-            usDataLength: usDataLength,
-            usTimer: usTimer as u16,
-            usCommand: usCommand as u16,
-            usSubCommand: usSubCommand as u16,
-            usEndCode: usEndCode,
-            pucData: pucData.as_ptr(),
-        }
-    }
-}
 ///
 /// Definition of Frame Type
 /// - ST - Single transmission
 /// - MT - Multiple transmissions
+#[allow(dead_code)]
+#[derive(Debug, Clone, Copy)]
 pub enum FrameType {
     BinReqSt = 0x5000,
     BinResSt = 0xD000,
@@ -78,6 +17,7 @@ pub enum FrameType {
 ///
 /// Definition of Processor Number or as 
 /// documentation refer Destination unit I/O No.
+#[allow(dead_code)]
 pub enum ProcessorNumber {
     CpuActive = 0x03D0,
     CpuStandby = 0x03D1,
@@ -92,11 +32,13 @@ pub enum ProcessorNumber {
 ///
 /// Definition of Monitoring timer value.
 /// Can be increased, check documentation.
+#[allow(dead_code)]
 pub enum TimerValue {
     WaitForever = 0x0000,
 }
 ///
 /// List of SLMP Commands.
+#[allow(dead_code)]
 pub enum SlmpCommand {
     // Device
     DeviceRead = 0x0401,
@@ -174,6 +116,7 @@ pub enum SlmpCommand {
 /// Subcommand telling whether we communicate with registers 
 /// with binary/word/double word data or whether
 /// we communicate with CPU.
+#[allow(dead_code)]
 pub enum SlmpSubCommand {
     SubBit1 = 0x0001,
     SubBit3 = 0x0003,

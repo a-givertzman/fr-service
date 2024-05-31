@@ -1,12 +1,13 @@
 #[cfg(test)]
 
-mod tests {
+mod slmp_client {
+    use libc::fflush;
     use log::{warn, info, debug};
-    use std::{sync::Once, time::{Duration, Instant}};
+    use std::{io::{self, Read, Write}, net::TcpStream, ops::Deref, sync::Once, thread, time::{Duration, Instant}};
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
 
-    use crate::services::slmp_client::{self, slmp::{self, c_slmp_client::{self, CSlmpInfo, FrameType, ProcessorNumber, SLMP_MakePacketStream, SlmpCommand, SlmpSubCommand, TimerValue}, slmp_device_code::SlmpDeviceCode}};
+    use crate::services::slmp_client::slmp::{slmp_device_code::SlmpDeviceCode, slmp_packet::SlmpPacket};
     ///
     ///
     static INIT: Once = Once::new();
@@ -22,47 +23,142 @@ mod tests {
     ///  - ...
     fn init_each() -> () {}
     ///
-    /// Testing such functionality / behavior
-    #[test]
-    fn test_task_cycle() {
+    /// Testing read from SLMP device code D
+    // #[test]
+    fn read_d() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
         println!();
         let self_id = "test";
         println!("\n{}", self_id);
-        let test_duration = TestDuration::new(self_id, Duration::from_secs(10));
+        let test_duration = TestDuration::new(self_id, Duration::from_secs(1000));
         test_duration.run().unwrap();
-        let deviceCode = SlmpDeviceCode::D;
-        let offset: usize = 0;
-        let wordCount: u16 = 0;
-        let usSerialNumber = 0;
-        let usNetNumber = 0;
-        let usNodeNumber = 0xFF;
-        let usDataLength = 0;
-        let usEndCode = 0x0000;
-        let slmpHeadDevice = &offset.to_le_bytes()[..3];
-        let slmpWordCount = wordCount.to_le_bytes();
-        let pucData = [slmpHeadDevice, &[deviceCode as u8], &slmpWordCount].concat();
-        let slmp_info = CSlmpInfo::new(
-            FrameType::BinReqSt,
-            usSerialNumber,
-            usNetNumber,
-            usNodeNumber,
-            ProcessorNumber::CpuDefault,
-            usDataLength,
-            TimerValue::WaitForever,
-            SlmpCommand::DeviceRead,
-            SlmpSubCommand::SubWord0,
-            usEndCode,
-            &pucData,
-        );
-        let slmp_make_packet_stream = unsafe { SLMP_MakePacketStream(
-            FrameType::BinReqSt as u64, 
-            &slmp_info, 
-            pucData.as_ptr(),
-        ) };
-        println!("slmp_make_packet_stream: {}", slmp_make_packet_stream);
+        match SlmpPacket::new(self_id, SlmpDeviceCode::D, 1100, 18).read_packet() {
+            Ok(read_request) => {
+                debug!("read request: {:02X?}", read_request);
+                loop {
+                    match TcpStream::connect("192.168.120.200:4999") {
+                        Ok(mut stream) => {
+                            loop {
+                                match stream.write_all(&read_request) {
+                                    Ok(_) => {
+                                        print!("\t- Ok");
+                                        let mut reply = [0; 32];
+                                        match stream.read(&mut reply) {
+                                            Ok(_) => {
+                                                println!("\treply: {:?}", reply);
+        
+                                                const I16_SIZE: usize = 2;
+                                                const I32_SIZE: usize = 4;
+                                                const FLOAT_SIZE: usize = 4;
+                                                const FLOAT_COUNT: usize = 3;
+                                                const DATA_OFFSET: usize = 11; // for header skip
+                                                const DATA_SIZE: usize = FLOAT_COUNT * FLOAT_SIZE;
+                                                let data_without_header = &reply[DATA_OFFSET..(DATA_OFFSET + DATA_SIZE)];
+                                                println!("\tdata_without_header: {:?}", data_without_header);
+                                                let floats = data_without_header
+                                                    .chunks_exact(FLOAT_SIZE)
+                                                    .map(|chunk| {
+                                                        let bytes: [u8; FLOAT_SIZE] = chunk.try_into().unwrap();
+                                                        f32::from_le_bytes(bytes)
+                                                    })
+                                                    .collect::<Vec<f32>>();
+                                                println!("\tfloats: {:?}", floats);
+                                                let data_without_header = &reply[(DATA_OFFSET + DATA_SIZE)..(DATA_OFFSET + DATA_SIZE + I16_SIZE)];
+                                                println!("\tdata_without_header: {:?}", data_without_header);
+                                                let ints = data_without_header
+                                                    .chunks_exact(I16_SIZE)
+                                                    .map(|chunk| {
+                                                        let bytes: [u8; I16_SIZE] = chunk.try_into().unwrap();
+                                                        i16::from_le_bytes(bytes)
+                                                    })
+                                                    .collect::<Vec<i16>>();
+                                                println!("\tints: {:?}", ints);
+                                                let data_without_header = &reply[(DATA_OFFSET + DATA_SIZE+ I16_SIZE)..(DATA_OFFSET + DATA_SIZE + I16_SIZE + I32_SIZE)];
+                                                println!("\tdata_without_header: {:?}", data_without_header);
+                                                let ints = data_without_header
+                                                    .chunks_exact(I32_SIZE)
+                                                    .map(|chunk| {
+                                                        let bytes: [u8; I32_SIZE] = chunk.try_into().unwrap();
+                                                        i32::from_le_bytes(bytes)
+                                                    })
+                                                    .collect::<Vec<i32>>();
+                                                println!("\tbig ints: {:?}", ints);
+                                            },
+                                            Err(err) => warn!("Tcp read error: {:#?}", err),
+                                        }
+                                    }
+                                    Err(err) => warn!("Tcp send error: {:#?}", err),
+                                }
+                                thread::sleep(Duration::from_millis(1000));
+                            }
+                        },
+                        Err(err) => warn!("Tcp connection error: {:#?}", err),
+                    }
+                    thread::sleep(Duration::from_millis(1000));
+                }
+            }
+            Err(err) => warn!("Build write request error:: {:#?}", err),
+        }
+        // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
+        test_duration.exit();
+    }
+    // fn to_real() {
+    //     const FLOAT_SIZE: usize = 4;
+    //     const FLOAT_COUNT: usize = 3;
+    //     const DATA_OFFSET: usize = 11; // for header skip
+    //     const DATA_SIZE: usize = FLOAT_COUNT * FLOAT_SIZE;
+    //     let data_without_header = &reply[DATA_OFFSET..(DATA_OFFSET + DATA_SIZE)];
+    //     println!("\tdata_without_header: {:?}", data_without_header);
+    //     let floats = data_without_header
+    //         .chunks_exact(FLOAT_SIZE)
+    //         .map(|chunk| {
+    //             let bytes: [u8; 4] = chunk.try_into().unwrap();
+    //             f32::from_le_bytes(bytes)
+    //         })
+    //         .collect::<Vec<f32>>();
+    //     println!("\tfloats: {:?}", floats);
+    // }
+    ///
+    /// Testing write to SLMP device code D
+    #[test]
+    fn write_d() {
+        DebugSession::init(LogLevel::Debug, Backtrace::Short);
+        init_once();
+        init_each();
+        println!();
+        let self_id = "test";
+        println!("\n{}", self_id);
+        let test_duration = TestDuration::new(self_id, Duration::from_secs(1000));
+        test_duration.run().unwrap();
+        let slmp_packet = SlmpPacket::new(self_id, SlmpDeviceCode::D, 1106, 2);
+        loop {
+            match TcpStream::connect("192.168.120.200:4999") {
+                Ok(mut stream) => {
+                    loop {
+                        let write_bytes = &(-32768i16).to_le_bytes();
+                        debug!("write bytes: {:02X?}", write_bytes);
+                        match slmp_packet.write_packet(Some(write_bytes)) {
+                            Ok(write_request) => {
+                                debug!("write request: {:02X?}", write_request);
+                                match stream.write_all(&write_request) {
+                                    Ok(_) => {
+                                        println!("\t write - Ok");
+                                        io::stdout().flush().unwrap();
+                                    }
+                                    Err(err) => warn!("Tcp send error: {:#?}", err),
+                                }
+                                thread::sleep(Duration::from_millis(1000));
+                            },
+                            Err(err) => warn!("Build write request error:: {:#?}", err),
+                        }
+                    }
+                },
+                Err(err) => warn!("Tcp connection error: {:#?}", err),
+            }
+            thread::sleep(Duration::from_millis(1000));
+        }
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         test_duration.exit();
     }

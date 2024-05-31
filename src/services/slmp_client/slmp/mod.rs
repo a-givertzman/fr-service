@@ -15,4 +15,7 @@ pub mod slmp_parse_real;
 
 pub mod slmp_device_code;
 
-pub mod c_slmp_client;
+pub mod c_slmp_const;
+pub mod c_slmp_info;
+
+pub mod slmp_packet;

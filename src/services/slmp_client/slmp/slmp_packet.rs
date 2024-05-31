@@ -1,59 +1,21 @@
+use log::debug;
 
+use crate::services::slmp_client::slmp::c_slmp_const::{ProcessorNumber, SlmpCommand, SlmpSubCommand, TimerValue};
 
-fn create_read_request(deviceCode: SlmpDeviceCode, offset: usize, wordCount: usize) {
-    // Creates and returns packet ready to send.
-    // Packet contains device read command from D(word) register of specific device number.
-    // :return: packet
-    let slmpHeadDevice = int(offset).to_bytes(3, byteorder = 'little')
-    let slmpWordCount = int(wordCount).to_bytes(2, byteorder = 'little')
-    let pucData = b''.join([slmpHeadDevice, deviceCode.value, slmpWordCount])
-    let slmpPacket = SLMPPacket(
-        ulFrameType=FrameType.SLMP_FTYPE_BIN_REQ_ST.value, 
-        usNetNumber=0, 
-        usNodeNumber=0xFF,
-        usProcNumber=ProcessorNumber.SLMP_CPU_DEFAULT.value,
-        usTimer=TimerValue.SLMP_TIMER_WAIT_FOREVER.value,
-        usCommand=SLMPCommand.SLMP_COMMAND_DEVICE_READ.value,
-        usSubCommand=SLMPSubCommand.SUB_word0.value, pucData=pucData
-    )
-    packet = slmpPacket.create_stream()
-    return packet
+use super::{c_slmp_const::FrameType, c_slmp_info::CSlmpInfo, slmp_device_code::SlmpDeviceCode};
+
+extern "C" {
+    ///
+    /// A Function for making packet stream from the SLMP_Info structure */
+    pub fn SLMP_MakePacketStream (
+        ulFrameType : std::ffi::c_ulong,         // unsigned long
+        slmp_info   : *const CSlmpInfo,          // const SLMP_INFO * p
+        pucStream   : *const std::ffi::c_uchar,  // unsigned char * pucStream
+    ) -> std::ffi::c_int;
 }
 
-
-
 ///
-/// SLMP Info structure in c-type.
-/// Used in SLMP_MakePacketStream as argument.
-/// It needs to be prepared like that because of C language and pointers.
-/// Frame type     -> ASCII/BIN + REQUEST/RESPONSE + ST/MT
-/// Serial number  -> used only with MT(multiple transmission) frame types, marks request and response with this number
-/// Net number     -> network number(1 to 239), can be fined in parameters of target device (e.g. SLMPNWNO)
-/// Node number    -> station number (1 to 120), can be fined in parameters of target device (e.g. SLMPNDID)
-/// Proc number    -> destination unit I/O number
-/// Data length    -> length of data from usTimer to end of pucData, use function get_data_length
-/// Timer          -> monitoring timer
-/// Command        -> SLMP command (e.g. SLMP_COMMAND_DEVICE_READ, SLMP_COMMAND_SELF_TEST)
-/// SubCommand     -> 0x0001/0x0003 = per bit, 0x0000/0x0002 = per word, 0x0080/0x0082 = per word on CPU
-/// EndCode        -> used mostly in response
-/// Data           -> data which obtains device number, number of devices, its like arguments of used command
-struct SLMPInfoC {
-    _fields_ = [
-        ("ulFrameType", ctypes.c_ulong),
-        ("usSerialNumber", ctypes.c_ushort),
-        ("usNetNumber", ctypes.c_ushort),
-        ("usNodeNumber", ctypes.c_ushort),
-        ("usProcNumber", ctypes.c_ushort),
-        ("usDataLength", ctypes.c_ushort),
-        ("usTimer", ctypes.c_ushort),
-        ("usCommand", ctypes.c_ushort),
-        ("usSubCommand", ctypes.c_ushort),
-        ("usEndCode", ctypes.c_ushort),
-        ("pucData", ctypes.c_char_p)
-    ]
-}
-///
-///        Initialize and create SLMPInfoC structure.
+///        Initialize and create SLMPPacket structure.
 ///        Load C functions from .so file.
 ///        From SLMPInfoC structure is created packet with create_stream method.
 ///
@@ -71,126 +33,139 @@ struct SLMPInfoC {
 ///                                            0x0080/0x0082 = per word on CPU
 ///        :param usEndCode: used mostly in response
 ///        :param pucData: data which obtains device number, number of devices, its like arguments of used command
-struct SLMPPacket {
-    ulFrameType: usize,
-    usSerialNumber: usize,
-    usNetNumber: usize,
-    usNodeNumber: usize,
-    usProcNumber: usize,
-    usDataLength: usize,
-    usTimer: usize,
-    usCommand: usize,
-    usSubCommand: usize,
-    usEndCode: usize,
-    pucData: usize,
-    slmp_info_c: SLMPInfoC,
+pub struct SlmpPacket {
+    id: String,
+    device_code: SlmpDeviceCode,
+    offset: u32,
+    length: u16,
 }
 //
 //
-impl SLMPPacket {
+impl SlmpPacket {
     ///
     /// 
-    pub fn new(
-        ulFrameType: usize,
-        usSerialNumber:    Option<usize>,  // =0x0000,
-        usNetNumber:       Option<usize>,  // =0,
-        usNodeNumber:      Option<usize>,  // =0x00,
-        usProcNumber:      Option<usize>,  // =0x0000,
-        usDataLength:      Option<usize>,  // =0,
-        usTimer:           Option<usize>,  // =0x0000,
-        usCommand:         Option<usize>,  // =0x0000,
-        usSubCommand:      Option<usize>,  // =0x0000,
-        usEndCode:         Option<usize>,  // =0x0000,
-        pucData:           &str,           // =b""
-    ) {
-        c_lib = ctypes.CDLL(so_file)
-        try:        # Loading SLMP.h, SLMP.c
-            self.SLMP_MakePacketStream = c_lib.SLMP_MakePacketStream
-            self.SLMP_MakePacketStream.argtypes = [ctypes.c_ulong,
-                                                   ctypes.POINTER(SLMPInfoC),
-                                                   ctypes.POINTER(ctypes.c_ubyte * MAX_FRAME_SIZE)]
-            self.SLMP_MakePacketStream.restype = ctypes.c_int
-        except RuntimeError:
-            self.logger.critical("ERR: cannot use SLMP.h/SLMP.c")
-            raise ClibImportErr
-
-        # Creating SLMPInfoC structure
-        let slmp_info_c = SLMPInfoC::new(
-            ulFrameType, usSerialNumber, usNetNumber, usNodeNumber,
-            usProcNumber, usDataLength, usTimer, usCommand,
-            usSubCommand, usEndCode, pucData,
-        );
-        let instance = Self {
-            ulFrameType: ulFrameType
-            usSerialNumber: usSerialNumber
-            usNetNumber: usNetNumber
-            usNodeNumber: usNodeNumber
-            usProcNumber: usProcNumber
-            usTimer: usTimer
-            usCommand: usCommand
-            usSubCommand: usSubCommand
-            usEndCode: usEndCode
-            pucData: pucData
-            usDataLength: Self::get_data_length()
-            slmp_info_c
+    pub fn new(parent: impl Into<String>, device_code: SlmpDeviceCode, offset: u32, length: u16) -> Self {
+        Self {
+            id: format!("{}/SlmpPacket", parent.into()),
+            device_code,
+            offset,
+            length,
+        }
+    }
+    /// Gets usDataLength for PacketCreator.
+    /// TODO is there difference with length of serial number ? Check and add +2 to BIN and +4 to ASCII
+    fn data_length(ul_frame_type: FrameType, puc_data: &[u8], write_data_len: u16) -> u16 {
+        let length = puc_data.len() as u16;
+        match ul_frame_type {
+            FrameType::BinReqSt => length + 6,
+            FrameType::BinResSt => length + 2,
+            FrameType::BinReqMt => length + 6,
+            FrameType::BinResMt => length + 2,
+            FrameType::AsciiReqSt => length + 12,
+            FrameType::AsciiResSt => length + 4,
+            FrameType::AsciiReqMt => length + 12,
+            FrameType::AsciiResMt => length + 4,
         }
     }
     ///
-    /// 
-    fn create_stream(self) {
-        """
-        Creates packet, ready to send.
-        This packet is created with c function SLMP_MakePacketStream, which is from official library.
-        :return: packet
-        """
-        data = [0] * MAX_FRAME_SIZE     # Maximal length in bytes of your request packet
-        puc_stream = (ctypes.c_ubyte * MAX_FRAME_SIZE)(*data)
-
-        # Calling C function, check src/clib/SLMP.*
-        try:
-            res = self.SLMP_MakePacketStream(self.ulFrameType, self.slmp_info_c, puc_stream)
-            self.logger.info("packet stream created")
-        except:
-            self.logger.critical("ERR: cannot create SLMP packet")
-            raise ClibPacketErr
-
-        # Return only part of packet with data and remove empty spaces
-        if self.ulFrameType == FrameType.SLMP_FTYPE_BIN_REQ_ST.value or FrameType.SLMP_FTYPE_BIN_RES_ST.value:
-            puc_stream = bytearray(puc_stream)[:(9 + self.usDataLength)]
-        elif self.ulFrameType == FrameType.SLMP_FTYPE_BIN_REQ_MT.value or FrameType.SLMP_FTYPE_BIN_RES_MT.value:
-            puc_stream = bytearray(puc_stream)[:(13 + self.usDataLength)]
-        elif self.ulFrameType == FrameType.SLMP_FTYPE_ASCII_REQ_ST.value or FrameType.SLMP_FTYPE_ASCII_RES_ST.value:
-            puc_stream = bytearray(puc_stream)[:(18 + self.usDataLength)]
-        elif self.ulFrameType == FrameType.SLMP_FTYPE_ASCII_REQ_MT.value or FrameType.SLMP_FTYPE_ASCII_RES_MT.value:
-            puc_stream = bytearray(puc_stream)[:(26 + self.usDataLength)]
-        return puc_stream
+    /// Returns SLMP packet for Read from device, ready to send over ethrnet 
+    pub fn read_packet(&self) -> Result<Vec<u8>, String> {
+        self.build(None, SlmpCommand::DeviceRead)
     }
-
+    ///
+    /// Returns SLMP packet for Write to device, ready to send over ethrnet 
+    pub fn write_packet(&self, write_data: Option<&[u8]>) -> Result<Vec<u8>, String> {
+        self.build(write_data, SlmpCommand::DeviceWrite)
+    }
+    ///
+    /// Returns SLMP packet (read / write) ready to send over ethrnet 
+    fn build(&self, write_data: Option<&[u8]>, us_command: SlmpCommand) -> Result<Vec<u8>, String> {
+        let slmp_packet = SlmpPacketData::new(self.device_code, self.offset, self.length);
+        let puc_data = slmp_packet.build(write_data);
+        let ul_frame_type = FrameType::BinReqSt;
+        let us_serial_number = 0;
+        let us_net_number = 0;
+        let us_node_number = 0xFF;
+        let us_data_length = Self::data_length(ul_frame_type, &puc_data, write_data.map_or(0, |d| d.len() as u16));
+        let us_end_code = 0x0000;
+        debug!("{}.build | puc_data: {:?}", self.id, puc_data);
+        let slmp_info = CSlmpInfo::new(
+            ul_frame_type,
+            us_serial_number,
+            us_net_number,
+            us_node_number,
+            ProcessorNumber::CpuDefault,
+            us_data_length,
+            TimerValue::WaitForever,
+            us_command,
+            SlmpSubCommand::SubWord0,
+            us_end_code,
+            &puc_data,
+        );
+        let packet = &mut [0; 1518];
+        let slmp_make_packet_stream = unsafe { SLMP_MakePacketStream(
+            FrameType::BinReqSt as u64, 
+            &slmp_info, 
+            packet.as_mut_ptr(),
+        ) };
+        debug!("{}.build | slmp_make_packet_stream: {}", self.id, slmp_make_packet_stream);
+        if slmp_make_packet_stream == 0 {
+            Ok(self.trim_packet(ul_frame_type, us_data_length, packet))
+        } else {
+            Err(format!("{}.build | SLMP_MakePacketStream returns error code -1", self.id))
+        }
+    }
+    ///
+    /// Trim packet
+    fn trim_packet(&self, ul_frame_type: FrameType, us_data_length: u16, packet: &[u8]) -> Vec<u8> {
+        // let result = &mut [0; 1518];
+        let package = match ul_frame_type {
+            FrameType::BinReqSt => &packet[..(9 + us_data_length)  as usize],
+            FrameType::BinResSt => panic!("{}.build | Not implemented - SLMP_FTYPE_BIN_RES_ST is not a request type", self.id),
+            FrameType::BinReqMt =>  &packet[..(13 + us_data_length) as usize],
+            FrameType::BinResMt => panic!("{}.build | Not implemented - SLMP_FTYPE_BIN_RES_MT is not a request type", self.id),
+            FrameType::AsciiReqSt => &packet[..(18 + us_data_length) as usize],
+            FrameType::AsciiResSt => panic!("{}.build | Not implemented - SLMP_FTYPE_ASCII_RES_ST is not a request type", self.id),
+            FrameType::AsciiReqMt => &packet[..(26 + us_data_length) as usize],
+            FrameType::AsciiResMt => panic!("{}.build | Not implemented - SLMP_FTYPE_ASCII_RES_MT is not a request type", self.id),
+        };
+        package.to_owned()
+    }
+}
+///
+/// Structure used in the SlpmPacket
+/// for preparing request puc data 
+struct SlmpPacketData {
+    device_code: SlmpDeviceCode,
+    offset: u32,
+    length: u16,
+}
+//
+//
+impl SlmpPacketData {
+    ///
     /// 
-    /// Gets usDataLength for PacketCreator.
-    /// TODO is there difference with length of serial number ? Check and add +2 to BIN and +4 to ASCII
-    /// :return: data size
-    fn get_data_length(self) {
-        length = len(self.pucData)
-        if self.ulFrameType == FrameType.SLMP_FTYPE_BIN_REQ_ST.value:
-            length += 6
-        elif self.ulFrameType == FrameType.SLMP_FTYPE_BIN_REQ_MT.value:
-            length += 6
-        elif self.ulFrameType == FrameType.SLMP_FTYPE_BIN_RES_ST.value:
-            length += 2
-        elif self.ulFrameType == FrameType.SLMP_FTYPE_BIN_RES_MT.value:
-            length += 2
-        elif self.ulFrameType == FrameType.SLMP_FTYPE_ASCII_REQ_ST.value:
-            length += 12
-        elif self.ulFrameType == FrameType.SLMP_FTYPE_ASCII_REQ_MT.value:
-            length += 12
-        elif self.ulFrameType == FrameType.SLMP_FTYPE_ASCII_RES_ST.value:
-            length += 4
-        elif self.ulFrameType == FrameType.SLMP_FTYPE_ASCII_RES_MT.value:
-            length += 4
-        else:
-            length = 0
-
-        return length
+    pub fn new(device_code: SlmpDeviceCode, offset: u32, length: u16) -> Self {
+        Self { device_code, offset, length }
+    }
+    ///
+    /// 
+    fn copy_into(from: &mut [u8], pos: usize, to: &[u8]) {
+        let buf = &mut from[pos..];
+        let len = to.len().min(buf.len());
+        buf[..len].copy_from_slice(&to[..len]);
+    }
+    ///
+    /// 
+    pub fn build(&self, write_data: Option<&[u8]>) -> Vec<u8> {
+        let slmp_head_device = &self.offset.to_le_bytes()[..3];
+        // Mitsubushi controller word consists of 2 bytes. 
+        // So we need to divide package size in bytes by 2 to get words count.
+        let word_count = self.length / 2;
+        let slmp_word_count = (word_count as u16).to_le_bytes();
+        match write_data {
+            Some(bytes) => [slmp_head_device, &[self.device_code as u8], &slmp_word_count, bytes].concat(),
+            None =>               [slmp_head_device, &[self.device_code as u8], &slmp_word_count].concat(),
+        }
     }
 }

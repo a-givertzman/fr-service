@@ -1,5 +1,6 @@
 ///
 /// Classifies a Device Code for SLMP
+#[repr(u8)] // must be regarding SLMP DOCs
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SlmpDeviceCode {
     Sm = 0x91,     // Special relay (SM)
