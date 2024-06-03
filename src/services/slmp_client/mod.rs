@@ -10,3 +10,5 @@ pub mod slmp;
 pub mod parse_point;
 
 pub mod slmp_read;
+
+pub mod slmp_write;

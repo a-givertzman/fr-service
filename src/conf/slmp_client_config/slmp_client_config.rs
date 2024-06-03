@@ -5,7 +5,7 @@ use crate::{
     conf::{
         conf_tree::ConfTree, diag_keywd::DiagKeywd,
         point_config::{name::Name, point_config::PointConfig},
-        profinet_client_config::{keywd::{Keywd, Kind}, profinet_db_config::ProfinetDbConfig},
+        slmp_client_config::{keywd::{Keywd, Kind}, slmp_db_config::SlmpDbConfig},
         service_config::ServiceConfig,
     }, 
     core_::types::map::IndexMapFxHasher,
@@ -54,10 +54,8 @@ pub struct SlmpClientConfig {
     pub(crate) description: String,
     pub(crate) ip: String,
     pub(crate) port: u64,
-    // pub(crate) rack: u64,
-    // pub(crate) slot: u64,
     pub(crate) diagnosis: IndexMapFxHasher<DiagKeywd, PointConfig>,
-    pub(crate) dbs: IndexMap<String, ProfinetDbConfig>,
+    pub(crate) dbs: IndexMap<String, SlmpDbConfig>,
 }
 //
 // 
@@ -102,7 +100,7 @@ impl SlmpClientConfig {
                 let mut device_conf = self_conf.get(key).unwrap();
                 debug!("{}.new | DB '{}'", self_id, db_name);
                 trace!("{}.new | DB '{}'   |   conf: {:?}", self_id, db_name, device_conf);
-                let node_conf = ProfinetDbConfig::new(&self_name, &db_name, &mut device_conf);
+                let node_conf = SlmpDbConfig::new(&self_name, &db_name, &mut device_conf);
                 dbs.insert(
                     db_name,
                     node_conf,
@@ -121,8 +119,6 @@ impl SlmpClientConfig {
             description,
             ip,
             port,
-            // rack,
-            // slot,
             diagnosis,
             dbs
         }

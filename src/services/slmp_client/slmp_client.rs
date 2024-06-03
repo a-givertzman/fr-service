@@ -1,11 +1,12 @@
-use std::{collections::HashMap, fmt::Debug, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread, time::Duration};
-use hashers::fx_hash::FxHasher;
-use indexmap::IndexMap;
+use std::{fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread, time::Duration};
 use log::{debug, info, warn};
 use testing::stuff::wait::WaitTread;
 use crate::{
-    conf::{diag_keywd::DiagKeywd, point_config::name::Name, slmp_client_config::slmp_client_config::SlmpClientConfig, tcp_client_config::TcpClientConfig}, core_::{net::protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}, types::map::IndexMapFxHasher}, services::{diagnosis::diag_point::DiagPoint, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services, slmp_client::{slmp_db::SlmpDb, slmp_read::SlmpRead}}, tcp::{
-        tcp_client_connect::TcpClientConnect, tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive
+    conf::{diag_keywd::DiagKeywd, point_config::name::Name, slmp_client_config::slmp_client_config::SlmpClientConfig},
+    core_::{object::object::Object, point::point_tx_id::PointTxId, types::map::IndexMapFxHasher},
+    services::{diagnosis::diag_point::DiagPoint, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services, slmp_client::{slmp_read::SlmpRead, slmp_write::SlmpWrite}},
+    tcp::{
+        tcp_client_connect::TcpClientConnect, tcp_read_alive::TcpReadAlive, tcp_write_alive::TcpWriteAlive
     } 
 };
 ///
@@ -84,36 +85,86 @@ impl Service for SlmpClient {
         let tx_send = self.services.slock().get_link(&conf.send_to).unwrap_or_else(|err| {
             panic!("{}.run | services.get_link error: {:#?}", self.id, err);
         });
-        let tx_send = self.services.slock().get_link(&self.conf.tx).unwrap_or_else(|err| {
+        let tx_send = self.services.slock().get_link(&self.conf.send_to).unwrap_or_else(|err| {
             panic!("{}.run | services.get_link error: {:#?}", self.id, err);
         });
-        let read = SlmpRead::new()
+        let mut tcp_client_connect = TcpClientConnect::new(
+            self_id.clone(), 
+            format!("{}:{}", conf.ip, conf.port),
+            conf.reconnect_cycle,
+        );
+        let slmp_read = SlmpRead::new(
+            &self_id,
+            self.tx_id,
+            self.name.clone(),
+            conf.clone(),
+            tx_send.clone(),
+            self.diagnosis.clone(),
+            Some(exit),
+            Some(exit_pair),
+        );
+        let slmp_write = SlmpWrite::new(
+            &self_id,
+            self.tx_id,
+            self.name.clone(),
+            conf.clone(),
+            tx_send.clone(),
+            self.diagnosis.clone(),
+            Some(exit),
+            Some(exit_pair),
+        );
+
         // Self::yield_diagnosis(&self.id, &self.diagnosis.clone(), &DiagKeywd::Status, Status::Ok, &tx_send);
         // Self::yield_diagnosis(&self.id, &self.diagnosis.clone(), &DiagKeywd::Connection, Status::Invalid, &tx_send);
-        let handle_read = self.read(tx_send.clone());
-        let handle_write = self.write(tx_send);
-        info!("{}.run | started", self.id);
-        match (handle_read, handle_write) {
-            (Ok(handle_read), Ok(handle_write)) => {
-                Ok(ServiceHandles::new(vec![
-                    (format!("{}/read", self.id), handle_read),
-                    (format!("{}/write", self.id), handle_write),
-                ]))
+        info!("{}.run | Preparing thread...", self_id);
+        let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
+            info!("{}.run | Preparing thread - ok", self_id);
+            loop {
+                exit_pair.store(false, Ordering::SeqCst);
+                if let Some(tcp_stream) = tcp_client_connect.connect() {
+                    let h_r = slmp_read.run(tcp_stream.try_clone().unwrap());
+                    let h_w = slmp_write.run(tcp_stream);
+                    h_r.wait().unwrap();
+                    h_w.wait().unwrap();
+                };
+                if exit.load(Ordering::SeqCst) {
+                    break;
+                }
             }
-            (Ok(handle_read), Err(err)) => {
-                self.exit();
-                handle_read.wait().unwrap();
-                Err(format!("{}.run | Error starting inner thread 'read': {:#?}", self.id, err))
+        });
+        match handle {
+            Ok(handle) => {
+                info!("{}.run | Starting - ok", self.id);
+                Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
             }
-            (Err(err), Ok(handle_write)) => {
-                self.exit();
-                handle_write.wait().unwrap();
-                Err(format!("{}.run | Error starting inner thread 'write': {:#?}", self.id, err))
-            }
-            (Err(read_err), Err(write_err)) => {
-                Err(format!("{}.run | Error starting inner thread: \n\t  read: {:#?}\n\t write: {:#?}", self.id, read_err, write_err))
+            Err(err) => {
+                let message = format!("{}.run | Start failed: {:#?}", self.id, err);
+                warn!("{}", message);
+                Err(message)
             }
         }
+
+        // match (handle_read, handle_write) {
+        //     (Ok(handle_read), Ok(handle_write)) => {
+        //         Ok(ServiceHandles::new(vec![
+        //             (format!("{}/read", self.id), handle_read),
+        //             (format!("{}/write", self.id), handle_write),
+        //         ]))
+        //     }
+        //     (Ok(handle_read), Err(err)) => {
+        //         self.exit();
+        //         handle_read.wait().unwrap();
+        //         Err(format!("{}.run | Error starting inner thread 'read': {:#?}", self.id, err))
+        //     }
+        //     (Err(err), Ok(handle_write)) => {
+        //         self.exit();
+        //         handle_write.wait().unwrap();
+        //         Err(format!("{}.run | Error starting inner thread 'write': {:#?}", self.id, err))
+        //     }
+        //     (Err(read_err), Err(write_err)) => {
+        //         Err(format!("{}.run | Error starting inner thread: \n\t  read: {:#?}\n\t write: {:#?}", self.id, read_err, write_err))
+        //     }
+        // }
 
     }
     //

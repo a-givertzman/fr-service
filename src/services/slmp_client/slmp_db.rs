@@ -1,4 +1,4 @@
-use std::{fs, io::{Read, Write}, net::TcpStream, sync::mpsc::Sender, time::Duration};
+use std::{fs, io::{BufReader, Read, Write}, net::TcpStream, sync::mpsc::Sender, time::Duration};
 use chrono::Utc;
 use concat_string::concat_string;
 use indexmap::IndexMap;
@@ -30,13 +30,13 @@ use crate::{
 /// Represents SLMP Data Block - a collection of the SLMP addresses
 pub struct SlmpDb {
     id: String,
-    pub name: Name,
-    pub description: String,
-    pub device_code: DeviceCode,
-    pub offset: u32,
-    pub size: u16,
-    pub slmp_packet: SlmpPacket,
-    pub cycle: Option<Duration>,
+    name: Name,
+    description: String,
+    device_code: DeviceCode,
+    offset: u32,
+    size: u16,
+    cycle: Option<Duration>,
+    slmp_packet: SlmpPacket,
     pub points: IndexMap<String, Box<dyn ParsePoint>>,
 }
 //
@@ -57,8 +57,8 @@ impl SlmpDb {
             device_code: conf.device_code,
             offset: conf.offset as u32,
             size: conf.size,
-            slmp_packet,
             cycle: conf.cycle,
+            slmp_packet,
             points: Self::configure_parse_points(&self_id, tx_id, conf),
         }
     }
@@ -76,6 +76,47 @@ impl SlmpDb {
                 }
             }
         }
+    }
+    ///
+    /// Sends all configured points from the current DB with the given status
+    pub fn yield_status(&mut self, status: Status, tx_send: &Sender<PointType>) -> Result<(), String> {
+        let mut message = String::new();
+        for (_key, parse_point) in &mut self.points {
+            if let Some(point) = parse_point.next_status(status) {
+                match tx_send.send(point) {
+                    Ok(_) => {}
+                    Err(err) => {
+                        message = format!("{}.yield_status | send error: {}", self.id, err);
+                        warn!("{}", message);
+                    }
+                }
+            }
+        }
+        if message.is_empty() {
+            return Ok(())
+        }
+        Err(message)
+    }
+    ///
+    /// Configuring ParsePoint objects depending on point configurations coming from [conf]
+    fn configure_parse_points(self_id: &str, tx_id: usize, conf: &SlmpDbConfig) -> IndexMap<String, Box<dyn ParsePoint>> {
+        conf.points.iter().map(|point_conf| {
+            match point_conf.type_ {
+                PointConfigType::Bool => {
+                    (point_conf.name.clone(), Self::box_bool(tx_id, point_conf.name.clone(), point_conf))
+                }
+                PointConfigType::Int => {
+                    (point_conf.name.clone(), Self::box_int(tx_id, point_conf.name.clone(), point_conf))
+                }
+                PointConfigType::Real => {
+                    (point_conf.name.clone(), Self::box_real(tx_id, point_conf.name.clone(), point_conf))
+                }
+                PointConfigType::Double => {
+                    (point_conf.name.clone(), Self::box_real(tx_id, point_conf.name.clone(), point_conf))
+                }
+                _ => panic!("{}.configureParsePoints | Unknown type '{:?}' for Device", self_id, point_conf.type_)
+            }
+        }).collect()
     }
     ///
     /// Returns all available bytes from the socket
@@ -109,21 +150,21 @@ impl SlmpDb {
                 }
             }
         }
-    }    
-    ///
+    }
     /// Returns updated points from the current DB
     ///     - sends read request to the device (TcpStream)
     ///     - reads data slice from the device (TcpStream),
     ///     - parses raw data into the configured points
     ///     - sends to the [dest] only points with updated value or status
-    pub fn read(&mut self, tcp_stream: &mut TcpStream, tx_send: &Sender<PointType>) -> Result<(), String> {
+    pub fn read(&mut self, tcp_stream: &mut TcpStream, dest: &Sender<PointType>) -> Result<(), String> {
         debug!("{}.read | Reading device-code: '{:?}', offset: '{}', size: '{}'", self.id, self.device_code, self.offset, self.size);
+        let read_tcp_stream = BufReader::new(tcp_stream.try_clone().unwrap());
         match self.slmp_packet.read_packet(FrameType::BinReqSt) {
             Ok(packet) => {
                 match tcp_stream.write_all(&packet) {
                     Ok(_) => {
                         let mut bytes = vec![];
-                        match Self::read_all(&self.id, &mut bytes, tcp_stream) {
+                        match Self::read_all(&self.id, &mut bytes, read_tcp_stream) {
                             ConnectionStatus::Active(_) => {
                                 trace!("{}.read | bytes: {:?}", self.id, bytes);
                                 let timestamp = Utc::now();
@@ -131,7 +172,7 @@ impl SlmpDb {
                                 for (_key, parse_point) in &mut self.points {
                                     if let Some(point) = parse_point.next(&bytes, timestamp) {
                                         // debug!("{}.read | point: {:?}", self.id, point);
-                                        match tx_send.send(point) {
+                                        match dest.send(point) {
                                             Ok(_) => {}
                                             Err(err) => {
                                                 message = format!("{}.read | send error: {}", self.id, err);
@@ -165,26 +206,6 @@ impl SlmpDb {
                 Err(message)
             },
         }
-    }
-    ///
-    /// Sends all configured points from the current DB with the given status
-    pub fn yield_status(&mut self, status: Status, tx_send: &Sender<PointType>) -> Result<(), String> {
-        let mut message = String::new();
-        for (_key, parse_point) in &mut self.points {
-            if let Some(point) = parse_point.next_status(status) {
-                match tx_send.send(point) {
-                    Ok(_) => {}
-                    Err(err) => {
-                        message = format!("{}.yield_status | send error: {}", self.id, err);
-                        warn!("{}", message);
-                    }
-                }
-            }
-        }
-        if message.is_empty() {
-            return Ok(())
-        }
-        Err(message)
     }
     ///
     /// Writes point to the current DB
@@ -243,33 +264,11 @@ impl SlmpDb {
                     }
                     Err(err) => Err(err),
                 }
-
             }
             None => {
                 Err(message)
             }
         }
-    }
-    ///
-    /// Configuring ParsePoint objects depending on point configurations coming from [conf]
-    fn configure_parse_points(self_id: &str, tx_id: usize, conf: &SlmpDbConfig) -> IndexMap<String, Box<dyn ParsePoint>> {
-        conf.points.iter().map(|point_conf| {
-            match point_conf.type_ {
-                PointConfigType::Bool => {
-                    (point_conf.name.clone(), Self::box_bool(tx_id, point_conf.name.clone(), point_conf))
-                }
-                PointConfigType::Int => {
-                    (point_conf.name.clone(), Self::box_int(tx_id, point_conf.name.clone(), point_conf))
-                }
-                PointConfigType::Real => {
-                    (point_conf.name.clone(), Self::box_real(tx_id, point_conf.name.clone(), point_conf))
-                }
-                PointConfigType::Double => {
-                    (point_conf.name.clone(), Self::box_real(tx_id, point_conf.name.clone(), point_conf))
-                }
-                _ => panic!("{}.configureParsePoints | Unknown type '{:?}' for Device", self_id, point_conf.type_)
-            }
-        }).collect()
     }
     ///
     ///

@@ -1,6 +1,9 @@
-use std::io::{Read, ErrorKind};
+use std::io::Read;
 use log::trace;
-use crate::{core_::net::{connection_status::{ConnectionStatus, SocketState}, protocols::jds::jds_define::JDS_END_OF_TRANSMISSION}, tcp::tcp_stream_write::OpResult};
+use crate::{
+    core_::net::{connection_status::{ConnectionStatus, SocketState}, protocols::jds::jds_define::JDS_END_OF_TRANSMISSION},
+    tcp::tcp_stream_write::OpResult,
+};
 ///
 /// Reads bytes from TcpStream
 /// splits bytes sequence with Jds.endOfTransmission = 4 separator
