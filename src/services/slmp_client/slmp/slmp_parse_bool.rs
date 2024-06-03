@@ -2,15 +2,15 @@ use log::warn;
 use std::array::TryFromSliceError;
 use chrono::{DateTime, Utc};
 use crate::{
-    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress, point_config_history::PointConfigHistory},
+    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress, point_config_history::PointConfigHistory, point_config_type::PointConfigType},
     core_::{cot::cot::Cot, point::{point::Point, point_type::PointType}, status::status::Status, types::bool::Bool},
-    services::profinet_client::parse_point::ParsePoint,
+    services::slmp_client::parse_point::ParsePoint,
 };
-
 ///
-///
+/// Used for parsing configured point from slice of bytes read from device
 #[derive(Debug, Clone)]
-pub struct S7ParseBool {
+pub struct SlmpParseBool {
+    pub type_: PointConfigType,
     pub tx_id: usize,
     pub name: String,
     pub value: bool,
@@ -23,7 +23,7 @@ pub struct S7ParseBool {
     pub timestamp: DateTime<Utc>,
     is_changed: bool,
 }
-impl S7ParseBool {
+impl SlmpParseBool {
     ///
     ///
     pub fn new(
@@ -31,8 +31,9 @@ impl S7ParseBool {
         name: String,
         config: &PointConfig,
         // filter: Filter<T>,
-    ) -> S7ParseBool {
-        S7ParseBool {
+    ) -> SlmpParseBool {
+        SlmpParseBool {
+            type_: config.type_.clone(),
             tx_id,
             name,
             value: false,
@@ -61,7 +62,7 @@ impl S7ParseBool {
                 Ok(b > 0)
             }
             Err(e) => {
-                warn!("S7ParseBool.convert | error: {}", e);
+                warn!("SlmpParseBool.convert | error: {}", e);
                 Err(e)
             }
         }
@@ -108,13 +109,18 @@ impl S7ParseBool {
             }
             Err(e) => {
                 self.status = Status::Invalid;
-                warn!("S7ParseBool.addRaw | convertion error: {:?}", e);
+                warn!("SlmpParseBool.addRaw | convertion error: {:?}", e);
             }
         }
     }
 }
 ///
-impl ParsePoint for S7ParseBool {
+impl ParsePoint for SlmpParseBool {
+    //
+    //
+    fn type_(&self) -> PointConfigType {
+        self.type_.clone()
+    }
     //
     //
     fn next_simple(&mut self, bytes: &[u8]) -> Option<PointType> {

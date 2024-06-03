@@ -3,7 +3,7 @@
 /// - ST - Single transmission
 /// - MT - Multiple transmissions
 #[allow(dead_code)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum FrameType {
     BinReqSt = 0x5000,
     BinResSt = 0xD000,

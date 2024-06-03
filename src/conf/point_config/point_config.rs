@@ -34,7 +34,7 @@ pub struct PointConfig {
     pub name: String,
     #[serde(rename = "type")]
     #[serde(alias = "type", alias = "Type")]
-    pub _type: PointConfigType,
+    pub type_: PointConfigType,
     #[serde(default)]
     #[serde(skip_serializing_if = "is_none")]
     pub history: PointConfigHistory,

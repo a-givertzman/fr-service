@@ -1,9 +1,8 @@
 use log::debug;
-
 use crate::services::slmp_client::slmp::c_slmp_const::{ProcessorNumber, SlmpCommand, SlmpSubCommand, TimerValue};
-
-use super::{c_slmp_const::FrameType, c_slmp_info::CSlmpInfo, slmp_device_code::SlmpDeviceCode};
-
+use super::{c_slmp_const::FrameType, c_slmp_info::CSlmpInfo, device_code::DeviceCode};
+//
+//
 extern "C" {
     ///
     /// A Function for making packet stream from the SLMP_Info structure */
@@ -13,7 +12,6 @@ extern "C" {
         pucStream   : *const std::ffi::c_uchar,  // unsigned char * pucStream
     ) -> std::ffi::c_int;
 }
-
 ///
 ///        Initialize and create SLMPPacket structure.
 ///        Load C functions from .so file.
@@ -35,7 +33,7 @@ extern "C" {
 ///        :param pucData: data which obtains device number, number of devices, its like arguments of used command
 pub struct SlmpPacket {
     id: String,
-    device_code: SlmpDeviceCode,
+    device_code: DeviceCode,
     offset: u32,
     length: u16,
 }
@@ -44,7 +42,7 @@ pub struct SlmpPacket {
 impl SlmpPacket {
     ///
     /// 
-    pub fn new(parent: impl Into<String>, device_code: SlmpDeviceCode, offset: u32, length: u16) -> Self {
+    pub fn new(parent: impl Into<String>, device_code: DeviceCode, offset: u32, length: u16) -> Self {
         Self {
             id: format!("{}/SlmpPacket", parent.into()),
             device_code,
@@ -54,7 +52,7 @@ impl SlmpPacket {
     }
     /// Gets usDataLength for PacketCreator.
     /// TODO is there difference with length of serial number ? Check and add +2 to BIN and +4 to ASCII
-    fn data_length(ul_frame_type: FrameType, puc_data: &[u8], write_data_len: u16) -> u16 {
+    fn data_length(ul_frame_type: FrameType, puc_data: &[u8]) -> u16 {
         let length = puc_data.len() as u16;
         match ul_frame_type {
             FrameType::BinReqSt => length + 6,
@@ -69,28 +67,28 @@ impl SlmpPacket {
     }
     ///
     /// Returns SLMP packet for Read from device, ready to send over ethrnet 
-    pub fn read_packet(&self) -> Result<Vec<u8>, String> {
-        self.build(None, SlmpCommand::DeviceRead)
+    pub fn read_packet(&self, frame_type: FrameType) -> Result<Vec<u8>, String> {
+        self.build(frame_type, None, SlmpCommand::DeviceRead)
     }
     ///
     /// Returns SLMP packet for Write to device, ready to send over ethrnet 
-    pub fn write_packet(&self, write_data: Option<&[u8]>) -> Result<Vec<u8>, String> {
-        self.build(write_data, SlmpCommand::DeviceWrite)
+    pub fn write_packet(&self, frame_type: FrameType, write_data: &[u8]) -> Result<Vec<u8>, String> {
+        self.build(frame_type, Some(write_data), SlmpCommand::DeviceWrite)
     }
     ///
     /// Returns SLMP packet (read / write) ready to send over ethrnet 
-    fn build(&self, write_data: Option<&[u8]>, us_command: SlmpCommand) -> Result<Vec<u8>, String> {
+    fn build(&self, frame_type: FrameType, write_data: Option<&[u8]>, us_command: SlmpCommand) -> Result<Vec<u8>, String> {
         let slmp_packet = SlmpPacketData::new(self.device_code, self.offset, self.length);
         let puc_data = slmp_packet.build(write_data);
-        let ul_frame_type = FrameType::BinReqSt;
+        // let frame_type = FrameType::BinReqSt;
         let us_serial_number = 0;
         let us_net_number = 0;
         let us_node_number = 0xFF;
-        let us_data_length = Self::data_length(ul_frame_type, &puc_data, write_data.map_or(0, |d| d.len() as u16));
+        let us_data_length = Self::data_length(frame_type, &puc_data);
         let us_end_code = 0x0000;
         debug!("{}.build | puc_data: {:?}", self.id, puc_data);
         let slmp_info = CSlmpInfo::new(
-            ul_frame_type,
+            frame_type,
             us_serial_number,
             us_net_number,
             us_node_number,
@@ -103,14 +101,14 @@ impl SlmpPacket {
             &puc_data,
         );
         let packet = &mut [0; 1518];
-        let slmp_make_packet_stream = unsafe { SLMP_MakePacketStream(
-            FrameType::BinReqSt as u64, 
+        let slmp_make_packet_result = unsafe { SLMP_MakePacketStream(
+            frame_type as u64, 
             &slmp_info, 
             packet.as_mut_ptr(),
         ) };
-        debug!("{}.build | slmp_make_packet_stream: {}", self.id, slmp_make_packet_stream);
-        if slmp_make_packet_stream == 0 {
-            Ok(self.trim_packet(ul_frame_type, us_data_length, packet))
+        debug!("{}.build | slmp_make_packet_result: {}", self.id, slmp_make_packet_result);
+        if slmp_make_packet_result == 0 {
+            Ok(self.trim_packet(frame_type, us_data_length, packet))
         } else {
             Err(format!("{}.build | SLMP_MakePacketStream returns error code -1", self.id))
         }
@@ -136,7 +134,7 @@ impl SlmpPacket {
 /// Structure used in the SlpmPacket
 /// for preparing request puc data 
 struct SlmpPacketData {
-    device_code: SlmpDeviceCode,
+    device_code: DeviceCode,
     offset: u32,
     length: u16,
 }
@@ -145,7 +143,7 @@ struct SlmpPacketData {
 impl SlmpPacketData {
     ///
     /// 
-    pub fn new(device_code: SlmpDeviceCode, offset: u32, length: u16) -> Self {
+    pub fn new(device_code: DeviceCode, offset: u32, length: u16) -> Self {
         Self { device_code, offset, length }
     }
     ///

@@ -13,7 +13,7 @@ pub mod slmp_parse_bool;
 pub mod slmp_parse_int;
 pub mod slmp_parse_real;
 
-pub mod slmp_device_code;
+pub mod device_code;
 
 pub mod c_slmp_const;
 pub mod c_slmp_info;

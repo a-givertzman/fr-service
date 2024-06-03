@@ -228,7 +228,7 @@ impl CacheService {
             Ok(mut cache) => {
                 let timestamp = Utc::now();
                 for point_config in points {
-                    let point = match point_config._type {
+                    let point = match point_config.type_ {
                         PointConfigType::Bool => PointType::Bool(Point::new(
                             tx_id,
                             &point_config.name,

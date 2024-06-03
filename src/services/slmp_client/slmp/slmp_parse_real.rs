@@ -2,15 +2,15 @@ use log::warn;
 use std::array::TryFromSliceError;
 use chrono::{DateTime, Utc};
 use crate::{
-    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress, point_config_history::PointConfigHistory},
+    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress, point_config_history::PointConfigHistory, point_config_type::PointConfigType},
     core_::{cot::cot::Cot, filter::filter::Filter, point::{point::Point, point_type::PointType}, status::status::Status},
-    services::profinet_client::parse_point::ParsePoint,
+    services::slmp_client::parse_point::ParsePoint,
 };
-
 ///
-///
+/// Used for parsing configured point from slice of bytes read from device
 #[derive(Debug)]
-pub struct S7ParseReal {
+pub struct SlmpParseReal {
+    pub type_: PointConfigType,
     pub tx_id: usize,
     pub name: String,
     pub value: Box<dyn Filter<Item = f32>>,
@@ -24,7 +24,7 @@ pub struct S7ParseReal {
 }
 //
 //
-impl S7ParseReal {
+impl SlmpParseReal {
     ///
     ///
     pub fn new(
@@ -32,8 +32,9 @@ impl S7ParseReal {
         name: String,
         config: &PointConfig,
         filter: Box<dyn Filter<Item = f32>>,
-    ) -> S7ParseReal {
-        S7ParseReal {
+    ) -> SlmpParseReal {
+        SlmpParseReal {
+            type_: config.type_.clone(),
             tx_id,
             value: filter,
             status: Status::Invalid,
@@ -57,7 +58,7 @@ impl S7ParseReal {
         match bytes[start..(start + 4)].try_into() {
             Ok(v) => Ok(f32::from_be_bytes(v)),
             Err(e) => {
-                warn!("S7ParseReal.convert | error: {}", e);
+                warn!("SlmpParseReal.convert | error: {}", e);
                 Err(e)
             }
         }
@@ -100,14 +101,19 @@ impl S7ParseReal {
             }
             Err(e) => {
                 self.status = Status::Invalid;
-                warn!("S7ParseReal.addRaw | convertion error: {:?}", e);
+                warn!("SlmpParseReal.addRaw | convertion error: {:?}", e);
             }
         }
     }
 }
 //
 //
-impl ParsePoint for S7ParseReal {
+impl ParsePoint for SlmpParseReal {
+    //
+    //
+    fn type_(&self) -> PointConfigType {
+        self.type_.clone()
+    }
     //
     //
     fn next_simple(&mut self, bytes: &[u8]) -> Option<PointType> {

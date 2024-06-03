@@ -1,8 +1,10 @@
-use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread, time::Duration};
+use std::{collections::HashMap, fmt::Debug, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread, time::Duration};
+use hashers::fx_hash::FxHasher;
+use indexmap::IndexMap;
 use log::{debug, info, warn};
 use testing::stuff::wait::WaitTread;
 use crate::{
-    conf::{diag_keywd::DiagKeywd, point_config::name::Name, slmp_client_config::slmp_client_config::SlmpClientConfig, tcp_client_config::TcpClientConfig}, core_::{net::protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}, types::map::IndexMapFxHasher}, services::{diagnosis::diag_point::DiagPoint, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services}, tcp::{
+    conf::{diag_keywd::DiagKeywd, point_config::name::Name, slmp_client_config::slmp_client_config::SlmpClientConfig, tcp_client_config::TcpClientConfig}, core_::{net::protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}, types::map::IndexMapFxHasher}, services::{diagnosis::diag_point::DiagPoint, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services, slmp_client::{slmp_db::SlmpDb, slmp_read::SlmpRead}}, tcp::{
         tcp_client_connect::TcpClientConnect, tcp_read_alive::TcpReadAlive, tcp_stream_write::TcpStreamWrite, tcp_write_alive::TcpWriteAlive
     } 
 };
@@ -82,78 +84,37 @@ impl Service for SlmpClient {
         let tx_send = self.services.slock().get_link(&conf.send_to).unwrap_or_else(|err| {
             panic!("{}.run | services.get_link error: {:#?}", self.id, err);
         });
-        // let buffered = conf.rx_buffered; // TODO Read this from config
-        // let in_recv = self.in_recv.pop().unwrap();
-        // let (cyclic, cycleInterval) = match conf.cycle {
-        //     Some(interval) => (interval > Duration::ZERO, interval),
-        //     None => (false, Duration::ZERO),
-        // };
-        let reconnect = conf.reconnect_cycle.clone();
-        let mut tcp_client_connect = TcpClientConnect::new(
-            self_id.clone(), 
-            format!("{}:{}", conf.ip, conf.port),
-            reconnect,
-        );
-        let mut tcp_read_alive = TcpReadAlive::new(
-            &self_id,
-            Arc::new(Mutex::new(
-                JdsDeserialize::new(
-                    self_id.clone(),
-                    JdsDecodeMessage::new(
-                        &self_id,
-                    ),
-                ),
-            )),
-            tx_send,
-            Some(Duration::from_millis(10)),
-            Some(exit.clone()),
-            Some(exit_pair.clone()),
-        );
-        // let tcp_write_alive = TcpWriteAlive::new(
-        //     &self_id,
-        //     None,
-        //     Arc::new(Mutex::new(TcpStreamWrite::new(
-        //         &self_id,
-        //         buffered,
-        //         Some(conf.rx_max_len as usize),
-        //         Box::new(JdsEncodeMessage::new(
-        //             &self_id,
-        //             JdsSerialize::new(
-        //                 &self_id,
-        //                 in_recv,
-        //             ),
-        //         )),
-        //     ))),
-        //     Some(exit.clone()),
-        //     Some(exit_pair.clone()),
-        // );
-        info!("{}.run | Preparing thread...", self_id);
-        let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
-            info!("{}.run | Preparing thread - ok", self_id);
-            loop {
-                exit_pair.store(false, Ordering::SeqCst);
-                if let Some(tcp_stream) = tcp_client_connect.connect() {
-                    let h_r = tcp_read_alive.run(tcp_stream.try_clone().unwrap());
-                    // let h_w = tcp_write_alive.run(tcp_stream);
-                    h_r.wait().unwrap();
-                    // h_w.wait().unwrap();
-                };
-                if exit.load(Ordering::SeqCst) {
-                    break;
-                }
-            }
+        let tx_send = self.services.slock().get_link(&self.conf.tx).unwrap_or_else(|err| {
+            panic!("{}.run | services.get_link error: {:#?}", self.id, err);
         });
-        match handle {
-            Ok(handle) => {
-                info!("{}.run | Starting - ok", self.id);
-                Ok(ServiceHandles::new(vec![(self.id.clone(), handle)]))
+        let read = SlmpRead::new()
+        // Self::yield_diagnosis(&self.id, &self.diagnosis.clone(), &DiagKeywd::Status, Status::Ok, &tx_send);
+        // Self::yield_diagnosis(&self.id, &self.diagnosis.clone(), &DiagKeywd::Connection, Status::Invalid, &tx_send);
+        let handle_read = self.read(tx_send.clone());
+        let handle_write = self.write(tx_send);
+        info!("{}.run | started", self.id);
+        match (handle_read, handle_write) {
+            (Ok(handle_read), Ok(handle_write)) => {
+                Ok(ServiceHandles::new(vec![
+                    (format!("{}/read", self.id), handle_read),
+                    (format!("{}/write", self.id), handle_write),
+                ]))
             }
-            Err(err) => {
-                let message = format!("{}.run | Start failed: {:#?}", self.id, err);
-                warn!("{}", message);
-                Err(message)
+            (Ok(handle_read), Err(err)) => {
+                self.exit();
+                handle_read.wait().unwrap();
+                Err(format!("{}.run | Error starting inner thread 'read': {:#?}", self.id, err))
+            }
+            (Err(err), Ok(handle_write)) => {
+                self.exit();
+                handle_write.wait().unwrap();
+                Err(format!("{}.run | Error starting inner thread 'write': {:#?}", self.id, err))
+            }
+            (Err(read_err), Err(write_err)) => {
+                Err(format!("{}.run | Error starting inner thread: \n\t  read: {:#?}\n\t write: {:#?}", self.id, read_err, write_err))
             }
         }
+
     }
     //
     //

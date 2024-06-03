@@ -1,26 +1,30 @@
-use std::{fs, io::Write, sync::mpsc::Sender, time::Duration};
+use std::{fs, io::{Read, Write}, net::TcpStream, sync::mpsc::Sender, time::Duration};
 use chrono::Utc;
 use concat_string::concat_string;
 use indexmap::IndexMap;
-use log::{trace, warn};
+use log::{debug, error, trace, warn};
 use crate::{
     conf::{
-        point_config::{name::Name, point_config::PointConfig, point_config_filters::PointConfigFilter, point_config_type::PointConfigType},
-        profinet_client_config::profinet_db_config::ProfinetDbConfig
+        point_config::{
+            name::Name, point_config::PointConfig, 
+            point_config_filters::PointConfigFilter, 
+            point_config_type::PointConfigType,
+        }, 
+        slmp_client_config::slmp_db_config::SlmpDbConfig,
     },
     core_::{
         filter::{filter::{Filter, FilterEmpty}, filter_threshold::FilterThreshold},
-        point::point_type::PointType, status::status::Status
+        net::connection_status::{ConnectionStatus, SocketState},
+        point::point_type::PointType, status::status::Status,
     },
-    services::profinet_client::{
+    services::slmp_client::{
         parse_point::ParsePoint,
-        s7::{
-            s7_client::S7Client,
-            s7_parse_bool::S7ParseBool,
-            s7_parse_int::S7ParseInt,
-            s7_parse_real::S7ParseReal,
+        slmp::{
+            c_slmp_const::FrameType, device_code::DeviceCode, slmp_packet::SlmpPacket,
+            slmp_parse_bool::SlmpParseBool, slmp_parse_int::SlmpParseInt, slmp_parse_real::SlmpParseReal,
         }
-    }
+    },
+    tcp::tcp_stream_write::OpResult,
 };
 ///
 /// Represents SLMP Data Block - a collection of the SLMP addresses
@@ -28,9 +32,10 @@ pub struct SlmpDb {
     id: String,
     pub name: Name,
     pub description: String,
-    pub number: u32,
+    pub device_code: DeviceCode,
     pub offset: u32,
-    pub size: u32,
+    pub size: u16,
+    pub slmp_packet: SlmpPacket,
     pub cycle: Option<Duration>,
     pub points: IndexMap<String, Box<dyn ParsePoint>>,
 }
@@ -42,15 +47,17 @@ impl SlmpDb {
     /// - app - string represents application name, for point path
     /// - parent - parent id, used for debugging
     /// - conf - configuration of the [SlmpDb]
-    pub fn new(parent_id: impl Into<String>, tx_id: usize, conf: &ProfinetDbConfig) -> Self {
+    pub fn new(parent_id: impl Into<String>, tx_id: usize, conf: &SlmpDbConfig) -> Self {
         let self_id = format!("{}/SlmpDb({})", parent_id.into(), conf.name);
+        let slmp_packet = SlmpPacket::new(&self_id, conf.device_code, conf.offset, conf.size);
         Self {
             id: self_id.clone(),
             name: conf.name.clone(),
             description: conf.description.clone(),
-            number: conf.number as u32,
+            device_code: conf.device_code,
             offset: conf.offset as u32,
-            size: conf.size as u32,
+            size: conf.size,
+            slmp_packet,
             cycle: conf.cycle,
             points: Self::configure_parse_points(&self_id, tx_id, conf),
         }
@@ -71,99 +78,92 @@ impl SlmpDb {
         }
     }
     ///
-    /// Fake read method
-    /// Returns updated points from the virtual DB, stored in the array
-    ///     - parses raw data into the configured points
-    ///     - returns only points with updated value or status
-    // pub fn read(&mut self, client: &S7Client, tx_send: &Sender<PointType>) -> Result<(), String> {
-    //     let mut rnd = rand::thread_rng();
-    //     let bytes = match self.name.me().as_str() {
-    //         "db902_panel_controls" => {
-    //             let index = rnd.gen_range(0..IED12_BYTES.len());
-    //             IED12_BYTES[index]
-    //         }
-    //         "db905_visual_data_fast" => {
-    //             let index = rnd.gen_range(0..IED13_BYTES.len());
-    //             IED13_BYTES[index]
-    //         }
-    //         "db906_visual_data" => {
-    //             let index = rnd.gen_range(0..IED14_BYTES.len());
-    //             IED14_BYTES[index]
-    //         }
-    //         _ => panic!("{}.read | Unknown db: '{}'", self.id, self.name.me()),
-    //     };
-    //     // debug!("{}.read | bytes: {:?}", self.id, bytes);
-    //     let timestamp = Utc::now();
-    //     let mut message = String::new();
-    //     for (_key, parse_point) in &mut self.points {
-    //         if let Some(point) = parse_point.next(&bytes, timestamp) {
-    //             // debug!("{}.read | point: {:?}", self.id, point);
-    //             match tx_send.send(point.clone()) {
-    //                 Ok(_) => {
-    //                     trace!("{}.read | sent point: {:?}", self.id, point);
-    //                     Self::log(&self.id, &self.name, &point);
-    //                 }
-    //                 Err(err) => {
-    //                     message = format!("{}.read | send error: {}", self.id, err);
-    //                     warn!("{}", message);
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     match message.is_empty() {
-    //         true => Ok(()),
-    //         false => Err(message),
-    //     }
-    // }
+    /// Returns all available bytes from the socket
+    /// - returns Active: if read bytes non zero length without errors
+    /// - returns Closed:
+    ///    - if read 0 bytes
+    ///    - if on error
+    fn read_all(self_id: &str, bytes: &mut Vec<u8>, mut stream: impl Read) -> ConnectionStatus<OpResult<(), String>, String> {
+        match stream.read_to_end(bytes) {
+            Ok(len) => {
+                trace!("{}.read_all | bytes read: {}", self_id, len);
+                if len > 0 {
+                    ConnectionStatus::Active(OpResult::Ok(()))
+                } else {
+                    ConnectionStatus::Closed(format!("{}.read_all | Tcp stream is closed", self_id))
+                }
+            }
+            Err(err) => {
+                // warn!("{}.read_all | error reading from socket: {:?}", self_id, err);
+                // warn!("{}.read_all | error kind: {:?}", self_id, err.kind());
+                match SocketState::match_error_kind(err.kind()) {
+                    SocketState::Active => {
+                        ConnectionStatus::Active(OpResult::Err(format!("{}.read_all | Tcp stream is empty", self_id)))
+                    }
+                    SocketState::Closed => {
+                        ConnectionStatus::Closed(format!("{}.read_all | Tcp stream is closed, error: {:?}", self_id, err))
+                    }
+                    SocketState::Timeout => {
+                        ConnectionStatus::Active(OpResult::Timeout())
+                    }
+                }
+            }
+        }
+    }    
     ///
     /// Returns updated points from the current DB
-    ///     - reads data slice from the S7 device,
+    ///     - sends read request to the device (TcpStream)
+    ///     - reads data slice from the device (TcpStream),
     ///     - parses raw data into the configured points
-    ///     - returns only points with updated value or status
-    pub fn read(&mut self, client: &S7Client, tx_send: &Sender<PointType>) -> Result<(), String> {
-        match client.is_connected() {
-            Ok(is_connected) => {
-                if is_connected {
-                    trace!("{}.read | reading DB: {:?}, offset: {:?}, size: {:?}", self.id, self.number, self.offset, self.size);
-                    match client.read(self.number, self.offset, self.size) {
-                        Ok(bytes) => {
-                            trace!("{}.read | bytes: {:?}", self.id, bytes);
-                            let timestamp = Utc::now();
-                            let mut message = String::new();
-                            for (_key, parse_point) in &mut self.points {
-                                if let Some(point) = parse_point.next(&bytes, timestamp) {
-                                    // debug!("{}.read | point: {:?}", self.id, point);
-                                    match tx_send.send(point) {
-                                        Ok(_) => {}
-                                        Err(err) => {
-                                            message = format!("{}.read | send error: {}", self.id, err);
-                                            warn!("{}", message);
+    ///     - sends to the [dest] only points with updated value or status
+    pub fn read(&mut self, tcp_stream: &mut TcpStream, tx_send: &Sender<PointType>) -> Result<(), String> {
+        debug!("{}.read | Reading device-code: '{:?}', offset: '{}', size: '{}'", self.id, self.device_code, self.offset, self.size);
+        match self.slmp_packet.read_packet(FrameType::BinReqSt) {
+            Ok(packet) => {
+                match tcp_stream.write_all(&packet) {
+                    Ok(_) => {
+                        let mut bytes = vec![];
+                        match Self::read_all(&self.id, &mut bytes, tcp_stream) {
+                            ConnectionStatus::Active(_) => {
+                                trace!("{}.read | bytes: {:?}", self.id, bytes);
+                                let timestamp = Utc::now();
+                                let mut message = String::new();
+                                for (_key, parse_point) in &mut self.points {
+                                    if let Some(point) = parse_point.next(&bytes, timestamp) {
+                                        // debug!("{}.read | point: {:?}", self.id, point);
+                                        match tx_send.send(point) {
+                                            Ok(_) => {}
+                                            Err(err) => {
+                                                message = format!("{}.read | send error: {}", self.id, err);
+                                                warn!("{}", message);
+                                            }
                                         }
                                     }
                                 }
-                            }
                                 match message.is_empty() {
                                     true => Ok(()),
                                     false => Err(message),
                                 }
-                        }
-                        Err(err) => {
-                            let message = format!("{}.read | read error: {}", self.id, err);
-                            warn!("{}", message);
-                            Err(message)
+                            }
+                            ConnectionStatus::Closed(err) => {
+                                let message = format!("{}.read | Read socket error: {}", self.id, err);
+                                warn!("{}", message);
+                                Err(message)
+                            }
                         }
                     }
-                } else {
-                    let message = format!("{}.read | read error: Is not connected", self.id);
-                    warn!("{}", message);
-                    Err(message)
+                    Err(err) => {
+                        let message = format!("{}.read | Write socket error: {}", self.id, err);
+                        warn!("{}", message);
+                        Err(message)
+                    }
                 }
             }
             Err(err) => {
-                let message = format!("{}.read | read error: {}", self.id, err);
-                warn!("{}", message);
+                let message = format!("{}.read | Build read packet error: {}", self.id, err);
+                error!("{}", message);
                 Err(message)
-            }
+            },
         }
     }
     ///
@@ -189,35 +189,61 @@ impl SlmpDb {
     ///
     /// Writes point to the current DB
     ///     - Returns Ok() if succeed, Err(message) on fail
-    pub fn write(&mut self, client: &S7Client, point: PointType) -> Result<(), String> {
+    pub fn write(&mut self, tcp_stream: &mut TcpStream, point: PointType) -> Result<(), String> {
         let mut message = String::new();
         match self.points.get(&point.name()) {
-            Some(parse_point) => {
-                let address = parse_point.address();
-                match point {
+            Some(_parse_point) => {
+                let bytes = match point {
                     PointType::Bool(point) => {
                         // !!! Not implemented because before write byte of the bool bits, that byte must be read from device
                         // let mut buf = [0; 16];
                         // let index = address.offset.unwrap() as usize;
                         // buf[index] = point.value.0 as u8;
                         // client.write(self.number, address.offset.unwrap(), 2, &mut buf)
-                        message = format!("{}.write | Write 'Bool' to the S7 Device - not implemented, point: {:?}", self.id, point.name);
+                        message = format!("{}.write | Write 'Bool' to the Device - not implemented, point: {:?}", self.id, point.name);
                         Err(message)
                     }
                     PointType::Int(point) => {
-                        client.write(self.number, address.offset.unwrap(), 2, &mut (point.value as i16).to_be_bytes())
+                        match i16::try_from(point.value) {
+                            Ok(value) => {
+                                let write_data = value.to_le_bytes();
+                                match self.slmp_packet.write_packet(FrameType::BinReqSt, &write_data) {
+                                    Ok(write_packet) => Ok(write_packet),
+                                    Err(err) => Err(err),
+                                }
+                            }
+                            Err(err) => {
+                                message = format!("{}.write | Type 'Int' to i16 conversion error: {:#?} in the point: {:#?}", self.id, err, point.name);
+                                Err(message)
+                            }
+                        }
                     }
                     PointType::Real(point) => {
-                        client.write(self.number, address.offset.unwrap(), 4, &mut (point.value).to_be_bytes())
+                        let write_data = point.value.to_le_bytes();
+                        match self.slmp_packet.write_packet(FrameType::BinReqSt, &write_data) {
+                            Ok(write_packet) => Ok(write_packet),
+                            Err(err) => Err(err),
+                        }
                     }
                     PointType::Double(point) => {
-                        client.write(self.number, address.offset.unwrap(), 4, &mut (point.value as f32).to_be_bytes())
-                    }
-                    PointType::String(point) => {
-                        message = format!("{}.write | Write 'String' to the S7 Device - not implemented, point: {:?}", self.id, point.name);
+                        message = format!("{}.write | Write 'Double' to the Device - not implemented, point: {:?}", self.id, point.name);
                         Err(message)
                     }
+                    PointType::String(point) => {
+                        message = format!("{}.write | Write 'String' to the Device - not implemented, point: {:?}", self.id, point.name);
+                        Err(message)
+                    }
+                };
+                match bytes {
+                    Ok(bytes) => {
+                        match tcp_stream.write_all(&bytes) {
+                            Ok(_) => Ok(()),
+                            Err(err) => Err(format!("{}.write | Write to socket error: {:#?}", self.id, err)),
+                        }
+                    }
+                    Err(err) => Err(err),
                 }
+
             }
             None => {
                 Err(message)
@@ -226,9 +252,9 @@ impl SlmpDb {
     }
     ///
     /// Configuring ParsePoint objects depending on point configurations coming from [conf]
-    fn configure_parse_points(self_id: &str, tx_id: usize, conf: &ProfinetDbConfig) -> IndexMap<String, Box<dyn ParsePoint>> {
+    fn configure_parse_points(self_id: &str, tx_id: usize, conf: &SlmpDbConfig) -> IndexMap<String, Box<dyn ParsePoint>> {
         conf.points.iter().map(|point_conf| {
-            match point_conf._type {
+            match point_conf.type_ {
                 PointConfigType::Bool => {
                     (point_conf.name.clone(), Self::box_bool(tx_id, point_conf.name.clone(), point_conf))
                 }
@@ -241,19 +267,19 @@ impl SlmpDb {
                 PointConfigType::Double => {
                     (point_conf.name.clone(), Self::box_real(tx_id, point_conf.name.clone(), point_conf))
                 }
-                _ => panic!("{}.configureParsePoints | Unknown type '{:?}' for S7 Device", self_id, point_conf._type)
+                _ => panic!("{}.configureParsePoints | Unknown type '{:?}' for Device", self_id, point_conf.type_)
             }
         }).collect()
     }
     ///
     ///
     fn box_bool(tx_id: usize, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
-        Box::new(S7ParseBool::new(tx_id, name, config))
+        Box::new(SlmpParseBool::new(tx_id, name, config))
     }
     ///
     ///
     fn box_int(tx_id: usize, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
-        Box::new(S7ParseInt::new(
+        Box::new(SlmpParseInt::new(
             tx_id,
             name,
             config,
@@ -263,7 +289,7 @@ impl SlmpDb {
     ///
     ///
     fn box_real(tx_id: usize, name: String, config: &PointConfig) -> Box<dyn ParsePoint> {
-        Box::new(S7ParseReal::new(
+        Box::new(SlmpParseReal::new(
             tx_id,
             name,
             config,

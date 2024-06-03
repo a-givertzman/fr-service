@@ -9,7 +9,7 @@ use crate::{
         service_config::ServiceConfig,
     }, 
     core_::types::map::IndexMapFxHasher,
-    services::slmp_client::slmp::slmp_device_code::SlmpDeviceCode,
+    services::slmp_client::slmp::device_code::DeviceCode,
 };
 ///
 /// creates config from serde_yaml::Value of following format:
@@ -50,7 +50,7 @@ pub struct SlmpClientConfig {
     pub(crate) reconnect_cycle: Duration,
     pub(crate) subscribe: String,
     pub(crate) send_to: String,
-    pub(crate) device_code: SlmpDeviceCode,
+    pub(crate) device_code: DeviceCode,
     pub(crate) description: String,
     pub(crate) ip: String,
     pub(crate) port: u64,
@@ -80,7 +80,7 @@ impl SlmpClientConfig {
         debug!("{}.new | sudscribe: {:?}", self_id, subscribe);
         let send_to = self_conf.get_send_to().unwrap();
         debug!("{}.new | send-to: '{}'", self_id, send_to);
-        let device_code = SlmpDeviceCode::from(self_conf.get_param_value("device-code").unwrap().as_str().unwrap());
+        let device_code = DeviceCode::from(self_conf.get_param_value("device-code").unwrap().as_str().unwrap());
         debug!("{}.new | device-code: {:?}", self_id, device_code);
         let description = self_conf.get_param_value("description").unwrap().as_str().unwrap().to_string();
         debug!("{}.new | description: {:?}", self_id, description);

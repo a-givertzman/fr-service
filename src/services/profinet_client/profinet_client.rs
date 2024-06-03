@@ -15,13 +15,7 @@ use crate::{
         profinet_client_config::profinet_client_config::ProfinetClientConfig,
     },
     core_::{
-        constants::constants::RECV_TIMEOUT,
-        cot::cot::Cot,
-        failure::errors_limit::ErrorsLimit,
-        object::object::Object,
-        point::{point::Point, point_tx_id::PointTxId, point_type::PointType},
-        status::status::Status,
-        types::map::IndexMapFxHasher,
+        constants::constants::RECV_TIMEOUT, cot::cot::Cot, failure::errors_limit::ErrorsLimit, object::object::Object, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, state::change_notify::ChangeNotify, status::status::Status, types::map::IndexMapFxHasher
     },
     services::{
         diagnosis::diag_point::DiagPoint,
@@ -118,10 +112,13 @@ impl ProfinetClient {
                 if cycle_interval > Duration::ZERO {
                     info!("{}.read | Preparing thread...", self_id);
                     let handle = thread::Builder::new().name(format!("{}.read", self_id)).spawn(move || {
-                        let mut is_connected = ConnectionNotify::new(
-                            None,
-                            Box::new(|message| info!("{}", message)),
-                            Box::new(|message| warn!("{}", message)),
+                        let mut is_connected = ChangeNotify::new(
+                            &self_id,
+                            false,
+                            vec![
+                                (true,  Box::new(|message| info!("{}", message))),
+                                (false, Box::new(|message| warn!("{}", message))),
+                            ],
                         );
                         let mut dbs = IndexMap::with_hasher(BuildHasherDefault::<FxHasher>::default());
                         for (db_name, db_conf) in conf.dbs {
@@ -205,10 +202,13 @@ impl ProfinetClient {
         let diagnosis = self.diagnosis.clone();
         info!("{}.write | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.write", self_id.clone())).spawn(move || {
-            let mut is_connected = ConnectionNotify::new(
-                None,
-                Box::new(|message| info!("{}", message)),
-                Box::new(|message| warn!("{}", message)),
+            let mut is_connected = ChangeNotify::new(
+                &self_id,
+                false,
+                vec![
+                    (true,  Box::new(|message| info!("{}", message))),
+                    (false, Box::new(|message| warn!("{}", message))),
+                ]
             );
             let mut dbs = IndexMap::with_hasher(BuildHasherDefault::<FxHasher>::default());
             let mut points: Vec<PointConfig> = vec![];
@@ -434,36 +434,5 @@ impl Service for ProfinetClient {
     //
     fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
-    }
-}
-///
-/// Logging connection status on changes only
-struct ConnectionNotify {
-    is_connected: Option<bool>,
-    on_connected: Box<dyn Fn(&str)>,
-    on_disconnected: Box<dyn Fn(&str)>,
-}
-//
-//
-impl ConnectionNotify {
-    //
-    //
-    pub fn new(initial: Option<bool>, on_connected: Box<dyn Fn(&str)>, on_disconnected: Box<dyn Fn(&str)>) -> Self {
-        Self {
-            is_connected: initial,
-            on_connected,
-            on_disconnected,
-        }
-    }
-    ///
-    /// Add new state
-    pub fn add(&mut self, connected: bool, message: &str) {
-        if Some(connected) != self.is_connected {
-            self.is_connected = Some(connected);
-            match connected {
-                true => (self.on_connected)(message),
-                false => (self.on_disconnected)(message),
-            }
-        }
     }
 }

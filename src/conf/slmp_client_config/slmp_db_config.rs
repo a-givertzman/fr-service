@@ -1,32 +1,36 @@
 use log::{debug, trace};
 use std::{str::FromStr, time::Duration};
-use crate::conf::{
-    conf_tree::ConfTree, 
-    fn_::fn_conf_keywd::{FnConfKeywd, FnConfKindName}, 
-    point_config::{point_config::PointConfig, name::Name}, 
-    service_config::ServiceConfig,
+use crate::{
+    conf::{
+        conf_tree::ConfTree, 
+        fn_::fn_conf_keywd::{FnConfKeywd, FnConfKindName}, 
+        point_config::{name::Name, point_config::PointConfig}, 
+        service_config::ServiceConfig,
+    }, 
+    services::slmp_client::slmp::device_code::DeviceCode,
 };
 ///
 /// 
 #[derive(Debug, PartialEq, Clone)]
-pub struct ProfinetDbConfig {
+pub struct SlmpDbConfig {
     pub(crate) name: Name,
     pub(crate) description: String,
     pub(crate) number: u64,
-    pub(crate) offset: u64,
-    pub(crate) size: u64,
+    pub(crate) device_code: DeviceCode,
+    pub(crate) offset: u32,
+    pub(crate) size: u16,
     pub(crate) cycle: Option<Duration>,
     pub(crate) points: Vec<PointConfig>,
 }
 //
 // 
-impl ProfinetDbConfig {
+impl SlmpDbConfig {
     ///
-    /// Creates new instance of the ProfinetDbConfig
+    /// Creates new instance of the SlmpDbConfig
     pub fn new(parent: impl Into<String>, name: &str, conf_tree: &mut ConfTree) -> Self {
-        trace!("ProfinetDbConfig.new | confTree: {:?}", conf_tree);
+        trace!("SlmpDbConfig.new | confTree: {:?}", conf_tree);
         let self_conf = conf_tree.clone();
-        let self_id = format!("ProfinetDbConfig({})", self_conf.key);
+        let self_id = format!("SlmpDbConfig({})", self_conf.key);
         let mut self_conf = ServiceConfig::new(&self_id, self_conf);
         trace!("{}.new | self_conf: {:?}", self_id, self_conf);
         let self_name = Name::new(parent, name);
@@ -37,6 +41,11 @@ impl ProfinetDbConfig {
         debug!("{}.new | description: {:?}", self_id, description);
         let number = self_conf.get_param_value("number").unwrap().as_u64().unwrap();
         debug!("{}.new | number: {:?}", self_id, number);
+
+        let device_code = self_conf.get_param_value("device-code").unwrap();
+        let device_code = DeviceCode::from(device_code.as_str().unwrap());
+        debug!("{}.new | device-code: {:?}", self_id, device_code);
+
         let offset = self_conf.get_param_value("offset").unwrap().as_u64().unwrap();
         debug!("{}.new | offset: {:?}", self_id, offset);
         let size = self_conf.get_param_value("size").unwrap().as_u64().unwrap();
@@ -61,8 +70,9 @@ impl ProfinetDbConfig {
             name: self_name,
             description,
             number,
-            offset,
-            size,
+            device_code,
+            offset: u32::try_from(offset).unwrap(),
+            size: u16::try_from(size).unwrap(),
             cycle,
             points,
         }

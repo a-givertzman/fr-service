@@ -2,7 +2,7 @@
 /// Classifies a Device Code for SLMP
 #[repr(u8)] // must be regarding SLMP DOCs
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum SlmpDeviceCode {
+pub enum DeviceCode {
     Sm = 0x91,     // Special relay (SM)
     Sd = 0xA9,     // Special register (SD)
     X  = 0x9C,     // Input (X)
@@ -17,7 +17,7 @@ pub enum SlmpDeviceCode {
 }
 //
 //
-impl From<&str> for SlmpDeviceCode {
+impl From<&str> for DeviceCode {
     fn from(value: &str) -> Self {
         let value = value.to_lowercase();
         match value.as_str() {

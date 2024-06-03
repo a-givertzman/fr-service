@@ -2,14 +2,15 @@ use log::{debug, warn};
 use std::array::TryFromSliceError;
 use chrono::{DateTime, Utc};
 use crate::{
-    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress, point_config_history::PointConfigHistory},
+    conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress, point_config_history::PointConfigHistory, point_config_type::PointConfigType},
     core_::{cot::cot::Cot, filter::filter::Filter, point::{point::Point, point_type::PointType}, status::status::Status},
-    services::profinet_client::parse_point::ParsePoint,
+    services::slmp_client::parse_point::ParsePoint,
 };
 ///
-///
+/// Used for parsing configured point from slice of bytes read from device
 #[derive(Debug)]
-pub struct S7ParseInt {
+pub struct SlmpParseInt {
+    pub type_: PointConfigType,
     pub tx_id: usize,
     pub name: String,
     pub value: Box<dyn Filter<Item = i64>>,
@@ -23,7 +24,7 @@ pub struct S7ParseInt {
 }
 //
 //
-impl S7ParseInt {
+impl SlmpParseInt {
     ///
     ///
     pub fn new(
@@ -31,8 +32,9 @@ impl S7ParseInt {
         name: String,
         config: &PointConfig,
         filter: Box<dyn Filter<Item = i64>>,
-    ) -> S7ParseInt {
-        S7ParseInt {
+    ) -> SlmpParseInt {
+        SlmpParseInt {
+            type_: config.type_.clone(),
             tx_id,
             name,
             value: filter,
@@ -53,13 +55,13 @@ impl S7ParseInt {
         start: usize,
         _bit: usize,
     ) -> Result<i16, TryFromSliceError> {
-        // debug!("S7ParseInt.convert | start: {},  end: {:?}", start, start + 2);
+        // debug!("SlmpParseInt.convert | start: {},  end: {:?}", start, start + 2);
         // let raw: [u8; 2] = (bytes[start..(start + 2)]).try_into().unwrap();
-        // debug!("S7ParseInt.convert | raw: {:?}", raw);
+        // debug!("SlmpParseInt.convert | raw: {:?}", raw);
         match bytes[start..(start + 2)].try_into() {
             Ok(v) => Ok(i16::from_be_bytes(v)),
             Err(e) => {
-                debug!("S7ParseInt.convert | error: {}", e);
+                debug!("SlmpParseInt.convert | error: {}", e);
                 Err(e)
             }
         }
@@ -103,14 +105,19 @@ impl S7ParseInt {
             }
             Err(e) => {
                 self.status = Status::Invalid;
-                warn!("S7ParseInt.addRaw | convertion error: {:?}", e);
+                warn!("SlmpParseInt.addRaw | convertion error: {:?}", e);
             }
         }
     }
 }
 //
 //
-impl ParsePoint for S7ParseInt {
+impl ParsePoint for SlmpParseInt {
+    //
+    //
+    fn type_(&self) -> PointConfigType {
+        self.type_.clone()
+    }
     //
     //
     fn next_simple(&mut self, bytes: &[u8]) -> Option<PointType> {

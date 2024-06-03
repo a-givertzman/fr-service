@@ -1,13 +1,11 @@
 #[cfg(test)]
 
 mod slmp_client {
-    use libc::fflush;
-    use log::{warn, info, debug};
-    use std::{io::{self, Read, Write}, net::TcpStream, ops::Deref, sync::Once, thread, time::{Duration, Instant}};
+    use log::{warn, debug};
+    use std::{io::{self, Read, Write}, net::TcpStream, sync::Once, thread, time::Duration};
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-
-    use crate::services::slmp_client::slmp::{slmp_device_code::SlmpDeviceCode, slmp_packet::SlmpPacket};
+    use crate::services::slmp_client::slmp::{c_slmp_const::FrameType, device_code::DeviceCode, slmp_packet::SlmpPacket};
     ///
     ///
     static INIT: Once = Once::new();
@@ -34,7 +32,8 @@ mod slmp_client {
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(1000));
         test_duration.run().unwrap();
-        match SlmpPacket::new(self_id, SlmpDeviceCode::D, 1100, 18).read_packet() {
+        let slmp_packet = SlmpPacket::new(self_id, DeviceCode::D, 1100, 18);
+        match slmp_packet.read_packet(FrameType::BinReqSt) {
             Ok(read_request) => {
                 debug!("read request: {:02X?}", read_request);
                 loop {
@@ -132,14 +131,14 @@ mod slmp_client {
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(1000));
         test_duration.run().unwrap();
-        let slmp_packet = SlmpPacket::new(self_id, SlmpDeviceCode::D, 1106, 2);
+        let slmp_packet = SlmpPacket::new(self_id, DeviceCode::D, 1106, 2);
         loop {
             match TcpStream::connect("192.168.120.200:4999") {
                 Ok(mut stream) => {
                     loop {
                         let write_bytes = &(-32768i16).to_le_bytes();
                         debug!("write bytes: {:02X?}", write_bytes);
-                        match slmp_packet.write_packet(Some(write_bytes)) {
+                        match slmp_packet.write_packet(FrameType::BinReqSt, write_bytes) {
                             Ok(write_request) => {
                                 debug!("write request: {:02X?}", write_request);
                                 match stream.write_all(&write_request) {
@@ -160,6 +159,6 @@ mod slmp_client {
             thread::sleep(Duration::from_millis(1000));
         }
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
-        test_duration.exit();
+        // test_duration.exit();
     }
 }
