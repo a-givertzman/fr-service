@@ -1,6 +1,6 @@
 use std::{
     hash::BuildHasherDefault, net::TcpStream,
-    sync::{mpsc::Sender, Arc, Mutex, RwLock},
+    sync::{atomic::{AtomicU32, Ordering}, mpsc::Sender, Arc, Mutex, RwLock},
     thread::{self, JoinHandle}, time::Duration,
 };
 use hashers::fx_hash::FxHasher;
@@ -30,6 +30,7 @@ pub struct SlmpRead {
     dest: Sender<PointType>,
     dbs: Arc<RwLock<IndexMapFxHasher<String, SlmpDb>>>,
     diagnosis: Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
+    status: Arc<AtomicU32>,
     exit: Arc<ExitNotify>,
 }
 impl SlmpRead {
@@ -42,6 +43,7 @@ impl SlmpRead {
         conf: SlmpClientConfig,
         dest: Sender<PointType>,
         diagnosis: Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
+        status: Arc<AtomicU32>,
         exit: Arc<ExitNotify>,
     ) -> Self {
         let self_id = format!("{}/SlmpRead", parent.into());
@@ -54,6 +56,7 @@ impl SlmpRead {
             dest,
             dbs: Arc::new(RwLock::new(dbs)),
             diagnosis,
+            status,
             exit,
         }
     }
@@ -113,6 +116,7 @@ impl SlmpRead {
     pub fn run(&mut self, mut tcp_stream: TcpStream) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.read | starting...", self.id);
         let self_id = self.id.clone();
+        let status = self.status.clone();
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         let dbs = self.dbs.clone();
@@ -132,7 +136,6 @@ impl SlmpRead {
                         ],
                     );
                     let mut cycle = ServiceCycle::new(&self_id, cycle_interval);
-                    let mut status = Status::Ok;
                     let mut dbs = dbs.write().unwrap();
                     'main: while !exit.get() {
                         let mut error_limit = ErrorLimit::new(3);
@@ -150,7 +153,7 @@ impl SlmpRead {
                                     warn!("{}.read | SlmpDb '{}' - reading - error: {:?}", self_id, db_name, err);
                                     if error_limit.add().is_err() {
                                         error!("{}.read | SlmpDb '{}' - exceeded reading errors limit, trying to reconnect...", self_id, db_name);
-                                        status = Status::Invalid;
+                                        status.store(Status::Invalid.into(), Ordering::SeqCst);
                                         Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Invalid, &dest);
                                         exit.exit_pair();
                                         break 'main;
@@ -163,7 +166,7 @@ impl SlmpRead {
                         }
                         cycle.wait();
                     }
-                    if status != Status::Ok {
+                    if status.load(Ordering::SeqCst) != u32::from(Status::Ok) {
                         Self::yield_status(&self_id, Status::Invalid, &mut dbs, &dest);
                     }
                     info!("{}.read | Exit", self_id);
@@ -175,9 +178,15 @@ impl SlmpRead {
                 info!("{}.read | Disabled", self.id);
                 let exit = self.exit.clone();
                 thread::Builder::new().name(format!("{}.read", self_id)).spawn(move || {
+                    info!("{}.read | Started disabled", self_id);
                     while !exit.get() {
                         thread::sleep(Duration::from_millis(64));
                     }
+                    if status.load(Ordering::SeqCst) != u32::from(Status::Ok) {
+                        let mut dbs = dbs.write().unwrap();
+                        Self::yield_status(&self_id, Status::Invalid, &mut dbs, &dest);
+                    }
+                    info!("{}.read | Exit", self_id);
                 })
             }
         }

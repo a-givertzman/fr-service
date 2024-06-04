@@ -1,9 +1,9 @@
-use std::{fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread, time::Duration};
+use std::{fmt::Debug, sync::{atomic::{AtomicBool, AtomicU32, Ordering}, Arc, Mutex}, thread};
 use log::{debug, info, warn};
 use testing::stuff::wait::WaitTread;
 use crate::{
     conf::{diag_keywd::DiagKeywd, point_config::name::Name, slmp_client_config::slmp_client_config::SlmpClientConfig},
-    core_::{object::object::Object, point::point_tx_id::PointTxId, state::exit_notify::ExitNotify, types::map::IndexMapFxHasher},
+    core_::{object::object::Object, point::point_tx_id::PointTxId, state::exit_notify::ExitNotify, status::status::Status, types::map::IndexMapFxHasher},
     services::{diagnosis::diag_point::DiagPoint, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services, slmp_client::{slmp_read::SlmpRead, slmp_write::SlmpWrite}},
     tcp::{
         tcp_client_connect::TcpClientConnect, tcp_read_alive::TcpReadAlive, tcp_write_alive::TcpWriteAlive
@@ -76,16 +76,10 @@ impl Service for SlmpClient {
     fn run(&mut self) -> Result<ServiceHandles, String> {
         info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
-        let tx_send = self.services.slock().get_link(&self.conf.send_to).unwrap_or_else(|err| {
-            panic!("{}.run | services.get_link error: {:#?}", self_id, err);
-        });
         let conf = self.conf.clone();
-        let exit = self.exit.clone();
-        let exit_pair = Arc::new(AtomicBool::new(false));
+        let status = Arc::new(AtomicU32::new(Status::Ok.into()));
+        let exit = Arc::new(ExitNotify::new(&self_id, None, None));
         let tx_send = self.services.slock().get_link(&conf.send_to).unwrap_or_else(|err| {
-            panic!("{}.run | services.get_link error: {:#?}", self.id, err);
-        });
-        let tx_send = self.services.slock().get_link(&self.conf.send_to).unwrap_or_else(|err| {
             panic!("{}.run | services.get_link error: {:#?}", self.id, err);
         });
         let mut tcp_client_connect = TcpClientConnect::new(
@@ -93,23 +87,26 @@ impl Service for SlmpClient {
             format!("{}:{}", conf.ip, conf.port),
             conf.reconnect_cycle,
         );
-        let slmp_read = SlmpRead::new(
+        let mut slmp_read = SlmpRead::new(
             &self_id,
             self.tx_id,
             self.name.clone(),
             conf.clone(),
             tx_send.clone(),
             self.diagnosis.clone(),
-            Arc::new(ExitNotify::new(&self_id, Some(exit), Some(exit_pair))),
+            status.clone(),
+            exit.clone(),
         );
-        let slmp_write = SlmpWrite::new(
+        let mut slmp_write = SlmpWrite::new(
             &self_id,
             self.tx_id,
             self.name.clone(),
             conf.clone(),
             tx_send.clone(),
             self.diagnosis.clone(),
-            Arc::new(ExitNotify::new(&self_id, Some(exit), Some(exit_pair))),
+            self.services.clone(),
+            status,
+            exit.clone(),
         );
 
         // Self::yield_diagnosis(&self.id, &self.diagnosis.clone(), &DiagKeywd::Status, Status::Ok, &tx_send);
@@ -118,14 +115,21 @@ impl Service for SlmpClient {
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
             loop {
-                exit_pair.store(false, Ordering::SeqCst);
+                exit.reset_pair();
                 if let Some(tcp_stream) = tcp_client_connect.connect() {
                     let h_r = slmp_read.run(tcp_stream.try_clone().unwrap());
                     let h_w = slmp_write.run(tcp_stream);
-                    h_r.wait().unwrap();
-                    h_w.wait().unwrap();
+                    match (h_r, h_w) {
+                        (Ok(h_r), Ok(h_w)) => {
+                            h_r.wait().unwrap();
+                            h_w.wait().unwrap();
+                        },
+                        (Ok(_), Err(_)) => todo!(),
+                        (Err(_), Ok(_)) => todo!(),
+                        (Err(_), Err(_)) => todo!(),
+                    }
                 };
-                if exit.load(Ordering::SeqCst) {
+                if exit.get() {
                     break;
                 }
             }

@@ -48,18 +48,18 @@ impl ExitNotify {
     }
     ///
     /// Resets all exit signals
-    pub fn reset(&mut self) {
+    pub fn reset(&self) {
         self.exit_pair.store(false, Ordering::SeqCst);
         self.exit.store(false, Ordering::SeqCst);
     }
     ///
     /// Resets parent exit signal
-    pub fn reset_parent(&mut self) {
+    pub fn reset_parent(&self) {
         self.exit.store(false, Ordering::SeqCst);
     }
     ///
     /// Resets partner exit signal
-    pub fn reset_pair(&mut self) {
+    pub fn reset_pair(&self) {
         self.exit_pair.store(false, Ordering::SeqCst);
     }
 }
