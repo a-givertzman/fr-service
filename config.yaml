@@ -21,7 +21,6 @@ service SlmpClient Ied15:
     cycle: 50 ms
     subscribe: /App/MultiQueue
     send-to: /App/MultiQueue.in-queue
-    protocol: 'profinet'
     description: 'SLMP-IED-01.01'
     ip: '192.168.120.200'
     port: 4999

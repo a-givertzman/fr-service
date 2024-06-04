@@ -15,7 +15,6 @@ use crate::{
 pub struct SlmpDbConfig {
     pub(crate) name: Name,
     pub(crate) description: String,
-    pub(crate) number: u64,
     pub(crate) device_code: DeviceCode,
     pub(crate) offset: u32,
     pub(crate) size: u16,
@@ -39,13 +38,9 @@ impl SlmpDbConfig {
         debug!("{}.new | cycle: {:?}", self_id, cycle);
         let description = self_conf.get_param_value("description").unwrap_or(serde_yaml::Value::String(String::new())).as_str().unwrap().to_string();
         debug!("{}.new | description: {:?}", self_id, description);
-        let number = self_conf.get_param_value("number").unwrap().as_u64().unwrap();
-        debug!("{}.new | number: {:?}", self_id, number);
-
         let device_code = self_conf.get_param_value("device-code").unwrap();
         let device_code = DeviceCode::from(device_code.as_str().unwrap());
         debug!("{}.new | device-code: {:?}", self_id, device_code);
-
         let offset = self_conf.get_param_value("offset").unwrap().as_u64().unwrap();
         debug!("{}.new | offset: {:?}", self_id, offset);
         let size = self_conf.get_param_value("size").unwrap().as_u64().unwrap();
@@ -69,7 +64,6 @@ impl SlmpDbConfig {
         Self {
             name: self_name,
             description,
-            number,
             device_code,
             offset: u32::try_from(offset).unwrap(),
             size: u16::try_from(size).unwrap(),

@@ -21,17 +21,17 @@ impl From<&str> for DeviceCode {
     fn from(value: &str) -> Self {
         let value = value.to_lowercase();
         match value.as_str() {
-            "Sm" => Self::Sm,
-            "Sd" => Self::Sd,
-            "X"  => Self::X,
-            "Y"  => Self::Y,
-            "M"  => Self::M,
-            "L"  => Self::L,
-            "F"  => Self::F,
-            "V"  => Self::V,
-            "B"  => Self::B,
-            "D"  => Self::D,
-            "W"  => Self::W,
+            "sm" => Self::Sm,
+            "sd" => Self::Sd,
+            "x"  => Self::X,
+            "y"  => Self::Y,
+            "m"  => Self::M,
+            "l"  => Self::L,
+            "f"  => Self::F,
+            "v"  => Self::V,
+            "b"  => Self::B,
+            "d"  => Self::D,
+            "w"  => Self::W,
             _    => panic!("SlmpDeviceCode.from | Uncnown SLMP Device Code '{}'", value),
         }
     }
