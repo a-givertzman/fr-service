@@ -146,13 +146,13 @@ impl SlmpPacketData {
     pub fn new(device_code: DeviceCode, offset: u32, length: u16) -> Self {
         Self { device_code, offset, length }
     }
-    ///
-    /// 
-    fn copy_into(from: &mut [u8], pos: usize, to: &[u8]) {
-        let buf = &mut from[pos..];
-        let len = to.len().min(buf.len());
-        buf[..len].copy_from_slice(&to[..len]);
-    }
+    // ///
+    // /// 
+    // fn copy_into(from: &mut [u8], pos: usize, to: &[u8]) {
+    //     let buf = &mut from[pos..];
+    //     let len = to.len().min(buf.len());
+    //     buf[..len].copy_from_slice(&to[..len]);
+    // }
     ///
     /// 
     pub fn build(&self, write_data: Option<&[u8]>) -> Vec<u8> {

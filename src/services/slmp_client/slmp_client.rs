@@ -1,10 +1,10 @@
-use std::{fmt::Debug, sync::{atomic::{AtomicBool, AtomicU32, Ordering}, Arc, Mutex}, thread};
-use log::{info, warn};
+use std::{fmt::Debug, sync::{atomic::{AtomicBool, AtomicU32, Ordering}, mpsc::Sender, Arc, Mutex}, thread};
+use log::{debug, error, info, warn};
 use testing::stuff::wait::WaitTread;
 use crate::{
     conf::{diag_keywd::DiagKeywd, point_config::name::Name, slmp_client_config::slmp_client_config::SlmpClientConfig},
     core_::{
-        object::object::Object, point::point_tx_id::PointTxId, state::exit_notify::ExitNotify,
+        object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}, state::exit_notify::ExitNotify,
         status::status::Status, types::map::IndexMapFxHasher,
     },
     services::{
@@ -53,6 +53,32 @@ impl SlmpClient {
             exit: Arc::new(AtomicBool::new(false)),
         }
     }
+    ///
+    /// Sends diagnosis point
+    fn yield_diagnosis(
+        self_id: &str,
+        diagnosis: &Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
+        kewd: &DiagKeywd,
+        value: Status,
+        dest: &Sender<PointType>,
+    ) {
+        match diagnosis.lock() {
+            Ok(mut diagnosis) => {
+                match diagnosis.get_mut(kewd) {
+                    Some(point) => {
+                        debug!("{}.yield_diagnosis | Sending diagnosis point '{}' ", self_id, kewd);
+                        if let Some(point) = point.next(value) {
+                            if let Err(err) = dest.send(point) {
+                                warn!("{}.yield_status | Send error: {}", self_id, err);
+                            }
+                        }
+                    }
+                    None => debug!("{}.yield_diagnosis | Diagnosis point '{}' - not configured", self_id, kewd),
+                }
+            }
+            Err(err) => error!("{}.yield_diagnosis | Diagnosis lock error: {:#?}", self_id, err),
+        }
+    }
 }
 //
 //
@@ -83,6 +109,7 @@ impl Service for SlmpClient {
         info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let conf = self.conf.clone();
+        let diagnosis = self.diagnosis.clone();
         let status = Arc::new(AtomicU32::new(Status::Ok.into()));
         let exit = Arc::new(ExitNotify::new(&self_id, Some(self.exit.clone()), None));
         let tx_send = self.services.slock().get_link(&conf.send_to).unwrap_or_else(|err| {
@@ -96,10 +123,10 @@ impl Service for SlmpClient {
         let mut slmp_read = SlmpRead::new(
             &self_id,
             self.tx_id,
-            self.name.clone(),
+            // self.name.clone(),
             conf.clone(),
             tx_send.clone(),
-            self.diagnosis.clone(),
+            // diagnosis.clone(),
             status.clone(),
             exit.clone(),
         );
@@ -109,40 +136,48 @@ impl Service for SlmpClient {
             // self.name.clone(),
             conf.clone(),
             tx_send.clone(),
-            self.diagnosis.clone(),
+            // diagnosis.clone(),
             self.services.clone(),
             status,
             exit.clone(),
         );
-
-        // Self::yield_diagnosis(&self.id, &self.diagnosis.clone(), &DiagKeywd::Status, Status::Ok, &tx_send);
-        // Self::yield_diagnosis(&self.id, &self.diagnosis.clone(), &DiagKeywd::Connection, Status::Invalid, &tx_send);
+        Self::yield_diagnosis(&self.id, &diagnosis, &DiagKeywd::Status, Status::Ok, &tx_send);
+        Self::yield_diagnosis(&self.id, &diagnosis, &DiagKeywd::Connection, Status::Invalid, &tx_send);
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
             loop {
                 exit.reset_pair();
-                if let Some(tcp_stream) = tcp_client_connect.connect() {
-                    let h_r = slmp_read.run(tcp_stream.try_clone().unwrap());
-                    let h_w = slmp_write.run(tcp_stream);
-                    match (h_r, h_w) {
-                        (Ok(h_r), Ok(h_w)) => {
-                            h_r.wait().unwrap();
-                            h_w.wait().unwrap();
-                        },
-                        (Ok(h_r), Err(_)) => {
-                            exit.exit_pair();
-                            h_r.wait().unwrap();
-                        },
-                        (Err(_), Ok(h_w)) => {
-                            exit.exit_pair();
-                            h_w.wait().unwrap();
-                        }
-                        (Err(_), Err(_)) => {
-                            exit.exit_pair();
+                match tcp_client_connect.connect() {
+                    Some(tcp_stream) =>  {
+                        Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Ok, &tx_send);
+                        let h_r = slmp_read.run(tcp_stream.try_clone().unwrap());
+                        let h_w = slmp_write.run(tcp_stream);
+                        match (h_r, h_w) {
+                            (Ok(h_r), Ok(h_w)) => {
+                                h_r.wait().unwrap();
+                                h_w.wait().unwrap();
+                            },
+                            (Ok(h_r), Err(_)) => {
+                                Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Status, Status::Invalid, &tx_send);
+                                exit.exit_pair();
+                                h_r.wait().unwrap();
+                            },
+                            (Err(_), Ok(h_w)) => {
+                                Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Status, Status::Invalid, &tx_send);
+                                exit.exit_pair();
+                                h_w.wait().unwrap();
+                            }
+                            (Err(_), Err(_)) => {
+                                Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Status, Status::Invalid, &tx_send);
+                                exit.exit_pair();
+                            }
                         }
                     }
-                };
+                    None => {
+                        Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Invalid, &tx_send);
+                    }
+                }
                 if exit.get() {
                     break;
                 }

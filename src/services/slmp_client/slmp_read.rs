@@ -1,19 +1,18 @@
 use std::{
     hash::BuildHasherDefault, net::TcpStream,
-    sync::{atomic::{AtomicU32, Ordering}, mpsc::Sender, Arc, Mutex, RwLock},
+    sync::{atomic::{AtomicU32, Ordering}, mpsc::Sender, Arc, RwLock},
     thread::{self, JoinHandle}, time::Duration,
 };
 use hashers::fx_hash::FxHasher;
 use indexmap::IndexMap;
 use log::{debug, error, info, trace, warn};
 use crate::{
-    conf::{diag_keywd::DiagKeywd, point_config::name::Name, slmp_client_config::slmp_client_config::SlmpClientConfig},
+    conf::slmp_client_config::slmp_client_config::SlmpClientConfig,
     core_::{
         failure::errors_limit::ErrorLimit, point::point_type::PointType, state::{change_notify::ChangeNotify, exit_notify::ExitNotify},
         status::status::Status, types::map::IndexMapFxHasher
     },
     services::{
-        diagnosis::diag_point::DiagPoint,
         slmp_client::slmp_db::SlmpDb,
         task::service_cycle::ServiceCycle,
     }
@@ -23,13 +22,13 @@ use crate::{
 /// - exit - external signal to stop the main read cicle and exit the thread
 /// - exit_pair - exit signal from / to notify 'Write' partner to exit the thread
 pub struct SlmpRead {
-    tx_id: usize,
+    // tx_id: usize,
     id: String,
-    name: Name,
+    // name: Name,
     conf: SlmpClientConfig,
     dest: Sender<PointType>,
     dbs: Arc<RwLock<IndexMapFxHasher<String, SlmpDb>>>,
-    diagnosis: Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
+    // diagnosis: Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
     status: Arc<AtomicU32>,
     exit: Arc<ExitNotify>,
 }
@@ -39,53 +38,53 @@ impl SlmpRead {
     pub fn new(
         parent: impl Into<String>,
         tx_id: usize,
-        name: Name,
+        // name: Name,
         conf: SlmpClientConfig,
         dest: Sender<PointType>,
-        diagnosis: Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
+        // diagnosis: Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
         status: Arc<AtomicU32>,
         exit: Arc<ExitNotify>,
     ) -> Self {
         let self_id = format!("{}/SlmpRead", parent.into());
         let dbs = Self::build_dbs(&self_id, tx_id, &conf);
         Self {
-            tx_id,
+            // tx_id,
             id: self_id.clone(),
-            name,
+            // name,
             conf,
             dest,
             dbs: Arc::new(RwLock::new(dbs)),
-            diagnosis,
+            // diagnosis,
             status,
             exit,
         }
     }
-    ///
-    /// Sends diagnosis point
-    fn yield_diagnosis(
-        self_id: &str,
-        diagnosis: &Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
-        kewd: &DiagKeywd,
-        value: Status,
-        dest: &Sender<PointType>,
-    ) {
-        match diagnosis.lock() {
-            Ok(mut diagnosis) => {
-                match diagnosis.get_mut(kewd) {
-                    Some(point) => {
-                        debug!("{}.yield_diagnosis | Sending diagnosis point '{}' ", self_id, kewd);
-                        if let Some(point) = point.next(value) {
-                            if let Err(err) = dest.send(point) {
-                                warn!("{}.yield_status | Send error: {}", self_id, err);
-                            }
-                        }
-                    }
-                    None => debug!("{}.yield_diagnosis | Diagnosis point '{}' - not configured", self_id, kewd),
-                }
-            }
-            Err(err) => error!("{}.yield_diagnosis | Diagnosis lock error: {:#?}", self_id, err),
-        }
-    }
+    // ///
+    // /// Sends diagnosis point
+    // fn yield_diagnosis(
+    //     self_id: &str,
+    //     diagnosis: &Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
+    //     kewd: &DiagKeywd,
+    //     value: Status,
+    //     dest: &Sender<PointType>,
+    // ) {
+    //     match diagnosis.lock() {
+    //         Ok(mut diagnosis) => {
+    //             match diagnosis.get_mut(kewd) {
+    //                 Some(point) => {
+    //                     debug!("{}.yield_diagnosis | Sending diagnosis point '{}' ", self_id, kewd);
+    //                     if let Some(point) = point.next(value) {
+    //                         if let Err(err) = dest.send(point) {
+    //                             warn!("{}.yield_status | Send error: {}", self_id, err);
+    //                         }
+    //                     }
+    //                 }
+    //                 None => debug!("{}.yield_diagnosis | Diagnosis point '{}' - not configured", self_id, kewd),
+    //             }
+    //         }
+    //         Err(err) => error!("{}.yield_diagnosis | Diagnosis lock error: {:#?}", self_id, err),
+    //     }
+    // }
     ///
     /// Sends all configured points from the current DB with the given status
     fn yield_status(self_id: &str, status: Status, dbs: &mut IndexMapFxHasher<String, SlmpDb>, dest: &Sender<PointType>) {
@@ -120,7 +119,6 @@ impl SlmpRead {
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         let dbs = self.dbs.clone();
-        let diagnosis = self.diagnosis.clone();
         let dest = self.dest.clone();
         let cycle = conf.cycle.map_or(None, |cycle| if cycle != Duration::ZERO {Some(cycle)} else {None});
         match cycle {
@@ -137,10 +135,9 @@ impl SlmpRead {
                     );
                     let mut cycle = ServiceCycle::new(&self_id, cycle_interval);
                     let mut dbs = dbs.write().unwrap();
+                    let mut error_limit = ErrorLimit::new(3);
                     'main: while !exit.get() {
-                        let mut error_limit = ErrorLimit::new(3);
                         is_connected.add(true, &format!("{}.read | Connection established", self_id));
-                        Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Ok, &dest);
                         cycle.start();
                         for (db_name, db) in dbs.iter_mut() {
                             trace!("{}.read | SlmpDb '{}' - reading...", self_id, db_name);
@@ -154,7 +151,6 @@ impl SlmpRead {
                                     if error_limit.add().is_err() {
                                         error!("{}.read | SlmpDb '{}' - exceeded reading errors limit, trying to reconnect...", self_id, db_name);
                                         status.store(Status::Invalid.into(), Ordering::SeqCst);
-                                        Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Invalid, &dest);
                                         exit.exit_pair();
                                         break 'main;
                                     }

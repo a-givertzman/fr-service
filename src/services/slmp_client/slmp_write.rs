@@ -5,7 +5,7 @@ use std::{
 };
 use log::{debug, error, info, warn};
 use crate::{
-    conf::{diag_keywd::DiagKeywd, point_config::name::Name, slmp_client_config::slmp_client_config::SlmpClientConfig},
+    conf::slmp_client_config::slmp_client_config::SlmpClientConfig,
     core_::{
         cot::cot::Cot, failure::errors_limit::ErrorLimit,
         point::{point::Point, point_type::PointType},
@@ -13,7 +13,7 @@ use crate::{
         status::status::Status, types::map::IndexMapFxHasher,
     },
     services::{
-        diagnosis::diag_point::DiagPoint, multi_queue::subscription_criteria::SubscriptionCriteria,
+        multi_queue::subscription_criteria::SubscriptionCriteria,
         safe_lock::SafeLock, services::Services, slmp_client::slmp_db::SlmpDb, task::service_cycle::ServiceCycle,
     },
 };
@@ -30,7 +30,7 @@ pub struct SlmpWrite {
     conf: SlmpClientConfig,
     dest: Sender<PointType>,
     dbs: Arc<RwLock<IndexMapFxHasher<String, SlmpDb>>>,
-    diagnosis: Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
+    // diagnosis: Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
     services: Arc<Mutex<Services>>,
     status: Arc<AtomicU32>,
     exit: Arc<ExitNotify>,
@@ -44,7 +44,7 @@ impl SlmpWrite {
         // name: Name,
         conf: SlmpClientConfig,
         dest: Sender<PointType>,
-        diagnosis: Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
+        // diagnosis: Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
         services: Arc<Mutex<Services>>,
         status: Arc<AtomicU32>,
         exit: Arc<ExitNotify>,
@@ -58,38 +58,38 @@ impl SlmpWrite {
             conf,
             dest,
             dbs: Arc::new(RwLock::new(dbs)),
-            diagnosis,
+            // diagnosis,
             services,
             status,
             exit,
         }
     }
-    ///
-    /// Sends diagnosis point
-    fn yield_diagnosis(
-        self_id: &str,
-        diagnosis: &Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
-        kewd: &DiagKeywd,
-        value: Status,
-        tx_send: &Sender<PointType>,
-    ) {
-        match diagnosis.lock() {
-            Ok(mut diagnosis) => {
-                match diagnosis.get_mut(kewd) {
-                    Some(point) => {
-                        debug!("{}.yield_diagnosis | Sending diagnosis point '{}' ", self_id, kewd);
-                        if let Some(point) = point.next(value) {
-                            if let Err(err) = tx_send.send(point) {
-                                warn!("{}.yield_status | Send error: {}", self_id, err);
-                            }
-                        }
-                    }
-                    None => debug!("{}.yield_diagnosis | Diagnosis point '{}' - not configured", self_id, kewd),
-                }
-            }
-            Err(err) => error!("{}.yield_diagnosis | Diagnosis lock error: {:#?}", self_id, err),
-        }
-    }
+    // ///
+    // /// Sends diagnosis point
+    // fn yield_diagnosis(
+    //     self_id: &str,
+    //     diagnosis: &Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
+    //     kewd: &DiagKeywd,
+    //     value: Status,
+    //     tx_send: &Sender<PointType>,
+    // ) {
+    //     match diagnosis.lock() {
+    //         Ok(mut diagnosis) => {
+    //             match diagnosis.get_mut(kewd) {
+    //                 Some(point) => {
+    //                     debug!("{}.yield_diagnosis | Sending diagnosis point '{}' ", self_id, kewd);
+    //                     if let Some(point) = point.next(value) {
+    //                         if let Err(err) = tx_send.send(point) {
+    //                             warn!("{}.yield_status | Send error: {}", self_id, err);
+    //                         }
+    //                     }
+    //                 }
+    //                 None => debug!("{}.yield_diagnosis | Diagnosis point '{}' - not configured", self_id, kewd),
+    //             }
+    //         }
+    //         Err(err) => error!("{}.yield_diagnosis | Diagnosis lock error: {:#?}", self_id, err),
+    //     }
+    // }
     ///
     /// Writes point's to the device,
     pub fn run(&mut self, mut tcp_stream: TcpStream) -> Result<JoinHandle<()>, std::io::Error> {
@@ -100,7 +100,7 @@ impl SlmpWrite {
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         let dbs = self.dbs.clone();
-        let diagnosis = self.diagnosis.clone();
+        // let diagnosis = self.diagnosis.clone();
         let dest = self.dest.clone();
         let services = self.services.clone();
         let cycle = conf.cycle.map_or(None, |cycle| if cycle != Duration::ZERO {Some(cycle)} else {None});
@@ -122,10 +122,9 @@ impl SlmpWrite {
                         SubscriptionCriteria::new(&point_conf.name, Cot::Act)
                     }).collect::<Vec<SubscriptionCriteria>>();
                     let (_, recv) = services.slock().subscribe(&conf.subscribe, &self_id, &points);
+                    let mut error_limit = ErrorLimit::new(3);
                     'main: while !exit.get() {
-                        let mut error_limit = ErrorLimit::new(3);
                         is_connected.add(true, &format!("{}.run | Connection established", self_id));
-                        Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Ok, &dest);
                         cycle.start();
                         match recv.recv_timeout(cycle_interval) {
                             Ok(point) => {
@@ -152,7 +151,6 @@ impl SlmpWrite {
                                                     error!("{}.run | SlmpDb '{}' - exceeded writing errors limit, trying to reconnect...", self_id, db_name);
                                                     exit.exit_pair();
                                                     status.store(Status::Invalid.into(), Ordering::SeqCst);
-                                                    Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Invalid, &dest);
                                                     if let Err(err) = dest.send(PointType::String(Point::new(
                                                         tx_id,
                                                         &point_name,
@@ -179,7 +177,6 @@ impl SlmpWrite {
                                     mpsc::RecvTimeoutError::Timeout => {}
                                     mpsc::RecvTimeoutError::Disconnected => {
                                         error!("{}.run | Error receiving from queue: {:?}", self_id, err);
-                                        Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Status, Status::Invalid, &dest);
                                         break 'main;
                                     }
                                 }
