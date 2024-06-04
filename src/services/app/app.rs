@@ -9,10 +9,10 @@ use signal_hook::iterator::Signals;
 use testing::stuff::wait::WaitTread;
 use crate::{
     conf::{
-        api_client_config::ApiClientConfig, app::app_config::AppConfig, cache_service_config::CacheServiceConfig, conf_tree::ConfTree, multi_queue_config::MultiQueueConfig, point_config::name::Name, profinet_client_config::profinet_client_config::ProfinetClientConfig, task_config::TaskConfig, tcp_client_config::TcpClientConfig, tcp_server_config::TcpServerConfig
+        api_client_config::ApiClientConfig, app::app_config::AppConfig, cache_service_config::CacheServiceConfig, conf_tree::ConfTree, multi_queue_config::MultiQueueConfig, point_config::name::Name, profinet_client_config::profinet_client_config::ProfinetClientConfig, slmp_client_config::slmp_client_config::SlmpClientConfig, task_config::TaskConfig, tcp_client_config::TcpClientConfig, tcp_server_config::TcpServerConfig
     }, 
     services::{
-        api_cient::api_client::ApiClient, cache::cache_service::CacheService, history::{producer_service::ProducerService, producer_service_config::ProducerServiceConfig}, multi_queue::multi_queue::MultiQueue, profinet_client::profinet_client::ProfinetClient, safe_lock::SafeLock, server::tcp_server::TcpServer, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::task::Task, tcp_client::tcp_client::TcpClient
+        api_cient::api_client::ApiClient, cache::cache_service::CacheService, history::{producer_service::ProducerService, producer_service_config::ProducerServiceConfig}, multi_queue::multi_queue::MultiQueue, profinet_client::profinet_client::ProfinetClient, safe_lock::SafeLock, server::tcp_server::TcpServer, service::{service::Service, service_handles::ServiceHandles}, services::Services, slmp_client::slmp_client::SlmpClient, task::task::Task, tcp_client::tcp_client::TcpClient
     },
 };
 
@@ -124,6 +124,9 @@ impl App {
             )),
             Services::CACHE_SERVICE => Arc::new(Mutex::new(
                 CacheService::new(CacheServiceConfig::new(parent, node_conf), services.clone())
+            )),
+            Services::SLMP_CLIENT => Arc::new(Mutex::new(
+                SlmpClient::new(SlmpClientConfig::new(parent, node_conf), services)
             )),
             _ => {
                 panic!("{}.run | Unknown service: {}({})", self_id, node_name, node_sufix);
