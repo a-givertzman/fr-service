@@ -49,7 +49,7 @@ impl TcpClientConnect {
             let mut cycle = ServiceCycle::new(&self_id, cycle);
             loop {
                 cycle.start();
-                match TcpStream::connect(addr) {
+                match TcpStream::connect_timeout(&addr, Duration::from_millis(1000)) {
                     Ok(stream) => {
                         self_stream.slock().push(stream);
                         info!("{}.connect | connected to: \n\t{:?}", id, self_stream.slock().first().unwrap());

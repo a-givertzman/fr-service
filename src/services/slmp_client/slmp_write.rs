@@ -156,9 +156,6 @@ impl SlmpWrite {
                                 }
                             }
                         }
-                        if exit.get() {
-                            break 'main;
-                        }
                     }
                     info!("{}.run | Exit", self_id);
                 });

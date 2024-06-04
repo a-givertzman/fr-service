@@ -50,25 +50,28 @@ impl Task {
         if conf.subscribe.is_empty() {
             None
         } else {
-            debug!("{}.subscribe | requesting points...", self.id);
+            debug!("{}.subscriptions | requesting points...", self.id);
             let mut self_points = self.conf.points();
             let mut points = services.slock().points(&self.id);
             points.append(&mut self_points);
-            debug!("{}.subscribe | rceived points: {:#?}", self.id, points.len());
-            debug!("{}.subscribe | rceived points: {:#?}", self.id, points);
-            debug!("{}.subscribe | conf.subscribe: {:#?}", self.id, conf.subscribe);
+            debug!("{}.subscriptions | rceived points: {:#?}", self.id, points.len());
+            debug!("{}.subscriptions | rceived points: {:#?}", self.id, points);
+            debug!("{}.subscriptions | conf.subscribe: {:#?}", self.id, conf.subscribe);
             let subscriptions = conf.subscribe.with(&points);
-            trace!("{}.subscribe | subscriptions: {:#?}", self.id, subscriptions);
+            trace!("{}.subscriptions | subscriptions: {:#?}", self.id, subscriptions);
             if subscriptions.len() > 1 {
-                panic!("{}.run | Error. Task does not supports multiple subscriptions for now: {:#?}.\n\tTry to use single subscription.", self.id, subscriptions);
+                panic!("{}.subscriptions | Error. Task does not supports multiple subscriptions for now: {:#?}.\n\tTry to use single subscription.", self.id, subscriptions);
             } else {
                 let subscriptions_first = subscriptions.clone().into_iter().next();
                 match subscriptions_first {
                     Some((service_name, Some(points))) => {
                         Some((service_name, points))
                     }
-                    Some((_, None)) => panic!("{}.run | Error. Task subscription configuration error in: {:#?}", self.id, subscriptions),
-                    None => panic!("{}.run | Error. Task subscription configuration error in: {:#?}", self.id, subscriptions),
+                    Some((_, None)) => {
+                        warn!("{}.subscriptions | Error. Task subscription configuration error / empty in: {:#?}", self.id, subscriptions);
+                        None
+                    }
+                    None => panic!("{}.subscriptions | Error. Task subscription configuration error in: {:#?}", self.id, subscriptions),
                 }
             }
         }
