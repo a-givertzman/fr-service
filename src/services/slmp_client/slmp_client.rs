@@ -11,9 +11,8 @@ use crate::{
         diagnosis::diag_point::DiagPoint, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles},
         services::Services, slmp_client::{slmp_read::SlmpRead, slmp_write::SlmpWrite},
     },
-    tcp::{
-        tcp_client_connect::TcpClientConnect, tcp_read_alive::TcpReadAlive, tcp_write_alive::TcpWriteAlive
-    } 
+    tcp::tcp_client_connect::TcpClientConnect,
+     
 };
 ///
 /// - Connects to the SLMP device (FX5 Eth module)
@@ -25,8 +24,6 @@ pub struct SlmpClient {
     name: Name,
     conf: SlmpClientConfig,
     services: Arc<Mutex<Services>>,
-    tcp_recv_alive: Option<Arc<Mutex<TcpReadAlive>>>,
-    tcp_send_alive: Option<Arc<Mutex<TcpWriteAlive>>>,
     diagnosis: Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
     exit: Arc<AtomicBool>,
 }
@@ -47,8 +44,6 @@ impl SlmpClient {
             name: conf.name.clone(),
             conf: conf.clone(),
             services,
-            tcp_recv_alive: None,
-            tcp_send_alive: None,
             diagnosis,
             exit: Arc::new(AtomicBool::new(false)),
         }
@@ -200,17 +195,5 @@ impl Service for SlmpClient {
     //
     fn exit(&self) {
         self.exit.store(true, Ordering::SeqCst);
-        match &self.tcp_recv_alive {
-            Some(tcp_recv_alive) => {
-                tcp_recv_alive.slock().exit()
-            }
-            None => {}
-        }
-        match &self.tcp_send_alive {
-            Some(tcp_send_alive) => {
-                tcp_send_alive.slock().exit()
-            }
-            None => {}
-        }
     }
 }
