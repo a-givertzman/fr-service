@@ -106,7 +106,7 @@ impl Service for SlmpClient {
         let mut slmp_write = SlmpWrite::new(
             &self_id,
             self.tx_id,
-            self.name.clone(),
+            // self.name.clone(),
             conf.clone(),
             tx_send.clone(),
             self.diagnosis.clone(),

@@ -1,12 +1,21 @@
-use std::{net::TcpStream, sync::{atomic::{AtomicBool, AtomicU32, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex, RwLock}, thread::{self, JoinHandle}, time::Duration};
-use indexmap::IndexMap;
-use log::{debug, error, info, trace, warn};
+use std::{
+    net::TcpStream, sync::{atomic::{AtomicU32, Ordering}, 
+    mpsc::{self, Sender}, Arc, Mutex, RwLock},
+    thread::{self, JoinHandle}, time::Duration,
+};
+use log::{debug, error, info, warn};
 use crate::{
-    conf::{diag_keywd::DiagKeywd, point_config::{name::Name, point_config::PointConfig}, slmp_client_config::{slmp_client_config::SlmpClientConfig, slmp_db_config::SlmpDbConfig}},
+    conf::{diag_keywd::DiagKeywd, point_config::name::Name, slmp_client_config::slmp_client_config::SlmpClientConfig},
     core_::{
-        constants::constants::RECV_TIMEOUT, cot::cot::Cot, failure::errors_limit::ErrorLimit, point::{point::Point, point_type::PointType}, state::{change_notify::ChangeNotify, exit_notify::ExitNotify}, status::status::Status, types::map::IndexMapFxHasher
+        cot::cot::Cot, failure::errors_limit::ErrorLimit,
+        point::{point::Point, point_type::PointType},
+        state::{change_notify::ChangeNotify, exit_notify::ExitNotify},
+        status::status::Status, types::map::IndexMapFxHasher,
     },
-    services::{diagnosis::diag_point::DiagPoint, multi_queue::subscription_criteria::SubscriptionCriteria, safe_lock::SafeLock, services::Services, slmp_client::{parse_point::ParsePoint, slmp_db::SlmpDb}, task::service_cycle::ServiceCycle},
+    services::{
+        diagnosis::diag_point::DiagPoint, multi_queue::subscription_criteria::SubscriptionCriteria,
+        safe_lock::SafeLock, services::Services, slmp_client::slmp_db::SlmpDb, task::service_cycle::ServiceCycle,
+    },
 };
 
 use super::slmp_read::SlmpRead;
@@ -17,7 +26,7 @@ use super::slmp_read::SlmpRead;
 pub struct SlmpWrite {
     tx_id: usize,
     id: String,
-    name: Name,
+    // name: Name,
     conf: SlmpClientConfig,
     dest: Sender<PointType>,
     dbs: Arc<RwLock<IndexMapFxHasher<String, SlmpDb>>>,
@@ -32,7 +41,7 @@ impl SlmpWrite {
     pub fn new(
         parent: impl Into<String>,
         tx_id: usize,
-        name: Name,
+        // name: Name,
         conf: SlmpClientConfig,
         dest: Sender<PointType>,
         diagnosis: Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
@@ -45,7 +54,7 @@ impl SlmpWrite {
         Self {
             tx_id,
             id: self_id,
-            name,
+            // name,
             conf,
             dest,
             dbs: Arc::new(RwLock::new(dbs)),
@@ -113,7 +122,6 @@ impl SlmpWrite {
                         SubscriptionCriteria::new(&point_conf.name, Cot::Act)
                     }).collect::<Vec<SubscriptionCriteria>>();
                     let (_, recv) = services.slock().subscribe(&conf.subscribe, &self_id, &points);
-
                     'main: while !exit.get() {
                         let mut error_limit = ErrorLimit::new(3);
                         is_connected.add(true, &format!("{}.run | Connection established", self_id));
