@@ -1,10 +1,16 @@
 use std::{fmt::Debug, sync::{atomic::{AtomicBool, AtomicU32, Ordering}, Arc, Mutex}, thread};
-use log::{debug, info, warn};
+use log::{info, warn};
 use testing::stuff::wait::WaitTread;
 use crate::{
     conf::{diag_keywd::DiagKeywd, point_config::name::Name, slmp_client_config::slmp_client_config::SlmpClientConfig},
-    core_::{object::object::Object, point::point_tx_id::PointTxId, state::exit_notify::ExitNotify, status::status::Status, types::map::IndexMapFxHasher},
-    services::{diagnosis::diag_point::DiagPoint, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services, slmp_client::{slmp_read::SlmpRead, slmp_write::SlmpWrite}},
+    core_::{
+        object::object::Object, point::point_tx_id::PointTxId, state::exit_notify::ExitNotify,
+        status::status::Status, types::map::IndexMapFxHasher,
+    },
+    services::{
+        diagnosis::diag_point::DiagPoint, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles},
+        services::Services, slmp_client::{slmp_read::SlmpRead, slmp_write::SlmpWrite},
+    },
     tcp::{
         tcp_client_connect::TcpClientConnect, tcp_read_alive::TcpReadAlive, tcp_write_alive::TcpWriteAlive
     } 
@@ -78,7 +84,7 @@ impl Service for SlmpClient {
         let self_id = self.id.clone();
         let conf = self.conf.clone();
         let status = Arc::new(AtomicU32::new(Status::Ok.into()));
-        let exit = Arc::new(ExitNotify::new(&self_id, None, None));
+        let exit = Arc::new(ExitNotify::new(&self_id, Some(self.exit.clone()), None));
         let tx_send = self.services.slock().get_link(&conf.send_to).unwrap_or_else(|err| {
             panic!("{}.run | services.get_link error: {:#?}", self.id, err);
         });
@@ -124,9 +130,17 @@ impl Service for SlmpClient {
                             h_r.wait().unwrap();
                             h_w.wait().unwrap();
                         },
-                        (Ok(_), Err(_)) => todo!(),
-                        (Err(_), Ok(_)) => todo!(),
-                        (Err(_), Err(_)) => todo!(),
+                        (Ok(h_r), Err(_)) => {
+                            exit.exit_pair();
+                            h_r.wait().unwrap();
+                        },
+                        (Err(_), Ok(h_w)) => {
+                            exit.exit_pair();
+                            h_w.wait().unwrap();
+                        }
+                        (Err(_), Err(_)) => {
+                            exit.exit_pair();
+                        }
                     }
                 };
                 if exit.get() {
@@ -145,29 +159,6 @@ impl Service for SlmpClient {
                 Err(message)
             }
         }
-
-        // match (handle_read, handle_write) {
-        //     (Ok(handle_read), Ok(handle_write)) => {
-        //         Ok(ServiceHandles::new(vec![
-        //             (format!("{}/read", self.id), handle_read),
-        //             (format!("{}/write", self.id), handle_write),
-        //         ]))
-        //     }
-        //     (Ok(handle_read), Err(err)) => {
-        //         self.exit();
-        //         handle_read.wait().unwrap();
-        //         Err(format!("{}.run | Error starting inner thread 'read': {:#?}", self.id, err))
-        //     }
-        //     (Err(err), Ok(handle_write)) => {
-        //         self.exit();
-        //         handle_write.wait().unwrap();
-        //         Err(format!("{}.run | Error starting inner thread 'write': {:#?}", self.id, err))
-        //     }
-        //     (Err(read_err), Err(write_err)) => {
-        //         Err(format!("{}.run | Error starting inner thread: \n\t  read: {:#?}\n\t write: {:#?}", self.id, read_err, write_err))
-        //     }
-        // }
-
     }
     //
     //

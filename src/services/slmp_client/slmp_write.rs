@@ -82,19 +82,6 @@ impl SlmpWrite {
         }
     }
     ///
-    /// Sends all configured points from the current DB with the given status
-    fn yield_status(self_id: &str, status: Status, dbs: &mut IndexMapFxHasher<String, SlmpDb>, tx_send: &Sender<PointType>) {
-        for (db_name, db) in dbs {
-            debug!("{}.yield_status | DB '{}' - sending Invalid status...", self_id, db_name);
-            match db.yield_status(status, tx_send) {
-                Ok(_) => {}
-                Err(err) => {
-                    error!("{}.yield_status | send errors: \n\t{:?}", self_id, err);
-                }
-            };
-        }
-    }
-    ///
     /// Writes point's to the device,
     pub fn run(&mut self, mut tcp_stream: TcpStream) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.run | starting...", self.id);
@@ -193,9 +180,6 @@ impl SlmpWrite {
                         if exit.get() {
                             break 'main;
                         }
-                    }
-                    if status.load(Ordering::SeqCst) != u32::from(Status::Ok) {
-                        Self::yield_status(&self_id, Status::Invalid, &mut dbs, &dest);
                     }
                     info!("{}.run | Exit", self_id);
                 });

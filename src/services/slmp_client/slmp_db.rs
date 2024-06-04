@@ -1,4 +1,4 @@
-use std::{fs, io::{BufReader, Read, Write}, net::TcpStream, sync::mpsc::Sender, time::Duration};
+use std::{fs, io::{BufReader, Read, Write}, net::TcpStream, sync::mpsc::Sender};
 use chrono::Utc;
 use concat_string::concat_string;
 use indexmap::IndexMap;
@@ -31,11 +31,11 @@ use crate::{
 pub struct SlmpDb {
     id: String,
     name: Name,
-    description: String,
+    // description: String,
     device_code: DeviceCode,
     offset: u32,
     size: u16,
-    cycle: Option<Duration>,
+    // cycle: Option<Duration>,
     slmp_packet: SlmpPacket,
     pub points: IndexMap<String, Box<dyn ParsePoint>>,
 }
@@ -53,11 +53,11 @@ impl SlmpDb {
         Self {
             id: self_id.clone(),
             name: conf.name.clone(),
-            description: conf.description.clone(),
+            // description: conf.description.clone(),
             device_code: conf.device_code,
             offset: conf.offset as u32,
             size: conf.size,
-            cycle: conf.cycle,
+            // cycle: conf.cycle,
             slmp_packet,
             points: Self::configure_parse_points(&self_id, tx_id, conf),
         }
@@ -172,8 +172,10 @@ impl SlmpDb {
                                 for (_key, parse_point) in &mut self.points {
                                     if let Some(point) = parse_point.next(&bytes, timestamp) {
                                         // debug!("{}.read | point: {:?}", self.id, point);
-                                        match dest.send(point) {
-                                            Ok(_) => {}
+                                        match dest.send(point.clone()) {
+                                            Ok(_) => {
+                                                Self::log(&self.id, &self.name, &point);
+                                            }
                                             Err(err) => {
                                                 message = format!("{}.read | send error: {}", self.id, err);
                                                 warn!("{}", message);
@@ -297,7 +299,7 @@ impl SlmpDb {
     }
     ///
     ///
-    fn int_filter(conf: Option<PointConfigFilter>) -> Box<dyn Filter<Item = i64>> {
+    fn int_filter(conf: Option<PointConfigFilter>) -> Box<dyn Filter<Item = i64> + Sync + Send> {
         match conf {
             Some(conf) => {
                 Box::new(
@@ -309,7 +311,7 @@ impl SlmpDb {
     }
     ///
     ///
-    fn real_filter(conf: Option<PointConfigFilter>) -> Box<dyn Filter<Item = f32>> {
+    fn real_filter(conf: Option<PointConfigFilter>) -> Box<dyn Filter<Item = f32> + Sync + Send> {
         match conf {
             Some(conf) => {
                 Box::new(

@@ -13,7 +13,7 @@ pub struct SlmpParseReal {
     pub type_: PointConfigType,
     pub tx_id: usize,
     pub name: String,
-    pub value: Box<dyn Filter<Item = f32>>,
+    pub value: Box<dyn Filter<Item = f32> + Sync + Send>,
     pub status: Status,
     pub offset: Option<u32>,
     pub history: PointConfigHistory,
@@ -31,7 +31,7 @@ impl SlmpParseReal {
         tx_id: usize,
         name: String,
         config: &PointConfig,
-        filter: Box<dyn Filter<Item = f32>>,
+        filter: Box<dyn Filter<Item = f32> + Sync + Send>,
     ) -> SlmpParseReal {
         SlmpParseReal {
             type_: config.type_.clone(),
