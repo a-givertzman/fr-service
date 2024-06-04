@@ -50,7 +50,6 @@ pub struct SlmpClientConfig {
     pub(crate) reconnect_cycle: Duration,
     pub(crate) subscribe: String,
     pub(crate) send_to: String,
-    pub(crate) device_code: DeviceCode,
     pub(crate) description: String,
     pub(crate) ip: String,
     pub(crate) port: u64,
@@ -78,8 +77,6 @@ impl SlmpClientConfig {
         debug!("{}.new | sudscribe: {:?}", self_id, subscribe);
         let send_to = self_conf.get_send_to().unwrap();
         debug!("{}.new | send-to: '{}'", self_id, send_to);
-        let device_code = DeviceCode::from(self_conf.get_param_value("device-code").unwrap().as_str().unwrap());
-        debug!("{}.new | device-code: {:?}", self_id, device_code);
         let description = self_conf.get_param_value("description").unwrap().as_str().unwrap().to_string();
         debug!("{}.new | description: {:?}", self_id, description);
         let ip = self_conf.get_param_value("ip").unwrap().as_str().unwrap().to_string();
@@ -115,7 +112,6 @@ impl SlmpClientConfig {
             reconnect_cycle,
             subscribe,
             send_to,
-            device_code,
             description,
             ip,
             port,
