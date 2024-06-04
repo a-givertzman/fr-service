@@ -7,8 +7,7 @@ mod tcp_client_connect {
     use std::{
         net::TcpListener,
         sync::{
-            atomic::{AtomicBool, Ordering},
-            Arc, Once,
+            atomic::{AtomicBool, Ordering}, Arc, Mutex, Once
         },
         thread,
         time::Duration,
@@ -39,7 +38,8 @@ mod tcp_client_connect {
         println!("test success connection");
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         let timeout = Duration::from_millis(4500); // ms
-        let mut connect = TcpClientConnect::new("test", &addr, Duration::from_millis(500));
+        let exit = Arc::new(AtomicBool::new(false));
+        let connect = TcpClientConnect::new("test", &addr, Duration::from_millis(500), Some(exit));
         let ok = Arc::new(AtomicBool::new(false));
         let ok_ref = ok.clone();
         // let connectExit = connect.exit();
@@ -65,7 +65,8 @@ mod tcp_client_connect {
                 }
             };
         });
-        let connect_exit = connect.exit();
+        let connect = Arc::new(Mutex::new(connect));
+        let connect_clone = connect.clone();
         let ok_ref = ok.clone();
         thread::spawn(move || {
             info!("Waiting for connection...");
@@ -73,15 +74,15 @@ mod tcp_client_connect {
             ok_ref.store(false, Ordering::SeqCst);
             warn!("Tcp socket was not connected in {:?}", timeout);
             debug!("stopping...");
-            connect_exit.send(true).unwrap();
+            connect_clone.lock().unwrap().exit();
         });
         info!("Connecting...");
         for _ in 0..10 {
-            match connect.connect() {
+            match connect.lock().unwrap().connect() {
                 Some(tcp_stream) => {
                     ok.store(true, Ordering::SeqCst);
                     info!("connected: {:?}", tcp_stream);
-                    connect.exit().send(true).unwrap();
+                    connect.lock().unwrap().exit();
                     break;
                 }
                 None => {
@@ -108,8 +109,8 @@ mod tcp_client_connect {
         println!("test failure connection");
         let timeout = Duration::from_millis(1500); // ms
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
-        let mut connect = TcpClientConnect::new("test", &addr, Duration::from_millis(500));
-        let connect_exit = connect.exit();
+        let exit = Arc::new(AtomicBool::new(false));
+        let mut connect = TcpClientConnect::new("test", &addr, Duration::from_millis(500), Some(exit.clone()));
         let ok = Arc::new(AtomicBool::new(false));
         let ok_ref = ok.clone();
         thread::spawn(move || {
@@ -118,7 +119,7 @@ mod tcp_client_connect {
             ok_ref.store(false, Ordering::SeqCst);
             warn!("Tcp socket was not connected in {:?}", timeout);
             debug!("Thread | stopping...");
-            connect_exit.send(true).unwrap();
+            exit.store(true, Ordering::SeqCst);
             debug!("Thread | stopping - ok");
         });
         info!("Connecting...");

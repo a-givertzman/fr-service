@@ -59,32 +59,6 @@ impl SlmpRead {
             exit,
         }
     }
-    // ///
-    // /// Sends diagnosis point
-    // fn yield_diagnosis(
-    //     self_id: &str,
-    //     diagnosis: &Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
-    //     kewd: &DiagKeywd,
-    //     value: Status,
-    //     dest: &Sender<PointType>,
-    // ) {
-    //     match diagnosis.lock() {
-    //         Ok(mut diagnosis) => {
-    //             match diagnosis.get_mut(kewd) {
-    //                 Some(point) => {
-    //                     debug!("{}.yield_diagnosis | Sending diagnosis point '{}' ", self_id, kewd);
-    //                     if let Some(point) = point.next(value) {
-    //                         if let Err(err) = dest.send(point) {
-    //                             warn!("{}.yield_status | Send error: {}", self_id, err);
-    //                         }
-    //                     }
-    //                 }
-    //                 None => debug!("{}.yield_diagnosis | Diagnosis point '{}' - not configured", self_id, kewd),
-    //             }
-    //         }
-    //         Err(err) => error!("{}.yield_diagnosis | Diagnosis lock error: {:#?}", self_id, err),
-    //     }
-    // }
     ///
     /// Sends all configured points from the current DB with the given status
     fn yield_status(self_id: &str, status: Status, dbs: &mut IndexMapFxHasher<String, SlmpDb>, dest: &Sender<PointType>) {

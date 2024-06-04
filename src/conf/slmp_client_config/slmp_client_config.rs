@@ -9,7 +9,6 @@ use crate::{
         service_config::ServiceConfig,
     }, 
     core_::types::map::IndexMapFxHasher,
-    services::slmp_client::slmp::device_code::DeviceCode,
 };
 ///
 /// creates config from serde_yaml::Value of following format:

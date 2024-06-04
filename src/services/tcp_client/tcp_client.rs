@@ -1,5 +1,5 @@
 use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread, time::Duration};
-use log::{debug, info, warn};
+use log::{info, warn};
 use testing::stuff::wait::WaitTread;
 use crate::{
     conf::{point_config::name::Name, tcp_client_config::TcpClientConfig}, core_::{net::protocols::jds::{jds_decode_message::JdsDecodeMessage, jds_deserialize::JdsDeserialize, jds_encode_message::JdsEncodeMessage, jds_serialize::JdsSerialize}, object::object::Object, point::point_type::PointType}, services::{safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services}, tcp::{
@@ -94,6 +94,7 @@ impl Service for TcpClient {
             self_id.clone(), 
             conf.address, 
             reconnect,
+            Some(exit.clone())
         );
         let mut tcp_read_alive = TcpReadAlive::new(
             &self_id,

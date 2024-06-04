@@ -119,6 +119,7 @@ impl Service for SlmpClient {
             self_id.clone(), 
             format!("{}:{}", conf.ip, conf.port),
             conf.reconnect_cycle,
+            Some(self.exit.clone()),
         );
         let mut slmp_read = SlmpRead::new(
             &self_id,

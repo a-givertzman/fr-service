@@ -64,32 +64,6 @@ impl SlmpWrite {
             exit,
         }
     }
-    // ///
-    // /// Sends diagnosis point
-    // fn yield_diagnosis(
-    //     self_id: &str,
-    //     diagnosis: &Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
-    //     kewd: &DiagKeywd,
-    //     value: Status,
-    //     tx_send: &Sender<PointType>,
-    // ) {
-    //     match diagnosis.lock() {
-    //         Ok(mut diagnosis) => {
-    //             match diagnosis.get_mut(kewd) {
-    //                 Some(point) => {
-    //                     debug!("{}.yield_diagnosis | Sending diagnosis point '{}' ", self_id, kewd);
-    //                     if let Some(point) = point.next(value) {
-    //                         if let Err(err) = tx_send.send(point) {
-    //                             warn!("{}.yield_status | Send error: {}", self_id, err);
-    //                         }
-    //                     }
-    //                 }
-    //                 None => debug!("{}.yield_diagnosis | Diagnosis point '{}' - not configured", self_id, kewd),
-    //             }
-    //         }
-    //         Err(err) => error!("{}.yield_diagnosis | Diagnosis lock error: {:#?}", self_id, err),
-    //     }
-    // }
     ///
     /// Writes point's to the device,
     pub fn run(&mut self, mut tcp_stream: TcpStream) -> Result<JoinHandle<()>, std::io::Error> {
