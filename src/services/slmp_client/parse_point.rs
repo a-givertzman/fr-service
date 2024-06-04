@@ -1,9 +1,11 @@
 use chrono::{DateTime, Utc};
-use crate::{conf::point_config::{point_config_address::PointConfigAddress, point_config_type::PointConfigType}, core_::{point::point_type::PointType, status::status::Status}};
-
+use crate::{
+    conf::point_config::{point_config_address::PointConfigAddress, point_config_type::PointConfigType},
+    core_::{point::point_type::PointType, status::status::Status},
+};
 ///
 /// Returns updated points parsed from the data slice from the S7 device,
-pub trait ParsePoint {
+pub trait ParsePoint: Send + Sync {
     ///
     /// Returns the type of the configured point
     fn type_(&self) -> PointConfigType;

@@ -3,7 +3,7 @@ use log::{debug, info, warn};
 use testing::stuff::wait::WaitTread;
 use crate::{
     conf::{diag_keywd::DiagKeywd, point_config::name::Name, slmp_client_config::slmp_client_config::SlmpClientConfig},
-    core_::{object::object::Object, point::point_tx_id::PointTxId, types::map::IndexMapFxHasher},
+    core_::{object::object::Object, point::point_tx_id::PointTxId, state::exit_notify::ExitNotify, types::map::IndexMapFxHasher},
     services::{diagnosis::diag_point::DiagPoint, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services, slmp_client::{slmp_read::SlmpRead, slmp_write::SlmpWrite}},
     tcp::{
         tcp_client_connect::TcpClientConnect, tcp_read_alive::TcpReadAlive, tcp_write_alive::TcpWriteAlive
@@ -100,8 +100,7 @@ impl Service for SlmpClient {
             conf.clone(),
             tx_send.clone(),
             self.diagnosis.clone(),
-            Some(exit),
-            Some(exit_pair),
+            Arc::new(ExitNotify::new(&self_id, Some(exit), Some(exit_pair))),
         );
         let slmp_write = SlmpWrite::new(
             &self_id,
@@ -110,8 +109,7 @@ impl Service for SlmpClient {
             conf.clone(),
             tx_send.clone(),
             self.diagnosis.clone(),
-            Some(exit),
-            Some(exit_pair),
+            Arc::new(ExitNotify::new(&self_id, Some(exit), Some(exit_pair))),
         );
 
         // Self::yield_diagnosis(&self.id, &self.diagnosis.clone(), &DiagKeywd::Status, Status::Ok, &tx_send);

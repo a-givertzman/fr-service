@@ -1,23 +1,24 @@
 use std::{
-    hash::BuildHasherDefault, io::{BufReader, Read, Write}, net::TcpStream, sync::{atomic::{AtomicBool, Ordering}, mpsc::Sender, Arc, Mutex}, thread::{self, JoinHandle}, time::Duration
+    hash::BuildHasherDefault, net::TcpStream,
+    sync::{mpsc::Sender, Arc, Mutex, RwLock},
+    thread::{self, JoinHandle}, time::Duration,
 };
-use chrono::Utc;
 use hashers::fx_hash::FxHasher;
 use indexmap::IndexMap;
 use log::{debug, error, info, trace, warn};
 use crate::{
-    conf::{diag_keywd::DiagKeywd, point_config::name::Name, slmp_client_config::{slmp_client_config::SlmpClientConfig, slmp_db_config::SlmpDbConfig}},
+    conf::{diag_keywd::DiagKeywd, point_config::name::Name, slmp_client_config::slmp_client_config::SlmpClientConfig},
     core_::{
-        failure::errors_limit::ErrorsLimit, net::connection_status::{ConnectionStatus, SocketState}, point::point_type::PointType, state::change_notify::ChangeNotify, status::status::Status, types::map::IndexMapFxHasher
+        failure::errors_limit::ErrorLimit, point::point_type::PointType, state::{change_notify::ChangeNotify, exit_notify::ExitNotify},
+        status::status::Status, types::map::IndexMapFxHasher
     },
     services::{
         diagnosis::diag_point::DiagPoint,
-        slmp_client::{parse_point::ParsePoint,slmp::c_slmp_const::FrameType, slmp_db::SlmpDb}, task::service_cycle::ServiceCycle,
-    }, tcp::{tcp_client_connect::TcpClientConnect, tcp_stream_write::OpResult}
+        slmp_client::slmp_db::SlmpDb,
+        task::service_cycle::ServiceCycle,
+    }
 };
-
-use super::slmp::slmp_packet::SlmpPacket;
-/// 
+///
 /// Cyclicaly reads SLMP data ranges (DB's) specified in the [conf]
 /// - exit - external signal to stop the main read cicle and exit the thread
 /// - exit_pair - exit signal from / to notify 'Write' partner to exit the thread
@@ -26,10 +27,10 @@ pub struct SlmpRead {
     id: String,
     name: Name,
     conf: SlmpClientConfig,
-    dest: Sender<PointType>, 
+    dest: Sender<PointType>,
+    dbs: Arc<RwLock<IndexMapFxHasher<String, SlmpDb>>>,
     diagnosis: Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
-    exit: Arc<AtomicBool>,
-    exit_pair: Arc<AtomicBool>,
+    exit: Arc<ExitNotify>,
 }
 impl SlmpRead {
     ///
@@ -38,22 +39,22 @@ impl SlmpRead {
         parent: impl Into<String>,
         tx_id: usize,
         name: Name,
-        conf: SlmpClientConfig, 
+        conf: SlmpClientConfig,
         dest: Sender<PointType>,
         diagnosis: Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
-        exit: Option<Arc<AtomicBool>>, 
-        exit_pair: Option<Arc<AtomicBool>>,
+        exit: Arc<ExitNotify>,
     ) -> Self {
         let self_id = format!("{}/SlmpRead", parent.into());
+        let dbs = Self::build_dbs(&self_id, tx_id, &conf);
         Self {
             tx_id,
-            id: self_id,
+            id: self_id.clone(),
             name,
             conf,
             dest,
+            dbs: Arc::new(RwLock::new(dbs)),
             diagnosis,
-            exit: exit.unwrap_or(Arc::new(AtomicBool::new(false))),
-            exit_pair: exit_pair.unwrap_or(Arc::new(AtomicBool::new(false))),
+            exit,
         }
     }
     ///
@@ -96,85 +97,88 @@ impl SlmpRead {
         }
     }
     ///
+    ///
+    pub fn build_dbs(self_id: &str, tx_id: usize, conf: &SlmpClientConfig) -> IndexMapFxHasher<String, SlmpDb> {
+        let mut dbs = IndexMap::with_hasher(BuildHasherDefault::<FxHasher>::default());
+        for (db_name, db_conf) in &conf.dbs {
+            info!("{}.build_dbs | Configuring SlmpDb: {:?}...", self_id, db_name);
+            let db = SlmpDb::new(self_id, tx_id, &db_conf);
+            dbs.insert(db_name.clone(), db);
+            info!("{}.build_dbs | Configuring SlmpDb: {:?} - ok", self_id, db_name);
+        }
+        dbs
+    }
+    ///
     /// Cyclicaly reads data slice from the device,
     pub fn run(&mut self, mut tcp_stream: TcpStream) -> Result<JoinHandle<()>, std::io::Error> {
         info!("{}.read | starting...", self.id);
         let self_id = self.id.clone();
-        let tx_id = self.tx_id;
         let exit = self.exit.clone();
-        let exit_pair = self.exit_pair.clone();
         let conf = self.conf.clone();
+        let dbs = self.dbs.clone();
         let diagnosis = self.diagnosis.clone();
         let dest = self.dest.clone();
-        match conf.cycle {
+        let cycle = conf.cycle.map_or(None, |cycle| if cycle != Duration::ZERO {Some(cycle)} else {None});
+        match cycle {
             Some(cycle_interval) => {
-                if cycle_interval > Duration::ZERO {
-                    info!("{}.read | Preparing thread...", self_id);
-                    let handle = thread::Builder::new().name(format!("{}.read", self_id)).spawn(move || {
-                        let mut is_connected = ChangeNotify::new(
-                            &self_id,
-                            false,
-                            vec![
-                                (true,  Box::new(|message| info!("{}", message))),
-                                (false, Box::new(|message| warn!("{}", message))),
-                            ],
-                        );
-                        let mut dbs = IndexMap::with_hasher(BuildHasherDefault::<FxHasher>::default());
-                        for (db_name, db_conf) in conf.dbs {
-                            info!("{}.read | configuring DB: {:?}...", self_id, db_name);
-                            let db = SlmpDb::new(&self_id, tx_id, &db_conf);
-                            dbs.insert(db_name.clone(), db);
-                            info!("{}.read | configuring DB: {:?} - ok", self_id, db_name);
-                        }
-                        let mut cycle = ServiceCycle::new(&self_id, cycle_interval);
-                        'main: while !exit.load(Ordering::SeqCst) {
-                            let mut error_limit = ErrorsLimit::new(3);
-                            let mut status;
-                            status = Status::Ok;
-                            is_connected.add(true, &format!("{}.read | Connection established", self_id));
-                            Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Ok, &dest);
-                            'read: while !exit.load(Ordering::SeqCst) {
-                                cycle.start();
-                                for (db_name, db) in &mut dbs {
-                                    trace!("{}.read | DB '{}' - reading...", self_id, db_name);
-                                    match db.read(&mut tcp_stream, &dest) {
-                                        Ok(_) => {
-                                            error_limit.reset();
-                                            trace!("{}.read | DB '{}' - reading - ok", self_id, db_name);
-                                        }
-                                        Err(err) => {
-                                            error!("{}.read | DB '{}' - reading - error: {:?}", self_id, db_name, err);
-                                            if error_limit.add().is_err() {
-                                                error!("{}.read | DB '{}' - exceeded reading errors limit, trying to reconnect...", self_id, db_name);
-                                                status = Status::Invalid;
-                                                Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Invalid, &dest);
-                                                exit_pair.store(true, Ordering::SeqCst);
-                                                break 'read;
-                                            }
-                                        }
-                                    }
-                                    if exit.load(Ordering::SeqCst) {
+                info!("{}.read | Preparing thread...", self_id);
+                let handle = thread::Builder::new().name(format!("{}.read", self_id)).spawn(move || {
+                    let mut is_connected = ChangeNotify::new(
+                        &self_id,
+                        false,
+                        vec![
+                            (true,  Box::new(|message| info!("{}", message))),
+                            (false, Box::new(|message| warn!("{}", message))),
+                        ],
+                    );
+                    let mut cycle = ServiceCycle::new(&self_id, cycle_interval);
+                    let mut status = Status::Ok;
+                    let mut dbs = dbs.write().unwrap();
+                    'main: while !exit.get() {
+                        let mut error_limit = ErrorLimit::new(3);
+                        is_connected.add(true, &format!("{}.read | Connection established", self_id));
+                        Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Ok, &dest);
+                        cycle.start();
+                        for (db_name, db) in dbs.iter_mut() {
+                            trace!("{}.read | SlmpDb '{}' - reading...", self_id, db_name);
+                            match db.read(&mut tcp_stream, &dest) {
+                                Ok(_) => {
+                                    error_limit.reset();
+                                    trace!("{}.read | SlmpDb '{}' - reading - ok", self_id, db_name);
+                                }
+                                Err(err) => {
+                                    warn!("{}.read | SlmpDb '{}' - reading - error: {:?}", self_id, db_name, err);
+                                    if error_limit.add().is_err() {
+                                        error!("{}.read | SlmpDb '{}' - exceeded reading errors limit, trying to reconnect...", self_id, db_name);
+                                        status = Status::Invalid;
+                                        Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Invalid, &dest);
+                                        exit.exit_pair();
                                         break 'main;
                                     }
                                 }
-                                cycle.wait();
                             }
-                            if status != Status::Ok {
-                                Self::yield_status(&self_id, Status::Invalid, &mut dbs, &dest);
+                            if exit.get() {
+                                break 'main;
                             }
                         }
-                        info!("{}.read | Exit", self_id);
-                    });
-                    info!("{}.read | Started", self.id);
-                    handle
-                } else {
-                    info!("{}.read | Disabled", self.id);
-                    thread::Builder::new().name(format!("{}.read", self_id)).spawn(move || {})
-                }
+                        cycle.wait();
+                    }
+                    if status != Status::Ok {
+                        Self::yield_status(&self_id, Status::Invalid, &mut dbs, &dest);
+                    }
+                    info!("{}.read | Exit", self_id);
+                });
+                info!("{}.read | Started", self.id);
+                handle
             }
             None => {
                 info!("{}.read | Disabled", self.id);
-                thread::Builder::new().name(format!("{}.read", self_id)).spawn(move || {})
+                let exit = self.exit.clone();
+                thread::Builder::new().name(format!("{}.read", self_id)).spawn(move || {
+                    while !exit.get() {
+                        thread::sleep(Duration::from_millis(64));
+                    }
+                })
             }
         }
     }
