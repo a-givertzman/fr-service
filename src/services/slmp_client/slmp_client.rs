@@ -2,7 +2,7 @@ use std::{fmt::Debug, sync::{atomic::{AtomicBool, AtomicU32, Ordering}, mpsc::Se
 use log::{debug, error, info, warn};
 use testing::stuff::wait::WaitTread;
 use crate::{
-    conf::{diag_keywd::DiagKeywd, point_config::name::Name, slmp_client_config::slmp_client_config::SlmpClientConfig},
+    conf::{diag_keywd::DiagKeywd, point_config::{name::Name, point_config::PointConfig}, slmp_client_config::slmp_client_config::SlmpClientConfig},
     core_::{
         object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}, state::exit_notify::ExitNotify,
         status::status::Status, types::map::IndexMapFxHasher,
@@ -190,6 +190,11 @@ impl Service for SlmpClient {
                 Err(message)
             }
         }
+    }
+    //
+    //
+    fn points(&self) -> Vec<PointConfig> {
+        self.conf.points()
     }
     //
     //
