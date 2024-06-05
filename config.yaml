@@ -18,7 +18,7 @@ service CacheService MainCache:
 
 
 service SlmpClient Ied15:
-    cycle: 50 ms
+    cycle: 1000 ms
     subscribe: /App/MultiQueue
     send-to: /App/MultiQueue.in-queue
     description: 'SLMP-IED-01.01'
@@ -34,23 +34,37 @@ service SlmpClient Ied15:
     db db_test_data:
         device-code: D
         offset: 1100
-        size: 12
-        point Lable15.Float: 
+        size: 14
+        point Lable15.F32:
             type: Real
             address:
                 offset: 0
             comment: 'Индикация поворота стрелы направо'
-        point CraneMovement.RotateRight: 
+        point Lable16.F32:
             type: Real
             address:
                 offset: 4
-            comment: 'Индикация поворота стрелы налево'
-        point CraneMovement.OutreachFwd: 
-            type: Int
+            comment: 'Индикация поворота стрелы направо'
+        point Lable17.F32:
+            type: Real
             address:
                 offset: 8
-            comment: 'Индикация вылета стрелы вперед'
+            comment: 'Индикация поворота стрелы направо'
+        point Lable18.i16:
+            type: Int
+            address:
+                offset: 12
+            comment: 'Индикация поворота стрелы направо'
 
+service Task DebugTask:
+    cycle: 1 s
+    in queue recv-queue:
+        max-length: 10000
+    subscribe: 
+        /App/MultiQueue:                     # - multicast subscription to the MultiQueue
+            {cot: Inf}: []               #   - on all points having Cot::Inf and history::ReadWrite
+    fn Debug:
+        input: point real DLable20.F32
 
 service Task HistoryTask:
     cycle: 1 s

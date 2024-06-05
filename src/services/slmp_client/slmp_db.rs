@@ -125,27 +125,37 @@ impl SlmpDb {
     ///    - if read 0 bytes
     ///    - if on error
     fn read_all(self_id: &str, bytes: &mut Vec<u8>, mut stream: impl Read) -> ConnectionStatus<OpResult<(), String>, String> {
-        match stream.read_to_end(bytes) {
-            Ok(len) => {
-                trace!("{}.read_all | bytes read: {}", self_id, len);
-                if len > 0 {
-                    ConnectionStatus::Active(OpResult::Ok(()))
-                } else {
-                    ConnectionStatus::Closed(format!("{}.read_all | Tcp stream is closed", self_id))
+        let chank_len = 1024;
+        loop {
+            let mut buf = vec![0u8; chank_len];
+            match stream.read(&mut buf) {
+                Ok(len) => {
+                    debug!("{}.read_all | bytes read: {}", self_id, len);
+                    trace!("{}.read_all | bytes read: \n\t{:02X?}", self_id, buf);
+                    if len > 0 {
+                        debug!("{}.read_all | appending bytes: \n\t{:02X?}", self_id, &buf[..len]);
+                        bytes.extend_from_slice(&buf[..len]);
+                        if len < chank_len {
+                            return ConnectionStatus::Active(OpResult::Ok(()))
+                        }
+                        // return ConnectionStatus::Active(OpResult::Ok(()))
+                    } else {
+                        return ConnectionStatus::Closed(format!("{}.read_all | Tcp stream is closed", self_id))
+                    }
                 }
-            }
-            Err(err) => {
-                // warn!("{}.read_all | error reading from socket: {:?}", self_id, err);
-                // warn!("{}.read_all | error kind: {:?}", self_id, err.kind());
-                match SocketState::match_error_kind(err.kind()) {
-                    SocketState::Active => {
-                        ConnectionStatus::Active(OpResult::Err(format!("{}.read_all | Tcp stream is empty", self_id)))
-                    }
-                    SocketState::Closed => {
-                        ConnectionStatus::Closed(format!("{}.read_all | Tcp stream is closed, error: {:?}", self_id, err))
-                    }
-                    SocketState::Timeout => {
-                        ConnectionStatus::Active(OpResult::Timeout())
+                Err(err) => {
+                    // warn!("{}.read_all | error reading from socket: {:?}", self_id, err);
+                    // warn!("{}.read_all | error kind: {:?}", self_id, err.kind());
+                    match SocketState::match_error_kind(err.kind()) {
+                        SocketState::Active => {
+                            return ConnectionStatus::Active(OpResult::Err(format!("{}.read_all | Tcp stream is empty", self_id)))
+                        }
+                        SocketState::Closed => {
+                            return ConnectionStatus::Closed(format!("{}.read_all | Tcp stream is closed, error: {:?}", self_id, err))
+                        }
+                        SocketState::Timeout => {
+                            return ConnectionStatus::Active(OpResult::Timeout())
+                        }
                     }
                 }
             }
@@ -161,17 +171,22 @@ impl SlmpDb {
         let read_tcp_stream = BufReader::new(tcp_stream.try_clone().unwrap());
         match self.slmp_packet.read_packet(FrameType::BinReqSt) {
             Ok(packet) => {
+                debug!("{}.read | Sending SLMP request: \n\t{:02X?} ...", self.id, packet);
                 match tcp_stream.write_all(&packet) {
                     Ok(_) => {
+                        debug!("{}.read | Sending SLMP request - ok", self.id);
+                        // debug!("{}.read | Reading device-code: '{:?}', offset: '{}', size: '{}'", self.id, self.device_code, self.offset, self.size);
                         let mut bytes = vec![];
+                        debug!("{}.read | Reading SLMP reply...", self.id);
                         match Self::read_all(&self.id, &mut bytes, read_tcp_stream) {
                             ConnectionStatus::Active(_) => {
                                 trace!("{}.read | bytes: {:?}", self.id, bytes);
                                 let timestamp = Utc::now();
                                 let mut message = String::new();
+                                let data_bytes = &bytes[11..];
                                 for (_key, parse_point) in &mut self.points {
-                                    if let Some(point) = parse_point.next(&bytes, timestamp) {
-                                        // debug!("{}.read | point: {:?}", self.id, point);
+                                    if let Some(point) = parse_point.next(data_bytes, timestamp) {
+                                        debug!("{}.read | point: {:?}", self.id, point);
                                         match dest.send(point.clone()) {
                                             Ok(_) => {
                                                 Self::log(&self.id, &self.name, &point);

@@ -55,11 +55,11 @@ impl SlmpParseInt {
         start: usize,
         _bit: usize,
     ) -> Result<i16, TryFromSliceError> {
-        // debug!("SlmpParseInt.convert | start: {},  end: {:?}", start, start + 2);
-        // let raw: [u8; 2] = (bytes[start..(start + 2)]).try_into().unwrap();
-        // debug!("SlmpParseInt.convert | raw: {:?}", raw);
+        debug!("SlmpParseInt.convert | start: {},  end: {:?}", start, start + 2);
+        debug!("SlmpParseInt.convert | raw: {:02X?}", &bytes[start..(start + 2)]);
+        debug!("SlmpParseInt.convert | converted i16: {:?}", i16::from_le_bytes(bytes[start..(start + 2)].try_into().unwrap()));
         match bytes[start..(start + 2)].try_into() {
-            Ok(v) => Ok(i16::from_be_bytes(v)),
+            Ok(v) => Ok(i16::from_le_bytes(v)),
             Err(e) => {
                 debug!("SlmpParseInt.convert | error: {}", e);
                 Err(e)

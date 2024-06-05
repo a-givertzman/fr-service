@@ -32,7 +32,7 @@ mod slmp_client {
         println!("\n{}", self_id);
         let test_duration = TestDuration::new(self_id, Duration::from_secs(1000));
         test_duration.run().unwrap();
-        let slmp_packet = SlmpPacket::new(self_id, DeviceCode::D, 1100, 18);
+        let slmp_packet = SlmpPacket::new(self_id, DeviceCode::D, 1112, 4);
         match slmp_packet.read_packet(FrameType::BinReqSt) {
             Ok(read_request) => {
                 debug!("read request: {:02X?}", read_request);
@@ -64,26 +64,26 @@ mod slmp_client {
                                                     })
                                                     .collect::<Vec<f32>>();
                                                 println!("\tfloats: {:?}", floats);
-                                                let data_without_header = &reply[(DATA_OFFSET + DATA_SIZE)..(DATA_OFFSET + DATA_SIZE + I16_SIZE)];
-                                                println!("\tdata_without_header: {:?}", data_without_header);
-                                                let ints = data_without_header
-                                                    .chunks_exact(I16_SIZE)
-                                                    .map(|chunk| {
-                                                        let bytes: [u8; I16_SIZE] = chunk.try_into().unwrap();
-                                                        i16::from_le_bytes(bytes)
-                                                    })
-                                                    .collect::<Vec<i16>>();
-                                                println!("\tints: {:?}", ints);
-                                                let data_without_header = &reply[(DATA_OFFSET + DATA_SIZE+ I16_SIZE)..(DATA_OFFSET + DATA_SIZE + I16_SIZE + I32_SIZE)];
-                                                println!("\tdata_without_header: {:?}", data_without_header);
-                                                let ints = data_without_header
-                                                    .chunks_exact(I32_SIZE)
-                                                    .map(|chunk| {
-                                                        let bytes: [u8; I32_SIZE] = chunk.try_into().unwrap();
-                                                        i32::from_le_bytes(bytes)
-                                                    })
-                                                    .collect::<Vec<i32>>();
-                                                println!("\tbig ints: {:?}", ints);
+                                                // let data_without_header = &reply[(DATA_OFFSET + DATA_SIZE)..(DATA_OFFSET + DATA_SIZE + I16_SIZE)];
+                                                // println!("\tdata_without_header: {:?}", data_without_header);
+                                                // let ints = data_without_header
+                                                //     .chunks_exact(I16_SIZE)
+                                                //     .map(|chunk| {
+                                                //         let bytes: [u8; I16_SIZE] = chunk.try_into().unwrap();
+                                                //         i16::from_le_bytes(bytes)
+                                                //     })
+                                                //     .collect::<Vec<i16>>();
+                                                // println!("\tints: {:?}", ints);
+                                                // let data_without_header = &reply[(DATA_OFFSET + DATA_SIZE+ I16_SIZE)..(DATA_OFFSET + DATA_SIZE + I16_SIZE + I32_SIZE)];
+                                                // println!("\tdata_without_header: {:?}", data_without_header);
+                                                // let ints = data_without_header
+                                                //     .chunks_exact(I32_SIZE)
+                                                //     .map(|chunk| {
+                                                //         let bytes: [u8; I32_SIZE] = chunk.try_into().unwrap();
+                                                //         i32::from_le_bytes(bytes)
+                                                //     })
+                                                //     .collect::<Vec<i32>>();
+                                                // println!("\tbig ints: {:?}", ints);
                                             },
                                             Err(err) => warn!("Tcp read error: {:#?}", err),
                                         }

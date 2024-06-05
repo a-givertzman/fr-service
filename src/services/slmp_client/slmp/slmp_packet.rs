@@ -41,7 +41,10 @@ pub struct SlmpPacket {
 //
 impl SlmpPacket {
     ///
-    /// 
+    /// Creates new SLMP packet
+    /// - device_code - SLMP Device code (Sm, Sd, X, Y, M, L, F, V, B, D, W)
+    /// - offset - address offset
+    /// - length - bytes to be writen / requested
     pub fn new(parent: impl Into<String>, device_code: DeviceCode, offset: u32, length: u16) -> Self {
         Self {
             id: format!("{}/SlmpPacket", parent.into()),
