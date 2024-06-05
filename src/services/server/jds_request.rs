@@ -162,12 +162,18 @@ impl JdsRequest {
                 let receiver_name = shared.subscribe_receiver.clone();
                 debug!("{}.handle.Subscribe | extending subscription for receiver: '{}'", self_id, receiver_name);
                 trace!("{}.handle.Subscribe |                              points: {:#?}", self_id, points);
-                let (cot, message) = match services.slock().extend_subscription(&shared.subscribe, &receiver_name, &points) {
-                    Ok(_) => (Cot::ReqCon, "".to_owned()),
-                    Err(err) => {
-                        let message = format!("{}.handle.Subscribe | extend_subscription failed with error: {:?}", self_id, err);
-                        warn!("{}", message);
-                        (Cot::ReqErr, message)
+                let (cot, message) = if points.is_empty() {
+                    let message = format!("{}.handle.Subscribe | SUbscribe failed - points not found in the application", self_id);
+                    warn!("{}", message);
+                    (Cot::ReqErr, message)
+                } else {
+                    match services.slock().extend_subscription(&shared.subscribe, &receiver_name, &points) {
+                        Ok(_) => (Cot::ReqCon, "".to_owned()),
+                        Err(err) => {
+                            let message = format!("{}.handle.Subscribe | Extend subscription failed with error: {:?}", self_id, err);
+                            warn!("{}", message);
+                            (Cot::ReqErr, message)
+                        }
                     }
                 };
                 match shared.cache.clone() {
