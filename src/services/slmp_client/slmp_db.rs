@@ -129,18 +129,17 @@ impl SlmpDb {
         loop {
             let mut buf = vec![0u8; chank_len];
             match stream.read(&mut buf) {
+                Ok(0) => {
+                    trace!("{}.read_all | socket closed by peer", self_id);
+                    return ConnectionStatus::Closed(format!("{}.read_all | TcpStream closed by peer", self_id))
+                }
                 Ok(len) => {
                     debug!("{}.read_all | bytes read: {}", self_id, len);
                     trace!("{}.read_all | bytes read: \n\t{:02X?}", self_id, buf);
-                    if len > 0 {
-                        debug!("{}.read_all | appending bytes: \n\t{:02X?}", self_id, &buf[..len]);
-                        bytes.extend_from_slice(&buf[..len]);
-                        if len < chank_len {
-                            return ConnectionStatus::Active(OpResult::Ok(()))
-                        }
-                        // return ConnectionStatus::Active(OpResult::Ok(()))
-                    } else {
-                        return ConnectionStatus::Closed(format!("{}.read_all | Tcp stream is closed", self_id))
+                    debug!("{}.read_all | appending bytes: \n\t{:02X?}", self_id, &buf[..len]);
+                    bytes.extend_from_slice(&buf[..len]);
+                    if len < chank_len {
+                        return ConnectionStatus::Active(OpResult::Ok(()))
                     }
                 }
                 Err(err) => {
