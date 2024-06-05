@@ -1,4 +1,4 @@
-use log::{debug, warn};
+use log::{debug, trace, warn};
 use std::array::TryFromSliceError;
 use chrono::{DateTime, Utc};
 use crate::{
@@ -55,9 +55,9 @@ impl SlmpParseInt {
         start: usize,
         _bit: usize,
     ) -> Result<i16, TryFromSliceError> {
-        debug!("SlmpParseInt.convert | start: {},  end: {:?}", start, start + 2);
-        debug!("SlmpParseInt.convert | raw: {:02X?}", &bytes[start..(start + 2)]);
-        debug!("SlmpParseInt.convert | converted i16: {:?}", i16::from_le_bytes(bytes[start..(start + 2)].try_into().unwrap()));
+        trace!("SlmpParseInt.convert | start: {},  end: {:?}", start, start + 2);
+        trace!("SlmpParseInt.convert | raw: {:02X?}", &bytes[start..(start + 2)]);
+        trace!("SlmpParseInt.convert | converted i16: {:?}", i16::from_le_bytes(bytes[start..(start + 2)].try_into().unwrap()));
         match bytes[start..(start + 2)].try_into() {
             Ok(v) => Ok(i16::from_le_bytes(v)),
             Err(e) => {

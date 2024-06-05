@@ -1,4 +1,4 @@
-use log::{debug, warn};
+use log::{trace, warn};
 use std::array::TryFromSliceError;
 use chrono::{DateTime, Utc};
 use crate::{
@@ -55,9 +55,9 @@ impl SlmpParseReal {
         start: usize,
         _bit: usize,
     ) -> Result<f32, TryFromSliceError> {
-        debug!("SlmpParseInt.convert | start: {},  end: {:?}", start, start + 4);
-        warn!("SlmpParseReal.convert | raw: {:02X?}", &bytes[start..(start + 4)]);
-        warn!("SlmpParseReal.convert | converted f32: {:?}", f32::from_le_bytes(bytes[start..(start + 4)].try_into().unwrap()));
+        trace!("SlmpParseReal.convert | start: {},  end: {:?}", start, start + 4);
+        trace!("SlmpParseReal.convert | raw: {:02X?}", &bytes[start..(start + 4)]);
+        trace!("SlmpParseReal.convert | converted f32: {:?}", f32::from_le_bytes(bytes[start..(start + 4)].try_into().unwrap()));
         match bytes[start..(start + 4)].try_into() {
             Ok(v) => Ok(f32::from_le_bytes(v)),
             Err(e) => {
