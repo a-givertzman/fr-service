@@ -1,5 +1,5 @@
+#![allow(non_snake_case)]
 use super::c_slmp_const::{FrameType, ProcessorNumber, SlmpCommand, SlmpSubCommand, TimerValue};
-
 ///
 /// SLMP Info structure in c-type.
 /// Used in SLMP_MakePacketStream as argument.
