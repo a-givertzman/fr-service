@@ -146,15 +146,15 @@ impl SlmpDb {
                 Err(err) => {
                     // warn!("{}.read_all | error reading from socket: {:?}", self_id, err);
                     // warn!("{}.read_all | error kind: {:?}", self_id, err.kind());
-                    match SocketState::match_error_kind(err.kind()) {
+                    return match SocketState::match_error_kind(err.kind()) {
                         SocketState::Active => {
-                            return ConnectionStatus::Active(OpResult::Err(format!("{}.read_all | Tcp stream is empty", self_id)))
+                            ConnectionStatus::Active(OpResult::Err(format!("{}.read_all | Tcp stream is empty", self_id)))
                         }
                         SocketState::Closed => {
-                            return ConnectionStatus::Closed(format!("{}.read_all | Tcp stream is closed, error: {:?}", self_id, err))
+                            ConnectionStatus::Closed(format!("{}.read_all | Tcp stream is closed, error: {:?}", self_id, err))
                         }
                         SocketState::Timeout => {
-                            return ConnectionStatus::Active(OpResult::Timeout())
+                            ConnectionStatus::Active(OpResult::Timeout())
                         }
                     }
                 }
@@ -221,12 +221,12 @@ impl SlmpDb {
                 let message = format!("{}.read | Build read packet error: {}", self.id, err);
                 error!("{}", message);
                 Err(message)
-            },
+            }
         }
     }
     ///
     /// Writes point to the current DB
-    ///     - Returns Ok() if succeed, Err(message) on fail
+    /// - Returns Ok() if succeed, Err(message) on fail
     pub fn write(&mut self, tcp_stream: &mut TcpStream, point: PointType) -> Result<(), String> {
         let mut message = String::new();
         match self.points.get(&point.name()) {

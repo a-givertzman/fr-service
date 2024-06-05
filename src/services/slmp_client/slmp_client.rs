@@ -1,11 +1,10 @@
-use std::{fmt::Debug, sync::{atomic::{AtomicBool, AtomicU32, Ordering}, mpsc::Sender, Arc, Mutex}, thread};
+use std::{fmt::Debug, net::TcpStream, sync::{atomic::{AtomicBool, AtomicU32, Ordering}, mpsc::Sender, Arc, Mutex}, thread, time::Duration};
 use log::{debug, error, info, warn};
 use testing::stuff::wait::WaitTread;
 use crate::{
     conf::{diag_keywd::DiagKeywd, point_config::{name::Name, point_config::PointConfig}, slmp_client_config::slmp_client_config::SlmpClientConfig},
     core_::{
-        object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}, state::exit_notify::ExitNotify,
-        status::status::Status, types::map::IndexMapFxHasher,
+        constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}, state::exit_notify::ExitNotify, status::status::Status, types::map::IndexMapFxHasher
     },
     services::{
         diagnosis::diag_point::DiagPoint, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles},
@@ -72,6 +71,28 @@ impl SlmpClient {
                 }
             }
             Err(err) => error!("{}.yield_diagnosis | Diagnosis lock error: {:#?}", self_id, err),
+        }
+    }
+    ///
+    /// Applies a write / read timeout for TcpStream
+    fn set_stream_timout(self_id: &str, stream: &TcpStream, read_timeout: Duration, write_timeout: Option<Duration>) {
+        match stream.set_read_timeout(Some(read_timeout)) {
+            Ok(_) => {
+                info!("{}.set_stream_timout | Socket set read timeout {:?} - ok", self_id, read_timeout);
+            }
+            Err(err) => {
+                warn!("{}.set_stream_timout | Socket set read timeout error {:?}", self_id, err);
+            }
+        }
+        if let Some(timeout) = write_timeout {
+            match stream.set_write_timeout(Some(timeout)) {
+                Ok(_) => {
+                    info!("{}.set_stream_timout | Socket set write timeout {:?} - ok", self_id, timeout);
+                }
+                Err(err) => {
+                    warn!("{}.set_stream_timout | Socket set write timeout error {:?}", self_id, err);
+                }
+            }
         }
     }
 }
@@ -146,6 +167,12 @@ impl Service for SlmpClient {
                 exit.reset_pair();
                 match tcp_client_connect.connect() {
                     Some(tcp_stream) =>  {
+                        Self::set_stream_timout(
+                            &self_id,
+                            &tcp_stream,
+                            conf.cycle.map_or(RECV_TIMEOUT, |cycle| cycle),
+                            Some(RECV_TIMEOUT),
+                        );
                         Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Ok, &tx_send);
                         let h_r = slmp_read.run(tcp_stream.try_clone().unwrap());
                         let h_w = slmp_write.run(tcp_stream);
