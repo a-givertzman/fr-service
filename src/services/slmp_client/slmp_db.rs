@@ -166,14 +166,14 @@ impl SlmpDb {
     ///     - parses raw data into the configured points
     ///     - sends to the [dest] only points with updated value or status
     pub fn read(&mut self, tcp_stream: &mut TcpStream, dest: &Sender<PointType>) -> Result<(), String> {
-        debug!("{}.read | Reading device-code: '{:?}', offset: '{}', size: '{}'", self.id, self.device_code, self.offset, self.size);
+        trace!("{}.read | Reading device-code: '{:?}', offset: '{}', size: '{}'", self.id, self.device_code, self.offset, self.size);
         let read_tcp_stream = BufReader::new(tcp_stream.try_clone().unwrap());
         match self.slmp_packet.read_packet(FrameType::BinReqSt) {
             Ok(packet) => {
-                debug!("{}.read | Sending SLMP request: \n\t{:02X?} ...", self.id, packet);
+                trace!("{}.read | Sending SLMP request: \n\t{:02X?} ...", self.id, packet);
                 match tcp_stream.write_all(&packet) {
                     Ok(_) => {
-                        debug!("{}.read | Sending SLMP request - ok", self.id);
+                        trace!("{}.read | Sending SLMP request - ok", self.id);
                         // debug!("{}.read | Reading device-code: '{:?}', offset: '{}', size: '{}'", self.id, self.device_code, self.offset, self.size);
                         let mut bytes = vec![];
                         debug!("{}.read | Reading SLMP reply...", self.id);
@@ -227,61 +227,71 @@ impl SlmpDb {
     /// Writes point to the current DB
     /// - Returns Ok() if succeed, Err(message) on fail
     pub fn write(&mut self, tcp_stream: &mut TcpStream, point: PointType) -> Result<(), String> {
-        let mut message = String::new();
+        debug!("{}.write | Writing point: {:?}", self.id, point);
         match self.points.get(&point.name()) {
             Some(_parse_point) => {
-                let bytes = match point {
+                let bytes = match &point {
                     PointType::Bool(point) => {
                         // !!! Not implemented because before write byte of the bool bits, that byte must be read from device
                         // let mut buf = [0; 16];
                         // let index = address.offset.unwrap() as usize;
                         // buf[index] = point.value.0 as u8;
                         // client.write(self.number, address.offset.unwrap(), 2, &mut buf)
-                        message = format!("{}.write | Write 'Bool' to the Device - not implemented, point: {:?}", self.id, point.name);
+                        let message = format!("{}.write | Write 'Bool' to the Device - not implemented, point: {:?}", self.id, point.name);
                         Err(message)
                     }
                     PointType::Int(point) => {
+                        debug!("{}.write | converting '{}' into i16...", self.id, point.value);
                         match i16::try_from(point.value) {
                             Ok(value) => {
-                                let write_data = value.to_le_bytes();
-                                match self.slmp_packet.write_packet(FrameType::BinReqSt, &write_data) {
-                                    Ok(write_packet) => Ok(write_packet),
-                                    Err(err) => Err(err),
-                                }
+                                Ok(value.to_le_bytes().to_vec())
                             }
                             Err(err) => {
-                                message = format!("{}.write | Type 'Int' to i16 conversion error: {:#?} in the point: {:#?}", self.id, err, point.name);
+                                let message = format!("{}.write | '{}' to i16 conversion error: {:#?} in the point: {:#?}", self.id, point.value, err, point.name);
                                 Err(message)
                             }
                         }
                     }
                     PointType::Real(point) => {
-                        let write_data = point.value.to_le_bytes();
-                        match self.slmp_packet.write_packet(FrameType::BinReqSt, &write_data) {
-                            Ok(write_packet) => Ok(write_packet),
-                            Err(err) => Err(err),
-                        }
+                        Ok(point.value.to_le_bytes().to_vec())
                     }
                     PointType::Double(point) => {
-                        message = format!("{}.write | Write 'Double' to the Device - not implemented, point: {:?}", self.id, point.name);
-                        Err(message)
+                        debug!("{}.write | converting '{}' into f32...", self.id, point.value);
+                        Ok((point.value as f32).to_le_bytes().to_vec())
                     }
                     PointType::String(point) => {
-                        message = format!("{}.write | Write 'String' to the Device - not implemented, point: {:?}", self.id, point.name);
+                        let message = format!("{}.write | Write 'String' to the Device - not implemented, point: {:?}", self.id, point.name);
                         Err(message)
                     }
                 };
                 match bytes {
                     Ok(bytes) => {
-                        match tcp_stream.write_all(&bytes) {
-                            Ok(_) => Ok(()),
-                            Err(err) => Err(format!("{}.write | Write to socket error: {:#?}", self.id, err)),
+                        match self.slmp_packet.write_packet(FrameType::BinReqSt, &bytes) {
+                            Ok(write_packet) => {
+                                debug!("{}.write | write_packet: {:02X?}", self.id, write_packet);
+                                match tcp_stream.write_all(&write_packet) {
+                                    Ok(_) => {
+                                        debug!("{}.write | write - Ok", self.id);
+                                        Ok(())
+                                    }
+                                    Err(err) => {
+                                        let message = format!("Tcp write error: {:#?}", err);
+                                        warn!("{}", message);
+                                        Err(message)
+                                    }
+                                }
+                            }
+                            Err(err) => {
+                                let message = format!("{}.write | Build write packet error: {:#?} \n\tin the point: {:?}", self.id, err, point.name());
+                                Err(message)
+                            }
                         }
                     }
                     Err(err) => Err(err),
                 }
             }
             None => {
+                let message = format!("Point '{}' - not found", point.name());
                 Err(message)
             }
         }
