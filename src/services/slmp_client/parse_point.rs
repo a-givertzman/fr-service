@@ -24,4 +24,10 @@ pub trait ParsePoint: Send + Sync {
     ///
     /// Returns raw protocol specific address
     fn address(&self) -> PointConfigAddress;
+    ///
+    /// Returns size of the type in the bytes
+    fn size(&self) -> usize;
+    ///
+    /// Returns protocol specific bytes ready to write represents [value]
+    fn to_write_bytes(&self, point: &PointType) -> Result<Vec<u8>, String>;
 }

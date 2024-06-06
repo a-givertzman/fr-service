@@ -10,6 +10,7 @@ use crate::{
 /// Used for parsing configured point from slice of bytes read from device
 #[derive(Debug)]
 pub struct SlmpParseInt {
+    id: String,
     pub type_: PointConfigType,
     pub tx_id: usize,
     pub name: String,
@@ -26,6 +27,9 @@ pub struct SlmpParseInt {
 //
 impl SlmpParseInt {
     ///
+    /// Size in the bytes in the Device address area
+    const SIZE: usize = 2;
+    ///
     ///
     pub fn new(
         tx_id: usize,
@@ -34,6 +38,7 @@ impl SlmpParseInt {
         filter: Box<dyn Filter<Item = i64> + Sync + Send>,
     ) -> SlmpParseInt {
         SlmpParseInt {
+            id: format!("SlmpParseInt"),
             type_: config.type_.clone(),
             tx_id,
             name,
@@ -55,13 +60,13 @@ impl SlmpParseInt {
         start: usize,
         _bit: usize,
     ) -> Result<i16, TryFromSliceError> {
-        trace!("SlmpParseInt.convert | start: {},  end: {:?}", start, start + 2);
-        trace!("SlmpParseInt.convert | raw: {:02X?}", &bytes[start..(start + 2)]);
-        trace!("SlmpParseInt.convert | converted i16: {:?}", i16::from_le_bytes(bytes[start..(start + 2)].try_into().unwrap()));
-        match bytes[start..(start + 2)].try_into() {
+        trace!("{}.convert | start: {},  end: {:?}", self.id, start, start + Self::SIZE);
+        trace!("{}.convert | raw: {:02X?}", self.id, &bytes[start..(start + Self::SIZE)]);
+        trace!("{}.convert | converted i16: {:?}", self.id, i16::from_le_bytes(bytes[start..(start + Self::SIZE)].try_into().unwrap()));
+        match bytes[start..(start + Self::SIZE)].try_into() {
             Ok(v) => Ok(i16::from_le_bytes(v)),
             Err(e) => {
-                debug!("SlmpParseInt.convert | error: {}", e);
+                debug!("{}.convert | error: {}", self.id, e);
                 Err(e)
             }
         }
@@ -105,7 +110,7 @@ impl SlmpParseInt {
             }
             Err(e) => {
                 self.status = Status::Invalid;
-                warn!("SlmpParseInt.addRaw | convertion error: {:?}", e);
+                warn!("{}.add_raw | convertion error: {:?}", self.id, e);
             }
         }
     }
@@ -155,5 +160,34 @@ impl ParsePoint for SlmpParseInt {
     //
     fn address(&self) -> PointConfigAddress {
         PointConfigAddress { offset: self.offset, bit: None }
+    }
+    //
+    //
+    fn size(&self) -> usize {
+        Self::SIZE
+    }
+    //
+    //
+    fn to_write_bytes(&self, point: &PointType) -> Result<Vec<u8>, String> {
+        match point.try_as_int() {
+            Ok(point) => {
+                debug!("{}.write | converting '{}' into i16...", self.id, point.value);
+                match i16::try_from(point.value) {
+                    Ok(value) => {
+                        Ok(value.to_le_bytes().to_vec())
+                    }
+                    Err(err) => {
+                        let message = format!("{}.write | '{}' to i16 conversion error: {:#?} in the parse point: {:#?}", self.id, point.value, err, self.name);
+                        warn!("{}", message);
+                        Err(message)
+                    }
+                }
+            }
+            Err(_) => {
+                let message = format!("{}.write | Point of type 'Int' expected, but found '{:?}' in the parse point: {:#?}", self.id, point.type_(), self.name);
+                warn!("{}", message);
+                Err(message)
+            }
+        }
     }
 }

@@ -10,6 +10,7 @@ use crate::{
 /// Used for parsing configured point from slice of bytes read from device
 #[derive(Debug)]
 pub struct SlmpParseReal {
+    id: String,
     pub type_: PointConfigType,
     pub tx_id: usize,
     pub name: String,
@@ -26,6 +27,9 @@ pub struct SlmpParseReal {
 //
 impl SlmpParseReal {
     ///
+    /// Size in the bytes in the Device address area
+    const SIZE: usize = 4;
+    ///
     ///
     pub fn new(
         tx_id: usize,
@@ -34,6 +38,7 @@ impl SlmpParseReal {
         filter: Box<dyn Filter<Item = f32> + Sync + Send>,
     ) -> SlmpParseReal {
         SlmpParseReal {
+            id: format!("SlmpParseReal"),
             type_: config.type_.clone(),
             tx_id,
             value: filter,
@@ -55,13 +60,13 @@ impl SlmpParseReal {
         start: usize,
         _bit: usize,
     ) -> Result<f32, TryFromSliceError> {
-        trace!("SlmpParseReal.convert | start: {},  end: {:?}", start, start + 4);
-        trace!("SlmpParseReal.convert | raw: {:02X?}", &bytes[start..(start + 4)]);
-        trace!("SlmpParseReal.convert | converted f32: {:?}", f32::from_le_bytes(bytes[start..(start + 4)].try_into().unwrap()));
-        match bytes[start..(start + 4)].try_into() {
+        trace!("{}.convert | start: {},  end: {:?}", self.id, start, start + Self::SIZE);
+        trace!("{}.convert | raw: {:02X?}", self.id, &bytes[start..(start + Self::SIZE)]);
+        trace!("{}.convert | converted f32: {:?}", self.id, f32::from_le_bytes(bytes[start..(start + Self::SIZE)].try_into().unwrap()));
+        match bytes[start..(start + Self::SIZE)].try_into() {
             Ok(v) => Ok(f32::from_le_bytes(v)),
             Err(e) => {
-                warn!("SlmpParseReal.convert | error: {}", e);
+                warn!("{}.convert | error: {}", self.id, e);
                 Err(e)
             }
         }
@@ -104,7 +109,7 @@ impl SlmpParseReal {
             }
             Err(e) => {
                 self.status = Status::Invalid;
-                warn!("SlmpParseReal.add_raw | convertion error: {:?}", e);
+                warn!("{}.add_raw | convertion error: {:?}", self.id, e);
             }
         }
     }
@@ -155,4 +160,22 @@ impl ParsePoint for SlmpParseReal {
     fn address(&self) -> PointConfigAddress {
         PointConfigAddress { offset: self.offset, bit: None }
     }
+    //
+    //
+    fn size(&self) -> usize {
+        Self::SIZE
+    }
+    //
+    //
+    fn to_write_bytes(&self, point: &PointType) -> Result<Vec<u8>, String> {
+        match point {
+            PointType::Real(point) => Ok(point.value.to_le_bytes().to_vec()),
+            PointType::Double(_) => Ok(point.to_real().as_real().value.to_le_bytes().to_vec()),
+            _ => {
+                let message = format!("{}.write | Point of type 'Real / Double' expected, but found '{:?}' in the parse point: {:#?}", self.id, point.type_(), self.name);
+                warn!("{}", message);
+                Err(message)
+            }
+        }
+    }    
 }

@@ -229,60 +229,42 @@ impl SlmpDb {
     pub fn write(&mut self, tcp_stream: &mut TcpStream, point: PointType) -> Result<(), String> {
         debug!("{}.write | Writing point: {:?}", self.id, point);
         match self.points.get(&point.name()) {
-            Some(_parse_point) => {
-                let bytes = match &point {
-                    PointType::Bool(point) => {
-                        // !!! Not implemented because before write byte of the bool bits, that byte must be read from device
-                        // let mut buf = [0; 16];
-                        // let index = address.offset.unwrap() as usize;
-                        // buf[index] = point.value.0 as u8;
-                        // client.write(self.number, address.offset.unwrap(), 2, &mut buf)
-                        let message = format!("{}.write | Write 'Bool' to the Device - not implemented, point: {:?}", self.id, point.name);
-                        Err(message)
-                    }
-                    PointType::Int(point) => {
-                        debug!("{}.write | converting '{}' into i16...", self.id, point.value);
-                        match i16::try_from(point.value) {
-                            Ok(value) => {
-                                Ok(value.to_le_bytes().to_vec())
-                            }
-                            Err(err) => {
-                                let message = format!("{}.write | '{}' to i16 conversion error: {:#?} in the point: {:#?}", self.id, point.value, err, point.name);
-                                Err(message)
-                            }
-                        }
-                    }
-                    PointType::Real(point) => {
-                        Ok(point.value.to_le_bytes().to_vec())
-                    }
-                    PointType::Double(point) => {
-                        debug!("{}.write | converting '{}' into f32...", self.id, point.value);
-                        Ok((point.value as f32).to_le_bytes().to_vec())
-                    }
-                    PointType::String(point) => {
-                        let message = format!("{}.write | Write 'String' to the Device - not implemented, point: {:?}", self.id, point.name);
-                        Err(message)
-                    }
-                };
-                match bytes {
+            Some(parse_point) => {
+                match parse_point.to_write_bytes(&point) {
                     Ok(bytes) => {
-                        match self.slmp_packet.write_packet(FrameType::BinReqSt, &bytes) {
-                            Ok(write_packet) => {
-                                debug!("{}.write | write_packet: {:02X?}", self.id, write_packet);
-                                match tcp_stream.write_all(&write_packet) {
-                                    Ok(_) => {
-                                        debug!("{}.write | write - Ok", self.id);
-                                        Ok(())
+                        match parse_point.address().offset {
+                            Some(offset) => {
+                                let slmp_packet = SlmpPacket::new(
+                                    &self.id,
+                                    self.device_code,
+                                    self.offset + offset,
+                                    parse_point.size() as u16,
+                                );
+                                match slmp_packet.write_packet(FrameType::BinReqSt, &bytes) {
+                                    Ok(write_packet) => {
+                                        debug!("{}.write | write_packet: {:02X?}", self.id, write_packet);
+                                        match tcp_stream.write_all(&write_packet) {
+                                            Ok(_) => {
+                                                debug!("{}.write | write - Ok", self.id);
+                                                Ok(())
+                                            }
+                                            Err(err) => {
+                                                let message = format!("{}.write | Tcp write error: {:#?}", self.id, err);
+                                                warn!("{}", message);
+                                                Err(message)
+                                            }
+                                        }
                                     }
                                     Err(err) => {
-                                        let message = format!("Tcp write error: {:#?}", err);
+                                        let message = format!("{}.write | Build write packet error: {:#?} \n\tin the point: {:?}", self.id, err, point.name());
                                         warn!("{}", message);
                                         Err(message)
                                     }
                                 }
                             }
-                            Err(err) => {
-                                let message = format!("{}.write | Build write packet error: {:#?} \n\tin the point: {:?}", self.id, err, point.name());
+                            None => {
+                                let message = format!("{}.write | Address offset not specified for Point '{}'", self.id, point.name());
+                                warn!("{}", message);
                                 Err(message)
                             }
                         }
@@ -291,7 +273,8 @@ impl SlmpDb {
                 }
             }
             None => {
-                let message = format!("Point '{}' - not found", point.name());
+                let message = format!("{}.write | Point '{}' - not found", self.id, point.name());
+                warn!("{}", message);
                 Err(message)
             }
         }
