@@ -234,6 +234,7 @@ impl SlmpDb {
                     Ok(bytes) => {
                         match parse_point.address().offset {
                             Some(offset) => {
+                                debug!("{}.write | Preparing write_packet with device code: '{:?}', offset: '{}', size: '{}'", self.id, self.device_code, self.offset + offset, parse_point.size());
                                 let slmp_packet = SlmpPacket::new(
                                     &self.id,
                                     self.device_code,
