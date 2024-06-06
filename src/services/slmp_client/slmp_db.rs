@@ -230,7 +230,7 @@ impl SlmpDb {
         debug!("{}.write | Writing point: {:?}", self.id, point);
         match self.points.get(&point.name()) {
             Some(parse_point) => {
-                match parse_point.to_write_bytes(&point) {
+                match parse_point.to_bytes(&point) {
                     Ok(bytes) => {
                         match parse_point.address().offset {
                             Some(offset) => {

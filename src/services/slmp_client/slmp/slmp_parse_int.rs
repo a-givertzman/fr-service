@@ -168,7 +168,7 @@ impl ParsePoint for SlmpParseInt {
     }
     //
     //
-    fn to_write_bytes(&self, point: &PointType) -> Result<Vec<u8>, String> {
+    fn to_bytes(&self, point: &PointType) -> Result<Vec<u8>, String> {
         match point.try_as_int() {
             Ok(point) => {
                 debug!("{}.write | converting '{}' into i16...", self.id, point.value);

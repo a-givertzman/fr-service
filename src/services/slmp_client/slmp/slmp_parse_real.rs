@@ -167,7 +167,7 @@ impl ParsePoint for SlmpParseReal {
     }
     //
     //
-    fn to_write_bytes(&self, point: &PointType) -> Result<Vec<u8>, String> {
+    fn to_bytes(&self, point: &PointType) -> Result<Vec<u8>, String> {
         match point {
             PointType::Real(point) => Ok(point.value.to_le_bytes().to_vec()),
             PointType::Double(_) => Ok(point.to_real().as_real().value.to_le_bytes().to_vec()),

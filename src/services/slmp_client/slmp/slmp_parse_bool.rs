@@ -199,7 +199,7 @@ impl ParsePoint for SlmpParseBool {
     }
     //
     //
-    fn to_write_bytes(&self, point: &PointType) -> Result<Vec<u8>, String> {
+    fn to_bytes(&self, point: &PointType) -> Result<Vec<u8>, String> {
         match point.try_as_bool() {
             Ok(point) => {
                 let value = self.change_bit(self.value, point.value.0, self.bit.unwrap() as usize);

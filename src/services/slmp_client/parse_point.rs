@@ -29,5 +29,5 @@ pub trait ParsePoint: Send + Sync {
     fn size(&self) -> usize;
     ///
     /// Returns protocol specific bytes ready to write represents [value]
-    fn to_write_bytes(&self, point: &PointType) -> Result<Vec<u8>, String>;
+    fn to_bytes(&self, point: &PointType) -> Result<Vec<u8>, String>;
 }
