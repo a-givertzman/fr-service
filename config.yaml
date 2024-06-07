@@ -17,6 +17,40 @@ service CacheService MainCache:
             Inf: []             # IMPORTENT !!!
 
 
+service SlmpClient Ied15:
+    cycle: 50 ms
+    subscribe: /App/MultiQueue
+    send-to: /App/MultiQueue.in-queue
+    description: 'SLMP-IED-01.01'
+    ip: '192.168.120.200'
+    port: 4999
+    diagnosis:                          # internal diagnosis
+        point Status:                   # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r
+        point Connection:               # Ok(0) / Invalid(10)
+            type: 'Int'
+            # history: r
+    db db_test_data:
+        device-code: D
+        offset: 1100
+        size: 12
+        point Lable15.Float: 
+            type: Real
+            address:
+                offset: 0
+            comment: 'Индикация поворота стрелы направо'
+        point CraneMovement.RotateRight: 
+            type: Real
+            address:
+                offset: 4
+            comment: 'Индикация поворота стрелы налево'
+        point CraneMovement.OutreachFwd: 
+            type: Int
+            address:
+                offset: 8
+            comment: 'Индикация вылета стрелы вперед'
+
 
 service ProfinetClient ied12:
     cycle: 500 ms

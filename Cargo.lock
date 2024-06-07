@@ -296,6 +296,7 @@ version = "0.1.2"
 dependencies = [
  "api-tools",
  "bindgen",
+ "cc",
  "chrono",
  "clap",
  "concat-string",

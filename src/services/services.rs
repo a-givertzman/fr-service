@@ -1,5 +1,5 @@
 use std::{collections::HashMap, fmt::Debug, sync::{mpsc::{Receiver, Sender}, Arc, Mutex}};
-use log::{debug, trace};
+use log::{debug, trace, warn};
 use crate::{
     conf::point_config::point_config::PointConfig, core_::point::point_type::PointType,
     services::{
@@ -28,6 +28,7 @@ impl Services {
     pub const TCP_SERVER: &'static str = "TcpServer";
     pub const PRODUCER_SERVICE: &'static str = "ProducerService";
     pub const CACHE_SERVICE: &'static str = "CacheService";
+    pub const SLMP_CLIENT: &'static str = "SlmpClient";
     ///
     /// Creates new instance of the Services
     pub fn new(parent: impl Into<String>) -> Self {
@@ -54,10 +55,13 @@ impl Services {
     }
     ///
     /// Returns Service
-    pub fn get(&self, name: &str) -> Arc<Mutex<dyn Service>> {
+    pub fn get(&self, name: &str) -> Option<Arc<Mutex<dyn Service>>> {
         match self.map.get(name) {
-            Some(srvc) => srvc.clone(),
-            None => panic!("{}.get | service '{:?}' - not found", self.id, name),
+            Some(srvc) => Some(srvc.clone()),
+            None => {
+                warn!("{}.get | service '{:?}' - not found", self.id, name);
+                None
+            },
         }
     }
     ///

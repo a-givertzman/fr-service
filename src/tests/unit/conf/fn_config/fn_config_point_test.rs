@@ -36,7 +36,7 @@ mod tests {
         let test_point1 = PointConfig {
             id: 0,
             name: format!("/{}/CraneMovement.BoomUp", self_id),
-            _type: PointConfigType::Int,
+            type_: PointConfigType::Int,
             history: PointConfigHistory::None,
             alarm: None,
             address: None,
@@ -46,7 +46,7 @@ mod tests {
         let test_point2 = PointConfig {
             id: 0,
             name: format!("/{}/CraneMovement.BoomDown", self_id),
-            _type: PointConfigType::Real,
+            type_: PointConfigType::Real,
             history: PointConfigHistory::Read,
             alarm: None,
             address: None,

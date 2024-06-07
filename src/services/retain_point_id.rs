@@ -63,7 +63,7 @@ impl RetainPointId {
                             .max()
                             .map_or(0, |id| id + 1);
                         point.id = id;
-                        retained.insert(point.name.clone(), RetainedPointConfig { id: point.id, name: point.name.clone(), _type: point._type.clone() });
+                        retained.insert(point.name.clone(), RetainedPointConfig { id: point.id, name: point.name.clone(), _type: point.type_.clone() });
                         trace!("{}.points |     calculated: {}", self.id, id);
                         id
                     }
@@ -72,7 +72,7 @@ impl RetainPointId {
                     PointConfig {
                         id,
                         name: point.name,
-                        _type: point._type,
+                        type_: point.type_,
                         history: point.history,
                         alarm: point.alarm,
                         address: point.address,

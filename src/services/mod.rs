@@ -40,3 +40,5 @@ pub mod retain_point_id;
 pub mod cache;
 
 pub mod diagnosis;
+
+pub mod slmp_client;

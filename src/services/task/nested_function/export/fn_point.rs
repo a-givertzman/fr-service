@@ -45,7 +45,7 @@ impl FnPoint {
     /// 
     fn send(&self, point: PointType) {
         if let Some(tx_send) = &self.tx_send {
-            let point = match self.conf._type {
+            let point = match self.conf.type_ {
                 PointConfigType::Bool => {
                     PointType::Bool(Point::new(
                         self.tx_id, 

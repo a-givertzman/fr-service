@@ -228,7 +228,7 @@ impl ProfinetDb {
     /// Configuring ParsePoint objects depending on point configurations coming from [conf]
     fn configure_parse_points(self_id: &str, tx_id: usize, conf: &ProfinetDbConfig) -> IndexMap<String, Box<dyn ParsePoint>> {
         conf.points.iter().map(|point_conf| {
-            match point_conf._type {
+            match point_conf.type_ {
                 PointConfigType::Bool => {
                     (point_conf.name.clone(), Self::box_bool(tx_id, point_conf.name.clone(), point_conf))
                 }
@@ -241,7 +241,7 @@ impl ProfinetDb {
                 PointConfigType::Double => {
                     (point_conf.name.clone(), Self::box_real(tx_id, point_conf.name.clone(), point_conf))
                 }
-                _ => panic!("{}.configureParsePoints | Unknown type '{:?}' for S7 Device", self_id, point_conf._type)
+                _ => panic!("{}.configureParsePoints | Unknown type '{:?}' for S7 Device", self_id, point_conf.type_)
             }
         }).collect()
     }

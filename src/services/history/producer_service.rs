@@ -39,7 +39,7 @@ impl ProducerService {
     fn build_gen_points(parent_id: &str, tx_id: usize, points: Vec<PointConfig>) -> IndexMap<String, Box<impl ParsePoint<Value>>> {
         let mut gen_points = IndexMap::new();
         for point_conf in points {
-            match point_conf._type {
+            match point_conf.type_ {
                 crate::conf::point_config::point_config_type::PointConfigType::Bool => {
                     gen_points.insert(point_conf.name.clone(), Box::new(PointGen::new(parent_id, tx_id, point_conf.name.clone(), &point_conf)));
                 }
@@ -196,7 +196,7 @@ impl PointGen {
         PointGen {
             id: format!("{}/PointGen({})", parent_id, name),
             tx_id,
-            _type: config._type.clone(),
+            _type: config.type_.clone(),
             name,
             value: Value::Bool(false),
             status: Status::Invalid,

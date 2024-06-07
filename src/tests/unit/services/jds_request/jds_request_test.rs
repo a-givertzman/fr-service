@@ -466,7 +466,7 @@ mod jds_routes {
             match points.get(&target.name) {
                 Some(result) => {
                     assert!(result.name == target.name, "\nresult: {:?}\ntarget: {:?}", result.name, target.name);
-                    assert!(result._type == target._type, "\nresult: {:?}\ntarget: {:?}", result._type, target._type);
+                    assert!(result.type_ == target.type_, "\nresult: {:?}\ntarget: {:?}", result.type_, target.type_);
                     assert!(result.history == target.history, "\nresult: {:?}\ntarget: {:?}", result.history, target.history);
                     assert!(result.alarm == target.alarm, "\nresult: {:?}\ntarget: {:?}", result.alarm, target.alarm);
                     assert!(result.address == target.address, "\nresult: {:?}\ntarget: {:?}", result.address, target.address);

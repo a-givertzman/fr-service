@@ -54,7 +54,7 @@ impl FnExport {
     fn send(&self, point: PointType) {
         if let Some(tx_send) = &self.tx_send {
             let (type_, name) = match &self.conf {
-                Some(conf) => (conf._type.clone(), conf.name.clone()),
+                Some(conf) => (conf.type_.clone(), conf.name.clone()),
                 None => (point.type_(), point.name()),
             };
             let point = match type_ {
