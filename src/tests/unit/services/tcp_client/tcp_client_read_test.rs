@@ -92,7 +92,7 @@ mod tcp_client {
         let sent = Arc::new(Mutex::new(vec![]));
         let tcp_client = {
             let services = services.slock();
-            services.get(&tcp_client_service_id)
+            services.get(&tcp_client_service_id).unwrap()
             // drop(services);
         };
         debug!("Running service {}...", multi_queue_service_id);
@@ -106,14 +106,6 @@ mod tcp_client {
         let timer = Instant::now();
         debug!("Test - setup - ok");
         handle.wait().unwrap();
-        // let waitDuration = Duration::from_millis(100);
-        // let mut waitAttempts = test_duration.as_micros() / waitDuration.as_micros();
-        // while multiQueue.lock().unwrap().received().lock().unwrap().len() < totalCount {
-        //     debug!("waiting while all data beeng received {}/{}...", multiQueue.lock().unwrap().received().lock().unwrap().len(), totalCount);
-        //     thread::sleep(waitDuration);
-        //     waitAttempts -= 1;
-        //     assert!(waitAttempts > 0, "Transfering {}/{} points taks too mach time {:?} of {:?}", multiQueue.lock().unwrap().received().lock().unwrap().len(), totalCount, timer.elapsed(), test_duration);
-        // }
         let mut sent = sent.lock().unwrap();
         println!("elapsed: {:?}", timer.elapsed());
         println!("total test events: {:?}", total_count);

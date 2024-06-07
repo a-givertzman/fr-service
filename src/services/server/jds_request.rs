@@ -205,25 +205,32 @@ impl JdsRequest {
     ///
     ///
     fn yield_gi(self_id: &str, receiver_name: &str, services: Arc<Mutex<Services>>, cache_service: &str, points: &[SubscriptionCriteria], shared: &mut Shared) {
-        let cache = services.slock().get(cache_service);
-        let recv = cache.slock().gi(receiver_name, points);
-        match shared.req_reply_send.pop() {
-            Some(send) => {
-                shared.req_reply_send.push(send.clone());
-                let self_id_clone = self_id.to_owned();
-                thread::spawn(move || {
-                    thread::sleep(Duration::from_millis(32));
-                    for point in recv.iter() {
-                        if let Err(err) =  send.send(point) {
-                            error!("{}.handle.Subscribe | Send error: {:#?}", self_id_clone, err);
-                        }
+        match services.slock().get(cache_service) {
+            Some(cache) => {
+                let recv = cache.slock().gi(receiver_name, points);
+                match shared.req_reply_send.pop() {
+                    Some(send) => {
+                        shared.req_reply_send.push(send.clone());
+                        let self_id_clone = self_id.to_owned();
+                        thread::spawn(move || {
+                            thread::sleep(Duration::from_millis(32));
+                            for point in recv.iter() {
+                                if let Err(err) =  send.send(point) {
+                                    error!("{}.handle.Subscribe | Send error: {:#?}", self_id_clone, err);
+                                }
+                            }
+                        });
                     }
-                });
+                    None => {
+                        error!("{}.handle.Subscribe | Cant get req_reply_send", self_id)
+                    }
+                }
             }
             None => {
-                error!("{}.handle.Subscribe | Cant get req_reply_send", self_id)
+                warn!("{}.handle.Subscribe | Cache service '{}' - not found", self_id, cache_service)
             }
         }
+        // match cache.slock() {}
     }
     ///
     /// Creates list of SubscriptionCriteria contains all variations of given [point_name] and Cot's

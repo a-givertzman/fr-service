@@ -31,6 +31,11 @@ impl ExitNotify {
         self.exit.load(Ordering::SeqCst) || self.exit_pair.load(Ordering::SeqCst)
     }
     ///
+    /// Returns true if exit signal exists on parent
+    pub fn get_parent(&self) -> bool {
+        self.exit.load(Ordering::SeqCst)
+    }
+    ///
     /// Sends exit signal to the parent
     pub fn exit_parent(&self) {
         self.exit_pair.store(true, Ordering::SeqCst);

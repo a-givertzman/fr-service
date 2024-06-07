@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap, hash::BuildHasherDefault, sync::{atomic::{AtomicBool, Ordering}, 
-    mpsc::{Receiver, RecvTimeoutError, Sender}, Arc, Mutex, RwLock}, thread, time::{Duration, Instant} 
+    mpsc::{Receiver, RecvTimeoutError, Sender}, Arc, Mutex, RwLock}, thread, time::Instant, 
 };
 use hashers::fx_hash::FxHasher;
 use log::{debug, error, info, trace, warn};
@@ -212,7 +212,7 @@ impl JdsConnection {
                 Some(exit.clone()),
                 Some(exit_pair.clone()),
             );
-            let keep_timeout = conf.keep_timeout.unwrap_or(Duration::from_secs(3));
+            let keep_timeout = conf.keep_timeout;
             let mut duration = Instant::now();
             loop {
                 exit_pair.store(false, Ordering::SeqCst);

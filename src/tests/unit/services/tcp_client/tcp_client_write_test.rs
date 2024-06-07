@@ -94,7 +94,7 @@ mod tcp_client {
         thread::sleep(Duration::from_micros(100));
         let tcp_client = {
             let services = services.slock();
-            services.get(&tcp_client_service_id)
+            services.get(&tcp_client_service_id).unwrap()
             // drop(services);
         };
         debug!("Running service {}...", tcp_client_service_id);

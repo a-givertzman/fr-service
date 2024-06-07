@@ -8,7 +8,7 @@ use crate::{
     },
     services::{
         diagnosis::diag_point::DiagPoint, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles},
-        services::Services, slmp_client::{slmp_read::SlmpRead, slmp_write::SlmpWrite},
+        services::Services, slmp_client::{slmp_read::SlmpRead, slmp_write::SlmpWrite}, task::service_cycle::ServiceCycle,
     },
     tcp::tcp_client_connect::TcpClientConnect,
      
@@ -164,6 +164,7 @@ impl Service for SlmpClient {
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
             loop {
+                info!("{}.run | Connecting...", self_id);
                 exit.reset_pair();
                 match tcp_client_connect.connect() {
                     Some(tcp_stream) =>  {
@@ -174,6 +175,7 @@ impl Service for SlmpClient {
                             Some(RECV_TIMEOUT),
                         );
                         Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Ok, &tx_send);
+                        // info!("{}.run | Connecting...", self_id);
                         let h_r = slmp_read.run(tcp_stream.try_clone().unwrap());
                         let h_w = slmp_write.run(tcp_stream);
                         match (h_r, h_w) {
@@ -196,15 +198,20 @@ impl Service for SlmpClient {
                                 exit.exit_pair();
                             }
                         }
+                        info!("{}.run | All thrad exited...", self_id);
                     }
                     None => {
                         Self::yield_diagnosis(&self_id, &diagnosis, &DiagKeywd::Connection, Status::Invalid, &tx_send);
                     }
                 }
-                if exit.get() {
+                if exit.get_parent() {
                     break;
                 }
+                info!("{}.run | Sleeping {:?}...", self_id, conf.reconnect_cycle);
+                thread::sleep(conf.reconnect_cycle);
+                warn!("{}.run | TcpClient connection failed - trying to reconnect...", self_id);
             }
+            info!("{}.run | Exit", self_id);
         });
         match handle {
             Ok(handle) => {

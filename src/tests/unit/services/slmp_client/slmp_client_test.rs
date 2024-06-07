@@ -22,7 +22,8 @@ mod slmp_client {
     fn init_each() -> () {}
     ///
     /// Testing read from SLMP device code D
-    // #[test]
+    #[ignore = "Manual test with phisical device"]
+    #[test]
     fn read_d() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
@@ -47,9 +48,8 @@ mod slmp_client {
                                         match stream.read(&mut reply) {
                                             Ok(_) => {
                                                 println!("\treply: {:?}", reply);
-        
-                                                const I16_SIZE: usize = 2;
-                                                const I32_SIZE: usize = 4;
+                                                // const I16_SIZE: usize = 2;
+                                                // const I32_SIZE: usize = 4;
                                                 const FLOAT_SIZE: usize = 4;
                                                 const FLOAT_COUNT: usize = 3;
                                                 const DATA_OFFSET: usize = 11; // for header skip
@@ -121,6 +121,7 @@ mod slmp_client {
     // }
     ///
     /// Testing write to SLMP device code D
+    #[ignore = "Manual test with phisical device"]
     #[test]
     fn write_d() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);

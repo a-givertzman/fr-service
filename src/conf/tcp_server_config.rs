@@ -22,7 +22,7 @@ pub struct TcpServerConfig {
     pub(crate) cycle: Option<Duration>,
     pub(crate) address: SocketAddr,
     pub(crate) reconnect_cycle: Option<Duration>,
-    pub(crate) keep_timeout: Option<Duration>,
+    pub(crate) keep_timeout: Duration,
     pub(crate) auth: TcpServerAuth,
     pub(crate) rx: String,
     pub(crate) rx_max_len: i64,
@@ -39,7 +39,7 @@ impl TcpServerConfig {
     ///     cycle: 1 ms
     ///     address: 127.0.0.1:8080
     ///     reconnect: 1 s      # default 3 s
-    ///     keep-timeout: 3s    # timeot keeping lost connection
+    ///     keep-timeout: 3s    # timeot keeping lost connection, default 10 s
     ///     auth: none          # none / secret / ssh
     ///     in queue link:
     ///         max-length: 10000
@@ -59,7 +59,7 @@ impl TcpServerConfig {
         debug!("{}.new | cycle: {:?}", self_id, cycle);
         let reconnect_cycle = self_conf.get_duration("reconnect");
         debug!("{}.new | reconnectCycle: {:?}", self_id, reconnect_cycle);
-        let keep_timeout = self_conf.get_duration("keep-timeout");
+        let keep_timeout = self_conf.get_duration("keep-timeout").unwrap_or(Duration::from_secs(10));
         debug!("{}.new | keepTimeout: {:?}", self_id, reconnect_cycle);
         let auth = self_conf.get_param_conf("auth");
         let auth = auth.or(self_conf.get_param_conf("auth-secret"));

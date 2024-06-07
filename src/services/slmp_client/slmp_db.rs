@@ -134,9 +134,9 @@ impl SlmpDb {
                     return ConnectionStatus::Closed(format!("{}.read_all | TcpStream closed by peer", self_id))
                 }
                 Ok(len) => {
-                    debug!("{}.read_all | bytes read: {}", self_id, len);
+                    trace!("{}.read_all | bytes read: {}", self_id, len);
                     trace!("{}.read_all | bytes read: \n\t{:02X?}", self_id, buf);
-                    debug!("{}.read_all | appending bytes: \n\t{:02X?}", self_id, &buf[..len]);
+                    trace!("{}.read_all | appending bytes: \n\t{:02X?}", self_id, &buf[..len]);
                     bytes.extend_from_slice(&buf[..len]);
                     if len < chank_len {
                         return ConnectionStatus::Active(OpResult::Ok(()))
@@ -176,7 +176,7 @@ impl SlmpDb {
                         trace!("{}.read | Sending SLMP request - ok", self.id);
                         // debug!("{}.read | Reading device-code: '{:?}', offset: '{}', size: '{}'", self.id, self.device_code, self.offset, self.size);
                         let mut bytes = vec![];
-                        debug!("{}.read | Reading SLMP reply...", self.id);
+                        trace!("{}.read | Reading SLMP reply...", self.id);
                         match Self::read_all(&self.id, &mut bytes, read_tcp_stream) {
                             ConnectionStatus::Active(_) => {
                                 trace!("{}.read | bytes: {:?}", self.id, bytes);
@@ -186,7 +186,7 @@ impl SlmpDb {
                                     let data_bytes = &bytes[11..];
                                     for (_key, parse_point) in &mut self.points {
                                         if let Some(point) = parse_point.next(data_bytes, timestamp) {
-                                            debug!("{}.read | point: {:?}", self.id, point);
+                                            trace!("{}.read | point: {:?}", self.id, point);
                                             match dest.send(point.clone()) {
                                                 Ok(_) => {
                                                     Self::log(&self.id, &self.name, &point);

@@ -1,5 +1,5 @@
 use std::{collections::HashMap, fmt::Debug, sync::{mpsc::{Receiver, Sender}, Arc, Mutex}};
-use log::{debug, trace};
+use log::{debug, trace, warn};
 use crate::{
     conf::point_config::point_config::PointConfig, core_::point::point_type::PointType,
     services::{
@@ -55,10 +55,13 @@ impl Services {
     }
     ///
     /// Returns Service
-    pub fn get(&self, name: &str) -> Arc<Mutex<dyn Service>> {
+    pub fn get(&self, name: &str) -> Option<Arc<Mutex<dyn Service>>> {
         match self.map.get(name) {
-            Some(srvc) => srvc.clone(),
-            None => panic!("{}.get | service '{:?}' - not found", self.id, name),
+            Some(srvc) => Some(srvc.clone()),
+            None => {
+                warn!("{}.get | service '{:?}' - not found", self.id, name);
+                None
+            },
         }
     }
     ///

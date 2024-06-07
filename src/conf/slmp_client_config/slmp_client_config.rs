@@ -70,7 +70,7 @@ impl SlmpClientConfig {
         debug!("{}.new | name: {:?}", self_id, self_name);
         let cycle = self_conf.get_duration("cycle");
         debug!("{}.new | cycle: {:?}", self_id, cycle);
-        let reconnect_cycle = self_conf.get_duration("reconnect").map_or(Duration::from_secs(3), |reconnect| reconnect);
+        let reconnect_cycle = self_conf.get_duration("reconnect").map_or(Duration::from_secs(1), |reconnect| reconnect);
         debug!("{}.new | reconnectCycle: {:?}", self_id, reconnect_cycle);
         let subscribe = self_conf.get_param_value("subscribe").unwrap().as_str().unwrap().to_string();
         debug!("{}.new | sudscribe: {:?}", self_id, subscribe);
