@@ -1,5 +1,4 @@
 use log::{trace, warn};
-use std::array::TryFromSliceError;
 use chrono::{DateTime, Utc};
 use crate::{
     conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress, point_config_history::PointConfigHistory, point_config_type::PointConfigType},
@@ -59,16 +58,20 @@ impl SlmpParseReal {
         bytes: &[u8],
         start: usize,
         _bit: usize,
-    ) -> Result<f32, TryFromSliceError> {
-        trace!("{}.convert | start: {},  end: {:?}", self.id, start, start + Self::SIZE);
-        trace!("{}.convert | raw: {:02X?}", self.id, &bytes[start..(start + Self::SIZE)]);
-        trace!("{}.convert | converted f32: {:?}", self.id, f32::from_le_bytes(bytes[start..(start + Self::SIZE)].try_into().unwrap()));
-        match bytes[start..(start + Self::SIZE)].try_into() {
-            Ok(v) => Ok(f32::from_le_bytes(v)),
-            Err(e) => {
-                warn!("{}.convert | error: {}", self.id, e);
-                Err(e)
+    ) -> Result<f32, String> {
+        if bytes.len() > start + Self::SIZE {
+            trace!("{}.convert | start: {},  end: {:?}", self.id, start, start + Self::SIZE);
+            trace!("{}.convert | raw: {:02X?}", self.id, &bytes[start..(start + Self::SIZE)]);
+            trace!("{}.convert | converted f32: {:?}", self.id, f32::from_le_bytes(bytes[start..(start + Self::SIZE)].try_into().unwrap()));
+            match bytes[start..(start + Self::SIZE)].try_into() {
+                Ok(v) => Ok(f32::from_le_bytes(v)),
+                Err(e) => {
+                    // warn!("{}.convert | error: {}", self.id, e);
+                    Err(format!("{}.convert | Error: {}", self.id, e))
+                }
             }
+        } else {
+            Err(format!("{}.convert | Index {} + size {} out of range for slice of length {}", self.id, start, Self::SIZE, bytes.len()))
         }
     }
     ///

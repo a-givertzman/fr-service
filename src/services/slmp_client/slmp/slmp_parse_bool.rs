@@ -1,5 +1,4 @@
 use log::{debug, warn};
-use std::array::TryFromSliceError;
 use chrono::{DateTime, Utc};
 use crate::{
     conf::point_config::{point_config::PointConfig, point_config_address::PointConfigAddress, point_config_history::PointConfigHistory, point_config_type::PointConfigType},
@@ -59,16 +58,20 @@ impl SlmpParseBool {
         bytes: &[u8],
         start: usize,
         bit: usize,
-    ) -> Result<bool, TryFromSliceError> {
-        match bytes[start..(start + Self::SIZE)].try_into() {
-            Ok(v) => {
-                let value = i16::from_le_bytes(v);
-                Ok(self.get_bit(value as i64, bit))
+    ) -> Result<bool, String> {
+        if bytes.len() >= start + Self::SIZE {
+            match bytes[start..(start + Self::SIZE)].try_into() {
+                Ok(v) => {
+                    let value = i16::from_le_bytes(v);
+                    Ok(self.get_bit(value as i64, bit))
+                }
+                Err(e) => {
+                    // warn!("{}.convert | error: {}", self.id, e);
+                    Err(format!("{}.convert | Error: {}", self.id, e))
+                }
             }
-            Err(e) => {
-                warn!("{}.convert | error: {}", self.id, e);
-                Err(e)
-            }
+        } else {
+            Err(format!("{}.convert | Index {} + size {} out of range for slice of length {}", self.id, start, Self::SIZE, bytes.len()))
         }
     }
     ///

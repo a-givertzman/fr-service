@@ -18,7 +18,7 @@ service CacheService MainCache:
 
 
 service SlmpClient Ied15:
-    cycle: 1000 ms
+    cycle: 100 ms
     subscribe: /App/MultiQueue
     send-to: /App/MultiQueue.in-queue
     description: 'SLMP-IED-01.01'
@@ -34,7 +34,7 @@ service SlmpClient Ied15:
     db db_test_data:
         device-code: D
         offset: 1100
-        size: 14
+        size: 18
         point Lable15.F32:
             type: Real
             address:
@@ -54,6 +54,16 @@ service SlmpClient Ied15:
             type: Int
             address:
                 offset: 12
+            comment: 'Индикация поворота стрелы направо'
+        point Lable19.i16:
+            type: Int
+            address:
+                offset: 14
+            comment: 'Индикация поворота стрелы направо'
+        point Lable20.i16:
+            type: Int
+            address:
+                offset: 16
             comment: 'Индикация поворота стрелы направо'
 
 service Task DebugTask:
@@ -102,7 +112,8 @@ service ApiClient:
 service TcpServer:
     reconnect: 1 s      # default 3 s
     # address: 192.168.120.144:16688
-    address: 127.0.0.1:16688
+    # address: 127.0.0.1:16688
+    address: 10.131.145.127:16688
     auth-secret:       # auth: none / auth-secret: pass: ... / auth-ssh: path: ...
         pass: '12345'
     in queue link:

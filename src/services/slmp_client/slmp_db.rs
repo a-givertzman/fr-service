@@ -182,20 +182,25 @@ impl SlmpDb {
                                 trace!("{}.read | bytes: {:?}", self.id, bytes);
                                 let timestamp = Utc::now();
                                 let mut message = String::new();
-                                let data_bytes = &bytes[11..];
-                                for (_key, parse_point) in &mut self.points {
-                                    if let Some(point) = parse_point.next(data_bytes, timestamp) {
-                                        debug!("{}.read | point: {:?}", self.id, point);
-                                        match dest.send(point.clone()) {
-                                            Ok(_) => {
-                                                Self::log(&self.id, &self.name, &point);
-                                            }
-                                            Err(err) => {
-                                                message = format!("{}.read | send error: {}", self.id, err);
-                                                warn!("{}", message);
+                                if bytes.len() >= 11 {
+                                    let data_bytes = &bytes[11..];
+                                    for (_key, parse_point) in &mut self.points {
+                                        if let Some(point) = parse_point.next(data_bytes, timestamp) {
+                                            debug!("{}.read | point: {:?}", self.id, point);
+                                            match dest.send(point.clone()) {
+                                                Ok(_) => {
+                                                    Self::log(&self.id, &self.name, &point);
+                                                }
+                                                Err(err) => {
+                                                    message = format!("{}.read | send error: {}", self.id, err);
+                                                    warn!("{}", message);
+                                                }
                                             }
                                         }
                                     }
+                                } else {
+                                    message = format!("{}.read | Empty message received", self.id);
+                                    warn!("{}", message);
                                 }
                                 match message.is_empty() {
                                     true => Ok(()),
@@ -234,20 +239,43 @@ impl SlmpDb {
                     Ok(bytes) => {
                         match parse_point.address().offset {
                             Some(offset) => {
-                                debug!("{}.write | Preparing write_packet with device code: '{:?}', offset: '{}', size: '{}'", self.id, self.device_code, self.offset + offset, parse_point.size());
+                                debug!("{}.write | Preparing write_packet with self.offset: '{:?}', offset: '{}'", self.id, self.offset, offset / 2);
+                                debug!("{}.write | Preparing write_packet with device code: '{:?}', offset: '{}', size: '{}'", self.id, self.device_code, self.offset + offset / 2, parse_point.size());
                                 let slmp_packet = SlmpPacket::new(
                                     &self.id,
                                     self.device_code,
-                                    self.offset + offset,
-                                    parse_point.size() as u16,
+                                    self.offset + offset / 2,   // words
+                                    parse_point.size() as u16,  // bytes
                                 );
                                 match slmp_packet.write_packet(FrameType::BinReqSt, &bytes) {
                                     Ok(write_packet) => {
                                         debug!("{}.write | write_packet: {:02X?}", self.id, write_packet);
                                         match tcp_stream.write_all(&write_packet) {
                                             Ok(_) => {
-                                                debug!("{}.write | write - Ok", self.id);
-                                                Ok(())
+                                                match tcp_stream.flush() {
+                                                    Ok(_) => {
+                                                        // debug!("{}.write | write - Ok", self.id);
+                                                        let mut write_reply = vec![];
+                                                        match Self::read_all(&self.id, &mut write_reply, tcp_stream) {
+                                                            ConnectionStatus::Active(_) => {
+                                                                debug!("{}.write | write reply: {:02X?}", self.id, write_reply);
+                                                                let end_code = i16::from_le_bytes(write_reply[9..11].try_into().unwrap());
+                                                                match end_code {
+                                                                    0 => debug!("{}.write | Write - Ok", self.id),
+                                                                    4 => debug!("{}.write | Write - Error (4)", self.id),
+                                                                    _ => debug!("{}.write | Write - Unknown Error ({})", self.id, end_code),
+                                                                }
+                                                            }
+                                                            ConnectionStatus::Closed(_) => todo!(),
+                                                        }
+                                                        Ok(())
+                                                    }
+                                                    Err(err) => {
+                                                        let message = format!("{}.write | Tcp write (flush) error: {:#?}", self.id, err);
+                                                        warn!("{}", message);
+                                                        Err(message)
+                                                    }
+                                                }
                                             }
                                             Err(err) => {
                                                 let message = format!("{}.write | Tcp write error: {:#?}", self.id, err);
