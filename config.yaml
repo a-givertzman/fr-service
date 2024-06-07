@@ -18,7 +18,7 @@ service MultiQueue:
 
 
 service SlmpClient Ied15:
-    cycle: 10 ms
+    cycle: 100 ms
     subscribe: /App/MultiQueue
     send-to: /App/MultiQueue.in-queue
     description: 'SLMP-IED-01.01'
