@@ -8,7 +8,7 @@ use crate::{
     },
     services::{
         diagnosis::diag_point::DiagPoint, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles},
-        services::Services, slmp_client::{slmp_read::SlmpRead, slmp_write::SlmpWrite}, task::service_cycle::ServiceCycle,
+        services::Services, slmp_client::{slmp_read::SlmpRead, slmp_write::SlmpWrite},
     },
     tcp::tcp_client_connect::TcpClientConnect,
      

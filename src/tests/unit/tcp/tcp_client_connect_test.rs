@@ -39,7 +39,12 @@ mod tcp_client_connect {
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
         let timeout = Duration::from_millis(4500); // ms
         let exit = Arc::new(AtomicBool::new(false));
-        let connect = TcpClientConnect::new("test", &addr, Duration::from_millis(500), Some(exit));
+        let connect = TcpClientConnect::new(
+            "test",
+            &addr,
+            Duration::from_millis(500),
+            Some(exit.clone()),
+        );
         let ok = Arc::new(AtomicBool::new(false));
         let ok_ref = ok.clone();
         // let connectExit = connect.exit();
@@ -66,7 +71,6 @@ mod tcp_client_connect {
             };
         });
         let connect = Arc::new(Mutex::new(connect));
-        let connect_clone = connect.clone();
         let ok_ref = ok.clone();
         thread::spawn(move || {
             info!("Waiting for connection...");
@@ -74,7 +78,7 @@ mod tcp_client_connect {
             ok_ref.store(false, Ordering::SeqCst);
             warn!("Tcp socket was not connected in {:?}", timeout);
             debug!("stopping...");
-            connect_clone.lock().unwrap().exit();
+            exit.store(true, Ordering::SeqCst);
         });
         info!("Connecting...");
         for _ in 0..10 {

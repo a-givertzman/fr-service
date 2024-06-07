@@ -67,7 +67,7 @@ impl TcpClientConnect {
                 }
                 cycle.wait();
             }
-            debug!("{}.connect | exit", id);
+            debug!("{}.connect | Exit", id);
         });
         handle.join().unwrap();
         let mut tcp_stream = self.stream.slock();
