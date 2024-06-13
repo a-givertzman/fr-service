@@ -452,8 +452,16 @@ service Task RecorderTask:
             input: winch1EigenValue
         #
         # 3.7.2 	real	winch2-characteristic-number	текущее характеристическое число лебедка 2	0.0
+        input372 fn SqlMetric:
+            table: public.operating_metric
+            sql: update {table} set value = {input.value} where name = 'winch2-characteristic-number';
+            input: winch2EigenValue
         #
         # 3.7.3 	real	winch3-characteristic-number	текущее характеристическое число лебедка 3	0.0
+        input373 fn SqlMetric:
+            table: public.operating_metric
+            sql: update {table} set value = {input.value} where name = 'winch3-characteristic-number';
+            input: winch3EigenValue
         #
         # 3.8   	real	crane-load-spectrum-factor	коэффициент распределения нагрузок для крана	0.0
         #
