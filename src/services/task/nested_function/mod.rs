@@ -42,6 +42,7 @@ pub mod fn_pow;
 pub mod fn_to_real;
 pub mod fn_to_double;
 pub mod fn_to_bool;
+pub mod fn_max;
 
 pub mod nested_fn;
 
