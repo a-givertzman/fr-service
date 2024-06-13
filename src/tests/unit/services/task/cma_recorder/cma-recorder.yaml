@@ -174,36 +174,25 @@ service Task RecorderTask:
         input fn Timer:
             initial: const real 0.0
             input: opCycleIsActive
-    # winch1-characteristic-number	текущее характеристическое число для крана
-    let winch1EigenValue:
-        input fn Mul:
-            input1 fn Pow:
-                input1 fn Div:
-                    input1: winch1CycleAverageLoad
-                    input2: winch1LoadNom
-                input2: const real 3.0
-            input2: craneOperatingCycleSecs
-
     #
     # winch1-characteristic-number	текущее характеристическое число лебедка 1
-    #let winch1EigenValue:
-    #    input fn Acc:
-    #        input fn Pow:
-    #            input1 fn Div:
-    #                input1: point real '/AppTest/Load'
-    #                input2: craneLoadNom
-    #            input2: const real 3.0
-    #
-    #        input fn Retain:
-    #            key: 'winch1-characteristic-number'
-    #            input fn Add:
-    #                input1 fn Filter:
-    #                    default: const real 0.0
-    #                    pass: opCycleIsActive
-    #                    input: craneCycleAverageLoad
-    #                input2 fn Retain:
-    #                    default: const real 0.0
-    #                    key: 'winch1-characteristic-number'
+    let winch1EigenValue:
+        input fn Retain:
+            enable: opCycleIsActive
+            key: 'winch1-characteristic-number'
+            input fn Add:
+                input1 fn Mul:
+                    input1 fn Pow:
+                        input1 fn Div:
+                            input1: winch1CycleAverageLoad
+                            input2: winch1LoadNom
+                        input2: const real 3.0
+                    input2: craneOperatingCycleSecs
+                input2 fn Retain:
+                    default: const real 0.0
+                    key: 'winch1-characteristic-number'
+
+
 
     ###############   Operating Cycle Metrics   ###############
     #
