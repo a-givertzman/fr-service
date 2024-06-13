@@ -90,6 +90,16 @@ service Task RecorderTask:
                         input: opCycleIsActive
                 input: point real '/AppTest/Load'   # ??? unit ???
     #
+    # Crane Max load in operating cycle, ??? unit ???
+    let craneCycleMaxLoad:
+        input fn ToReal:
+            input fn Max:
+                enable fn Add:
+                    input1: opCycleIsActive
+                    input2 fn FallingEdge:
+                        input: opCycleIsActive
+                input: point real '/AppTest/Load'   # ??? unit ???
+    #
     # Winch1 Average load in operating cycle, ??? unit ???
     let winch1CycleAverageLoad:
         input fn ToReal:
