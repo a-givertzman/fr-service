@@ -1,4 +1,4 @@
-use log::trace;
+use log::{debug, trace};
 use std::{sync::atomic::{AtomicUsize, Ordering}, time::Instant};
 use crate::{conf::point_config::point_config_type::PointConfigType, core_::{
     cot::cot::Cot, point::{point::Point, point_type::PointType},
@@ -161,7 +161,7 @@ impl FnOut for FnTimer {
             }
         };
         let out = *total_elapsed + self.session_elapsed;
-        trace!("{}.out | out: {:?}", self.id, out);
+        debug!("{}.out | out: {:?}", self.id, out);
         match &self.initial {
             Some(initial) => {
                 let type_ = initial.borrow_mut().out().type_();
