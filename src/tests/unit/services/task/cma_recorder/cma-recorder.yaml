@@ -190,6 +190,40 @@ service Task RecorderTask:
                 input2 fn Retain:
                     default: const real 0.0
                     key: 'winch1-characteristic-number'
+    #
+    # winch2-characteristic-number	текущее характеристическое число лебедка 2
+    let winch2EigenValue:
+        input fn Retain:
+            enable: opCycleIsActive
+            key: 'winch2-characteristic-number'
+            input fn Add:
+                input1 fn Mul:
+                    input1 fn Pow:
+                        input1 fn Div:
+                            input1: winch2CycleAverageLoad
+                            input2: winch2LoadNom
+                        input2: const real 3.0
+                    input2: craneOperatingCycleSecs
+                input2 fn Retain:
+                    default: const real 0.0
+                    key: 'winch2-characteristic-number'
+    #
+    # winch3-characteristic-number	текущее характеристическое число лебедка 3
+    let winch3EigenValue:
+        input fn Retain:
+            enable: opCycleIsActive
+            key: 'winch3-characteristic-number'
+            input fn Add:
+                input1 fn Mul:
+                    input1 fn Pow:
+                        input1 fn Div:
+                            input1: winch3CycleAverageLoad
+                            input2: winch3LoadNom
+                        input2: const real 3.0
+                    input2: craneOperatingCycleSecs
+                input2 fn Retain:
+                    default: const real 0.0
+                    key: 'winch3-characteristic-number'
 
 
 
