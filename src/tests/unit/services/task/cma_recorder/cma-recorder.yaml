@@ -171,7 +171,7 @@ service Task RecorderTask:
             input fn Add:
                 input1 fn Pow:
                     input1 fn Div:
-                        input1: craneCycleAverageLoad
+                        input1: craneCycleMaxLoad
                         input2: craneLoadNom
                     input2: const real 3.0
                 input2 fn Retain:
@@ -269,6 +269,13 @@ service Task RecorderTask:
             sql: insert into {table} (operating_cycle_id, pid, metric_id, value) values ({opCycleId.value}, 0, 'average_load', {input.value});
             opCycleId: opCycleId
             input: craneCycleAverageLoad
+        #
+        # Operating cycle metric Max Load
+        input3 fn SqlMetric:
+            table: public.operating_cycle_metric_value
+            sql: insert into {table} (operating_cycle_id, pid, metric_id, value) values ({opCycleId.value}, 0, 'max_load', {input.value});
+            opCycleId: opCycleId
+            input: craneCycleMaxLoad
 
     ###############   Operating Metrics   ###############
     #
