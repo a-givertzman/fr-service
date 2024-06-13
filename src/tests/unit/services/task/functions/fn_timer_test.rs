@@ -39,6 +39,7 @@ mod fn_timer {
         let mut fn_timer = FnTimer::new(
             "id",
             None,
+            None,
             input.clone(),
             false,
         );
@@ -103,6 +104,7 @@ mod fn_timer {
         let initial = init_each(0.0f64.to_point(0, "initial"), FnConfPointType::Double);
         let mut fn_timer = FnTimer::new(
             "id",
+            None,
             Some(initial),
             input.clone(),
             true,
@@ -163,6 +165,7 @@ mod fn_timer {
         let initial = init_each(0.0f64.to_point(0, "initial"), FnConfPointType::Double);
         let mut fn_timer = FnTimer::new(
             "id",
+            None,
             Some(initial),
             input.clone(),
             true,
@@ -231,31 +234,32 @@ mod fn_timer {
         let initial_input = init_each(initial.to_point(0, "initial"), FnConfPointType::Double);
         let mut fn_timer = FnTimer::new(
             "id",
+            None,
             Some(initial_input),
             input.clone(),
             true,
         );
         let test_data = vec![
-            (false, 0),
-            (false, 0),
-            (true, 1),
-            (false, 1),
-            (false, 1),
-            (true, 2),
-            (false, 2),
-            (true, 3),
-            (false, 3),
-            (false, 3),
-            (true, 4),
-            (true, 4),
-            (false, 4),
-            (false, 4),
+            (00, false),
+            (01, false),
+            (02, true),
+            (03, false),
+            (04, false),
+            (05, true),
+            (06, false),
+            (07, true),
+            (08, false),
+            (09, false),
+            (10, true),
+            (11, true),
+            (12, false),
+            (13, false),
         ];
         let mut start: Option<Instant> = None;
         let mut target: f64;
         let mut elapsed: f64 = 0.0;
         let mut elapsed_total: f64 = initial;
-        for (value, _) in test_data {
+        for (step, value) in test_data {
             if value {
                 if start.is_none() {
                     start = Some(Instant::now());
@@ -276,8 +280,8 @@ mod fn_timer {
             let fn_timer_elapsed = fn_timer.out().as_double().value;
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, fn_timer_elapsed);
-            assert!(fn_timer_elapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fn_timer_elapsed, target);
-            thread::sleep(Duration::from_secs_f64(0.1));
+            assert!(fn_timer_elapsed.aprox_eq(target, 2), "step: {} | current '{}' != target '{}'", step, fn_timer_elapsed, target);
+            thread::sleep(Duration::from_secs_f64(0.3));
         }
     }
 }

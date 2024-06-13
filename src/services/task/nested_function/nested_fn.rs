@@ -69,6 +69,12 @@ impl NestedFn {
                     }
                     //
                     Functions::Timer => {
+                        let name = "enable";
+                        let input_conf = conf.input_conf(name).map_or(None, |conf| Some(conf));
+                        let enable = match input_conf {
+                            Some(input_conf) => Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone())),
+                            None => None,
+                        };
                         let name = "initial";
                         let input_conf = conf.input_conf(name).map_or(None, |conf| Some(conf));
                         let initial = match input_conf {
@@ -79,7 +85,7 @@ impl NestedFn {
                         let conf = conf.inputs.get_mut(name).unwrap();
                         let input = Self::function(parent, tx_id, name, conf, task_nodes, services);
                         Rc::new(RefCell::new(Box::new(
-                            FnTimer::new(parent, initial, input, true)
+                            FnTimer::new(parent, enable, initial, input, true)
                         )))
                     }
                     //
@@ -113,7 +119,7 @@ impl NestedFn {
                     //
                     Functions::SqlMetric => {
                         Rc::new(RefCell::new(Box::new(
-                            SqlMetric::new( parent, conf, task_nodes, services)
+                            SqlMetric::new(parent, conf, task_nodes, services)
                         )))
                     }
                     //

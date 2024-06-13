@@ -181,6 +181,7 @@ service Task RecorderTask:
     # The duration of the crane operation cycle in seconds
     let craneOperatingCycleSecs:
         input fn Timer:
+            enable: opCycleIsActive
             initial: const real 0.0
             input: opCycleIsActive
     #

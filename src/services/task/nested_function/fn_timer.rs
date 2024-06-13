@@ -25,10 +25,11 @@ enum FnTimerState {
 pub struct FnTimer {
     id: String,
     kind: FnKind,
+    enable: Option<FnInOutRef>,
+    initial: Option<FnInOutRef>,
     input: FnInOutRef,
     state: SwitchState<FnTimerState, bool>,
     session_elapsed: f64,
-    initial: Option<FnInOutRef>,
     total_elapsed: Option<f64>,
     start: Option<Instant>,
 }
@@ -36,7 +37,7 @@ pub struct FnTimer {
 // 
 impl FnTimer {
     #[allow(dead_code)]
-    pub fn new(parent: impl Into<String>, initial: Option<FnInOutRef>, input: FnInOutRef, repeat: bool) -> Self {
+    pub fn new(parent: impl Into<String>, enable: Option<FnInOutRef>, initial: Option<FnInOutRef>, input: FnInOutRef, repeat: bool) -> Self {
         let switches = vec![
             Switch{
                 state: FnTimerState::Off,
@@ -90,13 +91,21 @@ impl FnTimer {
         Self { 
             id: format!("{}/FnTimer{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
             kind: FnKind::Fn,
+            enable,
             input,
+            initial,
             state: SwitchState::new(FnTimerState::Off, switches),
             session_elapsed: 0.0,
-            initial,
             total_elapsed: None,
             start: None,
         }
+    }
+    ///
+    /// Returns initial value
+    fn initial(&mut self) -> f64 {
+        self.initial.as_mut().map_or(0.0, |initial| {
+            initial.borrow_mut().out().to_double().as_double().value
+        })
     }
 }
 //
@@ -116,6 +125,9 @@ impl FnOut for FnTimer {
     //
     fn inputs(&self) -> Vec<String> {
         let mut inputs = vec![];
+        if let Some(enable) = &self.enable {
+            inputs.append(&mut enable.borrow().inputs());
+        }
         if let Some(initial) = &self.initial {
             inputs.append(& mut initial.borrow().inputs());
         }
@@ -125,42 +137,54 @@ impl FnOut for FnTimer {
     ///
     fn out(&mut self) -> PointType {
         // trace!("{}.out | input: {:?}", self.id, self.input.print());
-        let total_elapsed = match &mut self.total_elapsed {
-            Some(total_elapsed) => total_elapsed,
-            None => {
-                self.total_elapsed = Some(self.initial.as_mut().map_or(0.0, |initial| {
-                    initial.borrow_mut().out().to_double().as_double().value
-                }));
-                self.total_elapsed.as_mut().unwrap()
-            },
+        let enable = match &mut self.enable {
+            Some(en) => en.borrow_mut().out().to_bool().as_bool().value.0,
+            None => true,
         };
-        let point = self.input.borrow_mut().out();
-        let value = point.to_bool().as_bool().value.0;
-        self.state.add(value);
-        let state = self.state.state();
-        trace!("{}.out | input: {:?}   |   state: {:?}", self.id, value, state);
-        match state {
-            FnTimerState::Off => {}
-            FnTimerState::Start => {
-                self.start = Some(Instant::now());
-            }
-            FnTimerState::Progress => {
-                self.session_elapsed = self.start.unwrap().elapsed().as_secs_f64();
-            }
-            FnTimerState::Stop => {
-                self.session_elapsed = 0.0;
-                *total_elapsed += self.start.unwrap().elapsed().as_secs_f64();
-                self.start = None;
-            }
-            FnTimerState::Done => {
-                self.session_elapsed = 0.0;
-                if let Some(start) = self.start {
-                    *total_elapsed += start.elapsed().as_secs_f64();
+        let input = self.input.borrow_mut().out();
+        let out = if enable {
+            let total_elapsed = match &mut self.total_elapsed {
+                Some(total_elapsed) => total_elapsed,
+                None => {
+                    let initial = self.initial();
+                    self.total_elapsed = Some(initial);
+                    self.total_elapsed.as_mut().unwrap()
+                },
+            };
+            let value = input.to_bool().as_bool().value.0;
+            self.state.add(value);
+            let state = self.state.state();
+            trace!("{}.out | input: {:?}   |   state: {:?}", self.id, value, state);
+            match state {
+                FnTimerState::Off => {}
+                FnTimerState::Start => {
+                    self.start = Some(Instant::now());
+                }
+                FnTimerState::Progress => {
+                    self.session_elapsed = self.start.unwrap().elapsed().as_secs_f64();
+                }
+                FnTimerState::Stop => {
+                    self.session_elapsed = 0.0;
+                    *total_elapsed += self.start.unwrap().elapsed().as_secs_f64();
                     self.start = None;
                 }
-            }
+                FnTimerState::Done => {
+                    self.session_elapsed = 0.0;
+                    if let Some(start) = self.start {
+                        *total_elapsed += start.elapsed().as_secs_f64();
+                        self.start = None;
+                    }
+                }
+            };
+            *total_elapsed + self.session_elapsed
+        } else {
+            self.start = None;
+            self.session_elapsed = 0.0;
+            let initial = self.initial();
+            self.total_elapsed = Some(initial);
+            self.state.reset();
+            initial
         };
-        let out = *total_elapsed + self.session_elapsed;
         debug!("{}.out | out: {:?}", self.id, out);
         match &self.initial {
             Some(initial) => {
@@ -168,32 +192,32 @@ impl FnOut for FnTimer {
                 match type_ {
                     PointConfigType::Int => PointType::Int(
                         Point::new(
-                            point.tx_id(),
+                            input.tx_id(),
                             &format!("{}.out", self.id),
                             out.round() as i64,
-                            point.status(),
+                            input.status(),
                             Cot::Inf,
-                            point.timestamp(),
+                            input.timestamp(),
                         )
                     ),
                     PointConfigType::Real => PointType::Real(
                         Point::new(
-                            point.tx_id(),
+                            input.tx_id(),
                             &format!("{}.out", self.id),
                             out as f32,
-                            point.status(),
+                            input.status(),
                             Cot::Inf,
-                            point.timestamp(),
+                            input.timestamp(),
                         )
                     ),
                     PointConfigType::Double => PointType::Double(
                         Point::new(
-                            point.tx_id(),
+                            input.tx_id(),
                             &format!("{}.out", self.id),
                             out,
-                            point.status(),
+                            input.status(),
                             Cot::Inf,
-                            point.timestamp(),
+                            input.timestamp(),
                         )
                     ),
                     _ => panic!("{}.out | Usupported initial type '{:?}'", self.id, type_),
@@ -201,12 +225,12 @@ impl FnOut for FnTimer {
             }
             None => PointType::Double(
                 Point::new(
-                    point.tx_id(),
+                    input.tx_id(),
                     &format!("{}.out", self.id),
                     out,
-                    point.status(),
+                    input.status(),
                     Cot::Inf,
-                    point.timestamp(),
+                    input.timestamp(),
                 )
             ),
         }
@@ -221,6 +245,9 @@ impl FnOut for FnTimer {
             initial.borrow_mut().out().to_double().as_double().value
         }));
         self.state.reset();
+        if let Some(enable) = &self.enable {
+            enable.borrow_mut().reset();
+        }
         self.input.borrow_mut().reset();
     }
 }
