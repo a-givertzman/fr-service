@@ -115,7 +115,10 @@ impl FnOut for FnRecOpCycleMetric {
         if self.falling {
             self.falling = false;
             warn!("{}.out | Operating Cycle - SENDING...", self.id);
-            warn!("{}.out | Operating Cycle - values ({}): {:#?}", self.id, self.values.len(), self.values);
+            let log_values: Vec<String> = self.values.iter().map(|point| {
+                format!("{}: {}", point.name(), point.value().to_string())
+            }).collect();
+            warn!("{}.out | Operating Cycle - values ({}): {:#?}", self.id, self.values.len(), log_values);
             for value in &self.values {
                 self.send(value);
             }
@@ -128,7 +131,10 @@ impl FnOut for FnRecOpCycleMetric {
                 warn!("{}.out | Operating Cycle - value: {:?}", self.id, value);
                 self.values.push(value)
             }
-            warn!("{}.out | Operating Cycle - values: {:#?}", self.id, self.values);
+            let log_values: Vec<String> = self.values.iter().map(|point| {
+                format!("{}: {}", point.name(), point.value().to_string())
+            }).collect();
+            warn!("{}.out | Operating Cycle - values: {:#?}", self.id, log_values);
         }
         PointType::Bool(
             Point::new(

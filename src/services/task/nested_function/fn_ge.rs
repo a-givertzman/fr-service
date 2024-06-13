@@ -1,4 +1,4 @@
-use log::debug;
+use log::trace;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::core_::{
     cot::cot::Cot,
@@ -56,7 +56,7 @@ impl FnOut for FnGe {
         let input1 = self.input1.borrow_mut().out();     
         let input2 = self.input2.borrow_mut().out();    
         let value = input1 >= input2;
-        debug!("{}.out | value: {:?}", self.id, &value);
+        trace!("{}.out | value: {:?}", self.id, &value);
         let status = match input1.status().cmp(&input2.status()) {
             std::cmp::Ordering::Less => input2.status(),
             std::cmp::Ordering::Equal => input1.status(),

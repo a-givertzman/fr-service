@@ -1,6 +1,5 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
-use log::warn;
-
+use log::trace;
 use crate::{
     conf::point_config::point_config_type::PointConfigType, core_::{
         point::point_type::PointType, 
@@ -62,14 +61,14 @@ impl FnOut for FnSmooth {
     //
     fn out(&mut self) -> PointType {
         let input = self.input.borrow_mut().out();
-        warn!("{}.out | input: {:?}", self.id, input);
+        trace!("{}.out | input: {:?}", self.id, input);
         let input_type = input.type_();
         let factor = self.factor.borrow_mut().out().to_double().as_double();
-        warn!("{}.out | factor: {:?}", self.id, factor);
+        trace!("{}.out | factor: {:?}", self.id, factor);
         let delta = input.to_double().as_double() - self.value.to_double().as_double();
-        warn!("{}.out | delta: {:?}", self.id, delta);
+        trace!("{}.out | delta: {:?}", self.id, delta);
         let value = self.value.to_double().as_double() + delta * factor;
-        warn!("{}.out | value: {:?}", self.id, value);
+        trace!("{}.out | value: {:?}", self.id, value);
         let value = PointType::Double(value);
         self.value = match input_type {
             PointConfigType::Int => value.to_int(),
@@ -77,7 +76,7 @@ impl FnOut for FnSmooth {
             PointConfigType::Double => value.to_double(),
             _ => panic!("{}.out | Illegal type of input {:?}", self.id, input_type),
         };
-        warn!("{}.out | value: {:?}", self.id, self.value);
+        trace!("{}.out | value: {:?}", self.id, self.value);
         self.value.clone()
     }
     //

@@ -1,4 +1,4 @@
-use log::debug;
+use log::trace;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::{
     core_::{point::point_type::PointType, types::fn_in_out_ref::FnInOutRef},
@@ -56,11 +56,11 @@ impl FnOut for FnDiv {
     fn out(&mut self) -> PointType {
         // TODO Mul overflow check
         let input1 = self.input1.borrow_mut().out();
-        debug!("{}.out | input1: {:?}", self.id, &input1);
+        trace!("{}.out | input1: {:?}", self.id, &input1);
         let input2 = self.input2.borrow_mut().out();
-        debug!("{}.out | input2: {:?}", self.id, &input2);
+        trace!("{}.out | input2: {:?}", self.id, &input2);
         let out = input1 / input2;
-        debug!("{}.out | out: {:?}", self.id, &out);
+        trace!("{}.out | out: {:?}", self.id, &out);
         out
     }
     //

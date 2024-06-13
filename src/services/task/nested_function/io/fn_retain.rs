@@ -1,6 +1,6 @@
 use chrono::Utc;
 use concat_string::concat_string;
-use log::{debug, error};
+use log::{debug, error, trace};
 use std::{env, fs, io::{Read, Write}, path::PathBuf, sync::atomic::{AtomicUsize, Ordering}};
 use crate::{
     conf::point_config::{name::Name, point_config_type::PointConfigType},
@@ -271,7 +271,7 @@ impl FnOut for FnRetain {
                         Some(point) => point,
                         None => default,
                     };
-                    debug!("{}.out | every cycle: {} \t loaded '{}': \n\t{:?}", self.id, self.every_cycle, self.key, point);
+                    trace!("{}.out | every cycle: {} \t loaded '{}': \n\t{:?}", self.id, self.every_cycle, self.key, point);
                     point
                 } else {
                     let point = match &self.cache {
@@ -284,7 +284,7 @@ impl FnOut for FnRetain {
                         }
                     };
                     self.cache = Some(point.clone());
-                    debug!("{}.out | every cycle: {} \t loaded '{}': \n\t{:?}", self.id, self.every_cycle, self.key, point);
+                    trace!("{}.out | every cycle: {} \t loaded '{}': \n\t{:?}", self.id, self.every_cycle, self.key, point);
                     point
                 }
             }

@@ -159,11 +159,12 @@ service Task RecorderTask:
             enable: opCycleIsActive
             key: 'crane-characteristic-number'
             input fn Add:
-                input1 fn Pow:
-                    input1 fn Div:
-                        input1: craneCycleAverageLoad
-                        input2: craneLoadNom
-                    input2: const real 3.0
+                input1 fn Acc:
+                    input fn Pow:
+                        input1 fn Div:
+                            input1: craneCycleAverageLoad
+                            input2: craneLoadNom
+                        input2: const real 3.0
                 input2 fn Retain:
                     default: const real 0.0
                     key: 'crane-characteristic-number'

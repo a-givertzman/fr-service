@@ -1,5 +1,5 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
-use log::debug;
+use log::trace;
 use crate::{
     core_::{point::{point_tx_id::PointTxId, point_type::PointType}, types::fn_in_out_ref::FnInOutRef},
     services::task::nested_function::{fn_::{FnIn, FnInOut, FnOut}, fn_kind::FnKind},
@@ -78,15 +78,15 @@ impl FnOut for FnFilter {
         let input = self.input.borrow_mut().out();
         let pass_point = self.pass.borrow_mut().out();
         let pass = pass_point.to_bool().as_bool().value.0;
-        debug!("{}.out | pass: {:?}", self.id, pass);
+        trace!("{}.out | pass: {:?}", self.id, pass);
         if pass {
-            debug!("{}.out | Passed input: {:?}", self.id, input);
+            trace!("{}.out | Passed input: {:?}", self.id, input);
             self.state = Some(input.clone());
             input
         } else {
             match &self.state {
                 Some(state) => {
-                    debug!("{}.out | Passed prev state: {:?}", self.id, state);
+                    trace!("{}.out | Passed prev state: {:?}", self.id, state);
                     state.to_owned()
                 }
                 None => {
@@ -94,13 +94,13 @@ impl FnOut for FnFilter {
                         Some(default) => {
                             let default = default.borrow_mut().out();
                             self.state = Some(default.clone());
-                            debug!("{}.out | Passed default input: {:?}", self.id, default);
+                            trace!("{}.out | Passed default input: {:?}", self.id, default);
                             default
                         }
                         None => {
                             let default = self.default();
                             self.state = Some(default.clone());
-                            debug!("{}.out | Passed default: {:?}", self.id, default);
+                            trace!("{}.out | Passed default: {:?}", self.id, default);
                             default
                         }
                     }

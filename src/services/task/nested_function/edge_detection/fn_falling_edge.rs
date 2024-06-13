@@ -1,4 +1,4 @@
-use log::debug;
+use log::trace;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::{
     core_::{point::{point::Point, point_type::PointType}, types::{bool::Bool, fn_in_out_ref::FnInOutRef}},
@@ -54,7 +54,7 @@ impl FnOut for FnFallingEdge {
     //
     fn out(&mut self) -> PointType {
         let input = self.input.borrow_mut().out();
-        debug!("{}.out | input: {:#?}", self.id, input);
+        trace!("{}.out | input: {:#?}", self.id, input);
         let input_value = input.to_bool().as_bool().value.0;
         let value = PointType::Bool(Point::new(
             input.tx_id(),
@@ -65,7 +65,7 @@ impl FnOut for FnFallingEdge {
             input.timestamp(),
         ));
         self.prev = input_value;
-        debug!("{}.out | value: {:#?}", self.id, value);
+        trace!("{}.out | value: {:#?}", self.id, value);
         value
     }
     //
