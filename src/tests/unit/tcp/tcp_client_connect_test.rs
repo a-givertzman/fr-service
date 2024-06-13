@@ -110,7 +110,7 @@ mod tcp_client_connect {
     }
     ///
     /// Testing connection fail case
-    // #[test]
+    #[test]
     fn failure_connection() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();

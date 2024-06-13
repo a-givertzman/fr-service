@@ -6,7 +6,7 @@ mod cma_recorder {
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::{multi_queue_config::MultiQueueConfig, point_config::name::Name, task_config::TaskConfig}, core_::{aprox_eq::aprox_eq::AproxEq, point::point_type::PointType}, services::{multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, service::service::Service, services::Services, task::{task::Task, task_test_receiver::TaskTestReceiver}},
+        conf::{multi_queue_config::MultiQueueConfig, point_config::name::Name, task_config::TaskConfig}, core_::point::point_type::PointType, services::{multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, service::service::Service, services::Services, task::{task::Task, task_test_receiver::TaskTestReceiver}},
         tests::unit::services::task::cma_recorder::task_test_producer::TaskTestProducer
     };
     ///
