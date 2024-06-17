@@ -35,3 +35,5 @@ mod fn_sub_test;
 mod fn_div_test;
 
 mod fn_pow_test;
+
+mod fn_piecewise_line_approx_test;
