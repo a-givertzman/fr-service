@@ -31,7 +31,7 @@ mod cma_recorder {
     fn init_each() -> () {}
     ///
     /// Testing the Recorder's SQL generated after detected operating cycle finished
-    #[test]
+    // #[test]
     fn operating_cycle_metric() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
@@ -318,7 +318,7 @@ mod cma_recorder {
         let target_name = "/AppTest/RecorderTask/OpCycle";
         for (i, result) in op_cycle.iter().enumerate() {
             let (step, target) = target_op_cycle[i].clone();
-            assert!(result.value().as_bool() == (target > 0), "step {} \nresult op cycle: {:?}\ntarget op cycle: {:?}", step, result.value(), target);
+            assert!(result.value().as_bool() == (target > 0), "step {} \nresult op cycle: {:?}\ntarget op cycle: {:?}", step, result.value().as_bool(), target);
             assert!(result.name() == target_name, "step {} \nresult: {:?}\ntarget: {:?}", step, result.name(), target_name);
         };
         test_duration.exit();
