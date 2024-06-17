@@ -488,3 +488,13 @@ service Task RecorderTask:
         # 3.8.2 	real	winch2-load-spectrum-factor	коэффициент распределения нагрузок лебедка 2	0.0
         #
         # 3.8.3 	real	winch3-load-spectrum-factor	коэффициент распределения нагрузок лебедка 3	0.0
+
+    ###############   Operating Cycle Live Data   ###############
+    #
+    #   table:      operating_cycle_value
+    #
+        inputLoad fn SqlMetric:
+            table: public.operating_metric
+            sql: update {table} set value = {input.value} where name = 'winch3-characteristic-number';
+            input fn PiecewiseLineApprox:
+                input point real '/AppTest/Load'

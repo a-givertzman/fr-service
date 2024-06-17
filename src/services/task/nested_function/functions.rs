@@ -39,6 +39,7 @@ pub enum Functions {
     Average,
     Pow,
     Max,
+    PiecewiseLineApprox,
     /// Recorder functions
     RecOpCycleMetric,
 }
@@ -77,6 +78,7 @@ impl Functions {
     const AVERAGE                       : &'static str = "Average";
     const POW                           : &'static str = "Pow";
     const MAX                           : &'static str = "Max";
+    const PIECEWISE_LINE_APPROX         : &'static str = "PiecewiseLineApprox";
     /// Recorder functions
     const REC_OP_CYCLE_METRIC           : &'static str = "RecOpCycleMetric";
     ///
@@ -114,6 +116,7 @@ impl Functions {
             Self::Pow                   => Self::POW,
             Self::RecOpCycleMetric      => Self::REC_OP_CYCLE_METRIC,
             Self::Max                   => Self::MAX,
+            Self::PiecewiseLineApprox   => Self::PIECEWISE_LINE_APPROX,
         }
     }
     ///
@@ -151,6 +154,7 @@ impl Functions {
             Self::POW                   => Ok( Self::Pow ),
             Self::REC_OP_CYCLE_METRIC   => Ok( Self::RecOpCycleMetric ),
             Self::MAX                   => Ok( Self::Max ),
+            Self::PIECEWISE_LINE_APPROX => Ok( Self::PiecewiseLineApprox ),
             _ => Err(format!("Functions.from_str | Unknown function name '{}'", &input)),
         }
     }

@@ -1,4 +1,5 @@
 use std::{rc::Rc, cell::RefCell, str::FromStr, sync::{Arc, Mutex}};
+use indexmap::IndexMap;
 use log::{debug, warn, LevelFilter};
 use crate::{
     conf::{fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind}, point_config::name::Name},
@@ -10,7 +11,7 @@ use crate::{
         safe_lock::SafeLock, services::Services,
         task::{
             nested_function::{
-                edge_detection::{fn_falling_edge::FnFallingEdge, fn_rising_edge::FnRisingEdge}, export::{fn_export::FnExport, fn_point::FnPoint, fn_to_api_queue::FnToApiQueue}, filter::{fn_filter::FnFilter, fn_smooth::FnSmooth, fn_threshold::FnThreshold}, fn_acc::FnAcc, fn_add::FnAdd, fn_average::FnAverage, fn_const::FnConst, fn_count::FnCount, fn_debug::FnDebug, fn_div::FnDiv, fn_ge::FnGe, fn_input::FnInput, fn_max::FnMax, fn_mul::FnMul, fn_point_id::FnPointId, fn_pow::FnPow, fn_rec_op_cycle_metric::FnRecOpCycleMetric, fn_sub::FnSub, fn_timer::FnTimer, fn_to_bool::FnToBool, fn_to_double::FnToDouble, fn_to_int::FnToInt, fn_to_real::FnToReal, fn_var::FnVar, functions::Functions, io::fn_retain::FnRetain, sql_metric::SqlMetric
+                edge_detection::{fn_falling_edge::FnFallingEdge, fn_rising_edge::FnRisingEdge}, export::{fn_export::FnExport, fn_point::FnPoint, fn_to_api_queue::FnToApiQueue}, filter::{fn_filter::FnFilter, fn_smooth::FnSmooth, fn_threshold::FnThreshold}, fn_acc::FnAcc, fn_add::FnAdd, fn_average::FnAverage, fn_const::FnConst, fn_count::FnCount, fn_debug::FnDebug, fn_div::FnDiv, fn_ge::FnGe, fn_input::FnInput, fn_max::FnMax, fn_mul::FnMul, fn_piecewise_line_approx::FnPiecewiseLineApprox, fn_point_id::FnPointId, fn_pow::FnPow, fn_rec_op_cycle_metric::FnRecOpCycleMetric, fn_sub::FnSub, fn_timer::FnTimer, fn_to_bool::FnToBool, fn_to_double::FnToDouble, fn_to_int::FnToInt, fn_to_real::FnToReal, fn_var::FnVar, functions::Functions, io::fn_retain::FnRetain, sql_metric::SqlMetric
             },
             task_nodes::TaskNodes,
         }
@@ -443,6 +444,26 @@ impl NestedFn {
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
                         Rc::new(RefCell::new(Box::new(
                             FnMax::new(parent, enable, input)
+                        )))
+                    }
+                    //
+                    Functions::PiecewiseLineApprox => {
+                        let name = "input";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        let pieces: IndexMap<serde_yaml::Value, serde_yaml::Value> = match conf.param("piecewise") {
+                            Ok(piecewise) => {
+                                match piecewise {
+                                    FnConfKind::Param(piecewise) => {
+                                        serde_yaml::from_str(&piecewise).unwrap()
+                                    }
+                                    _ => panic!("{}.function | Parameter 'piecewise' - missed or has invalid type (map expected) in '{}'", self_id, conf.name)
+                                }
+                            }
+                            Err(_) => panic!("{}.function | Parameter 'piecewise' - missed in '{}'", self_id, conf.name),
+                        };
+                        Rc::new(RefCell::new(Box::new(
+                            FnPiecewiseLineApprox::new(parent, input, pieces)
                         )))
                     }
                     //
