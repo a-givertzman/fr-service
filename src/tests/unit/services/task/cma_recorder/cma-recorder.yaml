@@ -497,4 +497,4 @@ service Task RecorderTask:
             table: public.operating_metric
             sql: update {table} set value = {input.value} where name = 'winch3-characteristic-number';
             input fn PiecewiseLineApprox:
-                input point real '/AppTest/Load'
+                input: point real '/AppTest/Load'

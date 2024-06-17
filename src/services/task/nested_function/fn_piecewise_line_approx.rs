@@ -1,7 +1,6 @@
 use indexmap::IndexMap;
 use log::{debug, trace};
-use testing::entities::test_value::Value;
-use std::{cmp, sync::atomic::{AtomicUsize, Ordering}};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use concat_string::concat_string;
 use crate::{
     conf::point_config::point_config_type::PointConfigType,
@@ -167,11 +166,11 @@ impl LinearApprox {
     fn is_less(&self, x: f64) -> bool {
         x < self.left.x
     }
-    ///
-    /// Returns true if x is on the right of the rigjt point
-    fn is_greater(&self, x: f64) -> bool {
-        x >= self.right.x
-    }
+    // ///
+    // /// Returns true if x is on the right of the rigjt point
+    // fn is_greater(&self, x: f64) -> bool {
+    //     x >= self.right.x
+    // }
 }
 ///
 /// The collection og the LinearApprox

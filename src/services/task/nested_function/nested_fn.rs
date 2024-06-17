@@ -457,7 +457,7 @@ impl NestedFn {
                                     FnConfKind::Param(piecewise) => {
                                         serde_yaml::from_str(&piecewise).unwrap()
                                     }
-                                    _ => panic!("{}.function | Parameter 'piecewise' - missed or has invalid type (map expected) in '{}'", self_id, conf.name)
+                                    _ => panic!("{}.function | Parameter 'piecewise' - has invalid type (map expected) in '{}'", self_id, conf.name)
                                 }
                             }
                             Err(_) => panic!("{}.function | Parameter 'piecewise' - missed in '{}'", self_id, conf.name),

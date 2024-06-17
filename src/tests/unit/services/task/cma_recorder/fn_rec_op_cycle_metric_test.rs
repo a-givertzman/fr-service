@@ -2,7 +2,7 @@
 
 mod cma_recorder {
     use log::{debug, info, trace};
-    use std::{env, sync::{Arc, Mutex, Once}, thread, time::{Duration, Instant}};
+    use std::{env, process::exit, sync::{Arc, Mutex, Once}, thread, time::{Duration, Instant}};
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
@@ -254,6 +254,8 @@ mod cma_recorder {
         info!("receiver runing - ok");
         let task_handle = task.lock().unwrap().run().unwrap();
         info!("task runing - ok");
+        exit(0);
+
         thread::sleep(Duration::from_millis(100));
         let producer_handle = producer.lock().unwrap().run().unwrap();
         info!("producer runing - ok");

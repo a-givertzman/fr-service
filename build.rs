@@ -1,4 +1,4 @@
-use std::{fs, io::Write, path::{Path, PathBuf}};
+use std::{fs, io::Write, path::Path};
 
 pub fn main() {
     build_slmp_module();
@@ -76,14 +76,14 @@ fn log(m: impl Into<String>) {
                     // debug!("{}.store | Retain stored in: {:?}", self.id, path);
                     // Ok(())
                 }
-                Err(err) => {
+                Err(_err) => {
                     // let message = format!("{}.store | Error writing to file: '{:?}'\n\terror: {:?}", self.id, path, err);
                     // error!("{}", message);
                     // Err(message)
                 }
             }
         }
-        Err(err) => {
+        Err(_err) => {
             // let message = format!("{}.store | Error open file: '{:?}'\n\terror: {:?}", self.id, path, err);
             // error!("{}", message);
             // Err(message)

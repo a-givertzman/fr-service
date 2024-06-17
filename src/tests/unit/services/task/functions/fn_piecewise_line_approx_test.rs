@@ -1,13 +1,12 @@
 #[cfg(test)]
 mod fn_piecewise_line_approx {
-    use indexmap::IndexMap;
     use log::{debug, info};
     use std::{sync::Once, rc::Rc, cell::RefCell};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         conf::fn_::fn_conf_keywd::FnConfPointType, 
         core_::{aprox_eq::aprox_eq::AproxEq, point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
-        services::task::nested_function::{fn_::FnOut, fn_acc::{self, FnAcc}, fn_input::FnInput, fn_piecewise_line_approx::FnPiecewiseLineApprox, reset_counter::AtomicReset}
+        services::task::nested_function::{fn_::FnOut, fn_acc::{self}, fn_input::FnInput, fn_piecewise_line_approx::FnPiecewiseLineApprox, reset_counter::AtomicReset}
     };
     ///
     ///
