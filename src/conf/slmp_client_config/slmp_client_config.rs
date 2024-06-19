@@ -13,7 +13,6 @@ use crate::{
 /// service ProfinetClient Ied01:          # device will be executed in the independent thread, must have unique name
 ///    subscribe: Multiqueue
 ///    send-to: MultiQueue.in-queue
-///    name Ied01:                       
 ///    cycle: 1 ms                     # operating cycle time of the device
 ///    description: 'S7-IED-01.01'
 ///    ip: '192.168.100.243'

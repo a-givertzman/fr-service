@@ -5,7 +5,7 @@ use super::{conf_keywd::ConfKind, point_config::name::Name};
 ///
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
-/// service TcpClient:
+/// service MultiQueue:
 ///     cycle: 1 ms
 ///     reconnect: 1 s  # default 3 s
 ///     address: 127.0.0.1:8080

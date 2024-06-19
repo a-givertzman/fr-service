@@ -220,13 +220,13 @@ service CmaClient:
     auth:                   # some auth credentials
     in queue in-queue:
         max-length: 10000
-    out queue: MultiQueue.in-queue
+    send-to: MultiQueue.in-queue
 
 service ProfinetClient Ied01:
     cycle: 1 ms          # read cycle time, 0 or ommit to disable
     in queue in-queue:
         max-length: 10000
-    out queue: MultiQueue.in-queue
+    send-to: MultiQueue.in-queue
     protocol: 'profinet'
     description: 'S7-IED-01'
     ip: '192.168.100.243'
@@ -266,7 +266,7 @@ service ProfinetClient Ied02:
     cycle: 1 ms          # read cycle time, 0 or ommit to disable
     in queue in-queue:
         max-length: 10000
-    out queue: MultiQueue.in-queue
+    send-to: MultiQueue.in-queue
     protocol: 'profinet'
     description: 'S7-IED-02'
     ip: '192.168.100.243'
@@ -451,7 +451,6 @@ service ProfinetClient Ied01:
     in queue in-queue:
         max-length: 10000
     send-to: MultiQueue.in-queue
-    # name Ied01:                       # device will be executed in the independent thread, must have unique name
     protocol: 'profinet'
     description: 'S7-IED-01'
     ip: '192.168.100.243'
@@ -513,7 +512,6 @@ service ProfinetClient Ied02:
     in queue in-queue:
         max-length: 10000
     send-to: MultiQueue.in-queue
-    name Ied02:                       # device will be executed in the independent thread, must have unique name
     protocol: 'profinet'
     description: 'S7-IED-02'
     ip: '192.168.100.243'

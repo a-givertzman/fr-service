@@ -12,7 +12,7 @@ use crate::{conf::{
 /// ```yaml
 /// service ProducerService:
 ///     cycle: 1000 ms                          # operating cycle time of the module
-///     out queue: /App/MultiQueue.in-queue
+///     send-to: /App/MultiQueue.in-queue
 ///     debug: true                             # each point will be debugged
 ///     points:
 ///         point Winch.ValveEV1: 
@@ -41,7 +41,7 @@ impl ProducerServiceConfig {
     /// ```yaml
     /// service ProducerService:
     ///     cycle: 1000 ms                          # operating cycle time of the module
-    ///     out queue: /App/MultiQueue.in-queue
+    ///     send-to: /App/MultiQueue.in-queue
     ///     debug: true                             # each point will be debugged
     ///     points:
     ///         point Winch.ValveEV1: 

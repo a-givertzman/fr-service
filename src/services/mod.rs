@@ -6,7 +6,7 @@
 //! service ServiceName Id:
 //!     in queue in-queue:
 //!         max-length: 10000
-//!     out queue: MultiQueue.in-queue
+//!     send-to: MultiQueue.in-queue
 //! ```
 ///
 pub mod api_cient;

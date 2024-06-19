@@ -13,7 +13,7 @@ use crate::conf::{
 /// service JdsService JdsService:          # service unique address used in the point path
 ///    in queue in-queue:
 ///        max-length: 10000
-///    out queue: MultiQueue.in-queue
+///    send-to: MultiQueue.in-queue
 /// ```
 #[derive(Debug, PartialEq, Clone)]
 pub struct JdsServiceConfig {

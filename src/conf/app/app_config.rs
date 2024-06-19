@@ -13,8 +13,7 @@ use crate::conf::{
 /// service ProfinetClient Ied01:          # device will be executed in the independent thread, must have unique name
 ///    in queue in-queue:
 ///        max-length: 10000
-///    out queue: MultiQueue.in-queue
-///    name Ied01:                       
+///    send-to: MultiQueue.in-queue
 ///    cycle: 1 ms                     # operating cycle time of the device
 ///    protocol: 'profinet'
 ///    description: 'S7-IED-01.01'
@@ -26,7 +25,6 @@ use crate::conf::{
 ///        number: 899
 ///        offset: 0
 ///        size: 34
-///        delay: 10
 ///        point Drive.Speed: 
 ///            type: 'Real'
 ///            offset: 0

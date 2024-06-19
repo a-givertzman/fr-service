@@ -12,7 +12,6 @@ use crate::{conf::{
 ///    in queue in-queue:
 ///        max-length: 10000
 ///    send-to: MultiQueue.in-queue
-///    name Ied01:                       
 ///    cycle: 1 ms                     # operating cycle time of the device
 ///    protocol: 'profinet'
 ///    description: 'S7-IED-01.01'
