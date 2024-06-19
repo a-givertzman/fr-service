@@ -43,14 +43,14 @@ impl FnPoint {
     }
     ///
     /// 
-    fn send(&self, point: PointType) {
+    fn send(&self, point: &PointType) {
         if let Some(tx_send) = &self.tx_send {
             let point = match self.conf.type_ {
                 PointConfigType::Bool => {
                     PointType::Bool(Point::new(
                         self.tx_id, 
                         &self.conf.name, 
-                        Bool(point.value().as_bool()), 
+                        Bool(point.as_bool().value.0), 
                         point.status(), 
                         point.cot(), 
                         point.timestamp(),
@@ -60,7 +60,7 @@ impl FnPoint {
                     PointType::Int(Point::new(
                         self.tx_id, 
                         &self.conf.name, 
-                        point.value().as_int(), 
+                        point.as_int().value, 
                         point.status(), 
                         point.cot(), 
                         point.timestamp(),
@@ -70,7 +70,7 @@ impl FnPoint {
                     PointType::Real(Point::new(
                         self.tx_id, 
                         &self.conf.name, 
-                        point.value().as_real(), 
+                        point.as_real().value, 
                         point.status(), 
                         point.cot(), 
                         point.timestamp(),
@@ -80,7 +80,7 @@ impl FnPoint {
                     PointType::Double(Point::new(
                         self.tx_id, 
                         &self.conf.name, 
-                        point.value().as_double(), 
+                        point.as_double().value, 
                         point.status(), 
                         point.cot(), 
                         point.timestamp(),
@@ -90,7 +90,7 @@ impl FnPoint {
                     PointType::String(Point::new(
                         self.tx_id, 
                         &self.conf.name, 
-                        point.value().as_string(), 
+                        point.as_string().value, 
                         point.status(), 
                         point.cot(), 
                         point.timestamp(),
@@ -153,16 +153,16 @@ impl FnOut for FnPoint {
                         if changes_only {
                             if &point != state {
                                 self.state = Some(point.clone());
-                                self.send(point.clone());
+                                self.send(&point);
                             }
                         } else {
                             self.state = Some(point.clone());
-                            self.send(point.clone());
+                            self.send(&point);
                         }
                     }
                     None => {
                         self.state = Some(point.clone());
-                        self.send(point.clone());
+                        self.send(&point);
                     }
                 }
                 point

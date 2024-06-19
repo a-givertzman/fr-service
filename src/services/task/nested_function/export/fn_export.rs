@@ -36,7 +36,7 @@ impl FnExport {
     /// - enable - boolean (numeric) input enables the export if true (> 0)
     /// - conf - the configuration of the Point to be prodused, if None - input Point will be sent
     /// - input - incoming points
-    /// - send - destination queue
+    /// - send-to - destination queue
     pub fn new(parent: impl Into<String>, enable: Option<FnInOutRef>, conf: Option<PointConfig>, input: FnInOutRef, send: Option<Sender<PointType>>) -> Self {
         let self_id = format!("{}/FnExport{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed));
         Self {

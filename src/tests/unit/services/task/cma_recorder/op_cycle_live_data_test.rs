@@ -32,7 +32,7 @@ mod cma_recorder {
     ///
     /// Testing the Recorder's SQL generated after detected operating cycle finished
     #[test]
-    fn operating_cycle_metric() {
+    fn operating_cycle_live_data() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
         init_each();
@@ -46,7 +46,7 @@ mod cma_recorder {
         // can be changed
         trace!("dir: {:?}", env::current_dir());
         let services = Arc::new(Mutex::new(Services::new(self_id)));
-        let config = TaskConfig::read(&self_name, "./src/tests/unit/services/task/cma_recorder/cma-recorder.yaml");
+        let config = TaskConfig::read(&self_name, "./src/tests/unit/services/task/cma_recorder/cma-recorder-live-data.yaml");
         trace!("config: {:?}", config);
         debug!("Task config points: {:#?}", config.points());
         let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
