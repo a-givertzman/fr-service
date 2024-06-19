@@ -3,7 +3,7 @@ use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, AtomicUs
 use log::{error, info, trace, warn};
 use crate::{
     conf::point_config::name::Name, core_::{object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}}, services::{
-        multi_queue::{subscription_criteria::SubscriptionCriteria, subscriptions::Subscriptions}, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services 
+        multi_queue::{subscription_criteria::SubscriptionCriteria, subscriptions::Subscriptions}, queue_name::QueueName, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services 
     }
 };
 ///
@@ -110,7 +110,7 @@ impl Service for MockMultiQueueMatch {
         let subscriptions = self.subscriptions.clone();
         let mut staticSubscriptions: HashMap<usize, Sender<PointType>> = HashMap::new();
         for sendQueue in &self.sendQueues {
-            let txSend = self.services.slock().get_link(sendQueue).unwrap_or_else(|err| {
+            let txSend = self.services.slock().get_link(&QueueName::new(sendQueue)).unwrap_or_else(|err| {
                 panic!("{}.run | services.get_link error: {:#?}", self.id, err);
             });
             staticSubscriptions.insert(PointTxId::fromStr(sendQueue), txSend);

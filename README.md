@@ -305,7 +305,7 @@ service ApiClient:
 service MultiQueue:
     in queue in-queue:
         max-length: 10000
-    out queue:
+    send-to:
         - task1.recv-queue
         - CmaClient.in-queue
         - CmaServer.in-queue
@@ -390,7 +390,7 @@ description: Short explanation / purpose etc.
 service MultiQueue:
     in queue in-queue:
         max-length: 10000
-    out queue:
+    send-to:
         - TaskTestReceiver.queue
 
 service Task Task1:
@@ -438,7 +438,7 @@ service TcpServer:
     auth: none      # auth: none / auth-secret: pass: ... / auth-ssh: path: ...
     in queue link:
         max-length: 10000
-    out queue: MultiQueue.in-queue
+    send-to: MultiQueue.in-queue
 
 service TcpClient:
     cycle: 1 ms
@@ -446,13 +446,13 @@ service TcpClient:
     address: 127.0.0.1:8080
     in queue link:
         max-length: 10000
-    out queue: MultiQueue.queue
+    send-to: MultiQueue.queue
 
 service ProfinetClient Ied01:
     cycle: 1 ms                         # operating cycle time of the module, if 0 or ommited, module read cycle will be disable
     in queue in-queue:
         max-length: 10000
-    out queue: MultiQueue.in-queue
+    send-to: MultiQueue.in-queue
     # name Ied01:                       # device will be executed in the independent thread, must have unique name
     protocol: 'profinet'
     description: 'S7-IED-01'
@@ -514,7 +514,7 @@ service ProfinetClient Ied02:
     cycle: 1 ms                         # operating cycle time of the module, if 0 or ommited, module read cycle will be disable
     in queue in-queue:
         max-length: 10000
-    out queue: MultiQueue.in-queue
+    send-to: MultiQueue.in-queue
     name Ied02:                       # device will be executed in the independent thread, must have unique name
     protocol: 'profinet'
     description: 'S7-IED-02'
@@ -890,7 +890,7 @@ service ProfinetClient Ied01:
     # in queue in-queue:
         # max-length: 10000
     subscribe: MultiQueue
-    out queue: MultiQueue.in-queue
+    send-to: MultiQueue.in-queue
     protocol: 'profinet'
     description: 'S7-IED-01'
     ip: '192.168.130.243'
@@ -921,7 +921,6 @@ service ProfinetClient Ied01:
         number: 899
         offset: 0
         size: 34
-        cycle: 10 ms
         point Capacitor.Capacity: 
             type: 'Int'
             address:

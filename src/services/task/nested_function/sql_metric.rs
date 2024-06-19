@@ -71,13 +71,15 @@ impl SqlMetric {
         // let initial = conf.param("initial").name.parse().unwrap();
         let table = conf.param("table").unwrap_or_else(|_|
             panic!("{}.new | Parameter 'table' - missed", self_id)
-        ).name();
+        ).as_param();
+        let table = table.conf.as_str().unwrap();
         let sql = conf.param("sql").unwrap_or_else(|_|
             panic!("{}.new | Parameter 'sql' - missed", self_id)
-        ).name();
+        ).as_param();
+        let sql = sql.conf.as_str().unwrap();
         let mut sql = Format::new(&sql);
         sql.insert("id", id.clone().to_point(tx_id, ""));
-        sql.insert("table", table.clone().to_point(tx_id, ""));
+        sql.insert("table", table.to_point(tx_id, ""));
         sql.prepare();
         let mut sql_names = sql.names();
         sql_names.remove("initial");

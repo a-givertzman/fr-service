@@ -1,12 +1,12 @@
-use log::{trace, debug};
+use log::{debug, error, trace};
 use std::{fs, time::Duration, net::SocketAddr};
-use crate::{conf::{conf_tree::ConfTree, service_config::ServiceConfig}, services::server::jds_auth::TcpServerAuth};
+use crate::{conf::{conf_keywd::ConfKind, conf_tree::ConfTree, service_config::ServiceConfig}, services::{queue_name::QueueName, server::jds_auth::TcpServerAuth}};
 
 use super::point_config::name::Name;
 ///
 /// creates config from serde_yaml::Value of following format:
 /// ```yaml
-/// service TcpClient:
+/// service TcpServer:
 ///     cycle: 1 ms
 ///     address: 127.0.0.1:8080
 ///     reconnect: 1 s      # default 3 s
@@ -14,7 +14,7 @@ use super::point_config::name::Name;
 ///     auth: none          # none / secret / ssh
 ///     in queue link:
 ///         max-length: 10000
-///     out queue: MultiQueue.queue
+///     send-to: MultiQueue.queue
 ///                         ...
 #[derive(Debug, PartialEq, Clone)]
 pub struct TcpServerConfig {
@@ -26,7 +26,7 @@ pub struct TcpServerConfig {
     pub(crate) auth: TcpServerAuth,
     pub(crate) rx: String,
     pub(crate) rx_max_len: i64,
-    pub(crate) tx: String,
+    pub(crate) send_to: QueueName,//String,
     pub(crate) cache: Option<String>,
 }
 //
@@ -35,7 +35,7 @@ impl TcpServerConfig {
     ///
     /// creates config from serde_yaml::Value of following format:
     /// ```yaml
-    /// service TcpClient:
+    /// service TcpServer:
     ///     cycle: 1 ms
     ///     address: 127.0.0.1:8080
     ///     reconnect: 1 s      # default 3 s
@@ -43,7 +43,7 @@ impl TcpServerConfig {
     ///     auth: none          # none / secret / ssh
     ///     in queue link:
     ///         max-length: 10000
-    ///     out queue: MultiQueue.queue
+    ///     send-to: MultiQueue.queue
     ///                     ...
     pub fn new(parent: impl Into<String>, conf_tree: &mut ConfTree) -> TcpServerConfig {
         println!();
@@ -68,9 +68,12 @@ impl TcpServerConfig {
         let auth = TcpServerAuth::new(auth);
         debug!("{}.new | auth: {:?}", self_id, auth);
         let (rx, rx_max_len) = self_conf.get_in_queue().unwrap();
-        debug!("{}.new | RX: {},\tmax-length: {}", self_id, rx, rx_max_len);
-        let tx = self_conf.get_out_queue().unwrap();
-        debug!("{}.new | TX: {}", self_id, tx);
+        debug!("{}.new | 'in queue': {},\tmax-length: {}", self_id, rx, rx_max_len);
+        let send_to = QueueName::new(self_conf.get_send_to().unwrap()).validate();
+        debug!("{}.new | send-to: {:?}", self_id, send_to);
+        if let Ok((_, _)) = self_conf.get_param_by_keyword("out", ConfKind::Queue) {
+            error!("{}.new | Parameter 'out queue' - deprecated, use 'send-to' instead in conf: {:#?}", self_id, self_conf)
+        }
         let cache = self_conf.get_param_value("cache").map_or_else(|_| None, |v| v.as_str().map(|v| v.to_owned()));
         debug!("{}.new | cache: {:?}", self_id, cache);
         TcpServerConfig {
@@ -82,7 +85,7 @@ impl TcpServerConfig {
             auth,
             rx,
             rx_max_len,
-            tx,
+            send_to,
             cache,
         }
     }

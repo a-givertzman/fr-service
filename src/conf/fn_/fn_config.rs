@@ -107,7 +107,6 @@ impl FnConfig {
                                 }
                                 Err(_) => {
                                     None
-                                    // panic!("FnConfig.new | Point.input - not found in: {:?}", conf_tree),
                                 }
                             };
                             FnConfKind::PointConf(
@@ -124,9 +123,9 @@ impl FnConfig {
                 //  - current node just an input name
                 //      - take input Value / Fn from first sub node,
                 //          if additional sub nodes prtesent, hit warning: "input must have single Value/Fn"
-                Err(err) => {
-                    panic!("FnConfig.new | keyword '{:?}' parsing error: {:?}", conf_tree, err)
-                    // trace!("FnConfig.new | input name detected: {:?}", confTree.key);
+                Err(_) => {
+                    debug!("FnConfig.new | Custom parameter '{}' declared: {:?}", conf_tree.key, conf_tree.conf);
+                    FnConfKind::Param(conf_tree.to_owned())
                 }
             }
         } else {
@@ -176,24 +175,20 @@ impl FnConfig {
                                 }
                             )
                         } else {
-                            debug!("FnConfig.new | Custom parameter declared: {:?}", conf_tree.conf);
-                            FnConfKind::Param(var_name)
-                            // panic!("FnConfig.new | Variable not declared: {:?}", confTree.conf)
+                            debug!("FnConfig.new | Custom parameter '{}' declared: {:#?}", conf_tree.key, conf_tree.conf);
+                            FnConfKind::Param(conf_tree.to_owned())
                         }
                     }
                 }
             } else if conf_tree.conf.is_bool() {
-                debug!("FnConfig.new | Custom parameter declared: {:?}", conf_tree.conf);
-                let var_name = conf_tree.conf.as_bool().unwrap().to_string();
-                FnConfKind::Param(var_name)
+                debug!("FnConfig.new | Custom parameter '{}' declared: {:?}", conf_tree.key, conf_tree.conf);
+                FnConfKind::Param(conf_tree.to_owned())
             } else if conf_tree.conf.is_i64() {
-                debug!("FnConfig.new | Custom parameter declared: {:?}", conf_tree.conf);
-                let var_name = conf_tree.conf.as_i64().unwrap().to_string();
-                FnConfKind::Param(var_name)
+                debug!("FnConfig.new | Custom parameter '{}' declared: {:?}", conf_tree.key, conf_tree.conf);
+                FnConfKind::Param(conf_tree.to_owned())
             } else if conf_tree.conf.is_f64() {
-                debug!("FnConfig.new | Custom parameter declared: {:?}", conf_tree.conf);
-                let var_name = conf_tree.conf.as_f64().unwrap().to_string();
-                FnConfKind::Param(var_name)
+                debug!("FnConfig.new | Custom parameter '{}' declared: {:?}", conf_tree.key, conf_tree.conf);
+                FnConfKind::Param(conf_tree.to_owned())
             } else {
                 panic!("FnConfig.new | Custom parameter of unknown type declared, but : {:?}", conf_tree.conf);
             }

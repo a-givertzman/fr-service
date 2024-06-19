@@ -3,7 +3,7 @@ service ProfinetClient Ied01:
     # in queue in-queue:
         # max-length: 10000
     subscribe: MultiQueue
-    out queue: MultiQueue.in-queue
+    send-to: MultiQueue.in-queue
     # name Ied01:                       # device will be executed in the independent thread, must have unique name
     protocol: 'profinet'
     description: 'S7-IED-01'

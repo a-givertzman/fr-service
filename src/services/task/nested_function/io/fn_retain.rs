@@ -53,7 +53,7 @@ impl FnRetain {
     /// - [every-cycle] - if true read will done in every computing cycle, else read will done only once
     /// - [key] - the key to store Point with (full path: ./assets/retain/App/TaskName/key.json)
     /// - [input] - incoming Point's
-    pub fn new(parent: &Name, enable: Option<FnInOutRef>, every_cycle: bool, key: String, default: Option<FnInOutRef>, input: Option<FnInOutRef>) -> Self {
+    pub fn new(parent: &Name, enable: Option<FnInOutRef>, every_cycle: bool, key: &str, default: Option<FnInOutRef>, input: Option<FnInOutRef>) -> Self {
         let self_id = format!("{}/FnRetain{}", parent.join(), COUNT.fetch_add(1, Ordering::Relaxed));
         Self {
             id: self_id.clone(),
@@ -62,7 +62,7 @@ impl FnRetain {
             kind: FnKind::Fn,
             enable,
             every_cycle,
-            key,
+            key: key.to_owned(),
             default,
             input,
             path: None,

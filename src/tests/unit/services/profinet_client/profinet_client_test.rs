@@ -40,7 +40,7 @@ mod profinet_client {
             service MultiQueue:
                 in queue in-queue:
                     max-length: 10000
-                out queue: queue
+                send-to: queue
         "#.to_string();
         let conf = serde_yaml::from_str(&conf).unwrap();
         let mq_conf = MultiQueueConfig::from_yaml(&self_name, &conf);

@@ -3,12 +3,21 @@ use hashers::fx_hash::FxHasher;
 use indexmap::IndexMap;
 use log::{debug, trace, warn};
 use crate::core_::types::map::IndexMapFxHasher;
-
 use super::{
-    conf_duration::ConfDuration, conf_keywd::{ConfKeywd, ConfKind}, conf_subscribe::ConfSubscribe, conf_tree::ConfTree, diag_keywd::DiagKeywd, fn_::fn_conf_keywd::{FnConfKeywd, FnConfKindName}, point_config::{name::Name, point_config::PointConfig}
+    conf_duration::ConfDuration,
+    conf_keywd::{ConfKeywd, ConfKind}, conf_subscribe::ConfSubscribe, conf_tree::ConfTree,
+    diag_keywd::DiagKeywd, fn_::fn_conf_keywd::{FnConfKeywd, FnConfKindName},
+    point_config::{name::Name, point_config::PointConfig},
 };
 ///
+/// Result getting parameter
+pub enum ConfParam<T, E> {
+    Ok(T),
+    None,
+    Err(E)
+}
 ///
+/// Common configuration used in the custom service config 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ServiceConfig {
     id: String,
@@ -179,13 +188,39 @@ impl ServiceConfig {
         }
     }
     ///
-    /// returns send-to name
+    /// Returns name of the 'send-to' queue
     pub fn get_send_to(&mut self) -> Result<String, String> {
         match self.get_param_value("send-to") {
             Ok(conf) => {
                 Ok(conf.as_str().unwrap().to_string())
             }
             Err(err) => Err(format!("{}.get_send_to | 'send-to' - not found in: {:#?}\n\terror: {:#?}", self.id, self.conf, err)),
+        }
+    }
+    ///
+    /// Returns vec of names of the 'send-to' queue
+    pub fn get_send_to_many(&mut self) -> ConfParam<Vec<String>, String> {
+        match self.get_param_value("send-to") {
+            Ok(conf) => {
+                match conf {
+                    serde_yaml::Value::Null => {
+                        warn!("{}.get_send_to_many | Parameter 'send-to' - is empty", self.id);
+                        ConfParam::Ok(vec![])
+                    }
+                    serde_yaml::Value::Sequence(conf) => {
+                        let mut items = vec![];
+                        for item in conf.iter() {
+                            match item.as_str() {
+                                Some(item) => items.push(item.to_owned()),
+                                None => return ConfParam::Err(format!("{}.get_send_to_many | Array<String> expected in 'send-to', but found: {:#?}", self.id, conf)),
+                            }
+                        }
+                        ConfParam::Ok(items)
+                    }
+                    _ => ConfParam::Err(format!("{}.get_send_to_many | Array<String> expected in 'send-to', but found: {:#?}", self.id, conf)),
+                }
+            }
+            Err(err) => ConfParam::None,
         }
     }
     ///

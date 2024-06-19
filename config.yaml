@@ -5,7 +5,7 @@ description: Short explanation / purpose etc.
 service MultiQueue:
     in queue in-queue:
         max-length: 10000
-    out queue:
+    send-to:
         # - TaskTestReceiver.queue
 
 
@@ -55,7 +55,7 @@ service SlmpClient Ied15:
 service ProfinetClient ied12:
     cycle: 500 ms
     subscribe: /App/MultiQueue
-    out queue: /App/MultiQueue.in-queue
+    send-to: /App/MultiQueue.in-queue
     protocol: 'profinet'
     description: 'S7-IED-01.02'
     ip: '192.168.130.243'
@@ -506,7 +506,7 @@ service ProfinetClient ied12:
 service ProfinetClient ied13:
     cycle: 7 ms
     subscribe: /App/MultiQueue
-    out queue: /App/MultiQueue.in-queue
+    send-to: /App/MultiQueue.in-queue
     protocol: 'profinet'
     description: 'S7-IED-01.03'
     ip: '192.168.130.243'
@@ -848,7 +848,7 @@ service ProfinetClient ied13:
 service ProfinetClient ied14:
     cycle: 50 ms
     subscribe: /App/MultiQueue
-    out queue: /App/MultiQueue.in-queue
+    send-to: /App/MultiQueue.in-queue
     protocol: 'profinet'
     description: 'S7-IED-01.04'
     ip: '192.168.130.243'
@@ -1290,5 +1290,5 @@ service TcpServer:
         pass: '12345'
     in queue link:
         max-length: 10000
-    out queue: /App/MultiQueue.in-queue
+    send-to: /App/MultiQueue.in-queue
     cache: /App/MainCache

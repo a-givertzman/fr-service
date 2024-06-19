@@ -54,7 +54,7 @@ mod multi_queue {
             service MultiQueue:
                 in queue in-queue:
                     max-length: 10000
-                out queue:  # direct send links - are empty, because only client subscribtions will be used
+                send-to:  # direct send links - are empty, because only client subscribtions will be used
         "#.to_string();
         let conf = serde_yaml::from_str(&conf).unwrap();
         let mq_conf = MultiQueueConfig::from_yaml(self_id, &conf);

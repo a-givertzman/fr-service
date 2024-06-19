@@ -80,7 +80,7 @@ impl Service for TcpClient {
         let conf = self.conf.clone();
         let exit = self.exit.clone();
         let exit_pair = Arc::new(AtomicBool::new(false));
-        let tx_send = self.services.slock().get_link(&conf.tx).unwrap_or_else(|err| {
+        let tx_send = self.services.slock().get_link(&conf.send_to).unwrap_or_else(|err| {
             panic!("{}.run | services.get_link error: {:#?}", self.id, err);
         });
         let buffered = conf.rx_buffered; // TODO Read this from config

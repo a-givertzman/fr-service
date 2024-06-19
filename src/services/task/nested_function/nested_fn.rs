@@ -8,10 +8,17 @@ use crate::{
         types::fn_in_out_ref::FnInOutRef,
     },
     services::{
-        safe_lock::SafeLock, services::Services,
-        task::{
+        queue_name::QueueName, safe_lock::SafeLock, services::Services, task::{
             nested_function::{
-                edge_detection::{fn_falling_edge::FnFallingEdge, fn_rising_edge::FnRisingEdge}, export::{fn_export::FnExport, fn_point::FnPoint, fn_to_api_queue::FnToApiQueue}, filter::{fn_filter::FnFilter, fn_smooth::FnSmooth, fn_threshold::FnThreshold}, fn_acc::FnAcc, fn_add::FnAdd, fn_average::FnAverage, fn_const::FnConst, fn_count::FnCount, fn_debug::FnDebug, fn_div::FnDiv, fn_ge::FnGe, fn_input::FnInput, fn_max::FnMax, fn_mul::FnMul, fn_piecewise_line_approx::FnPiecewiseLineApprox, fn_point_id::FnPointId, fn_pow::FnPow, fn_rec_op_cycle_metric::FnRecOpCycleMetric, fn_sub::FnSub, fn_timer::FnTimer, fn_to_bool::FnToBool, fn_to_double::FnToDouble, fn_to_int::FnToInt, fn_to_real::FnToReal, fn_var::FnVar, functions::Functions, io::fn_retain::FnRetain, sql_metric::SqlMetric
+                edge_detection::{fn_falling_edge::FnFallingEdge, fn_rising_edge::FnRisingEdge},
+                export::{fn_export::FnExport, fn_point::FnPoint, fn_to_api_queue::FnToApiQueue},
+                filter::{fn_filter::FnFilter, fn_smooth::FnSmooth, fn_threshold::FnThreshold},
+                fn_acc::FnAcc, fn_add::FnAdd, fn_average::FnAverage, fn_const::FnConst, fn_count::FnCount,
+                fn_debug::FnDebug, fn_div::FnDiv, fn_ge::FnGe, fn_input::FnInput, fn_max::FnMax, fn_mul::FnMul,
+                fn_piecewise_line_approx::FnPiecewiseLineApprox, fn_point_id::FnPointId, fn_pow::FnPow,
+                fn_rec_op_cycle_metric::FnRecOpCycleMetric, fn_sub::FnSub, fn_timer::FnTimer, fn_to_bool::FnToBool,
+                fn_to_double::FnToDouble, fn_to_int::FnToInt, fn_to_real::FnToReal, fn_var::FnVar,
+                functions::Functions, io::fn_retain::FnRetain, sql_metric::SqlMetric,
             },
             task_nodes::TaskNodes,
         }
@@ -96,9 +103,10 @@ impl NestedFn {
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes ,services.clone());
                         let queue_name = conf.param("queue").unwrap_or_else(|_|
                             panic!("{}.function | Parameter 'queue' - missed in '{}'", self_id, conf.name)
-                        ).name();
+                        ).as_param();
+                        let queue_name = queue_name.conf.as_str().unwrap();
                         let services_lock = services.slock();
-                        let send_queue = services_lock.get_link(&queue_name).unwrap_or_else(|err| {
+                        let send_queue = services_lock.get_link(&QueueName::new(queue_name)).unwrap_or_else(|err| {
                             panic!("{}.function | services.get_link error: {:#?}", self_id, err);
                         });
                         Rc::new(RefCell::new(Box::new(
@@ -202,8 +210,12 @@ impl NestedFn {
                         };
                         let send_queue = match conf.param("send-to") {
                             Ok(queue_name) => {
+                                let queue_name = match queue_name {
+                                    FnConfKind::Param(queue_name) => queue_name.conf.as_str().unwrap(),
+                                    _ => panic!("{}.function | Parameter 'send-to' - invalid type (string expected) '{:#?}'", self_id, queue_name),
+                                };
                                 let services_lock = services.slock();
-                                services_lock.get_link(&queue_name.name()).map_or(None, |send| Some(send))
+                                services_lock.get_link(&QueueName::new(queue_name)).map_or(None, |send| Some(send))
                             }
                             Err(_) => {
                                 warn!("{}.function | Parameter 'send-to' - missed in '{}'", self_id, conf.name);
@@ -272,18 +284,18 @@ impl NestedFn {
                         };
                         let name = "every-cycle";
                         let every_cycle = conf.param(name).map_or(false, |param| {
-                            match param.name().as_str() {
-                                "true" => true,
-                                "false" => false,
-                                _ => {
-                                    warn!("{}.function | Illegal value in 'every_cycle' of '{}'", self_id, conf.name);
+                            match param.as_param().conf.as_bool() {
+                                Some(param) => param,
+                                None => {
+                                    warn!("{}.function | Illegal 'every_cycle' parameter value in '{:#?}'", self_id, conf);
                                     false
-                                }
+                                },
                             }
                         });
                         let key = conf.param("key").unwrap_or_else(|_|
                             panic!("{}.function | Parameter 'key' - missed in '{}'", self_id, conf.name)
-                        ).name();
+                        ).as_param();
+                        let key = key.conf.as_str().unwrap();
                         Rc::new(RefCell::new(Box::new(
                             FnRetain::new(parent, enable, every_cycle, key, default, input)
                         )))
@@ -406,8 +418,12 @@ impl NestedFn {
                         };
                         let tx_send = match conf.param("send-to") {
                             Ok(queue_name) => {
+                                let queue_name = match queue_name {
+                                    FnConfKind::Param(queue_name) => queue_name.conf.as_str().unwrap(),
+                                    _ => panic!("{}.function | Parameter 'send-to' - invalid type (string expected) '{:#?}'", self_id, queue_name),
+                                };
                                 let services_lock = services.slock();
-                                services_lock.get_link(&queue_name.name()).map_or(None, |send| Some(send))
+                                services_lock.get_link(&QueueName::new(queue_name)).map_or(None, |send| Some(send))
                             }
                             Err(_) => {
                                 warn!("{}.function | Parameter 'send-to' - missed in '{}'", self_id, conf.name);
@@ -451,11 +467,13 @@ impl NestedFn {
                         let name = "input";
                         let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        debug!("{}.function | PiecewiseLineApprox conf: {:#?}", self_id, conf);
                         let pieces: IndexMap<serde_yaml::Value, serde_yaml::Value> = match conf.param("piecewise") {
                             Ok(piecewise) => {
+                                debug!("{}.function | PiecewiseLineApprox piecewise: {:?}", self_id, piecewise);
                                 match piecewise {
                                     FnConfKind::Param(piecewise) => {
-                                        serde_yaml::from_str(&piecewise).unwrap()
+                                        serde_yaml::from_value(piecewise.conf.clone()).unwrap()
                                     }
                                     _ => panic!("{}.function | Parameter 'piecewise' - has invalid type (map expected) in '{}'", self_id, conf.name)
                                 }
@@ -541,7 +559,7 @@ impl NestedFn {
                 let services_lock = services.slock();
                 let send_queue = match &conf.send_to {
                     Some(send_to) => {
-                        Some(services_lock.get_link(send_to).unwrap_or_else(|err| {
+                        Some(services_lock.get_link(&QueueName::new(send_to)).unwrap_or_else(|err| {
                             panic!("{}.function | services.get_link error: {:#?}", self_id, err);
                         }))
                     }

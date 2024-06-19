@@ -5,7 +5,7 @@ mod tests {
     use std::sync::Once;
     use indexmap::IndexMap;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
-    use crate::conf::{fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig}, point_config::name::Name};
+    use crate::conf::{conf_tree::ConfTree, fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig}, point_config::name::Name};
     ///
     ///
     static INIT: Once = Once::new();
@@ -85,7 +85,7 @@ mod tests {
                                     input: point bool '/path/Point.Name/'
                 "#,
                 FnConfKind::Var( FnConfig { name: "VarName2".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-                    ("param".to_string(), FnConfKind::Param( "string param".to_string() )),
+                    ("param".to_string(), FnConfKind::Param( ConfTree::new("param", serde_yaml::from_str("string param").unwrap()) )),
                     ("input".to_string(), FnConfKind::Fn( FnConfig { name: "functionName1".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                         ("initial".to_string(), FnConfKind::Var( FnConfig { name: "VarName2".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::new() } )),
                         ("input".to_string(), FnConfKind::Fn( FnConfig { name: "functionName2".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
@@ -112,9 +112,9 @@ mod tests {
                                     input: point bool '/path/Point.Name/'
                 "#,
                 FnConfKind::Fn( FnConfig { name: "metricName1".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
-                    ("initial".to_string(), FnConfKind::Param( "0.123".to_string() )),
-                    ("table".to_string(), FnConfKind::Param( "SelectMetric_test_table_name".to_string() )),
-                    ("sql".to_string(), FnConfKind::Param( "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';".to_string() )),
+                    ("initial".to_string(), FnConfKind::Param( ConfTree::new("initial", serde_yaml::from_str("0.123").unwrap()) )),
+                    ("table".to_string(), FnConfKind::Param( ConfTree::new("table", serde_yaml::from_str("SelectMetric_test_table_name").unwrap()) )),
+                    ("sql".to_string(), FnConfKind::Param( ConfTree::new("sql", serde_yaml::from_str("UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';").unwrap()) )),
                     ("input".to_string(), FnConfKind::Fn( FnConfig { name: "functionName1".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                         ("initial".to_string(), FnConfKind::Const( FnConfig { name: "1234567".to_string(), type_: FnConfPointType::Int, inputs: IndexMap::new() } )),
                         ("input".to_string(), FnConfKind::Fn( FnConfig { name: "functionName2".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([

@@ -3,12 +3,9 @@ use log::{debug, trace};
 use std::{fs, str::FromStr, time::Duration};
 use crate::{
     conf::{
-        conf_tree::ConfTree, diag_keywd::DiagKeywd,
-        point_config::{name::Name, point_config::PointConfig},
-        slmp_client_config::{keywd::{Keywd, Kind}, slmp_db_config::SlmpDbConfig},
-        service_config::ServiceConfig,
+        conf_tree::ConfTree, diag_keywd::DiagKeywd, point_config::{name::Name, point_config::PointConfig}, service_config::ServiceConfig, slmp_client_config::{keywd::{Keywd, Kind}, slmp_db_config::SlmpDbConfig}
     }, 
-    core_::types::map::IndexMapFxHasher,
+    core_::types::map::IndexMapFxHasher, services::queue_name::QueueName,
 };
 ///
 /// creates config from serde_yaml::Value of following format:
@@ -18,11 +15,8 @@ use crate::{
 ///    send-to: MultiQueue.in-queue
 ///    name Ied01:                       
 ///    cycle: 1 ms                     # operating cycle time of the device
-///    protocol: 'profinet'
 ///    description: 'S7-IED-01.01'
 ///    ip: '192.168.100.243'
-///    rack: 0
-///    slot: 1
 ///    diagnosis:                          # internal diagnosis
 ///        point Status:                   # Ok(0) / Invalid(10)
 ///            type: 'Int'
@@ -36,7 +30,6 @@ use crate::{
 ///        number: 899
 ///        offset: 0
 ///        size: 34
-///        delay: 10
 ///        point Drive.Speed: 
 ///            type: 'Real'
 ///            offset: 0
@@ -48,7 +41,7 @@ pub struct SlmpClientConfig {
     pub(crate) cycle: Option<Duration>,
     pub(crate) reconnect_cycle: Duration,
     pub(crate) subscribe: String,
-    pub(crate) send_to: String,
+    pub(crate) send_to: QueueName,
     pub(crate) description: String,
     pub(crate) ip: String,
     pub(crate) port: u64,
@@ -74,7 +67,7 @@ impl SlmpClientConfig {
         debug!("{}.new | reconnectCycle: {:?}", self_id, reconnect_cycle);
         let subscribe = self_conf.get_param_value("subscribe").unwrap().as_str().unwrap().to_string();
         debug!("{}.new | sudscribe: {:?}", self_id, subscribe);
-        let send_to = self_conf.get_send_to().unwrap();
+        let send_to = QueueName::new(self_conf.get_send_to().unwrap());
         debug!("{}.new | send-to: '{}'", self_id, send_to);
         let description = self_conf.get_param_value("description").unwrap().as_str().unwrap().to_string();
         debug!("{}.new | description: {:?}", self_id, description);
@@ -82,10 +75,6 @@ impl SlmpClientConfig {
         debug!("{}.new | ip: {:?}", self_id, ip);
         let port = self_conf.get_param_value("port").unwrap().as_u64().unwrap();
         debug!("{}.new | port: {:?}", self_id, ip);
-        // let rack = self_conf.get_param_value("rack").unwrap().as_u64().unwrap();
-        // debug!("{}.new | rack: {:?}", self_id, rack);
-        // let slot = self_conf.get_param_value("slot").unwrap().as_u64().unwrap();
-        // debug!("{}.new | slot: {:?}", self_id, slot);
         let diagnosis = self_conf.get_diagnosis(&self_name);
         debug!("{}.new | diagnosis: {:#?}", self_id, diagnosis);
         let mut dbs = IndexMap::new();

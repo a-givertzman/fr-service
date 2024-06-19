@@ -10,7 +10,7 @@ use crate::{
 pub struct MockTcpServer {
     id: String,
     name: Name,
-    multiQueue: String,
+    multiQueue: QueueName,
     services: Arc<Mutex<Services>>,
     test_data: Vec<Value>,
     sent: Arc<Mutex<Vec<PointType>>>,
@@ -26,7 +26,7 @@ impl MockTcpServer {
         Self {
             id: name.join(),
             name,
-            multiQueue: multiQueue.to_string(),
+            multiQueue: QueueName::new(multiQueue),
             services,
             test_data,
             sent: Arc::new(Mutex::new(vec![])),
@@ -80,10 +80,9 @@ impl Service for MockTcpServer {
         info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let exit = self.exit.clone();
-        let mqServiceName = QueueName::new(&self.multiQueue);
-        let mqServiceName = mqServiceName.service();
+        let mqServiceName = self.multiQueue.service().unwrap();
         debug!("{}.run | Lock services...", self_id);
-        let (_, rxRecv) = self.services.slock().subscribe(mqServiceName, &self_id, &vec![]);
+        let (_, rxRecv) = self.services.slock().subscribe(&mqServiceName, &self_id, &vec![]);
         let txSend = self.services.slock().get_link(&self.multiQueue).unwrap_or_else(|err| {
             panic!("{}.run | services.get_link error: {:#?}", self_id, err);
         });

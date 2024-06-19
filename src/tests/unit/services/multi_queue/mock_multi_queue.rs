@@ -2,7 +2,7 @@
 use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread};
 use log::{info, warn, error, trace};
 use crate::{
-    conf::point_config::name::Name, core_::{object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}}, services::{multi_queue::{subscription_criteria::SubscriptionCriteria, subscriptions::Subscriptions}, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services}
+    conf::point_config::name::Name, core_::{object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}}, services::{multi_queue::{subscription_criteria::SubscriptionCriteria, subscriptions::Subscriptions}, queue_name::QueueName, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services}
 };
 ///
 /// - Receives points into the MPSC queue in the blocking mode
@@ -108,7 +108,7 @@ impl Service for MockMultiQueue {
         let subscriptions = self.subscriptions.clone();
         let mut staticSubscriptions: HashMap<usize, Sender<PointType>> = HashMap::new();
         for sendQueue in &self.sendQueues {
-            let txSend = self.services.slock().get_link(sendQueue).unwrap_or_else(|err| {
+            let txSend = self.services.slock().get_link(&QueueName::new(sendQueue)).unwrap_or_else(|err| {
                 panic!("{}.run | services.get_link error: {:#?}", self.id, err);
             });
             staticSubscriptions.insert(PointTxId::fromStr(sendQueue), txSend);

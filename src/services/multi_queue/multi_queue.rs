@@ -4,7 +4,7 @@ use crate::{
     conf::{multi_queue_config::MultiQueueConfig, point_config::name::Name}, 
     core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}}, 
     services::{
-        multi_queue::subscription_criteria::SubscriptionCriteria, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services
+        multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services
     },
 };
 use concat_string::concat_string;
@@ -20,7 +20,7 @@ pub struct MultiQueue {
     subscriptions_changed: Arc<AtomicBool>,
     rx_send: HashMap<String, Sender<PointType>>,
     rx_recv: Vec<Receiver<PointType>>,
-    send_queues: Vec<String>,
+    send_queues: Vec<QueueName>,
     services: Arc<Mutex<Services>>,
     receiver_dictionary: HashMap<usize, String>,
     exit: Arc<AtomicBool>,
@@ -34,7 +34,7 @@ impl MultiQueue {
     pub fn new(conf: MultiQueueConfig, services: Arc<Mutex<Services>>) -> Self {
         let self_id = format!("{}", conf.name);
         let (send, recv) = mpsc::channel();
-        let send_queues = conf.tx;
+        let send_queues = conf.send_to;
         Self {
             id: self_id.clone(),
             name: conf.name.clone(),
@@ -218,7 +218,7 @@ impl Service for MultiQueue {
             let send = self.services.slock().get_link(receiver_name).unwrap_or_else(|err| {
                 panic!("{}.run | services.get_link error: {:#?}", self_id, err);
             });
-            let receiver_hash = PointTxId::fromStr(receiver_name);
+            let receiver_hash = PointTxId::fromStr(&receiver_name.name());
             self.subscriptions.slock().add_broadcast(receiver_hash, send.clone());
             debug!("{}.run | Broadcast subscription registered, receiver: \n\t{} ({})", self.id, receiver_name, receiver_hash);
         }

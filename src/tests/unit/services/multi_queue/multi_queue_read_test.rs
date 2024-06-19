@@ -76,7 +76,7 @@ mod multi_queue {
             service MultiQueue:
                 in queue in-queue:
                     max-length: 10000
-                out queue:
+                send-to:
         "#.to_string();
         for i in 0..count {
             conf = format!("{}\n                    - /{}/MockRecvService{}.in-queue", conf, self_id, i)

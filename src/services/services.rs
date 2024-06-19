@@ -66,11 +66,15 @@ impl Services {
     }
     ///
     /// Returns copy of the Sender - service's incoming queue
-    pub fn get_link(&self, name: &str) -> Result<Sender<PointType>, String> {
-        let name = QueueName::new(name);
-        match self.map.get(name.service()) {
-            Some(srvc) => Ok(srvc.slock().get_link(name.queue())),
-            None => Err(format!("{}.get | service '{:?}' - not found", self.id, name)),
+    pub fn get_link(&self, name: &QueueName) -> Result<Sender<PointType>, String> {
+        match name.split() {
+            Ok((service, queue)) => {
+                match self.map.get(&service) {
+                    Some(srvc) => Ok(srvc.slock().get_link(&queue)),
+                    None => Err(format!("{}.get | service '{:?}' - not found", self.id, name)),
+                }
+            }
+            Err(err) => Err(err),
         }
     }
     ///

@@ -395,7 +395,7 @@ impl Service for ProfinetClient {
     //
     //
     fn run(&mut self) -> Result<ServiceHandles, String> {
-        let tx_send = self.services.slock().get_link(&self.conf.tx).unwrap_or_else(|err| {
+        let tx_send = self.services.slock().get_link(&self.conf.send_to).unwrap_or_else(|err| {
             panic!("{}.run | services.get_link error: {:#?}", self.id, err);
         });
         Self::yield_diagnosis(&self.id, &self.diagnosis.clone(), &DiagKeywd::Status, Status::Ok, &tx_send);

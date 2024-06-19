@@ -9,7 +9,7 @@ mod jds_routes {
         core_::{
             cot::cot::Cot, net::protocols::jds::{jds_define::JDS_END_OF_TRANSMISSION, jds_deserialize::JdsDeserialize, request_kind::RequestKind}, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status
         },
-        services::{multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, server::tcp_server::TcpServer, service::service::Service, services::Services, task::nested_function::reset_counter::AtomicReset},
+        services::{multi_queue::multi_queue::MultiQueue, queue_name::QueueName, safe_lock::SafeLock, server::tcp_server::TcpServer, service::service::Service, services::Services, task::nested_function::reset_counter::AtomicReset},
         tests::unit::services::{multi_queue::mock_recv_service::{self, MockRecvService}, service::moc_service_points::MockServicePoints},
     };
     ///
@@ -92,7 +92,7 @@ mod jds_routes {
             service MultiQueue:
                 in queue in-queue:
                     max-length: 10000
-                out queue:
+                send-to:
                     - {}/MockRecvService0.in-queue
         "#, self_name)).unwrap();
         let mq_conf = MultiQueueConfig::from_yaml(&self_name, &conf);
@@ -111,7 +111,7 @@ mod jds_routes {
                     pass: password      # auth: none / auth-secret: pass: ... / auth-ssh: path: ...
                 in queue link:
                     max-length: 10000
-                out queue: {}/MultiQueue.in-queue
+                send-to: {}/MultiQueue.in-queue
         "#, tcp_server_addr, self_name);
         let conf = serde_yaml::from_str(&conf).unwrap();
         let conf = TcpServerConfig::from_yaml(self_name, &conf);
@@ -236,7 +236,7 @@ mod jds_routes {
             service MultiQueue:
                 in queue in-queue:
                     max-length: 10000
-                out queue:
+                send-to:
                     - {}/MockRecvService0.in-queue
         "#, self_name)).unwrap();
         let mq_conf = MultiQueueConfig::from_yaml(&self_name, &conf);
@@ -256,7 +256,7 @@ mod jds_routes {
                     pass: {}      # auth: none / auth-secret: pass: ... / auth-ssh: path: ...
                 in queue link:
                     max-length: 10000
-                out queue: {}/MultiQueue.in-queue
+                send-to: {}/MultiQueue.in-queue
         "#, tcp_server_addr, secret, self_name);
         let conf = serde_yaml::from_str(&conf).unwrap();
         let conf = TcpServerConfig::from_yaml(self_name, &conf);
@@ -337,7 +337,7 @@ mod jds_routes {
             service MultiQueue:
                 in queue in-queue:
                     max-length: 10000
-                out queue:
+                send-to:
                     - {}/MockRecvService0.in-queue
         "#, self_name)).unwrap();
         let mq_conf = MultiQueueConfig::from_yaml(&self_name, &conf);
@@ -357,7 +357,7 @@ mod jds_routes {
                     pass: {}      # auth: none / auth-secret: pass: ... / auth-ssh: path: ...
                 in queue link:
                     max-length: 10000
-                out queue: {}/MultiQueue.in-queue
+                send-to: {}/MultiQueue.in-queue
         "#, tcp_server_addr, secret, self_name);
         let conf = serde_yaml::from_str(&conf).unwrap();
         let conf = TcpServerConfig::from_yaml(self_name, &conf);
@@ -514,7 +514,7 @@ mod jds_routes {
             service MultiQueue:
                 in queue in-queue:
                     max-length: 10000
-                out queue:
+                send-to:
                     - {}/MockRecvService0.in-queue
         "#, self_id)).unwrap();
         let mq_conf = MultiQueueConfig::from_yaml(&self_name, &conf);
@@ -532,7 +532,7 @@ mod jds_routes {
                 auth: none      # auth: none / auth-secret: pass: ... / auth-ssh: path: ...
                 in queue link:
                     max-length: 10000
-                out queue: {}/MultiQueue.in-queue
+                send-to: {}/MultiQueue.in-queue
         "#, tcp_addr, self_id);
         let conf = serde_yaml::from_str(&conf).unwrap();
         let conf = TcpServerConfig::from_yaml(self_name, &conf);
@@ -601,7 +601,7 @@ mod jds_routes {
         //
         // Sending test events
         println!("{} | Try to get send from MultiQueue...", self_id);
-        let send = services.lock().unwrap().get_link("MultiQueue.in-queue").unwrap();
+        let send = services.lock().unwrap().get_link(&QueueName::new("MultiQueue.in-queue")).unwrap();
         println!("{} | Try to get send from MultiQueue - ok", self_id);
         let mut sent = 0;
         for point in test_data {

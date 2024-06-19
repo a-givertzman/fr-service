@@ -17,7 +17,6 @@ use crate::{
     }, 
     services::{
         multi_queue::subscription_criteria::SubscriptionCriteria, 
-        queue_name::QueueName, 
         safe_lock::SafeLock, 
         server::{
             connections::Action, 
@@ -109,9 +108,9 @@ impl JdsConnection {
         let self_id = self.id.clone();
         let self_name = self.name.clone();
         let conf = self.conf.clone();
-        let self_conf_send_to = conf.tx.clone();
+        let self_conf_send_to = conf.send_to.clone();
         let receiver_name = Name::new(&self_name, &self.connection_id).join();
-        let subscribe = QueueName::new(&self_conf_send_to).service().to_owned();
+        let subscribe = self_conf_send_to.service().unwrap();
         let shared_options: Arc<RwLock<Shared>> = Arc::new(RwLock::new(Shared {
                 subscribe: subscribe.clone(), 
                 subscribe_receiver: receiver_name.clone(), 
@@ -148,7 +147,7 @@ impl JdsConnection {
             let send = services.slock().get_link(&self_conf_send_to).unwrap_or_else(|err| {
                 panic!("{}.run | services.get_link error: {:#?}", self_id, err);
             });
-            println!("{}.run | subscribe: {:?}", self_id, subscribe);
+            debug!("{}.run | subscribe: {:?}", self_id, subscribe);
             let (req_reply_send, recv) = services.slock().subscribe(&subscribe, &receiver_name, &points);
             shared_options.write().unwrap().req_reply_send = vec![req_reply_send.clone()];
             let buffered = rx_max_length > 0;

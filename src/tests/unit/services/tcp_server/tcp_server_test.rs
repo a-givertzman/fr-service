@@ -57,7 +57,7 @@ mod tcp_server {
                     pass: /home/scada/.ssh/ #/ auth-ssh: path: ...
                 in queue link:
                     max-length: 10000
-                out queue: {}/MultiQueue.in-queue
+                send-to: {}/MultiQueue.in-queue
         "#, tcp_addr, self_name);
         let conf = serde_yaml::from_str(&conf).unwrap();
         let conf = TcpServerConfig::from_yaml(&self_name, &conf);
@@ -68,7 +68,7 @@ mod tcp_server {
             service MultiQueue:
                 in queue in-queue:
                     max-length: 10000
-                out queue:
+                send-to:
         "#;
         let mq_conf = serde_yaml::from_str(mq_conf).unwrap();
         let mq_conf = MultiQueueConfig::from_yaml(self_name, &mq_conf);
@@ -151,7 +151,7 @@ mod tcp_server {
                 auth: none      # auth: none / auth-secret: pass: ... / auth-ssh: path: ...
                 in queue link:
                     max-length: 10000
-                out queue: {}/MultiQueue.in-queue
+                send-to: {}/MultiQueue.in-queue
         "#, tcp_addr, self_name);
         let conf = serde_yaml::from_str(&conf).unwrap();
         let conf = TcpServerConfig::from_yaml(&self_name, &conf);
@@ -161,7 +161,7 @@ mod tcp_server {
             service MultiQueue:
                 in queue in-queue:
                     max-length: 10000
-                out queue:
+                send-to:
                     - {}/TaskTestReceiver.queue
         "#, self_name);
         let mq_conf = serde_yaml::from_str(&mq_conf).unwrap();

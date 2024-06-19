@@ -43,7 +43,7 @@ mod tcp_client {
                 address: 127.0.0.1:8080
                 in queue link:
                     max-length: 10000
-                out queue: /{}/MockMultiQueue.queue
+                send-to: /{}/MockMultiQueue.queue
         "#, self_id)).unwrap();
         let mut conf = TcpClientConfig::from_yaml(self_id, &conf);
         let addr = "127.0.0.1:".to_owned() + &TestSession::free_tcp_port_str();
