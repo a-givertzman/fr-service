@@ -300,7 +300,6 @@ service ApiClient:
     address: 127.0.0.1:8080
     in queue api-link:
         max-length: 10000
-    out queue: MultiQueue.in-queue
 
 service MultiQueue:
     in queue in-queue:
@@ -427,7 +426,6 @@ service ApiClient:
     database: test_api_query
     in queue api-link:
         max-length: 10000
-    out queue: MultiQueue.queue
     auth_token: 123!@#
     # debug: true
 
