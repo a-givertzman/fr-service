@@ -13,6 +13,7 @@ pub struct FnPointConfig {
     pub conf: PointConfig,
     pub send_to: Option<String>,
     pub input: Option<Box<FnConfKind>>,
+    pub changes_only: Option<Box<FnConfKind>>,
 }
 //
 // 

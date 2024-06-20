@@ -17,12 +17,12 @@ use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn, fn_kind::FnKind};
 ///         - inpur1.timestamp = '20'
 ///         - input1.status = 
 ///         - "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    =>  UPDATE table SET kind = input1 WHERE id = '{input2}';
-/// ```
+/// ```yaml
 /// fn SqlMetric:
 ///     initial: 0.123      # начальное значение
 ///     table: SelectMetric_test_table_name
 ///     sql: "UPDATE {table} SET value = '{input1}' WHERE id = '{input2}';"
-///     input1 point int '/path/Point.Name'
+///     input1: point int '/path/Point.Name'
 ///     input2: const int 11
 ///     
 /// ```
@@ -148,7 +148,9 @@ impl FnOut for SqlMetric {
     }
     //
     fn reset(&mut self) {
-        todo!()
+        for (_, input) in &self.inputs {
+            input.borrow_mut().reset();
+        }
     }
 }
 //

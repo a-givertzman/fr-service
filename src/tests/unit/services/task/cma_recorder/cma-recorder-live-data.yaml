@@ -495,7 +495,7 @@ service Task RecorderTask:
     #
     fn Debug:
         input point OpCycleLoad:
-            type: String
+            type: 'String'
             send-to: /AppTest/TaskTestReceiver.in-queue
             input fn SqlMetric:
                 table: public.operating_cycle_value

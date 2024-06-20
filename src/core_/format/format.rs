@@ -1,12 +1,7 @@
-#![allow(non_snake_case)]
-
 use std::collections::HashMap;
-
 use log::trace;
 use regex::RegexBuilder;
-
 use crate::core_::point::point_type::PointType;
-
 ///
 /// Replaces input markers {marker name} with the concrete values
 ///
@@ -38,11 +33,11 @@ impl Format {
         let re = r#"\{(.*?)\}"#;
         let re = RegexBuilder::new(re).multi_line(true).build().unwrap();
         let names = re.captures_iter(input).map(|cap| {
-            let fullName = cap.get(1).unwrap().as_str().to_string();
-            let mut parts = fullName.split('.').map(|part| part.into());
+            let full_name = cap.get(1).unwrap().as_str().to_string();
+            let mut parts = full_name.split('.').map(|part| part.into());
             let name = parts.next().unwrap();
             let sufix = parts.next();
-            (fullName, (name, sufix))
+            (full_name, (name, sufix))
         }).collect();        
         trace!("Format.new | names {:?}", &names);
         Self {
@@ -60,9 +55,9 @@ impl Format {
     /// Returns formatted string? replacing configured markers with the associated values by them keys
     pub fn out(&self) -> String {
         let mut input = self.input.clone();
-        for (fullName, (name, sufix)) in &self.names {
-            trace!("Format.out | fullName {:?}", fullName);
-            if let Some(point) = self.values.get(fullName) {
+        for (full_name, (name, sufix)) in &self.names {
+            trace!("Format.out | fullName {:?}", full_name);
+            if let Some(point) = self.values.get(full_name) {
                 let value = match sufix {
                     Some(sufix) => {
                         match sufix.as_str() {
@@ -78,7 +73,7 @@ impl Format {
                         point.value().to_string()
                     }
                 };
-                let pattern = format!("{{{}}}", fullName);
+                let pattern = format!("{{{}}}", full_name);
                 trace!("Format.out | replacing pattern {:?} with value: {:?}", pattern, value);
                 input = input.replace(&pattern, &value);
                 trace!("Format.out | result: {:?}", input);
@@ -120,7 +115,8 @@ impl Format {
         trace!("Format.prepare | self.input {:?}", self.input);
     }
 }
-
+//
+//
 impl std::fmt::Display for Format {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.out())

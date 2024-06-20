@@ -259,7 +259,7 @@ impl PointType {
                 match p.value.parse() {
                     Ok(value) => value,
                     Err(err) => {
-                        panic!("{}.add | Error conversion into<bool> value: '{:?}'\n\terror: {:#?}", self.name(), self.value(), err);
+                        panic!("PointType({}).to_bool | Error conversion into<bool> value: '{:?}'\n\terror: {:#?}", self.name(), self.value(), err);
                     }
                 }
             }
@@ -286,7 +286,7 @@ impl PointType {
             PointType::String(p) => match p.value.parse() {
                 Ok(value) => value,
                 Err(err) => {
-                    panic!("{}.add | Error conversion into<i64> value: {:?}\n\terror: {:#?}", self.name(), self.value(), err);
+                    panic!("PointType({}).to_int | Error conversion into<i64> value: {:?}\n\terror: {:#?}", self.name(), self.value(), err);
                 }
             }
             // _ => panic!("{}.to_int | Conversion to Int for '{}' - is not supported", self.name(),  self.type_of()),
@@ -312,7 +312,7 @@ impl PointType {
             PointType::String(p) => match p.value.parse() {
                 Ok(value) => value,
                 Err(err) => {
-                    panic!("{}.add | Error conversion into<f32> value: {:?}\n\terror: {:#?}", self.name(), self.value(), err);
+                    panic!("PointType({}).to_real | Error conversion into<f32> value: {:?}\n\terror: {:#?}", self.name(), self.value(), err);
                 }
             }
             // _ => panic!("{}.to_real | Conversion to Real for '{}' - is not supported", self.name(),  self.type_of()),
@@ -338,7 +338,7 @@ impl PointType {
             PointType::String(p) => match p.value.parse() {
                 Ok(value) => value,
                 Err(err) => {
-                    panic!("{}.add | Error conversion into<f64> value: {:?}\n\terror: {:#?}", self.name(), self.value(), err);
+                    panic!("PointType({}).to_double | Error conversion into<f64> value: {:?}\n\terror: {:#?}", self.name(), self.value(), err);
                 }
             }
             // _ => panic!("{}.to_double | Conversion to Double for '{}' - is not supported", self.name(),  self.type_of()),

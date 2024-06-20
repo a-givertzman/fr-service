@@ -23,6 +23,7 @@ use crate::{
 ///     comment: Point produced from the Task   # Optional
 ///     input: point real '/App/Load'           # Optional
 ///     send-to: /App/MultiQueue.in-queue       # Optional
+///     changes-only: const bool false          # Optional, default false
 /// ```
 #[derive(Debug)]
 pub struct FnPoint {

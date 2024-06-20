@@ -557,7 +557,7 @@ impl NestedFn {
             }
             FnConfKind::PointConf(conf) => {
                 let services_lock = services.slock();
-                let send_queue = match &conf.send_to {
+                let send_to = match &conf.send_to {
                     Some(send_to) => {
                         Some(services_lock.get_link(&QueueName::new(send_to)).unwrap_or_else(|err| {
                             panic!("{}.function | services.get_link error: {:#?}", self_id, err);
@@ -565,24 +565,16 @@ impl NestedFn {
                     }
                     None => None,
                 };
-                let name = "changes_only";
-                let input_conf = conf.input.as_mut();
-                let changes_only = match input_conf {
-                    Some(input_conf) => {
-                        Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone()))
-                    }
+                let input = match conf.input.as_mut() {
+                    Some(input_conf) => Some(Self::function(parent, tx_id, "input", input_conf, task_nodes, services.clone())),
                     None => None,
                 };
-                let name = "input";
-                let input_conf = conf.input.as_mut();
-                let input = match input_conf {
-                    Some(input_conf) => {
-                        Some(Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone()))
-                    }
+                let changes_only = match conf.changes_only.as_mut() {
+                    Some(input_conf) => Some(Self::function(parent, tx_id, "changes-only", input_conf, task_nodes, services.clone())),
                     None => None,
                 };
                 Rc::new(RefCell::new(Box::new(
-                    FnPoint::new(parent, conf.conf.clone(), changes_only, input, send_queue),
+                    FnPoint::new(parent, conf.conf.clone(), changes_only, input, send_to),
                 )))
             }
             FnConfKind::Param(conf) => {
