@@ -9,6 +9,21 @@ use crate::{
 ///     - [send-to] - is specified
 ///     - if [changes-only] is specified and true - changes only will be sent, default false (sending all points)
 ///  - Returns input Point
+/// 
+/// Example
+/// 
+/// ```yaml
+/// input point Point.Name:     # full name will be: /App/Task/Point.Name
+///     type: 'Real'
+///     history: r      # r / w / rw
+///     alarm: 1        # 0..15
+///     filters: 
+///         threshold: 5.0    # 5 threshold
+///         factor: 0.1
+///     comment: Point produced from the Task
+///     input: point real '/App/Load'
+///     send-to: /App/MultiQueue.in-queue
+/// ```
 #[derive(Debug)]
 pub struct FnPoint {
     id: String,

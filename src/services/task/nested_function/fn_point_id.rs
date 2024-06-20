@@ -13,6 +13,13 @@ use crate::{
 };
 ///
 /// Function returns the ID of the point from input
+/// 
+/// Example
+/// 
+/// ```yaml
+/// fn PointId:
+///     input: point int /App/PointName
+/// ```
 #[derive(Debug)]
 pub struct FnPointId {
     id: String,

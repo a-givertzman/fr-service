@@ -17,6 +17,18 @@ use crate::{
 ///     - send-to - is specified
 ///  - if point conf is not specified - input Point will be sent
 ///  - Returns input Point
+/// 
+/// Example
+/// 
+/// ```yaml
+/// fn Export:
+///     enable: const bool true         # optional, default true
+///     send-to: /AppTest/MultiQueue.in-queue
+///     conf point Point.Name:          # full name will be: /App/Task/Point.Name
+///         type: 'Bool'
+///     input: point string /AppTest/Exit
+/// 
+/// ```
 #[derive(Debug)]
 pub struct FnExport {
     id: String,
