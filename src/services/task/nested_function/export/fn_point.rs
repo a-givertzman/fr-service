@@ -13,16 +13,16 @@ use crate::{
 /// Example
 /// 
 /// ```yaml
-/// input point Point.Name:     # full name will be: /App/Task/Point.Name
-///     type: 'Real'
-///     history: r      # r / w / rw
-///     alarm: 1        # 0..15
-///     filters: 
-///         threshold: 5.0    # 5 threshold
-///         factor: 0.1
-///     comment: Point produced from the Task
-///     input: point real '/App/Load'
-///     send-to: /App/MultiQueue.in-queue
+/// input point Point.Name:                     # full name will be: /App/Task/Point.Name
+///     type: 'Real'                            # Bool / Int / Real / String / Json
+///     history: r                              # Optional, r / w / rw
+///     alarm: 1                                # Optional, 0..15
+///     filters:                                # Optional, Filter conf, using such filter, point can be filtered immediately after input's parser
+///         threshold: 5.0                      #   absolute threshold delta
+///         factor: 0.1                         #   optional, multiplier for absolute threshold delta - in this case the delta will be accumulated
+///     comment: Point produced from the Task   # Optional
+///     input: point real '/App/Load'           # Optional
+///     send-to: /App/MultiQueue.in-queue       # Optional
 /// ```
 #[derive(Debug)]
 pub struct FnPoint {
@@ -32,7 +32,7 @@ pub struct FnPoint {
     conf: PointConfig,
     changes_only: Option<FnInOutRef>,
     input: Option<FnInOutRef>,
-    tx_send: Option<Sender<PointType>>,
+    send_to: Option<Sender<PointType>>,
     state: Option<PointType>,
 }
 //
@@ -43,7 +43,7 @@ impl FnPoint {
     /// - id - just for proper debugging
     /// - input - incoming points
     /// - if [changes-only] is specified and true - changes only will be sent, default false (sending all points)
-    pub fn new(parent: impl Into<String>, conf: PointConfig, changes_only: Option<FnInOutRef>, input: Option<FnInOutRef>, send: Option<Sender<PointType>>) -> Self {
+    pub fn new(parent: impl Into<String>, conf: PointConfig, changes_only: Option<FnInOutRef>, input: Option<FnInOutRef>, send_to: Option<Sender<PointType>>) -> Self {
         let self_id = format!("{}/FnPoint{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed));
         Self {
             id: self_id.clone(),
@@ -52,14 +52,14 @@ impl FnPoint {
             conf,
             changes_only,
             input,
-            tx_send: send,
+            send_to,
             state: None,
         }
     }
     ///
     /// 
     fn send(&self, point: &PointType) {
-        if let Some(tx_send) = &self.tx_send {
+        if let Some(tx_send) = &self.send_to {
             let point = match self.conf.type_ {
                 PointConfigType::Bool => {
                     PointType::Bool(Point::new(
@@ -115,7 +115,7 @@ impl FnPoint {
                     PointType::String(Point::new(
                         self.tx_id, 
                         &self.conf.name, 
-                        point.value().as_string(), 
+                        point.as_string().value, 
                         point.status(), 
                         point.cot(), 
                         point.timestamp(),
@@ -149,10 +149,14 @@ impl FnOut for FnPoint {
     }
     //
     fn inputs(&self) -> Vec<String> {
-        match &self.input {
-            Some(input) => input.borrow().inputs(),
-            None => vec![],
+        let mut inputs = vec![];
+        if let Some(input) = &self.input {
+            inputs.append(&mut input.borrow().inputs());
         }
+        if let Some(changes_only) = &self.changes_only {
+            inputs.append(&mut changes_only.borrow().inputs());
+        }
+        inputs
     }
     //
     fn out(&mut self) -> PointType {
@@ -187,8 +191,12 @@ impl FnOut for FnPoint {
     }
     //
     fn reset(&mut self) {
+        self.state = None;
         if let Some(input) = &self.input {
             input.borrow_mut().reset();
+        }
+        if let Some(changes_only) = &self.changes_only {
+            changes_only.borrow_mut().reset();
         }
     }
 }

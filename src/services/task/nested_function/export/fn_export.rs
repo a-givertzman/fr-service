@@ -74,7 +74,7 @@ impl FnExport {
                     PointType::Bool(Point::new(
                         self.tx_id, 
                         &name, 
-                        Bool(point.value().as_bool()), 
+                        Bool(point.as_bool().value.0), 
                         point.status(), 
                         point.cot(), 
                         point.timestamp(),
@@ -84,7 +84,7 @@ impl FnExport {
                     PointType::Int(Point::new(
                         self.tx_id, 
                         &name, 
-                        point.value().as_int(), 
+                        point.as_int().value, 
                         point.status(), 
                         point.cot(), 
                         point.timestamp(),
@@ -94,7 +94,7 @@ impl FnExport {
                     PointType::Real(Point::new(
                         self.tx_id, 
                         &name, 
-                        point.value().as_real(), 
+                        point.as_real().value, 
                         point.status(), 
                         point.cot(), 
                         point.timestamp(),
@@ -104,7 +104,7 @@ impl FnExport {
                     PointType::Double(Point::new(
                         self.tx_id, 
                         &name, 
-                        point.value().as_double(), 
+                        point.as_double().value, 
                         point.status(), 
                         point.cot(), 
                         point.timestamp(),
@@ -114,7 +114,7 @@ impl FnExport {
                     PointType::String(Point::new(
                         self.tx_id, 
                         &name, 
-                        point.value().as_string(), 
+                        point.as_string().value, 
                         point.status(), 
                         point.cot(), 
                         point.timestamp(),
@@ -124,7 +124,7 @@ impl FnExport {
                     PointType::String(Point::new(
                         self.tx_id, 
                         &name, 
-                        point.value().as_string(), 
+                        point.as_string().value, 
                         point.status(), 
                         point.cot(), 
                         point.timestamp(),
