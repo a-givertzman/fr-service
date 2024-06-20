@@ -1,12 +1,7 @@
-#![allow(non_snake_case)]
-
 use std::{ops::BitOr, str::FromStr};
 use log::{trace, warn};
 use regex::RegexBuilder;
 use serde::Deserialize;
-
-// use super::fn_conf_kind::FnConfKind;
-
 ///
 /// Represents type of Point / Const in the configuration
 #[derive(Debug, Deserialize, PartialEq, Clone)]
@@ -20,7 +15,7 @@ pub enum FnConfPointType {
     Unknown,
 }
 ///
-/// 
+/// The kind of the [FnConfig]
 #[repr(u8)]
 #[derive(Debug, PartialEq, Clone)]
 pub enum FnConfKindName {
@@ -29,7 +24,8 @@ pub enum FnConfKindName {
     Const = 4,
     Point = 6,
 }
-
+//
+//
 impl BitOr<FnConfKindName> for u8 {
     type Output = u8;
 
@@ -38,7 +34,8 @@ impl BitOr<FnConfKindName> for u8 {
         self | (rhs as u8)
     }
 }
-
+//
+//
 impl BitOr<u8> for FnConfKindName {
     type Output = u8;
 
@@ -47,6 +44,8 @@ impl BitOr<u8> for FnConfKindName {
         (self as u8) | rhs
     }
 }
+//
+//
 impl BitOr for FnConfKindName {
     type Output = u8;
 
@@ -55,14 +54,14 @@ impl BitOr for FnConfKindName {
         (self as u8) | (rhs as u8)
     }
 }
-
+///
+/// Contents of the [FnConfKeywd]
 #[derive(Debug, Deserialize, PartialEq, Clone)]
 pub struct FnConfKeywdValue {
     pub input: String,
     pub type_: FnConfPointType,
     pub data: String,
 }
-
 ///
 /// keyword konsists of 4 fields:
 /// ```
@@ -75,7 +74,7 @@ pub struct FnConfKeywdValue {
 /// | input  |  const | int   | 17                  |
 /// |        |  let   |       | varName             |
 /// |        |  fn    |       | fnName              |
-/// ````
+/// ```
 #[derive(Debug, Deserialize, PartialEq)]
 pub enum FnConfKeywd {
     Fn(FnConfKeywdValue),
@@ -130,7 +129,8 @@ impl FnConfKeywd {
         }
     }
 }
-
+//
+//
 impl FromStr for FnConfKeywd {
     type Err = String;
     fn from_str(input: &str) -> Result<FnConfKeywd, String> {

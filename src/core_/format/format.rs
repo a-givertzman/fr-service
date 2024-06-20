@@ -67,7 +67,7 @@ impl Format {
                     Some(sufix) => {
                         match sufix.as_str() {
                             "name" => point.name(),
-                            "value" => Self::pointValueToString(point),
+                            "value" => point.value().to_string(),
                             "timestamp" => point.timestamp().to_string(),
                             "status" => point.status().to_string(),
                             _ => panic!("Format.out | Unknown input sufix in: {:?}, allowed: .name / .value / .timestamp", &name),
@@ -75,7 +75,7 @@ impl Format {
                     }
                     None => {
                         trace!("Format.out | name: {:?}, sufix: None, taking point.value by default", &name);
-                        Self::pointValueToString(point)
+                        point.value().to_string()
                     }
                 };
                 let pattern = format!("{{{}}}", fullName);
@@ -85,11 +85,6 @@ impl Format {
             };
         };
         input
-    }
-    ///
-    /// Returns string value from the Point
-    fn pointValueToString(point: &PointType) -> String{
-        point.value().to_string()
     }
     ///
     /// Returns List of al names & sufixes in the following format:
