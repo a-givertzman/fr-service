@@ -1,6 +1,6 @@
 use log::{debug, info, warn};
 use std::{
-    fmt::Debug, net::{Shutdown, TcpListener, TcpStream}, sync::{atomic::{AtomicBool, Ordering}, mpsc, Arc, Mutex}, thread, time::Duration
+    fmt::Debug, net::{Shutdown, TcpListener, TcpStream}, sync::{atomic::{AtomicBool, Ordering}, mpsc, Arc, Mutex, RwLock}, thread, time::Duration
 };
 use crate::{
     conf::{point_config::name::Name, tcp_server_config::TcpServerConfig},
@@ -38,7 +38,7 @@ pub struct TcpServer {
     name: Name,
     conf: TcpServerConfig,
     connections: Arc<Mutex<TcpServerConnections>>,
-    services: Arc<Mutex<Services>>,
+    services: Arc<RwLock<Services>>,
     exit: Arc<AtomicBool>,
 }
 //
@@ -50,7 +50,7 @@ impl TcpServer {
     /// - filter - all trafic from server to client will be filtered by some criterias, until Subscribe request confirmed:
     ///    - cot - [Cot] - bit mask wich will be passed
     ///    - name - exact name wich passed
-    pub fn new(conf: TcpServerConfig, services: Arc<Mutex<Services>>, ) -> Self {
+    pub fn new(conf: TcpServerConfig, services: Arc<RwLock<Services>>, ) -> Self {
         Self {
             id: conf.name.join(),
             name: conf.name.clone(),
@@ -62,9 +62,9 @@ impl TcpServer {
     }
     ///
     ///                 self_id: &str, self_name: &Name, connection_id: &str
-    fn setup_connection(con_info: ConnectionInfo, stream: TcpStream, services: Arc<Mutex<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>, connections: Arc<Mutex<TcpServerConnections>>) {
+    fn setup_connection(con_info: ConnectionInfo, stream: TcpStream, services: Arc<RwLock<Services>>, conf: TcpServerConfig, exit: Arc<AtomicBool>, connections: Arc<Mutex<TcpServerConnections>>) {
         info!("{}.setup_connection | Trying to repair Connection '{}'...", con_info.self_id, con_info.connection_id);
-        let repair_result = connections.slock().repair(con_info.connection_id, stream.try_clone().unwrap());
+        let repair_result = connections.slock(con_info.self_id).repair(con_info.connection_id, stream.try_clone().unwrap());
         match repair_result {
             Ok(_) => {
                 info!("{}.setup_connection | Connection '{}' - reparied", con_info.self_id, con_info.connection_id);
@@ -94,7 +94,7 @@ impl TcpServer {
                             }
                         }
                         info!("{}.setup_connection | connections.lock...", con_info.self_id);
-                        connections.slock().insert(
+                        connections.slock(con_info.self_id).insert(
                             con_info.connection_id,
                             handle,
                             send,
@@ -230,7 +230,7 @@ impl Service for TcpServer {
             }
             info!("{}.run | Exit...", self_id);
             // Self::waitConnections(&self_id, connections);
-            connections.slock().wait();
+            connections.slock(&self_id).wait();
             info!("{}.run | Exit", self_id);
         });
         match handle {

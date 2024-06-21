@@ -1,4 +1,4 @@
-use std::{fmt::Debug, fs, io::Write, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread, time::Duration};
+use std::{fmt::Debug, fs, io::Write, sync::{atomic::{AtomicBool, Ordering}, Arc, RwLock}, thread, time::Duration};
 use chrono::{DateTime, Utc};
 use concat_string::concat_string;
 use indexmap::IndexMap;
@@ -19,13 +19,13 @@ pub struct ProducerService {
     id: String,
     name: Name,
     conf: ProducerServiceConfig,
-    services: Arc<Mutex<Services>>,
+    services: Arc<RwLock<Services>>,
     exit: Arc<AtomicBool>,
 }
 //
 // 
 impl ProducerService {
-    pub fn new(conf: ProducerServiceConfig, services: Arc<Mutex<Services>>) -> Self {
+    pub fn new(conf: ProducerServiceConfig, services: Arc<RwLock<Services>>) -> Self {
         Self {
             id: format!("{}(ProducerService)", conf.name),
             name: conf.name.clone(),
@@ -113,7 +113,7 @@ impl Service for ProducerService {
         let interval = self.conf.cycle.unwrap_or(Duration::ZERO);
         let delayed = !interval.is_zero();
         let mut cycle = ServiceCycle::new(&self.id, interval);
-        let send = self.services.slock().get_link(&self.conf.send_to).unwrap_or_else(|err| {
+        let send = self.services.rlock(&self_id).get_link(&self.conf.send_to).unwrap_or_else(|err| {
             panic!("{}.run | services.get_link error: {:#?}", self.id, err);
         });
         let mut gen_points = Self::build_gen_points(&self.id, tx_id, self.conf.points());

@@ -2,12 +2,12 @@
 
 mod task {
     use log::{trace, info};
-    use std::{env, sync::{Arc, Mutex, Once}, thread, time::{Duration, Instant}};
+    use std::{env, sync::{Arc, Mutex, Once, RwLock}, thread, time::{Duration, Instant}};
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         conf::{point_config::name::Name, task_config::TaskConfig},
-        services::{service::service::Service, services::Services, task::{task::Task, task_test_producer::TaskTestProducer, task_test_receiver::TaskTestReceiver}},
+        services::{safe_lock::SafeLock, service::service::Service, services::Services, task::{task::Task, task_test_producer::TaskTestProducer, task_test_receiver::TaskTestReceiver}},
     };
     ///
     ///
@@ -43,14 +43,14 @@ mod task {
         let path = "./src/tests/unit/services/task/task_test_struct.yaml";
         let config = TaskConfig::read(&self_name, path);
         trace!("config: {:?}", &config);
-        let services = Arc::new(Mutex::new(Services::new(self_id)));
+        let services = Arc::new(RwLock::new(Services::new(self_id)));
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
             self_id,
             "",
             "in-queue",
             iterations,
         )));
-        services.lock().unwrap().insert(receiver.clone());      // "TaskTestReceiver",
+        services.wlock(self_id).insert(receiver.clone());      // "TaskTestReceiver",
         let test_data = RandomTestValues::new(
             self_id,
             vec![
@@ -80,7 +80,7 @@ mod task {
             test_data,
         )));
         let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
-        services.lock().unwrap().insert(task.clone());
+        services.wlock(self_id).insert(task.clone());
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         info!("receiver runing - ok");
         let task_handle = task.lock().unwrap().run().unwrap();
@@ -122,14 +122,14 @@ mod task {
         // let path = "./src/tests/unit/task/task_test.yaml";
         let config = TaskConfig::read(&self_name, path);
         trace!("config: {:?}", &config);
-        let services = Arc::new(Mutex::new(Services::new(self_id)));
+        let services = Arc::new(RwLock::new(Services::new(self_id)));
         let receiver = Arc::new(Mutex::new(TaskTestReceiver::new(
             self_id,
             "",
             "in-queue",
             iterations,
         )));
-        services.lock().unwrap().insert(receiver.clone());      // "TaskTestReceiver",
+        services.wlock(self_id).insert(receiver.clone());      // "TaskTestReceiver",
         let test_data = RandomTestValues::new(
             self_id,
             vec![
@@ -158,7 +158,7 @@ mod task {
             test_data,
         )));
         let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
-        services.lock().unwrap().insert(task.clone());
+        services.wlock(self_id).insert(task.clone());
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         let producer_handle = producer.lock().unwrap().run().unwrap();
         trace!("task runing...");

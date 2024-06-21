@@ -1,6 +1,6 @@
-use std::{rc::Rc, cell::RefCell, str::FromStr, sync::{Arc, Mutex}};
+use std::{cell::RefCell, rc::Rc, str::FromStr, sync::{Arc, RwLock}};
 use indexmap::IndexMap;
-use log::{debug, warn, LevelFilter};
+use log::{debug, trace, warn};
 use crate::{
     conf::{fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind}, point_config::name::Name},
     core_::{
@@ -30,23 +30,25 @@ pub struct NestedFn {}
 impl NestedFn {
     ///
     /// Creates nested functions tree from it config
-    pub fn new(parent: &Name, tx_id: usize, conf: &mut FnConfKind, task_nodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> FnInOutRef {
+    pub fn new(parent: &Name, tx_id: usize, conf: &mut FnConfKind, task_nodes: &mut TaskNodes, services: Arc<RwLock<Services>>) -> FnInOutRef {
         Self::function(parent, tx_id, "", conf, task_nodes, services)
+        // trace!("{}.function | fn '{}': {:#?}", format!("{}/NestedFn", parent), conf.borrow().id(), conf);
+        // conf
     }
     ///
     ///
-    fn function(parent: &Name, tx_id: usize, input_name: &str, conf: &mut FnConfKind, task_nodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> FnInOutRef {
+    fn function(parent: &Name, tx_id: usize, input_name: &str, conf: &mut FnConfKind, task_nodes: &mut TaskNodes, services: Arc<RwLock<Services>>) -> FnInOutRef {
         let self_id = format!("{}/NestedFn", parent);
         match conf {
             FnConfKind::Fn(conf) => {
-                debug!("{}.function | Fn {:?}: {:?}...", self_id, input_name, conf.name.clone());
+                trace!("{}.function | Fn {:?}: {:?}...", self_id, input_name, conf.name.clone());
                 let c = conf.name.clone();
                 let fn_name= c.clone();
                 let fn_name = fn_name.as_str();
                 drop(c);
                 let fn_name = Functions::from_str(fn_name).unwrap();
-                debug!("{}.function | Fn '{}' detected", self_id, fn_name.name());
-                debug!("{}.function | fn_conf: {:?}: {:#?}", self_id, conf.name, conf);
+                trace!("{}.function | Fn '{}' detected", self_id, fn_name.name());
+                trace!("{}.function | fn_conf: {:?}: {:#?}", self_id, conf.name, conf);
                 match fn_name {
                     //
                     Functions::Count => {
@@ -105,10 +107,12 @@ impl NestedFn {
                             panic!("{}.function | Parameter 'queue' - missed in '{}'", self_id, conf.name)
                         ).as_param();
                         let queue_name = queue_name.conf.as_str().unwrap();
-                        let services_lock = services.slock();
-                        let send_queue = services_lock.get_link(&QueueName::new(queue_name)).unwrap_or_else(|err| {
+                        let send_queue = {
+                            let services_lock = services.rlock(&self_id);
+                            services_lock.get_link(&QueueName::new(queue_name)).unwrap_or_else(|err| {
                             panic!("{}.function | services.get_link error: {:#?}", self_id, err);
-                        });
+                            })
+                        };
                         Rc::new(RefCell::new(Box::new(
                             FnToApiQueue::new(parent, input, send_queue)
                         )))
@@ -136,7 +140,14 @@ impl NestedFn {
                         let name = "input";
                         let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
-                        let points = services.slock().points(&parent.join());
+                        debug!("{}.functions | Functions::PointId | input: {:?}", self_id, input);
+                        let points = {
+                            debug!("{}.functions | Functions::PointId | requesting points...", self_id);
+                            let mut services_lock = services.wlock(&format!("{}.PointId", self_id));
+                            debug!("{}.functions | Functions::PointId | requesting points...", self_id);
+                            services_lock.points(&parent.join())
+                        };
+                        debug!("{}.functions | Functions::PointId | points: {:?}", self_id, points);
                         Rc::new(RefCell::new(Box::new(
                             FnPointId::new(parent, input, points)
                         )))
@@ -214,8 +225,10 @@ impl NestedFn {
                                     FnConfKind::Param(queue_name) => queue_name.conf.as_str().unwrap(),
                                     _ => panic!("{}.function | Parameter 'send-to' - invalid type (string expected) '{:#?}'", self_id, queue_name),
                                 };
-                                let services_lock = services.slock();
-                                services_lock.get_link(&QueueName::new(queue_name)).map_or(None, |send| Some(send))
+                                {
+                                    let services_lock = services.rlock(&self_id);
+                                    services_lock.get_link(&QueueName::new(queue_name)).map_or(None, |send| Some(send))
+                                }
                             }
                             Err(_) => {
                                 warn!("{}.function | Parameter 'send-to' - missed in '{}'", self_id, conf.name);
@@ -422,8 +435,10 @@ impl NestedFn {
                                     FnConfKind::Param(queue_name) => queue_name.conf.as_str().unwrap(),
                                     _ => panic!("{}.function | Parameter 'send-to' - invalid type (string expected) '{:#?}'", self_id, queue_name),
                                 };
-                                let services_lock = services.slock();
-                                services_lock.get_link(&QueueName::new(queue_name)).map_or(None, |send| Some(send))
+                                {
+                                    let services_lock = services.rlock(&self_id);
+                                    services_lock.get_link(&QueueName::new(queue_name)).map_or(None, |send| Some(send))
+                                }
                             }
                             Err(_) => {
                                 warn!("{}.function | Parameter 'send-to' - missed in '{}'", self_id, conf.name);
@@ -467,10 +482,9 @@ impl NestedFn {
                         let name = "input";
                         let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
-                        debug!("{}.function | PiecewiseLineApprox conf: {:#?}", self_id, conf);
+                        trace!("{}.function | PiecewiseLineApprox conf: {:#?}", self_id, conf);
                         let pieces: IndexMap<serde_yaml::Value, serde_yaml::Value> = match conf.param("piecewise") {
                             Ok(piecewise) => {
-                                debug!("{}.function | PiecewiseLineApprox piecewise: {:?}", self_id, piecewise);
                                 match piecewise {
                                     FnConfKind::Param(piecewise) => {
                                         serde_yaml::from_value(piecewise.conf.clone()).unwrap()
@@ -491,7 +505,7 @@ impl NestedFn {
             }
             FnConfKind::Var(conf) => {
                 let var_name = conf.name.clone();
-                debug!("{}.function | Var: {:?}...", self_id, var_name);
+                trace!("{}.function | Var: {:?}...", self_id, var_name);
                 match conf.inputs.iter_mut().next() {
                     //
                     // New var declaration
@@ -500,19 +514,19 @@ impl NestedFn {
                             var_name,
                             Self::function(parent, tx_id, input_conf_name, input_conf, task_nodes, services),
                         );
-                        debug!("{}.function | Var: {:?}: {:?}", self_id, &conf.name, var.clone());
-                        task_nodes.addVar(conf.name.clone(), var.clone());
+                        trace!("{}.function | Var: {:?}: {:?}", self_id, &conf.name, var.clone());
+                        task_nodes.add_var(conf.name.clone(), var.clone());
                         // debug!("{}.function | Var: {:?}", input);
                         var
                     }
                     // Usage declared variable
                     None => {
-                        let var = match task_nodes.getVar(&var_name) {
+                        let var = match task_nodes.get_var(&var_name) {
                             Some(var) => var,
                             None => panic!("{}.function | Var {:?} - not declared", self_id, &var_name),
                         }.to_owned();
                         // let var = nodeVar.var();
-                        task_nodes.addVarOut(conf.name.clone());
+                        task_nodes.add_var_out(conf.name.clone());
                         var
                     }
                 }
@@ -520,7 +534,7 @@ impl NestedFn {
             FnConfKind::Const(conf) => {
                 let value = conf.name.trim().to_lowercase();
                 let name = format!("const {:?} '{}'", conf.type_, value);
-                debug!("{}.function | Const: {:?}...", self_id, &name);
+                trace!("{}.function | Const: {:?}...", self_id, &name);
                 let value = match conf.type_.clone() {
                     FnConfPointType::Bool => value.parse::<bool>().unwrap().to_point(tx_id, &name),
                     FnConfPointType::Int => value.parse::<i64>().unwrap().to_point(tx_id, &name),
@@ -532,11 +546,11 @@ impl NestedFn {
                 };
                 let fn_const = Self::fn_const(&name, value);
                 // taskNodes.addInput(inputName, input.clone());
-                debug!("{}.function | Const: {:?} - done", self_id, fn_const);
+                trace!("{}.function | Const: {:?} - done", self_id, fn_const);
                 fn_const
             }
             FnConfKind::Point(conf) => {
-                debug!("{}.function | Input (Point<{:?}>): {:?} ({:?})...", self_id, conf.type_, input_name, conf.name);
+                trace!("{}.function | Input (Point<{:?}>): {:?} ({:?})...", self_id, conf.type_, input_name, conf.name);
                 let initial = match conf.type_.clone() {
                     FnConfPointType::Bool => false.to_point(tx_id, &conf.name),
                     FnConfPointType::Int => 0.to_point(tx_id, &conf.name),
@@ -546,17 +560,15 @@ impl NestedFn {
                     FnConfPointType::Any => false.to_point(tx_id, &conf.name),
                     FnConfPointType::Unknown => panic!("{}.function | Point type required", self_id),
                 };
-                debug!("{}.function | Input initial: {:?}", self_id, initial);
+                trace!("{}.function | Input initial: {:?}", self_id, initial);
                 let point_name = conf.name.clone();
-                task_nodes.addInput(&point_name, Self::fn_input(&point_name, initial, conf.type_.clone()));
-                let input = task_nodes.getInput(&point_name).unwrap();
-                if log::max_level() == LevelFilter::Trace {
-                    debug!("{}.function | input (Point): {:?}", self_id, input);
-                }
+                task_nodes.add_input(&point_name, Self::fn_input(&point_name, initial, conf.type_.clone()));
+                let input = task_nodes.get_input(&point_name).unwrap();
+                trace!("{}.function | input (Point): {:?}", self_id, input);
                 input
             }
             FnConfKind::PointConf(conf) => {
-                let services_lock = services.slock();
+                let services_lock = services.rlock(&self_id);
                 let send_to = match &conf.send_to {
                     Some(send_to) => {
                         Some(services_lock.get_link(&QueueName::new(send_to)).unwrap_or_else(|err| {

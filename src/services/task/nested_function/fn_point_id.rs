@@ -1,6 +1,5 @@
 use hashers::fx_hash::FxHasher;
 use indexmap::IndexMap;
-use log::{debug, trace};
 use std::{hash::BuildHasherDefault, sync::atomic::{AtomicUsize, Ordering}};
 use concat_string::concat_string;
 use crate::{

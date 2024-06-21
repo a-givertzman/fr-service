@@ -1,5 +1,5 @@
 use std::{collections::HashMap, str::FromStr};
-use log::{trace, debug};
+use log::trace;
 use serde::{Serialize, Deserialize};
 use crate::conf::{
     conf_tree::ConfTree, fn_::fn_conf_keywd::FnConfKeywd, point_config::{
@@ -10,7 +10,6 @@ use crate::conf::{
     }
 };
 use super::point_config_history::PointConfigHistory;
-
 ///
 /// The configuration of the Point
 ///  - id - unique identificator for database;
@@ -92,7 +91,7 @@ impl PointConfig {
     ///
     /// Creates config from serde_yaml::Value of following format:
     pub(crate) fn from_yaml(parent_name: &Name, value: &serde_yaml::Value) -> Self {
-        debug!("PointConfig.from_yaml | value: {:?}", value);
+        trace!("PointConfig.from_yaml | value: {:?}", value);
         Self::new(parent_name, &ConfTree::newRoot(value.clone()).next().unwrap())
     }
     ///
@@ -106,7 +105,7 @@ impl PointConfig {
     ///
     /// Converts json into PointConfig
     pub fn from_json(name: &str, value: &serde_json::Value) -> Result<Self, String> {
-        println!("PointConfig.from_json | value {:#?}", value);
+        trace!("PointConfig.from_json | value {:#?}", value);
         match serde_json::from_value(value.clone()) {
             Ok(map) => {
                 let  mut map: Self = map;

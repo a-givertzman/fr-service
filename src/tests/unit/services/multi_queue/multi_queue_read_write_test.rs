@@ -2,12 +2,12 @@
 
 mod multi_queue {
     use log::debug;
-    use std::{sync::{Once, Arc, Mutex}, time::{Duration, Instant}};
+    use std::{sync::{Arc, Mutex, Once, RwLock}, time::{Duration, Instant}};
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         conf::multi_queue_config::MultiQueueConfig,
-        services::{multi_queue::multi_queue::MultiQueue, services::Services, service::service::Service},
+        services::{multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, service::service::Service, services::Services},
         tests::unit::services::multi_queue::mock_recv_send_service::MockRecvSendService,
     };
     ///
@@ -83,9 +83,9 @@ mod multi_queue {
         let conf = serde_yaml::from_str(&conf).unwrap();
         let mq_conf = MultiQueueConfig::from_yaml(self_id, &conf);
         debug!("mqConf: {:?}", mq_conf);
-        let services = Arc::new(Mutex::new(Services::new(self_id)));
+        let services = Arc::new(RwLock::new(Services::new(self_id)));
         let mq_service = Arc::new(Mutex::new(MultiQueue::new(mq_conf, services.clone())));
-        services.lock().unwrap().insert(mq_service.clone());
+        services.wlock(self_id).insert(mq_service.clone());
         let timer = Instant::now();
         let mut rs_services = vec![];
         for _ in 0..count {
@@ -97,7 +97,7 @@ mod multi_queue {
                 test_data.clone(),
                 Some(total_count),
             )));
-            services.lock().unwrap().insert(rs_service.clone());
+            services.wlock(self_id).insert(rs_service.clone());
             rs_services.push(rs_service);
         }
         mq_service.lock().unwrap().run().unwrap();

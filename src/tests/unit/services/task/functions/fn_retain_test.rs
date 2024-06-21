@@ -3,7 +3,7 @@
 mod fn_retain {
     use chrono::Utc;
     use log::{debug, error, info, trace, warn};
-    use std::{env, fs, io::Read, sync::{Arc, Mutex, Once}, thread, time::{Duration, Instant}};
+    use std::{env, fs, io::Read, sync::{Arc, Mutex, Once, RwLock}, thread, time::{Duration, Instant}};
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
@@ -113,7 +113,7 @@ mod fn_retain {
         trace!("dir: {:?}", env::current_dir());
         let initial = load(self_id, &format!("./assets/retain/{}/RetainTask/BoolFlag.json", self_id), PointConfigType::Bool)
             .map_or(false, |init| init.as_bool().value.0);
-        let services = Arc::new(Mutex::new(Services::new(self_id)));
+        let services = Arc::new(RwLock::new(Services::new(self_id)));
         let config = TaskConfig::from_yaml(
             &self_name,
             &serde_yaml::from_str(r"
@@ -140,7 +140,7 @@ mod fn_retain {
         debug!("Task config points: {:#?}", config.points());
         let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
         debug!("Task points: {:#?}", task.lock().unwrap().points());
-        services.slock().insert(task.clone());
+        services.wlock(self_id).insert(task.clone());
         let conf = MultiQueueConfig::from_yaml(
             self_id,
             &serde_yaml::from_str(r"service MultiQueue:
@@ -150,7 +150,7 @@ mod fn_retain {
             ").unwrap(),
         );
         let multi_queue = Arc::new(Mutex::new(MultiQueue::new(conf, services.clone())));
-        services.slock().insert(multi_queue.clone());
+        services.wlock(self_id).insert(multi_queue.clone());
         let test_data = vec![
             (format!("/{}/BoolFlag", self_id), Value::Bool(!initial)),
             (format!("/{}/BoolFlag", self_id), Value::Bool(initial)),
@@ -173,7 +173,7 @@ mod fn_retain {
             "in-queue",
             target_count,
         )));
-        services.slock().insert(receiver.clone());      // "TaskTestReceiver",
+        services.wlock(self_id).insert(receiver.clone());      // "TaskTestReceiver",
         // assert!(total_count == iterations, "\nresult: {:?}\ntarget: {:?}", total_count, iterations);
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             self_id,
@@ -182,7 +182,7 @@ mod fn_retain {
             services.clone(),
             &test_data,
         )));
-        services.slock().insert(producer.clone());
+        services.wlock(self_id).insert(producer.clone());
         let multi_queue_handle = multi_queue.lock().unwrap().run().unwrap();
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         info!("receiver runing - ok");
@@ -239,7 +239,7 @@ mod fn_retain {
         //
         // can be changed
         trace!("dir: {:?}", env::current_dir());
-        let services = Arc::new(Mutex::new(Services::new(self_id)));
+        let services = Arc::new(RwLock::new(Services::new(self_id)));
         let config = TaskConfig::from_yaml(
             &self_name,
             &serde_yaml::from_str(r"
@@ -271,7 +271,7 @@ mod fn_retain {
         let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
         debug!("Task points: {:#?}", task.lock().unwrap().points());
 
-        services.slock().insert(task.clone());
+        services.wlock(self_id).insert(task.clone());
         let conf = MultiQueueConfig::from_yaml(
             self_id,
             &serde_yaml::from_str(r"service MultiQueue:
@@ -281,7 +281,7 @@ mod fn_retain {
             ").unwrap(),
         );
         let multi_queue = Arc::new(Mutex::new(MultiQueue::new(conf, services.clone())));
-        services.slock().insert(multi_queue.clone());
+        services.wlock(self_id).insert(multi_queue.clone());
         let test_data = vec![
             (format!("/{}/Load", self_id), Value::Real(0.0)),
             (format!("/{}/Load", self_id), Value::Real(1.5)),
@@ -316,7 +316,7 @@ mod fn_retain {
             "in-queue",
             target_count,
         )));
-        services.slock().insert(receiver.clone());      // "TaskTestReceiver",
+        services.wlock(self_id).insert(receiver.clone());      // "TaskTestReceiver",
         // assert!(total_count == iterations, "\nresult: {:?}\ntarget: {:?}", total_count, iterations);
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             self_id,
@@ -325,7 +325,7 @@ mod fn_retain {
             services.clone(),
             &test_data,
         )));
-        services.slock().insert(producer.clone());
+        services.wlock(self_id).insert(producer.clone());
         let multi_queue_handle = multi_queue.lock().unwrap().run().unwrap();
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         info!("receiver runing - ok");
@@ -382,7 +382,7 @@ mod fn_retain {
         //
         // can be changed
         trace!("dir: {:?}", env::current_dir());
-        let services = Arc::new(Mutex::new(Services::new(self_id)));
+        let services = Arc::new(RwLock::new(Services::new(self_id)));
         let config = TaskConfig::from_yaml(
             &self_name,
             &serde_yaml::from_str(r"
@@ -414,7 +414,7 @@ mod fn_retain {
         let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
         debug!("Task points: {:#?}", task.lock().unwrap().points());
 
-        services.slock().insert(task.clone());
+        services.wlock(self_id).insert(task.clone());
         let conf = MultiQueueConfig::from_yaml(
             self_id,
             &serde_yaml::from_str(r"service MultiQueue:
@@ -424,7 +424,7 @@ mod fn_retain {
             ").unwrap(),
         );
         let multi_queue = Arc::new(Mutex::new(MultiQueue::new(conf, services.clone())));
-        services.slock().insert(multi_queue.clone());
+        services.wlock(self_id).insert(multi_queue.clone());
         let test_data = vec![
             (format!("/{}/Load", self_id), Value::Real(0.1)),
             (format!("/{}/Load", self_id), Value::Real(0.2)),
@@ -461,7 +461,7 @@ mod fn_retain {
             "in-queue",
             target_count,
         )));
-        services.slock().insert(receiver.clone());      // "TaskTestReceiver",
+        services.wlock(self_id).insert(receiver.clone());      // "TaskTestReceiver",
         // assert!(total_count == iterations, "\nresult: {:?}\ntarget: {:?}", total_count, iterations);
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             self_id,
@@ -470,7 +470,7 @@ mod fn_retain {
             services.clone(),
             &test_data,
         )));
-        services.slock().insert(producer.clone());
+        services.wlock(self_id).insert(producer.clone());
         let multi_queue_handle = multi_queue.lock().unwrap().run().unwrap();
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         info!("receiver runing - ok");
@@ -530,7 +530,7 @@ mod fn_retain {
         trace!("dir: {:?}", env::current_dir());
         let initial = load(self_id, &format!("./assets/retain/{}/RetainTask/RealRetainEveryCycle.json", self_id), PointConfigType::Real)
             .map_or(0.0, |init| init.as_real().value);
-        let services = Arc::new(Mutex::new(Services::new(self_id)));
+        let services = Arc::new(RwLock::new(Services::new(self_id)));
         let config = TaskConfig::from_yaml(
             &self_name,
             &serde_yaml::from_str(r"
@@ -559,7 +559,7 @@ mod fn_retain {
         debug!("Task config points: {:#?}", config.points());
         let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
         debug!("Task points: {:#?}", task.lock().unwrap().points());
-        services.slock().insert(task.clone());
+        services.wlock(self_id).insert(task.clone());
         let conf = MultiQueueConfig::from_yaml(
             self_id,
             &serde_yaml::from_str(r"service MultiQueue:
@@ -569,7 +569,7 @@ mod fn_retain {
             ").unwrap(),
         );
         let multi_queue = Arc::new(Mutex::new(MultiQueue::new(conf, services.clone())));
-        services.slock().insert(multi_queue.clone());
+        services.wlock(self_id).insert(multi_queue.clone());
         let test_data = vec![
             (format!("/{}/Load", self_id), Value::Real(0.1)),
             (format!("/{}/Load", self_id), Value::Real(0.1)),
@@ -604,7 +604,7 @@ mod fn_retain {
             "in-queue",
             target_count,
         )));
-        services.slock().insert(receiver.clone());      // "TaskTestReceiver",
+        services.wlock(self_id).insert(receiver.clone());      // "TaskTestReceiver",
         // assert!(total_count == iterations, "\nresult: {:?}\ntarget: {:?}", total_count, iterations);
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             self_id,
@@ -613,7 +613,7 @@ mod fn_retain {
             services.clone(),
             &test_data,
         )));
-        services.slock().insert(producer.clone());
+        services.wlock(self_id).insert(producer.clone());
         let multi_queue_handle = multi_queue.lock().unwrap().run().unwrap();
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         info!("receiver runing - ok");

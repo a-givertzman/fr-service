@@ -2,12 +2,12 @@
 
 mod services_points {
     use log::trace;
-    use std::{sync::{Once, Arc, Mutex}, env, time::Duration};
+    use std::{env, sync::{Arc, Mutex, Once, RwLock}, time::Duration};
     use testing::stuff::max_test_duration::TestDuration;
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         conf::{point_config::name::Name, task_config::TaskConfig},
-        services::{services::Services, task::task::Task},
+        services::{safe_lock::SafeLock, services::Services, task::task::Task},
     };
     ///
     ///
@@ -41,11 +41,11 @@ mod services_points {
         let config = TaskConfig::read(&self_name, path);
         trace!("config: {:?}", &config);
         println!(" points: {:?}", config.points());
-        let services = Arc::new(Mutex::new(Services::new(self_id)));
+        let services = Arc::new(RwLock::new(Services::new(self_id)));
         let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
-        services.lock().unwrap().insert(task.clone());
+        services.wlock(self_id).insert(task.clone());
         let target  = 3;
-        let points = services.lock().unwrap().points(self_id);
+        let points = services.wlock(self_id).points(self_id);
         let points_count = points.len();
         println!();
         println!(" points count: {:?}", points_count);

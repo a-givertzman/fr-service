@@ -1,4 +1,4 @@
-use std::{fmt::Debug, net::TcpStream, sync::{atomic::{AtomicBool, AtomicU32, Ordering}, mpsc::Sender, Arc, Mutex}, thread, time::Duration};
+use std::{fmt::Debug, net::TcpStream, sync::{atomic::{AtomicBool, AtomicU32, Ordering}, mpsc::Sender, Arc, Mutex, RwLock}, thread, time::Duration};
 use log::{debug, error, info, warn};
 use testing::stuff::wait::WaitTread;
 use crate::{
@@ -22,7 +22,7 @@ pub struct SlmpClient {
     id: String,
     name: Name,
     conf: SlmpClientConfig,
-    services: Arc<Mutex<Services>>,
+    services: Arc<RwLock<Services>>,
     diagnosis: Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
     exit: Arc<AtomicBool>,
 }
@@ -32,7 +32,7 @@ impl SlmpClient {
     ///
     /// Creates new instance of [ApiClient]
     /// - [parent] - the ID if the parent entity
-    pub fn new(conf: SlmpClientConfig, services: Arc<Mutex<Services>>) -> Self {
+    pub fn new(conf: SlmpClientConfig, services: Arc<RwLock<Services>>) -> Self {
         let tx_id = PointTxId::fromStr(&conf.name.join());
         let diagnosis = Arc::new(Mutex::new(conf.diagnosis.iter().map(|(keywd, conf)| {
             (keywd.to_owned(), DiagPoint::new(tx_id, conf.clone()))
@@ -128,7 +128,7 @@ impl Service for SlmpClient {
         let diagnosis = self.diagnosis.clone();
         let status = Arc::new(AtomicU32::new(Status::Ok.into()));
         let exit = Arc::new(ExitNotify::new(&self_id, Some(self.exit.clone()), None));
-        let tx_send = self.services.slock().get_link(&conf.send_to).unwrap_or_else(|err| {
+        let tx_send = self.services.rlock(&self_id).get_link(&conf.send_to).unwrap_or_else(|err| {
             panic!("{}.run | services.get_link error: {:#?}", self.id, err);
         });
         let mut tcp_client_connect = TcpClientConnect::new(

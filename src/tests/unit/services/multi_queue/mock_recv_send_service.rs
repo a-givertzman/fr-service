@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 use log::{info, warn, trace};
-use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread};
+use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex, RwLock}, thread};
 use testing::entities::test_value::Value;
 use crate::{
     conf::point_config::name::Name, core_::{constants::constants::RECV_TIMEOUT, object::object::Object, point::{point_tx_id::PointTxId, point_type::{PointType, ToPoint}}}, services::{queue_name::QueueName, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services}
@@ -13,7 +13,7 @@ pub struct MockRecvSendService {
     rxSend: HashMap<String, Sender<PointType>>,
     rxRecv: Vec<Receiver<PointType>>,
     send_to: QueueName,
-    services: Arc<Mutex<Services>>,
+    services: Arc<RwLock<Services>>,
     test_data: Vec<Value>,
     sent: Arc<Mutex<Vec<PointType>>>,
     received: Arc<Mutex<Vec<PointType>>>,
@@ -23,7 +23,7 @@ pub struct MockRecvSendService {
 //
 // 
 impl MockRecvSendService {
-    pub fn new(parent: impl Into<String>, rxQueue: &str, send_to: &str, services: Arc<Mutex<Services>>, test_data: Vec<Value>, recvLimit: Option<usize>) -> Self {
+    pub fn new(parent: impl Into<String>, rxQueue: &str, send_to: &str, services: Arc<RwLock<Services>>, test_data: Vec<Value>, recvLimit: Option<usize>) -> Self {
         let name = Name::new(parent, format!("MockRecvSendService{}", COUNT.fetch_add(1, Ordering::Relaxed)));
         let (send, recv) = mpsc::channel::<PointType>();
         Self {
@@ -136,7 +136,7 @@ impl Service for MockRecvSendService {
         });
         let self_id = self.id.clone();
         let exit = self.exit.clone();
-        let txSend = self.services.slock().get_link(&self.send_to).unwrap_or_else(|err| {
+        let txSend = self.services.rlock(&self_id).get_link(&self.send_to).unwrap_or_else(|err| {
             panic!("{}.run | services.get_link error: {:#?}", self.id, err);
         });
         let test_data = self.test_data.clone();
@@ -166,9 +166,9 @@ impl Service for MockRecvSendService {
                 (format!("{}/write", self.id), handle_send),
                 ])),
             // TODO Exit 'write if read returns error'
-            (Ok(handle_recv), Err(err)) => Err(format!("{}.run | Error starting inner thread 'recv': {:#?}", self.id, err)),
+            (Ok(_handle_recv), Err(err)) => Err(format!("{}.run | Error starting inner thread 'recv': {:#?}", self.id, err)),
             // TODO Exit 'read if write returns error'
-            (Err(err), Ok(handle_send)) => Err(format!("{}.run | Error starting inner thread 'send': {:#?}", self.id, err)),
+            (Err(err), Ok(_handle_send)) => Err(format!("{}.run | Error starting inner thread 'send': {:#?}", self.id, err)),
             (Err(read_err), Err(write_err)) => Err(format!("{}.run | Error starting inner thread: \n\t  recv: {:#?}\n\t send: {:#?}", self.id, read_err, write_err)),
         }
     }

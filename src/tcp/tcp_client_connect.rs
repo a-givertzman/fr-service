@@ -51,8 +51,8 @@ impl TcpClientConnect {
                 cycle.start();
                 match TcpStream::connect_timeout(&addr, Duration::from_millis(1000)) {
                     Ok(stream) => {
-                        self_stream.slock().push(stream);
-                        info!("{}.connect | connected to: \n\t{:?}", id, self_stream.slock().first().unwrap());
+                        self_stream.slock(&self_id).push(stream);
+                        info!("{}.connect | connected to: \n\t{:?}", id, self_stream.slock(&self_id).first().unwrap());
                         break;
                     }
                     Err(err) => {
@@ -70,7 +70,7 @@ impl TcpClientConnect {
             debug!("{}.connect | Exit", id);
         });
         handle.join().unwrap();
-        let mut tcp_stream = self.stream.slock();
+        let mut tcp_stream = self.stream.slock(&self.id);
         tcp_stream.pop()
     }
     ///

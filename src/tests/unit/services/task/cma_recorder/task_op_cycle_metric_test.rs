@@ -2,7 +2,7 @@
 
 mod cma_recorder {
     use log::{debug, info, trace};
-    use std::{env, sync::{Arc, Mutex, Once}, thread, time::{Duration, Instant}};
+    use std::{env, sync::{Arc, Mutex, Once, RwLock}, thread, time::{Duration, Instant}};
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
@@ -39,7 +39,7 @@ mod cma_recorder {
         //
         // can be changed
         trace!("dir: {:?}", env::current_dir());
-        let services = Arc::new(Mutex::new(Services::new(self_id)));
+        let services = Arc::new(RwLock::new(Services::new(self_id)));
         let config = TaskConfig::from_yaml(
             &self_name,
             &serde_yaml::from_str(r"
@@ -121,7 +121,7 @@ mod cma_recorder {
         debug!("Task config points: {:#?}", config.points());
         let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
         debug!("Task points: {:#?}", task.lock().unwrap().points());
-        services.slock().insert(task.clone());
+        services.wlock(self_id).insert(task.clone());
         let conf = MultiQueueConfig::from_yaml(
             self_id,
             &serde_yaml::from_str(r"service MultiQueue:
@@ -131,7 +131,7 @@ mod cma_recorder {
             ").unwrap(),
         );
         let multi_queue = Arc::new(Mutex::new(MultiQueue::new(conf, services.clone())));
-        services.slock().insert(multi_queue.clone());
+        services.wlock(self_id).insert(multi_queue.clone());
         let test_data = vec![
         //  step    nape                                input                    Pp Cycle   target_thrh             target_smooth
             (00,    format!("/{}/Load.Nom", self_id),   Value::Real(  150.00),     0,       00.0000,                0.0f32),
@@ -227,7 +227,7 @@ mod cma_recorder {
             "in-queue",
             total_count,
         )));
-        services.slock().insert(receiver.clone());
+        services.wlock(self_id).insert(receiver.clone());
         let test_data: Vec<(String, Value)> = test_data.into_iter().map(|(_, name, value, _, _, _)| {
             (name, value)
         }).collect();
@@ -238,7 +238,7 @@ mod cma_recorder {
             services.clone(),
             &test_data,
         )));
-        services.slock().insert(producer.clone());
+        services.wlock(self_id).insert(producer.clone());
         let multi_queue_handle = multi_queue.lock().unwrap().run().unwrap();
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         info!("receiver runing - ok");

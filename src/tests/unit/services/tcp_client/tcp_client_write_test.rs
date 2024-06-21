@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tcp_client {
     use log::{info, debug, warn};
-    use std::{sync::{Once, Arc, Mutex}, thread::{self, JoinHandle}, time::{Duration, Instant}, net::TcpListener, io::BufReader};
+    use std::{io::BufReader, net::TcpListener, sync::{Arc, Mutex, Once, RwLock}, thread::{self, JoinHandle}, time::{Duration, Instant}};
     use testing::{entities::test_value::Value, session::test_session::TestSession, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
@@ -82,26 +82,22 @@ mod tcp_client {
         );
         let test_data: Vec<Value> = test_data.collect();
 
-        let services = Arc::new(Mutex::new(Services::new(self_id)));
+        let services = Arc::new(RwLock::new(Services::new(self_id)));
         let multi_queue = Arc::new(Mutex::new(MockMultiQueue::new(self_id, "", None)));
         let tcp_client = Arc::new(Mutex::new(TcpClient::new(conf, services.clone())));
         let tcp_client_service_id = tcp_client.lock().unwrap().id().to_owned();
-        services.lock().unwrap().insert(tcp_client.clone());     // tcpClientServiceId,
-        services.lock().unwrap().insert(multi_queue.clone());            // multiQueueServiceId,
+        services.wlock(self_id).insert(tcp_client.clone());     // tcpClientServiceId,
+        services.wlock(self_id).insert(multi_queue.clone());            // multiQueueServiceId,
         let mut sent = vec![];
         let received = Arc::new(Mutex::new(vec![]));
         let handle = mock_tcp_server(addr.to_string(), iterations, received.clone());
         thread::sleep(Duration::from_micros(100));
-        let tcp_client = {
-            let services = services.slock();
-            services.get(&tcp_client_service_id).unwrap()
-            // drop(services);
-        };
+        let tcp_client = services.rlock(self_id).get(&tcp_client_service_id).unwrap();
         debug!("Running service {}...", tcp_client_service_id);
-        tcp_client.slock().run().unwrap();
+        tcp_client.slock(self_id).run().unwrap();
         debug!("Running service {} - ok", tcp_client_service_id);
         let timer = Instant::now();
-        let send = tcp_client.slock().get_link("link");
+        let send = tcp_client.slock(self_id).get_link("link");
         debug!("Test - setup - ok");
         debug!("Sending points...");
         for value in test_data {

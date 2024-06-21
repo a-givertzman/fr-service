@@ -47,14 +47,14 @@ impl App {
         let conf = self.conf.clone();
         let self_name = Name::new("", conf.name);
         let app = Arc::new(RwLock::new(self));
-        let services = Arc::new(Mutex::new(Services::new(&self_id)));
+        let services = Arc::new(RwLock::new(Services::new(&self_id)));
         info!("{}.run |     Configuring services...", self_id);
         for (node_keywd, mut node_conf) in conf.nodes {
             let node_name = node_keywd.name();
             let node_sufix = node_keywd.sufix();
             info!("{}.run |         Configuring service: {}({})...", self_id, node_name, node_sufix);
             trace!("{}.run |         Config: {:#?}", self_id, node_conf);
-            services.slock().insert(
+            services.wlock(&self_id).insert(
                 Self::build_service(&self_id, &self_name, &node_name, &node_sufix, &mut node_conf, services.clone()),
             );
             info!("{}.run |         Configuring service: {}({}) - ok\n", self_id, node_name, node_sufix);
@@ -62,10 +62,10 @@ impl App {
         info!("{}.run |     All services configured\n", self_id);
         thread::sleep(Duration::from_millis(1000));
         info!("{}.run |     Starting services...", self_id);
-        let services_iter = services.slock().all();
+        let services_iter = services.rlock(&self_id).all();
         for (name, service) in services_iter {
             info!("{}.run |         Starting service: {}...", self_id, name);
-            let handles = service.slock().run();
+            let handles = service.slock(&self_id).run();
             match handles {
                 Ok(handles) => {
                     app.write().unwrap().insert_handles(&name, handles);
@@ -99,7 +99,7 @@ impl App {
     }    
     ///
     /// Returns service by it's name
-    fn build_service(self_id: &str, parent: &Name, node_name: &str, node_sufix: &str, node_conf: &mut ConfTree, services: Arc<Mutex<Services>>) -> Arc<Mutex<dyn Service + Send>> {
+    fn build_service(self_id: &str, parent: &Name, node_name: &str, node_sufix: &str, node_conf: &mut ConfTree, services: Arc<RwLock<Services>>) -> Arc<Mutex<dyn Service + Send>> {
         match node_name {
             Services::API_CLIENT => Arc::new(Mutex::new(
                 ApiClient::new(ApiClientConfig::new(parent, node_conf))
@@ -143,7 +143,7 @@ impl App {
     }
     ///
     /// Listening for signals from the operating system
-    fn listen_sys_signals(self_id: String, services: Arc<Mutex<Services>>) {
+    fn listen_sys_signals(self_id: String, services: Arc<RwLock<Services>>) {
         let signals = Signals::new([
             SIGHUP,     // code: 1	This signal is sent to a process when its controlling terminal is closed or disconnected
             SIGINT,     // code: 2	This signal is sent to a process when the user presses Control+C to interrupt its execution
@@ -168,10 +168,10 @@ impl App {
                                 SIGINT | SIGQUIT | SIGTERM => {
                                     println!("{}.run Received signal {:?}", self_id, signal);
                                     println!("{}.run Application exit...", self_id);
-                                    let services_iter = services.slock().all();
+                                    let services_iter = services.rlock(&self_id).all();
                                     for (_id, service) in services_iter {
                                         println!("{}.run Stopping service '{}'...", self_id, _id);
-                                        service.slock().exit();
+                                        service.slock(&self_id).exit();
                                         println!("{}.run Stopping service '{}' - Ok", self_id, _id);
                                     }
                                     break;

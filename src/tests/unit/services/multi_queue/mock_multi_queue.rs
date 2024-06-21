@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread};
+use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex, RwLock}, thread};
 use log::{info, warn, error, trace};
 use crate::{
     conf::point_config::name::Name, core_::{object::object::Object, point::{point_tx_id::PointTxId, point_type::PointType}}, services::{multi_queue::{subscription_criteria::SubscriptionCriteria, subscriptions::Subscriptions}, queue_name::QueueName, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services}
@@ -15,7 +15,7 @@ pub struct MockMultiQueue {
     rxSend: HashMap<String, Sender<PointType>>,
     rxRecv: Vec<Receiver<PointType>>,
     sendQueues: Vec<String>,
-    services: Arc<Mutex<Services>>,
+    services: Arc<RwLock<Services>>,
     exit: Arc<AtomicBool>,
 }
 //
@@ -24,7 +24,7 @@ impl MockMultiQueue {
     ///
     /// Creates new instance of [ApiClient]
     /// - [parent] - the ID if the parent entity
-    pub fn new(parent: impl Into<String>, txQueues: Vec<String>, rxQueue: impl Into<String>, services: Arc<Mutex<Services>>) -> Self {
+    pub fn new(parent: impl Into<String>, txQueues: Vec<String>, rxQueue: impl Into<String>, services: Arc<RwLock<Services>>) -> Self {
         let name = Name::new(parent, format!("MockMultiQueue{}", COUNT.fetch_add(1, Ordering::Relaxed)));
         let (send, recv) = mpsc::channel();
         Self {
@@ -76,10 +76,10 @@ impl Service for MockMultiQueue {
         let (send, recv) = mpsc::channel();
         let receiverId = PointTxId::fromStr(receiverId);
         if points.is_empty() {
-            self.subscriptions.lock().unwrap().add_broadcast(receiverId, send.clone());
+            self.subscriptions.slock(&self.id).add_broadcast(receiverId, send.clone());
         } else {
             for subscription_criteria in points {
-                self.subscriptions.lock().unwrap().add_multicast(receiverId, &subscription_criteria.destination(), send.clone());
+                self.subscriptions.slock(&self.id).add_multicast(receiverId, &subscription_criteria.destination(), send.clone());
             }
         }
         (send, recv)
@@ -89,7 +89,7 @@ impl Service for MockMultiQueue {
     fn unsubscribe(&mut self, receiverId: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
         let receiverId = PointTxId::fromStr(receiverId);
         for subscription_criteria in points {
-            match self.subscriptions.lock().unwrap().remove(&receiverId, &subscription_criteria.destination()) {
+            match self.subscriptions.slock(&self.id).remove(&receiverId, &subscription_criteria.destination()) {
                 Ok(_) => {}
                 Err(err) => {
                     return Err(err)
@@ -108,7 +108,7 @@ impl Service for MockMultiQueue {
         let subscriptions = self.subscriptions.clone();
         let mut staticSubscriptions: HashMap<usize, Sender<PointType>> = HashMap::new();
         for sendQueue in &self.sendQueues {
-            let txSend = self.services.slock().get_link(&QueueName::new(sendQueue)).unwrap_or_else(|err| {
+            let txSend = self.services.rlock(&self_id).get_link(&QueueName::new(sendQueue)).unwrap_or_else(|err| {
                 panic!("{}.run | services.get_link error: {:#?}", self.id, err);
             });
             staticSubscriptions.insert(PointTxId::fromStr(sendQueue), txSend);

@@ -117,15 +117,15 @@ impl FnConfKeywd {
             FnConfKeywd::Point(v) => v.data.clone(),
         }
     }
-    fn matchType(typeName: &str) -> Result<FnConfPointType, String> {
-        match typeName {
+    fn match_type(type_name: &str) -> Result<FnConfPointType, String> {
+        match type_name {
             "bool" => Ok(FnConfPointType::Bool),
             "int" => Ok(FnConfPointType::Int),
             "real" => Ok(FnConfPointType::Real),
             "double" => Ok(FnConfPointType::Double),
             "string" => Ok(FnConfPointType::String),
             "any" => Ok(FnConfPointType::Any),
-            _ => Err(format!("Unknown keyword '{}'", typeName))
+            _ => Err(format!("Unknown keyword '{}'", type_name))
         }
     }
 }
@@ -137,19 +137,19 @@ impl FromStr for FnConfKeywd {
         trace!("FnConfKeywd.from_str | input: {}", input);
         let re = r#"[ \t]*(?:(\w+)[ \t]+)*(?:(let|fn|const|point){1}(?:[ \t](bool|int|real|double|string|any))*(?:$|(?:[ \t]+['"]*([\w/.]+)['"]*)))"#;
         let re = RegexBuilder::new(re).multi_line(true).build().unwrap();
-        let groupInput = 1;
-        let groupKind = 2;
-        let groupType = 3;
-        let groupData = 4;
+        let group_input = 1;
+        let group_kind = 2;
+        let group_type = 3;
+        let group_data = 4;
         match re.captures(input) {
             Some(caps) => {
-                let input = match &caps.get(groupInput) {
+                let input = match &caps.get(group_input) {
                     Some(first) => String::from(first.as_str()),
                     None => String::new(),
                 };
-                let type_ = match &caps.get(groupType) {
+                let type_ = match &caps.get(group_type) {
                     Some(arg) => {
-                        match FnConfKeywd::matchType(&arg.as_str().to_lowercase()) {
+                        match FnConfKeywd::match_type(&arg.as_str().to_lowercase()) {
                             Ok(type_) => type_,
                             Err(_err) => {
                                 warn!("ConfKeywd.from_str | Error reading type of keyword '{}'", &input);
@@ -159,7 +159,7 @@ impl FromStr for FnConfKeywd {
                     }
                     None => FnConfPointType::Unknown,
                 };
-                let data = match &caps.get(groupData) {
+                let data = match &caps.get(group_data) {
                     Some(arg) => {
                         Ok(arg.as_str().to_string())
                     }
@@ -173,7 +173,7 @@ impl FromStr for FnConfKeywd {
                 };
                 match data {
                     Ok(data) => {
-                        match &caps.get(groupKind) {
+                        match &caps.get(group_kind) {
                             Some(keyword) => {
                                 match keyword.as_str() {
                                     "fn"  => Ok( FnConfKeywd::Fn( FnConfKeywdValue { input, type_, data } )),

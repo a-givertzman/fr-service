@@ -2,7 +2,7 @@
 
 mod tcp_client {
     use log::{info, debug, warn, error, trace};
-    use std::{sync::{Once, Arc, Mutex}, thread, time::{Duration, Instant}, net::TcpListener, io::Write};
+    use std::{io::Write, net::TcpListener, sync::{Arc, Mutex, Once, RwLock}, thread, time::{Duration, Instant}};
     use testing::{entities::test_value::Value, session::test_session::TestSession, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
@@ -82,24 +82,20 @@ mod tcp_client {
         );
         let test_data: Vec<Value> = test_data.collect();
         let total_count = test_data.len();
-        let services = Arc::new(Mutex::new(Services::new(self_id)));
+        let services = Arc::new(RwLock::new(Services::new(self_id)));
         let multi_queue = Arc::new(Mutex::new(MockMultiQueue::new(self_id, "", Some(total_count))));
         let tcp_client = Arc::new(Mutex::new(TcpClient::new(conf, services.clone())));
         let multi_queue_service_id = multi_queue.lock().unwrap().id().to_owned();
         let tcp_client_service_id = tcp_client.lock().unwrap().id().to_owned();
-        services.lock().unwrap().insert(tcp_client.clone());
-        services.lock().unwrap().insert(multi_queue.clone());
+        services.wlock(self_id).insert(tcp_client.clone());
+        services.wlock(self_id).insert(multi_queue.clone());
         let sent = Arc::new(Mutex::new(vec![]));
-        let tcp_client = {
-            let services = services.slock();
-            services.get(&tcp_client_service_id).unwrap()
-            // drop(services);
-        };
+        let tcp_client = services.rlock(self_id).get(&tcp_client_service_id).unwrap();
         debug!("Running service {}...", multi_queue_service_id);
         let handle = multi_queue.lock().unwrap().run().unwrap();
         debug!("Running service {} - ok", multi_queue_service_id);
         debug!("Running service {}...", tcp_client_service_id);
-        tcp_client.lock().unwrap().run().unwrap();
+        tcp_client.slock(self_id).run().unwrap();
         debug!("Running service {} - ok", tcp_client_service_id);
         mock_tcp_server(addr.to_string(), iterations, test_data.clone(), sent.clone(), multi_queue.clone());
         thread::sleep(Duration::from_micros(100));

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::{Arc, Mutex, RwLock}, thread, time::Duration};
+use std::{collections::HashMap, sync::{Arc, RwLock}, thread, time::Duration};
 use concat_string::concat_string;
 use log::{debug, error, trace, warn};
 use serde_json::json;
@@ -24,7 +24,7 @@ impl JdsRequest {
     ///
     /// Detecting kind of the request stored as json string in the incoming point.
     /// Performs the action depending on the Request kind.
-    pub fn handle(parent_id: &str, parent: &Name, tx_id: usize, request: PointType, services: Arc<Mutex<Services>>, shared: Arc<RwLock<Shared>>) -> RouterReply {
+    pub fn handle(parent_id: &str, parent: &Name, tx_id: usize, request: PointType, services: Arc<RwLock<Services>>, shared: Arc<RwLock<Shared>>) -> RouterReply {
         let mut shared = shared.write().unwrap();
         let self_id = concat_string!(parent_id, "/JdsRequest");
         let requester_name = &parent.join();
@@ -96,7 +96,7 @@ impl JdsRequest {
             }
             RequestKind::Points => {
                 debug!("{}.handle.Points | Request '{}': \n\t{:?}", self_id, RequestKind::POINTS, request);
-                let points = services.slock().points(requester_name);
+                let points = services.wlock(&self_id).points(requester_name);
                 let points: HashMap<String, &PointConfig> = points.iter().map(|conf| {
                     (conf.name.clone(), conf)
                 }).collect();
@@ -139,7 +139,7 @@ impl JdsRequest {
                             None => {
                                 debug!("{}.handle.Subscribe | 'Subscribe' request (broadcast)", self_id);
                                 trace!("{}.handle.Subscribe | 'Subscribe' request (broadcast): {:?}", self_id, request);
-                                services.slock().points(requester_name).iter().fold(vec![], |mut points, point_conf| {
+                                services.wlock(&self_id).points(requester_name).iter().fold(vec![], |mut points, point_conf| {
                                     points.extend(
                                         Self::map_points_to_creteria(&point_conf.name, vec![Cot::Inf, Cot::ActCon, Cot::ActErr])
                                     );
@@ -150,7 +150,7 @@ impl JdsRequest {
                     }
                     Err(err) => {
                         warn!("{}.handle.Subscribe | 'Subscribe' request parsing error: {:?}\n\t request: {:?}", self_id, err, request);
-                        services.slock().points(requester_name).iter().fold(vec![], |mut points, point_conf| {
+                        services.wlock(&self_id).points(requester_name).iter().fold(vec![], |mut points, point_conf| {
                             points.extend(
                                 Self::map_points_to_creteria(&point_conf.name, vec![Cot::Inf, Cot::ActCon, Cot::ActErr])
                             );
@@ -167,7 +167,7 @@ impl JdsRequest {
                     warn!("{}", message);
                     (Cot::ReqErr, message)
                 } else {
-                    match services.slock().extend_subscription(&shared.subscribe, &receiver_name, &points) {
+                    match services.wlock(&self_id).extend_subscription(&shared.subscribe, &receiver_name, &points) {
                         Ok(_) => (Cot::ReqCon, "".to_owned()),
                         Err(err) => {
                             let message = format!("{}.handle.Subscribe | Extend subscription failed with error: {:?}", self_id, err);
@@ -204,10 +204,10 @@ impl JdsRequest {
     }
     ///
     ///
-    fn yield_gi(self_id: &str, receiver_name: &str, services: Arc<Mutex<Services>>, cache_service: &str, points: &[SubscriptionCriteria], shared: &mut Shared) {
-        match services.slock().get(cache_service) {
+    fn yield_gi(self_id: &str, receiver_name: &str, services: Arc<RwLock<Services>>, cache_service: &str, points: &[SubscriptionCriteria], shared: &mut Shared) {
+        match services.rlock(self_id).get(cache_service) {
             Some(cache) => {
-                let recv = cache.slock().gi(receiver_name, points);
+                let recv = cache.slock(self_id).gi(receiver_name, points);
                 match shared.req_reply_send.pop() {
                     Some(send) => {
                         shared.req_reply_send.push(send.clone());

@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use std::{fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, Arc, Mutex}, thread, time::Duration};
+use std::{fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, Arc, Mutex, RwLock}, thread, time::Duration};
 use log::{info, warn, trace};
 use testing::entities::test_value::Value;
 use crate::{conf::point_config::name::Name, core_::{object::object::Object, point::point_type::{PointType, ToPoint}}, services::{queue_name::QueueName, safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services}};
@@ -9,7 +9,7 @@ pub struct MockSendService {
     id: String,
     name: Name,
     send_to: QueueName,
-    services: Arc<Mutex<Services>>,
+    services: Arc<RwLock<Services>>,
     test_data: Vec<Value>,
     sent: Arc<Mutex<Vec<PointType>>>,
     delay: Option<Duration>,
@@ -18,7 +18,7 @@ pub struct MockSendService {
 //
 // 
 impl MockSendService {
-    pub fn new(parent: impl Into<String>, send_to: &str, services: Arc<Mutex<Services>>, test_data: Vec<Value>, delay: Option<Duration>) -> Self {
+    pub fn new(parent: impl Into<String>, send_to: &str, services: Arc<RwLock<Services>>, test_data: Vec<Value>, delay: Option<Duration>) -> Self {
         let name = Name::new(parent, format!("MockSendService{}", COUNT.fetch_add(1, Ordering::Relaxed)));
         Self {
             id: name.join(),
@@ -80,7 +80,7 @@ impl Service for MockSendService {
         info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let exit = self.exit.clone();
-        let txSend = self.services.slock().get_link(&self.send_to).unwrap_or_else(|err| {
+        let txSend = self.services.rlock(&self_id).get_link(&self.send_to).unwrap_or_else(|err| {
             panic!("{}.run | services.get_link error: {:#?}", self.id, err);
         });
         let test_data = self.test_data.clone();

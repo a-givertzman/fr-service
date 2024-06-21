@@ -1,6 +1,6 @@
 use std::{
     fmt::Debug, hash::BuildHasherDefault,
-    sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Sender}, Arc, Mutex},
+    sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Sender}, Arc, Mutex, RwLock},
     thread::{self, JoinHandle},
     time::Duration,
 };
@@ -35,7 +35,7 @@ pub struct ProfinetClient {
     id: String,
     name: Name,
     conf: ProfinetClientConfig,
-    services: Arc<Mutex<Services>>,
+    services: Arc<RwLock<Services>>,
     diagnosis: Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
     exit: Arc<AtomicBool>,
 }
@@ -44,7 +44,7 @@ pub struct ProfinetClient {
 impl ProfinetClient {
     ///
     /// Creates new instance of the ProfinetClient
-    pub fn new(conf: ProfinetClientConfig, services: Arc<Mutex<Services>>) -> Self {
+    pub fn new(conf: ProfinetClientConfig, services: Arc<RwLock<Services>>) -> Self {
         let tx_id = PointTxId::fromStr(&conf.name.join());
         let diagnosis = Arc::new(Mutex::new(conf.diagnosis.iter().map(|(keywd, conf)| {
             (keywd.to_owned(), DiagPoint::new(tx_id, conf.clone()))
@@ -226,7 +226,7 @@ impl ProfinetClient {
             for name in &points {
                 println!("\t{:?}", name);
             }
-            let (_, rx_recv) = services.slock().subscribe(&conf.subscribe, &self_id, &points);
+            let (_, rx_recv) = services.wlock(&self_id).subscribe(&conf.subscribe, &self_id, &points);
             let mut client = S7Client::new(self_id.clone(), conf.ip.clone());
             'main: while !exit.load(Ordering::SeqCst) {
                 let mut errors_limit = ErrorLimit::new(3);
@@ -395,7 +395,7 @@ impl Service for ProfinetClient {
     //
     //
     fn run(&mut self) -> Result<ServiceHandles, String> {
-        let tx_send = self.services.slock().get_link(&self.conf.send_to).unwrap_or_else(|err| {
+        let tx_send = self.services.rlock(&self.id).get_link(&self.conf.send_to).unwrap_or_else(|err| {
             panic!("{}.run | services.get_link error: {:#?}", self.id, err);
         });
         Self::yield_diagnosis(&self.id, &self.diagnosis.clone(), &DiagKeywd::Status, Status::Ok, &tx_send);

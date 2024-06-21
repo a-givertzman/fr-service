@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex}, thread, time::Duration};
+use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex, RwLock}, thread, time::Duration};
 use log::{info, warn};
 use testing::stuff::wait::WaitTread;
 use crate::{
@@ -17,7 +17,7 @@ pub struct TcpClient {
     in_send: HashMap<String, Sender<PointType>>,
     in_recv: Vec<Receiver<PointType>>,
     conf: TcpClientConfig,
-    services: Arc<Mutex<Services>>,
+    services: Arc<RwLock<Services>>,
     tcp_recv_alive: Option<Arc<Mutex<TcpReadAlive>>>,
     tcp_send_alive: Option<Arc<Mutex<TcpWriteAlive>>>,
     exit: Arc<AtomicBool>,
@@ -28,7 +28,7 @@ impl TcpClient {
     ///
     /// Creates new instance of [ApiClient]
     /// - [parent] - the ID if the parent entity
-    pub fn new(conf: TcpClientConfig, services: Arc<Mutex<Services>>) -> Self {
+    pub fn new(conf: TcpClientConfig, services: Arc<RwLock<Services>>) -> Self {
         let (send, recv) = mpsc::channel();
         Self {
             id: conf.name.join(),
@@ -80,7 +80,7 @@ impl Service for TcpClient {
         let conf = self.conf.clone();
         let exit = self.exit.clone();
         let exit_pair = Arc::new(AtomicBool::new(false));
-        let tx_send = self.services.slock().get_link(&conf.send_to).unwrap_or_else(|err| {
+        let tx_send = self.services.rlock(&self_id).get_link(&conf.send_to).unwrap_or_else(|err| {
             panic!("{}.run | services.get_link error: {:#?}", self.id, err);
         });
         let buffered = conf.rx_buffered; // TODO Read this from config
@@ -163,13 +163,13 @@ impl Service for TcpClient {
         self.exit.store(true, Ordering::SeqCst);
         match &self.tcp_recv_alive {
             Some(tcp_recv_alive) => {
-                tcp_recv_alive.slock().exit()
+                tcp_recv_alive.slock(&self.id).exit()
             }
             None => {}
         }
         match &self.tcp_send_alive {
             Some(tcp_send_alive) => {
-                tcp_send_alive.slock().exit()
+                tcp_send_alive.slock(&self.id).exit()
             }
             None => {}
         }

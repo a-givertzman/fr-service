@@ -4,7 +4,8 @@ mod sql_metric {
     use log::trace;
     use log::debug;
     use regex::RegexBuilder;
-    use std::sync::{Once, Arc, Mutex};
+    use std::sync::RwLock;
+    use std::sync::{Once, Arc};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::conf::point_config::name::Name;
     use crate::{
@@ -44,8 +45,8 @@ mod sql_metric {
         let conf = TaskConfig::read(&self_name, path);
         debug!("conf: {:?}", conf);
         let mut nodes = TaskNodes::new(self_id);
-        let services = Arc::new(Mutex::new(Services::new(self_id)));
-        nodes.buildNodes(&self_name, conf, services);
+        let services = Arc::new(RwLock::new(Services::new(self_id)));
+        nodes.build_nodes(&self_name, conf, services);
         debug!("taskNodes: {:?}", nodes);
         let test_data = vec![
             (1, "/path/Point.Name", 3),
@@ -66,7 +67,7 @@ mod sql_metric {
         for (value, name, target_value) in test_data {
             let point = value.to_point(0, name);
             let input_name = &point.name();
-            match &nodes.getEvalNode(&input_name) {
+            match &nodes.get_eval_node(&input_name) {
                 Some(eval_node) => {
                     let input = eval_node.getInput();
                     input.borrow_mut().add(point.clone());
@@ -113,8 +114,8 @@ mod sql_metric {
         let conf = TaskConfig::read(&self_name, path);
         debug!("conf: {:?}", conf);
         let mut nodes = TaskNodes::new(self_id);
-        let services = Arc::new(Mutex::new(Services::new(self_id)));
-        nodes.buildNodes(&self_name, conf, services);
+        let services = Arc::new(RwLock::new(Services::new(self_id)));
+        nodes.build_nodes(&self_name, conf, services);
         debug!("taskNodes: {:?}", nodes);
         let test_data = vec![
             (1.1f32, "/path/Point.Name", 3.3f32),
@@ -135,7 +136,7 @@ mod sql_metric {
         for (value, name, target_value) in test_data {
             let point = value.to_point(0, name);
             let input_name = &point.name();
-            match nodes.getEvalNode(&input_name) {
+            match nodes.get_eval_node(&input_name) {
                 Some(eval_node) => {
                     let input = eval_node.getInput();
                     input.borrow_mut().add(point.clone());
@@ -192,8 +193,8 @@ mod sql_metric {
         let conf = TaskConfig::read(&self_name, path);
         debug!("conf: {:?}", conf);
         let mut nodes = TaskNodes::new(self_id);
-        let services = Arc::new(Mutex::new(Services::new(self_id)));
-        nodes.buildNodes(&self_name, conf, services);
+        let services = Arc::new(RwLock::new(Services::new(self_id)));
+        nodes.build_nodes(&self_name, conf, services);
         debug!("taskNodes: {:?}", nodes);
         let test_data = vec![
             (1.1f64, "/path/Point.Name", 3.3),
@@ -214,7 +215,7 @@ mod sql_metric {
         for (value, name, target_value) in test_data {
             let point = value.to_point(0, name);
             let input_name = &point.name();
-            match nodes.getEvalNode(&input_name) {
+            match nodes.get_eval_node(&input_name) {
                 Some(eval_node) => {
                     let input = eval_node.getInput();
                     input.borrow_mut().add(point.clone());

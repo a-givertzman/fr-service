@@ -58,7 +58,7 @@ impl TcpReadAlive {
         let handle = thread::Builder::new().name(format!("{} - Read", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
             let mut tcp_stream = BufReader::new(tcp_stream);
-            let mut tcp_stream_read = tcp_stream_read.slock();
+            let mut tcp_stream_read = tcp_stream_read.slock(&self_id);
             info!("{}.run | Main loop started", self_id);
             loop {
                 if let Some(cycle) = &mut cycle {cycle.start()}

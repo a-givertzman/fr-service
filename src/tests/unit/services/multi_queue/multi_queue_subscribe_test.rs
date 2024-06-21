@@ -1,11 +1,11 @@
-use std::{fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, Arc, Mutex, RwLock}, thread, time::Duration};
+use std::{fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, Arc, RwLock}, thread, time::Duration};
 use log::{info, trace, warn};
-use crate::{conf::point_config::name::Name, core_::{object::object::Object, point::point_type::PointType}, services::{service::{service::Service, service_handles::ServiceHandles}, services::Services}};
+use crate::{conf::point_config::name::Name, core_::{object::object::Object, point::point_type::PointType}, services::{safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services}};
 #[cfg(test)]
 
 mod multi_queue {
     use log::debug;
-    use std::{sync::{Arc, Mutex, Once}, thread, time::{Duration, Instant}};
+    use std::{sync::{Arc, Mutex, Once, RwLock}, thread, time::{Duration, Instant}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use testing::{
         entities::test_value::Value,
@@ -13,7 +13,7 @@ mod multi_queue {
     };
     use crate::{
         conf::multi_queue_config::MultiQueueConfig,
-        services::{multi_queue::multi_queue::MultiQueue, service::service::Service, services::Services},
+        services::{multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, service::service::Service, services::Services},
         tests::unit::services::multi_queue::{mock_send_service::MockSendService, multi_queue_subscribe_test::MockReceiver},
     };
     ///
@@ -59,9 +59,9 @@ mod multi_queue {
         let conf = serde_yaml::from_str(&conf).unwrap();
         let mq_conf = MultiQueueConfig::from_yaml(self_id, &conf);
         debug!("mqConf: {:?}", mq_conf);
-        let services = Arc::new(Mutex::new(Services::new(self_id)));
+        let services = Arc::new(RwLock::new(Services::new(self_id)));
         let mq_service = Arc::new(Mutex::new(MultiQueue::new(mq_conf, services.clone())));
-        services.lock().unwrap().insert(mq_service.clone());
+        services.wlock(self_id).insert(mq_service.clone());
         let mut receiver_handles = vec![];
         let mut receivers = vec![];
         for _ in 0..receiver_count {
@@ -71,7 +71,7 @@ mod multi_queue {
                 services.clone(),
                 Some(total_test_events),
             )));
-            services.lock().unwrap().insert(receiver.clone());
+            services.wlock(self_id).insert(receiver.clone());
             receivers.push(receiver);
         }
         let mq_handle = mq_service.lock().unwrap().run().unwrap();
@@ -106,7 +106,7 @@ mod multi_queue {
                 dynamic_test_data.clone(),
                 None,
             )));
-            services.lock().unwrap().insert(sender.clone());
+            services.wlock(self_id).insert(sender.clone());
             senders.push(sender.clone());
             let sender_handle = sender.lock().unwrap().run().unwrap();
             sender_handles.push(sender_handle);
@@ -149,7 +149,7 @@ struct MockReceiver {
     id: String,
     name: Name,
     subscribe: String,
-    services: Arc<Mutex<Services>>,
+    services: Arc<RwLock<Services>>,
     received: Arc<RwLock<Vec<PointType>>>,
     recv_limit: Option<usize>,
     exit: Arc<AtomicBool>,
@@ -157,7 +157,7 @@ struct MockReceiver {
 //
 //
 impl MockReceiver {
-    pub fn new(parent: impl Into<String>, subscribe: &str, services: Arc<Mutex<Services>>, recv_limit: Option<usize>) -> Self {
+    pub fn new(parent: impl Into<String>, subscribe: &str, services: Arc<RwLock<Services>>, recv_limit: Option<usize>) -> Self {
         let name = Name::new(parent, format!("MockReceiver{}", COUNT.fetch_add(1, Ordering::Relaxed)));
         Self {
             id: name.join(),
@@ -205,7 +205,7 @@ impl Service for MockReceiver {
         let handle = thread::Builder::new().name(format!("{}.run", self_id)).spawn(move || {
             let self_id = self_id.as_str();
             let points = vec![];
-            let (_, recv) = services.lock().unwrap().subscribe(&subscribe, self_id, &points);
+            let (_, recv) = services.wlock(self_id).subscribe(&subscribe, self_id, &points);
             match recv_limit {
                 Some(recv_limit) => {
                     let mut received_len = 0;

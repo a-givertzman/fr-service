@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::{Arc, Mutex, atomic::{AtomicUsize, Ordering}}};
+use std::{collections::HashMap, sync::{atomic::{AtomicUsize, Ordering}, Arc, RwLock}};
 use indexmap::IndexMap;
 use log::{debug, trace};
 use crate::{
@@ -43,19 +43,13 @@ pub struct SqlMetric {
 impl SqlMetric {
     //
     //
-    pub fn new(parent: impl Into<String>, conf: &mut FnConfig, task_nodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> SqlMetric {
+    pub fn new(parent: impl Into<String>, conf: &mut FnConfig, task_nodes: &mut TaskNodes, services: Arc<RwLock<Services>>) -> SqlMetric {
         let self_name = Name::new(parent, format!("SqlMetric{}", COUNT.fetch_add(1, Ordering::Relaxed)));
         let self_id = self_name.join();
         let tx_id = PointTxId::fromStr(&self_name.join());
         let mut inputs = IndexMap::new();
         let input_confs = conf.inputs.clone();
         let input_conf_names = input_confs.keys().filter(|v| {
-            // let delete = match v.as_str() {
-            //     "initial" => true,
-            //     "table" => true,
-            //     "sql" => true,
-            //     _ => false
-            // };
             let delete = matches!(v.as_str(), "initial" | "table" | "sql");
             !delete
         });

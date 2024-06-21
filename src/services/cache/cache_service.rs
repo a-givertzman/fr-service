@@ -13,7 +13,7 @@
 //! ```
 use std::{
     env, fmt::Debug, fs, hash::{BuildHasher, BuildHasherDefault}, io::Write, path::{Path, PathBuf}, sync::{atomic::{AtomicBool, Ordering},
-    mpsc::{self, Receiver, RecvTimeoutError}, Arc, Mutex, RwLock},
+    mpsc::{self, Receiver, RecvTimeoutError}, Arc, RwLock},
     thread,
 };
 use chrono::Utc;
@@ -46,7 +46,7 @@ pub struct CacheService {
     id: String,
     name: Name,
     conf: CacheServiceConfig,
-    services: Arc<Mutex<Services>>,
+    services: Arc<RwLock<Services>>,
     cache: Arc<RwLock<IndexMap<String, PointType, BuildHasherDefault<FxHasher>>>>,
     exit: Arc<AtomicBool>,
 }
@@ -55,7 +55,7 @@ pub struct CacheService {
 impl CacheService {
     ///
     /// Creates new instance of the CacheService
-    pub fn new(conf: CacheServiceConfig, services: Arc<Mutex<Services>>) -> Self {
+    pub fn new(conf: CacheServiceConfig, services: Arc<RwLock<Services>>) -> Self {
         Self {
             id: conf.name.join(),
             name: conf.name.clone(),
@@ -322,11 +322,11 @@ impl Service for CacheService {
         let conf = self.conf.clone();
         let services = self.services.clone();
         let cache = self.cache.clone();
-        let point_configs = services.slock().points(&self_name.join());
+        let point_configs = services.wlock(&self_id).points(&self_name.join());
         let (service_name, points) = self.subscriptions(&conf, &point_configs);
         debug!("{}.run | points: {:#?}", self_id, points.len());
         trace!("{}.run | points: {:#?}", self_id, points);
-        let (_, rx_recv) = services.slock().subscribe(
+        let (_, rx_recv) = services.wlock(&self_id).subscribe(
             &service_name,
             &self.name.join(),
             &points,
@@ -372,7 +372,7 @@ impl Service for CacheService {
                     break;
                 }
             }
-            if let Err(err) = services.slock().unsubscribe(&service_name, &self_name.join(), &points) {
+            if let Err(err) = services.wlock(&self_id).unsubscribe(&service_name, &self_name.join(), &points) {
                 error!("{}.run | Unsubscribe error: {:#?}", self_id, err);
             }
             info!("{}.run | Exit", self_id);

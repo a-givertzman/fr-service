@@ -1,6 +1,6 @@
 use std::{
     net::TcpStream, sync::{atomic::{AtomicU32, Ordering}, 
-    mpsc::{self, Sender}, Arc, Mutex, RwLock},
+    mpsc::{self, Sender}, Arc, RwLock},
     thread::{self, JoinHandle}, time::Duration,
 };
 use log::{debug, error, info, warn};
@@ -31,7 +31,7 @@ pub struct SlmpWrite {
     dest: Sender<PointType>,
     dbs: Arc<RwLock<IndexMapFxHasher<String, SlmpDb>>>,
     // diagnosis: Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
-    services: Arc<Mutex<Services>>,
+    services: Arc<RwLock<Services>>,
     status: Arc<AtomicU32>,
     exit: Arc<ExitNotify>,
 }
@@ -45,7 +45,7 @@ impl SlmpWrite {
         conf: SlmpClientConfig,
         dest: Sender<PointType>,
         // diagnosis: Arc<Mutex<IndexMapFxHasher<DiagKeywd, DiagPoint>>>,
-        services: Arc<Mutex<Services>>,
+        services: Arc<RwLock<Services>>,
         status: Arc<AtomicU32>,
         exit: Arc<ExitNotify>,
     ) -> Self {
@@ -95,7 +95,7 @@ impl SlmpWrite {
                     let points = conf.points().iter().map(|point_conf| {
                         SubscriptionCriteria::new(&point_conf.name, Cot::Act)
                     }).collect::<Vec<SubscriptionCriteria>>();
-                    let (_, recv) = services.slock().subscribe(&conf.subscribe, &self_id, &points);
+                    let (_, recv) = services.wlock(&self_id).subscribe(&conf.subscribe, &self_id, &points);
                     let mut error_limit = ErrorLimit::new(3);
                     'main: while !exit.get() {
                         is_connected.add(true, &format!("{}.run | Connection established", self_id));

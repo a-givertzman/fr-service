@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, RecvTimeoutError, Sender}, Arc, Mutex}, thread, time::Duration
+    collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, RecvTimeoutError, Sender}, Arc, RwLock}, thread, time::Duration
 };
 use log::{debug, error, info, trace, warn};
 use crate::{
@@ -22,7 +22,7 @@ pub struct Task {
     name: Name,
     in_send: HashMap<String, Sender<PointType>>,
     rx_recv: Vec<Receiver<PointType>>,
-    services: Arc<Mutex<Services>>,
+    services: Arc<RwLock<Services>>,
     conf: TaskConfig,
     exit: Arc<AtomicBool>,
 }
@@ -32,7 +32,7 @@ impl Task {
     ///
     /// Creates new instance of [Task]
     /// - [parent] - the ID if the parent entity
-    pub fn new(conf: TaskConfig, services: Arc<Mutex<Services>>) -> Task {
+    pub fn new(conf: TaskConfig, services: Arc<RwLock<Services>>) -> Task {
         let (send, recv) = mpsc::channel();
         Task {
             id: conf.name.join(),
@@ -46,13 +46,13 @@ impl Task {
     }
     ///
     ///
-    fn subscriptions(&mut self, conf: &TaskConfig, services: &Arc<Mutex<Services>>) -> Option<(String, Vec<SubscriptionCriteria>)> {
+    fn subscriptions(&mut self, conf: &TaskConfig, services: &Arc<RwLock<Services>>) -> Option<(String, Vec<SubscriptionCriteria>)> {
         if conf.subscribe.is_empty() {
             None
         } else {
             debug!("{}.subscriptions | requesting points...", self.id);
             let mut self_points = self.conf.points();
-            let mut points = services.slock().points(&self.id);
+            let mut points = services.wlock(&self.id).points(&self.id);
             points.append(&mut self_points);
             debug!("{}.subscriptions | rceived points: {:#?}", self.id, points.len());
             debug!("{}.subscriptions | rceived points: {:#?}", self.id, points);
@@ -78,10 +78,10 @@ impl Task {
     }
     ///
     ///
-    fn subscribe(&mut self, subscriptions: &Option<(String, Vec<SubscriptionCriteria>)>, services: &Arc<Mutex<Services>>) -> Receiver<PointType> {
+    fn subscribe(&mut self, subscriptions: &Option<(String, Vec<SubscriptionCriteria>)>, services: &Arc<RwLock<Services>>) -> Receiver<PointType> {
         match subscriptions {
             Some((service_name, points)) => {
-                let (_, rx_recv) = services.slock().subscribe(
+                let (_, rx_recv) = services.wlock(&self.id).subscribe(
                     service_name,
                     &self.name.join(),
                     points,
@@ -144,7 +144,7 @@ impl Service for Task {
         let handle = thread::Builder::new().name(format!("{} - main", self_id)).spawn(move || {
             let mut cycle = ServiceCycle::new(&self_id, cycle_interval);
             let mut task_nodes = TaskNodes::new(&self_id);
-            task_nodes.buildNodes(&self_name, conf, services.clone());
+            task_nodes.build_nodes(&self_name, conf, services.clone());
             trace!("{}.run | taskNodes: {:#?}", self_id, task_nodes);
             'main: loop {
                 cycle.start();
@@ -175,7 +175,7 @@ impl Service for Task {
                 }
             };
             if let Some((service_name, points)) = subscriptions {
-                if let Err(err) = services.slock().unsubscribe(&service_name,&self_name.join(), &points) {
+                if let Err(err) = services.wlock(&self_id).unsubscribe(&service_name,&self_name.join(), &points) {
                     error!("{}.run | Unsubscribe error: {:#?}", self_id, err);
                 }
             }
