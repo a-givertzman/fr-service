@@ -23,6 +23,7 @@ use crate::{
 ///     comment: Point produced from the Task   # Optional
 ///     input: point real '/App/Load'           # Optional
 ///     send-to: /App/MultiQueue.in-queue       # Optional
+///     enable: const bool true                 # Optional, default true, enables the export if true (>0)
 ///     changes-only: const bool false          # Optional, default false
 /// ```
 #[derive(Debug)]
@@ -31,6 +32,7 @@ pub struct FnPoint {
     tx_id: usize,
     kind: FnKind,
     conf: PointConfig,
+    enable: Option<FnInOutRef>,
     changes_only: Option<FnInOutRef>,
     input: Option<FnInOutRef>,
     send_to: Option<Sender<PointType>>,
@@ -44,13 +46,14 @@ impl FnPoint {
     /// - id - just for proper debugging
     /// - input - incoming points
     /// - if [changes-only] is specified and true - changes only will be sent, default false (sending all points)
-    pub fn new(parent: impl Into<String>, conf: PointConfig, changes_only: Option<FnInOutRef>, input: Option<FnInOutRef>, send_to: Option<Sender<PointType>>) -> Self {
+    pub fn new(parent: impl Into<String>, conf: PointConfig, enable: Option<FnInOutRef>, changes_only: Option<FnInOutRef>, input: Option<FnInOutRef>, send_to: Option<Sender<PointType>>) -> Self {
         let self_id = format!("{}/FnPoint{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed));
         Self {
             id: self_id.clone(),
             tx_id: PointTxId::fromStr(&self_id),
             kind: FnKind::Fn,
             conf,
+            enable,
             changes_only,
             input,
             send_to,
@@ -161,6 +164,10 @@ impl FnOut for FnPoint {
     }
     //
     fn out(&mut self) -> PointType {
+        let enable = match &self.enable {
+            Some(enable) => enable.borrow_mut().out().to_bool().as_bool().value.0,
+            None => true,
+        };
         match &self.input {
             Some(input) => {
                 let point = input.borrow_mut().out();
@@ -173,16 +180,22 @@ impl FnOut for FnPoint {
                         if changes_only {
                             if &point != state {
                                 self.state = Some(point.clone());
-                                self.send(&point);
+                                if enable {
+                                    self.send(&point);
+                                }
                             }
                         } else {
                             self.state = Some(point.clone());
-                            self.send(&point);
+                            if enable {
+                                self.send(&point);
+                            }
                         }
                     }
                     None => {
                         self.state = Some(point.clone());
-                        self.send(&point);
+                        if enable {
+                            self.send(&point);
+                        }
                     }
                 }
                 point

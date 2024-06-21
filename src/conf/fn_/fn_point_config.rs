@@ -8,10 +8,13 @@ use crate::conf::{
 /// Represents configuration of the point in the NestedFn
 ///  - send-to - Service.Queue where the point will be sent
 ///  - input - the source of the point value  
+///  - enable: const bool true                 # Optional, default true
+///  - changes-only: const bool false          # Optional, default false
 #[derive(Debug, PartialEq, Clone)]
 pub struct FnPointConfig {
     pub conf: PointConfig,
     pub send_to: Option<String>,
+    pub enable: Option<Box<FnConfKind>>,
     pub input: Option<Box<FnConfKind>>,
     pub changes_only: Option<Box<FnConfKind>>,
 }

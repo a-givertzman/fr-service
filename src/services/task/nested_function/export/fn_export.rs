@@ -27,7 +27,6 @@ use crate::{
 ///     conf point Point.Name:          # full name will be: /App/Task/Point.Name
 ///         type: 'Bool'
 ///     input: point string /AppTest/Exit
-/// 
 /// ```
 #[derive(Debug)]
 pub struct FnExport {

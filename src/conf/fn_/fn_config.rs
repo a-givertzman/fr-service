@@ -98,19 +98,29 @@ impl FnConfig {
                         }
                         FnConfKeywd::Point(value) => {
                             debug!("FnConfig.new | Point: {:?}", value);
+                            let result = Self::get_param_by_keyword(conf_tree, "enable", FnConfKindName::Const | FnConfKindName::Fn | FnConfKindName::Var | FnConfKindName::Point);
+                            debug!("FnConfig.new | Point 'enable': {:?}", result);
+                            let enable = match result {
+                                Ok(conf) => {
+                                    // debug!("FnConfig.new | Point 'enable' keyword: {:?}", keyword);
+                                    Some(Box::new(FnConfig::new(parent_id, parent_name, &conf, vars)))
+                                }
+                                Err(_) => None,
+                            };
                             let result = Self::get_param_by_keyword(conf_tree, "input", FnConfKindName::Const | FnConfKindName::Fn | FnConfKindName::Var | FnConfKindName::Point);
-                            debug!("FnConfig.new | Point input: {:?}", result);
+                            debug!("FnConfig.new | Point 'input': {:?}", result);
                             let input = match result {
                                 Ok(conf) => {
-                                    // debug!("FnConfig.new | Point input keyword: {:?}", keyword);
+                                    // debug!("FnConfig.new | Point 'input' keyword: {:?}", keyword);
                                     Some(Box::new(FnConfig::new(parent_id, parent_name, &conf, vars)))
                                 }
                                 Err(_) => None,
                             };
                             let result = Self::get_param_by_keyword(conf_tree, "changes-only", FnConfKindName::Const | FnConfKindName::Fn | FnConfKindName::Var | FnConfKindName::Point);
+                            debug!("FnConfig.new | Point 'changes-only': {:?}", result);
                             let changes_only = match result {
                                 Ok(conf) => {
-                                    // debug!("FnConfig.new | Point input keyword: {:?}", keyword);
+                                    // debug!("FnConfig.new | Point 'changes-only' keyword: {:?}", keyword);
                                     Some(Box::new(FnConfig::new(parent_id, parent_name, &conf, vars)))
                                 }
                                 Err(_) => None,
@@ -119,6 +129,7 @@ impl FnConfig {
                                 FnPointConfig {
                                     conf: PointConfig::new(parent_name, conf_tree),
                                     send_to: conf_tree.asStr("send-to").map_or(None, |v| Some(v.to_owned())),
+                                    enable,
                                     input,
                                     changes_only,
                                 }

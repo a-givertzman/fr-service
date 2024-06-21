@@ -85,15 +85,17 @@ mod tests {
                     ("in1".to_string(), FnConfKind::PointConf( FnPointConfig {
                         conf: test_point1,
                         send_to: None,
+                        enable: None,
                         input: Some(Box::new(FnConfKind::Const( FnConfig { name: "0.05".to_string(), type_: FnConfPointType::Real, inputs: IndexMap::new()} ))),
                         changes_only: None,
                     })),
                     ("in2".to_string(), FnConfKind::PointConf( FnPointConfig {
-                            conf: test_point2,
-                            send_to: None,
-                            input: Some(Box::new(FnConfKind::Const( FnConfig { name: "0.07".to_string(), type_: FnConfPointType::Real, inputs: IndexMap::new()} ))),
-                            changes_only: None,
-                        })),
+                        conf: test_point2,
+                        send_to: None,
+                        enable: None,
+                        input: Some(Box::new(FnConfKind::Const( FnConfig { name: "0.07".to_string(), type_: FnConfPointType::Real, inputs: IndexMap::new()} ))),
+                        changes_only: None,
+                    })),
                 ]) } ),
             ),
         ];
