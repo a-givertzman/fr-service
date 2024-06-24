@@ -79,7 +79,7 @@ impl Services {
                     .iter()
                     .map(|(owner, p)| {
                         p.iter().map(|p| {
-                            concat_string!(owner, " | ", p.id.to_string(), " | ", p.type_.to_string(), " | ", p.name)
+                            concat_string!(owner, " | ", p.id.to_string(), " | ", p.type_.to_string(), " | ", p.name, "\n")
                         }).collect()
                     }).collect::<Vec<String>>();
                 info!("{}.prepare_point_ids | Points: {:#?}", self_id, points);

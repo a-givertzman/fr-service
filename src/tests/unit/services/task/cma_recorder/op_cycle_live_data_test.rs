@@ -249,14 +249,14 @@ mod cma_recorder {
             &test_data,
         )));
         services.wlock(self_id).insert(producer.clone());
+        thread::sleep(Duration::from_millis(100));
         let services_handle = services.wlock(self_id).run().unwrap();
         let multi_queue_handle = multi_queue.lock().unwrap().run().unwrap();
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         info!("receiver runing - ok");
         let task_handle = task.lock().unwrap().run().unwrap();
         info!("task runing - ok");
-        
-        thread::sleep(Duration::from_millis(3000));
+        thread::sleep(Duration::from_millis(100));
         let producer_handle = producer.lock().unwrap().run().unwrap();
         info!("producer runing - ok");
         let time = Instant::now();

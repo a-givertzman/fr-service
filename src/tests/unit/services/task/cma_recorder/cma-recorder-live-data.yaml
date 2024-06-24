@@ -502,8 +502,8 @@ service Task RecorderTask:
                 table: public.operating_cycle_value
                 sql: insert into {table} (pid, value, timestamp) values ({pid.value}, {input.value}, {input.timestamp});
                 pid fn PointId:
-                    input: const int 1
-                #     input: point real '/AppTest/Load'
+                    # input: const int 1
+                    input: point real '/AppTest/Load'
                 input: const real 777.777
                 # input fn PiecewiseLineApprox:
                 #     input: point real '/AppTest/Load'
