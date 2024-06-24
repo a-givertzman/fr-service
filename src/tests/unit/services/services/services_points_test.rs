@@ -2,7 +2,7 @@
 
 mod services_points {
     use log::{error, trace};
-    use std::{env, sync::{Arc, Mutex, Once, RwLock}, thread, time::Duration};
+    use std::{env, sync::{Arc, Mutex, Once, RwLock}, time::Duration};
     use testing::stuff::{max_test_duration::TestDuration, wait::WaitTread};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{

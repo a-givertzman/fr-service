@@ -4,7 +4,8 @@ use concat_string::concat_string;
 use crate::{
     conf::point_config::{name::Name, point_config::PointConfig}, core_::{future::{Future, Sink}, object::object::Object, point::point_type::PointType},
     services::{
-        multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName, retain_point_id::RetainPointId, safe_lock::SafeLock, service::service::Service, task::service_cycle::ServiceCycle
+        multi_queue::subscription_criteria::SubscriptionCriteria, queue_name::QueueName,
+        retain_point_id::RetainPointId, safe_lock::SafeLock, service::service::Service, task::service_cycle::ServiceCycle
     }
 };
 use super::service::service_handles::ServiceHandles;
@@ -14,7 +15,7 @@ pub struct Services {
     id: String,
     name: Name,
     map: Arc<RwLock<HashMap<String, Arc<Mutex<dyn Service + Send>>>>>,
-    point_ids: Arc<RwLock<RetainPointId>>,
+    retain_point_id: Arc<RwLock<RetainPointId>>,
     points_requested: Arc<AtomicUsize>,
     points_request: Arc<RwLock<Vec< (String, Sink<Vec<PointConfig>>) >>>,
     exit: Arc<AtomicBool>,
@@ -51,7 +52,7 @@ impl Services {
             id: self_id.clone(),
             name,
             map: Arc::new(RwLock::new(HashMap::new())),
-            point_ids: Arc::new(RwLock::new(RetainPointId::new(&self_id, "assets/retain_points.json"))),
+            retain_point_id: Arc::new(RwLock::new(RetainPointId::new(&self_id, "assets/retain_points.json"))),
             points_requested: Arc::new(AtomicUsize::new(0)),
             points_request: Arc::new(RwLock::new(vec![])),
             exit: Arc::new(AtomicBool::new(false)),
@@ -59,26 +60,28 @@ impl Services {
     }
     ///
     /// Prepairing retained points id's
-    fn prepare_point_ids(self_id: &str, point_ids: &Arc<RwLock<RetainPointId>>, services: &Arc<RwLock<HashMap<String, Arc<Mutex<dyn Service + Send>>>>>) {
+    fn prepare_point_ids(self_id: &str, retain_point_id: &Arc<RwLock<RetainPointId>>, services: &Arc<RwLock<HashMap<String, Arc<Mutex<dyn Service + Send>>>>>) {
         info!("{}.prepare_point_ids | Preparing Points id's...", self_id);
-        let mut points = vec![];
         match services.read() {
             Ok(services) => {
-                for (_service_id, service) in services.iter() {
-                    let mut service_points = service.slock(self_id).points();
-                    points.append(&mut service_points);
-                };
-                match point_ids.write() {
-                    Ok(mut point_ids) => {
-                        point_ids.points(points);
+                for (service_id, service) in services.iter() {
+                    let service_points = service.slock(self_id).points();
+                    match retain_point_id.write() {
+                        Ok(mut retain_point_id) => {
+                            retain_point_id.insert(&service_id, service_points);
+                        }
+                        Err(err) => error!("{}.prepare_point_ids | Points id's write access error: {:#?}", self_id, err),
                     }
-                    Err(err) => error!("{}.prepare_point_ids | Points id's write access error: {:#?}", self_id, err),
-                }
-                info!("{}.prepare_point_ids | Points is chashed: {}", self_id, point_ids.read().unwrap().is_cached());
-                let points = point_ids.write().unwrap()
-                    .points(vec![])
+                };
+                info!("{}.prepare_point_ids | Points is chashed: {}", self_id, retain_point_id.read().unwrap().is_cached());
+                let points = retain_point_id.write().unwrap()
+                    .points()
                     .iter()
-                    .map(|p| concat_string!(p.id.to_string(), " | ", p.type_.to_string(), " | ", p.name)).collect::<Vec<String>>();
+                    .map(|(owner, p)| {
+                        p.iter().map(|p| {
+                            concat_string!(owner, " | ", p.id.to_string(), " | ", p.type_.to_string(), " | ", p.name)
+                        }).collect()
+                    }).collect::<Vec<String>>();
                 info!("{}.prepare_point_ids | Points: {:#?}", self_id, points);
                 info!("{}.prepare_point_ids | Preparing Points id's - ok", self_id);
             }
@@ -92,13 +95,13 @@ impl Services {
         let self_id = self.id.clone();
         let points_requested = self.points_requested.clone();
         let points_request = self.points_request.clone();
-        let point_ids = self.point_ids.clone();
+        let retain_point_id = self.retain_point_id.clone();
         let services = self.map.clone();
         let exit = self.exit.clone();
         info!("{}.run | Preparing thread...", self_id);
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);
-            Self::prepare_point_ids(&self_id, &point_ids, &services);
+            Self::prepare_point_ids(&self_id, &retain_point_id, &services);
             let mut cycle = ServiceCycle::new(&self_id, Duration::from_millis(10));
             loop {
                 cycle.start();
@@ -109,9 +112,17 @@ impl Services {
                                 Some((requester_name, sink)) => {
                                     debug!("{}.run | Points requested from: '{}'", self_id, requester_name);
                                     points_requested.fetch_sub(1, Ordering::SeqCst);
-                                    match point_ids.write() {
-                                        Ok(mut point_ids) => {
-                                            sink.add(point_ids.points(vec![]));
+                                    match retain_point_id.write() {
+                                        Ok(mut retain_point_id) => {
+                                            let points = retain_point_id.points()
+                                            .into_iter().filter_map(|(owner, points)| {
+                                                if *owner != requester_name {
+                                                    Some(points)
+                                                } else {
+                                                    None
+                                                }
+                                            }).flatten().collect();
+                                            sink.add(points);
                                             debug!("{}.run | Points requested from: '{}' - Ok", self_id, requester_name);
                                         }
                                         Err(err) => error!("{}.run | Points id's write access error, requester: '{}', error: {:#?}", self_id, requester_name, err),

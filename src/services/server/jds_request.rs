@@ -96,7 +96,7 @@ impl JdsRequest {
             }
             RequestKind::Points => {
                 debug!("{}.handle.Points | Request '{}': \n\t{:?}", self_id, RequestKind::POINTS, request);
-                let points = services.wlock(&self_id).points(requester_name).then(
+                let points = services.rlock(&self_id).points(requester_name).then(
                     |points| points,
                     |err| {
                         error!("{}.handle.Points | Requesting points error: {:?}", self_id, err);
@@ -145,7 +145,7 @@ impl JdsRequest {
                             None => {
                                 debug!("{}.handle.Subscribe | 'Subscribe' request (broadcast)", self_id);
                                 trace!("{}.handle.Subscribe | 'Subscribe' request (broadcast): {:?}", self_id, request);
-                                services.wlock(&self_id).points(requester_name).then(|points| points, |err| {
+                                services.rlock(&self_id).points(requester_name).then(|points| points, |err| {
                                     error!("{}.handle.Subscribe | Requesting points error: {:?}", self_id, err);
                                     vec![]
                                 })
@@ -160,7 +160,7 @@ impl JdsRequest {
                     }
                     Err(err) => {
                         warn!("{}.handle.Subscribe | 'Subscribe' request parsing error: {:?}\n\t request: {:?}", self_id, err, request);
-                        services.wlock(&self_id).points(requester_name).then(|points| points, |err| {
+                        services.rlock(&self_id).points(requester_name).then(|points| points, |err| {
                             error!("{}.handle.Subscribe | Requesting points error: {:?}", self_id, err);
                             vec![]
                         })

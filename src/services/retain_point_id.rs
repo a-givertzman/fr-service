@@ -2,16 +2,18 @@ use std::{collections::HashMap, env, ffi::OsStr, fs, hash::BuildHasherDefault, p
 use api_tools::{api::reply::api_reply::ApiReply, client::{api_query::{ApiQuery, ApiQueryKind, ApiQuerySql}, api_request::ApiRequest}};
 use hashers::fx_hash::FxHasher;
 use concat_string::concat_string;
+use indexmap::IndexMap;
 use log::{debug, error, info, trace, warn};
 use serde::{Deserialize, Serialize};
 use crate::{conf::point_config::{point_config::PointConfig, point_config_type::PointConfigType}, core_::types::map::HashMapFxHasher};
+type RetainedCahe = HashMapFxHasher<String, HashMapFxHasher<String, RetainedPointConfig>>;
 ///
 /// Stores unique Point ID in the json file
 #[derive(Debug)]
 pub struct RetainPointId {
     id: String,
     path: String,
-    cache: Vec<PointConfig>,
+    cache: IndexMap<String, Vec<PointConfig>>,
     api_address: String,
     api_auth_token: String,
     api_database: String,
@@ -28,7 +30,7 @@ impl RetainPointId {
         Self {
             id: format!("{}/RetainPointId", parent),
             path: path.to_owned(),
-            cache: vec![],
+            cache: IndexMap::new(),
             api_address: "0.0.0.0:8080".to_owned(),
             api_auth_token: "123!@#".to_owned(),
             api_database: "crane_data_server".to_owned(),
@@ -40,53 +42,45 @@ impl RetainPointId {
         !self.cache.is_empty()
     }
     ///
-    /// Returns configuration of the Point's
-    pub fn points(&mut self, points: Vec<PointConfig>) -> Vec<PointConfig> {
-        if !self.is_cached() {
-            info!("{}.points | Caching Point's...", self.id);
-            let mut update_retained = false;
-            let mut retained: HashMapFxHasher<String, RetainedPointConfig> = self.read(self.path.clone());
-            trace!("{}.points | retained: {:#?}", self.id, retained);
-            for mut point in points {
-                trace!("{}.points | point: {}...", self.id, point.name);
-                let id = match retained.get(&point.name) {
-                    Some(conf) => {
-                        trace!("{}.points |     found: {}", self.id, conf.id);
-                        conf.id
-                    }
-                    None => {
-                        trace!("{}.points |     not found, calculating max...",self.id);
-                        update_retained = true;
-                        let id = retained
-                            .values()
-                            .map(|conf| conf.id)
-                            .max()
-                            .map_or(0, |id| id + 1);
-                        point.id = id;
-                        retained.insert(point.name.clone(), RetainedPointConfig { id: point.id, name: point.name.clone(), _type: point.type_.clone() });
-                        trace!("{}.points |     calculated: {}", self.id, id);
-                        id
-                    }
-                };
-                self.cache.push(
-                    PointConfig {
-                        id,
-                        name: point.name,
-                        type_: point.type_,
-                        history: point.history,
-                        alarm: point.alarm,
-                        address: point.address,
-                        filters: point.filters,
-                        comment: point.comment,
-                    }
-                );
-            }
-            if update_retained {
-                self.write(&self.path, &retained).unwrap();
-                self.sql_write(&retained)
-            }
-            info!("{}.points | Caching Point's - Ok", self.id);
+    /// Inserts collection of [points] owned by [owner]
+    pub fn insert(&mut self, owner: &str, points: Vec<PointConfig>) {
+        info!("{}.points | Caching Point's from '{}'...", self.id, owner);
+        let mut update_retained = false;
+        let mut retained: RetainedCahe = self.read(self.path.clone());
+        trace!("{}.points | retained: {:#?}", self.id, retained);
+        for mut point in points {
+            trace!("{}.points | point: {}...", self.id, point.name);
+            let retained_clone = retained.clone();
+            retained
+                .entry(owner.to_owned())
+                .or_insert(HashMapFxHasher::with_hasher(BuildHasherDefault::<FxHasher>::default()))
+                .entry(point.name.clone())
+                .or_insert_with(|| {
+                    let id = retained_clone.values().map(|v| {
+                        v.values()
+                        .map(|conf| conf.id)
+                        .max().unwrap_or(0)
+                    })
+                    .max()
+                    .map_or(0, |id| id + 1);
+                    point.id = id;
+                    update_retained = true;
+                    RetainedPointConfig { id, name: point.name.clone(), _type: point.type_.clone() }
+                });
+            self.cache
+                .entry(owner.to_owned())
+                .or_insert(vec![])
+                .push(point.clone());
         }
+        if update_retained {
+            self.write(&self.path, &retained).unwrap();
+            self.sql_write(&retained)
+        }
+        info!("{}.points | Caching Point's from '{}' - Ok", self.id, owner);
+    }
+    ///
+    /// Returns configuration of the Point's
+    pub fn points(&mut self) -> IndexMap<String, Vec<PointConfig>> {
         self.cache.clone()
     }
     ///
@@ -118,7 +112,7 @@ impl RetainPointId {
     ///     ...
     /// }
     /// ```
-    fn read<P: AsRef<Path> + AsRef<OsStr> + std::fmt::Display>(&self, path: P) -> HashMapFxHasher<String, RetainedPointConfig> {
+    fn read<P: AsRef<Path> + AsRef<OsStr> + std::fmt::Display>(&self, path: P) -> HashMapFxHasher<String, HashMapFxHasher<String, RetainedPointConfig>> {
         match fs::read_to_string(&path) {
             Ok(json_string) => {
                 match serde_json::from_str(&json_string) {
@@ -169,7 +163,7 @@ impl RetainPointId {
     }
     ///
     /// Stores points into the database
-    fn sql_write(&self, retained: &HashMapFxHasher<String, RetainedPointConfig>) {
+    fn sql_write(&self, retained: &RetainedCahe) {
         let api_keep_alive = true;
         let sql_keep_alive = true;
         let mut request = ApiRequest::new(
@@ -184,9 +178,11 @@ impl RetainPointId {
             false,
         );
         _ = self.sql_request(&mut request, "truncate public.tags;", api_keep_alive);
-        for point in retained.values() {
-            let sql = format!("insert into public.tags (id, type, name) values ({},'{:?}','{}');", point.id, point._type, point.name);
-            _ = self.sql_request(&mut request, &sql, api_keep_alive);
+        for (_owner, points) in retained {
+            for point in points.values() {
+                let sql = format!("insert into public.tags (id, type, name) values ({},'{:?}','{}');", point.id, point._type, point.name);
+                _ = self.sql_request(&mut request, &sql, api_keep_alive);
+            }
         }
     }
     ///

@@ -141,19 +141,12 @@ impl NestedFn {
                         let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
                         // debug!("{}.functions | Functions::PointId | input: {:?}", self_id, input);
-                        let points = {
-                            debug!("{}.functions | Functions::PointId | requesting points...", self_id);
-                            let services_lock = services.wlock(&format!("{}.PointId", self_id));
-                            debug!("{}.functions | Functions::PointId | requesting points...", self_id);
-                            services_lock.points(&parent.join())
-                                .then(
-                                    |points| points,
-                                    |err| {
-                                        error!("{}.functions | Functions::PointId | Requesting points error: {:?}", self_id, err);
-                                        vec![]
-                                    },
-                                )
-                        };
+                        debug!("{}.functions | Functions::PointId | requesting points...", self_id);
+                        let points = services.rlock(&format!("{}.PointId", self_id)).points(&parent.join())
+                            .then(|points| points, |err| {
+                                error!("{}.functions | Functions::PointId | Requesting points error: {:?}", self_id, err);
+                                vec![]
+                            });
                         // debug!("{}.functions | Functions::PointId | points: {:?}", self_id, points);
                         Rc::new(RefCell::new(Box::new(
                             FnPointId::new(parent, input, points)

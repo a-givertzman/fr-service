@@ -31,7 +31,7 @@ mod cma_recorder {
     fn init_each() -> () {}
     ///
     /// Testing the Recorder's SQL generated after detected operating cycle finished
-    // #[test]
+    #[test]
     fn operating_cycle_live_data() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
@@ -256,7 +256,7 @@ mod cma_recorder {
         let task_handle = task.lock().unwrap().run().unwrap();
         info!("task runing - ok");
         
-        thread::sleep(Duration::from_millis(1000));
+        thread::sleep(Duration::from_millis(3000));
         let producer_handle = producer.lock().unwrap().run().unwrap();
         info!("producer runing - ok");
         let time = Instant::now();

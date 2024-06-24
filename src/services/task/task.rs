@@ -53,7 +53,7 @@ impl Task {
         } else {
             debug!("{}.subscriptions | requesting points...", self.id);
             let mut self_points = self.conf.points();
-            let mut points = services.wlock(&self.id).points(&self.id).then(
+            let mut points = services.rlock(&self.id).points(&self.id).then(
                 |points| points,
                 |err| {
                     error!("{}.subscriptions | Requesting Points error: {:?}", self.id, err);

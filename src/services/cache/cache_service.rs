@@ -322,7 +322,7 @@ impl Service for CacheService {
         let conf = self.conf.clone();
         let services = self.services.clone();
         let cache = self.cache.clone();
-        let point_configs = services.wlock(&self_id).points(&self_name.join())
+        let point_configs = services.rlock(&self_id).points(&self_name.join())
             .then(
                 |points| points,
             |err| {

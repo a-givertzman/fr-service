@@ -135,7 +135,7 @@ impl JdsConnection {
                 HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default()),
             ));
             receivers.write().unwrap().insert(Cot::Req, services.rlock(&self_id).get_link(&self_conf_send_to));
-            let points = services.wlock(&self_id).points(&self_id)
+            let points = services.rlock(&self_id).points(&self_id)
                 .then(
                     |points| points,
                     |err| {
