@@ -108,9 +108,11 @@ mod multi_queue {
             )));
             services.wlock(self_id).insert(sender.clone());
             senders.push(sender.clone());
+        }
+        let services_handle = services.wlock(self_id).run().unwrap();
+        for sender in &senders {
             let sender_handle = sender.lock().unwrap().run().unwrap();
             sender_handles.push(sender_handle);
-            // thread::sleep(Duration::from_millis(50));
         }
         for h in sender_handles {
             h.wait().unwrap()
@@ -138,7 +140,9 @@ mod multi_queue {
             assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
         mq_service.lock().unwrap().exit();
+        services.rlock(self_id).exit();
         mq_handle.wait().unwrap();
+        services_handle.wait().unwrap();
         test_duration.exit();
     }
 }

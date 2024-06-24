@@ -96,7 +96,13 @@ impl JdsRequest {
             }
             RequestKind::Points => {
                 debug!("{}.handle.Points | Request '{}': \n\t{:?}", self_id, RequestKind::POINTS, request);
-                let points = services.wlock(&self_id).points(requester_name);
+                let points = services.wlock(&self_id).points(requester_name).then(
+                    |points| points,
+                    |err| {
+                        error!("{}.handle.Points | Requesting points error: {:?}", self_id, err);
+                        vec![]
+                    },
+                );
                 let points: HashMap<String, &PointConfig> = points.iter().map(|conf| {
                     (conf.name.clone(), conf)
                 }).collect();
@@ -139,7 +145,11 @@ impl JdsRequest {
                             None => {
                                 debug!("{}.handle.Subscribe | 'Subscribe' request (broadcast)", self_id);
                                 trace!("{}.handle.Subscribe | 'Subscribe' request (broadcast): {:?}", self_id, request);
-                                services.wlock(&self_id).points(requester_name).iter().fold(vec![], |mut points, point_conf| {
+                                services.wlock(&self_id).points(requester_name).then(|points| points, |err| {
+                                    error!("{}.handle.Subscribe | Requesting points error: {:?}", self_id, err);
+                                    vec![]
+                                })
+                                .iter().fold(vec![], |mut points, point_conf| {
                                     points.extend(
                                         Self::map_points_to_creteria(&point_conf.name, vec![Cot::Inf, Cot::ActCon, Cot::ActErr])
                                     );
@@ -150,7 +160,11 @@ impl JdsRequest {
                     }
                     Err(err) => {
                         warn!("{}.handle.Subscribe | 'Subscribe' request parsing error: {:?}\n\t request: {:?}", self_id, err, request);
-                        services.wlock(&self_id).points(requester_name).iter().fold(vec![], |mut points, point_conf| {
+                        services.wlock(&self_id).points(requester_name).then(|points| points, |err| {
+                            error!("{}.handle.Subscribe | Requesting points error: {:?}", self_id, err);
+                            vec![]
+                        })
+                        .iter().fold(vec![], |mut points, point_conf| {
                             points.extend(
                                 Self::map_points_to_creteria(&point_conf.name, vec![Cot::Inf, Cot::ActCon, Cot::ActErr])
                             );

@@ -2,6 +2,7 @@ use std::{
     collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, Ordering}, mpsc::{self, Receiver, RecvTimeoutError, Sender}, Arc, RwLock}, thread, time::Duration
 };
 use log::{debug, error, info, trace, warn};
+use concat_string::concat_string;
 use crate::{
     core_::{point::point_type::PointType, constants::constants::RECV_TIMEOUT, object::object::Object, point::point_tx_id::PointTxId},
     conf::{point_config::{name::Name, point_config::PointConfig}, task_config::TaskConfig}, 
@@ -52,10 +53,20 @@ impl Task {
         } else {
             debug!("{}.subscriptions | requesting points...", self.id);
             let mut self_points = self.conf.points();
-            let mut points = services.wlock(&self.id).points(&self.id);
+            let mut points = services.wlock(&self.id).points(&self.id).then(
+                |points| points,
+                |err| {
+                    error!("{}.subscriptions | Requesting Points error: {:?}", self.id, err);
+                    vec![]
+                },
+            );
             points.append(&mut self_points);
             debug!("{}.subscriptions | rceived points: {:#?}", self.id, points.len());
-            debug!("{}.subscriptions | rceived points: {:#?}", self.id, points);
+            debug!(
+                "{}.subscriptions | rceived points: {:#?}",
+                self.id,
+                points.iter().map(|p| concat_string!(p.id.to_string(), " | ", p.type_.to_string(), " | ", p.name)).collect::<Vec<String>>(),
+            );
             debug!("{}.subscriptions | conf.subscribe: {:#?}", self.id, conf.subscribe);
             let subscriptions = conf.subscribe.with(&points);
             trace!("{}.subscriptions | subscriptions: {:#?}", self.id, subscriptions);

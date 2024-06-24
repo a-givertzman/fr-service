@@ -89,6 +89,7 @@ mod tcp_client {
         let tcp_client_service_id = tcp_client.lock().unwrap().id().to_owned();
         services.wlock(self_id).insert(tcp_client.clone());
         services.wlock(self_id).insert(multi_queue.clone());
+        let services_handle = services.wlock(self_id).run().unwrap();
         let sent = Arc::new(Mutex::new(vec![]));
         let tcp_client = services.rlock(self_id).get(&tcp_client_service_id).unwrap();
         debug!("Running service {}...", multi_queue_service_id);
@@ -101,7 +102,9 @@ mod tcp_client {
         thread::sleep(Duration::from_micros(100));
         let timer = Instant::now();
         debug!("Test - setup - ok");
+        services.rlock(self_id).exit();
         handle.wait().unwrap();
+        services_handle.wait().unwrap();
         let mut sent = sent.lock().unwrap();
         println!("elapsed: {:?}", timer.elapsed());
         println!("total test events: {:?}", total_count);

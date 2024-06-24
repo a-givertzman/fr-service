@@ -52,6 +52,7 @@ mod profinet_client {
         debug!("config points:");
         let client = Arc::new(Mutex::new(ProfinetClient::new(conf, services.clone())));
         services.wlock(self_id).insert(client.clone());
+        let services_handle = services.wlock(self_id).run().unwrap();
         let mq_service_handle = mq_service.lock().unwrap().run().unwrap();
         let client_handle = client.lock().unwrap().run().unwrap();
         thread::sleep(Duration::from_millis(2000));
@@ -124,8 +125,10 @@ mod profinet_client {
         // thread::sleep(Duration::from_millis(3000));
         client.lock().unwrap().exit();
         mq_service.lock().unwrap().exit();
+        services.rlock(self_id).exit();
         client_handle.wait().unwrap();
         mq_service_handle.wait().unwrap();
         test_duration.exit();
+        services_handle.wait().unwrap();
     }
 }

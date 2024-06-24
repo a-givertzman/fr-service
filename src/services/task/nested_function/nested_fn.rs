@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc, str::FromStr, sync::{Arc, RwLock}};
 use indexmap::IndexMap;
-use log::{debug, trace, warn};
+use log::{debug, error, trace, warn};
 use crate::{
     conf::{fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind}, point_config::name::Name},
     core_::{
@@ -140,14 +140,21 @@ impl NestedFn {
                         let name = "input";
                         let input_conf = conf.input_conf(name).unwrap();
                         let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
-                        debug!("{}.functions | Functions::PointId | input: {:?}", self_id, input);
+                        // debug!("{}.functions | Functions::PointId | input: {:?}", self_id, input);
                         let points = {
                             debug!("{}.functions | Functions::PointId | requesting points...", self_id);
-                            let mut services_lock = services.wlock(&format!("{}.PointId", self_id));
+                            let services_lock = services.wlock(&format!("{}.PointId", self_id));
                             debug!("{}.functions | Functions::PointId | requesting points...", self_id);
                             services_lock.points(&parent.join())
+                                .then(
+                                    |points| points,
+                                    |err| {
+                                        error!("{}.functions | Functions::PointId | Requesting points error: {:?}", self_id, err);
+                                        vec![]
+                                    },
+                                )
                         };
-                        debug!("{}.functions | Functions::PointId | points: {:?}", self_id, points);
+                        // debug!("{}.functions | Functions::PointId | points: {:?}", self_id, points);
                         Rc::new(RefCell::new(Box::new(
                             FnPointId::new(parent, input, points)
                         )))

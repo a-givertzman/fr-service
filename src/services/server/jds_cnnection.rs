@@ -135,14 +135,22 @@ impl JdsConnection {
                 HashMap::with_hasher(BuildHasherDefault::<FxHasher>::default()),
             ));
             receivers.write().unwrap().insert(Cot::Req, services.rlock(&self_id).get_link(&self_conf_send_to));
-            let points = services.wlock(&self_id).points(&self_id).iter().fold(vec![], |mut points, point_conf| {
-                // points.push(SubscriptionCriteria::new(&point_conf.name, Cot::Inf));
-                // points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ActCon));
-                // points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ActErr));
-                points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ReqCon));
-                points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ReqErr));
-                points
-            });
+            let points = services.wlock(&self_id).points(&self_id)
+                .then(
+                    |points| points,
+                    |err| {
+                        error!("{}.functions | Functions::PointId | Requesting points error: {:?}", self_id, err);
+                        vec![]
+                    },
+                )            
+                .iter().fold(vec![], |mut points, point_conf| {
+                    // points.push(SubscriptionCriteria::new(&point_conf.name, Cot::Inf));
+                    // points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ActCon));
+                    // points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ActErr));
+                    points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ReqCon));
+                    points.push(SubscriptionCriteria::new(&point_conf.name, Cot::ReqErr));
+                    points
+                });
             let send = services.rlock(&self_id).get_link(&self_conf_send_to).unwrap_or_else(|err| {
                 panic!("{}.run | services.get_link error: {:#?}", self_id, err);
             });

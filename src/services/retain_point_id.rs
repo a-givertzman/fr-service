@@ -2,7 +2,7 @@ use std::{collections::HashMap, env, ffi::OsStr, fs, hash::BuildHasherDefault, p
 use api_tools::{api::reply::api_reply::ApiReply, client::{api_query::{ApiQuery, ApiQueryKind, ApiQuerySql}, api_request::ApiRequest}};
 use hashers::fx_hash::FxHasher;
 use concat_string::concat_string;
-use log::{debug, error, trace, warn};
+use log::{debug, error, info, trace, warn};
 use serde::{Deserialize, Serialize};
 use crate::{conf::point_config::{point_config::PointConfig, point_config_type::PointConfigType}, core_::types::map::HashMapFxHasher};
 ///
@@ -42,14 +42,14 @@ impl RetainPointId {
     ///
     /// Returns configuration of the Point's
     pub fn points(&mut self, points: Vec<PointConfig>) -> Vec<PointConfig> {
-        if self.cache.is_empty() {
+        if !self.is_cached() {
+            info!("{}.points | Caching Point's...", self.id);
             let mut update_retained = false;
             let mut retained: HashMapFxHasher<String, RetainedPointConfig> = self.read(self.path.clone());
             trace!("{}.points | retained: {:#?}", self.id, retained);
             for mut point in points {
                 trace!("{}.points | point: {}...", self.id, point.name);
-                let cached = retained.get(&point.name);
-                let id = match cached {
+                let id = match retained.get(&point.name) {
                     Some(conf) => {
                         trace!("{}.points |     found: {}", self.id, conf.id);
                         conf.id
@@ -85,6 +85,7 @@ impl RetainPointId {
                 self.write(&self.path, &retained).unwrap();
                 self.sql_write(&retained)
             }
+            info!("{}.points | Caching Point's - Ok", self.id);
         }
         self.cache.clone()
     }

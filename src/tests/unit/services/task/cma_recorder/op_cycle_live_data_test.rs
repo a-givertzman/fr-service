@@ -249,6 +249,7 @@ mod cma_recorder {
             &test_data,
         )));
         services.wlock(self_id).insert(producer.clone());
+        let services_handle = services.wlock(self_id).run().unwrap();
         let multi_queue_handle = multi_queue.lock().unwrap().run().unwrap();
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         info!("receiver runing - ok");
@@ -266,6 +267,8 @@ mod cma_recorder {
         producer_handle.wait().unwrap();
         multi_queue.lock().unwrap().exit();
         multi_queue_handle.wait().unwrap();
+        services.rlock(self_id).exit();
+        services_handle.wait().unwrap();
         let sent = producer.lock().unwrap().sent().lock().unwrap().len();
         let result = receiver.lock().unwrap().received().lock().unwrap().len();
         println!(" elapsed: {:?}", time.elapsed());

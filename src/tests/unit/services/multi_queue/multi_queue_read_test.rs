@@ -110,6 +110,7 @@ mod multi_queue {
             services.wlock(self_id).insert(recv_service.clone());
             recv_services.push(recv_service);
         }
+        let services_handle = services.wlock(self_id).run().unwrap();
         mq_service.lock().unwrap().run().unwrap();
         for service in &mut recv_services {
             let handle = service.lock().unwrap().run().unwrap();
@@ -133,6 +134,8 @@ mod multi_queue {
         for service in recv_services {
             service.lock().unwrap().exit();
         }
+        services.rlock(self_id).exit();
+        services_handle.wait().unwrap();
         test_duration.exit();
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
     }

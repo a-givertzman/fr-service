@@ -1,9 +1,9 @@
 #[cfg(test)]
 
 mod services_points {
-    use log::trace;
-    use std::{env, sync::{Arc, Mutex, Once, RwLock}, time::Duration};
-    use testing::stuff::max_test_duration::TestDuration;
+    use log::{error, trace};
+    use std::{env, sync::{Arc, Mutex, Once, RwLock}, thread, time::Duration};
+    use testing::stuff::{max_test_duration::TestDuration, wait::WaitTread};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         conf::{point_config::name::Name, task_config::TaskConfig},
@@ -44,8 +44,12 @@ mod services_points {
         let services = Arc::new(RwLock::new(Services::new(self_id)));
         let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
         services.wlock(self_id).insert(task.clone());
+        let services_handle = services.wlock(self_id).run().unwrap();
         let target  = 3;
-        let points = services.wlock(self_id).points(self_id);
+        let points = services.rlock(self_id).points(self_id).then(|points| points, |err| {
+            error!("{}.handle.Subscribe | Requesting points error: {:?}", self_id, err);
+            vec![]
+        });
         let points_count = points.len();
         println!();
         println!(" points count: {:?}", points_count);
@@ -53,6 +57,8 @@ mod services_points {
             println!("\t {:?}", point);
         }
         assert!(points_count == target, "\nresult: {:?}\ntarget: {:?}", points_count, target);
+        services.rlock(self_id).exit();
+        services_handle.wait().unwrap();
         test_duration.exit();
     }
 }

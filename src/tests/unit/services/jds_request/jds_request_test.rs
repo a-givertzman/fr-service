@@ -185,6 +185,7 @@ mod jds_routes {
         println!("\n{} | All configurations - ok\n", self_id);
         //
         // Starting all services
+        let services_handle = services.wlock(self_id).run().unwrap();
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         let mq_service_handle = mq_service.lock().unwrap().run().unwrap();
         let tcp_server_handle = tcp_server.lock().unwrap().run().unwrap();
@@ -208,10 +209,12 @@ mod jds_routes {
         receiver.lock().unwrap().exit();
         tcp_server.lock().unwrap().exit();
         mq_service.lock().unwrap().exit();
+        services.rlock(self_id).exit();
         //
         // Waiting while all services being finished
         mq_service_handle.wait().unwrap();
         tcp_server_handle.wait().unwrap();
+        services_handle.wait().unwrap();
         //
         // Reseting dureation timer
         test_duration.exit();
@@ -279,6 +282,7 @@ mod jds_routes {
         println!("\n{} | All configurations - ok\n", self_id);
         //
         // Starting all services
+        let services_handle = services.wlock(self_id).run().unwrap();
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         let mq_service_handle = mq_service.lock().unwrap().run().unwrap();
         let tcp_server_handle = tcp_server.lock().unwrap().run().unwrap();
@@ -308,11 +312,13 @@ mod jds_routes {
         receiver.lock().unwrap().exit();
         tcp_server.lock().unwrap().exit();
         mq_service.lock().unwrap().exit();
+        services.rlock(self_id).exit();
         //
         // Waiting while all services being finished
         receiver_handle.wait().unwrap();
         mq_service_handle.wait().unwrap();
         tcp_server_handle.wait().unwrap();
+        services_handle.wait().unwrap();
         //
         // Reseting dureation timer
         test_duration.exit();
@@ -424,6 +430,7 @@ mod jds_routes {
         println!("\n{} | All configurations - ok\n", self_id);
         //
         // Starting all services
+        let services_handle = services.wlock(self_id).run().unwrap();
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         let mq_service_handle = mq_service.lock().unwrap().run().unwrap();
         let tcp_server_handle = tcp_server.lock().unwrap().run().unwrap();
@@ -484,11 +491,13 @@ mod jds_routes {
         receiver.lock().unwrap().exit();
         tcp_server.lock().unwrap().exit();
         mq_service.lock().unwrap().exit();
+        services.rlock(self_id).exit();
         //
         // Waiting while all services being finished
         receiver_handle.wait().unwrap();
         mq_service_handle.wait().unwrap();
         tcp_server_handle.wait().unwrap();
+        services_handle.wait().unwrap();
         //
         // Reseting dureation timer
         test_duration.exit();
@@ -593,6 +602,7 @@ mod jds_routes {
         println!("{} | MockRecvService - ready", self_id);
         //
         // Starting all services
+        let services_handle = services.wlock(self_id).run().unwrap();
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         let mq_service_handle = mq_service.lock().unwrap().run().unwrap();
         let jds_service_handle = tcp_server.lock().unwrap().run().unwrap();
@@ -625,6 +635,7 @@ mod jds_routes {
         receiver.lock().unwrap().exit();
         tcp_server.lock().unwrap().exit();
         mq_service.lock().unwrap().exit();
+        services.rlock(self_id).exit();
         //
         // Verivications
         let received = receiver.lock().unwrap().received();
@@ -670,6 +681,7 @@ mod jds_routes {
         // Waiting while all services being finished
         mq_service_handle.wait().unwrap();
         jds_service_handle.wait().unwrap();
+        services_handle.wait().unwrap();
         //
         // Reseting dureation timer
         test_duration.exit();
