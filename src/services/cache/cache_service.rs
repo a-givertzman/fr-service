@@ -322,7 +322,14 @@ impl Service for CacheService {
         let conf = self.conf.clone();
         let services = self.services.clone();
         let cache = self.cache.clone();
-        let point_configs = services.wlock(&self_id).points(&self_name.join());
+        let point_configs = services.wlock(&self_id).points(&self_name.join())
+            .then(
+                |points| points,
+            |err| {
+                error!("{}.run | Requesting Points error: {:?}", self_id, err);
+                vec![]
+            }
+        );
         let (service_name, points) = self.subscriptions(&conf, &point_configs);
         debug!("{}.run | points: {:#?}", self_id, points.len());
         trace!("{}.run | points: {:#?}", self_id, points);

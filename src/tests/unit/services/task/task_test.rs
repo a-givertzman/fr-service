@@ -2,7 +2,7 @@
 
 mod task {
     use log::{trace, info};
-    use std::{env, sync::{Arc, Mutex, Once, RwLock}, thread, time::{Duration, Instant}};
+    use std::{env, sync::{Arc, Mutex, Once, RwLock}, time::{Duration, Instant}};
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, random_test_values::RandomTestValues, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
@@ -81,19 +81,22 @@ mod task {
         )));
         let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
         services.wlock(self_id).insert(task.clone());
+        let services_handle = services.wlock(self_id).run().unwrap();
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         info!("receiver runing - ok");
         let task_handle = task.lock().unwrap().run().unwrap();
         info!("task runing - ok");
-        thread::sleep(Duration::from_millis(100));
+        // thread::sleep(Duration::from_millis(100));
         let producer_handle = producer.lock().unwrap().run().unwrap();
         info!("producer runing - ok");
         let time = Instant::now();
         receiver_handle.wait().unwrap();
         producer.lock().unwrap().exit();
         task.lock().unwrap().exit();
+        services.rlock(self_id).exit();
         task_handle.wait().unwrap();
         producer_handle.wait().unwrap();
+        services_handle.wait().unwrap();
         let sent = producer.lock().unwrap().sent().lock().unwrap().len();
         let result = receiver.lock().unwrap().received().lock().unwrap().len();
         println!(" elapsed: {:?}", time.elapsed());
@@ -159,6 +162,7 @@ mod task {
         )));
         let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
         services.wlock(self_id).insert(task.clone());
+        let services_handle = services.wlock(self_id).run().unwrap();
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         let producer_handle = producer.lock().unwrap().run().unwrap();
         trace!("task runing...");
@@ -167,6 +171,8 @@ mod task {
         trace!("task runing - ok");
         producer_handle.wait().unwrap();
         receiver_handle.wait().unwrap();
+        services.rlock(self_id).exit();
+        services_handle.wait().unwrap();
         let producer_sent = producer.lock().unwrap().sent();
         let sent = producer_sent.lock().unwrap();
         let receiver_received = receiver.lock().unwrap().received();

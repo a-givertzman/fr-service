@@ -88,6 +88,7 @@ mod tcp_client {
         let tcp_client_service_id = tcp_client.lock().unwrap().id().to_owned();
         services.wlock(self_id).insert(tcp_client.clone());     // tcpClientServiceId,
         services.wlock(self_id).insert(multi_queue.clone());            // multiQueueServiceId,
+        let services_handle = services.wlock(self_id).run().unwrap();
         let mut sent = vec![];
         let received = Arc::new(Mutex::new(vec![]));
         let handle = mock_tcp_server(addr.to_string(), iterations, received.clone());
@@ -105,7 +106,9 @@ mod tcp_client {
             send.send(point.clone()).unwrap();
             sent.push(point);
         }
+        services.rlock(self_id).exit();
         handle.wait().unwrap();
+        services_handle.wait().unwrap();
         // let waitDuration = Duration::from_millis(10);
         // let mut waitAttempts = test_duration.as_micros() / waitDuration.as_micros();
         // while received.lock().unwrap().len() < count {

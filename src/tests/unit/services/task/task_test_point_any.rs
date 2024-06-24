@@ -92,6 +92,7 @@ mod task {
         )));
         let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
         services.wlock(self_id).insert(task.clone());
+        let services_handle = services.wlock(self_id).run().unwrap();
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         info!("receiver runing - ok");
         let task_handle = task.lock().unwrap().run().unwrap();
@@ -103,8 +104,10 @@ mod task {
         receiver_handle.wait().unwrap();
         producer.lock().unwrap().exit();
         task.lock().unwrap().exit();
+        services.rlock(self_id).exit();
         task_handle.wait().unwrap();
         producer_handle.wait().unwrap();
+        services_handle.wait().unwrap();
         let sent = producer.lock().unwrap().sent().lock().unwrap().len();
         let result = receiver.lock().unwrap().received().lock().unwrap().len();
         println!(" elapsed: {:?}", time.elapsed());

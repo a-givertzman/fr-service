@@ -10,10 +10,9 @@ use testing::stuff::wait::WaitTread;
 use crate::{
     conf::{
         api_client_config::ApiClientConfig, app::app_config::AppConfig, cache_service_config::CacheServiceConfig, conf_tree::ConfTree, multi_queue_config::MultiQueueConfig, point_config::name::Name, profinet_client_config::profinet_client_config::ProfinetClientConfig, slmp_client_config::slmp_client_config::SlmpClientConfig, task_config::TaskConfig, tcp_client_config::TcpClientConfig, tcp_server_config::TcpServerConfig
-    }, 
-    services::{
+    }, core_::object::object::Object, services::{
         api_cient::api_client::ApiClient, cache::cache_service::CacheService, history::{producer_service::ProducerService, producer_service_config::ProducerServiceConfig}, multi_queue::multi_queue::MultiQueue, profinet_client::profinet_client::ProfinetClient, safe_lock::SafeLock, server::tcp_server::TcpServer, service::{service::Service, service_handles::ServiceHandles}, services::Services, slmp_client::slmp_client::SlmpClient, task::task::Task, tcp_client::tcp_client::TcpClient
-    },
+    }
 };
 
 pub struct App {
@@ -60,7 +59,11 @@ impl App {
             info!("{}.run |         Configuring service: {}({}) - ok\n", self_id, node_name, node_sufix);
         }
         info!("{}.run |     All services configured\n", self_id);
-        thread::sleep(Duration::from_millis(1000));
+        thread::sleep(Duration::from_millis(100));
+        let handles = services.wlock(&self_id).run().unwrap();
+        let name = services.rlock(&self_id).id().to_owned();
+        app.write().unwrap().insert_handles(&name, handles);
+        thread::sleep(Duration::from_millis(100));
         info!("{}.run |     Starting services...", self_id);
         let services_iter = services.rlock(&self_id).all();
         for (name, service) in services_iter {
@@ -174,6 +177,7 @@ impl App {
                                         service.slock(&self_id).exit();
                                         println!("{}.run Stopping service '{}' - Ok", self_id, _id);
                                     }
+                                    services.rlock(&self_id).exit();
                                     break;
                                 }
                                 SIGKILL => {

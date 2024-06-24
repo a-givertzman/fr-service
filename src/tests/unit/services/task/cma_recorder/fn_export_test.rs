@@ -69,10 +69,8 @@ mod fn_export {
         );
         trace!("config: {:?}", config);
         debug!("Task config points: {:#?}", config.points());
-
         let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
         debug!("Task points: {:#?}", task.lock().unwrap().points());
-
         services.wlock(self_id).insert(task.clone());
         let conf = MultiQueueConfig::from_yaml(
             self_id,
@@ -122,8 +120,7 @@ mod fn_export {
             "in-queue",
             target_count,
         )));
-        services.wlock(self_id).insert(receiver.clone());      // "TaskTestReceiver",
-        // assert!(total_count == iterations, "\nresult: {:?}\ntarget: {:?}", total_count, iterations);
+        services.wlock(self_id).insert(receiver.clone());
         let producer = Arc::new(Mutex::new(TaskTestProducer::new(
             self_id,
             &format!("/{}/MultiQueue.in-queue", self_id),
@@ -132,6 +129,7 @@ mod fn_export {
             &test_data,
         )));
         services.wlock(self_id).insert(producer.clone());
+        let services_handle = services.wlock(self_id).run().unwrap();
         let multi_queue_handle = multi_queue.lock().unwrap().run().unwrap();
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         info!("receiver runing - ok");
@@ -149,6 +147,8 @@ mod fn_export {
         producer_handle.wait().unwrap();
         multi_queue.lock().unwrap().exit();
         multi_queue_handle.wait().unwrap();
+        services.rlock(self_id).exit();
+        services_handle.wait().unwrap();
         let sent = producer.lock().unwrap().sent().lock().unwrap().len();
         let result = receiver.lock().unwrap().received().lock().unwrap().len();
         println!(" elapsed: {:?}", time.elapsed());
@@ -261,6 +261,7 @@ mod fn_export {
             &test_data,
         )));
         services.wlock(self_id).insert(producer.clone());
+        let services_handle = services.wlock(self_id).run().unwrap();
         let multi_queue_handle = multi_queue.lock().unwrap().run().unwrap();
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         info!("receiver runing - ok");
@@ -277,6 +278,8 @@ mod fn_export {
         producer_handle.wait().unwrap();
         multi_queue.lock().unwrap().exit();
         multi_queue_handle.wait().unwrap();
+        services.rlock(self_id).exit();
+        services_handle.wait().unwrap();
         let sent = producer.lock().unwrap().sent().lock().unwrap().len();
         let result = receiver.lock().unwrap().received().lock().unwrap().len();
         println!(" elapsed: {:?}", time.elapsed());
@@ -387,6 +390,7 @@ mod fn_export {
             &test_data,
         )));
         services.wlock(self_id).insert(producer.clone());
+        let services_handle = services.wlock(self_id).run().unwrap();
         let multi_queue_handle = multi_queue.lock().unwrap().run().unwrap();
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         info!("receiver runing - ok");
@@ -403,6 +407,8 @@ mod fn_export {
         producer_handle.wait().unwrap();
         multi_queue.lock().unwrap().exit();
         multi_queue_handle.wait().unwrap();
+        services.rlock(self_id).exit();
+        services_handle.wait().unwrap();
         let sent = producer.lock().unwrap().sent().lock().unwrap().len();
         let result = receiver.lock().unwrap().received().lock().unwrap().len();
         println!(" elapsed: {:?}", time.elapsed());

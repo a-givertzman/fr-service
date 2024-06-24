@@ -100,6 +100,7 @@ mod multi_queue {
             services.wlock(self_id).insert(rs_service.clone());
             rs_services.push(rs_service);
         }
+        let services_handle = services.wlock(self_id).run().unwrap();
         mq_service.lock().unwrap().run().unwrap();
         let mut recv_handles = vec![];
         for service in &mut rs_services {
@@ -125,6 +126,8 @@ mod multi_queue {
         for service in rs_services {
             service.lock().unwrap().exit();
         }
+        services.rlock(self_id).exit();
+        services_handle.wait().unwrap();
         // assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         test_duration.exit();
     }

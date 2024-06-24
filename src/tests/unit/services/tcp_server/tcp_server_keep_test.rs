@@ -92,6 +92,7 @@ mod tcp_server {
             Some(test_data.last().unwrap().clone()),
             vec![25, 50, 75],
         )));
+        let services_handle = services.wlock(self_id).run().unwrap();
         let mq_service_handle = mq_service.lock().unwrap().run().unwrap();
         let tcp_server_handle = tcp_server.lock().unwrap().run().unwrap();
         thread::sleep(Duration::from_millis(100));
@@ -112,10 +113,12 @@ mod tcp_server {
         producer.lock().unwrap().exit();
         tcp_server.lock().unwrap().exit();
         mq_service.lock().unwrap().exit();
+        services.rlock(self_id).exit();
         emulated_tcp_client_recv_handle.wait().unwrap();
         producer_handle.wait().unwrap();
         tcp_server_handle.wait().unwrap();
         mq_service_handle.wait().unwrap();
+        services_handle.wait().unwrap();
         test_duration.exit();
     }
     ///
@@ -183,6 +186,7 @@ mod tcp_server {
             vec![25, 50, 75],
             true,
         )));
+        let services_handle = services.wlock(self_id).run().unwrap();
         let mq_service_handle = mq_service.lock().unwrap().run().unwrap();
         let tcp_server_handle = tcp_server.lock().unwrap().run().unwrap();
         thread::sleep(Duration::from_millis(100));
@@ -204,8 +208,10 @@ mod tcp_server {
         }
         tcp_server.lock().unwrap().exit();
         mq_service.lock().unwrap().exit();
+        services.rlock(self_id).exit();
         tcp_server_handle.wait().unwrap();
         mq_service_handle.wait().unwrap();
+        services_handle.wait().unwrap();
         test_duration.exit();
     }
 }

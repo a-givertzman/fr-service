@@ -144,6 +144,7 @@ impl Service for TcpClient {
                     break;
                 }
             }
+            info!("{}.run | Exit", self_id);
         });
         match handle {
             Ok(handle) => {
