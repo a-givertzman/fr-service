@@ -1,7 +1,7 @@
 use hashers::fx_hash::FxHasher;
 use indexmap::IndexMap;
 use log::debug;
-use std::{hash::BuildHasherDefault, process::exit, sync::atomic::{AtomicUsize, Ordering}};
+use std::{hash::BuildHasherDefault, sync::atomic::{AtomicUsize, Ordering}};
 use concat_string::concat_string;
 use crate::{
     conf::point_config::point_config::PointConfig, 
@@ -69,7 +69,6 @@ impl FnOut for FnPointId {
         match self.points.get(&point.name()) {
             Some(id) => {
                 debug!("{}.out | ID: {:?}", self.id, id);
-                exit(0);
                 PointType::Int(
                     Point::new(
                         point.tx_id(),

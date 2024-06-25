@@ -51,7 +51,7 @@ impl RetainPointId {
         for mut point in points {
             trace!("{}.points | point: {}...", self.id, point.name);
             let retained_clone = retained.clone();
-            retained
+            point.id = retained
                 .entry(owner.to_owned())
                 .or_insert(HashMapFxHasher::with_hasher(BuildHasherDefault::<FxHasher>::default()))
                 .entry(point.name.clone())
@@ -63,10 +63,9 @@ impl RetainPointId {
                     })
                     .max()
                     .map_or(0, |id| id + 1);
-                    point.id = id;
                     update_retained = true;
                     RetainedPointConfig { id, name: point.name.clone(), _type: point.type_.clone() }
-                });
+                }).id;
             self.cache
                 .entry(owner.to_owned())
                 .or_insert(vec![])
