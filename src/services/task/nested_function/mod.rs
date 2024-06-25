@@ -44,6 +44,7 @@ pub mod fn_to_double;
 pub mod fn_to_bool;
 pub mod fn_max;
 pub mod fn_piecewise_line_approx;
+pub mod fn_is_changed_value;
 
 pub mod nested_fn;
 

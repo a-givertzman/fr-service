@@ -50,7 +50,7 @@ impl FnPoint {
         let self_id = format!("{}/FnPoint{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed));
         Self {
             id: self_id.clone(),
-            tx_id: PointTxId::fromStr(&self_id),
+            tx_id: PointTxId::from_str(&self_id),
             kind: FnKind::Fn,
             conf,
             enable,
@@ -178,7 +178,7 @@ impl FnOut for FnPoint {
                 match &self.state {
                     Some(state) => {
                         if changes_only {
-                            if &point != state {
+                            if !point.cmp_value(state) {
                                 self.state = Some(point.clone());
                                 if enable {
                                     self.send(&point);

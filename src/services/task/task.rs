@@ -140,7 +140,7 @@ impl Service for Task {
     //
     fn run(&mut self) -> Result<ServiceHandles, String> {
         info!("{}.run | Starting...", self.id);
-        trace!("{}.run | Self tx_id: {}", self.id, PointTxId::fromStr(&self.id));
+        trace!("{}.run | Self tx_id: {}", self.id, PointTxId::from_str(&self.id));
         let self_id = self.id.clone();
         let self_name = self.name.clone();
         let exit = self.exit.clone();
@@ -158,29 +158,39 @@ impl Service for Task {
             task_nodes.build_nodes(&self_name, conf, services.clone());
             trace!("{}.run | taskNodes: {:#?}", self_id, task_nodes);
             'main: loop {
-                cycle.start();
                 trace!("{}.run | calculation step...", self_id);
-                match rx_recv.recv_timeout(recv_timeout) {
-                    Ok(point) => {
-                        debug!("{}.run | point: {:?}", self_id, &point);
-                        task_nodes.eval(point);
-                        debug!("{}.run | calculation step - done ({:?})", self_id, cycle.elapsed());
-                        if cyclic {
+                if cyclic {
+                    cycle.start();
+                    match rx_recv.recv_timeout(recv_timeout) {
+                        Ok(point) => {
+                            debug!("{}.run | point: {:?}", self_id, &point);
+                            task_nodes.eval(point);
+                            debug!("{}.run | calculation step - done ({:?})", self_id, cycle.elapsed());
                             cycle.wait();
                         }
-                    }
-                    Err(err) => {
-                        match err {
-                            RecvTimeoutError::Timeout => {
-                                trace!("{}.run | Receive error: {:?}", self_id, err);
-                            }
-                            RecvTimeoutError::Disconnected => {
-                                error!("{}.run | Error receiving from queue: {:?}", self_id, err);
-                                break 'main;
+                        Err(err) => {
+                            match err {
+                                RecvTimeoutError::Timeout => trace!("{}.run | Receive error: {:?}", self_id, err),
+                                RecvTimeoutError::Disconnected => {
+                                    error!("{}.run | Error receiving from queue: {:?}", self_id, err);
+                                    break 'main;
+                                }
                             }
                         }
-                    }
-                };
+                    };
+                } else {
+                    match rx_recv.recv() {
+                        Ok(point) => {
+                            debug!("{}.run | point: {:?}", self_id, &point);
+                            task_nodes.eval(point);
+                            debug!("{}.run | calculation step - done ({:?})", self_id, cycle.elapsed());
+                        }
+                        Err(err) => {
+                            error!("{}.run | Error receiving from queue: {:?}", self_id, err);
+                            break 'main;
+                        }
+                    };
+                }
                 if exit.load(Ordering::SeqCst) {
                     break 'main;
                 }

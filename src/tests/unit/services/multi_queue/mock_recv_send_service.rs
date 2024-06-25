@@ -143,7 +143,7 @@ impl Service for MockRecvSendService {
         let sent = self.sent.clone();
         let handle_send = thread::Builder::new().name(format!("{}.run | Send", self_id)).spawn(move || {
             info!("{}.run | Preparing thread Send - ok", self_id);
-            let txId = PointTxId::fromStr(&self_id);
+            let txId = PointTxId::from_str(&self_id);
             for value in test_data.iter() {
                 let point = value.to_point(txId,&format!("{}/test", self_id));
                 match txSend.send(point.clone()) {

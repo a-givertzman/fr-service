@@ -10,7 +10,7 @@ pub struct PointTxId {}
 impl PointTxId {
     /// 
     /// Returns hash from string for Point.txId
-    pub fn fromStr(id: &str) -> usize {
+    pub fn from_str(id: &str) -> usize {
         let mut hasher = DefaultHasher::new();
         id.hash(&mut hasher);
         hasher.finish().try_into().unwrap()

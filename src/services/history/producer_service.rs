@@ -107,7 +107,7 @@ impl Service for ProducerService {
         info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let self_name = self.name.clone();
-        let tx_id = PointTxId::fromStr(&self_id);
+        let tx_id = PointTxId::from_str(&self_id);
         let exit = self.exit.clone();
         let debug = self.conf.debug;
         let interval = self.conf.cycle.unwrap_or(Duration::ZERO);

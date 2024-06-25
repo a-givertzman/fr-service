@@ -10,15 +10,7 @@ use crate::{
     services::{
         queue_name::QueueName, safe_lock::SafeLock, services::Services, task::{
             nested_function::{
-                edge_detection::{fn_falling_edge::FnFallingEdge, fn_rising_edge::FnRisingEdge},
-                export::{fn_export::FnExport, fn_point::FnPoint, fn_to_api_queue::FnToApiQueue},
-                filter::{fn_filter::FnFilter, fn_smooth::FnSmooth, fn_threshold::FnThreshold},
-                fn_acc::FnAcc, fn_add::FnAdd, fn_average::FnAverage, fn_const::FnConst, fn_count::FnCount,
-                fn_debug::FnDebug, fn_div::FnDiv, fn_ge::FnGe, fn_input::FnInput, fn_max::FnMax, fn_mul::FnMul,
-                fn_piecewise_line_approx::FnPiecewiseLineApprox, fn_point_id::FnPointId, fn_pow::FnPow,
-                fn_rec_op_cycle_metric::FnRecOpCycleMetric, fn_sub::FnSub, fn_timer::FnTimer, fn_to_bool::FnToBool,
-                fn_to_double::FnToDouble, fn_to_int::FnToInt, fn_to_real::FnToReal, fn_var::FnVar,
-                functions::Functions, io::fn_retain::FnRetain, sql_metric::SqlMetric,
+                edge_detection::{fn_falling_edge::FnFallingEdge, fn_rising_edge::FnRisingEdge}, export::{fn_export::FnExport, fn_point::FnPoint, fn_to_api_queue::FnToApiQueue}, filter::{fn_filter::FnFilter, fn_smooth::FnSmooth, fn_threshold::FnThreshold}, fn_acc::FnAcc, fn_add::FnAdd, fn_average::FnAverage, fn_const::FnConst, fn_count::FnCount, fn_debug::FnDebug, fn_div::FnDiv, fn_ge::FnGe, fn_input::FnInput, fn_is_changed_value::FnIsChangedValue, fn_max::FnMax, fn_mul::FnMul, fn_piecewise_line_approx::FnPiecewiseLineApprox, fn_point_id::FnPointId, fn_pow::FnPow, fn_rec_op_cycle_metric::FnRecOpCycleMetric, fn_sub::FnSub, fn_timer::FnTimer, fn_to_bool::FnToBool, fn_to_double::FnToDouble, fn_to_int::FnToInt, fn_to_real::FnToReal, fn_var::FnVar, functions::Functions, io::fn_retain::FnRetain, sql_metric::SqlMetric
             },
             task_nodes::TaskNodes,
         }
@@ -498,6 +490,18 @@ impl NestedFn {
                             FnPiecewiseLineApprox::new(parent, input, pieces)
                         )))
                     }
+                    //
+                    Functions::IsChangedValue => {
+                        let mut inputs = vec![];
+                        for (name, input_conf) in &mut conf.inputs {
+                            let input = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                            inputs.push(input);
+                        }
+                        Rc::new(RefCell::new(Box::new(
+                            FnIsChangedValue::new(parent, inputs)
+                        )))
+                    }
+
                     //
                     // Add a new function here...
                     _ => panic!("{}.function | Unknown function name: {:?}", self_id, conf.name)

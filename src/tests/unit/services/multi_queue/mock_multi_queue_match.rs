@@ -76,7 +76,7 @@ impl Service for MockMultiQueueMatch {
     //
     fn subscribe(&mut self, receiverId: &str, points: &[SubscriptionCriteria]) -> (Sender<PointType>, Receiver<PointType>) {
         let (send, recv) = mpsc::channel();
-        let receiverId = PointTxId::fromStr(receiverId);
+        let receiverId = PointTxId::from_str(receiverId);
         if points.is_empty() {
             self.subscriptions.slock(&self.id).add_broadcast(receiverId, send.clone());
         } else {
@@ -89,7 +89,7 @@ impl Service for MockMultiQueueMatch {
     //
     //
     fn unsubscribe(&mut self, receiverId: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
-        let receiverId = PointTxId::fromStr(receiverId);
+        let receiverId = PointTxId::from_str(receiverId);
         for subscription_criteria in points {
             match self.subscriptions.slock(&self.id).remove(&receiverId, &subscription_criteria.destination()) {
                 Ok(_) => {}
@@ -113,7 +113,7 @@ impl Service for MockMultiQueueMatch {
             let txSend = self.services.rlock(&self_id).get_link(&QueueName::new(sendQueue)).unwrap_or_else(|err| {
                 panic!("{}.run | services.get_link error: {:#?}", self.id, err);
             });
-            staticSubscriptions.insert(PointTxId::fromStr(sendQueue), txSend);
+            staticSubscriptions.insert(PointTxId::from_str(sendQueue), txSend);
         }
         let handle = thread::Builder::new().name(format!("{}.run", self_id.clone())).spawn(move || {
             info!("{}.run | Preparing thread - ok", self_id);

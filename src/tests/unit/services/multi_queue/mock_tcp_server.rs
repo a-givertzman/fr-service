@@ -129,7 +129,7 @@ impl Service for MockTcpServer {
             info!("{}.run | Exit thread Recv", self_id);
         });
         let self_id = self.id.clone();
-        let txId = PointTxId::fromStr(&self_id);
+        let txId = PointTxId::from_str(&self_id);
         let exit = self.exit.clone();
         let test_data = self.test_data.clone();
         let sent = self.sent.clone();

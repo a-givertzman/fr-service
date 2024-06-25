@@ -129,6 +129,12 @@ impl Subscriptions {
             Err(messages.join("\n"))
         }
     }
+    ///
+    /// Removes all subscriptions
+    pub fn exit(&mut self) {
+        self.broadcast.clear();
+        self.multicast.clear();
+    }
 }
 //
 // 

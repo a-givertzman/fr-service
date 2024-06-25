@@ -57,7 +57,7 @@ impl FnOut for FnDebug {
     //
     fn out(&mut self) -> PointType {
         let mut value = PointType::String(Point::new(
-            PointTxId::fromStr(&self.id),
+            PointTxId::from_str(&self.id),
             &self.id, "No inputs to get the value".to_owned(),
             Status::Ok,
             Cot::Inf,

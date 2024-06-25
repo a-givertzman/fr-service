@@ -66,7 +66,7 @@ impl Service for TaskTestProducer {
     // 
     fn run(&mut self) -> Result<ServiceHandles, String> {
         let self_id = self.id.clone();
-        let tx_id = PointTxId::fromStr(&self_id);
+        let tx_id = PointTxId::from_str(&self_id);
         let cycle = self.cycle;
         let delayed = !cycle.is_zero();
         let tx_send = self.services.rlock(&self_id).get_link(&self.send_to).unwrap_or_else(|err| {

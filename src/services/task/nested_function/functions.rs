@@ -40,6 +40,7 @@ pub enum Functions {
     Pow,
     Max,
     PiecewiseLineApprox,
+    IsChangedValue,
     /// Recorder functions
     RecOpCycleMetric,
 }
@@ -79,10 +80,11 @@ impl Functions {
     const POW                           : &'static str = "Pow";
     const MAX                           : &'static str = "Max";
     const PIECEWISE_LINE_APPROX         : &'static str = "PiecewiseLineApprox";
+    const IS_CHANGED_VALUE              : &'static str = "IsChangedValue";
     /// Recorder functions
     const REC_OP_CYCLE_METRIC           : &'static str = "RecOpCycleMetric";
     ///
-    ///
+    /// Returns function name as string 
     pub fn name(&self) -> &str {
         match self {
             Self::Add                   => Self::ADD,
@@ -117,10 +119,11 @@ impl Functions {
             Self::RecOpCycleMetric      => Self::REC_OP_CYCLE_METRIC,
             Self::Max                   => Self::MAX,
             Self::PiecewiseLineApprox   => Self::PIECEWISE_LINE_APPROX,
+            Self::IsChangedValue        => Self::IS_CHANGED_VALUE,
         }
     }
     ///
-    /// 
+    /// Returns enum Function corresponding to the function name
     fn match_name(input: &str) -> Result<Functions, String> {
         match input {
             Self::ADD                   => Ok( Self::Add ),
@@ -155,6 +158,7 @@ impl Functions {
             Self::REC_OP_CYCLE_METRIC   => Ok( Self::RecOpCycleMetric ),
             Self::MAX                   => Ok( Self::Max ),
             Self::PIECEWISE_LINE_APPROX => Ok( Self::PiecewiseLineApprox ),
+            Self::IS_CHANGED_VALUE      => Ok( Self::IsChangedValue ),
             _ => Err(format!("Functions.from_str | Unknown function name '{}'", &input)),
         }
     }

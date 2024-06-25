@@ -56,7 +56,7 @@ mod profinet_client {
         let mq_service_handle = mq_service.lock().unwrap().run().unwrap();
         let client_handle = client.lock().unwrap().run().unwrap();
         thread::sleep(Duration::from_millis(2000));
-        let tx_id = PointTxId::fromStr(self_id);
+        let tx_id = PointTxId::from_str(self_id);
         let test_data = [
             Value::Int(1),
             Value::Int(2),

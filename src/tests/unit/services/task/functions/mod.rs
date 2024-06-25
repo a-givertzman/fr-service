@@ -37,3 +37,5 @@ mod fn_div_test;
 mod fn_pow_test;
 
 mod fn_piecewise_line_approx_test;
+
+mod fn_is_changed_value_test;

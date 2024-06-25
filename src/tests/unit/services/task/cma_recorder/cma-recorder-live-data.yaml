@@ -493,26 +493,50 @@ service Task RecorderTask:
     #
     #   table:      operating_cycle_value
     #
-    fn Debug:
+    let void:
+        input point Load:
+            type: 'Real'
+            send-to: /AppTest/TaskTestReceiver.in-queue
+            input: point real '/AppTest/Load'
+
+    let craneLoadThreshold:
+        input point CraneLoadThreshold:
+            type: 'Real'
+            send-to: /AppTest/TaskTestReceiver.in-queue
+            input fn Mul:
+                input1: craneLoadNom
+                input2 fn PiecewiseLineApprox:
+                    input fn Div:
+                        input1: point real '/AppTest/Load'
+                        input2: craneLoadNom
+                    piecewise:
+                        0.0: 0.3
+                        0.7: 0.1
+                        0.85: 0.05
+                        0.95: 0.01
+                        1.0: 0.005
+                        1.1: 0.001
+    let craneLoadFiltered:
+        input fn Threshold:
+            threshold: craneLoadThreshold
+            factor: const real 0.3 #0.05
+            input: point real '/AppTest/Load'
+
+    let isChangedCraneLoad:
+        input point IsChangedCraneLoad:
+            type: 'Bool'
+            send-to: /AppTest/TaskTestReceiver.in-queue
+            input fn IsChangedValue:
+                input: craneLoadFiltered
+        
+    let void1:
         input point OpCycleLoad:
             type: 'String'
             send-to: /AppTest/TaskTestReceiver.in-queue
-            enable: opCycleIsActive
+            enable: isChangedCraneLoad
             input fn SqlMetric:
                 table: public.operating_cycle_value
                 sql: insert into {table} (pid, value, timestamp) values ({pid.value}, {input.value}, {input.timestamp});
                 pid fn PointId:
-                    # input: const int 1
                     input: point real '/AppTest/Load'
-                input: const real 777.777
-                # input fn PiecewiseLineApprox:
-                #     input: point real '/AppTest/Load'
-                #     piecewise:
-                #         0.0: 0.3
-                #         0.7: 0.1
-                #         0.85: 0.05
-                #         0.95: 0.01
-                #         1.0: 0.005
-                #         1.1: 0.001
-                    
-
+                input: craneLoadFiltered

@@ -317,7 +317,7 @@ impl Service for CacheService {
         info!("{}.run | Starting...", self.id);
         let self_id = self.id.clone();
         let self_name = self.name.clone();
-        let tx_id = PointTxId::fromStr(&self_name.join());
+        let tx_id = PointTxId::from_str(&self_name.join());
         let exit = self.exit.clone();
         let conf = self.conf.clone();
         let services = self.services.clone();

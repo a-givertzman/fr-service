@@ -372,7 +372,7 @@ mod jds_routes {
         println!("{} | TcpServer - ready", self_id);
         //
         // Preparing test data
-        let tx_id = PointTxId::fromStr(self_id);
+        let tx_id = PointTxId::from_str(self_id);
         let self_name = Name::new(self_id, "Jds");
         let test_data = [
             PointType::String(Point::new(
@@ -550,7 +550,7 @@ mod jds_routes {
         println!("{} | TcpServer - ready", self_id);
         //
         // Preparing test data
-        let tx_id = PointTxId::fromStr(self_id);
+        let tx_id = PointTxId::from_str(self_id);
         let parent = self_id;
         let test_data = [
             PointType::String(Point::new(

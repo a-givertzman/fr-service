@@ -159,7 +159,7 @@ impl TaskNodes {
     /// Creates all task nodes depending on it config
     ///  - if Task config contains 'point [type] every' then single evaluation node allowed only
     pub fn build_nodes(&mut self, parent: &Name, conf: TaskConfig, services: Arc<RwLock<Services>>) {
-        let tx_id = PointTxId::fromStr(&parent.join());
+        let tx_id = PointTxId::from_str(&parent.join());
         for (idx, (_node_name, mut node_conf)) in conf.nodes.into_iter().enumerate() {
             let node_name = node_conf.name();
             trace!("{}.buildNodes | node[{}]: {:?}", self.id, idx, node_name);
@@ -204,10 +204,6 @@ impl TaskNodes {
         let self_id = self.id.clone();
         let point_name = point.name();
         if let Some(eval_node) = self.get_eval_node("every") {
-            trace!("{}.eval | evalNode '{}' - adding point...", self_id, &eval_node.name());
-            eval_node.add(point.clone());
-        };
-        if let Some(eval_node) = self.get_eval_node(&point_name) {
             trace!("{}.eval | evalNode '{}' - adding point...", self_id, &eval_node.name());
             eval_node.add(point.clone());
         };

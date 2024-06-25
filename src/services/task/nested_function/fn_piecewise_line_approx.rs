@@ -1,5 +1,5 @@
 use indexmap::IndexMap;
-use log::{debug, trace};
+use log::trace;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use concat_string::concat_string;
 use crate::{
@@ -208,20 +208,20 @@ impl Linears {
     ///
     /// 
     fn line_approx(&self, value: f64) -> f64 {
-        debug!("{}.line_approx | value: {:?}", self.id, value);
+        trace!("{}.line_approx | value: {:?}", self.id, value);
         let mut pieces = self.pieces.iter();
         match pieces.next() {
             Some(first) => if first.is_less(value) {
-                debug!("{}.line_approx | less first: {:#?}", self.id, first);
+                trace!("{}.line_approx | less first: {:#?}", self.id, first);
                 return first.left.y
             } else {
                 if first.contains(value) {
-                    debug!("{}.line_approx | first: {:#?}", self.id, first);
+                    trace!("{}.line_approx | first: {:#?}", self.id, first);
                     return first.linear_approx(value);
                 }
                 while let Some(piece) = pieces.next() {
                     if piece.contains(value) {
-                        debug!("{}.line_approx | piece: {:#?}", self.id, piece);
+                        trace!("{}.line_approx | piece: {:#?}", self.id, piece);
                         return piece.linear_approx(value);
                     }
                 }

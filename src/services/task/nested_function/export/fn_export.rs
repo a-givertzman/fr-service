@@ -52,7 +52,7 @@ impl FnExport {
         let self_id = format!("{}/FnExport{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed));
         Self {
             id: self_id.clone(),
-            tx_id: PointTxId::fromStr(&self_id),
+            tx_id: PointTxId::from_str(&self_id),
             kind: FnKind::Fn,
             enable,
             conf,

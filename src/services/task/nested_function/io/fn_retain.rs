@@ -58,7 +58,7 @@ impl FnRetain {
         Self {
             id: self_id.clone(),
             name: parent.clone(),
-            tx_id: PointTxId::fromStr(&self_id),
+            tx_id: PointTxId::from_str(&self_id),
             kind: FnKind::Fn,
             enable,
             every_cycle,

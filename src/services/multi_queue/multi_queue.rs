@@ -123,7 +123,7 @@ impl Service for MultiQueue {
     //
     fn subscribe(&mut self, receiver_name: &str, points: &[SubscriptionCriteria]) -> (Sender<PointType>, Receiver<PointType>) {
         let (send, recv) = mpsc::channel();
-        let receiver_hash = PointTxId::fromStr(receiver_name);
+        let receiver_hash = PointTxId::from_str(receiver_name);
         self.receiver_dictionary.insert(receiver_hash, receiver_name.to_string());
         if points.is_empty() {
             self.subscriptions.slock(&self.id).add_broadcast(receiver_hash, send.clone());
@@ -143,7 +143,7 @@ impl Service for MultiQueue {
     //
     //
     fn extend_subscription(&mut self, receiver_name: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
-        let receiver_hash = PointTxId::fromStr(receiver_name);
+        let receiver_hash = PointTxId::from_str(receiver_name);
         if points.is_empty() {
             let message = format!("{}.extend_subscription | Broadcast subscription can't be extended, receiver: {} ({})", self.id, receiver_name, receiver_hash);
             warn!("{}", message);
@@ -172,7 +172,7 @@ impl Service for MultiQueue {
     //
     fn unsubscribe(&mut self, receiver_name: &str, points: &[SubscriptionCriteria]) -> Result<(), String> {
         let mut changed = false;
-        let receiver_hash = PointTxId::fromStr(receiver_name);
+        let receiver_hash = PointTxId::from_str(receiver_name);
         if points.is_empty() {
             match self.subscriptions.slock(&self.id).remove_all(&receiver_hash) {
                 Ok(_) => {
@@ -218,7 +218,7 @@ impl Service for MultiQueue {
             let send = self.services.rlock(&self_id).get_link(receiver_name).unwrap_or_else(|err| {
                 panic!("{}.run | services.get_link error: {:#?}", self_id, err);
             });
-            let receiver_hash = PointTxId::fromStr(&receiver_name.name());
+            let receiver_hash = PointTxId::from_str(&receiver_name.name());
             self.subscriptions.slock(&self_id).add_broadcast(receiver_hash, send.clone());
             debug!("{}.run | Broadcast subscription registered, receiver: \n\t{} ({})", self.id, receiver_name, receiver_hash);
         }
@@ -237,20 +237,15 @@ impl Service for MultiQueue {
                         trace!("{}.run | received: \n\t{:?}", self_id, point);
                         Self::log_point(&self_id, &self_name, &point_id, &point);
                         for (receiver_hash, sender) in subscriptions.iter(&point_id) {
-                            match receiver_hash != &point.tx_id() {
-                                true => {
-                                    match sender.send(point.clone()) {
-                                        Ok(_) => {
-                                            trace!("{}.run | sent to '{}' point: {:?}", self_id, receiver_hash, point);
-                                        }
-                                        Err(err) => {
-                                            error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", self_id, point_id, receiver_hash, err);
-                                        }
-                                    };
-                                }
-                                false => {
-                                    // warn!("{}.run | ignored for receiver '{:?}' point: {:?}", self_id, receiver_dictionary.get(&receiver_hash).cloned(), point);
-                                }
+                            if receiver_hash != &point.tx_id() {
+                                match sender.send(point.clone()) {
+                                    Ok(_) => {
+                                        trace!("{}.run | sent to '{}' point: {:?}", self_id, receiver_hash, point);
+                                    }
+                                    Err(err) => {
+                                        error!("{}.run | subscriptions '{}', receiver '{}' - send error: {:?}", self_id, point_id, receiver_hash, err);
+                                    }
+                                };
                             }
                         }
                     }
@@ -259,6 +254,7 @@ impl Service for MultiQueue {
                     }
                 }
                 if exit.load(Ordering::SeqCst) {
+                    subscriptions_ref.slock(&self_id).exit();
                     break;
                 }
             }

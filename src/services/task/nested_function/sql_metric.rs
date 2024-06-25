@@ -46,7 +46,7 @@ impl SqlMetric {
     pub fn new(parent: impl Into<String>, conf: &mut FnConfig, task_nodes: &mut TaskNodes, services: Arc<RwLock<Services>>) -> SqlMetric {
         let self_name = Name::new(parent, format!("SqlMetric{}", COUNT.fetch_add(1, Ordering::Relaxed)));
         let self_id = self_name.join();
-        let tx_id = PointTxId::fromStr(&self_name.join());
+        let tx_id = PointTxId::from_str(&self_name.join());
         let mut inputs = IndexMap::new();
         let input_confs = conf.inputs.clone();
         let input_conf_names = input_confs.keys().filter(|v| {

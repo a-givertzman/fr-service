@@ -1,8 +1,8 @@
 #[cfg(test)]
 
 mod cma_recorder {
-    use log::{debug, info, trace};
-    use std::{env, sync::{Arc, Mutex, Once, RwLock}, thread, time::{Duration, Instant}};
+    use log::{info, trace};
+    use std::{env, fs, sync::{Arc, Mutex, Once, RwLock}, thread, time::{Duration, Instant}};
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
@@ -46,12 +46,35 @@ mod cma_recorder {
         // can be changed
         trace!("dir: {:?}", env::current_dir());
         let services = Arc::new(RwLock::new(Services::new(self_id)));
-        let config = TaskConfig::read(&self_name, "./src/tests/unit/services/task/cma_recorder/cma-recorder-live-data.yaml");
-        trace!("config: {:?}", config);
-        debug!("Task config points: {:#?}", config.points());
-        let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
-        debug!("Task points: {:#?}", task.lock().unwrap().points());
-        services.wlock(self_id).insert(task.clone());
+        let mut tasks = vec![];
+        let mut task_handles = vec![];
+        let path = "./src/tests/unit/services/task/cma_recorder/cma-recorder-live-data.yaml";
+        match fs::read_to_string(path) {
+            Ok(yaml_string) => {
+                match serde_yaml::from_str(&yaml_string) {
+                    Ok(config) => {
+                        let config: serde_yaml::Value = config;
+                        for (key, config) in config.as_mapping().unwrap() {
+                            let mut conf = serde_yaml::Mapping::new();
+                            conf.insert(key.clone(), config.clone());
+                            let config = TaskConfig::from_yaml(&self_name, &serde_yaml::Value::Mapping(conf));
+                            let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
+                            services.wlock( self_id).insert(task.clone());
+                            tasks.push(task);
+                        }
+                    }
+                    Err(err) => panic!("{}.read | Error in config: {:?}\n\terror: {:?}", self_id, yaml_string, err),
+                }
+            }
+            Err(err) => panic!("{}.read | File {} reading error: {:?}", self_id, path, err),
+        }
+
+        // let config = TaskConfig::read(&self_name, "./src/tests/unit/services/task/cma_recorder/cma-recorder-live-data.yaml");
+        // trace!("config: {:?}", config);
+        // debug!("Task config points: {:#?}", config.points());
+        // let task = Arc::new(Mutex::new(Task::new(config, services.clone())));
+        // debug!("Task points: {:#?}", task.lock().unwrap().points());
+        // services.wlock(self_id).insert(task.clone());
         let conf = MultiQueueConfig::from_yaml(
             self_id,
             &serde_yaml::from_str(r"service MultiQueue:
@@ -254,7 +277,10 @@ mod cma_recorder {
         let multi_queue_handle = multi_queue.lock().unwrap().run().unwrap();
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         info!("receiver runing - ok");
-        let task_handle = task.lock().unwrap().run().unwrap();
+        for task in &tasks {
+            let handle = task.lock().unwrap().run().unwrap();
+            task_handles.push(handle);
+        }
         info!("task runing - ok");
         thread::sleep(Duration::from_millis(100));
         let producer_handle = producer.lock().unwrap().run().unwrap();
@@ -262,12 +288,16 @@ mod cma_recorder {
         let time = Instant::now();
         receiver_handle.wait().unwrap();
         producer.lock().unwrap().exit();
-        task.lock().unwrap().exit();
-        task_handle.wait().unwrap();
-        producer_handle.wait().unwrap();
         multi_queue.lock().unwrap().exit();
-        multi_queue_handle.wait().unwrap();
+        for task in tasks {
+            task.lock().unwrap().exit();
+        }
         services.rlock(self_id).exit();
+        for handle in task_handles {
+            handle.wait().unwrap();
+        }
+        producer_handle.wait().unwrap();
+        multi_queue_handle.wait().unwrap();
         services_handle.wait().unwrap();
         let sent = producer.lock().unwrap().sent().lock().unwrap().len();
         let result = receiver.lock().unwrap().received().lock().unwrap().len();

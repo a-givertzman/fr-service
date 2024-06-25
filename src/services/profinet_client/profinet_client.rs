@@ -45,7 +45,7 @@ impl ProfinetClient {
     ///
     /// Creates new instance of the ProfinetClient
     pub fn new(conf: ProfinetClientConfig, services: Arc<RwLock<Services>>) -> Self {
-        let tx_id = PointTxId::fromStr(&conf.name.join());
+        let tx_id = PointTxId::from_str(&conf.name.join());
         let diagnosis = Arc::new(Mutex::new(conf.diagnosis.iter().map(|(keywd, conf)| {
             (keywd.to_owned(), DiagPoint::new(tx_id, conf.clone()))
         }).collect()));

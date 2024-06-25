@@ -163,7 +163,7 @@ impl Service for EmulatedTcpClientSend {
                             // ));
                             // send.send(request).unwrap();
                             // thread::sleep(Duration::from_millis(100));
-                            let tx_id = PointTxId::fromStr(&self_id);
+                            let tx_id = PointTxId::from_str(&self_id);
                             let mut sent_count = 0;
                             let mut progress_percent = 0.0;
                             while test_data.len() > 0 {

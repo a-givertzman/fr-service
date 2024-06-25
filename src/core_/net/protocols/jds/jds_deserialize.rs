@@ -31,7 +31,7 @@ impl JdsDeserialize {
     pub fn new(parent: impl Into<String>, stream: JdsDecodeMessage) -> Self {
         let me = Name::new(parent, "JdsDeserialize");
         Self {
-            tx_id: PointTxId::fromStr(&me.join()),
+            tx_id: PointTxId::from_str(&me.join()),
             id: me.join(),
             name: me,
             stream,

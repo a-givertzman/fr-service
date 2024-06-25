@@ -1,6 +1,5 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
-use log::trace;
-
+use log::{debug, trace};
 use crate::{
     conf::point_config::point_config_type::PointConfigType, core_::{
         point::{point::Point, point_type::PointType}, 
@@ -17,6 +16,15 @@ use crate::{
 /// - if factor is specified:
 ///     - each cycle: delta = |prev - [input]| * factor
 ///     - new input value returned if delta >= [threshold]
+/// 
+/// Example
+/// 
+/// ```yaml
+/// fn Threshold:
+///     threshold: const real 0.5   # absolute threshold if [factor] is not specified
+///     factor: 0.1                 # optional, use for integral threshold
+///     input: point real '/App/Service/Point.Name'
+/// ```
 #[derive(Debug)]
 pub struct FnThreshold {
     id: String,
@@ -75,25 +83,32 @@ impl FnOut for FnThreshold {
         let input = self.input.borrow_mut().out();
         let input_type = input.type_();
         let input = input.to_double().as_double();
-        match &self.value {
+        match &mut self.value {
             Some(value) => {
                 let threshold = self.threshold.borrow_mut().out().to_double().as_double();
-                match &self.factor {
-                    Some(factor) => {
+                let delta = (input.clone() - value.to_double().as_double()).abs();
+                debug!("{}.out | Absolute delta: {}", self.id, delta.value);
+                if delta >= threshold {
+                    *value = PointType::Double(input);
+                    self.delta = Point::new_double(0, "", 0.0);
+                } else {
+                    if let Some(factor) = &self.factor {
                         let factor = factor.borrow_mut().out().to_double().as_double();
-                        self.delta = self.delta.clone() + ((input.clone() - value.to_double().as_double()) * factor).abs();
+                        self.delta = self.delta.clone() + (delta * factor);
                         trace!("{}.out | Integral delta: {}", self.id, self.delta.value);
                         if self.delta >= threshold {
                             self.value = Some(PointType::Double(input));
                             self.delta = Point::new_double(0, "", 0.0);
                         }
-                    }
-                    None => {
-                        let delta = (input.clone() - value.to_double().as_double()).abs();
-                        trace!("{}.out | Absolute delta: {}", self.id, delta.value);
-                        if delta >= threshold {
-                            self.value = Some(PointType::Double(input));
-                        }
+                        // Some(factor) => {
+                        // }
+                        // None => {
+                        //     // let delta = (input.clone() - value.to_double().as_double()).abs();
+                        //     debug!("{}.out | Absolute delta: {}", self.id, delta.value);
+                        //     if delta >= threshold {
+                        //         self.value = Some(PointType::Double(input));
+                        //     }
+                        // }
                     }
                 }
             }
