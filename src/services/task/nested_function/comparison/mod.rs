@@ -18,7 +18,7 @@
 //!     input1: point real /App/Service/Point.A
 //!     input2: const real 0.5
 //! ```
-// pub mod fn_gt;
+pub mod fn_gt;
 pub mod fn_ge;
 // pub mod fn_Eq;
 // pub mod fn_Le;
