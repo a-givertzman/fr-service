@@ -1,9 +1,10 @@
 use std::{collections::HashMap, hash::BuildHasherDefault, sync::atomic::{AtomicUsize, Ordering}};
 use chrono::Utc;
 use hashers::fx_hash::FxHasher;
-use log::{debug, trace};
+use log::trace;
 use crate::core_::{
-    cot::cot::Cot, point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, status::status::Status, types::{bool::Bool, fn_in_out_ref::FnInOutRef, map::HashMapFxHasher}
+    cot::cot::Cot, point::{point::Point, point_tx_id::PointTxId, point_type::PointType},
+    status::status::Status, types::{bool::Bool, fn_in_out_ref::FnInOutRef, map::HashMapFxHasher},
 };
 use super::{fn_::{FnInOut, FnOut, FnIn}, fn_kind::FnKind};
 ///
@@ -67,10 +68,10 @@ impl FnOut for FnIsChangedValue {
         let tx_id = PointTxId::from_str(&self.id);
         let mut value = false;
         let state: HashMap<&String, testing::entities::test_value::Value> = self.state.iter().map(|(name, p)| (name, p.value())).collect();
-        debug!("{}.out | state: {:#?}", self.id, state);
+        trace!("{}.out | state: {:#?}", self.id, state);
         for input in &self.inputs {
             let input = input.borrow_mut().out();
-            debug!("{}.out | input '{}': {:#?}", self.id, input.name(), input);
+            trace!("{}.out | input '{}': {:#?}", self.id, input.name(), input);
             let state = self.state
                 .entry(input.name())
                 .or_insert_with(|| {
@@ -78,7 +79,7 @@ impl FnOut for FnIsChangedValue {
                     input.clone()
                 });
             if !input.cmp_value(state) {
-                debug!("{}.out | changed: {}  |  state '{:?}', value: {:?}", self.id, input.name(), state.value(), input.value());
+                trace!("{}.out | changed: {}  |  state '{:?}', value: {:?}", self.id, input.name(), state.value(), input.value());
                 *state = input;
                 value = true;
             }

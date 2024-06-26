@@ -6,7 +6,7 @@ mod fn_lt {
     use crate::{
         conf::fn_::fn_conf_keywd::FnConfPointType, 
         core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
-        services::task::nested_function::{comparison::fn_lt::FnLt, fn_::FnOut, fn_input::FnInput}
+        services::task::nested_function::{comp::fn_lt::FnLt, fn_::FnOut, fn_input::FnInput}
     };
     ///
     ///

@@ -1,6 +1,6 @@
 use chrono::Utc;
 use concat_string::concat_string;
-use log::{debug, error, trace};
+use log::{error, trace};
 use std::{env, fs, io::{Read, Write}, path::PathBuf, sync::atomic::{AtomicUsize, Ordering}};
 use crate::{
     conf::point_config::{name::Name, point_config_type::PointConfigType},
@@ -104,7 +104,7 @@ impl FnRetain {
                     Ok(mut f) => {
                         match f.write_all(value.as_bytes()) {
                             Ok(_) => {
-                                debug!("{}.store | Retain stored in: {:?}", self.id, path);
+                                trace!("{}.store | Retain stored in: {:?}", self.id, path);
                                 Ok(())
                             }
                             Err(err) => {

@@ -1,5 +1,5 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
-use log::{debug, trace};
+use log::trace;
 use crate::core_::{
     point::{point::Point, point_type::PointType},
     types::fn_in_out_ref::FnInOutRef,
@@ -80,7 +80,7 @@ impl FnOut for FnAverage {
         };
         trace!("{}.out | sum: {:?}", self.id, self.sum);
         trace!("{}.out | count: {:?}", self.id, self.count);
-        debug!("{}.out | average: {:?}", self.id, average);
+        trace!("{}.out | average: {:?}", self.id, average);
         PointType::Double(
             Point::new(
                 input.tx_id(),
