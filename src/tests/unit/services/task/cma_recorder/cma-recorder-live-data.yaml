@@ -28,7 +28,12 @@ service Task RecorderTask:
     let winch3LoadNom:
         # input: point real '/AppTest/Winch3.Load.Nom'
         input: point real '/AppTest/Load.Nom'
-
+    #
+    # Crane load in relative units
+    let craneLoadRelative:
+        input fn Div:
+            input1: point real '/AppTest/Load'
+            input2: craneLoadNom
     #
     # 5 % of the nominal crane load - used for Op Cycle detection
     let opCycleThreshold:
@@ -84,17 +89,23 @@ service Task RecorderTask:
     let craneCycleAverageLoad:
         input fn ToReal:
             input fn Average:
-                enable fn Add:
+                enable fn BitOr:
                     input1: opCycleIsActive
                     input2 fn FallingEdge:
                         input: opCycleIsActive
                 input: point real '/AppTest/Load'   # ??? unit ???
     #
+    # Crane Average load in operating cycle in relative units
+    let craneCycleAverageLoadRelative:
+        input fn Div:
+            input1: craneCycleAverageLoad
+            input2: craneLoadNom
+    #
     # Crane Max load in operating cycle, ??? unit ???
     let craneCycleMaxLoad:
         input fn ToReal:
             input fn Max:
-                enable fn Add:
+                enable fn BitOr:
                     input1: opCycleIsActive
                     input2 fn FallingEdge:
                         input: opCycleIsActive
@@ -104,7 +115,7 @@ service Task RecorderTask:
     let winch1CycleAverageLoad:
         input fn ToReal:
             input fn Average:
-                enable fn Add:
+                enable fn BitOr:
                     input1: opCycleIsActive
                     input2 fn FallingEdge:
                         input: opCycleIsActive
@@ -114,7 +125,7 @@ service Task RecorderTask:
     let winch2CycleAverageLoad:
         input fn ToReal:
             input fn Average:
-                enable fn Add:
+                enable fn BitOr:
                     input1: opCycleIsActive
                     input2 fn FallingEdge:
                         input: opCycleIsActive
@@ -124,7 +135,7 @@ service Task RecorderTask:
     let winch3CycleAverageLoad:
         input fn ToReal:
             input fn Average:
-                enable fn Add:
+                enable fn BitOr:
                     input1: opCycleIsActive
                     input2 fn FallingEdge:
                         input: opCycleIsActive
@@ -350,43 +361,159 @@ service Task RecorderTask:
             sql: update {table} set value = {input.value} where name = 'total-operating-cycles-count';
             input: opCycleId
         #
-        # 3.4   	real	cycles-distribution-by-load-ranges	распределение циклов по диапазонам нагрузки	0.0
+        # 3.4   	real	cycles-distribution-by-load-ranges	распределение циклов по диапазонам нагрузки
         #
-        # 3.4.1 	real	cycles-0_05-0_15-load-range	циклов в диапазоне загрузки 0,05 - 0,15	0.0
+        # 3.4.1 	real	cycles-0_05-0_15-load-range	циклов в диапазоне загрузки 0,05 - 0,15
         input341 fn SqlMetric:
             table: public.operating_metric
             sql: update {table} set value = {input.value} where name = 'cycles-0_05-0_15-load-range';
             input fn BitAnd:
                 input1 fn Ge:
-                    input1: point real '/AppTest/Load'
+                    input1: craneCycleAverageLoadRelative
                     input2: const real 0.05
                 input2 fn Lt:
-                    input1: point real '/AppTest/Load'
+                    input1: craneCycleAverageLoadRelative
                     input2: const real 0.15
         #
-        # 3.4.2 	real	cycles-0_15-0_25_load-range	циклов в диапазоне загрузки 0,15 - 0,25	0.0
+        # 3.4.2 	real	cycles-0_15-0_25_load-range	циклов в диапазоне загрузки 0,15 - 0,25
+        input342 fn SqlMetric:
+            table: public.operating_metric
+            sql: update {table} set value = {input.value} where name = 'cycles-0_15-0_25_load-range';
+            input fn BitAnd:
+                input1 fn Ge:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 0.15
+                input2 fn Lt:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 0.25
         #
-        # 3.4.3 	real	cycles-0_25-0_35_load-range	циклов в диапазоне загрузки 0,25 - 0,35	0.0
+        # 3.4.3 	real	cycles-0_25-0_35_load-range	циклов в диапазоне загрузки 0,25 - 0,35
+        input343 fn SqlMetric:
+            table: public.operating_metric
+            sql: update {table} set value = {input.value} where name = 'cycles-0_25-0_35_load-range';
+            input fn BitAnd:
+                input1 fn Ge:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 0.25
+                input2 fn Lt:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 0.35
         #
-        # 3.4.4 	real	cycles-0_35-0_45_load-range	циклов в диапазоне загрузки 0,35 - 0,45	0.0
+        # 3.4.4 	real	cycles-0_35-0_45_load-range	циклов в диапазоне загрузки 0,35 - 0,45
+        input344 fn SqlMetric:
+            table: public.operating_metric
+            sql: update {table} set value = {input.value} where name = 'cycles-0_35-0_45_load-range';
+            input fn BitAnd:
+                input1 fn Ge:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 0.35
+                input2 fn Lt:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 0.45
         #
-        # 3.4.5 	real	cycles-0_45-0_55_load-range	циклов в диапазоне загрузки 0,45 - 0,55	0.0
+        # 3.4.5 	real	cycles-0_45-0_55_load-range	циклов в диапазоне загрузки 0,45 - 0,55
+        input345 fn SqlMetric:
+            table: public.operating_metric
+            sql: update {table} set value = {input.value} where name = 'cycles-0_45-0_55_load-range';
+            input fn BitAnd:
+                input1 fn Ge:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 0.45
+                input2 fn Lt:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 0.55
         #
-        # 3.4.6 	real	cycles-0_55-0_65_load-range	циклов в диапазоне загрузки 0,55 - 0,65	0.0
+        # 3.4.6 	real	cycles-0_55-0_65_load-range	циклов в диапазоне загрузки 0,55 - 0,65
+        input346 fn SqlMetric:
+            table: public.operating_metric
+            sql: update {table} set value = {input.value} where name = 'cycles-0_55-0_65_load-range';
+            input fn BitAnd:
+                input1 fn Ge:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 0.55
+                input2 fn Lt:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 0.65
         #
-        # 3.4.7 	real	cycles-0_65-0_75_load-range	циклов в диапазоне загрузки 0,65 - 0,75	0.0
+        # 3.4.7 	real	cycles-0_65-0_75_load-range	циклов в диапазоне загрузки 0,65 - 0,75
+        input347 fn SqlMetric:
+            table: public.operating_metric
+            sql: update {table} set value = {input.value} where name = 'cycles-0_65-0_75_load-range';
+            input fn BitAnd:
+                input1 fn Ge:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 0.65
+                input2 fn Lt:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 0.75
         #
-        # 3.4.8 	real	cycles-0_75-0_85_load-range	циклов в диапазоне загрузки 0,75 - 0,85	0.0
+        # 3.4.8 	real	cycles-0_75-0_85_load-range	циклов в диапазоне загрузки 0,75 - 0,85
+        input348 fn SqlMetric:
+            table: public.operating_metric
+            sql: update {table} set value = {input.value} where name = 'cycles-0_75-0_85_load-range';
+            input fn BitAnd:
+                input1 fn Ge:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 0.75
+                input2 fn Lt:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 0.85
         #
-        # 3.4.9 	real	cycles-0_85-0_95_load-range	циклов в диапазоне загрузки 0,85 - 0,95	0.0
+        # 3.4.9 	real	cycles-0_85-0_95_load-range	циклов в диапазоне загрузки 0,85 - 0,95
+        input349 fn SqlMetric:
+            table: public.operating_metric
+            sql: update {table} set value = {input.value} where name = 'cycles-0_85-0_95_load-range';
+            input fn BitAnd:
+                input1 fn Ge:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 0.85
+                input2 fn Lt:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 0.95
         #
-        # 3.4.10	real	cycles-0_95-1_05_load-range	циклов в диапазоне загрузки 0,95 - 1,05	0.0
+        # 3.4.10	real	cycles-0_95-1_05_load-range	циклов в диапазоне загрузки 0,95 - 1,05
+        input3410 fn SqlMetric:
+            table: public.operating_metric
+            sql: update {table} set value = {input.value} where name = 'cycles-0_95-1_05_load-range';
+            input fn BitAnd:
+                input1 fn Ge:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 0.95
+                input2 fn Lt:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 1.05
         #
-        # 3.4.11	real	cycles-1_05-1_15_load-range	циклов в диапазоне загрузки 1,05 - 1,15	0.0
+        # 3.4.11	real	cycles-1_05-1_15_load-range	циклов в диапазоне загрузки 1,05 - 1,15
+        input3411 fn SqlMetric:
+            table: public.operating_metric
+            sql: update {table} set value = {input.value} where name = 'cycles-1_05-1_15_load-range';
+            input fn BitAnd:
+                input1 fn Ge:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 1.05
+                input2 fn Lt:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 1.15
         #
-        # 3.4.12	real	cycles-1_15-1_25_load-range	циклов в диапазоне загрузки 1,15 - 1,25	0.0                     
+        # 3.4.12	real	cycles-1_15-1_25_load-range	циклов в диапазоне загрузки 1,15 - 1,25
+        input3412 fn SqlMetric:
+            table: public.operating_metric
+            sql: update {table} set value = {input.value} where name = 'cycles-1_15-1_25_load-range';
+            input fn BitAnd:
+                input1 fn Ge:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 1.15
+                input2 fn Lt:
+                    input1: craneCycleAverageLoadRelative
+                    input2: const real 1.25
         #
-        # 3.4.13	real	cycles-1_15-_load-range	циклов в диапазоне загрузки 1,25 -	0.0
+        # 3.4.13	real	cycles-1_25-_load-range	циклов в диапазоне загрузки 1,25
+        input3413 fn SqlMetric:
+            table: public.operating_metric
+            sql: update {table} set value = {input.value} where name = 'cycles-1_25-_load-range';
+            input1 fn Ge:
+                input1: craneCycleAverageLoadRelative
+                input2: const real 1.25
         #
         # 3.5   	real	crane-total-lifted-mass	суммарная масса поднятых грузов. тонн	0.0
         input35 fn SqlMetric:
@@ -509,6 +636,16 @@ service Task RecorderTask:
             type: 'Real'
             send-to: /AppTest/TaskTestReceiver.in-queue
             input: point real '/AppTest/Load'
+    let void01:
+        input point AverageLoad:
+            type: 'Real'
+            send-to: /AppTest/TaskTestReceiver.in-queue
+            input: craneCycleAverageLoad
+    let void02:
+        input point AverageLoadRelative:
+            type: 'Real'
+            send-to: /AppTest/TaskTestReceiver.in-queue
+            input: craneCycleAverageLoadRelative
     #
     # Threshold for Crane load, used to compress leve data
     let craneLoadThreshold:
@@ -518,9 +655,7 @@ service Task RecorderTask:
             input fn Mul:
                 input1: craneLoadNom
                 input2 fn PiecewiseLineApprox:
-                    input fn Div:
-                        input1: point real '/AppTest/Load'
-                        input2: craneLoadNom
+                    input: craneLoadRelative
                     piecewise:
                         0.0: 0.3
                         0.7: 0.1
@@ -545,7 +680,7 @@ service Task RecorderTask:
                 input: craneLoadFiltered
     #
     # Export Crane Load SQL to the ApiClient
-    let void1:
+    let void2:
         input point OpCycleLoad:
             type: 'String'
             send-to: /AppTest/TaskTestReceiver.in-queue
