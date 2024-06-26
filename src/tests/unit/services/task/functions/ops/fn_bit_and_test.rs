@@ -56,8 +56,8 @@ mod fn_bit_and {
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
             let result = fn_bit_and.out().as_bool().value.0;
-            debug!("step {}  |  value1: {:?} == value2: {:?} | result: {:?}", step, value1, value2, result);
-            target = value1 == value2;
+            debug!("step {}  |  value1: {:?} & value2: {:?} | result: {:?}", step, value1, value2, result);
+            target = value1 & value2;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
         }
     }
@@ -69,7 +69,7 @@ mod fn_bit_and {
         init_once();
         let self_id = "test_int";
         info!("{}", self_id);
-        let mut target: bool;
+        let mut target: i64;
         let input1 = init_each(0.to_point(0, "int"), FnConfPointType::Int);
         let input2 = init_each(0.to_point(0, "int"), FnConfPointType::Int);
         let mut fn_bit_and = FnBitAnd::new(
@@ -97,9 +97,9 @@ mod fn_bit_and {
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
-            let result = fn_bit_and.out().as_bool().value.0;
-            debug!("step {}  |  value1: {:?} == value2: {:?} | result: {:?}", step, value1, value2, result);
-            target = value1 == value2;
+            let result = fn_bit_and.out().as_int().value;
+            debug!("step {}  |  value1: {:?} & value2: {:?} | result: {:?}", step, value1, value2, result);
+            target = value1 & value2;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
         }
     }
