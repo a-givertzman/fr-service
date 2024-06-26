@@ -21,6 +21,6 @@
 pub mod fn_gt;
 pub mod fn_ge;
 pub mod fn_eq;
-// pub mod fn_le;
-// pub mod fn_lt;
+pub mod fn_le;
+pub mod fn_lt;
 // pub mod fn_ne;

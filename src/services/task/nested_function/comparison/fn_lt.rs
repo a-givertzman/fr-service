@@ -11,10 +11,10 @@ use crate::{
     },
 };
 ///
-/// Function | Greater than
-/// FnGt ( input1, input2 ) === input1.value > input2.value
+/// Function | Less than to
+/// FnLt ( input1, input2 ) === input1.value < input2.value
 #[derive(Debug)]
-pub struct FnGt {
+pub struct FnLt {
     id: String,
     kind: FnKind,
     input1: FnInOutRef,
@@ -22,11 +22,11 @@ pub struct FnGt {
 }
 //
 // 
-impl FnGt {
+impl FnLt {
     #[allow(dead_code)]
     pub fn new(parent: impl Into<String>, input1: FnInOutRef, input2: FnInOutRef) -> Self {
         Self { 
-            id: format!("{}/FnGt{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
+            id: format!("{}/FnLt{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
             kind: FnKind::Fn,
             input1,
             input2,
@@ -35,10 +35,10 @@ impl FnGt {
 }
 //
 // 
-impl FnIn for FnGt {}
+impl FnIn for FnLt {}
 //
 //
-impl FnOut for FnGt {
+impl FnOut for FnLt {
     //
     fn id(&self) -> String {
         self.id.clone()
@@ -60,7 +60,7 @@ impl FnOut for FnGt {
         let input2 = self.input2.borrow_mut().out();    
         trace!("{}.out | input1: {:?}", self.id, &input1);
         trace!("{}.out | input2: {:?}", self.id, &input2);
-        let value = input1.value() > input2.value();
+        let value = input1.value() < input2.value();
         trace!("{}.out | value: {:?}", self.id, &value);
         let status = match input1.status().cmp(&input2.status()) {
             std::cmp::Ordering::Less => input2.status(),
@@ -92,7 +92,7 @@ impl FnOut for FnGt {
 }
 //
 // 
-impl FnInOut for FnGt {}
+impl FnInOut for FnLt {}
 ///
-/// Global static counter of FnGt instances
+/// Global static counter of FnLt instances
 pub static COUNT: AtomicUsize = AtomicUsize::new(1);
