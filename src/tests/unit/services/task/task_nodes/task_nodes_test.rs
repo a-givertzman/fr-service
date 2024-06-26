@@ -8,7 +8,8 @@ mod task_nodes {
         conf::{point_config::name::Name, task_config::TaskConfig},
         core_::{object::object::Object, point::point_type::{PointType, ToPoint}},
         services::{
-            safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::{nested_function::{fn_count, fn_ge, fn_kind::FnKind, sql_metric}, task_nodes::TaskNodes}
+            safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services,
+            task::{nested_function::{fn_count, comparison::fn_ge, fn_kind::FnKind, sql_metric}, task_nodes::TaskNodes}
         },
     };
     ///

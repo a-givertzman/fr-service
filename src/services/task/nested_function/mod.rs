@@ -26,7 +26,6 @@ pub mod functions;
 pub mod fn_add;
 pub mod fn_input;
 pub mod fn_count;
-pub mod fn_ge;
 pub mod fn_timer;
 pub mod fn_var;
 pub mod fn_const;
@@ -55,6 +54,7 @@ pub mod export;
 pub mod import;
 pub mod io;
 pub mod filter;
+pub mod comparison;
 
 pub mod reset_counter;
 
