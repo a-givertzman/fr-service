@@ -1,5 +1,5 @@
 use std::sync::{mpsc::Sender, atomic::{AtomicUsize, Ordering}};
-use log::{debug, error};
+use log::{error, trace};
 use crate::{
     conf::point_config::{point_config::PointConfig, point_config_type::PointConfigType}, core_::{point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, types::{bool::Bool, fn_in_out_ref::FnInOutRef}}, services::task::nested_function::{fn_::{FnIn, FnInOut, FnOut}, fn_kind::FnKind}
 };
@@ -128,7 +128,7 @@ impl FnPoint {
             };
             match tx_send.send(point.clone()) {
                 Ok(_) => {
-                    debug!("{}.out | Point sent: {:#?}", self.id, point);
+                    trace!("{}.out | Point sent: {:#?}", self.id, point);
                 }
                 Err(err) => {
                     error!("{}.out | Send error: {:#?}\n\t point: {:#?}", self.id, err, point);

@@ -1,4 +1,4 @@
-use log::{debug, trace};
+use log::trace;
 use std::{sync::atomic::{AtomicUsize, Ordering}, time::Instant};
 use crate::{conf::point_config::point_config_type::PointConfigType, core_::{
     cot::cot::Cot, point::{point::Point, point_type::PointType},
@@ -185,7 +185,7 @@ impl FnOut for FnTimer {
             self.state.reset();
             initial
         };
-        debug!("{}.out | out: {:?}", self.id, out);
+        trace!("{}.out | out: {:?}", self.id, out);
         match &self.initial {
             Some(initial) => {
                 let type_ = initial.borrow_mut().out().type_();

@@ -1,5 +1,5 @@
 use std::sync::{atomic::{AtomicUsize, Ordering}, mpsc::Sender};
-use log::{debug, error, warn};
+use log::{debug, error, trace, warn};
 use crate::core_::{
     point::{point::Point, point_type::PointType},
     types::{bool::Bool, fn_in_out_ref::FnInOutRef},
@@ -124,17 +124,17 @@ impl FnOut for FnRecOpCycleMetric {
             }
         }
         if self.rising && enable {
-            warn!("{}.out | Operating Cycle - values", self.id);
+            trace!("{}.out | Operating Cycle - values", self.id);
             self.values.clear();
             for input in &self.inputs {
                 let value = input.borrow_mut().out();
-                warn!("{}.out | Operating Cycle - value: {:?}", self.id, value);
+                trace!("{}.out | Operating Cycle - value: {:?}", self.id, value);
                 self.values.push(value)
             }
-            let log_values: Vec<String> = self.values.iter().map(|point| {
-                format!("{}: {}", point.name(), point.value().to_string())
-            }).collect();
-            warn!("{}.out | Operating Cycle - values: {:#?}", self.id, log_values);
+            // let log_values: Vec<String> = self.values.iter().map(|point| {
+            //     format!("{}: {}", point.name(), point.value().to_string())
+            // }).collect();
+            // trace!("{}.out | Operating Cycle - values: {:#?}", self.id, log_values);
         }
         PointType::Bool(
             Point::new(

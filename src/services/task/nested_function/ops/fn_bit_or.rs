@@ -1,6 +1,6 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use chrono::Utc;
-use log::debug;
+use log::trace;
 use crate::{
     core_::{
         cot::cot::Cot, point::{point::Point, point_tx_id::PointTxId, point_type::PointType},
@@ -76,7 +76,7 @@ impl FnOut for FnBitOr {
                 value = first.borrow_mut().out();
                 while let Some(input) = inputs.next() {
                     let input = input.borrow_mut().out();
-                    debug!("{}.out | input '{}': {:?}", self.id, input.name(), input.value());
+                    trace!("{}.out | input '{}': {:?}", self.id, input.name(), input.value());
                     value = match &value {
                         PointType::Bool(val) => {
                             let input_val = input.try_as_bool().unwrap_or_else(|_| panic!("{}.out | Incopatable types, expected '{:?}', but input '{}' has type '{:?}'", self.id, value.type_(), input.name(), input.type_()));

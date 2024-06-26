@@ -21,8 +21,8 @@ service Task RecorderTask:
     #
     # The nominal load of the Winch2
     let winch2LoadNom:
-        # input: point real '/AppTest/Winch2.Load.Nom'
-        input: const real 50.0      #point real '/AppTest/Winch2.Load.Nom'
+        input: point real '/AppTest/Winch2.Load.Nom'
+        # input: const real 50.0
     #
     # The nominal load of the Winch3
     let winch3LoadNom:
@@ -46,7 +46,7 @@ service Task RecorderTask:
     let opCycleIsActive:
         input fn Export:
             send-to: /AppTest/TaskTestReceiver.in-queue
-            conf point OpCycle:
+            conf point OpCycleIsActive:
                 type: 'Bool'
             input fn Ge:
                 input2: opCycleThreshold

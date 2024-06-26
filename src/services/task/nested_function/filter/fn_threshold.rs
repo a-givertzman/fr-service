@@ -1,5 +1,5 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
-use log::{debug, trace};
+use log::trace;
 use crate::{
     conf::point_config::point_config_type::PointConfigType, core_::{
         point::{point::Point, point_type::PointType}, 
@@ -87,7 +87,7 @@ impl FnOut for FnThreshold {
             Some(value) => {
                 let threshold = self.threshold.borrow_mut().out().to_double().as_double();
                 let delta = (input.clone() - value.to_double().as_double()).abs();
-                debug!("{}.out | Absolute delta: {}", self.id, delta.value);
+                trace!("{}.out | Absolute delta: {}", self.id, delta.value);
                 if delta >= threshold {
                     *value = PointType::Double(input);
                     self.delta = Point::new_double(0, "", 0.0);
@@ -100,15 +100,6 @@ impl FnOut for FnThreshold {
                             self.value = Some(PointType::Double(input));
                             self.delta = Point::new_double(0, "", 0.0);
                         }
-                        // Some(factor) => {
-                        // }
-                        // None => {
-                        //     // let delta = (input.clone() - value.to_double().as_double()).abs();
-                        //     debug!("{}.out | Absolute delta: {}", self.id, delta.value);
-                        //     if delta >= threshold {
-                        //         self.value = Some(PointType::Double(input));
-                        //     }
-                        // }
                     }
                 }
             }
