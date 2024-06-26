@@ -356,7 +356,7 @@ service Task RecorderTask:
         input341 fn SqlMetric:
             table: public.operating_metric
             sql: update {table} set value = {input.value} where name = 'cycles-0_05-0_15-load-range';
-            input fn And:
+            input fn BitAnd:
                 input1 fn Ge:
                     input1: point real '/AppTest/Load'
                     input2: const real 0.05
