@@ -22,7 +22,7 @@ service Task RecorderTask:
     # The nominal load of the Winch2
     let winch2LoadNom:
         # input: point real '/AppTest/Winch2.Load.Nom'
-        input: point real '/AppTest/Load.Nom'
+        input: const real 50.0      #point real '/AppTest/Winch2.Load.Nom'
     #
     # The nominal load of the Winch3
     let winch3LoadNom:
@@ -493,12 +493,14 @@ service Task RecorderTask:
     #
     #   table:      operating_cycle_value
     #
+    # Used for debuging only, to be removed
     let void:
         input point Load:
             type: 'Real'
             send-to: /AppTest/TaskTestReceiver.in-queue
             input: point real '/AppTest/Load'
-
+    #
+    # Threshold for Crane load, used to compress leve data
     let craneLoadThreshold:
         input point CraneLoadThreshold:
             type: 'Real'
@@ -516,27 +518,71 @@ service Task RecorderTask:
                         0.95: 0.01
                         1.0: 0.005
                         1.1: 0.001
+    #
+    # Crane load leve data compressed
     let craneLoadFiltered:
         input fn Threshold:
             threshold: craneLoadThreshold
             factor: const real 0.3 #0.05
             input: point real '/AppTest/Load'
-
-    let isChangedCraneLoad:
+    #
+    # Returns true only when craneLoadFiltered value changed
+    let craneLoadIsChanged:
         input point IsChangedCraneLoad:
             type: 'Bool'
             send-to: /AppTest/TaskTestReceiver.in-queue
             input fn IsChangedValue:
                 input: craneLoadFiltered
-        
+    #
+    # Export Crane Load SQL to the ApiClient
     let void1:
         input point OpCycleLoad:
             type: 'String'
             send-to: /AppTest/TaskTestReceiver.in-queue
-            enable: isChangedCraneLoad
+            enable: craneLoadIsChanged
             input fn SqlMetric:
                 table: public.operating_cycle_value
                 sql: insert into {table} (pid, value, timestamp) values ({pid.value}, {input.value}, {input.timestamp});
                 pid fn PointId:
                     input: point real '/AppTest/Load'
                 input: craneLoadFiltered
+    # #
+    # # Threshold for Winch1 load, used to compress load leve data
+    # let winch1LoadThreshold:
+    #     input point CraneLoadThreshold:
+    #         type: 'Real'
+    #         send-to: /AppTest/TaskTestReceiver.in-queue
+    #         input fn Mul:
+    #             input1: winch1LoadNom
+    #             input2 fn PiecewiseLineApprox:
+    #                 input fn Div:
+    #                     input1: point real '/AppTest/Winch1.Load'
+    #                     input2: winch1LoadNom
+    #                 piecewise:
+    #                     0.0: 0.3
+    #                     0.7: 0.1
+    #                     0.85: 0.05
+    #                     0.95: 0.01
+    #                     1.0: 0.005
+    #                     1.1: 0.001
+    # #
+    # # Winch1 load leve data compressed
+    # let winch1LoadFiltered:
+    #     input fn Threshold:
+    #         threshold: winch1LoadThreshold
+    #         factor: const real 0.3 #0.05
+    #         input: point real '/AppTest/Load'
+    # #
+    # # Export Winch1 Load SQL to the ApiClient
+    # let void2:
+    #     input point OpCycleLoad:
+    #         type: 'String'
+    #         send-to: /AppTest/TaskTestReceiver.in-queue
+    #         enable fn IsChangedValue:
+    #             input: winch1LoadFiltered
+    #         input fn SqlMetric:
+    #             table: public.operating_cycle_value
+    #             sql: insert into {table} (pid, value, timestamp) values ({pid.value}, {input.value}, {input.timestamp});
+    #             pid fn PointId:
+    #                 input: point real '/AppTest/Load'
+    #             input: winch1LoadFiltered
