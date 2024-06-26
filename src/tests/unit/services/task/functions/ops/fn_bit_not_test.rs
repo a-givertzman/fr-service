@@ -1,12 +1,12 @@
 #[cfg(test)]
-mod fn_bit_or {
+mod fn_bit_xor {
     use log::{debug, info};
     use std::{sync::Once, rc::Rc, cell::RefCell};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         conf::fn_::fn_conf_keywd::FnConfPointType, 
         core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
-        services::task::nested_function::{ops::fn_bit_or::FnBitOr, fn_::FnOut, fn_input::FnInput}
+        services::task::nested_function::{ops::fn_bit_xor::FnBitXor, fn_::FnOut, fn_input::FnInput}
     };
     ///
     ///
@@ -37,7 +37,7 @@ mod fn_bit_or {
         let mut target: bool;
         let input1 = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
         let input2 = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
-        let mut fn_bit_or = FnBitOr::new(
+        let mut fn_bit_xor = FnBitXor::new(
             self_id,
             vec![
                 input1.clone(),
@@ -55,9 +55,9 @@ mod fn_bit_or {
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
-            let result = fn_bit_or.out().as_bool().value.0;
-            debug!("step {}  |  value1: {:?} | value2: {:?} | result: {:?}", step, value1, value2, result);
-            target = value1 | value2;
+            let result = fn_bit_xor.out().as_bool().value.0;
+            debug!("step {}  |  value1: {:?} ^ value2: {:?} | result: {:?}", step, value1, value2, result);
+            target = value1 ^ value2;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
         }
     }
@@ -73,7 +73,7 @@ mod fn_bit_or {
         let input1 = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
         let input2 = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
         let input3 = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
-        let mut fn_bit_or = FnBitOr::new(
+        let mut fn_bit_xor = FnBitXor::new(
             self_id,
             vec![
                 input1.clone(),
@@ -98,9 +98,9 @@ mod fn_bit_or {
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
             input3.borrow_mut().add(point3.clone());
-            let result = fn_bit_or.out().as_bool().value.0;
-            debug!("step {}  |  value1: {:?} | value2: {:?} | value3: {:?} | result: {:?}", step, value1, value2, value3, result);
-            target = value1 | value2 | value3;
+            let result = fn_bit_xor.out().as_bool().value.0;
+            debug!("step {}  |  value1: {:?} ^ value2: {:?} ^ value3: {:?} | result: {:?}", step, value1, value2, value3, result);
+            target = value1 ^ value2 ^ value3;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
         }
     }
@@ -115,7 +115,7 @@ mod fn_bit_or {
         let mut target: i64;
         let input1 = init_each(0.to_point(0, "int"), FnConfPointType::Int);
         let input2 = init_each(0.to_point(0, "int"), FnConfPointType::Int);
-        let mut fn_bit_or = FnBitOr::new(
+        let mut fn_bit_xor = FnBitXor::new(
             self_id,
             vec![
                 input1.clone(),
@@ -140,9 +140,9 @@ mod fn_bit_or {
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
-            let result = fn_bit_or.out().as_int().value;
-            debug!("step {}  |  value1: {:?} | value2: {:?} | result: {:?}", step, value1, value2, result);
-            target = value1 | value2;
+            let result = fn_bit_xor.out().as_int().value;
+            debug!("step {}  |  value1: {:?} ^ value2: {:?} | result: {:?}", step, value1, value2, result);
+            target = value1 ^ value2;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
         }
     }
@@ -158,7 +158,7 @@ mod fn_bit_or {
         let input1 = init_each(0.to_point(0, "int"), FnConfPointType::Int);
         let input2 = init_each(0.to_point(0, "int"), FnConfPointType::Int);
         let input3 = init_each(0.to_point(0, "int"), FnConfPointType::Int);
-        let mut fn_bit_or = FnBitOr::new(
+        let mut fn_bit_xor = FnBitXor::new(
             self_id,
             vec![
                 input1.clone(),
@@ -186,9 +186,9 @@ mod fn_bit_or {
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
             input3.borrow_mut().add(point3.clone());
-            let result = fn_bit_or.out().as_int().value;
-            debug!("step {}  |  value1: {:?} | value2: {:?} | value3: {:?} | result: {:?}", step, value1, value2, value3, result);
-            target = value1 | value2 | value3;
+            let result = fn_bit_xor.out().as_int().value;
+            debug!("step {}  |  value1: {:?} ^ value2: {:?} ^ value3: {:?} | result: {:?}", step, value1, value2, value3, result);
+            target = value1 ^ value2 ^ value3;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
         }
     }

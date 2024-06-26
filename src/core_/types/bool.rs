@@ -39,3 +39,11 @@ impl std::ops::BitAnd for Bool {
         Bool(self.0 & rhs.0)
     }
 }
+//
+//
+impl std::ops::Not for Bool {
+    type Output = Bool;
+    fn not(self) -> Self::Output {
+        Bool(!self.0)
+    }
+}
