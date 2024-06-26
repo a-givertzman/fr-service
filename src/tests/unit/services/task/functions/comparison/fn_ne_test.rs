@@ -54,8 +54,8 @@ mod fn_ne {
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
             let result = fn_ne.out().as_bool().value.0;
-            debug!("step {}  |  value1: {:?} < value2: {:?} | result: {:?}", step, value1, value2, result);
-            target = value1 < value2;
+            debug!("step {}  |  value1: {:?} != value2: {:?} | result: {:?}", step, value1, value2, result);
+            target = value1 != value2;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
         }
     }
@@ -94,8 +94,8 @@ mod fn_ne {
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
             let result = fn_ne.out().as_bool().value.0;
-            debug!("step {}  |  value1: {:?} < value2: {:?} | result: {:?}", step, value1, value2, result);
-            target = value1 < value2;
+            debug!("step {}  |  value1: {:?} != value2: {:?} | result: {:?}", step, value1, value2, result);
+            target = value1 != value2;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
         }
     }
@@ -143,8 +143,8 @@ mod fn_ne {
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
             let result = fn_ne.out().as_bool().value.0;
-            debug!("step {}  |  value1: {:?} < value2: {:?} | result: {:?}", step, value1, value2, result);
-            target = value1 < value2;
+            debug!("step {}  |  value1: {:?} != value2: {:?} | result: {:?}", step, value1, value2, result);
+            target = value1 != value2;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
         }
     }
@@ -192,8 +192,8 @@ mod fn_ne {
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
             let result = fn_ne.out().as_bool().value.0;
-            debug!("step {}  |  value1: {:?} < value2: {:?} | result: {:?}", step, value1, value2, result);
-            target = value1 < value2;
+            debug!("step {}  |  value1: {:?} != value2: {:?} | result: {:?}", step, value1, value2, result);
+            target = value1 != value2;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
         }
     }
