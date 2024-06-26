@@ -62,6 +62,49 @@ mod fn_bit_and {
         }
     }
     ///
+    /// Testing Task Eq Bool's
+    #[test]
+    fn test_bool_3() {
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
+        init_once();
+        let self_id = "test_bool_3";
+        info!("{}", self_id);
+        let mut target: bool;
+        let input1 = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
+        let input2 = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
+        let input3 = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
+        let mut fn_bit_and = FnBitAnd::new(
+            self_id,
+            vec![
+                input1.clone(),
+                input2.clone(),
+                input3.clone(),
+            ],
+        );
+        let test_data = vec![
+            (00, false, false, false),
+            (01, false, true, false),
+            (02, true,  false, false),
+            (03, true,  true, false),
+            (04, false, false, true),
+            (05, false, true, true),
+            (06, true,  false, true),
+            (07, true,  true, true),
+        ];
+        for (step, value1, value2, value3) in test_data {
+            let point1 = value1.to_point(0, "test");
+            let point2 = value2.to_point(0, "test");
+            let point3 = value3.to_point(0, "test");
+            input1.borrow_mut().add(point1.clone());
+            input2.borrow_mut().add(point2.clone());
+            input3.borrow_mut().add(point3.clone());
+            let result = fn_bit_and.out().as_bool().value.0;
+            debug!("step {}  |  value1: {:?} & value2: {:?} & value3: {:?} | result: {:?}", step, value1, value2, value3, result);
+            target = value1 & value2 & value3;
+            assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
+        }
+    }
+    ///
     /// Testing Task Eq Int's
     #[test]
     fn test_int() {
