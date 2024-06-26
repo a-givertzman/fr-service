@@ -9,7 +9,7 @@ mod task_nodes {
         core_::{object::object::Object, point::point_type::{PointType, ToPoint}},
         services::{
             safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services,
-            task::{nested_function::{fn_count, comparison::fn_ge, fn_kind::FnKind, sql_metric}, task_nodes::TaskNodes}
+            task::{nested_function::{fn_count, comp::fn_ge, fn_kind::FnKind, sql_metric}, task_nodes::TaskNodes}
         },
     };
     ///
