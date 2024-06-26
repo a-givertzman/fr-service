@@ -1,5 +1,5 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
-use log::debug;
+use log::trace;
 use crate::core_::{
     point::{point::Point, point_type::PointType},
     types::fn_in_out_ref::FnInOutRef,
@@ -71,7 +71,7 @@ impl FnOut for FnMax {
         } else {
             self.max = 0.0;
         }
-        debug!("{}.out | max: {:?}", self.id, self.max);
+        trace!("{}.out | max: {:?}", self.id, self.max);
         PointType::Double(
             Point::new(
                 input.tx_id(),

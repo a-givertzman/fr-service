@@ -1,5 +1,5 @@
 use std::sync::atomic::{Ordering, AtomicUsize};
-use log::{debug, trace};
+use log::trace;
 use crate::core_::{point::point_type::PointType, types::fn_in_out_ref::FnInOutRef};
 use super::{fn_::{FnIn, FnOut, FnInOut}, fn_kind::FnKind};
 ///
@@ -52,7 +52,7 @@ impl FnOut for FnVar {
     /// - Result stores into inner
     /// - calculated result returns in .out() method
     fn eval(&mut self) {
-        debug!("{}.eval | evaluating...", self.id);
+        trace!("{}.eval | evaluating...", self.id);
         self.result = Some(self.input.borrow_mut().out());
     }
     ///
