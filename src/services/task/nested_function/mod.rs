@@ -55,6 +55,7 @@ pub mod export;
 pub mod import;
 pub mod io;
 pub mod filter;
+pub mod comparison;
 
 pub mod reset_counter;
 

@@ -1,11 +1,15 @@
 use log::trace;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use crate::core_::{
-    cot::cot::Cot,
-    point::{point::Point, point_type::PointType},
-    types::{bool::Bool, fn_in_out_ref::FnInOutRef},
+use crate::{
+    core_::{
+        cot::cot::Cot,
+        point::{point::Point, point_type::PointType},
+        types::{bool::Bool, fn_in_out_ref::FnInOutRef},
+    },
+    services::task::nested_function::{
+        fn_::{FnInOut, FnIn, FnOut}, fn_kind::FnKind,
+    },
 };
-use super::{fn_::{FnInOut, FnIn, FnOut}, fn_kind::FnKind};
 ///
 /// Function | Greater than or equal to
 /// FnGe ( input1, input2 ) === input1.value >= input2.value
