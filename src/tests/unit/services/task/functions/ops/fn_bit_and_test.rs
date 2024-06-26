@@ -103,4 +103,50 @@ mod fn_bit_and {
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
         }
     }
+    ///
+    /// Testing Task Eq Int's
+    #[test]
+    fn test_int_3() {
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
+        init_once();
+        let self_id = "test_int_3";
+        info!("{}", self_id);
+        let mut target: i64;
+        let input1 = init_each(0.to_point(0, "int"), FnConfPointType::Int);
+        let input2 = init_each(0.to_point(0, "int"), FnConfPointType::Int);
+        let input3 = init_each(0.to_point(0, "int"), FnConfPointType::Int);
+        let mut fn_bit_and = FnBitAnd::new(
+            self_id,
+            vec![
+                input1.clone(),
+                input2.clone(),
+                input3.clone(),
+            ],
+        );
+        let test_data = vec![
+            (00, 1, 5, 3),
+            (01, 5, 1, 0),
+            (02, 3,  3, -7),
+            (03, -1, -5, 22),
+            (04, -5, -1, 3),
+            (05, -4, -4, 0),
+            (06, 4,  0, -1),
+            (07, 0,  4, 1),
+            (08, 0,  0, 0),
+            (09, -4,  0, 0),
+            (10, 0,  -4, 4),
+        ];
+        for (step, value1, value2, value3) in test_data {
+            let point1 = value1.to_point(0, "test");
+            let point2 = value2.to_point(0, "test");
+            let point3 = value3.to_point(0, "test");
+            input1.borrow_mut().add(point1.clone());
+            input2.borrow_mut().add(point2.clone());
+            input3.borrow_mut().add(point3.clone());
+            let result = fn_bit_and.out().as_int().value;
+            debug!("step {}  |  value1: {:?} & value2: {:?} & value3: {:?} | result: {:?}", step, value1, value2, value3, result);
+            target = value1 & value2 & value3;
+            assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
+        }
+    }
 }
