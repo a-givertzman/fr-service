@@ -59,7 +59,7 @@ impl FnOut for FnGe {
         // debug!("FnTrip.out | input: {:?}", self.input.print());
         let input1 = self.input1.borrow_mut().out();     
         let input2 = self.input2.borrow_mut().out();    
-        let value = input1 >= input2;
+        let value = input1.value() >= input2.value();
         trace!("{}.out | value: {:?}", self.id, &value);
         let status = match input1.status().cmp(&input2.status()) {
             std::cmp::Ordering::Less => input2.status(),

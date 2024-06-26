@@ -1,4 +1,4 @@
-use log::trace;
+use log::{debug, trace};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::{
     core_::{
@@ -59,7 +59,9 @@ impl FnOut for FnGt {
         // debug!("FnTrip.out | input: {:?}", self.input.print());
         let input1 = self.input1.borrow_mut().out();     
         let input2 = self.input2.borrow_mut().out();    
-        let value = input1 > input2;
+        trace!("{}.out | input1: {:?}", self.id, &input1);
+        trace!("{}.out | input2: {:?}", self.id, &input2);
+        let value = input1.value() > input2.value();
         trace!("{}.out | value: {:?}", self.id, &value);
         let status = match input1.status().cmp(&input2.status()) {
             std::cmp::Ordering::Less => input2.status(),
