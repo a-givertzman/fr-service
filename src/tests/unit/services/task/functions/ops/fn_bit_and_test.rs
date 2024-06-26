@@ -27,7 +27,7 @@ mod fn_bit_and {
         )))
     }
     ///
-    /// Testing Task Eq Bool's
+    /// Testing Task FnAnd Bool's
     #[test]
     fn test_bool() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -62,7 +62,7 @@ mod fn_bit_and {
         }
     }
     ///
-    /// Testing Task Eq Bool's
+    /// Testing Task FnAnd Bool's
     #[test]
     fn test_bool_3() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -105,7 +105,7 @@ mod fn_bit_and {
         }
     }
     ///
-    /// Testing Task Eq Int's
+    /// Testing Task FnAnd Int's
     #[test]
     fn test_int() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -147,7 +147,7 @@ mod fn_bit_and {
         }
     }
     ///
-    /// Testing Task Eq Int's
+    /// Testing Task FnAnd Int's
     #[test]
     fn test_int_3() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);

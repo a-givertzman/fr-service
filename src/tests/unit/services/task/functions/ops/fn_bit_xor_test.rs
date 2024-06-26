@@ -27,7 +27,7 @@ mod fn_bit_xor {
         )))
     }
     ///
-    /// Testing Task Eq Bool's
+    /// Testing Task FnXor Bool's
     #[test]
     fn test_bool() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -62,7 +62,7 @@ mod fn_bit_xor {
         }
     }
     ///
-    /// Testing Task Eq Bool's
+    /// Testing Task FnXor Bool's
     #[test]
     fn test_bool_3() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -105,7 +105,7 @@ mod fn_bit_xor {
         }
     }
     ///
-    /// Testing Task Eq Int's
+    /// Testing Task FnXor Int's
     #[test]
     fn test_int() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -147,7 +147,7 @@ mod fn_bit_xor {
         }
     }
     ///
-    /// Testing Task Eq Int's
+    /// Testing Task FnXor Int's
     #[test]
     fn test_int_3() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
