@@ -1,4 +1,4 @@
-use log::{debug, trace};
+use log::trace;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::{
     core_::{
@@ -95,5 +95,5 @@ impl FnOut for FnGt {
 // 
 impl FnInOut for FnGt {}
 ///
-/// Global static counter of FnOut instances
+/// Global static counter of FnGt instances
 pub static COUNT: AtomicUsize = AtomicUsize::new(1);

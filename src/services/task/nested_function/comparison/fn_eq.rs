@@ -12,9 +12,9 @@ use crate::{
 };
 ///
 /// Function | Greater than or equal to
-/// FnGe ( input1, input2 ) === input1.value >= input2.value
+/// FnEq ( input1, input2 ) === input1.value >= input2.value
 #[derive(Debug)]
-pub struct FnGe {
+pub struct FnEq {
     id: String,
     kind: FnKind,
     input1: FnInOutRef,
@@ -22,11 +22,11 @@ pub struct FnGe {
 }
 //
 // 
-impl FnGe {
+impl FnEq {
     #[allow(dead_code)]
     pub fn new(parent: impl Into<String>, input1: FnInOutRef, input2: FnInOutRef) -> Self {
         Self { 
-            id: format!("{}/FnGe{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
+            id: format!("{}/FnEq{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed)),
             kind: FnKind::Fn,
             input1,
             input2,
@@ -35,10 +35,10 @@ impl FnGe {
 }
 //
 // 
-impl FnIn for FnGe {}
+impl FnIn for FnEq {}
 //
 //
-impl FnOut for FnGe {
+impl FnOut for FnEq {
     //
     fn id(&self) -> String {
         self.id.clone()
@@ -59,7 +59,7 @@ impl FnOut for FnGe {
         // debug!("FnTrip.out | input: {:?}", self.input.print());
         let input1 = self.input1.borrow_mut().out();     
         let input2 = self.input2.borrow_mut().out();    
-        let value = input1.value() >= input2.value();
+        let value = input1.value() == input2.value();
         trace!("{}.out | value: {:?}", self.id, &value);
         let status = match input1.status().cmp(&input2.status()) {
             std::cmp::Ordering::Less => input2.status(),
@@ -91,7 +91,7 @@ impl FnOut for FnGe {
 }
 //
 // 
-impl FnInOut for FnGe {}
+impl FnInOut for FnEq {}
 ///
-/// Global static counter of FnGe instances
+/// Global static counter of FnEq instances
 pub static COUNT: AtomicUsize = AtomicUsize::new(1);

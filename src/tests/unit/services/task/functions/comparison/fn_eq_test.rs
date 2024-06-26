@@ -1,12 +1,12 @@
 #[cfg(test)]
-mod fn_gt {
+mod fn_eq {
     use log::{debug, info};
     use std::{sync::Once, rc::Rc, cell::RefCell};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         conf::fn_::fn_conf_keywd::FnConfPointType, 
         core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
-        services::task::nested_function::{comparison::fn_gt::FnGt, fn_::FnOut, fn_input::FnInput}
+        services::task::nested_function::{comparison::fn_eq::FnEq, fn_::FnOut, fn_input::FnInput}
     };
     ///
     ///
@@ -27,7 +27,7 @@ mod fn_gt {
         )))
     }
     ///
-    /// Testing Task Ge Bool's
+    /// Testing Task Eq Bool's
     #[test]
     fn test_bool() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -37,7 +37,7 @@ mod fn_gt {
         let mut target: bool;
         let input1 = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
         let input2 = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
-        let mut fn_gt = FnGt::new(
+        let mut fn_eq = FnEq::new(
             self_id,
             input1.clone(),
             input2.clone(),
@@ -53,14 +53,14 @@ mod fn_gt {
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
-            let result = fn_gt.out().as_bool().value.0;
-            debug!("step {}  |  value1: {:?} > value2: {:?} | result: {:?}", step, value1, value2, result);
-            target = value1 > value2;
+            let result = fn_eq.out().as_bool().value.0;
+            debug!("step {}  |  value1: {:?} == value2: {:?} | result: {:?}", step, value1, value2, result);
+            target = value1 == value2;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
         }
     }
     ///
-    /// Testing Task Ge Int's
+    /// Testing Task Eq Int's
     #[test]
     fn test_int() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -70,7 +70,7 @@ mod fn_gt {
         let mut target: bool;
         let input1 = init_each(0.to_point(0, "int"), FnConfPointType::Int);
         let input2 = init_each(0.to_point(0, "int"), FnConfPointType::Int);
-        let mut fn_gt = FnGt::new(
+        let mut fn_eq = FnEq::new(
             self_id,
             input1.clone(),
             input2.clone(),
@@ -93,14 +93,14 @@ mod fn_gt {
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
-            let result = fn_gt.out().as_bool().value.0;
-            debug!("step {}  |  value1: {:?} > value2: {:?} | result: {:?}", step, value1, value2, result);
-            target = value1 > value2;
+            let result = fn_eq.out().as_bool().value.0;
+            debug!("step {}  |  value1: {:?} == value2: {:?} | result: {:?}", step, value1, value2, result);
+            target = value1 == value2;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
         }
     }
     ///
-    /// Testing Ge Real's
+    /// Testing Eq Real's
     #[test]
     fn test_real() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -110,7 +110,7 @@ mod fn_gt {
         let mut target: bool;
         let input1 = init_each(0.0f32.to_point(0, "int"), FnConfPointType::Real);
         let input2 = init_each(0.0f32.to_point(0, "int"), FnConfPointType::Real);
-        let mut fn_gt = FnGt::new(
+        let mut fn_eq = FnEq::new(
             self_id,
             input1.clone(),
             input2.clone(),
@@ -142,14 +142,14 @@ mod fn_gt {
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
-            let result = fn_gt.out().as_bool().value.0;
-            debug!("step {}  |  value1: {:?} > value2: {:?} | result: {:?}", step, value1, value2, result);
-            target = value1 > value2;
+            let result = fn_eq.out().as_bool().value.0;
+            debug!("step {}  |  value1: {:?} == value2: {:?} | result: {:?}", step, value1, value2, result);
+            target = value1 == value2;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
         }
     }
     ///
-    /// Testing Ge Double's
+    /// Testing Eq Double's
     #[test]
     fn test_double() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
@@ -159,7 +159,7 @@ mod fn_gt {
         let mut target: bool;
         let input1 = init_each(0.0f64.to_point(0, "int"), FnConfPointType::Double);
         let input2 = init_each(0.0f64.to_point(0, "int"), FnConfPointType::Double);
-        let mut fn_gt = FnGt::new(
+        let mut fn_eq = FnEq::new(
             self_id,
             input1.clone(),
             input2.clone(),
@@ -191,9 +191,9 @@ mod fn_gt {
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
-            let result = fn_gt.out().as_bool().value.0;
-            debug!("step {}  |  value1: {:?} > value2: {:?} | result: {:?}", step, value1, value2, result);
-            target = value1 > value2;
+            let result = fn_eq.out().as_bool().value.0;
+            debug!("step {}  |  value1: {:?} == value2: {:?} | result: {:?}", step, value1, value2, result);
+            target = value1 == value2;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
         }
     }

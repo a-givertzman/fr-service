@@ -20,7 +20,7 @@
 //! ```
 pub mod fn_gt;
 pub mod fn_ge;
-// pub mod fn_Eq;
-// pub mod fn_Le;
-// pub mod fn_Lt;
-// pub mod fn_Ne;
+pub mod fn_eq;
+// pub mod fn_le;
+// pub mod fn_lt;
+// pub mod fn_ne;
