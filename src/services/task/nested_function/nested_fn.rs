@@ -10,17 +10,7 @@ use crate::{
     services::{
         queue_name::QueueName, safe_lock::SafeLock, services::Services, task::{
             nested_function::{
-                edge_detection::{fn_falling_edge::FnFallingEdge, fn_rising_edge::FnRisingEdge},
-                export::{fn_export::FnExport, fn_point::FnPoint, fn_to_api_queue::FnToApiQueue},
-                filter::{fn_filter::FnFilter, fn_smooth::FnSmooth, fn_threshold::FnThreshold},
-                comparison::fn_ge::FnGe,
-                fn_acc::FnAcc, fn_add::FnAdd, fn_average::FnAverage, fn_const::FnConst, fn_count::FnCount,
-                fn_debug::FnDebug, fn_div::FnDiv, fn_input::FnInput, fn_is_changed_value::FnIsChangedValue,
-                fn_max::FnMax, fn_mul::FnMul, fn_piecewise_line_approx::FnPiecewiseLineApprox,
-                fn_point_id::FnPointId, fn_pow::FnPow, fn_rec_op_cycle_metric::FnRecOpCycleMetric,
-                fn_sub::FnSub, fn_timer::FnTimer, fn_to_bool::FnToBool, fn_to_double::FnToDouble,
-                fn_to_int::FnToInt, fn_to_real::FnToReal, fn_var::FnVar, functions::Functions,
-                io::fn_retain::FnRetain, sql_metric::SqlMetric,
+                comparison::{fn_eq::FnEq, fn_ge::FnGe, fn_gt::FnGt, fn_le::FnLe, fn_lt::FnLt, fn_ne::FnNe}, edge_detection::{fn_falling_edge::FnFallingEdge, fn_rising_edge::FnRisingEdge}, export::{fn_export::FnExport, fn_point::FnPoint, fn_to_api_queue::FnToApiQueue}, filter::{fn_filter::FnFilter, fn_smooth::FnSmooth, fn_threshold::FnThreshold}, fn_acc::FnAcc, fn_add::FnAdd, fn_average::FnAverage, fn_const::FnConst, fn_count::FnCount, fn_debug::FnDebug, fn_div::FnDiv, fn_input::FnInput, fn_is_changed_value::FnIsChangedValue, fn_max::FnMax, fn_mul::FnMul, fn_piecewise_line_approx::FnPiecewiseLineApprox, fn_point_id::FnPointId, fn_pow::FnPow, fn_rec_op_cycle_metric::FnRecOpCycleMetric, fn_sub::FnSub, fn_timer::FnTimer, fn_to_bool::FnToBool, fn_to_double::FnToDouble, fn_to_int::FnToInt, fn_to_real::FnToReal, fn_var::FnVar, functions::Functions, io::fn_retain::FnRetain, sql_metric::SqlMetric
             },
             task_nodes::TaskNodes,
         }
@@ -120,6 +110,18 @@ impl NestedFn {
                         )))
                     }
                     //
+                    Functions::Gt => {
+                        let name = "input1";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input1 = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        let name = "input2";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input2 = Self::function(parent, tx_id, name, input_conf, task_nodes, services);
+                        Rc::new(RefCell::new(Box::new(
+                            FnGt::new(parent, input1, input2)
+                        )))
+                    }
+                    //
                     Functions::Ge => {
                         let name = "input1";
                         let input_conf = conf.input_conf(name).unwrap();
@@ -129,6 +131,54 @@ impl NestedFn {
                         let input2 = Self::function(parent, tx_id, name, input_conf, task_nodes, services);
                         Rc::new(RefCell::new(Box::new(
                             FnGe::new(parent, input1, input2)
+                        )))
+                    }
+                    //
+                    Functions::Eq => {
+                        let name = "input1";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input1 = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        let name = "input2";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input2 = Self::function(parent, tx_id, name, input_conf, task_nodes, services);
+                        Rc::new(RefCell::new(Box::new(
+                            FnEq::new(parent, input1, input2)
+                        )))
+                    }
+                    //
+                    Functions::Le => {
+                        let name = "input1";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input1 = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        let name = "input2";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input2 = Self::function(parent, tx_id, name, input_conf, task_nodes, services);
+                        Rc::new(RefCell::new(Box::new(
+                            FnLe::new(parent, input1, input2)
+                        )))
+                    }
+                    //
+                    Functions::Lt => {
+                        let name = "input1";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input1 = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        let name = "input2";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input2 = Self::function(parent, tx_id, name, input_conf, task_nodes, services);
+                        Rc::new(RefCell::new(Box::new(
+                            FnLt::new(parent, input1, input2)
+                        )))
+                    }
+                    //
+                    Functions::Ne => {
+                        let name = "input1";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input1 = Self::function(parent, tx_id, name, input_conf, task_nodes, services.clone());
+                        let name = "input2";
+                        let input_conf = conf.input_conf(name).unwrap();
+                        let input2 = Self::function(parent, tx_id, name, input_conf, task_nodes, services);
+                        Rc::new(RefCell::new(Box::new(
+                            FnNe::new(parent, input1, input2)
                         )))
                     }
                     //

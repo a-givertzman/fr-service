@@ -14,7 +14,12 @@ pub enum Functions {
     /// user defined functions
     Add,
     Count,
+    Gt,
     Ge,
+    Eq,
+    Le,
+    Lt,
+    Ne,
     Timer,
     ToApiQueue,
     ToMultiQueue,
@@ -55,7 +60,12 @@ impl Functions {
     const ADD                           : &'static str = "Add";
     const COUNT                         : &'static str = "Count";
     const DEBUG                         : &'static str = "Debug";
+    const GT                            : &'static str = "Gt";
     const GE                            : &'static str = "Ge";
+    const EQ                            : &'static str = "Eq";
+    const LE                            : &'static str = "Le";
+    const LT                            : &'static str = "Lt";
+    const NE                            : &'static str = "Ne";
     const TIMER                         : &'static str = "Timer";
     const TO_API_QUEUE                  : &'static str = "ToApiQueue";
     const TO_MULTI_QUEUE                : &'static str = "ToMultiQueue";
@@ -90,7 +100,12 @@ impl Functions {
             Self::Add                   => Self::ADD,
             Self::Const                 => Self::CONST,
             Self::Count                 => Self::COUNT,
+            Self::Gt                    => Self::GT,
             Self::Ge                    => Self::GE,
+            Self::Eq                    => Self::EQ,
+            Self::Le                    => Self::LE,
+            Self::Lt                    => Self::LT,
+            Self::Ne                    => Self::NE,
             Self::Input                 => Self::INPUT,
             Self::Timer                 => Self::TIMER,
             Self::Var                   => Self::VAR,
@@ -129,7 +144,12 @@ impl Functions {
             Self::ADD                   => Ok( Self::Add ),
             Self::CONST                 => Ok( Self::Const ),
             Self::COUNT                 => Ok( Self::Count ),
+            Self::GT                    => Ok( Self::Gt ),
             Self::GE                    => Ok( Self::Ge ),
+            Self::EQ                    => Ok( Self::Eq ),
+            Self::LE                    => Ok( Self::Le ),
+            Self::LT                    => Ok( Self::Lt ),
+            Self::NE                    => Ok( Self::Ne ),
             Self::INPUT                 => Ok( Self::Input ),
             Self::TIMER                 => Ok( Self::Timer ),
             Self::VAR                   => Ok( Self::Var ),
