@@ -12,8 +12,8 @@ pub struct ServiceCycle {
     instant: Instant,
     interval: Duration,
 }
-///
-/// 
+//
+// 
 impl ServiceCycle {
     ///
     /// creates ServiceCycle with Duration of interval
@@ -25,12 +25,19 @@ impl ServiceCycle {
         }
     }
     ///
-    /// 
+    /// Returns the specified cycle interval
+    pub fn interval(&self) -> Duration {
+        self.interval
+    }
+    ///
+    /// Starts new timer
     pub fn start(&mut self) {
         self.instant = Instant::now();
     }
     ///
-    /// 
+    /// Waits for the remaining time,
+    /// If the time elapsed since the start
+    /// less then the specified cycle interval
     pub fn wait(&self) {
         let elapsed = self.instant.elapsed();
         if elapsed <= self.interval {
@@ -42,7 +49,7 @@ impl ServiceCycle {
         }
     }
     ///
-    /// returns current ellapsed time
+    /// Returns current elapsed time
     pub fn elapsed(&mut self) ->Duration {
         self.instant.elapsed()
     }

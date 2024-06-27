@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::{Arc, Mutex, atomic::{AtomicUsize, Ordering}}};
+use std::{collections::HashMap, sync::{atomic::{AtomicUsize, Ordering}, Arc, RwLock}};
 use indexmap::IndexMap;
 use log::{debug, trace};
 use crate::{
@@ -17,12 +17,12 @@ use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn, fn_kind::FnKind};
 ///         - inpur1.timestamp = '20'
 ///         - input1.status = 
 ///         - "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    =>  UPDATE table SET kind = input1 WHERE id = '{input2}';
-/// ```
+/// ```yaml
 /// fn SqlMetric:
 ///     initial: 0.123      # начальное значение
 ///     table: SelectMetric_test_table_name
 ///     sql: "UPDATE {table} SET value = '{input1}' WHERE id = '{input2}';"
-///     input1 point int '/path/Point.Name'
+///     input1: point int '/path/Point.Name'
 ///     input2: const int 11
 ///     
 /// ```
@@ -38,30 +38,24 @@ pub struct SqlMetric {
     sql: Format,
     sql_names: HashMap<String, (String, Option<String>)>,
 }
-///
-/// 
+//
+// 
 impl SqlMetric {
     //
     //
-    pub fn new(parent: impl Into<String>, conf: &mut FnConfig, task_nodes: &mut TaskNodes, services: Arc<Mutex<Services>>) -> SqlMetric {
+    pub fn new(parent: impl Into<String>, conf: &mut FnConfig, task_nodes: &mut TaskNodes, services: Arc<RwLock<Services>>) -> SqlMetric {
         let self_name = Name::new(parent, format!("SqlMetric{}", COUNT.fetch_add(1, Ordering::Relaxed)));
         let self_id = self_name.join();
-        let tx_id = PointTxId::fromStr(&self_name.join());
+        let tx_id = PointTxId::from_str(&self_name.join());
         let mut inputs = IndexMap::new();
         let input_confs = conf.inputs.clone();
         let input_conf_names = input_confs.keys().filter(|v| {
-            // let delete = match v.as_str() {
-            //     "initial" => true,
-            //     "table" => true,
-            //     "sql" => true,
-            //     _ => false
-            // };
             let delete = matches!(v.as_str(), "initial" | "table" | "sql");
             !delete
         });
         for name in input_conf_names {
             debug!("{}.new | input name: {:?}", self_id, name);
-            let input_conf = conf.input_conf(name);
+            let input_conf = conf.input_conf(name).unwrap();
             inputs.insert(
                 name.to_string(), 
                 NestedFn::new(&self_name, tx_id, input_conf, task_nodes, services.clone()),
@@ -69,10 +63,17 @@ impl SqlMetric {
         }
         let id = conf.name.clone();
         // let initial = conf.param("initial").name.parse().unwrap();
-        let table = conf.param("table").name();
-        let mut sql = Format::new(&conf.param("sql").name());
+        let table = conf.param("table").unwrap_or_else(|_|
+            panic!("{}.new | Parameter 'table' - missed", self_id)
+        ).as_param();
+        let table = table.conf.as_str().unwrap();
+        let sql = conf.param("sql").unwrap_or_else(|_|
+            panic!("{}.new | Parameter 'sql' - missed", self_id)
+        ).as_param();
+        let sql = sql.conf.as_str().unwrap();
+        let mut sql = Format::new(&sql);
         sql.insert("id", id.clone().to_point(tx_id, ""));
-        sql.insert("table", table.clone().to_point(tx_id, ""));
+        sql.insert("table", table.to_point(tx_id, ""));
         sql.prepare();
         let mut sql_names = sql.names();
         sql_names.remove("initial");
@@ -90,15 +91,15 @@ impl SqlMetric {
         }
     }
 }
-///
-/// 
+//
+// 
 impl FnIn for SqlMetric {
     fn add(&mut self, _point: PointType) {
         panic!("{}.add | method is not used", self.id)
     }
 }
-///
-/// 
+//
+// 
 impl FnOut for SqlMetric {
     //
     fn id(&self) -> String {
@@ -141,11 +142,13 @@ impl FnOut for SqlMetric {
     }
     //
     fn reset(&mut self) {
-        todo!()
+        for (_, input) in &self.inputs {
+            input.borrow_mut().reset();
+        }
     }
 }
-///
-/// 
+//
+// 
 impl FnInOut for SqlMetric {}
 ///
 /// Global static counter of SqlMetric instances

@@ -2,13 +2,14 @@
 
 mod task_nodes {
     use log::{info, debug, trace, warn};
-    use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex, Once}, thread};
+    use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicBool, AtomicUsize, Ordering}, mpsc::{self, Receiver, Sender}, Arc, Mutex, Once, RwLock}, thread};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
         conf::{point_config::name::Name, task_config::TaskConfig},
         core_::{object::object::Object, point::point_type::{PointType, ToPoint}},
         services::{
-            safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services, task::{nested_function::{fn_count, fn_ge, fn_kind::FnKind, sql_metric}, task_nodes::TaskNodes}
+            safe_lock::SafeLock, service::{service::Service, service_handles::ServiceHandles}, services::Services,
+            task::{nested_function::{fn_count, comp::fn_ge, fn_kind::FnKind, sql_metric}, task_nodes::TaskNodes}
         },
     };
     ///
@@ -44,26 +45,26 @@ mod task_nodes {
         let mut task_nodes = TaskNodes::new(self_id);
         let conf = TaskConfig::read(&self_name, path);
         debug!("conf: {:?}", conf);
-        let services = Arc::new(Mutex::new(Services::new(self_id)));
+        let services = Arc::new(RwLock::new(Services::new(self_id)));
         let mock_service = Arc::new(Mutex::new(MockService::new(self_id, "queue")));
-        services.slock().insert(mock_service.clone());
+        services.wlock(self_id).insert(mock_service.clone());
         let sql_metric_count = sql_metric::COUNT.load(Ordering::SeqCst);
         let fn_count_count = fn_count::COUNT.load(Ordering::SeqCst);
         let fn_ge_count = fn_ge::COUNT.load(Ordering::SeqCst);
-        task_nodes.buildNodes(&Name::from(self_id), conf, services);
+        task_nodes.build_nodes(&Name::from(self_id), conf, services);
         let test_data = vec![
             (
                 "/path/Point.Name1", 101,
                 HashMap::from([
                     (format!("/{}/SqlMetric{}", self_id, sql_metric_count), "101, 1102, 0, 0"),
-                    (format!("/{}/FnCount{}.out", self_id, fn_count_count), "101"),
+                    (format!("/{}/FnCount{}.out", self_id, fn_count_count), "1"),
                 ])
             ),
             (
                 "/path/Point.Name1", 201,
                 HashMap::from([
                     (format!("/{}/SqlMetric{}", self_id, sql_metric_count), "201, 1202, 0, 0"),
-                    (format!("/{}/FnCount{}.out", self_id, fn_count_count), "302"),
+                    (format!("/{}/FnCount{}.out", self_id, fn_count_count), "1"),
                 ])
 
             ),
@@ -71,7 +72,7 @@ mod task_nodes {
                 "/path/Point.Name1", 301,
                 HashMap::from([
                     (format!("/{}/SqlMetric{}", self_id, sql_metric_count), "301, 1302, 0, 0"),
-                    (format!("/{}/FnCount{}.out", self_id, fn_count_count), "603"),
+                    (format!("/{}/FnCount{}.out", self_id, fn_count_count), "1"),
                 ])
 
             ),
@@ -105,7 +106,7 @@ mod task_nodes {
             let point = value.to_point(0, name);
             // let inputName = &point.name();
             debug!("input point name: {:?}  value: {:?}", name, value);
-            match &task_nodes.getEvalNode(&name) {
+            match &task_nodes.get_eval_node(&name) {
                 Some(eval_node) => {
                     let input = eval_node.getInput();
                     input.borrow_mut().add(point.clone());
@@ -148,8 +149,8 @@ mod task_nodes {
         rx_recv: Vec<Receiver<PointType>>,
         exit: Arc<AtomicBool>,
     }
-    ///
-    ///
+    //
+    //
     impl MockService {
         fn new(parent: &str, link_name: &str) -> Self {
             let (send, recv) = mpsc::channel();
@@ -165,8 +166,8 @@ mod task_nodes {
             }
         }
     }
-    ///
-    ///
+    //
+    //
     impl Object for MockService {
         fn id(&self) -> &str {
             &self.id
@@ -175,8 +176,8 @@ mod task_nodes {
             self.name.clone()
         }
     }
-    ///
-    ///
+    //
+    //
     impl Debug for MockService {
         fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             formatter
@@ -185,8 +186,8 @@ mod task_nodes {
                 .finish()
         }
     }
-    ///
-    ///
+    //
+    //
     impl Service for MockService {
         //
         //

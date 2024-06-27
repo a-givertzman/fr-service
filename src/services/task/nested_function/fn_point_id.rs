@@ -1,6 +1,6 @@
 use hashers::fx_hash::FxHasher;
 use indexmap::IndexMap;
-use log::trace;
+use log::{debug, trace};
 use std::{hash::BuildHasherDefault, sync::atomic::{AtomicUsize, Ordering}};
 use concat_string::concat_string;
 use crate::{
@@ -13,6 +13,13 @@ use crate::{
 };
 ///
 /// Function returns the ID of the point from input
+/// 
+/// Example
+/// 
+/// ```yaml
+/// fn PointId:
+///     input: point int /App/PointName
+/// ```
 #[derive(Debug)]
 pub struct FnPointId {
     id: String,
@@ -20,8 +27,8 @@ pub struct FnPointId {
     input: FnInOutRef,
     points: IndexMap<String, usize, BuildHasherDefault<FxHasher>>,
 }
-///
-/// 
+//
+// 
 impl FnPointId {
     ///
     /// Creates new instance of the FnPointId
@@ -35,11 +42,11 @@ impl FnPointId {
         }
     }    
 }
-///
-/// 
+//
+// 
 impl FnIn for FnPointId {}
-///
-/// 
+//
+// 
 impl FnOut for FnPointId { 
     //
     fn id(&self) -> String {
@@ -60,15 +67,16 @@ impl FnOut for FnPointId {
         trace!("{}.out | input: {:?}", self.id, point);
         match self.points.get(&point.name()) {
             Some(id) => {
+                debug!("{}.out | ID: {:?}", self.id, id);
                 PointType::Int(
-                    Point {
-                        tx_id: *point.tx_id(),
-                        name: concat_string!(self.id, ".out"),
-                        value: *id as i64,
-                        status: point.status(),
-                        cot: point.cot(),
-                        timestamp: point.timestamp(),
-                    }
+                    Point::new(
+                        point.tx_id(),
+                        &concat_string!(self.id, ".out"),
+                        *id as i64,
+                        point.status(),
+                        point.cot(),
+                        point.timestamp(),
+                    )
                 )
             }
             None => panic!("{}.out | point '{}' - not found in configured points", self.id, point.name()),
@@ -80,8 +88,8 @@ impl FnOut for FnPointId {
         self.input.borrow_mut().reset();
     }
 }
-///
-/// 
+//
+// 
 impl FnInOut for FnPointId {}
 ///
 /// Global static counter of FnOut instances

@@ -1,8 +1,5 @@
 use crate::core_::point::point_type::PointType;
-
 use super::fn_kind::FnKind;
-
-
 ///
 /// Input side interface for nested function
 /// Used for generic access to the different kinde of functions

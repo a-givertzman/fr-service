@@ -6,10 +6,7 @@ mod task_config_read {
     use std::{sync::Once, env, time::Duration};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::conf::{
-        conf_subscribe::ConfSubscribe,
-        fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig},
-        point_config::name::Name,
-        task_config::TaskConfig,
+        conf_subscribe::ConfSubscribe, conf_tree::ConfTree, fn_::{fn_conf_keywd::FnConfPointType, fn_conf_kind::FnConfKind, fn_config::FnConfig}, point_config::name::Name, task_config::TaskConfig
     };
     ///
     ///
@@ -51,9 +48,9 @@ mod task_config_read {
                         // initial: 0.123,
                         // vars: vec![format!("VarName2")],
                         inputs: IndexMap::from([
-                            (format!("initial"), FnConfKind::Param( format!("0.123") )),
-                            (format!("table"), FnConfKind::Param( format!("table_name") )),
-                            (format!("sql"), FnConfKind::Param( String::from("UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';") )),
+                            (format!("initial"), FnConfKind::Param( ConfTree::new("initial", serde_yaml::from_str("0.123").unwrap()) )),
+                            (format!("table"), FnConfKind::Param( ConfTree::new("table", serde_yaml::from_str("table_name").unwrap()) )),
+                            (format!("sql"), FnConfKind::Param( ConfTree::new("sql", serde_yaml::from_str("UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';").unwrap()) )),
                             (format!("input1"), FnConfKind::Var( FnConfig {
                                 name: format!("VarName2"), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                                     (format!("input"), FnConfKind::Fn( FnConfig {

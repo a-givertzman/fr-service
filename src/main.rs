@@ -16,7 +16,7 @@ fn main() {
     DebugSession::init(LogLevel::Debug, Backtrace::Short);
     let cli = Cli::parse();
     let path = cli.config.map_or_else(
-        || PathBuf::from("config.yaml"),        // || std::env::current_dir().unwrap().join("config.yaml"),
+        || PathBuf::from("config.yaml"),
         PathBuf::from
     );
     let app = App::new(path);

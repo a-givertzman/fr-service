@@ -36,7 +36,7 @@ mod tests {
         let test_point1 = PointConfig {
             id: 0,
             name: format!("/{}/CraneMovement.BoomUp", self_id),
-            _type: PointConfigType::Int,
+            type_: PointConfigType::Int,
             history: PointConfigHistory::None,
             alarm: None,
             address: None,
@@ -46,7 +46,7 @@ mod tests {
         let test_point2 = PointConfig {
             id: 0,
             name: format!("/{}/CraneMovement.BoomDown", self_id),
-            _type: PointConfigType::Real,
+            type_: PointConfigType::Real,
             history: PointConfigHistory::Read,
             alarm: None,
             address: None,
@@ -84,12 +84,18 @@ mod tests {
                 FnConfKind::Fn( FnConfig { name: "ToMultiQueue".to_string(), type_: FnConfPointType::Unknown, inputs: IndexMap::from([
                     ("in1".to_string(), FnConfKind::PointConf( FnPointConfig {
                         conf: test_point1,
-                        input: Box::new(FnConfKind::Const( FnConfig { name: "0.05".to_string(), type_: FnConfPointType::Real, inputs: IndexMap::new()} )),
+                        send_to: None,
+                        enable: None,
+                        input: Some(Box::new(FnConfKind::Const( FnConfig { name: "0.05".to_string(), type_: FnConfPointType::Real, inputs: IndexMap::new()} ))),
+                        changes_only: None,
                     })),
                     ("in2".to_string(), FnConfKind::PointConf( FnPointConfig {
-                            conf: test_point2,
-                            input: Box::new(FnConfKind::Const( FnConfig { name: "0.07".to_string(), type_: FnConfPointType::Real, inputs: IndexMap::new()} )),
-                        })),
+                        conf: test_point2,
+                        send_to: None,
+                        enable: None,
+                        input: Some(Box::new(FnConfKind::Const( FnConfig { name: "0.07".to_string(), type_: FnConfPointType::Real, inputs: IndexMap::new()} ))),
+                        changes_only: None,
+                    })),
                 ]) } ),
             ),
         ];

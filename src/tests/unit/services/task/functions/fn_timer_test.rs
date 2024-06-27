@@ -1,4 +1,3 @@
-#![allow(non_snake_case)]
 #[cfg(test)]
 
 mod fn_timer {
@@ -30,16 +29,17 @@ mod fn_timer {
         ))
     }
     ///
-    ///
+    /// Testing Task FnTimer measuring simple elapsed seconds
     #[test]
     fn elapsed_repeat_false() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("test_elapsed_repeat_false");
         let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
-        let mut fnTimer = FnTimer::new(
+        let mut fn_timer = FnTimer::new(
             "id",
-            0,
+            None,
+            None,
             input.clone(),
             false,
         );
@@ -63,7 +63,7 @@ mod fn_timer {
         let mut start: Option<Instant> = None;
         let mut target: f64;
         let mut elapsed: f64 = 0.0;
-        let mut elapsedTotal: f64 = 0.0;
+        let mut elapsed_total: f64 = 0.0;
         let mut done = false;
         for (value, _) in test_data {
             if !done {
@@ -76,34 +76,36 @@ mod fn_timer {
                 } else {
                     if start.is_some() {
                         elapsed = 0.0;
-                        elapsedTotal += start.unwrap().elapsed().as_secs_f64();
+                        elapsed_total += start.unwrap().elapsed().as_secs_f64();
                         // start = None
                         done = true;
                     }
                 }
             }
-            target = elapsedTotal + elapsed;
+            target = elapsed_total + elapsed;
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let fnTimerElapsed = fnTimer.out().as_double().value;
+            let fn_timer_elapsed = fn_timer.out().as_double().value;
             // debug!("input: {:?}", &mut input);
-            debug!("value: {:?}   |   state: {:?}", value, fnTimerElapsed);
-            assert!(fnTimerElapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fnTimerElapsed, target);
+            debug!("value: {:?}   |   state: {:?}", value, fn_timer_elapsed);
+            assert!(fn_timer_elapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fn_timer_elapsed, target);
             thread::sleep(Duration::from_secs_f64(0.1));
         }
     }
     ///
-    ///
+    /// Testing Task FnTimer with 'repeat' option
     #[test]
     fn total_elapsed_repeat() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("test_total_elapsed_repeat");
         let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
-        let mut fnTimer = FnTimer::new(
+        let initial = init_each(0.0f64.to_point(0, "initial"), FnConfPointType::Double);
+        let mut fn_timer = FnTimer::new(
             "id",
-            0,
+            None,
+            Some(initial),
             input.clone(),
             true,
         );
@@ -126,7 +128,7 @@ mod fn_timer {
         let mut start: Option<Instant> = None;
         let mut target: f64;
         let mut elapsed: f64 = 0.0;
-        let mut elapsedTotal: f64 = 0.0;
+        let mut elapsed_total: f64 = 0.0;
         for (value, _) in test_data {
             if value {
                 if start.is_none() {
@@ -137,32 +139,34 @@ mod fn_timer {
             } else {
                 if start.is_some() {
                     elapsed = 0.0;
-                    elapsedTotal += start.unwrap().elapsed().as_secs_f64();
+                    elapsed_total += start.unwrap().elapsed().as_secs_f64();
                     start = None
                 }
             }
-            target = elapsedTotal + elapsed;
+            target = elapsed_total + elapsed;
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let fnTimerElapsed = fnTimer.out().as_double().value;
+            let fn_timer_elapsed = fn_timer.out().as_double().value;
             // debug!("input: {:?}", &mut input);
-            debug!("value: {:?}   |   state: {:?}", value, fnTimerElapsed);
-            assert!(fnTimerElapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fnTimerElapsed, target);
+            debug!("value: {:?}   |   state: {:?}", value, fn_timer_elapsed);
+            assert!(fn_timer_elapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fn_timer_elapsed, target);
             thread::sleep(Duration::from_secs_f64(0.1));
         }
     }
     ///
-    ///
+    /// Testing Task FnTimer with 'repeat' option, useing reset
     #[test]
     fn total_elapsed_repeat_reset() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("test_total_elapsed_repeat_reset");
         let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
-        let mut fnTimer = FnTimer::new(
+        let initial = init_each(0.0f64.to_point(0, "initial"), FnConfPointType::Double);
+        let mut fn_timer = FnTimer::new(
             "id",
-            0,
+            None,
+            Some(initial),
             input.clone(),
             true,
         );
@@ -184,76 +188,78 @@ mod fn_timer {
             (false, 4, false),
         ];
         let mut start: Option<Instant> = None;
-        let mut elapsedTotal: f64 = 0.0;
-        let mut elapsedSession: f64 = 0.0;
+        let mut elapsed_total: f64 = 0.0;
+        let mut elapsed_session: f64 = 0.0;
         let mut target;
         for (value, _, reset) in test_data {
             if reset {
                 start = None;
-                elapsedSession = 0.0;
-                elapsedTotal = 0.0;
-                fnTimer.reset();
+                elapsed_session = 0.0;
+                elapsed_total = 0.0;
+                fn_timer.reset();
             }
             if value {
                 if start.is_none() {
                     start = Some(Instant::now());
                 } else {
-                    elapsedSession = start.unwrap().elapsed().as_secs_f64();
+                    elapsed_session = start.unwrap().elapsed().as_secs_f64();
                 }
             } else {
                 if start.is_some() {
-                    elapsedSession = 0.0;
-                    elapsedTotal += start.unwrap().elapsed().as_secs_f64();
+                    elapsed_session = 0.0;
+                    elapsed_total += start.unwrap().elapsed().as_secs_f64();
                     start = None;
                 }
             }
-            target = elapsedTotal + elapsedSession;
+            target = elapsed_total + elapsed_session;
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let fnTimerElapsed = fnTimer.out().as_double().value;
+            let fn_timer_elapsed = fn_timer.out().as_double().value;
             // debug!("input: {:?}", &mut input);
-            debug!("value: {:?}   |   state: {:?}   |   target {}{}", value, fnTimerElapsed, target, if reset {"\t<-- reset"} else {""});
-            assert!(fnTimerElapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fnTimerElapsed, target);
+            debug!("value: {:?}   |   state: {:?}   |   target {}{}", value, fn_timer_elapsed, target, if reset {"\t<-- reset"} else {""});
+            assert!(fn_timer_elapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fn_timer_elapsed, target);
             thread::sleep(Duration::from_secs_f64(0.1));
         }
     }
     ///
-    ///
+    /// Testing Task FnTimer with initial value and 'repeat' option
     #[test]
     fn initial_repeat() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("test_initial_repeat");
-        let initial = 123.1234;
+        let initial = 123.1234f64;
         let input = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
-        let mut fnTimer = FnTimer::new(
+        let initial_input = init_each(initial.to_point(0, "initial"), FnConfPointType::Double);
+        let mut fn_timer = FnTimer::new(
             "id",
-            initial,
+            None,
+            Some(initial_input),
             input.clone(),
             true,
         );
         let test_data = vec![
-            (false, 0),
-            (false, 0),
-            (true, 1),
-            (false, 1),
-            (false, 1),
-            (true, 2),
-            (false, 2),
-            (true, 3),
-            (false, 3),
-            (false, 3),
-            (true, 4),
-            (true, 4),
-            (false, 4),
-            (false, 4),
+            (00, false),
+            (01, false),
+            (02, true),
+            (03, false),
+            (04, false),
+            (05, true),
+            (06, false),
+            (07, true),
+            (08, false),
+            (09, false),
+            (10, true),
+            (11, true),
+            (12, false),
+            (13, false),
         ];
         let mut start: Option<Instant> = None;
         let mut target: f64;
         let mut elapsed: f64 = 0.0;
-        let mut elapsedTotal: f64 = initial;
-        for (value, _) in test_data {
+        let mut elapsed_total: f64 = initial;
+        for (step, value) in test_data {
             if value {
                 if start.is_none() {
                     start = Some(Instant::now());
@@ -263,19 +269,19 @@ mod fn_timer {
             } else {
                 if start.is_some() {
                     elapsed = 0.0;
-                    elapsedTotal += start.unwrap().elapsed().as_secs_f64();
+                    elapsed_total += start.unwrap().elapsed().as_secs_f64();
                     start = None
                 }
             }
-            target = elapsedTotal + elapsed;
+            target = elapsed_total + elapsed;
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let fnTimerElapsed = fnTimer.out().as_double().value;
+            let fn_timer_elapsed = fn_timer.out().as_double().value;
             // debug!("input: {:?}", &mut input);
-            debug!("value: {:?}   |   state: {:?}", value, fnTimerElapsed);
-            assert!(fnTimerElapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fnTimerElapsed, target);
-            thread::sleep(Duration::from_secs_f64(0.1));
+            debug!("value: {:?}   |   state: {:?}", value, fn_timer_elapsed);
+            assert!(fn_timer_elapsed.aprox_eq(target, 2), "step: {} | current '{}' != target '{}'", step, fn_timer_elapsed, target);
+            thread::sleep(Duration::from_secs_f64(0.3));
         }
     }
 }

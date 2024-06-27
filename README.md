@@ -1,37 +1,30 @@
 # CMA Server
 
-## Fault Recorder Service
-
-- receives data points from the CMA server
-- stores number of configured metrics into the database
-
-### Storeing following information into the API Server
-
-- operating cycle
-  - start timestamp
-  - stop timestamp
-  - alarm class
-  - avarage load
-  - max load
-
-- operating cycle metrics
-  - list of all metrics...
-  - to be added...
-
-- process metrics
-  - process values
-  - faults values
-
-### CMA Data Server
-
 Handling data on fly
 
 - Designed to collect any kind of data from connected devices via any kind of communication protocols
-- Make some declarative computation on data coming from connected devices
+- Make some declarative computation on the data received from connected devices
 - Share collected / computed data to the clients
 - Stores collected / computed data to the disk / database
 
-#### Function diagram
+## Basic functions (embedded)
+
+- receives data points from the connected devices:
+  - [X] ProfinetClient - connectivity with the Siemens devices via profinet
+- [X] MultiQueue service - destribute data points to the intrnal serveces suscribed on
+- destribute data points to the external clients:
+  - [X] TcpServer - released
+  - [ ] UdpServer
+  - [ ] Additional protocols...
+- [X] [Task service](#1-task-service) - make configured computation
+- [X] API Client service - stores some data into the database
+
+## Additional functions (built on basic)
+
+- [History service](#2-history-service) - simple storing events into the database
+- [Fault Recorder Service](#3-fault-recorder-service) - store operating cycle and standart fault recorder information into the database
+
+## Function diagram
 
 ```mermaid
 flowchart LR;
@@ -108,6 +101,113 @@ class CMA green
 %% class di orange    
 ```
 
+## 1 Task service
+
+### Overview
+
+Service provides configurable in the yaml computations.  
+Consists of number of computation nodes. Each node consists of number of functions.  
+The computation value - is point {type, value, tumestamp, status}  
+Each computation cycle sequentally calls computation nodes of the task
+in the order defined in the configuration.
+So variables used in the task must be defined earlier then used.  
+The computations can be executed:
+
+- periodically with configured cycle time (min 10ms for now)
+- event-trigger, computation node will be performed if at least one if it's input received new point
+
+### Basic entities and principles of the Tasck service computations
+
+- **Definitions**
+  - let VarName - allows to define a variable
+  - const - allows to define a constant, typed
+  - input - alows to define an input, typed
+  - fn FunctionName - allows to use a function by it's name
+
+- **Inputs**
+  - VariableName - read point from defined earlier variable
+  - const - read point from constant
+  - input - read point from input
+
+- **Variable**
+
+The result of the computation node can be stored in the variable, wich can be used late in the any computation node.
+
+```yaml
+# Syntax
+let <VariableName>:
+    input...
+```
+
+For example variable 'Var' defined. And used late in the function 'Add':
+
+```yaml
+service Task ExampleTask:
+    cycle: 1s
+    let Var:
+        input: ...
+    fn Add:
+        input1: const int 3
+        input2: Var
+# returns 3 + Var on each step
+```
+
+- **Constant**
+
+Always returns configured constant value, can be used in the any input of the any function.
+
+```yaml
+# Syntax
+const <type> <value>
+```
+
+For example constant used on the inputs of the 'Add' function:
+
+```yaml
+service Task ExampleTask:
+    cycle: 1s
+    fn Add:
+        input1: const int 3
+        input2: const int 7
+# returns 10 on each step
+```
+
+- **Input**
+
+Returns latest received point
+
+```yaml
+# Syntax
+input <type> <'/path/PointName'>
+```
+
+## 2 History Service
+
+- collect configured data points
+- stores number of configured metrics into the database
+
+## 3 Fault Recorder Service
+
+- collect configured data points
+- stores number of configured metrics into the database
+
+### Storeing following information into the API Server
+
+- operating cycle
+  - start timestamp
+  - stop timestamp
+  - alarm class
+  - avarage load
+  - max load
+
+- operating cycle metrics
+  - list of all metrics...
+  - to be added...
+
+- process metrics
+  - process values
+  - faults values
+
 #### Configuration fo the tasks, metrics, functions
 
 <details>
@@ -120,13 +220,13 @@ service CmaClient:
     auth:                   # some auth credentials
     in queue in-queue:
         max-length: 10000
-    out queue: MultiQueue.in-queue
+    send-to: MultiQueue.in-queue
 
 service ProfinetClient Ied01:
     cycle: 1 ms          # read cycle time, 0 or ommit to disable
     in queue in-queue:
         max-length: 10000
-    out queue: MultiQueue.in-queue
+    send-to: MultiQueue.in-queue
     protocol: 'profinet'
     description: 'S7-IED-01'
     ip: '192.168.100.243'
@@ -166,7 +266,7 @@ service ProfinetClient Ied02:
     cycle: 1 ms          # read cycle time, 0 or ommit to disable
     in queue in-queue:
         max-length: 10000
-    out queue: MultiQueue.in-queue
+    send-to: MultiQueue.in-queue
     protocol: 'profinet'
     description: 'S7-IED-02'
     ip: '192.168.100.243'
@@ -200,12 +300,11 @@ service ApiClient:
     address: 127.0.0.1:8080
     in queue api-link:
         max-length: 10000
-    out queue: MultiQueue.in-queue
 
 service MultiQueue:
     in queue in-queue:
         max-length: 10000
-    out queue:
+    send-to:
         - task1.recv-queue
         - CmaClient.in-queue
         - CmaServer.in-queue
@@ -236,13 +335,13 @@ service Task OperatingCycle:
             table: table_name
             sql: "insert into {table} (id, value, timestamp) values ({id}, {input.value}, {input3.value});"
             input let Var3:
-                    input fn add:
-                        input1 fn add:
+                    input fn Add:
+                        input1 fn Add:
                             input1: const real 0.2
                             input2: point real '/path/Point.Name'
                         input2:
                             const real 0.05
-            input3 fn add:
+            input3 fn Add:
                 input1:
                     var0
                 input2: point real '/path/Point.Name'
@@ -290,7 +389,7 @@ description: Short explanation / purpose etc.
 service MultiQueue:
     in queue in-queue:
         max-length: 10000
-    out queue:
+    send-to:
         - TaskTestReceiver.queue
 
 service Task Task1:
@@ -304,8 +403,8 @@ service Task Task1:
         in1 point CraneMovement.BoomUp: 
             type: 'Int'
             comment: 'Some indication'
-            input fn add:
-                input1 fn add:
+            input fn Add:
+                input1 fn Add:
                     input1: const real 0.2
                     input2: point real '/path/Point.Name'
         in2 point CraneMovement.BoomDown: 
@@ -327,7 +426,6 @@ service ApiClient:
     database: test_api_query
     in queue api-link:
         max-length: 10000
-    out queue: MultiQueue.queue
     auth_token: 123!@#
     # debug: true
 
@@ -338,7 +436,7 @@ service TcpServer:
     auth: none      # auth: none / auth-secret: pass: ... / auth-ssh: path: ...
     in queue link:
         max-length: 10000
-    out queue: MultiQueue.in-queue
+    send-to: MultiQueue.in-queue
 
 service TcpClient:
     cycle: 1 ms
@@ -346,14 +444,13 @@ service TcpClient:
     address: 127.0.0.1:8080
     in queue link:
         max-length: 10000
-    out queue: MultiQueue.queue
+    send-to: MultiQueue.queue
 
 service ProfinetClient Ied01:
     cycle: 1 ms                         # operating cycle time of the module, if 0 or ommited, module read cycle will be disable
     in queue in-queue:
         max-length: 10000
-    out queue: MultiQueue.in-queue
-    # name Ied01:                       # device will be executed in the independent thread, must have unique name
+    send-to: MultiQueue.in-queue
     protocol: 'profinet'
     description: 'S7-IED-01'
     ip: '192.168.100.243'
@@ -414,8 +511,7 @@ service ProfinetClient Ied02:
     cycle: 1 ms                         # operating cycle time of the module, if 0 or ommited, module read cycle will be disable
     in queue in-queue:
         max-length: 10000
-    out queue: MultiQueue.in-queue
-    name Ied02:                       # device will be executed in the independent thread, must have unique name
+    send-to: MultiQueue.in-queue
     protocol: 'profinet'
     description: 'S7-IED-02'
     ip: '192.168.100.243'
@@ -790,7 +886,7 @@ service ProfinetClient Ied01:
     # in queue in-queue:
         # max-length: 10000
     subscribe: MultiQueue
-    out queue: MultiQueue.in-queue
+    send-to: MultiQueue.in-queue
     protocol: 'profinet'
     description: 'S7-IED-01'
     ip: '192.168.130.243'
@@ -821,7 +917,6 @@ service ProfinetClient Ied01:
         number: 899
         offset: 0
         size: 34
-        cycle: 10 ms
         point Capacitor.Capacity: 
             type: 'Int'
             address:

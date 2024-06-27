@@ -14,8 +14,8 @@ pub struct FnToApiQueue {
 ///
 /// 
 static COUNT: AtomicUsize = AtomicUsize::new(1);
-///
-/// 
+//
+// 
 impl FnToApiQueue {
     ///
     /// creates new instance of the FnToApiQueue
@@ -39,8 +39,8 @@ impl FnIn for FnToApiQueue {
         panic!("{}.add | method is not used", self.id);
     }
 }
-///
-/// 
+//
+// 
 impl FnOut for FnToApiQueue {
     //
     fn id(&self) -> String {
@@ -76,6 +76,6 @@ impl FnOut for FnToApiQueue {
         self.input.borrow_mut().reset();
     }
 }
-///
-/// 
+//
+// 
 impl FnInOut for FnToApiQueue {}
