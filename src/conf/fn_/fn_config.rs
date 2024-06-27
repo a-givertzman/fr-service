@@ -207,7 +207,7 @@ impl FnConfig {
                 trace!("FnConfig.new | Custom parameter '{}' declared: {:?}", conf_tree.key, conf_tree.conf);
                 FnConfKind::Param(conf_tree.to_owned())
             } else {
-                panic!("FnConfig.new | Custom parameter of unknown type declared, but : {:?}", conf_tree.conf);
+                panic!("FnConfig.new | Custom parameter '{}/{}' of unknown type declared, but : {:?}", parent_id, conf_tree.key, conf_tree.conf);
             }
         };
         trace!("FnConfig.new | Config created: {:#?}", cfg);

@@ -6,11 +6,10 @@ mod cma_recorder {
     use testing::{entities::test_value::Value, stuff::{max_test_duration::TestDuration, wait::WaitTread}};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::{multi_queue_config::MultiQueueConfig, point_config::name::Name, task_config::TaskConfig},
+        conf::{api_client_config::ApiClientConfig, multi_queue_config::MultiQueueConfig, point_config::name::Name, task_config::TaskConfig},
         core_::point::point_type::PointType,
         services::{
-            multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, service::service::Service, services::Services,
-            task::{task::Task, task_test_receiver::TaskTestReceiver},
+            api_cient::api_client::ApiClient, multi_queue::multi_queue::MultiQueue, safe_lock::SafeLock, service::service::Service, services::Services, task::{task::Task, task_test_receiver::TaskTestReceiver}
         },
         tests::unit::services::task::task_test_producer::TaskTestProducer,
         // tests::unit::services::cma_recorder::task_test_producer::TaskTestProducer
@@ -85,10 +84,25 @@ mod cma_recorder {
         );
         let multi_queue = Arc::new(Mutex::new(MultiQueue::new(conf, services.clone())));
         services.wlock(self_id).insert(multi_queue.clone());
+        let conf = ApiClientConfig::from_yaml(
+            self_id,
+            &serde_yaml::from_str(r"service ApiClient:
+                cycle: 100 ms
+                reconnect: 1 s  # default 3 s
+                address: 127.0.0.1:8080
+                database: crane_data_server
+                in queue in-queue:
+                    max-length: 10000
+                auth_token: 123!@#
+                debug: true
+            ").unwrap(),
+        );
+        let api_client = Arc::new(Mutex::new(ApiClient::new(conf)));
+        services.wlock(self_id).insert(api_client.clone());
         let test_data = vec![
         //  step    nape                                input                    Pp Cycle   target_thrh             target_smooth
-            ("00.-5",    format!("/{}/Load.Nom", self_id),   Value::Real(  150.00),     0,       00.0000,                0.0f32),
-            ("00.-4",    format!("/{}/Winch2.Load.Nom", self_id),   Value::Real(  50.00),     0,       00.0000,                0.0f32),
+            // ("00.-5",    format!("/{}/Load.Nom", self_id),   Value::Real(  150.00),     0,       00.0000,                0.0f32),
+            // ("00.-4",    format!("/{}/Winch2.Load.Nom", self_id),   Value::Real(  50.00),     0,       00.0000,                0.0f32),
             // ("00.-3",    format!("/{}/Winch1.Load.Nom", self_id),   Value::Real(  150.00),     0,       00.0000,                0.0f32),
             // ("00.-2",    format!("/{}/Winch2.Load.Nom", self_id),   Value::Real(  150.00),     0,       00.0000,                0.0f32),
             // ("00.-1",    format!("/{}/Winch3.Load.Nom", self_id),   Value::Real(  150.00),     0,       00.0000,                0.0f32),
@@ -127,6 +141,7 @@ mod cma_recorder {
             ("26.0",    format!("/{}/Load", self_id),       Value::Real(120.00),       1,       37.5331129585166,       37.5331129585166),
             ("27.0",    format!("/{}/Load", self_id),       Value::Real(133.00),       1,       49.466473838702,       49.466473838702),
             ("28.0",    format!("/{}/Load", self_id),       Value::Real(121.00),       1,       58.4081646088643,       58.4081646088643),
+            // ("29.0",    format!("/{}/Load", self_id),       Value::Real(330.00),       1,       67.3571440327563,       67.3571440327563),
             ("29.0",    format!("/{}/Load", self_id),       Value::Real(130.00),       1,       67.3571440327563,       67.3571440327563),
             ("30.0",    format!("/{}/Load", self_id),       Value::Real(127.00),       1,       67.3571440327563,       74.8125010286617),
             ("31.0",    format!("/{}/Load", self_id),       Value::Real(123.00),       1,       80.835938400079,       80.835938400079),
@@ -230,7 +245,7 @@ mod cma_recorder {
             // ("127.0",    format!("/{}/Load", self_id),       Value::Real(  0.30),       0,       6.98828058431894,       6.15224551127907),
             // ("128.0",    format!("/{}/Exit", self_id),       Value::String("exit".to_owned()),       0,       6.98828058431894,       2.78124897825802),
 
-            ("64.0",    format!("/{}/Exit", self_id),       Value::String("exit".to_owned()),       0,       6.98828058431894,       2.78124897825802),
+            // ("64.0",    format!("/{}/Exit", self_id),       Value::String("exit".to_owned()),       0,       6.98828058431894,       2.78124897825802),
         ];
         let total_count = test_data.len();
         let (len, sum) = test_data.iter().fold((0, 0.0), |(mut len, mut sum), (i, _name, value, _op_cycle, _thrd, _smooth)| {
@@ -259,7 +274,7 @@ mod cma_recorder {
             self_id,
             "",
             "in-queue",
-            total_count * 100,
+            total_count * 1000,
         )));
         services.wlock(self_id).insert(receiver.clone());
         let test_data: Vec<(String, Value)> = test_data.into_iter().map(|(_, name, value, _, _, _)| {
@@ -276,6 +291,7 @@ mod cma_recorder {
         thread::sleep(Duration::from_millis(100));
         let services_handle = services.wlock(self_id).run().unwrap();
         let multi_queue_handle = multi_queue.lock().unwrap().run().unwrap();
+        let api_client_handle = api_client.lock().unwrap().run().unwrap();
         let receiver_handle = receiver.lock().unwrap().run().unwrap();
         info!("receiver runing - ok");
         for task in &tasks {
@@ -283,9 +299,19 @@ mod cma_recorder {
             task_handles.push(handle);
         }
         info!("task runing - ok");
-        thread::sleep(Duration::from_millis(100));
         let producer_handle = producer.lock().unwrap().run().unwrap();
         info!("producer runing - ok");
+        thread::sleep(Duration::from_millis(500));
+        let exit_producer = Arc::new(Mutex::new(TaskTestProducer::new(
+            self_id,
+            &format!("/{}/TaskTestReceiver.in-queue", self_id),
+            Duration::ZERO,
+            services.clone(),
+            &[(format!("/{}/Exit", self_id),       Value::String("exit".to_owned()))],
+        )));
+        thread::sleep(Duration::from_millis(300));
+        let exit_producer_handle = exit_producer.lock().unwrap().run().unwrap();
+
         let time = Instant::now();
         receiver_handle.wait().unwrap();
         producer.lock().unwrap().exit();
@@ -297,7 +323,10 @@ mod cma_recorder {
         for handle in task_handles {
             handle.wait().unwrap();
         }
+        api_client.lock().unwrap().exit();
+        api_client_handle.wait().unwrap();
         producer_handle.wait().unwrap();
+        exit_producer_handle.wait().unwrap();
         multi_queue_handle.wait().unwrap();
         services_handle.wait().unwrap();
         let sent = producer.lock().unwrap().sent().lock().unwrap().len();
