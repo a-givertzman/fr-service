@@ -63,7 +63,7 @@ impl FnOut for FnSmooth {
         let factor = self.factor.borrow_mut().out();
         trace!("{}.out | factor: {:?}", self.id, factor);
         let factor = match factor {
-            FnResult::Ok(factor) => factor,
+            FnResult::Ok(factor) => factor.to_double().as_double(),
             FnResult::None => return FnResult::None,
             FnResult::Err(err) => return FnResult::Err(err),
         };
@@ -72,7 +72,6 @@ impl FnOut for FnSmooth {
         match input {
             FnResult::Ok(input) => {
                 let input_type = input.type_();
-                let factor = factor.to_double().as_double();
                 trace!("{}.out | factor: {:?}", self.id, factor);
                 let delta = input.to_double().as_double() - self.value.to_double().as_double();
                 trace!("{}.out | delta: {:?}", self.id, delta);
