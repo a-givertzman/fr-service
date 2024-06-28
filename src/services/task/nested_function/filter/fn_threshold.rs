@@ -79,7 +79,7 @@ impl FnOut for FnThreshold {
     }
     //
     //
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult<PointType, String> {
         let input = self.input.borrow_mut().out();
         let input_type = input.type_();
         let input = input.to_double().as_double();

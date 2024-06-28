@@ -59,7 +59,7 @@ impl FnOut for FnSmooth {
     }
     //
     //
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult<PointType, String> {
         let input = self.input.borrow_mut().out();
         trace!("{}.out | input: {:?}", self.id, input);
         let input_type = input.type_();

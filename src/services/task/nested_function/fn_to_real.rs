@@ -52,7 +52,7 @@ impl FnOut for FnToReal {
     }
     //
     //
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult<PointType, String> {
         let point = self.input.borrow_mut().out();
         trace!("{}.out | input: {:?}", self.id, point);
         let out = match &point {

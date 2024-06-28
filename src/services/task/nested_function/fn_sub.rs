@@ -53,7 +53,7 @@ impl FnOut for FnSub {
     }
     //
     //
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult<PointType, String> {
         // TODO Add overflow check
         let input1 = self.input1.borrow_mut().out();
         trace!("{}.out | input1: {:?}", self.id, &input1);

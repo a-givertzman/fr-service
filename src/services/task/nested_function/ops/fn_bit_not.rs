@@ -59,7 +59,7 @@ impl FnOut for FnBitNot {
         self.input.borrow().inputs()
     }
     //
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult<PointType, String> {
         let input = self.input.borrow_mut().out();
         trace!("{}.out | input: {:#?}", self.id, input);
         let value = match input {

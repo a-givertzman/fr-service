@@ -44,7 +44,7 @@ impl FnOut for FnConst {
         vec![]
     }
     //
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult<PointType, String> {
         trace!("{}.out | value: {:?}", self.id, &self.point);
         self.point.clone()
     }

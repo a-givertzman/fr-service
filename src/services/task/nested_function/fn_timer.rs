@@ -135,7 +135,7 @@ impl FnOut for FnTimer {
         inputs
     }
     ///
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult<PointType, String> {
         // trace!("{}.out | input: {:?}", self.id, self.input.print());
         let enable = match &mut self.enable {
             Some(en) => en.borrow_mut().out().to_bool().as_bool().value.0,

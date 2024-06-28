@@ -57,7 +57,7 @@ impl FnOut for FnAcc {
         inputs
     }
     ///
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult<PointType, String> {
         // trace!("{}.out | input: {:?}", self.id, self.input.print());
         let input = self.input.borrow_mut().out();
         let acc = match self.acc.clone() {

@@ -67,7 +67,7 @@ impl FnOut for FnBitXor {
         inputs
     }
     //
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult<PointType, String> {
         let tx_id = PointTxId::from_str(&self.id);
         let mut inputs = self.inputs.iter();
         let mut value: PointType;

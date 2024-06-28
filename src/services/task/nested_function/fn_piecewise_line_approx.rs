@@ -97,7 +97,7 @@ impl FnOut for FnPiecewiseLineApprox {
     }
     //
     //
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult<PointType, String> {
         let input = self.input.borrow_mut().out();
         trace!("{}.out | input: {:?}", self.id, input);
         let value = self.pieces.line_approx(input.to_double().as_double().value);

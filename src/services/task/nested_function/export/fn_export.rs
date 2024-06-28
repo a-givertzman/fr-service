@@ -1,12 +1,12 @@
 use std::sync::{mpsc::Sender, atomic::{AtomicUsize, Ordering}};
-use log::{debug, error};
+use log::{debug, error, trace};
 use crate::{
     conf::point_config::{point_config::PointConfig, point_config_type::PointConfigType},
     core_::{
         point::{point::Point, point_tx_id::PointTxId, point_type::PointType}, 
         types::{bool::Bool, fn_in_out_ref::FnInOutRef}
     }, 
-    services::task::nested_function::{fn_::{FnIn, FnInOut, FnOut}, fn_kind::FnKind},
+    services::task::nested_function::{fn_::{FnIn, FnInOut, FnOut}, fn_kind::FnKind, fn_result::FnResult},
 };
 ///
 /// Function | Used for export Point from Task service to another service
@@ -165,16 +165,27 @@ impl FnOut for FnExport {
         inputs
     }
     //
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult<PointType, String> {
         let enable = match &self.enable {
-            Some(enable) => enable.borrow_mut().out().to_bool().as_bool().value.0,
+            Some(enable) => match enable.borrow_mut().out() {
+                FnResult::Ok(enable) => enable.to_bool().as_bool().value.0,
+                FnResult::None => return FnResult::None,
+                FnResult::Err(err) => return FnResult::Err(err),
+            },
             None => true,
         };
-        let point = self.input.borrow_mut().out();
-        if enable {
-            self.send(point.clone());
+        let input = self.input.borrow_mut().out();
+        trace!("{}.out | input: {:?}", self.id, input);
+        match input {
+            FnResult::Ok(input) => {
+                if enable {
+                    self.send(input.clone());
+                }
+                FnResult::Ok(input)
+            }
+            FnResult::None => FnResult::None,
+            FnResult::Err(err) => FnResult::Err(err),
         }
-        point
     }
     //
     fn reset(&mut self) {

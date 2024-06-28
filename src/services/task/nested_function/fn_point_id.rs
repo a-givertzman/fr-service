@@ -62,7 +62,7 @@ impl FnOut for FnPointId {
     }
     //
     //
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult<PointType, String> {
         let point = self.input.borrow_mut().out();
         trace!("{}.out | input: {:?}", self.id, point);
         match self.points.get(&point.name()) {

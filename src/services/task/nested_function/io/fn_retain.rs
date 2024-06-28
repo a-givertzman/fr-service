@@ -247,7 +247,7 @@ impl FnOut for FnRetain {
         inputs
     }
     //
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult<PointType, String> {
         let point = match &self.input {
             Some(input) => {
                 let point = input.borrow_mut().out();

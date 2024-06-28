@@ -74,7 +74,7 @@ impl FnOut for FnFilter {
         inputs
     }
     //
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult<PointType, String> {
         let input = self.input.borrow_mut().out();
         let pass_point = self.pass.borrow_mut().out();
         let pass = pass_point.to_bool().as_bool().value.0;

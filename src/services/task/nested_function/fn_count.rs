@@ -57,7 +57,7 @@ impl FnOut for FnCount {
         inputs
     }
     ///
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult<PointType, String> {
         // trace!("{}.out | input: {:?}", self.id, self.input.print());
         let mut count = match self.count {
             Some(count) => count,

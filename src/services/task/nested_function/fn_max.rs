@@ -55,7 +55,7 @@ impl FnOut for FnMax {
         inputs
     }
     //
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult<PointType, String> {
         let enable = match &mut self.enable {
             Some(en) => en.borrow_mut().out().to_bool().as_bool().value.0,
             None => true,

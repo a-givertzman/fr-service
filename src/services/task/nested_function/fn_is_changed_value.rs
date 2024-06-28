@@ -64,7 +64,7 @@ impl FnOut for FnIsChangedValue {
         inputs
     }
     //
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult<PointType, String> {
         let tx_id = PointTxId::from_str(&self.id);
         let mut value = false;
         let state: HashMap<&String, testing::entities::test_value::Value> = self.state.iter().map(|(name, p)| (name, p.value())).collect();

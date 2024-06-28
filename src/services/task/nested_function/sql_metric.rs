@@ -118,7 +118,7 @@ impl FnOut for SqlMetric {
         inputs
     }
     //
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult<PointType, String> {
         let self_id = self.id.clone();
         for (full_name, (name, sufix)) in &self.sql_names {
             trace!("{}.out | name: {:?}, sufix: {:?}", self_id, name, sufix);

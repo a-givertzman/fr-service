@@ -58,7 +58,7 @@ impl FnOut for FnVar {
     ///
     /// Do not evaluete calculations, 
     /// just returns the result if evalueted, evaluate
-    fn out(&mut self) -> PointType {
+    fn out(&mut self) -> FnResult<PointType, String> {
         match &self.value {
             Some(value) => {
                 trace!("{}.out | value: {:?}", self.id, &self.value);
