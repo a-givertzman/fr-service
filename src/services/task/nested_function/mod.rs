@@ -22,6 +22,7 @@
 //! etc...
 pub mod fn_;
 pub mod fn_kind;
+pub mod fn_result;
 pub mod functions;
 pub mod fn_add;
 pub mod fn_input;
