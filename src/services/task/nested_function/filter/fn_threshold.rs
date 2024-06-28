@@ -87,7 +87,6 @@ impl FnOut for FnThreshold {
             FnResult::None => return FnResult::None,
             FnResult::Err(err) => return FnResult::Err(err),
         };
-
         let factor = match &self.factor {
             Some(factor) => {
                 let factor = factor.borrow_mut().out();
@@ -100,7 +99,6 @@ impl FnOut for FnThreshold {
             }
             None => None,
         };
-
         let input = self.input.borrow_mut().out();
         trace!("{}.out | input: {:?}", self.id, input);
         match input {
