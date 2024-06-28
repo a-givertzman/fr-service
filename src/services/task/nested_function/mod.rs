@@ -24,7 +24,7 @@ pub mod fn_;
 pub mod fn_kind;
 pub mod fn_result;
 pub mod functions;
-pub mod fn_add;
+// pub mod fn_add;  moved to the ops
 pub mod fn_input;
 pub mod fn_count;
 pub mod fn_timer;
