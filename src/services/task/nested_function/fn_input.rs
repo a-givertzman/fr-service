@@ -1,24 +1,27 @@
 use log::{error, trace};
+use concat_string::concat_string;
 use std::{fmt::Debug, sync::atomic::{AtomicUsize, Ordering}};
 use crate::{conf::fn_::fn_conf_keywd::FnConfPointType, core_::{point::{point::Point, point_type::PointType}, types::bool::Bool}};
-use super::{fn_::{FnIn, FnOut, FnInOut}, fn_kind::FnKind};
+use super::{fn_::{FnIn, FnInOut, FnOut}, fn_kind::FnKind, fn_result::FnResult};
 ///
 /// 
 #[derive(Debug, Clone)]
 pub struct FnInput {
     id: String,
     kind: FnKind,
+    name: String,
     type_: FnConfPointType,
-    point: PointType,
-    initial: PointType,
+    point: Option<PointType>,
+    initial: Option<PointType>,
 }
 //
 // 
 impl FnInput {
-    pub fn new(parent: &str, initial: PointType, type_: FnConfPointType) -> Self {
+    pub fn new(parent: &str, name: impl Into<String>, initial: Option<PointType>, type_: FnConfPointType) -> Self {
         Self {
             id: format!("{}/FnInput{}", parent, COUNT.fetch_add(1, Ordering::Relaxed)),
             kind: FnKind::Input,
+            name: name.into(),
             type_,
             point: initial.clone(), 
             initial
@@ -30,7 +33,7 @@ impl FnInput {
 impl FnIn for FnInput {
     fn add(&mut self, point: PointType) {
         trace!("{}.add | value: {:?}", self.id, &self.point);
-        self.point = match self.type_ {
+        let point = match self.type_ {
             FnConfPointType::Bool => {
                 match point {
                     PointType::Bool(_) => point,
@@ -38,14 +41,13 @@ impl FnIn for FnInput {
                     PointType::Real(p) => PointType::Bool(Point::new(p.tx_id, &p.name, Bool(p.value > 0.0), p.status, p.cot, p.timestamp)),
                     PointType::Double(p) => PointType::Bool(Point::new(p.tx_id, &p.name, Bool(p.value > 0.0), p.status, p.cot, p.timestamp)),
                     PointType::String(p) => {
-                        let value: bool = match p.value.parse() {
-                            Ok(value) => value,
+                        match p.value.parse() {
+                            Ok(value) => PointType::Bool(Point::new(p.tx_id, &p.name, Bool(value), p.status, p.cot, p.timestamp)),
                             Err(err) => {
                                 error!("{}.add | Error conversion into<bool> value: {:?}\n\terror: {:#?}", self.id, self.point, err);
-                                self.point.value().as_bool()
+                                return;
                             }
-                        };
-                        PointType::Bool(Point::new(p.tx_id, &p.name, Bool(value), p.status, p.cot, p.timestamp))
+                        }
                     }
                 }
             }
@@ -56,14 +58,13 @@ impl FnIn for FnInput {
                     PointType::Real(p) => PointType::Int(Point::new(p.tx_id, &p.name, p.value.round() as i64, p.status, p.cot, p.timestamp)),
                     PointType::Double(p) => PointType::Int(Point::new(p.tx_id, &p.name, p.value.round() as i64, p.status, p.cot, p.timestamp)),
                     PointType::String(p) => {
-                        let value: i64 = match p.value.parse() {
-                            Ok(value) => value,
+                        match p.value.parse() {
+                            Ok(value) => PointType::Int(Point::new(p.tx_id, &p.name, value, p.status, p.cot, p.timestamp)),
                             Err(err) => {
                                 error!("{}.add | Error conversion into<i64> value: {:?}\n\terror: {:#?}", self.id, self.point, err);
-                                self.point.value().as_int()
+                                return;
                             }
-                        };
-                        PointType::Int(Point::new(p.tx_id, &p.name, value, p.status, p.cot, p.timestamp))
+                        }
                     }
                 }
             }
@@ -82,14 +83,13 @@ impl FnIn for FnInput {
                         PointType::Real(Point::new(p.tx_id, &p.name, p.value as f32, p.status, p.cot, p.timestamp))
                     }
                     PointType::String(p) => {
-                        let value: f32 = match p.value.parse() {
-                            Ok(value) => value,
+                        match p.value.parse() {
+                            Ok(value) => PointType::Real(Point::new(p.tx_id, &p.name, value, p.status, p.cot, p.timestamp)),
                             Err(err) => {
                                 error!("{}.add | Error conversion into<f32> value: {:?}\n\terror: {:#?}", self.id, self.point, err);
-                                self.point.value().as_real()
+                                return;
                             }
-                        };
-                        PointType::Real(Point::new(p.tx_id, &p.name, value, p.status, p.cot, p.timestamp))
+                        }
                     }
                 }
             }
@@ -108,14 +108,13 @@ impl FnIn for FnInput {
                         PointType::Double(Point::new(p.tx_id, &p.name, p.value, p.status, p.cot, p.timestamp))
                     }
                     PointType::String(p) => {
-                        let value: f64 = match p.value.parse() {
-                            Ok(value) => value,
+                        match p.value.parse() {
+                            Ok(value) => PointType::Double(Point::new(p.tx_id, &p.name, value, p.status, p.cot, p.timestamp)),
                             Err(err) => {
                                 error!("{}.add | Error conversion into<f64> value: {:?}\n\terror: {:#?}", self.id, self.point, err);
-                                self.point.value().as_double()
+                                return;
                             }
-                        };
-                        PointType::Double(Point::new(p.tx_id, &p.name, value, p.status, p.cot, p.timestamp))
+                        }
                     }
                 }
             }
@@ -145,6 +144,7 @@ impl FnIn for FnInput {
                 panic!("{}.add | Error. FnInput does not supports unknown type, but configured in: {:#?}", self.id, self);
             }
         };
+        self.point = Some(point)
     }
 }
 //
@@ -160,12 +160,15 @@ impl FnOut for FnInput {
     }
     //
     fn inputs(&self) -> Vec<String> {
-        vec![self.point.name()]
+        vec![self.name.clone()]
     }
     //
     fn out(&mut self) -> FnResult<PointType, String> {
         trace!("{}.out | value: {:?}", self.id, &self.point);
-        self.point.clone()
+        match &self.point {
+            Some(point) => FnResult::Ok(point.to_owned()),
+            None => FnResult::Err(concat_string!(self.id, ".out | Not initialized")),
+        }
     }
     //
     fn reset(&mut self) {
