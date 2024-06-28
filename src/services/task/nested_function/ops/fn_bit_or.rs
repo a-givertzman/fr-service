@@ -125,7 +125,6 @@ impl FnOut for FnBitOr {
                         FnResult::Err(err) => return FnResult::Err(err),
                     }
                 }
-        
             },
             None => panic!("{}.out | At least one input must be specified", self.id),
         };
