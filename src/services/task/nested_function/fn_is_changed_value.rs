@@ -6,7 +6,7 @@ use crate::core_::{
     cot::cot::Cot, point::{point::Point, point_tx_id::PointTxId, point_type::PointType},
     status::status::Status, types::{bool::Bool, fn_in_out_ref::FnInOutRef, map::HashMapFxHasher},
 };
-use super::{fn_::{FnInOut, FnOut, FnIn}, fn_kind::FnKind};
+use super::{fn_::{FnIn, FnInOut, FnOut}, fn_kind::FnKind, fn_result::FnResult};
 ///
 /// Function | Returns true if at least one input is changed from prev value
 /// - status chcanges will not registered
@@ -71,21 +71,27 @@ impl FnOut for FnIsChangedValue {
         trace!("{}.out | state: {:#?}", self.id, state);
         for input in &self.inputs {
             let input = input.borrow_mut().out();
-            trace!("{}.out | input '{}': {:#?}", self.id, input.name(), input);
-            let state = self.state
-                .entry(input.name())
-                .or_insert_with(|| {
-                    value = true;
-                    input.clone()
-                });
-            if !input.cmp_value(state) {
-                trace!("{}.out | changed: {}  |  state '{:?}', value: {:?}", self.id, input.name(), state.value(), input.value());
-                *state = input;
-                value = true;
+            match input {
+                FnResult::Ok(input) => {
+                    trace!("{}.out | input '{}': {:#?}", self.id, input.name(), input);
+                    let state = self.state
+                        .entry(input.name())
+                        .or_insert_with(|| {
+                            value = true;
+                            input.clone()
+                        });
+                    if !input.cmp_value(state) {
+                        trace!("{}.out | changed: {}  |  state '{:?}', value: {:?}", self.id, input.name(), state.value(), input.value());
+                        *state = input;
+                        value = true;
+                    }
+                }
+                FnResult::None => return FnResult::None,
+                FnResult::Err(err) => return FnResult::Err(err),
             }
         }
         trace!("{}.out | value: {:#?}", self.id, value);
-        PointType::Bool(
+        FnResult::Ok(PointType::Bool(
             Point::new(
                 tx_id,
                 &format!("{}.out", self.id),
@@ -94,7 +100,7 @@ impl FnOut for FnIsChangedValue {
                 Cot::Inf,
                 Utc::now(),
             )
-        )
+        ))
     }
     //
     fn reset(&mut self) {
