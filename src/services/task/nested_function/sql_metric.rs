@@ -15,7 +15,7 @@ use crate::{
     }
 };
 ///
-/// Function | SqlMetric
+/// Function | SqlMetric, builds sql replacing {xyz} with the values from coresponding inputs 
 ///     - values received from the [input]s puts into the target sql query
 ///     - sql query buit by replacing markers with current values:
 ///         - table = 'point_values'
