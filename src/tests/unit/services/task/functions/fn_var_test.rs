@@ -26,7 +26,7 @@ mod tests {
     fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(
             Box::new(
-                FnInput::new("test", initial, type_)
+                FnInput::new("test", "test", Some(initial), type_)
             )
         ))
     }
@@ -63,7 +63,7 @@ mod tests {
             input.borrow_mut().add(point.clone());
             // debug!("input: {:?}", &input);
             fn_var.eval();
-            let state = fn_var.out();
+            let state = fn_var.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state, point);
@@ -99,7 +99,7 @@ mod tests {
             input.borrow_mut().add(point.clone());
             // debug!("input: {:?}", &input);
             fn_var.eval();
-            let state = fn_var.out();
+            let state = fn_var.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state, point);
@@ -135,7 +135,7 @@ mod tests {
             input.borrow_mut().add(point.clone());
             // debug!("input: {:?}", &input);
             fn_var.eval();
-            let state = fn_var.out();
+            let state = fn_var.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state, point);
@@ -171,7 +171,7 @@ mod tests {
             input.borrow_mut().add(point.clone());
             // debug!("input: {:?}", &input);
             fn_var.eval();
-            let state = fn_var.out();
+            let state = fn_var.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state, point);

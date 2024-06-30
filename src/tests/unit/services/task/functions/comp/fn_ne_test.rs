@@ -23,7 +23,7 @@ mod fn_ne {
     ///  - ...
     fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
-            FnInput::new("test", initial, type_)
+            FnInput::new("test", "test", Some(initial), type_)
         )))
     }
     ///
@@ -53,7 +53,7 @@ mod fn_ne {
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
-            let result = fn_ne.out().as_bool().value.0;
+            let result = fn_ne.out().unwrap().as_bool().value.0;
             debug!("step {}  |  value1: {:?} != value2: {:?} | result: {:?}", step, value1, value2, result);
             target = value1 != value2;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
@@ -93,7 +93,7 @@ mod fn_ne {
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
-            let result = fn_ne.out().as_bool().value.0;
+            let result = fn_ne.out().unwrap().as_bool().value.0;
             debug!("step {}  |  value1: {:?} != value2: {:?} | result: {:?}", step, value1, value2, result);
             target = value1 != value2;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
@@ -142,7 +142,7 @@ mod fn_ne {
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
-            let result = fn_ne.out().as_bool().value.0;
+            let result = fn_ne.out().unwrap().as_bool().value.0;
             debug!("step {}  |  value1: {:?} != value2: {:?} | result: {:?}", step, value1, value2, result);
             target = value1 != value2;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
@@ -191,7 +191,7 @@ mod fn_ne {
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
-            let result = fn_ne.out().as_bool().value.0;
+            let result = fn_ne.out().unwrap().as_bool().value.0;
             debug!("step {}  |  value1: {:?} != value2: {:?} | result: {:?}", step, value1, value2, result);
             target = value1 != value2;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);

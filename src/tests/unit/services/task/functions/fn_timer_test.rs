@@ -24,7 +24,7 @@ mod fn_timer {
     fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(
             Box::new(
-                FnInput::new("test", initial, type_)
+                FnInput::new("test", "test", Some(initial), type_)
             )
         ))
     }
@@ -86,7 +86,7 @@ mod fn_timer {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let fn_timer_elapsed = fn_timer.out().as_double().value;
+            let fn_timer_elapsed = fn_timer.out().unwrap().as_double().value;
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, fn_timer_elapsed);
             assert!(fn_timer_elapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fn_timer_elapsed, target);
@@ -147,7 +147,7 @@ mod fn_timer {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let fn_timer_elapsed = fn_timer.out().as_double().value;
+            let fn_timer_elapsed = fn_timer.out().unwrap().as_double().value;
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, fn_timer_elapsed);
             assert!(fn_timer_elapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fn_timer_elapsed, target);
@@ -215,7 +215,7 @@ mod fn_timer {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let fn_timer_elapsed = fn_timer.out().as_double().value;
+            let fn_timer_elapsed = fn_timer.out().unwrap().as_double().value;
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}   |   target {}{}", value, fn_timer_elapsed, target, if reset {"\t<-- reset"} else {""});
             assert!(fn_timer_elapsed.aprox_eq(target, 2), "current '{}' != target '{}'", fn_timer_elapsed, target);
@@ -277,7 +277,7 @@ mod fn_timer {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let fn_timer_elapsed = fn_timer.out().as_double().value;
+            let fn_timer_elapsed = fn_timer.out().unwrap().as_double().value;
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, fn_timer_elapsed);
             assert!(fn_timer_elapsed.aprox_eq(target, 2), "step: {} | current '{}' != target '{}'", step, fn_timer_elapsed, target);

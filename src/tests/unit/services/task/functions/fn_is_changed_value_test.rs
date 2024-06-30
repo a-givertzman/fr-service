@@ -25,7 +25,7 @@ mod fn_is_changed_value {
     fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         fn_is_changed_value::COUNT.reset(0);
         Rc::new(RefCell::new(Box::new(
-            FnInput::new("test", initial, type_)
+            FnInput::new("test", "test", Some(initial), type_)
         )))
     }
     ///
@@ -93,7 +93,7 @@ mod fn_is_changed_value {
                 }
             };
             // debug!("input: {:?}", &input);
-            let state = fn_is_changed.out();
+            let state = fn_is_changed.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("step {}   |   value: {:?}   |   state: {:?}", step, value, state);
             assert!(state.as_bool().value.0 == (target > 0), "step {} \n result: {:?} \ntarget: {}", step, state.as_bool().value.0, target > 0);

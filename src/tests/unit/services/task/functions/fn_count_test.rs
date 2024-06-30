@@ -25,7 +25,7 @@ fn init_once() {
 fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
     fn_count::COUNT.reset(0);
     Rc::new(RefCell::new(Box::new(
-        FnInput::new("test", initial, type_)
+        FnInput::new("test", "test", Some(initial), type_)
     )))
 }
 ///
@@ -62,7 +62,7 @@ fn test_single() {
         let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
-        let state = fn_count.out();
+        let state = fn_count.out().unwrap();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
         assert_eq!(state.as_int().value, target);
@@ -102,7 +102,7 @@ fn test_multiple() {
         let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
-        let state = fn_count.out();
+        let state = fn_count.out().unwrap();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
         assert_eq!(state.as_int().value, target);
@@ -144,7 +144,7 @@ fn test_multiple_reset() {
         let point = value.to_point(0, "test");
         input.borrow_mut().add(point);
         // debug!("input: {:?}", &input);
-        let state = fn_count.out();
+        let state = fn_count.out().unwrap();
         // debug!("input: {:?}", &mut input);
         debug!("value: {:?}   |   state: {:?}", value, state);
         assert_eq!(state.as_int().value, target);

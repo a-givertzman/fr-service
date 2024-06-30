@@ -26,7 +26,7 @@ mod fn_point_id {
     fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(
             Box::new(
-                FnInput::new("test", initial, type_)
+                FnInput::new("test", "test", Some(initial), type_)
             )
         ))
     }
@@ -95,7 +95,7 @@ mod fn_point_id {
             let point = value.to_point(0, &name);
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let state = fn_point_id.out();
+            let state = fn_point_id.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state.as_int().value, target_id);

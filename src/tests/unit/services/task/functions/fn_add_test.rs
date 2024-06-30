@@ -6,7 +6,7 @@ mod fn_add {
     use crate::{
         conf::fn_::fn_conf_keywd::FnConfPointType, 
         core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
-        services::task::nested_function::{fn_::FnOut, fn_add::FnAdd, fn_input::FnInput}
+        services::task::nested_function::{fn_::FnOut, ops::fn_add::FnAdd, fn_input::FnInput}
     };
     ///
     ///
@@ -23,7 +23,7 @@ mod fn_add {
     ///  - ...
     fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
-            FnInput::new("test", initial, type_)
+            FnInput::new("test", "test", Some(initial), type_)
         )))
     }
     ///
@@ -40,8 +40,10 @@ mod fn_add {
         let input2 = init_each(value2_stored.clone(), FnConfPointType::Bool);
         let mut fn_add = FnAdd::new(
             "test",
-            input1.clone(),
-            input2.clone(),
+            vec![
+                input1.clone(),
+                input2.clone(),
+            ]
         );
         let test_data = vec![
             (false, false),
@@ -56,13 +58,13 @@ mod fn_add {
             let point1 = value1.to_point(0, "test");
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
-            let state = fn_add.out();
+            let state = fn_add.out().unwrap();
             debug!("value1: {:?}   |   state: {:?}", value1, state);
             value1_stored = point1.clone();
             target = PointType::Bool(value1_stored.as_bool() + value2_stored.as_bool());
             assert_eq!(state, target);
             input2.borrow_mut().add(point2.clone());
-            let state = fn_add.out();
+            let state = fn_add.out().unwrap();
             debug!("value2: {:?}   |   state: {:?}", value2, state);
             value2_stored = point2.clone();
             target = PointType::Bool(value1_stored.as_bool() + value2_stored.as_bool());
@@ -84,8 +86,10 @@ mod fn_add {
         let input2 = init_each(value2_stored.clone(), FnConfPointType::Int);
         let mut fn_add = FnAdd::new(
             "test",
-            input1.clone(),
-            input2.clone(),
+            vec![
+                input1.clone(),
+                input2.clone(),
+            ]
         );
         let test_data = vec![
             (1, 1),
@@ -105,13 +109,13 @@ mod fn_add {
             let point1 = value1.to_point(0, "test");
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
-            let state = fn_add.out();
+            let state = fn_add.out().unwrap();
             debug!("value1: {:?}   |   state: {:?}", value1, state);
             value1_stored = point1.clone();
             target = PointType::Int(value1_stored.as_int() + value2_stored.as_int());
             assert_eq!(state, target);
             input2.borrow_mut().add(point2.clone());
-            let state = fn_add.out();
+            let state = fn_add.out().unwrap();
             debug!("value2: {:?}   |   state: {:?}", value2, state);
             value2_stored = point2.clone();
             target = PointType::Int(value1_stored.as_int() + value2_stored.as_int());
@@ -133,8 +137,10 @@ mod fn_add {
         let input2 = init_each(value2_stored.clone(), FnConfPointType::Real);
         let mut fn_mul = FnAdd::new(
             "test",
-            input1.clone(),
-            input2.clone(),
+            vec![
+                input1.clone(),
+                input2.clone(),
+            ]
         );
         let test_data = vec![
             (01, 0.1, 0.1),
@@ -162,14 +168,14 @@ mod fn_add {
             let point1 = value1.to_point(0, "test");
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
-            let state = fn_mul.out();
+            let state = fn_mul.out().unwrap();
             debug!("step: {}  |  value1: {:?}   |   state: {:?}", step, value1, state);
             value1_stored = point1.clone();
             target = value1_stored.as_real().value + value2_stored.as_real().value;
             let result = state.as_real().value;
             assert_eq!(result, target, "\n result: {} \n target: {}", result, target);
             input2.borrow_mut().add(point2.clone());
-            let state = fn_mul.out();
+            let state = fn_mul.out().unwrap();
             debug!("step: {}  |  value2: {:?}   |   state: {:?}", step, value2, state);
             value2_stored = point2.clone();
             target = value1_stored.as_real().value + value2_stored.as_real().value;
@@ -192,8 +198,10 @@ mod fn_add {
         let input2 = init_each(value2_stored.clone(), FnConfPointType::Double);
         let mut fn_mul = FnAdd::new(
             "test",
-            input1.clone(),
-            input2.clone(),
+            vec![
+                input1.clone(),
+                input2.clone(),
+            ]
         );
         let test_data = vec![
             (01, 0.1, 0.1),
@@ -221,14 +229,14 @@ mod fn_add {
             let point1 = value1.to_point(0, "test");
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
-            let state = fn_mul.out();
+            let state = fn_mul.out().unwrap();
             debug!("step: {}  |  value1: {:?}   |   state: {:?}", step, value1, state);
             value1_stored = point1.clone();
             target = value1_stored.as_double().value + value2_stored.as_double().value;
             let result = state.as_double().value;
             assert_eq!(result, target, "\n result: {} \n target: {}", result, target);
             input2.borrow_mut().add(point2.clone());
-            let state = fn_mul.out();
+            let state = fn_mul.out().unwrap();
             debug!("step: {}  |  value2: {:?}   |   state: {:?}", step, value2, state);
             value2_stored = point2.clone();
             target = value1_stored.as_double().value + value2_stored.as_double().value;

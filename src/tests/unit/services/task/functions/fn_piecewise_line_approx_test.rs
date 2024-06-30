@@ -24,7 +24,7 @@ mod fn_piecewise_line_approx {
     fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         fn_acc::COUNT.reset(0);
         Rc::new(RefCell::new(Box::new(
-            FnInput::new("test", initial, type_)
+            FnInput::new("test", "test", Some(initial), type_)
         )))
     }
     ///
@@ -66,7 +66,7 @@ mod fn_piecewise_line_approx {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let state = fn_line_approx.out();
+            let state = fn_line_approx.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state.as_int().value, target, "step: {}\n result: {:?} \ntarget: {}", step, state.as_int().value, target);
@@ -112,7 +112,7 @@ mod fn_piecewise_line_approx {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let state = fn_line_approx.out();
+            let state = fn_line_approx.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state.as_real().value, target, "step: {}\n result: {:?} \ntarget: {}", step, state.as_real().value, target);
@@ -158,7 +158,7 @@ mod fn_piecewise_line_approx {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let state = fn_line_approx.out();
+            let state = fn_line_approx.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert!(state.as_double().value.aprox_eq(target, 4), "step: {}\n result: {:?} \ntarget: {}", step, state.as_double().value, target);

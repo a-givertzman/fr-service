@@ -30,7 +30,8 @@ mod fn_falling_edge {
         Rc::new(RefCell::new(Box::new(
             FnInput::new(
                 parent,
-                initial.to_point(0, "test"),
+                "test",
+                Some(initial.to_point(0, "test")),
                 match initial {
                     Value::Bool(_) => FnConfPointType::Bool,
                     Value::Int(_) => FnConfPointType::Int,
@@ -75,7 +76,7 @@ mod fn_falling_edge {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let result = fn_rising_edge.out();
+            let result = fn_rising_edge.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
         assert!(result.as_bool().value.0 == target, "\nresult: {:?}\ntarget: {:?}", result, target);
@@ -115,7 +116,7 @@ mod fn_falling_edge {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let result = fn_rising_edge.out();
+            let result = fn_rising_edge.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
         assert!(result.as_bool().value.0 == target, "\nresult: {:?}\ntarget: {:?}", result, target);
@@ -155,7 +156,7 @@ mod fn_falling_edge {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let result = fn_rising_edge.out();
+            let result = fn_rising_edge.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
         assert!(result.as_bool().value.0 == target, "\nresult: {:?}\ntarget: {:?}", result, target);
@@ -195,7 +196,7 @@ mod fn_falling_edge {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let result = fn_rising_edge.out();
+            let result = fn_rising_edge.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
         assert!(result.as_bool().value.0 == target, "\nresult: {:?}\ntarget: {:?}", result, target);

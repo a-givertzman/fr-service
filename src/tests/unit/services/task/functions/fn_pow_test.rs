@@ -23,7 +23,7 @@ mod fn_pow {
     ///  - ...
     fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
-            FnInput::new("test", initial, type_)
+            FnInput::new("test", "test", Some(initial), type_)
         )))
     }
     ///
@@ -60,14 +60,14 @@ mod fn_pow {
             let point1 = value1.to_point(0, "test");
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
-            let state = fn_pow.out();
+            let state = fn_pow.out().unwrap();
             debug!("step: {}  |  value1: {:?}   |   state: {:?}", step, value1, state);
             value1_stored = point1.clone();
             target = value1_stored.as_int().value.pow(value2_stored.as_int().value as u32);
             let result = state.as_int().value;
             assert_eq!(result, target, "step {} \n result: {} \n target: {}", step, result, target);
             input2.borrow_mut().add(point2.clone());
-            let state = fn_pow.out();
+            let state = fn_pow.out().unwrap();
             debug!("step: {}  |  value2: {:?}   |   state: {:?}", step, value2, state);
             value2_stored = point2.clone();
             target = value1_stored.as_int().value.pow(value2_stored.as_int().value as u32);
@@ -116,14 +116,14 @@ mod fn_pow {
             let point1 = value1.to_point(0, "test");
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
-            let state = fn_pow.out();
+            let state = fn_pow.out().unwrap();
             debug!("step: {}  |  value1: {:?}   |   state: {:?}", step, value1, state);
             value1_stored = point1.clone();
             target = value1_stored.as_real().value.powf(value2_stored.as_real().value);
             let result = state.as_real().value;
             assert_eq!(result, target, "step {} \n result: {} \n target: {}", step, result, target);
             input2.borrow_mut().add(point2.clone());
-            let state = fn_pow.out();
+            let state = fn_pow.out().unwrap();
             debug!("step: {}  |  value2: {:?}   |   state: {:?}", step, value2, state);
             value2_stored = point2.clone();
             target = value1_stored.as_real().value.powf(value2_stored.as_real().value);
@@ -172,14 +172,14 @@ mod fn_pow {
             let point1 = value1.to_point(0, "test");
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
-            let state = fn_pow.out();
+            let state = fn_pow.out().unwrap();
             debug!("step: {}  |  value1: {:?}   |   state: {:?}", step, value1, state);
             value1_stored = point1.clone();
             target = value1_stored.as_double().value.powf(value2_stored.as_double().value);
             let result = state.as_double().value;
             assert_eq!(result, target, "step {} \n result: {} \n target: {}", step, result, target);
             input2.borrow_mut().add(point2.clone());
-            let state = fn_pow.out();
+            let state = fn_pow.out().unwrap();
             debug!("step: {}  |  value2: {:?}   |   state: {:?}", step, value2, state);
             value2_stored = point2.clone();
             target = value1_stored.as_double().value.powf(value2_stored.as_double().value);

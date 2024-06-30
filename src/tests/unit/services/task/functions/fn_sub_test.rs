@@ -23,7 +23,7 @@ mod fn_sub {
     ///  - ...
     fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
-            FnInput::new("test", initial, type_)
+            FnInput::new("test", "test", Some(initial), type_)
         )))
     }
     ///
@@ -57,13 +57,13 @@ mod fn_sub {
             let point1 = value1.to_point(0, "test");
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
-            let state = fn_sub.out();
+            let state = fn_sub.out().unwrap();
             debug!("value1: {:?}   |   state: {:?}", value1, state);
             value1_stored = point1.clone();
             target = PointType::Bool(value1_stored.as_bool() + value2_stored.as_bool());
             assert_eq!(state, target);
             input2.borrow_mut().add(point2.clone());
-            let state = fn_sub.out();
+            let state = fn_sub.out().unwrap();
             debug!("value2: {:?}   |   state: {:?}", value2, state);
             value2_stored = point2.clone();
             target = PointType::Bool(value1_stored.as_bool() + value2_stored.as_bool());
@@ -106,13 +106,13 @@ mod fn_sub {
             let point1 = value1.to_point(0, "test");
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
-            let state = fn_sub.out();
+            let state = fn_sub.out().unwrap();
             debug!("value1: {:?}   |   state: {:?}", value1, state);
             value1_stored = point1.clone();
             target = PointType::Int(value1_stored.as_int() - value2_stored.as_int());
             assert_eq!(state, target);
             input2.borrow_mut().add(point2.clone());
-            let state = fn_sub.out();
+            let state = fn_sub.out().unwrap();
             debug!("value2: {:?}   |   state: {:?}", value2, state);
             value2_stored = point2.clone();
             target = PointType::Int(value1_stored.as_int() - value2_stored.as_int());
@@ -126,13 +126,13 @@ mod fn_sub {
     fn real() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
-        info!("fn_mul_real");
+        info!("fn_sub_real");
         let mut value1_stored = 0.0f32.to_point(0, "real");
         let mut value2_stored = 0.0f32.to_point(0, "real");
         let mut target: f32;
         let input1 = init_each(value1_stored.clone(), FnConfPointType::Real);
         let input2 = init_each(value2_stored.clone(), FnConfPointType::Real);
-        let mut fn_mul = FnSub::new(
+        let mut fn_sub = FnSub::new(
             "test",
             input1.clone(),
             input2.clone(),
@@ -163,14 +163,14 @@ mod fn_sub {
             let point1 = value1.to_point(0, "test");
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
-            let state = fn_mul.out();
+            let state = fn_sub.out().unwrap();
             debug!("step: {}  |  value1: {:?}   |   state: {:?}", step, value1, state);
             value1_stored = point1.clone();
             target = value1_stored.as_real().value - value2_stored.as_real().value;
             let result = state.as_real().value;
             assert_eq!(result, target, "\n result: {} \n target: {}", result, target);
             input2.borrow_mut().add(point2.clone());
-            let state = fn_mul.out();
+            let state = fn_sub.out().unwrap();
             debug!("step: {}  |  value2: {:?}   |   state: {:?}", step, value2, state);
             value2_stored = point2.clone();
             target = value1_stored.as_real().value - value2_stored.as_real().value;
@@ -185,13 +185,13 @@ mod fn_sub {
     fn double() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
-        info!("fn_mul_double");
+        info!("fn_sub_double");
         let mut value1_stored = 0.0f64.to_point(0, "double");
         let mut value2_stored = 0.0f64.to_point(0, "double");
         let mut target: f64;
         let input1 = init_each(value1_stored.clone(), FnConfPointType::Double);
         let input2 = init_each(value2_stored.clone(), FnConfPointType::Double);
-        let mut fn_mul = FnSub::new(
+        let mut fn_sub = FnSub::new(
             "test",
             input1.clone(),
             input2.clone(),
@@ -222,14 +222,14 @@ mod fn_sub {
             let point1 = value1.to_point(0, "test");
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
-            let state = fn_mul.out();
+            let state = fn_sub.out().unwrap();
             debug!("step: {}  |  value1: {:?}   |   state: {:?}", step, value1, state);
             value1_stored = point1.clone();
             target = value1_stored.as_double().value - value2_stored.as_double().value;
             let result = state.as_double().value;
             assert_eq!(result, target, "\n result: {} \n target: {}", result, target);
             input2.borrow_mut().add(point2.clone());
-            let state = fn_mul.out();
+            let state = fn_sub.out().unwrap();
             debug!("step: {}  |  value2: {:?}   |   state: {:?}", step, value2, state);
             value2_stored = point2.clone();
             target = value1_stored.as_double().value - value2_stored.as_double().value;

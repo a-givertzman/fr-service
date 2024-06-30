@@ -23,7 +23,7 @@ mod fn_input {
     fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(
             Box::new(
-                FnInput::new("test", initial, type_)
+                FnInput::new("test", "test", Some(initial), type_)
             )
         ))
     }
@@ -55,7 +55,7 @@ mod fn_input {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let state = input.borrow_mut().out();
+            let state = input.borrow_mut().out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state.as_int().value, value);
@@ -91,7 +91,7 @@ mod fn_input {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let state = input.borrow_mut().out();
+            let state = input.borrow_mut().out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state.as_bool().value.0, value);
@@ -127,7 +127,7 @@ mod fn_input {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let state = input.borrow_mut().out();
+            let state = input.borrow_mut().out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state.as_real().value, value);
@@ -163,7 +163,7 @@ mod fn_input {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let state = input.borrow_mut().out();
+            let state = input.borrow_mut().out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state.as_double().value, value);
@@ -197,7 +197,7 @@ mod fn_input {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let state = input.borrow_mut().out();
+            let state = input.borrow_mut().out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state.as_string().value, value);

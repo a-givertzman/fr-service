@@ -23,7 +23,7 @@ mod fn_trip {
     ///  - ...
     fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
-            FnInput::new("test", initial, type_)
+            FnInput::new("test", "test", Some(initial), type_)
         )))
     }
     ///
@@ -61,7 +61,7 @@ mod fn_trip {
             input1.borrow_mut().add(point1);
             input2.borrow_mut().add(point2);
             // debug!("input: {:?}", &input);
-            let state = fn_trip.out();
+            let state = fn_trip.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value1: {:?}  >=  value2: {:?}  |   state: {:?}", value1, value2, state);
             assert_eq!(state.as_bool().value.0, target_state);
@@ -107,7 +107,7 @@ mod fn_trip {
             input1.borrow_mut().add(point1);
             input2.borrow_mut().add(point2);
             // debug!("input: {:?}", &input);
-            let state = fn_trip.out();
+            let state = fn_trip.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value1: {:?}  >=  value2: {:?}  |   state: {:?}", value1, value2, state);
             assert_eq!(state.as_bool().value.0, target_dtate);
@@ -152,7 +152,7 @@ mod fn_trip {
             input1.borrow_mut().add(point1);
             input2.borrow_mut().add(point2);
             // debug!("input: {:?}", &input);
-            let state = fn_trip.out();
+            let state = fn_trip.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value1: {:?}  >=  value2: {:?}  |   state: {:?}", value1, value2, state);
 
@@ -198,7 +198,7 @@ mod fn_trip {
             input1.borrow_mut().add(point1);
             input2.borrow_mut().add(point2);
             // debug!("input: {:?}", &input);
-            let state = fn_trip.out();
+            let state = fn_trip.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value1: {:?}  >=  value2: {:?}  |   state: {:?}", value1, value2, state);
 

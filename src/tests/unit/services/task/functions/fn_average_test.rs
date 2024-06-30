@@ -30,7 +30,8 @@ mod fn_average {
         Rc::new(RefCell::new(Box::new(
             FnInput::new(
                 parent,
-                initial.to_point(0, "test"),
+                "test",
+                Some(initial.to_point(0, "test")),
                 match initial {
                     Value::Bool(_) => FnConfPointType::Bool,
                     Value::Int(_) => FnConfPointType::Int,
@@ -79,7 +80,7 @@ mod fn_average {
             enable.borrow_mut().add(en);
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let result = fn_average.out();
+            let result = fn_average.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
             assert!(result.as_double().value.trunc_eq(target, 3), "\nresult: {:?}\ntarget: {:?}", result, target);
@@ -123,7 +124,7 @@ mod fn_average {
             enable.borrow_mut().add(en);
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let result = fn_average.out();
+            let result = fn_average.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
             assert!(result.as_double().value.aprox_eq(target, 3), "\nresult: {:?}\ntarget: {:?}", result, target);
@@ -167,7 +168,7 @@ mod fn_average {
             enable.borrow_mut().add(en);
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let result = fn_average.out();
+            let result = fn_average.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
             assert!(result.as_double().value.aprox_eq(target, 3), "\nresult: {:?}\ntarget: {:?}", result, target);
@@ -221,7 +222,7 @@ mod fn_average {
             enable.borrow_mut().add(en);
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let result = fn_average.out();
+            let result = fn_average.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
             assert!(result.as_double().value.aprox_eq(target, 3), "\nresult: {:?}\ntarget: {:?}", result, target);
@@ -275,7 +276,7 @@ mod fn_average {
             enable.borrow_mut().add(en);
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let result = fn_average.out();
+            let result = fn_average.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("step {} \t value: {:?}   |   result: {:?}", step, value, result);
             assert!(result.as_double().value.aprox_eq(target, 3), "\nresult: {:?}\ntarget: {:?}", result, target);

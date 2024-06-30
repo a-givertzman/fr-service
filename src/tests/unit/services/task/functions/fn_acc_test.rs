@@ -24,7 +24,7 @@ mod fn_acc {
     fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         fn_acc::COUNT.reset(0);
         Rc::new(RefCell::new(Box::new(
-            FnInput::new("test", initial, type_)
+            FnInput::new("test", "test", Some(initial), type_)
         )))
     }
     ///
@@ -61,7 +61,7 @@ mod fn_acc {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let state = fn_count.out();
+            let state = fn_count.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state.as_int().value, target, "\n result: {:?} \ntarget: {}", state, target);
@@ -101,7 +101,7 @@ mod fn_acc {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let state = fn_count.out();
+            let state = fn_count.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state.as_int().value, target, "\n   result: {:?} \ntarget: {}", state, target);
@@ -144,7 +144,7 @@ mod fn_acc {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let state = fn_count.out();
+            let state = fn_count.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state.as_int().value, target, "\n   result: {:?} \ntarget: {}", state, target);
@@ -184,7 +184,7 @@ mod fn_acc {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let state = fn_count.out();
+            let state = fn_count.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state.as_real().value, target, "\n   result: {:?} \ntarget: {}", state, target);
@@ -224,7 +224,7 @@ mod fn_acc {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point);
             // debug!("input: {:?}", &input);
-            let state = fn_count.out();
+            let state = fn_count.out().unwrap();
             // debug!("input: {:?}", &mut input);
             debug!("value: {:?}   |   state: {:?}", value, state);
             assert_eq!(state.as_double().value, target, "\n   result: {:?} \ntarget: {}", state, target);
