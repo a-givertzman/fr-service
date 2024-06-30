@@ -4,11 +4,9 @@ use crate::{
     core_::{point::point_type::PointType, types::fn_in_out_ref::FnInOutRef},
     services::task::nested_function::{
         fn_::{FnInOut, FnIn, FnOut},
-        fn_kind::FnKind,
+        fn_kind::FnKind, fn_result::FnResult,
     },
 };
-
-use super::fn_result::FnResult;
 ///
 /// Function | Returns input1 ^ input2
 #[derive(Debug)]

@@ -6,7 +6,7 @@ mod fn_div {
     use crate::{
         conf::fn_::fn_conf_keywd::FnConfPointType, 
         core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
-        services::task::nested_function::{fn_::FnOut, fn_input::FnInput, fn_div::FnDiv}
+        services::task::nested_function::{fn_::FnOut, fn_input::FnInput, ops::fn_div::FnDiv}
     };
     ///
     ///
