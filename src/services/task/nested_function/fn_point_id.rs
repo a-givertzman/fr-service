@@ -11,8 +11,10 @@ use crate::{
         fn_kind::FnKind,
     },
 };
+
+use super::fn_result::FnResult;
 ///
-/// Function returns the ID of the point from input
+/// Function | Returns the ID of the point from input
 /// 
 /// Example
 /// 
@@ -63,23 +65,29 @@ impl FnOut for FnPointId {
     //
     //
     fn out(&mut self) -> FnResult<PointType, String> {
-        let point = self.input.borrow_mut().out();
-        trace!("{}.out | input: {:?}", self.id, point);
-        match self.points.get(&point.name()) {
-            Some(id) => {
-                debug!("{}.out | ID: {:?}", self.id, id);
-                PointType::Int(
-                    Point::new(
-                        point.tx_id(),
-                        &concat_string!(self.id, ".out"),
-                        *id as i64,
-                        point.status(),
-                        point.cot(),
-                        point.timestamp(),
-                    )
-                )
+        let input = self.input.borrow_mut().out();
+        trace!("{}.out | input: {:?}", self.id, input);
+        match input {
+            FnResult::Ok(input) => {
+                match self.points.get(&input.name()) {
+                    Some(id) => {
+                        debug!("{}.out | ID: {:?}", self.id, id);
+                        FnResult::Ok(PointType::Int(
+                            Point::new(
+                                input.tx_id(),
+                                &concat_string!(self.id, ".out"),
+                                *id as i64,
+                                input.status(),
+                                input.cot(),
+                                input.timestamp(),
+                            )
+                        ))
+                    }
+                    None => FnResult::Err(format!("{}.out | Point '{}' - not found in configured points", self.id, input.name())),
+                }
             }
-            None => panic!("{}.out | point '{}' - not found in configured points", self.id, point.name()),
+            FnResult::None => FnResult::None,
+            FnResult::Err(err) => FnResult::Err(err),
         }
     }
     //
