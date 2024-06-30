@@ -1,20 +1,14 @@
 use indexmap::IndexMap;
 use log::trace;
 use std::{fs, str::FromStr};
-
 use crate::conf::{
-    conf_tree::ConfTree, fn_::{
-        fn_conf_keywd::{FnConfKeywd, FnConfKindName, FnConfPointType}, fn_conf_kind::FnConfKind, fn_point_config::FnPointConfig
-    }, point_config::{name::Name, point_config::PointConfig}
+    conf_tree::ConfTree,
+    fn_::{
+        fn_conf_keywd::{FnConfKeywd, FnConfKindName, FnConfPointType}, fn_conf_kind::FnConfKind,
+        fn_point_config::FnPointConfig, fn_conf_options::FnConfOptions,
+    },
+    point_config::{name::Name, point_config::PointConfig},
 };
-
-
-// enum ValueType<'a> {
-//     Single(&'a ConfTree),
-//     Mapping(&'a ConfTree),
-// }
-
-
 ///
 /// creates config read from yaml file of following format:
 /// ```yaml
@@ -31,6 +25,7 @@ pub struct FnConfig {
     pub name: String,
     pub inputs: IndexMap<String, FnConfKind>,
     pub type_: FnConfPointType,
+    pub options: FnConfOptions,
 }
 //
 // 
@@ -73,6 +68,7 @@ impl FnConfig {
                                     name: fn_name,
                                     inputs: IndexMap::new(),
                                     type_: value.type_,
+                                    options: FnConfOptions::default(),
                                 }        
                             )
                         }
@@ -83,6 +79,7 @@ impl FnConfig {
                                     name: value.data,
                                     inputs: Self::build_inputs(parent_id, parent_name, conf_tree, vars),
                                     type_: value.type_,
+                                    options: FnConfOptions::default(),
                                 }
                             )        
                         }
@@ -92,6 +89,7 @@ impl FnConfig {
                                     name: value.data,
                                     inputs: Self::build_inputs(parent_id, parent_name, conf_tree, vars),
                                     type_: value.type_,
+                                    options: FnConfOptions::default(),
                                 }
                             )
                         }
@@ -159,6 +157,7 @@ impl FnConfig {
                                         name: value.data,
                                         inputs: IndexMap::new(),
                                         type_: value.type_,
+                                        options: FnConfOptions::default(),
                                     }
                                 )
                             }
@@ -168,6 +167,7 @@ impl FnConfig {
                                         name: value.data,
                                         inputs: IndexMap::new(),
                                         type_: value.type_,
+                                        options: value.options,
                                     }
                                 )
                             }
@@ -189,6 +189,7 @@ impl FnConfig {
                                     name: var_name, 
                                     inputs: IndexMap::new(),
                                     type_: FnConfPointType::Unknown,
+                                    options: FnConfOptions::default(),
                                 }
                             )
                         } else {
