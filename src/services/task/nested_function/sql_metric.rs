@@ -2,11 +2,18 @@ use std::{collections::HashMap, sync::{atomic::{AtomicUsize, Ordering}, Arc, RwL
 use indexmap::IndexMap;
 use log::{debug, trace};
 use crate::{
-    conf::{fn_::fn_config::FnConfig, point_config::name::Name}, core_::{
-        format::format::Format, point::{point::Point, point_tx_id::PointTxId, point_type::{PointType, ToPoint}}, types::fn_in_out_ref::FnInOutRef 
-    }, services::{services::Services, task::task_nodes::TaskNodes}
+    conf::{fn_::fn_config::FnConfig, point_config::name::Name},
+    core_::{
+        format::format::Format, point::{point::Point, point_tx_id::PointTxId, point_type::{PointType, ToPoint}},
+        types::fn_in_out_ref::FnInOutRef,
+    },
+    services::{
+        services::Services, task::{
+            task_nodes::TaskNodes,
+            nested_function::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn, fn_kind::FnKind, fn_result::FnResult},
+        },
+    }
 };
-use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn, fn_kind::FnKind};
 ///
 /// Function | SqlMetric
 ///     - values received from the [input]s puts into the target sql query
@@ -17,6 +24,9 @@ use super::{fn_::{FnInOut, FnOut, FnIn}, nested_fn::NestedFn, fn_kind::FnKind};
 ///         - inpur1.timestamp = '20'
 ///         - input1.status = 
 ///         - "UPDATE {table} SET kind = '{input1}' WHERE id = '{input2}';"    =>  UPDATE table SET kind = input1 WHERE id = '{input2}';
+/// 
+/// Example
+/// 
 /// ```yaml
 /// fn SqlMetric:
 ///     initial: 0.123      # начальное значение
@@ -125,8 +135,14 @@ impl FnOut for SqlMetric {
             match self.inputs.get(name) {
                 Some(input) => {
                     trace!("{}.out | input: {:?} - found", self_id, name);
-                    let point = input.borrow_mut().out();
-                    self.sql.insert(full_name, point);
+                    let input = input.borrow_mut().out();
+                    match input {
+                        FnResult::Ok(input) => {
+                            self.sql.insert(full_name, input);
+                        }
+                        FnResult::None => return FnResult::None,
+                        FnResult::Err(err) => return FnResult::Err(err),
+                    }
                 }
                 None => {
                     panic!("{}.out | input: {:?} - not found", self_id, name);
@@ -134,11 +150,11 @@ impl FnOut for SqlMetric {
             };
         }
         trace!("{}.out | sql: {:?}", self_id, self.sql.out());
-        PointType::String(Point::new_string(
+        FnResult::Ok(PointType::String(Point::new_string(
             self.tx_id,
             &self.name.join(), 
             self.sql.out(),
-        ))
+        )))
     }
     //
     fn reset(&mut self) {
