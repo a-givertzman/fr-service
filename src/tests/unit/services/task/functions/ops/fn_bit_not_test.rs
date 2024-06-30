@@ -23,7 +23,7 @@ mod fn_bit_not {
     ///  - ...
     fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
-            FnInput::new("test", initial, type_)
+            FnInput::new("test", "test", Some(initial), type_)
         )))
     }
     ///
@@ -49,7 +49,7 @@ mod fn_bit_not {
         for (step, value) in test_data {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point.clone());
-            let result = fn_bit_not.out().as_bool().value.0;
+            let result = fn_bit_not.out().unwrap().as_bool().value.0;
             debug!("step {}  |  ! value: {:?} | result: {:?}", step, value, result);
             target = ! value;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
@@ -85,7 +85,7 @@ mod fn_bit_not {
         for (step, value) in test_data {
             let point = value.to_point(0, "test");
             input.borrow_mut().add(point.clone());
-            let result = fn_bit_not.out().as_int().value;
+            let result = fn_bit_not.out().unwrap().as_int().value;
             debug!("step {}  |  ! value1: {:?} | result: {:?}", step, value, result);
             target = ! value;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);

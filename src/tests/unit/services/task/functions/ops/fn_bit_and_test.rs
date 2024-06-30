@@ -23,7 +23,7 @@ mod fn_bit_and {
     ///  - ...
     fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
-            FnInput::new("test", initial, type_)
+            FnInput::new("test", "test", Some(initial), type_)
         )))
     }
     ///
@@ -55,7 +55,7 @@ mod fn_bit_and {
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
-            let result = fn_bit_and.out().as_bool().value.0;
+            let result = fn_bit_and.out().unwrap().as_bool().value.0;
             debug!("step {}  |  value1: {:?} & value2: {:?} | result: {:?}", step, value1, value2, result);
             target = value1 & value2;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
@@ -98,7 +98,7 @@ mod fn_bit_and {
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
             input3.borrow_mut().add(point3.clone());
-            let result = fn_bit_and.out().as_bool().value.0;
+            let result = fn_bit_and.out().unwrap().as_bool().value.0;
             debug!("step {}  |  value1: {:?} & value2: {:?} & value3: {:?} | result: {:?}", step, value1, value2, value3, result);
             target = value1 & value2 & value3;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
@@ -140,7 +140,7 @@ mod fn_bit_and {
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
-            let result = fn_bit_and.out().as_int().value;
+            let result = fn_bit_and.out().unwrap().as_int().value;
             debug!("step {}  |  value1: {:?} & value2: {:?} | result: {:?}", step, value1, value2, result);
             target = value1 & value2;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
@@ -186,7 +186,7 @@ mod fn_bit_and {
             input1.borrow_mut().add(point1.clone());
             input2.borrow_mut().add(point2.clone());
             input3.borrow_mut().add(point3.clone());
-            let result = fn_bit_and.out().as_int().value;
+            let result = fn_bit_and.out().unwrap().as_int().value;
             debug!("step {}  |  value1: {:?} & value2: {:?} & value3: {:?} | result: {:?}", step, value1, value2, value3, result);
             target = value1 & value2 & value3;
             assert!(result == target, "step {} \nresult: {:?}\ntarget: {:?}", step, result, target);
