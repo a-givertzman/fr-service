@@ -83,7 +83,7 @@ impl FnOut for FnPointId {
                             )
                         ))
                     }
-                    None => FnResult::Err(format!("{}.out | Point '{}' - not found in configured points", self.id, input.name())),
+                    None => FnResult::Err(concat_string!(self.id, ".out | Point '", input.name(), "' - not found in configured points")),
                 }
             }
             FnResult::None => FnResult::None,
