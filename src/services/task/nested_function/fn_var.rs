@@ -1,7 +1,7 @@
 use std::sync::atomic::{Ordering, AtomicUsize};
 use log::trace;
 use crate::core_::{point::point_type::PointType, types::fn_in_out_ref::FnInOutRef};
-use super::{fn_::{FnIn, FnOut, FnInOut}, fn_kind::FnKind};
+use super::{fn_::{FnIn, FnInOut, FnOut}, fn_kind::FnKind, fn_result::FnResult};
 ///
 /// Specific kinde of function
 /// - has additional method .eval(), 
@@ -15,7 +15,7 @@ pub struct FnVar {
     id: String,
     kind: FnKind,
     input: FnInOutRef,
-    value: Option<PointType>,
+    value: Option<FnResult<PointType, String>>,
 }
 //
 // 
@@ -47,6 +47,7 @@ impl FnOut for FnVar {
     fn inputs(&self) -> Vec<String> {
         self.input.borrow().inputs()
     }
+    ///
     /// Returns nothing, 
     /// - Evaluetes all calculations,
     /// - Result stores into inner
