@@ -4,7 +4,13 @@ mod fn_conf_keywd {
     use debugging::session::debug_session::{Backtrace, DebugSession, LogLevel};
     use log::{debug, info};
     use std::{sync::Once, str::FromStr};
-    use crate::{conf::fn_::fn_conf_keywd::{FnConfKeywd, FnConfOptions, FnConfKeywdValue, FnConfPointType}, core_::status::status::Status};
+    use crate::{
+        core_::status::status::Status,
+        conf::fn_::{
+            fn_conf_options::FnConfOptions,
+            fn_conf_keywd::{FnConfKeywd, FnConfKeywdValue, FnConfPointType},
+        },
+    };
     ///
     ///
     static INIT: Once = Once::new();
