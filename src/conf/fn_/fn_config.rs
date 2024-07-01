@@ -28,6 +28,13 @@ pub struct FnConfig {
     pub options: FnConfOptions,
 }
 //
+//
+impl Default for FnConfig {
+    fn default() -> Self {
+        Self { name: Default::default(), inputs: Default::default(), type_: Default::default(), options: Default::default() }
+    }
+}
+//
 // 
 impl FnConfig {
     ///

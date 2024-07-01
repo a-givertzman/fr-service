@@ -18,6 +18,15 @@ pub enum FnConfPointType {
     Any,
     Unknown,
 }
+//
+//
+impl Default for FnConfPointType {
+    ///
+    /// Returns [FnConfPointType::Unknown]
+    fn default() -> Self {
+        Self::Unknown
+    }
+}
 ///
 /// The kind of the [FnConfig]
 #[repr(u8)]

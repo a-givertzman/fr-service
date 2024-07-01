@@ -1,12 +1,12 @@
 #[cfg(test)]
-mod fn_add {
+mod fn_mul {
     use log::{debug, info};
     use std::{sync::Once, rc::Rc, cell::RefCell};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::fn_::fn_conf_keywd::FnConfPointType, 
-        core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
-        services::task::nested_function::{fn_::FnOut, ops::fn_add::FnAdd, fn_input::FnInput}
+        conf::fn_::{fn_conf_keywd::FnConfPointType, fn_conf_options::FnConfOptions, fn_config::FnConfig}, 
+        core_::{point::point_type::ToPoint, types::fn_in_out_ref::FnInOutRef}, 
+        services::task::nested_function::{fn_::FnOut, fn_input::FnInput, ops::fn_mul::FnMul}
     };
     ///
     ///
@@ -21,126 +21,125 @@ mod fn_add {
     ///
     /// returns:
     ///  - ...
-    fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
+    fn init_each(default: &str, type_: FnConfPointType) -> FnInOutRef {
+        let mut conf = FnConfig { name: "test".to_owned(), type_, options: FnConfOptions {default: Some(default.into()), ..Default::default()}, ..Default::default()};
         Rc::new(RefCell::new(Box::new(
-            FnInput::new("test", "test", Some(initial), type_)
+            FnInput::new("test", 0, &mut conf)
         )))
     }
     ///
-    /// Testing Task Add Bool's
+    /// Testing Mul Bool's
     #[test]
-    fn test_bool() {
-        DebugSession::init(LogLevel::Debug, Backtrace::Short);
-        init_once();
-        info!("test_bool");
-        let mut value1_stored = false.to_point(0, "bool");
-        let mut value2_stored = false.to_point(0, "bool");
-        let mut target: PointType;
-        let input1 = init_each(value1_stored.clone(), FnConfPointType::Bool);
-        let input2 = init_each(value2_stored.clone(), FnConfPointType::Bool);
-        let mut fn_add = FnAdd::new(
-            "test",
-            vec![
-                input1.clone(),
-                input2.clone(),
-            ]
-        );
-        let test_data = vec![
-            (false, false),
-            (false, true),
-            (false, false),
-            (true, false),
-            (false, false),
-            (true, true),
-            (false, false),
-        ];
-        for (value1, value2) in test_data {
-            let point1 = value1.to_point(0, "test");
-            let point2 = value2.to_point(0, "test");
-            input1.borrow_mut().add(point1.clone());
-            let state = fn_add.out().unwrap();
-            debug!("value1: {:?}   |   state: {:?}", value1, state);
-            value1_stored = point1.clone();
-            target = PointType::Bool(value1_stored.as_bool() + value2_stored.as_bool());
-            assert_eq!(state, target);
-            input2.borrow_mut().add(point2.clone());
-            let state = fn_add.out().unwrap();
-            debug!("value2: {:?}   |   state: {:?}", value2, state);
-            value2_stored = point2.clone();
-            target = PointType::Bool(value1_stored.as_bool() + value2_stored.as_bool());
-            assert_eq!(state, target);
-            println!();
-        }
-    }
-    ///
-    /// Testing Task Add Int's
-    #[test]
-    fn test_int() {
+    fn bool() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
-        info!("test_int");
-        let mut value1_stored = 0.to_point(0, "int");
-        let mut value2_stored = 0.to_point(0, "int");
-        let mut target: PointType;
-        let input1 = init_each(value1_stored.clone(), FnConfPointType::Int);
-        let input2 = init_each(value2_stored.clone(), FnConfPointType::Int);
-        let mut fn_add = FnAdd::new(
+        info!("fn_mul_bool");
+        let mut value1_stored;
+        let mut value2_stored = false.to_point(0, "bool");
+        let mut target: bool;
+        let input1 = init_each("false", FnConfPointType::Bool);
+        let input2 = init_each("false", FnConfPointType::Bool);
+        let mut fn_mul = FnMul::new(
             "test",
-            vec![
-                input1.clone(),
-                input2.clone(),
-            ]
+            input1.clone(),
+            input2.clone(),
         );
         let test_data = vec![
-            (1, 1),
-            (2, 2),
-            (5, 5),
-            (-1, 1),
-            (-5, 1),
-            (1, -1),
-            (1, -5),
-            (0, 0),
-            (i64::MIN, 0),
-            (0, i64::MIN),
-            (i64::MAX, 0),
-            (0, i64::MAX),
+            (01, false, false),
+            (02, false, true),
+            (03, false, false),
+            (04, true, false),
+            (05, false, false),
+            (06, true, true),
+            (07, false, false),
         ];
-        for (value1, value2) in test_data {
+        for (step, value1, value2) in test_data {
             let point1 = value1.to_point(0, "test");
             let point2 = value2.to_point(0, "test");
             input1.borrow_mut().add(point1.clone());
-            let state = fn_add.out().unwrap();
+            let state = fn_mul.out().unwrap();
             debug!("value1: {:?}   |   state: {:?}", value1, state);
             value1_stored = point1.clone();
-            target = PointType::Int(value1_stored.as_int() + value2_stored.as_int());
-            assert_eq!(state, target);
+            target = value1_stored.as_bool().value.0 && value2_stored.as_bool().value.0;
+            let result = state.as_bool().value.0;
+            assert_eq!(result, target, "\n result: {} \n target: {}", result, target);
             input2.borrow_mut().add(point2.clone());
-            let state = fn_add.out().unwrap();
+            let state = fn_mul.out().unwrap();
             debug!("value2: {:?}   |   state: {:?}", value2, state);
             value2_stored = point2.clone();
-            target = PointType::Int(value1_stored.as_int() + value2_stored.as_int());
-            assert_eq!(state, target);
+            target = value1_stored.as_bool().value.0 && value2_stored.as_bool().value.0;
+            let result = state.as_bool().value.0;
+            assert_eq!(result, target, "step {} \n result: {} \n target: {}", step, result, target);
             println!();
         }
     }
     ///
-    /// Testing Add Real's
+    /// Testing Mul Int's
+    #[test]
+    fn int() {
+        DebugSession::init(LogLevel::Info, Backtrace::Short);
+        init_once();
+        info!("fn_mul_int");
+        let mut value1_stored;
+        let mut value2_stored = 0.to_point(0, "int");
+        let mut target: i64;
+        let input1 = init_each("0", FnConfPointType::Int);
+        let input2 = init_each("0", FnConfPointType::Int);
+        let mut fn_mul = FnMul::new(
+            "test",
+            input1.clone(),
+            input2.clone(),
+        );
+        let test_data = vec![
+            (01, 1, 1),
+            (02, 2, 2),
+            (03, 5, 5),
+            (04, -1, 1),
+            (05, -5, 1),
+            (06, 1, -1),
+            (07, 1, -5),
+            (08, 0, 0),
+            (09, i64::MIN, 0),
+            (10, 0, i64::MIN),
+            (11, i64::MAX, 0),
+            (12, 0, i64::MAX),
+        ];
+        for (step, value1, value2) in test_data {
+            let point1 = value1.to_point(0, "test");
+            let point2 = value2.to_point(0, "test");
+            input1.borrow_mut().add(point1.clone());
+            let state = fn_mul.out().unwrap();
+            debug!("step: {}  |  value1: {:?}   |   state: {:?}", step, value1, state);
+            value1_stored = point1.clone();
+            target = value1_stored.as_int().value * value2_stored.as_int().value;
+            let result = state.as_int().value;
+            assert_eq!(result, target, "\n result: {} \n target: {}", result, target);
+            input2.borrow_mut().add(point2.clone());
+            let state = fn_mul.out().unwrap();
+            debug!("step: {}  |  value2: {:?}   |   state: {:?}", step, value2, state);
+            value2_stored = point2.clone();
+            target = value1_stored.as_int().value * value2_stored.as_int().value;
+            let result = state.as_int().value;
+            assert_eq!(result, target, "step {} \n result: {} \n target: {}", step, result, target);
+            println!();
+        }
+    }
+    ///
+    /// Testing Mul Real's
     #[test]
     fn real() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("fn_mul_real");
-        let mut value1_stored = 0.0f32.to_point(0, "real");
+        let mut value1_stored;
         let mut value2_stored = 0.0f32.to_point(0, "real");
         let mut target: f32;
-        let input1 = init_each(value1_stored.clone(), FnConfPointType::Real);
-        let input2 = init_each(value2_stored.clone(), FnConfPointType::Real);
-        let mut fn_mul = FnAdd::new(
+        let input1 = init_each("0.0", FnConfPointType::Real);
+        let input2 = init_each("0.0", FnConfPointType::Real);
+        let mut fn_mul = FnMul::new(
             "test",
-            vec![
-                input1.clone(),
-                input2.clone(),
-            ]
+            input1.clone(),
+            input2.clone(),
         );
         let test_data = vec![
             (01, 0.1, 0.1),
@@ -171,37 +170,35 @@ mod fn_add {
             let state = fn_mul.out().unwrap();
             debug!("step: {}  |  value1: {:?}   |   state: {:?}", step, value1, state);
             value1_stored = point1.clone();
-            target = value1_stored.as_real().value + value2_stored.as_real().value;
+            target = value1_stored.as_real().value * value2_stored.as_real().value;
             let result = state.as_real().value;
             assert_eq!(result, target, "\n result: {} \n target: {}", result, target);
             input2.borrow_mut().add(point2.clone());
             let state = fn_mul.out().unwrap();
             debug!("step: {}  |  value2: {:?}   |   state: {:?}", step, value2, state);
             value2_stored = point2.clone();
-            target = value1_stored.as_real().value + value2_stored.as_real().value;
+            target = value1_stored.as_real().value * value2_stored.as_real().value;
             let result = state.as_real().value;
             assert_eq!(result, target, "step {} \n result: {} \n target: {}", step, result, target);
             println!();
         }
     }
     ///
-    /// Testing Add Double's
+    /// Testing Mul Double's
     #[test]
     fn double() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
         info!("fn_mul_double");
-        let mut value1_stored = 0.0f64.to_point(0, "double");
+        let mut value1_stored;
         let mut value2_stored = 0.0f64.to_point(0, "double");
         let mut target: f64;
-        let input1 = init_each(value1_stored.clone(), FnConfPointType::Double);
-        let input2 = init_each(value2_stored.clone(), FnConfPointType::Double);
-        let mut fn_mul = FnAdd::new(
+        let input1 = init_each("0.0", FnConfPointType::Double);
+        let input2 = init_each("0.0", FnConfPointType::Double);
+        let mut fn_mul = FnMul::new(
             "test",
-            vec![
-                input1.clone(),
-                input2.clone(),
-            ]
+            input1.clone(),
+            input2.clone(),
         );
         let test_data = vec![
             (01, 0.1, 0.1),
@@ -232,14 +229,14 @@ mod fn_add {
             let state = fn_mul.out().unwrap();
             debug!("step: {}  |  value1: {:?}   |   state: {:?}", step, value1, state);
             value1_stored = point1.clone();
-            target = value1_stored.as_double().value + value2_stored.as_double().value;
+            target = value1_stored.as_double().value * value2_stored.as_double().value;
             let result = state.as_double().value;
             assert_eq!(result, target, "\n result: {} \n target: {}", result, target);
             input2.borrow_mut().add(point2.clone());
             let state = fn_mul.out().unwrap();
             debug!("step: {}  |  value2: {:?}   |   state: {:?}", step, value2, state);
             value2_stored = point2.clone();
-            target = value1_stored.as_double().value + value2_stored.as_double().value;
+            target = value1_stored.as_double().value * value2_stored.as_double().value;
             let result = state.as_double().value;
             assert_eq!(result, target, "step {} \n result: {} \n target: {}", step, result, target);
             println!();

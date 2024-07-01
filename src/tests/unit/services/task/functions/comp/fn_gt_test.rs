@@ -4,8 +4,8 @@ mod fn_ge {
     use std::{sync::Once, rc::Rc, cell::RefCell};
     use debugging::session::debug_session::{DebugSession, LogLevel, Backtrace};
     use crate::{
-        conf::fn_::fn_conf_keywd::FnConfPointType, 
-        core_::{point::point_type::{PointType, ToPoint}, types::fn_in_out_ref::FnInOutRef}, 
+        conf::fn_::{fn_conf_keywd::FnConfPointType, fn_conf_options::FnConfOptions, fn_config::FnConfig}, 
+        core_::{point::point_type::ToPoint, types::fn_in_out_ref::FnInOutRef}, 
         services::task::nested_function::{comp::fn_ge::FnGe, fn_::FnOut, fn_input::FnInput}
     };
     ///
@@ -21,9 +21,10 @@ mod fn_ge {
     ///
     /// returns:
     ///  - ...
-    fn init_each(initial: PointType, type_: FnConfPointType) -> FnInOutRef {
+    fn init_each(default: &str, type_: FnConfPointType) -> FnInOutRef {
+        let mut conf = FnConfig { name: "test".to_owned(), type_, options: FnConfOptions {default: Some(default.into()), ..Default::default()}, ..Default::default()};
         Rc::new(RefCell::new(Box::new(
-            FnInput::new("test", "test", Some(initial), type_)
+            FnInput::new("test", 0, &mut conf)
         )))
     }
     ///
@@ -35,8 +36,8 @@ mod fn_ge {
         let self_id = "test_bool";
         info!("{}", self_id);
         let mut target: bool;
-        let input1 = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
-        let input2 = init_each(false.to_point(0, "bool"), FnConfPointType::Bool);
+        let input1 = init_each("false", FnConfPointType::Bool);
+        let input2 = init_each("false", FnConfPointType::Bool);
         let mut fn_ge = FnGe::new(
             self_id,
             input1.clone(),
@@ -68,8 +69,8 @@ mod fn_ge {
         let self_id = "test_int";
         info!("{}", self_id);
         let mut target: bool;
-        let input1 = init_each(0.to_point(0, "int"), FnConfPointType::Int);
-        let input2 = init_each(0.to_point(0, "int"), FnConfPointType::Int);
+        let input1 = init_each("0", FnConfPointType::Int);
+        let input2 = init_each("0", FnConfPointType::Int);
         let mut fn_ge = FnGe::new(
             self_id,
             input1.clone(),
@@ -108,8 +109,8 @@ mod fn_ge {
         let self_id = "test_real";
         info!("{}", self_id);
         let mut target: bool;
-        let input1 = init_each(0.0f32.to_point(0, "int"), FnConfPointType::Real);
-        let input2 = init_each(0.0f32.to_point(0, "int"), FnConfPointType::Real);
+        let input1 = init_each("0.0", FnConfPointType::Real);
+        let input2 = init_each("0.0", FnConfPointType::Real);
         let mut fn_ge = FnGe::new(
             self_id,
             input1.clone(),
@@ -157,8 +158,8 @@ mod fn_ge {
         let self_id = "test_double";
         info!("{}", self_id);
         let mut target: bool;
-        let input1 = init_each(0.0f64.to_point(0, "int"), FnConfPointType::Double);
-        let input2 = init_each(0.0f64.to_point(0, "int"), FnConfPointType::Double);
+        let input1 = init_each("0.0", FnConfPointType::Double);
+        let input2 = init_each("0.0", FnConfPointType::Double);
         let mut fn_ge = FnGe::new(
             self_id,
             input1.clone(),
