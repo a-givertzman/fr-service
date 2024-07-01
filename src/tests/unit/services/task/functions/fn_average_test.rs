@@ -46,11 +46,7 @@ mod fn_average {
                 ..Default::default()}, ..Default::default()
         };
         Rc::new(RefCell::new(Box::new(
-            FnInput::new(
-                parent,
-                0,
-                &mut conf,
-            )
+            FnInput::new(parent, 0, &mut conf)
         )))
     }
     ///
