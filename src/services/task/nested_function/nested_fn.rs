@@ -671,38 +671,14 @@ impl NestedFn {
             }
             FnConfKind::Point(conf) => {
                 trace!("{}.function | Input (Point<{:?}>): {:?} ({:?})...", self_id, conf.type_, input_name, conf.name);
-                let initial = match conf.type_.clone() {
-                    FnConfPointType::Bool => {
-                        conf.options.default.as_ref().map_or(None, |d| match d.parse::<bool>() {
-                            Ok(d) => Some(d.to_point(tx_id, &conf.name)),
-                            Err(_) => panic!("{}.function | Error parsing Point default as Bool in: {:?}", self_id, conf),
-                        })
-                    },
-                    FnConfPointType::Int => {
-                        conf.options.default.as_ref().map_or(None, |d| match d.parse::<i64>() {
-                            Ok(d) => Some(d.to_point(tx_id, &conf.name)),
-                            Err(_) => panic!("{}.function | Error parsing Point default as Int in: {:?}", self_id, conf),
-                        }) 
-                    },
-                    FnConfPointType::Real => {
-                        conf.options.default.as_ref().map_or(None, |d| match d.parse::<f32>() {
-                            Ok(d) => Some(d.to_point(tx_id, &conf.name)),
-                            Err(_) => panic!("{}.function | Error parsing Point default as Real in: {:?}", self_id, conf),
-                        }) 
-                    },
-                    FnConfPointType::Double => {
-                        conf.options.default.as_ref().map_or(None, |d| match d.parse::<f64>() {
-                            Ok(d) => Some(d.to_point(tx_id, &conf.name)),
-                            Err(_) => panic!("{}.function | Error parsing Point default as Double in: {:?}", self_id, conf),
-                        }) 
-                    },
-                    FnConfPointType::String => conf.options.default.as_ref().map(|d| d.to_point(tx_id, &conf.name)),
-                    FnConfPointType::Any => Some(false.to_point(tx_id, &conf.name)),
-                    FnConfPointType::Unknown => panic!("{}.function | Point type required", self_id),
-                };
-                trace!("{}.function | Input initial: {:?}", self_id, initial);
                 let point_name = conf.name.clone();
-                task_nodes.add_input(&point_name, Self::fn_input(&point_name, &point_name, initial, conf.type_.clone()));
+                task_nodes.add_input(
+                    &point_name,
+                    Rc::new(RefCell::new(Box::new(
+                        // FnInput::new(&point_name, &point_name, initial, conf.type_.clone())
+                        FnInput::new(&point_name, tx_id, conf)
+                    ))),
+                );
                 let input = task_nodes.get_input(&point_name).unwrap();
                 trace!("{}.function | input (Point): {:?}", self_id, input);
                 input
@@ -750,13 +726,6 @@ impl NestedFn {
     fn fn_const(parent: &str, value: PointType) -> FnInOutRef {
         Rc::new(RefCell::new(Box::new(
             FnConst::new(parent, value)
-        )))
-    }
-    ///
-    ///
-    fn fn_input(parent: &str, name: &str, initial: Option<PointType>, type_: FnConfPointType) -> FnInOutRef {
-        Rc::new(RefCell::new(Box::new(
-            FnInput::new(parent, name, initial, type_)
         )))
     }
 }

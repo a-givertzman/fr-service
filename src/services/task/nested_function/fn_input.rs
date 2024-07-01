@@ -1,7 +1,7 @@
 use log::{error, trace};
 use concat_string::concat_string;
 use std::{fmt::Debug, sync::atomic::{AtomicUsize, Ordering}};
-use crate::{conf::fn_::fn_conf_keywd::FnConfPointType, core_::{point::{point::Point, point_type::PointType}, types::bool::Bool}};
+use crate::{conf::fn_::{fn_conf_keywd::FnConfPointType, fn_config::FnConfig}, core_::{point::{point::Point, point_type::{PointType, ToPoint}}, types::bool::Bool}};
 use super::{fn_::{FnIn, FnInOut, FnOut}, fn_kind::FnKind, fn_result::FnResult};
 ///
 /// 
@@ -17,12 +17,36 @@ pub struct FnInput {
 //
 // 
 impl FnInput {
-    pub fn new(parent: &str, name: impl Into<String>, initial: Option<PointType>, type_: FnConfPointType) -> Self {
+    // pub fn new(parent: &str, name: impl Into<String>, initial: Option<PointType>, type_: FnConfPointType) -> Self {
+    pub fn new(parent: impl Into<String>, tx_id: usize, conf: &mut FnConfig) -> Self {
+        let self_id = format!("{}/FnInput{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed));
+        let initial = match conf.type_.clone() {
+            FnConfPointType::Bool => conf.options.default.as_ref().map_or(None, |d| match d.parse::<bool>() {
+                Ok(d) => Some(d.to_point(tx_id, &conf.name)),
+                Err(_) => panic!("{}.function | Error parsing Point default as Bool in: {:?}", self_id, conf),
+            }),
+            FnConfPointType::Int => conf.options.default.as_ref().map_or(None, |d| match d.parse::<i64>() {
+                Ok(d) => Some(d.to_point(tx_id, &conf.name)),
+                Err(_) => panic!("{}.function | Error parsing Point default as Int in: {:?}", self_id, conf),
+            }),
+            FnConfPointType::Real => conf.options.default.as_ref().map_or(None, |d| match d.parse::<f32>() {
+                Ok(d) => Some(d.to_point(tx_id, &conf.name)),
+                Err(_) => panic!("{}.function | Error parsing Point default as Real in: {:?}", self_id, conf),
+            }),
+            FnConfPointType::Double => conf.options.default.as_ref().map_or(None, |d| match d.parse::<f64>() {
+                Ok(d) => Some(d.to_point(tx_id, &conf.name)),
+                Err(_) => panic!("{}.function | Error parsing Point default as Double in: {:?}", self_id, conf),
+            }),
+            FnConfPointType::String => conf.options.default.as_ref().map(|d| d.to_point(tx_id, &conf.name)),
+            FnConfPointType::Any => Some(false.to_point(tx_id, &conf.name)),
+            FnConfPointType::Unknown => panic!("{}.function | Point type required", self_id),
+        };
+        trace!("{}.function | Input initial: {:?}", self_id, initial);
         Self {
-            id: format!("{}/FnInput{}", parent, COUNT.fetch_add(1, Ordering::Relaxed)),
+            id: self_id,
             kind: FnKind::Input,
-            name: name.into(),
-            type_,
+            name: conf.name.clone(),
+            type_: conf.type_.clone(),
             point: initial.clone(), 
             initial
         }
