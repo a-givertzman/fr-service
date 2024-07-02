@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc, sync::atomic::{AtomicUsize, Ordering}};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use chrono::Utc;
 use log::trace;
 use crate::{
@@ -69,10 +69,10 @@ impl FnOut for FnAdd {
     //
     fn out(&mut self) -> FnResult<PointType, String> {
         let tx_id = PointTxId::from_str(&self.id);
-        let first = self.inputs.first();
+        let first = self.inputs.first().cloned();
         let mut value: PointType = match first {
             Some(first) => {
-                let out = first.clone().borrow_mut().out();
+                let out = first.borrow_mut().out();
                 match out {
                     FnResult::Ok(first) => first,
                     FnResult::None => return FnResult::None,
@@ -82,9 +82,8 @@ impl FnOut for FnAdd {
             None => panic!("{}.out | At least one input must be specified", self.id),
         };
         let mut inputs = self.inputs.iter().skip(1);
-        let mut input = inputs.next().cloned();
-        while let Some(inp) = input {
-            let inp = inp.borrow_mut().out();
+        while let Some(input) = inputs.next() {
+            let inp = input.borrow_mut().out();
             match inp {
                 FnResult::Ok(input) => {
                     trace!("{}.out | input '{}': {:?}", self.id, input.name(), input.value());
@@ -149,7 +148,7 @@ impl FnOut for FnAdd {
                 FnResult::None => return FnResult::None,
                 FnResult::Err(err) => return FnResult::Err(err),
             }
-            input = inputs.next().cloned();
+            // input = inputs.next().cloned();
         }
         // match input {
         //     Some(first) => {

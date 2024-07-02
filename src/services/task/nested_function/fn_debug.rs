@@ -59,27 +59,31 @@ impl FnOut for FnDebug {
     fn out(&mut self) -> FnResult<PointType, String> {
         let mut inputs = self.inputs.iter();
         let mut value: PointType;
-        match inputs.next() {
-            Some(first) => match first.borrow_mut().out() {
-                FnResult::Ok(input) => {
-                    value = input.to_owned();
-                    debug!("{}.out | value: {:#?}", self.id, value);
-                    while let Some(input) = inputs.next() {
-                        let input = input.borrow_mut().out();
-                        match input {
-                            FnResult::Ok(input) => {
-                                value = input.clone();
-                                debug!("{}.out | value: {:#?}", self.id, value);
+        let first = inputs.next().cloned();
+        match first {
+            Some(first) => {
+                let first = first.borrow_mut().out();
+                match first {
+                    FnResult::Ok(input) => {
+                        value = input.to_owned();
+                        debug!("{}.out | value: {:#?}", self.id, value);
+                        while let Some(input) = inputs.next().cloned() {
+                            let input = input.borrow_mut().out();
+                            match input {
+                                FnResult::Ok(input) => {
+                                    value = input.clone();
+                                    debug!("{}.out | value: {:#?}", self.id, value);
+                                }
+                                FnResult::None => return FnResult::None,
+                                FnResult::Err(err) => return FnResult::Err(err),
                             }
-                            FnResult::None => return FnResult::None,
-                            FnResult::Err(err) => return FnResult::Err(err),
-                        }
-                    }        
+                        }        
+                    }
+                    FnResult::None => return FnResult::None,
+                    FnResult::Err(err) => return FnResult::Err(err),
                 }
-                FnResult::None => return FnResult::None,
-                FnResult::Err(err) => return FnResult::Err(err),
             }
-            None => return FnResult::Err(concat_string!(self.id, ".out | No inputs found"))
+            None => return FnResult::Err(concat_string!(self.id, ".out | No inputs found")),
         }
         FnResult::Ok(value)
     }

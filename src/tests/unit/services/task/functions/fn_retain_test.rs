@@ -97,7 +97,7 @@ mod fn_retain {
     fn init_each() -> () {}
     ///
     /// Testing Task function 'Retain' for int value
-    // #[test]
+    #[test]
     fn retain_point_bool() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
@@ -228,7 +228,7 @@ mod fn_retain {
     }
     ///
     /// Testing Task function 'Retain' for int value
-    // #[test]
+    #[test]
     fn retain_point_int() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
@@ -374,7 +374,7 @@ mod fn_retain {
     }
     ///
     /// Testing Task function 'Retain' for real value
-    // #[test]
+    #[test]
     fn retain_point_real() {
         DebugSession::init(LogLevel::Debug, Backtrace::Short);
         init_once();
@@ -400,11 +400,12 @@ mod fn_retain {
                         /AppTest/MultiQueue:                    # - multicast subscription to the MultiQueue
                             {cot: Inf}: []                      #   - on all points having Cot::Inf
                     
+                    let realRetain:
+                        input fn Retain:
+                            default: const real 0.0
+                            key: 'RealRetain'
                     fn Debug:
-                        in1 let realRetain:
-                            input fn Retain:
-                                default: const real 0.0
-                                key: 'RealRetain'
+                        in1: realRetain
                         in2 fn Retain:
                             key: 'RealRetain'
                             input fn Export:

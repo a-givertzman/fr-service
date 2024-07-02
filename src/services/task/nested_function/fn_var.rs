@@ -60,7 +60,7 @@ impl FnOut for FnVar {
     /// Do not evaluete calculations, 
     /// just returns the result if evalueted, evaluate
     fn out(&mut self) -> FnResult<PointType, String> {
-        match &self.value {
+        let value = match &self.value {
             Some(value) => {
                 trace!("{}.out | value: {:?}", self.id, &self.value);
                 value.clone()
@@ -72,7 +72,8 @@ impl FnOut for FnVar {
                 value
                 // panic!("{}.out | not initialised", self.id);
             }
-        }
+        };
+        value
     }
     //
     fn reset(&mut self) {
