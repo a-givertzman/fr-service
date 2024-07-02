@@ -1,5 +1,5 @@
 use std::sync::{mpsc::Sender, atomic::{AtomicUsize, Ordering}};
-use log::{debug, error, trace};
+use log::{debug, error};
 use crate::{
     conf::point_config::{point_config::PointConfig, point_config_type::PointConfigType},
     core_::{

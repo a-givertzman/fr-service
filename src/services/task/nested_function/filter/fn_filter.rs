@@ -1,7 +1,7 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use log::trace;
 use crate::{
-    core_::{point::{point_tx_id::PointTxId, point_type::PointType}, types::fn_in_out_ref::FnInOutRef},
+    core_::{point::point_type::PointType, types::fn_in_out_ref::FnInOutRef},
     services::task::nested_function::{fn_::{FnIn, FnInOut, FnOut}, fn_kind::FnKind, fn_result::FnResult},
 };
 ///
@@ -11,7 +11,7 @@ use crate::{
 #[derive(Debug)]
 pub struct FnFilter {
     id: String,
-    tx_id: usize,
+    // tx_id: usize,
     kind: FnKind,
     default: Option<FnInOutRef>,
     input: FnInOutRef,
@@ -29,7 +29,7 @@ impl FnFilter {
         let self_id = format!("{}/FnFilter{}", parent.into(), COUNT.fetch_add(1, Ordering::Relaxed));
         Self {
             id: self_id.clone(),
-            tx_id: PointTxId::from_str(&self_id),
+            // tx_id: PointTxId::from_str(&self_id),
             kind: FnKind::Fn,
             default,
             input,

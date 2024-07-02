@@ -69,11 +69,10 @@ impl FnOut for FnAdd {
     //
     fn out(&mut self) -> FnResult<PointType, String> {
         let tx_id = PointTxId::from_str(&self.id);
-        let first = self.inputs.first().cloned();
+        let first = self.inputs.first();
         let mut value: PointType = match first {
             Some(first) => {
-                let out = first.borrow_mut().out();
-                match out {
+                match first.borrow_mut().out() {
                     FnResult::Ok(first) => first,
                     FnResult::None => return FnResult::None,
                     FnResult::Err(err) => return FnResult::Err(err),
@@ -83,8 +82,8 @@ impl FnOut for FnAdd {
         };
         let mut inputs = self.inputs.iter().skip(1);
         while let Some(input) = inputs.next() {
-            let inp = input.borrow_mut().out();
-            match inp {
+            let input = input.borrow_mut().out();
+            match input {
                 FnResult::Ok(input) => {
                     trace!("{}.out | input '{}': {:?}", self.id, input.name(), input.value());
                     value = match &value {
@@ -148,24 +147,7 @@ impl FnOut for FnAdd {
                 FnResult::None => return FnResult::None,
                 FnResult::Err(err) => return FnResult::Err(err),
             }
-            // input = inputs.next().cloned();
         }
-        // match input {
-        //     Some(first) => {
-        //         let out = first.borrow_mut().out();
-        //         value = match out {
-        //             FnResult::Ok(first) => first,
-        //             FnResult::None => return FnResult::None,
-        //             FnResult::Err(err) => return FnResult::Err(err),
-        //         };
-        //         input = inputs.next().cloned();
-        //         while let Some(inp) = input {
-        //             input = inputs.next().cloned();
-        //         }
-        //     },
-        //     None => panic!("{}.out | At least one input must be specified", self.id),
-        // };
-        // trace!("{}.out | value: {:#?}", self.id, value);
         FnResult::Ok(value)
     }
     //
