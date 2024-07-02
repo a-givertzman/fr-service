@@ -1,11 +1,8 @@
 use std::{ops::BitOr, str::FromStr};
-use log::{trace, warn};
+use log::{debug, trace, warn};
 use regex::RegexBuilder;
 use serde::Deserialize;
-use crate::{
-    core_::status::status::Status,
-    conf::fn_::fn_conf_options::FnConfOptions,
-};
+use crate::conf::fn_::fn_conf_options::FnConfOptions;
 ///
 /// Represents type of Point / Const in the configuration
 #[derive(Debug, Deserialize, PartialEq, Clone)]
@@ -188,6 +185,7 @@ impl FromStr for FnConfKeywd {
                     }
                 };
                 let options = caps.get(group_options).map_or(FnConfOptions::default(), |options| {
+                    trace!("ConfKeywd.from_str | Options: '{:?}'", options);
                     FnConfOptions::from_str(options.as_str()).unwrap_or(FnConfOptions::default())
                 });
                 match data {
@@ -214,36 +212,5 @@ impl FromStr for FnConfKeywd {
                 Err(format!("Unknown keyword '{}'", &input))
             }
         }
-    }
-}
-//
-//
-impl FromStr for FnConfOptions {
-    type Err = String;
-    fn from_str(input: &str) -> Result<FnConfOptions, String> {
-        trace!("FnConfKeywd.from_str | input: {}", input);
-        let re_default = r#"(?:[ \t]default[ \t](\S+))?"#;
-        let re_default = RegexBuilder::new(re_default).multi_line(true).build().unwrap();
-        let re_status = r#"(?:[ \t]status[ \t](\S+))?"#;
-        let re_status = RegexBuilder::new(re_status).multi_line(true).build().unwrap();
-        let default = re_default.captures(input).map_or(None, |caps| {
-            caps.get(1).map(|value| value.as_str().to_owned())
-        });
-        let status = match re_status.captures(input) {
-            Some(caps) => caps.get(1).map_or(None, |value| {
-                match Status::from_str(value.as_str()) {
-                    Ok(status) => Some(status),
-                    Err(err) => {
-                        warn!("FnConfKeywdOptions.from_str | Status parsing error: {}", err);
-                        None
-                    }
-                }
-            }),
-            None => None,
-        };
-        Ok(Self {
-            default,
-            status,
-        })
     }
 }

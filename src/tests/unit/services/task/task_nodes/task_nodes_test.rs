@@ -119,7 +119,8 @@ mod task_nodes {
                     };
                     for eval_node_out in eval_node.getOuts() {
                         trace!("TaskEvalNode.eval | evalNode '{}' out...", eval_node.name());
-                        match eval_node_out.borrow_mut().out() {
+                        let out = eval_node_out.borrow_mut().out();
+                        match out {
                             FnResult::Ok(out) => {
                                 let out_value = out.value().to_string();
                                 debug!("TaskEvalNode.eval | evalNode '{}' out - '{}': {:?}", eval_node.name(), eval_node_out.borrow().id(), out);
@@ -134,7 +135,7 @@ mod task_nodes {
                                 }
                             }
                             FnResult::None => warn!("TaskEvalNode.eval | evalNode '{}' out is None", eval_node.name()),
-                            FnResult::Err(err) => panic!("TaskEvalNode.eval | evalNode '{}' out is Error: {:#?}", eval_node.name(), err),
+                            FnResult::Err(err) => warn!("TaskEvalNode.eval | evalNode '{}' out is Error: {:#?}", eval_node.name(), err),
                         };
                     };
                 }

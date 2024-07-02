@@ -39,10 +39,9 @@ mod sql_metric {
     fn int() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
-        println!();
         let self_id = "test_int";
         let self_name = Name::new("", self_id);
-        println!("\n{}", self_id);
+        debug!("\n{}", self_id);
         let path = "./src/tests/unit/services/task/sql_metric/sql_metric_int_test.yaml";
         let conf = TaskConfig::read(&self_name, path);
         debug!("conf: {:?}", conf);
@@ -113,10 +112,9 @@ mod sql_metric {
     fn real() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
-        println!();
         let self_id = "test_real";
         let self_name = Name::new("", self_id);
-        println!("\n{}", self_id);
+        debug!("\n{}", self_id);
         let path = "./src/tests/unit/services/task/sql_metric/sql_metric_real_test.yaml";
         let conf = TaskConfig::read(&self_name, path);
         debug!("conf: {:?}", conf);
@@ -197,10 +195,9 @@ mod sql_metric {
     fn double() {
         DebugSession::init(LogLevel::Info, Backtrace::Short);
         init_once();
-        println!();
         let self_id = "test_real";
         let self_name = Name::new("", self_id);
-        println!("\n{}", self_id);
+        debug!("\n{}", self_id);
         let path = "./src/tests/unit/services/task/sql_metric/sql_metric_double_test.yaml";
         let conf = TaskConfig::read(&self_name, path);
         debug!("conf: {:?}", conf);

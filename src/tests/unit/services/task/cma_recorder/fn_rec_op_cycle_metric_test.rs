@@ -208,7 +208,7 @@ mod cma_recorder {
 
             ("64.0",    format!("/{}/Exit", self_id),       Value::String("exit".to_owned()),       0,       6.98828058431894,       2.78124897825802),
         ];
-        let total_count = test_data.len();
+        let total_count_load = test_data.iter().filter(|(_, name, _, _, _, _)| *name == format!("/{}/Load", self_id)).count();
         let (len, sum) = test_data.iter().fold((0, 0.0), |(mut len, mut sum), (i, _name, value, _op_cycle, _thrd, _smooth)| {
             if _name == &format!("/{}/Load", self_id) {
                 if _op_cycle > &0 {
@@ -235,7 +235,7 @@ mod cma_recorder {
             self_id,
             "",
             "in-queue",
-            total_count * 100,
+            total_count_load * 100,
         )));
         services.wlock(self_id).insert(receiver.clone());
         let test_data: Vec<(String, Value)> = test_data.into_iter().map(|(_, name, value, _, _, _)| {
@@ -280,8 +280,8 @@ mod cma_recorder {
             println!("received: {}\t|\t{}\t|\t{:?}", i, result.name(), result.value());
             // assert!(result.name() == target_name, "step {} \nresult: {:?}\ntarget: {:?}", step, result.name(), target_name);
         };
-        assert!(sent == total_count, "\nresult: {:?}\ntarget: {:?}", sent, total_count);
-        assert!(result >= total_count, "\nresult: {:?}\ntarget: {:?}", result, total_count);
+        assert!(sent == total_count_load, "\nresult: {:?}\ntarget: {:?}", sent, total_count_load);
+        assert!(result >= total_count_load, "\nresult: {:?}\ntarget: {:?}", result, total_count_load);
         let smooth: Vec<PointType> = receiver.lock().unwrap().received().lock().unwrap().iter().cloned().filter(|point| {
             point.name() == format!("/{}/RecorderTask/Smooth", self_id)
         }).collect();

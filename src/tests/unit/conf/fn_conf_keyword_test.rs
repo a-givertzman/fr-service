@@ -125,7 +125,7 @@ mod fn_conf_keywd {
             ("point /path/Point.Name", FnConfKeywd::Point( FnConfKeywdValue {input: format!(""), type_: FnConfPointType::Unknown, data: format!("/path/Point.Name"), options: FnConfOptions::default()} )),
             ("point '/path/Point.Name'", FnConfKeywd::Point( FnConfKeywdValue {input: format!(""), type_: FnConfPointType::Unknown, data: format!("/path/Point.Name"), options: FnConfOptions::default()} )),
             ("point \"/path/Point.Name\"", FnConfKeywd::Point( FnConfKeywdValue {input: format!(""), type_: FnConfPointType::Unknown, data: format!("/path/Point.Name"), options: FnConfOptions::default()} )),
-            ("input1 point /path/Point.Name status ok", FnConfKeywd::Point( FnConfKeywdValue {input: format!("input1"), type_: FnConfPointType::Unknown, data: format!("/path/Point.Name"), options: FnConfOptions {status: Some(Status::Ok), default: None}} )),
+            ("input11 point /path/Point.Name status ok", FnConfKeywd::Point( FnConfKeywdValue {input: format!("input11"), type_: FnConfPointType::Unknown, data: format!("/path/Point.Name"), options: FnConfOptions {status: Some(Status::Ok), default: None}} )),
             ("input2 point '/path/Point.Name' default 0.753", FnConfKeywd::Point( FnConfKeywdValue {input: format!("input2"), type_: FnConfPointType::Unknown, data: format!("/path/Point.Name"), options: FnConfOptions {status: None, default: Some("0.753".to_owned())}} )),
             ("input3 point \"/path/Point.Name\"", FnConfKeywd::Point( FnConfKeywdValue {input: format!("input3"), type_: FnConfPointType::Unknown, data: format!("/path/Point.Name"), options: FnConfOptions::default()} )),
             ("input4 point bool /path/Point.Name default true", FnConfKeywd::Point( FnConfKeywdValue {input: format!("input4"), type_: FnConfPointType::Bool, data: format!("/path/Point.Name"), options: FnConfOptions {status: None, default: Some("true".to_owned())}} )),
@@ -135,9 +135,9 @@ mod fn_conf_keywd {
             ("input7 point string /path/Point.Name", FnConfKeywd::Point( FnConfKeywdValue {input: format!("input7"), type_: FnConfPointType::String, data: format!("/path/Point.Name"), options: FnConfOptions::default()} )),
         ];
         for (value, target) in test_data {
-            let fn_config_type = FnConfKeywd::from_str(value).unwrap();
-            debug!("value: {:?}   |   fnConfigType: {:?}   |   target: {:?}", value, fn_config_type, target);
-            assert_eq!(fn_config_type, target);
+            let result = FnConfKeywd::from_str(value).unwrap();
+            debug!("value: {:?}   |   fnConfigType: {:?}   |   target: {:?}", value, result, target);
+            assert!(result == target, "\nresult: {:?}\ntarget: {:?}", result, target);
         }
     }
 }
