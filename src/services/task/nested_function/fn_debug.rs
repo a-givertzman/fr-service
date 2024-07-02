@@ -59,8 +59,8 @@ impl FnOut for FnDebug {
     fn out(&mut self) -> FnResult<PointType, String> {
         let mut inputs = self.inputs.iter();
         let mut value: PointType;
-        let first = inputs.next().cloned();
-        match first {
+        // let first = .cloned();
+        match inputs.next() {
             Some(first) => {
                 let first = first.borrow_mut().out();
                 match first {
