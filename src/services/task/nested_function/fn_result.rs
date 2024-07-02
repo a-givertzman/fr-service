@@ -9,6 +9,14 @@ pub enum FnResult<T, E> {
 //
 //
 impl<T, E: std::fmt::Debug> FnResult<T, E> {
+    ///
+    /// Returns the contained [Ok] value, consuming the self value.
+    /// Otherwise panic.
+    ///
+    /// Because this function may panic, its use is generally discouraged.
+    /// Instead, prefer to use pattern matching and handle the [None] case explicitly,
+    /// or call unwrap_or, unwrap_or_else, or unwrap_or_default.
+    #[allow(unused)]
     pub fn unwrap(self) -> T {
         match self {
             Self::Ok(v) => v,
