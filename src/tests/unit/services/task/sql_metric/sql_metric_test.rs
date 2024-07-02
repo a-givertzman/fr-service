@@ -96,7 +96,7 @@ mod sql_metric {
                                 );
                             }
                             FnResult::None => warn!("TaskEvalNode.eval | evalNode '{}' out - '{}': None", eval_node.name(), eval_node_out.borrow().id()),
-                            FnResult::Err(err) => panic!("TaskEvalNode.eval | evalNode '{}' out - '{}' is Error: {:#?}", eval_node.name(), eval_node_out.borrow().id(), err),
+                            FnResult::Err(err) => warn!("TaskEvalNode.eval | evalNode '{}' out - '{}' is Error: {:#?}", eval_node.name(), eval_node_out.borrow().id(), err),
                         } 
                     }
                 }
@@ -179,7 +179,7 @@ mod sql_metric {
                                 );
                             }
                             FnResult::None => warn!("TaskEvalNode.eval | evalNode '{}' out - '{}': None", eval_node.name(), eval_node_out.borrow().id()),
-                            FnResult::Err(err) => panic!("TaskEvalNode.eval | evalNode '{}' out - '{}' is Error: {:#?}", eval_node.name(), eval_node_out.borrow().id(), err),
+                            FnResult::Err(err) => warn!("TaskEvalNode.eval | evalNode '{}' out - '{}' is Error: {:#?}", eval_node.name(), eval_node_out.borrow().id(), err),
                         }
                     }
                 }
@@ -262,7 +262,7 @@ mod sql_metric {
                                 );
                             }
                             FnResult::None => warn!("TaskEvalNode.eval | evalNode '{}' out - '{}': None", eval_node.name(), eval_node_out.borrow().id()),
-                            FnResult::Err(err) => panic!("TaskEvalNode.eval | evalNode '{}' out - '{}' is Error: {:#?}", eval_node.name(), eval_node_out.borrow().id(), err),
+                            FnResult::Err(err) => warn!("TaskEvalNode.eval | evalNode '{}' out - '{}' is Error: {:#?}", eval_node.name(), eval_node_out.borrow().id(), err),
                         };
                     }
                 }

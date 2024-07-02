@@ -1,4 +1,4 @@
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::{cell::RefCell, rc::Rc, sync::atomic::{AtomicUsize, Ordering}};
 use chrono::Utc;
 use log::trace;
 use crate::{
@@ -69,85 +69,103 @@ impl FnOut for FnAdd {
     //
     fn out(&mut self) -> FnResult<PointType, String> {
         let tx_id = PointTxId::from_str(&self.id);
-        let mut inputs = self.inputs.iter();
-        let mut value: PointType;
-        match inputs.next() {
+        let first = self.inputs.first();
+        let mut value: PointType = match first {
             Some(first) => {
-                value = match first.borrow_mut().out() {
+                let out = first.clone().borrow_mut().out();
+                match out {
                     FnResult::Ok(first) => first,
                     FnResult::None => return FnResult::None,
                     FnResult::Err(err) => return FnResult::Err(err),
-                };
-                while let Some(input) = inputs.next() {
-                    let input = input.borrow_mut().out();
-                    match input {
-                        FnResult::Ok(input) => {
-                            trace!("{}.out | input '{}': {:?}", self.id, input.name(), input.value());
-                            value = match &value {
-                                PointType::Bool(val) => {
-                                    let input_val = input.try_as_bool().unwrap_or_else(|_| panic!("{}.out | Incopatable types, expected '{:?}', but input '{}' has type '{:?}'", self.id, value.type_(), input.name(), input.type_()));
-                                    PointType::Bool(
-                                        Point::new(
-                                            tx_id,
-                                            &format!("{}.out", self.id),
-                                            Bool(val.value.0 | input_val.value.0),
-                                            Status::Ok,
-                                            Cot::Inf,
-                                            Utc::now(),
-                                        )
-                                    )
-                                }
-                                PointType::Int(val) => {
-                                    let input_val = input.try_as_int().unwrap_or_else(|_| panic!("{}.out | Incopatable types, expected '{:?}', but input '{}' has type '{:?}'", self.id, value.type_(), input.name(), input.type_()));
-                                    PointType::Int(
-                                        Point::new(
-                                            tx_id,
-                                            &format!("{}.out", self.id),
-                                            val.value + input_val.value,
-                                            Status::Ok,
-                                            Cot::Inf,
-                                            Utc::now(),
-                                        )
-                                    )
-                                }
-                                PointType::Real(val) => {
-                                    let input_val = input.try_as_real().unwrap_or_else(|_| panic!("{}.out | Incopatable types, expected '{:?}', but input '{}' has type '{:?}'", self.id, value.type_(), input.name(), input.type_()));
-                                    PointType::Real(
-                                        Point::new(
-                                            tx_id,
-                                            &format!("{}.out", self.id),
-                                            val.value + input_val.value,
-                                            Status::Ok,
-                                            Cot::Inf,
-                                            Utc::now(),
-                                        )
-                                    )
-                                }
-                                PointType::Double(val) => {
-                                    let input_val = input.try_as_double().unwrap_or_else(|_| panic!("{}.out | Incopatable types, expected '{:?}', but input '{}' has type '{:?}'", self.id, value.type_(), input.name(), input.type_()));
-                                    PointType::Double(
-                                        Point::new(
-                                            tx_id,
-                                            &format!("{}.out", self.id),
-                                            val.value + input_val.value,
-                                            Status::Ok,
-                                            Cot::Inf,
-                                            Utc::now(),
-                                        )
-                                    )
-                                }
-                                PointType::String(_) => {
-                                    panic!("{}.out | Not implemented for String", self.id);
-                                }
-                            };
-                        }
-                        FnResult::None => return FnResult::None,
-                        FnResult::Err(err) => return FnResult::Err(err),
-                    }
                 }
-            },
+            }
             None => panic!("{}.out | At least one input must be specified", self.id),
         };
+        let mut inputs = self.inputs.iter().skip(1);
+        let mut input = inputs.next().cloned();
+        while let Some(inp) = input {
+            let inp = inp.borrow_mut().out();
+            match inp {
+                FnResult::Ok(input) => {
+                    trace!("{}.out | input '{}': {:?}", self.id, input.name(), input.value());
+                    value = match &value {
+                        PointType::Bool(val) => {
+                            let input_val = input.try_as_bool().unwrap_or_else(|_| panic!("{}.out | Incopatable types, expected '{:?}', but input '{}' has type '{:?}'", self.id, value.type_(), input.name(), input.type_()));
+                            PointType::Bool(
+                                Point::new(
+                                    tx_id,
+                                    &format!("{}.out", self.id),
+                                    Bool(val.value.0 | input_val.value.0),
+                                    Status::Ok,
+                                    Cot::Inf,
+                                    Utc::now(),
+                                )
+                            )
+                        }
+                        PointType::Int(val) => {
+                            let input_val = input.try_as_int().unwrap_or_else(|_| panic!("{}.out | Incopatable types, expected '{:?}', but input '{}' has type '{:?}'", self.id, value.type_(), input.name(), input.type_()));
+                            PointType::Int(
+                                Point::new(
+                                    tx_id,
+                                    &format!("{}.out", self.id),
+                                    val.value + input_val.value,
+                                    Status::Ok,
+                                    Cot::Inf,
+                                    Utc::now(),
+                                )
+                            )
+                        }
+                        PointType::Real(val) => {
+                            let input_val = input.try_as_real().unwrap_or_else(|_| panic!("{}.out | Incopatable types, expected '{:?}', but input '{}' has type '{:?}'", self.id, value.type_(), input.name(), input.type_()));
+                            PointType::Real(
+                                Point::new(
+                                    tx_id,
+                                    &format!("{}.out", self.id),
+                                    val.value + input_val.value,
+                                    Status::Ok,
+                                    Cot::Inf,
+                                    Utc::now(),
+                                )
+                            )
+                        }
+                        PointType::Double(val) => {
+                            let input_val = input.try_as_double().unwrap_or_else(|_| panic!("{}.out | Incopatable types, expected '{:?}', but input '{}' has type '{:?}'", self.id, value.type_(), input.name(), input.type_()));
+                            PointType::Double(
+                                Point::new(
+                                    tx_id,
+                                    &format!("{}.out", self.id),
+                                    val.value + input_val.value,
+                                    Status::Ok,
+                                    Cot::Inf,
+                                    Utc::now(),
+                                )
+                            )
+                        }
+                        PointType::String(_) => {
+                            panic!("{}.out | Not implemented for String", self.id);
+                        }
+                    };
+                }
+                FnResult::None => return FnResult::None,
+                FnResult::Err(err) => return FnResult::Err(err),
+            }
+            input = inputs.next().cloned();
+        }
+        // match input {
+        //     Some(first) => {
+        //         let out = first.borrow_mut().out();
+        //         value = match out {
+        //             FnResult::Ok(first) => first,
+        //             FnResult::None => return FnResult::None,
+        //             FnResult::Err(err) => return FnResult::Err(err),
+        //         };
+        //         input = inputs.next().cloned();
+        //         while let Some(inp) = input {
+        //             input = inputs.next().cloned();
+        //         }
+        //     },
+        //     None => panic!("{}.out | At least one input must be specified", self.id),
+        // };
         // trace!("{}.out | value: {:#?}", self.id, value);
         FnResult::Ok(value)
     }

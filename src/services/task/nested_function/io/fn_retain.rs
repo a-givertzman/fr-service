@@ -279,7 +279,41 @@ impl FnOut for FnRetain {
                     FnResult::Err(err) => FnResult::Err(err),
                 }
             }
-            None => FnResult::None
+            None => {
+                let default = match &self.default {
+                    Some(default) => {
+                        let default = default.borrow_mut().out();
+                        trace!("{}.out | default: {:?}", self.id, default);
+                        match default {
+                            FnResult::Ok(default) => default,
+                            FnResult::None => return FnResult::None,
+                            FnResult::Err(err) => return FnResult::Err(err),
+                        }
+                    }
+                    None => panic!("{}.out | The [default] input is not specified", self.id),
+                };
+                if self.every_cycle {
+                    let point = match self.load(default.type_()) {
+                        Some(point) => point,
+                        None => default,
+                    };
+                    trace!("{}.out | every cycle: {} \t loaded '{}': \n\t{:?}", self.id, self.every_cycle, self.key, point);
+                    FnResult::Ok(point)
+                } else {
+                    let point = match &self.cache {
+                        Some(point) => point.clone(),
+                        None => match self.load(default.type_()) {
+                            Some(point) => {
+                                point
+                            }
+                            None => default,
+                        }
+                    };
+                    self.cache = Some(point.clone());
+                    trace!("{}.out | every cycle: {} \t loaded '{}': \n\t{:?}", self.id, self.every_cycle, self.key, point);
+                    FnResult::Ok(point)
+                }
+            }
         }
     }
     //

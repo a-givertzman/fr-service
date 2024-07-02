@@ -175,7 +175,7 @@ impl FnOut for FnExport {
             None => true,
         };
         let input = self.input.borrow_mut().out();
-        trace!("{}.out | input: {:?}", self.id, input);
+        debug!("{}.out | input: {:?}", self.id, input);
         match input {
             FnResult::Ok(input) => {
                 if enable {
